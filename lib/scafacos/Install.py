@@ -1,116 +1,122 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the Scafacos library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, build, and link to the ScaFaCoS library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
+import sys, os, subprocess, shutil, tarfile
+from argparse import ArgumentParser
+
 sys.path.append('..')
-from install_helpers import error,fullpath,which,geturl
+from install_helpers import fullpath, geturl, get_cpus, checkmd5sum
 
-# help message
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
 
-help = """
+# settings
+
+version = "1.0.1"
+url = "https://github.com/scafacos/scafacos/releases/download/v%s/scafacos-%s.tar.gz" % (version, version)
+
+# known checksums for different ScaFaCoS versions. used to validate the download.
+checksums = { \
+        '1.0.1' : 'bd46d74e3296bd8a444d731bb10c1738' \
+        }
+
+# extra help message
+
+HELP = """
 Syntax from src dir: make lib-scafacos args="-b"
                  or: make lib-scafacos args="-p /usr/local/scafacos"
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/local/scafacos
 
-specify zero or more options, order does not matter
-
-  -b = download and build the Scafacos library
-  -p = specify folder of existing Scafacos installation
-
-   always creates includelink, liblink to Scafacos dirs
-
 Example:
 
 make lib-scafacos args="-b"   # download/build in lib/scafacos/scafacos
-make lib-scafacos args="-p $HOME/scafacos" # use existing Scafacos installation in $HOME
+make lib-scafacos args="-p $HOME/scafacos" # use existing ScaFaCoS installation in $HOME
 """
 
-# settings
+# parse and process arguments
 
-version = "scafacos-1.0.1"
-url = "https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz"
-#url = "https://gigamove.rz.rwth-aachen.de/d/id/CTzyApN76MXMJ6/dd/100" % version
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the ScaFaCoS library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing ScaFaCoS installation")
+parser.add_argument("-v", "--version", default=version,
+                    help="set version of ScaFaCoS to download and build (default: %s)" % version)
 
-# parse args
+args = parser.parse_args()
 
-args = sys.argv[1:]
-nargs = len(args)
+# print help message and exit, if neither build nor path options are given
+if not args.build and not args.path:
+  parser.print_help()
+  sys.exit(HELP)
 
-homepath = "."
+buildflag = args.build
+pathflag = args.path is not None
+version = args.version
 
-buildflag = True 
-pathflag = False
-linkflag = True
+homepath = fullpath(".")
+scafacospath = os.path.join(homepath, "scafacos-%s" % version)
 
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    scafacospath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
+if pathflag:
+  scafacospath = args.path
+  if not os.path.isdir(os.path.join(scafacospath, "include")):
+    sys.exit("ScaFaCoS include path for %s does not exist" % scafacospath)
+  if (not os.path.isdir(os.path.join(scafacospath, "lib64"))) \
+     and (not os.path.isdir(os.path.join(scafacospath, "lib"))):
+    sys.exit("ScaFaCoS lib path for %s does not exist" % scafacospath)
+  scafacospath = fullpath(scafacospath)
 
-homepath = fullpath(homepath)
-homedir = "%s/%s" % (homepath,version)
-
-if (pathflag):
-    if not os.path.isdir(scafacospath): error("Scafacos path does not exist")
-    homedir =scafacospath
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-# download and unpack Scafacos tarball
+# download and unpack ScaFaCoS tarball
 
 if buildflag:
-  print("Downloading Scafacos ...")
-  geturl(url,"%s/%s.tar.gz" % (homepath,version))
+  print("Downloading ScaFaCoS ...")
+  geturl(url, "%s/scafacos-%s.tar.gz" % (homepath, version))
 
-  print("Unpacking Scafacos tarball ...")
-  if os.path.exists("%s/%s" % (homepath,version)):
-    shutil.rmtree("%s/%s" % (homepath,version))
-  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s.tar.gz" % (homepath,version))
-  if os.path.basename(homedir) != version:
-    if os.path.exists(homedir):
-      shutil.rmtree(homedir)
-    os.rename("%s/%s" % (homepath,version),homedir)
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    if not checkmd5sum(checksums[version], '%s/scafacos-%s.tar.gz' % (homepath, version)):
+      sys.exit("Checksum for ScaFaCoS library does not match")
 
-# build Scafacos
+  print("Unpacking ScaFaCoS tarball ...")
+  if os.path.exists(scafacospath):
+    shutil.rmtree(scafacospath)
+  tarname = os.path.join(homepath, "%s.tar.gz" % scafacospath)
+  if tarfile.is_tarfile(tarname):
+    tgz = tarfile.open(tarname)
+    tgz.extractall(path=homepath)
+    os.remove(tarname)
+  else:
+    sys.exit("File %s is not a supported archive" % tarname)
 
-if buildflag:
-  print("Building Scafacos ...")
-  n_cpu = get_gpus()
-  cmd = 'cd "%s"; ./configure --prefix="%s/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (homedir,homedir,n_cpu)
+  # build ScaFaCoS
+  print("Building ScaFaCoS ...")
+  n_cpu = get_cpus()
+  cmd = 'cd "%s"; ./configure --prefix="%s" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (scafacospath, os.path.join(homepath, 'build'), n_cpu)
   try:
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
-    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
-    sys.exit(1)
+    sys.exit("Make failed with:\n %s" % e.output.decode('UTF-8'))
 
-# create 2 links in lib/scafacos to Scafacos include/lib dirs
+# create 2 links in lib/scafacos to ScaFaCoS include/lib dirs
 
-if linkflag:
-  print("Creating links to Scafacos include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/build/include" includelink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/build/lib" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating links to ScaFaCoS include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+if buildflag:
+  os.symlink(os.path.join(homepath, 'build', 'include'), 'includelink')
+  os.symlink(os.path.join(homepath, 'build', 'lib'), 'liblink')
+else:
+  os.symlink(os.path.join(scafacospath, 'include'), 'includelink')
+  if os.path.isdir(os.path.join(scafacospath, "lib64")):
+    os.symlink(os.path.join(scafacospath, 'lib64'), 'liblink')
+  else:
+    os.symlink(os.path.join(scafacospath, 'lib'), 'liblink')

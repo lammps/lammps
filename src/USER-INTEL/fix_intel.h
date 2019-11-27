@@ -495,9 +495,9 @@ E: Currently, neighbor style BIN must be used with Intel package.
 This is the only neighbor style that has been implemented for the Intel
 package.
 
-E: Currently, cannot use neigh_modify exclude with Intel package.
+E: Currently, cannot use neigh_modify exclude with Intel package offload.
 
-This is a current restriction of the Intel package.
+This is a current restriction of the Intel package when built for offload.
 
 W: Unknown Intel Compiler Version
 

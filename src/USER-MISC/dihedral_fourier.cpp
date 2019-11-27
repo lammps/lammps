@@ -16,20 +16,18 @@
    [ based on dihedral_charmm.cpp Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
+#include "dihedral_fourier.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_fourier.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "pair.h"
 #include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,8 +77,7 @@ void DihedralFourier::compute(int eflag, int vflag)
   double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;
   double c,s,p_,sx2,sy2,sz2;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -368,7 +365,7 @@ void DihedralFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    fread(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -383,9 +380,9 @@ void DihedralFourier::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      fread(k[i],sizeof(double),nterms[i],fp);
-      fread(multiplicity[i],sizeof(int),nterms[i],fp);
-      fread(shift[i],sizeof(double),nterms[i],fp);
+      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,NULL,error);
     }
   }
 

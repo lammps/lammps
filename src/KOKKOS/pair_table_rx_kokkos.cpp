@@ -15,11 +15,10 @@
    Contributing author: Dan Ibanez (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_rx_kokkos.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "pair_table_rx_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
 #include "force.h"
@@ -619,8 +618,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -1301,7 +1299,7 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairTableRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairTableRXKokkos<LMPHostType>;
 #endif
 

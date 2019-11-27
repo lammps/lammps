@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_press_berendsen.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -23,7 +22,6 @@
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
 

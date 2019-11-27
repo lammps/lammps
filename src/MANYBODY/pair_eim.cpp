@@ -15,11 +15,10 @@
    Contributing author: Xiaowang Zhou (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eim.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -27,6 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -113,8 +113,7 @@ void PairEIM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy array if necessary
 
@@ -968,11 +967,11 @@ int PairEIM::grabpair(FILE *fptr, int i, int j)
           sscanf(data,"%lg %lg %lg %lg %lg",
             &setfl->rcutphiA[ij],&setfl->rcutphiR[ij],
             &setfl->Eb[ij],&setfl->r0[ij],&setfl->alpha[ij]);
-          fgets(line,MAXLINE,fptr);
+          utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
           sscanf(line,"%lg %lg %lg %lg %lg",
             &setfl->beta[ij],&setfl->rcutq[ij],&setfl->Asigma[ij],
             &setfl->rq[ij],&setfl->rcutsigma[ij]);
-          fgets(line,MAXLINE,fptr);
+          utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
           sscanf(line,"%lg %lg %lg %d",
             &setfl->Ac[ij],&setfl->zeta[ij],&setfl->rs[ij],
             &setfl->tp[ij]);

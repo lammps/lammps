@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 
-# Install.py tool to build the GPU library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to build the GPU library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,subprocess
+import sys, os, subprocess, shutil
+from argparse import ArgumentParser
+
 sys.path.append('..')
-from install_helpers import error,get_cpus
+from install_helpers import get_cpus
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
 
 # help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-gpu args="-m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix"
 Syntax from lib dir: python Install.py -m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix
 
@@ -23,28 +30,8 @@ optionally uses Makefile.auto to build the GPU library -> libgpu.a
   and to copy a Makefile.lammps.esuffix -> Makefile.lammps
 optionally copies Makefile.auto to a new Makefile.osuffix
 
-  -m = use Makefile.machine as starting point, copy to Makefile.auto
-       default machine = linux
-       default for -h, -a, -p, -e settings are those in -m Makefile
-  -h = set CUDA_HOME variable in Makefile.auto to hdir
-       hdir = path to NVIDIA Cuda software, e.g. /usr/local/cuda
-  -a = set CUDA_ARCH variable in Makefile.auto to arch
-       use arch = sm_20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0)
-                        or GeForce GTX 580 or similar
-       use arch = sm_30 for Kepler (K10)
-       use arch = sm_35 for Kepler (K40) or GeForce GTX Titan or similar
-       use arch = sm_37 for Kepler (dual K80)
-       use arch = sm_60 for Pascal (P100)
-       use arch = sm_70 for Volta
-  -p = set CUDA_PRECISION variable in Makefile.auto to precision
-       use precision = double or mixed or single
-  -e = set EXTRAMAKE variable in Makefile.auto to Makefile.lammps.esuffix
-  -b = make the GPU library using Makefile.auto
-       first performs a "make clean"
-       then produces libgpu.a if successful
-       also copies EXTRAMAKE file -> Makefile.lammps
-         -e can set which Makefile.lammps.esuffix file is copied
-  -o = copy final Makefile.auto to Makefile.osuffix
+See lib/gpu/README and the LAMMPS manual for more information
+on which settings to use and how to build.
 
 Examples:
 
@@ -53,67 +40,68 @@ make lib-gpu args="-m xk7 -p single -o xk7.single"      # create new Makefile.xk
 make lib-gpu args="-m mpi -a sm_35 -p single -o mpi.mixed -b" # create new Makefile.mpi.mixed, also build GPU lib with these settings
 """
 
-# parse args
+# parse and process arguments
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
+parser.add_argument("-b", "--build", action="store_true",
+                    help="build the GPU library from scratch from a customized Makefile.auto")
+parser.add_argument("-m", "--machine", default='linux',
+                    help="suffix of Makefile.machine used as base for customizing Makefile.auto")
+parser.add_argument("-a", "--arch", default='sm_30',
+                    choices=['sm_12', 'sm_13', 'sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_37',
+                             'sm_50', 'sm_52', 'sm_60', 'sm_61', 'sm_70', 'sm_75'],
+                    help="set GPU architecture and instruction set (default: 'sm_30')")
+parser.add_argument("-p", "--precision", default='mixed', choices=['single', 'mixed', 'double'],
+                    help="set GPU kernel precision mode (default: mixed)")
+parser.add_argument("-e", "--extramake", default='standard',
+                    help="set EXTRAMAKE variable in Makefile.auto to Makefile.lammps.<extramake>")
+parser.add_argument("-c", "--cuda",
+                    help="set CUDA_HOME variable in Makefile.auto. Will be used if $CUDA_HOME environment variable is not set")
+parser.add_argument("-o", "--output",
+                    help="if set, copy final Makefile.auto to Makefile.<output> for later re-use")
 
-isuffix = "linux"
-hflag = aflag = pflag = eflag = 0
+args = parser.parse_args()
+
+# print help message and exit, if neither build nor output options are given
+if not args.build and not args.output:
+  parser.print_help()
+  sys.exit(HELP)
+
+hflag = 0
+eflag = 0
 makeflag = 0
 outflag = 0
 
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-m":
-    if iarg+2 > nargs: error(help=help)
-    isuffix = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-h":
-    if iarg+2 > nargs: error(help=help)
-    hflag = 1
-    hdir = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-a":
-    if iarg+2 > nargs: error(help=help)
-    aflag = 1
-    arch = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    pflag = 1
-    precision = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-e":
-    if iarg+2 > nargs: error(help=help)
-    eflag = 1
-    lmpsuffix = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-b":
-    makeflag = 1
-    iarg += 1
-  elif args[iarg] == "-o":
-    if iarg+2 > nargs: error(help=help)
-    outflag = 1
-    osuffix = args[iarg+1]
-    iarg += 2
-  else: error(help=help)
+if args.build:
+  makeflag = 1
 
-if pflag:
-  if precision == "double": precstr = "-D_DOUBLE_DOUBLE"
-  elif precision == "mixed": precstr = "-D_SINGLE_DOUBLE"
-  elif precision == "single": precstr = "-D_SINGLE_SINGLE"
-  else: error("Invalid precision setting")
+isuffix = args.machine
+arch = args.arch
+
+if args.precision == "double":
+  precstr = "-D_DOUBLE_DOUBLE"
+elif args.precision == "mixed":
+  precstr = "-D_SINGLE_DOUBLE"
+else:
+  precstr = "-D_SINGLE_SINGLE"
+
+lmpsuffix = args.extramake
+
+if args.cuda:
+  hflag = 1
+  hdir = args.cuda
+
+if args.output:
+  outflag = 1
+  osuffix = args.output
 
 # create Makefile.auto
 # reset EXTRAMAKE, CUDA_HOME, CUDA_ARCH, CUDA_PRECISION if requested
 
 if not os.path.exists("Makefile.%s" % isuffix):
-  error("lib/gpu/Makefile.%s does not exist" % isuffix)
+  sys.exit("lib/gpu/Makefile.%s does not exist" % isuffix)
 
-lines = open("Makefile.%s" % isuffix,'r').readlines()
-fp = open("Makefile.auto",'w')
+lines = open("Makefile.%s" % isuffix, 'r').readlines()
+fp = open("Makefile.auto", 'w')
 
 for line in lines:
   words = line.split()
@@ -122,13 +110,13 @@ for line in lines:
     continue
 
   if hflag and words[0] == "CUDA_HOME" and words[1] == '=':
-    line = line.replace(words[2],hdir)
-  if aflag and words[0] == "CUDA_ARCH" and words[1] == '=':
-    line = line.replace(words[2],"-arch=%s" % arch)
-  if pflag and words[0] == "CUDA_PRECISION" and words[1] == '=':
-    line = line.replace(words[2],precstr)
+    line = line.replace(words[2], hdir)
+  if words[0] == "CUDA_ARCH" and words[1] == '=':
+    line = line.replace(words[2], "-arch=%s" % arch)
+  if words[0] == "CUDA_PRECISION" and words[1] == '=':
+    line = line.replace(words[2], precstr)
   if eflag and words[0] == "EXTRAMAKE" and words[1] == '=':
-    line = line.replace(words[2],"Makefile.lammps.%s" % lmpsuffix)
+    line = line.replace(words[2], "Makefile.lammps.%s" % lmpsuffix)
 
   fp.write(line)
 fp.close()
@@ -143,20 +131,19 @@ if makeflag:
   n_cpus = get_cpus()
   cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
   try:
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
     sys.exit(1)
 
   if not os.path.exists("libgpu.a"):
-    error("Build of lib/gpu/libgpu.a was NOT successful")
+    sys.exit("Build of lib/gpu/libgpu.a was NOT successful")
   if not os.path.exists("Makefile.lammps"):
-    error("lib/gpu/Makefile.lammps was NOT created")
+    sys.exit("lib/gpu/Makefile.lammps was NOT created")
 
 # copy new Makefile.auto to Makefile.osuffix
 
 if outflag:
   print("Creating new Makefile.%s" % osuffix)
-  cmd = "cp Makefile.auto Makefile.%s" % osuffix
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  shutil.copyfile("Makefile.auto", "Makefile.%s" % osuffix)

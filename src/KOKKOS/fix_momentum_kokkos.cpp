@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_momentum_kokkos.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_momentum_kokkos.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain.h"
@@ -199,7 +199,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
 namespace LAMMPS_NS {
 template class FixMomentumKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixMomentumKokkos<LMPHostType>;
 #endif
 }

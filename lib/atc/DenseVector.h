@@ -31,8 +31,10 @@ public:
   // overloaded inline virtual functions
   T  operator[](INDEX i) const { VICK(i) return _data[i]; }
   T& operator[](INDEX i)       { VICK(i) return _data[i]; }
-  T  operator()(INDEX i, INDEX j=0) const { VICK(i) return _data[i]; }
-  T& operator()(INDEX i, INDEX j=0)       { VICK(i) return _data[i]; }
+  T  operator()(INDEX i, INDEX /* j */) const { VICK(i) return _data[i]; }
+  T& operator()(INDEX i, INDEX /* j */)       { VICK(i) return _data[i]; }
+  T  operator()(INDEX i) const { VICK(i) return _data[i]; }
+  T& operator()(INDEX i)       { VICK(i) return _data[i]; }
   void set_all_elements_to(const T &v)    { 
                                             int sz = this->size();
                                             for (INDEX i = 0; i < sz; i++) _data[i] = v;
@@ -62,7 +64,7 @@ private:
 // resizes the matrix and optionally copies over what still fits, ignores cols
 //-----------------------------------------------------------------------------
 template <typename T>
-void DenseVector<T>::resize(INDEX rows, INDEX cols, bool copy)
+  void DenseVector<T>::resize(INDEX rows, INDEX /* cols */, bool copy)
 {
   if (_size==rows) return;  // if is correct size, done
   if (!copy)

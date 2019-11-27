@@ -21,17 +21,17 @@ namespace ATC {
     public:
       ElectronChargeDensity()   {};
       virtual ~ElectronChargeDensity() {};
-      virtual bool electron_charge_density(const FIELD_MATS &fields,
-                                           DENS_MAT &flux) const { return false; };
+      virtual bool electron_charge_density(const FIELD_MATS & /* fields */,
+                                           DENS_MAT & /* flux */) const { return false; };
 
       
-      virtual void D_electron_charge_density(const FieldName fieldName, 
-                                             const FIELD_MATS &fields,
-                                             DENS_MAT &flux) const 
+      virtual void D_electron_charge_density(const FieldName /* fieldName */, 
+                                             const FIELD_MATS & /* fields */,
+                                             DENS_MAT & /* flux */) const 
         { throw ATC_Error("Charge density D_electron_charge_density unimplemented function");}
 
-      virtual void band_edge_potential(const FIELD_MATS &fields,
-                                       DENS_MAT &density) const
+      virtual void band_edge_potential(const FIELD_MATS & /* fields */,
+                                       DENS_MAT & /* density */) const
         { throw ATC_Error("Charge density band_edge_potential unimplemented function");}
   };
   //-----------------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace ATC {
         flux *= -1.;
         return true;
       }; 
-      virtual void D_electron_charge_density(const FieldName field,
+      virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
       {
@@ -94,7 +94,7 @@ namespace ATC {
         flux *= -C_;
         return true;
       }; 
-      virtual void D_electron_charge_density(const FieldName field,
+      virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
       {
@@ -150,7 +150,7 @@ namespace ATC {
         density *= -1.;
         return true;
       }; 
-      virtual void D_electron_charge_density(const FieldName field,
+      virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
       {
@@ -235,7 +235,7 @@ namespace ATC {
         }
         return true;
       }; 
-      virtual void D_electron_charge_density(const FieldName fieldName, 
+      virtual void D_electron_charge_density(const FieldName /* fieldName */, 
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
       {

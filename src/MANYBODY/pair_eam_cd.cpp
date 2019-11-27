@@ -17,15 +17,14 @@
                         Germany Department of Materials Science
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_cd.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_cd.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -73,8 +72,7 @@ void PairEAMCD::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Grow per-atom arrays if necessary
 

@@ -16,10 +16,10 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
+#include "angle_class2_p6.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "angle_class2_p6.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -28,6 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,8 +80,7 @@ void AngleClass2P6::compute(int eflag, int vflag)
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -386,21 +386,21 @@ void AngleClass2P6::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k2[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k3[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k4[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k5[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k6[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k5[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k6[1],sizeof(double),atom->nangletypes,fp,NULL,error);
 
-    fread(&bb_k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&bb_r1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&bb_r2[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
 
-    fread(&ba_k1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_k2[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_r1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_r2[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
 
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

@@ -115,7 +115,7 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, do
 
 namespace LAMMPS_NS {
 template class FixGravityKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixGravityKokkos<LMPHostType>;
 #endif
 }

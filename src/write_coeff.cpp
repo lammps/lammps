@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_coeff.h"
 #include <cstring>
 #include <cstdlib>
+#include <cctype>
 #include <unistd.h>
-#include "write_coeff.h"
 #include "pair.h"
 #include "bond.h"
 #include "angle.h"
@@ -25,6 +26,7 @@
 #include "universe.h"
 #include "error.h"
 #include "domain.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -112,18 +114,18 @@ void WriteCoeff::command(int narg, char **arg)
 
       const char *section = (const char *)"";
       fputs(str,two);      // style
-      fgets(str,256,one);  // coeff
+      utils::sfgets(FLERR,str,256,one,file,error);  // coeff
       n = strlen(str);
       strcpy(coeff,str);
       coeff[n-1] = '\0';
-      fgets(str,256,one);
+      utils::sfgets(FLERR,str,256,one,file,error);
 
       while (strcmp(str,"end\n") != 0) {
 
         if (coeff_mode == REGULAR_MODE) {
 
           fprintf(two,"%s %s",coeff,str);
-          fgets(str,256,one);
+          utils::sfgets(FLERR,str,256,one,file,error);
 
         } else if (coeff_mode == CLASS2_MODE) {
 
@@ -135,7 +137,7 @@ void WriteCoeff::command(int narg, char **arg)
             // all but the the last section end with an empty line.
             // skip it and read and parse the next section title
 
-            fgets(str,256,one);
+            utils::sfgets(FLERR,str,256,one,file,error);
 
             if (strcmp(str,"BondBond Coeffs\n") == 0)
               section = (const char *)"bb";
@@ -154,8 +156,9 @@ void WriteCoeff::command(int narg, char **arg)
             else if (strcmp(str,"AngleAngle Coeffs\n") == 0)
               section = (const char *)"aa";
 
-            fgets(str,256,one);   // gobble up one more empty line
-            fgets(str,256,one);
+            // gobble up one more empty line
+            utils::sfgets(FLERR,str,256,one,file,error);
+            utils::sfgets(FLERR,str,256,one,file,error);
           }
 
           // parse type number and skip over it
@@ -165,7 +168,7 @@ void WriteCoeff::command(int narg, char **arg)
           while ((*p != '\0') && isdigit(*p)) ++p;
 
           fprintf(two,"%s %d %s %s",coeff,type,section,p);
-          fgets(str,256,one);
+          utils::sfgets(FLERR,str,256,one,file,error);
         }
       }
       fputc('\n',two);

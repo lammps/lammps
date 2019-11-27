@@ -30,7 +30,7 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax',
+    'sphinx.ext.mathjax', 'sphinx.ext.imgmath'
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -201,6 +201,11 @@ htmlhelp_basename = 'LAMMPSdoc'
 
 html_add_permalinks = ''
 
+if 'epub' in sys.argv:
+  html_math_renderer = 'imgmath'
+else:
+  html_math_renderer = 'mathjax'
+
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -211,7 +216,9 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': r'''
+\setcounter{tocdepth}{2}
+'''
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -219,7 +226,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('Manual', 'LAMMPS.tex', 'LAMMPS Documentation',
-   'Steve Plimpton', 'manual'),
+   'The LAMMPS Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -229,7 +236,7 @@ latex_documents = [
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 #latex_use_parts = False
-
+latex_toplevel_sectioning = 'part'
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
 
@@ -310,3 +317,9 @@ if spelling_spec:
 
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+import LAMMPSLexer
+from sphinx.highlighting import lexers
+
+lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)

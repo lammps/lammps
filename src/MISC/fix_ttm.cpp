@@ -16,16 +16,14 @@
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
 
+#include "fix_ttm.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ttm.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"

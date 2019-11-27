@@ -23,7 +23,11 @@
 /// 3. Static features are static properties of the object, determined
 ///   programatically at initialization time.
 ///
-/// In all classes, feature 0 is active. When an object is inactivated
+/// The following diagram summarizes the dependency tree at the bias, colvar, and colvarcomp levels.
+/// Isolated and atom group features are not shown to save space.
+/// @image html deps_2019.svg
+///
+/// In all classes, feature 0 is `active`. When an object is inactivated
 /// all its children dependencies are dereferenced (free_children_deps)
 /// While the object is inactive, no dependency solving is done on children
 /// it is done when the object is activated back (restore_children_deps)
@@ -72,7 +76,6 @@ protected:
   /// Unused by lower-level objects (cvcs and atom groups)
   int   time_step_factor;
 
-private:
   /// List of the states of all features
   std::vector<feature_state> feature_states;
 
@@ -89,14 +92,14 @@ public:
   inline int get_time_step_factor() const {return time_step_factor;}
 
   /// Pair a numerical feature ID with a description and type
-  void init_feature(int feature_id, const char *description, feature_type type = f_type_not_set);
+  void init_feature(int feature_id, const char *description, feature_type type);
 
   /// Describes a feature and its dependencies
   /// used in a static array within each subclass
   class feature {
 
   public:
-    feature() {}
+    feature() : type(f_type_not_set) {}
     ~feature() {}
 
     std::string description; // Set by derived object initializer
@@ -126,6 +129,7 @@ public:
     feature_type type;
   };
 
+  inline bool is_not_set(int id) { return features()[id]->type == f_type_not_set; }
   inline bool is_dynamic(int id) { return features()[id]->type == f_type_dynamic; }
   inline bool is_static(int id) { return features()[id]->type == f_type_static; }
   inline bool is_user(int id) { return features()[id]->type == f_type_user; }
@@ -135,7 +139,7 @@ public:
   // with a non-static array
   // Intermediate classes (colvarbias and colvarcomp, which are also base classes)
   // implement this as virtual to allow overriding
-  virtual const std::vector<feature *>&features() = 0;
+  virtual const std::vector<feature *> &features() const = 0;
   virtual std::vector<feature *>&modify_features() = 0;
 
   void add_child(colvardeps *child);
@@ -188,10 +192,12 @@ protected:
 
 public:
 
-  /// enable a feature and recursively solve its dependencies
-  /// for proper reference counting, one should not add
-  /// spurious calls to enable()
-  /// dry_run is set to true to recursively test if a feature is available, without enabling it
+  /// Enable a feature and recursively solve its dependencies.
+  /// For accurate reference counting, do not add spurious calls to enable()
+  /// \param dry_run Recursively test if a feature is available, without enabling it
+  /// \param toplevel False if this is called as part of a chain of dependency resolution.
+  /// This is used to diagnose failed dependencies by displaying the full stack:
+  /// only the toplevel dependency will throw a fatal error.
   int enable(int f, bool dry_run = false, bool toplevel = true);
 
   /// Disable a feature, decrease the reference count of its dependencies
@@ -318,8 +324,8 @@ public:
     f_cvc_active,
     f_cvc_scalar,
     f_cvc_gradient,
-    /// \brief CVC doesn't calculate and store explicit atom gradients
-    f_cvc_implicit_gradient,
+    /// \brief CVC calculates and stores explicit atom gradients
+    f_cvc_explicit_gradient,
     f_cvc_inv_gradient,
     /// \brief If enabled, calc_gradients() will call debug_gradients() for every group needed
     f_cvc_debug_gradient,
@@ -341,7 +347,7 @@ public:
     /// ie. not using refpositionsgroup
 //     f_ag_min_msd_fit,
     /// \brief Does not have explicit atom gradients from parent CVC
-    f_ag_implicit_gradient,
+    f_ag_explicit_gradient,
     f_ag_fit_gradients,
     f_ag_atom_forces,
     f_ag_scalable,
@@ -349,13 +355,39 @@ public:
     f_ag_ntot
   };
 
-  void init_cvb_requires();
-  void init_cv_requires();
-  void init_cvc_requires();
-  void init_ag_requires();
+  /// Initialize dependency tree for object of a derived class
+  virtual int init_dependencies() = 0;
+
+  /// Make feature f require feature g within the same object
+  void require_feature_self(int f, int g);
+
+  /// Make features f and g mutually exclusive within the same object
+  void exclude_feature_self(int f, int g);
+
+  /// Make feature f require feature g within children
+  void require_feature_children(int f, int g);
+
+  /// Make feature f require either g or h within the same object
+  void require_feature_alt(int f, int g, int h);
+
+  /// Make feature f require any of g, h, or i within the same object
+  void require_feature_alt(int f, int g, int h, int i);
+
+  /// Make feature f require any of g, h, i, or j within the same object
+  void require_feature_alt(int f, int g, int h, int i, int j);
 
   /// \brief print all enabled features and those of children, for debugging
   void print_state();
+
+  /// \brief Check that a feature is enabled, raising BUG_ERROR if not
+  inline void check_enabled(int f, std::string const &reason) const
+  {
+    if (! is_enabled(f)) {
+      cvm::error("Error: "+reason+" requires that the feature \""+
+                 features()[f]->description+"\" is active.\n", BUG_ERROR);
+    }
+  }
+
 };
 
 #endif

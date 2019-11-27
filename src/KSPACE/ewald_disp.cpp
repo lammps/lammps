@@ -15,12 +15,10 @@
    Contributing authors: Pieter in 't Veld (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -133,6 +131,7 @@ void EwaldDisp::init()
           else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
           error->all(FLERR,
                      "Unsupported mixing rule in kspace_style ewald/disp");
+          break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }
@@ -688,8 +687,7 @@ void EwaldDisp::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
       allocate_peratom();

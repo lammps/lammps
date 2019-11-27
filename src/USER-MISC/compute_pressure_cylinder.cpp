@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_cylinder.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -22,7 +21,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
@@ -63,7 +61,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Rmax=force->numeric(FLERR,arg[5]);
   bin_width=force->numeric(FLERR,arg[6]);
 
-  if ((bin_width <= 0.0) || (bin_width < Rmax))
+  if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
   if ((zhi < zlo) || ((zhi-zlo) < bin_width))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -76,7 +74,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   // NOTE: at 2^22 = 4.2M bins, we will be close to exhausting allocatable
   // memory on a 32-bit environment. so we use this as an upper limit.
 
-  if ((nbins < 1) || (nzbins < 1) || (nbins > 2>>22) || (nbins > 2>>22))
+  if ((nbins < 1) || (nzbins < 1) || (nbins > 2<<22) || (nzbins > 2<<22))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   array_flag=1;

@@ -22,9 +22,6 @@ FixStyle(rigid/small,FixRigidSmall)
 
 #include "fix.h"
 
-// replace this later
-#include <map>
-
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
@@ -75,9 +72,8 @@ class FixRigidSmall : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  double MINUSPI,TWOPI;
 
-  char *infile;             // file to read rigid body attributes from
+  char *inpfile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
   int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
@@ -132,9 +128,6 @@ class FixRigidSmall : public Fix {
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
-
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
@@ -180,12 +173,20 @@ class FixRigidSmall : public Fix {
 
   // class data used by ring communication callbacks
 
-  std::map<tagint,int> *hash;
-  double **bbox;
-  double **ctr;
-  tagint *idclose;
-  double *rsqclose;
   double rsqfar;
+
+  struct InRvous {
+    int me,ilocal;
+    tagint atomID,bodyID;
+    double x[3];
+  };
+
+  struct OutRvous {
+    int ilocal;
+    tagint atomID;
+  };
+
+  // local methods
 
   void image_shift();
   void set_xv();
@@ -199,11 +200,9 @@ class FixRigidSmall : public Fix {
   void grow_body();
   void reset_atom2body();
 
-  // callback functions for ring communication
+  // callback function for rendezvous communication
 
-  static void ring_bbox(int, char *, void *);
-  static void ring_nearest(int, char *, void *);
-  static void ring_farthest(int, char *, void *);
+  static int rendezvous_body(int, char *, int &, int *&, char *&, void *);
 
   // debug
 
@@ -315,7 +314,7 @@ E: Fix rigid: Bad principal moments
 The principal moments of inertia computed for a rigid body
 are not within the required tolerances.
 
-E: Cannot open fix rigid/small infile %s
+E: Cannot open fix rigid/small inpfile %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.

@@ -24,9 +24,9 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_vector.h"
-
+#include <cmath>
+#include "reaxc_defs.h"
 
 void rvec_Copy( rvec dest, rvec src )
 {

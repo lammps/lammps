@@ -15,18 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_nvt_sllod_omp.h"
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
-#include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"
 #include "compute.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -108,7 +107,6 @@ void FixNVTSllodOMP::nh_v_temp()
   dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (nondeformbias) temperature->compute_scalar();
 
@@ -116,9 +114,9 @@ void FixNVTSllodOMP::nh_v_temp()
   MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) shared(h_two) schedule(static)
+#pragma omp parallel for default(none) shared(h_two) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     double vdelu0,vdelu1,vdelu2,buf[3];
     if (mask[i] & groupbit) {
       vdelu0 = h_two[0]*v[i].x + h_two[5]*v[i].y + h_two[4]*v[i].z;

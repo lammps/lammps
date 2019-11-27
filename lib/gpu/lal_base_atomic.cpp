@@ -14,7 +14,8 @@
  ***************************************************************************/
 
 #include "lal_base_atomic.h"
-using namespace LAMMPS_AL;
+
+namespace LAMMPS_AL {
 #define BaseAtomicT BaseAtomic<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -24,12 +25,16 @@ BaseAtomicT::BaseAtomic() : _compiled(false), _max_bytes(0)  {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
+  pair_program=NULL;
 }
 
 template <class numtyp, class acctyp>
 BaseAtomicT::~BaseAtomic() {
   delete ans;
   delete nbor;
+  if (pair_program) delete pair_program;
+  k_pair_fast.clear();
+  k_pair.clear();
 }
 
 template <class numtyp, class acctyp>
@@ -64,9 +69,12 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
   } else
     _nbor_data=&(nbor->dev_nbor);
 
-  int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,false,
-                           _threads_per_atom);
+  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  if (success!=0)
+    return success;
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
 
@@ -105,19 +113,11 @@ void BaseAtomicT::clear_atomic() {
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
-  if (_compiled) {
-    k_pair_fast.clear();
-    k_pair.clear();
-    delete pair_program;
-    _compiled=false;
-  }
-
   time_pair.clear();
   hd_balancer.clear();
 
   nbor->clear();
   ans->clear();
-  device->clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -272,6 +272,7 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
     return;
 
   std::string s_fast=std::string(kname)+"_fast";
+  if (pair_program) delete pair_program;
   pair_program=new UCL_Program(dev);
   pair_program->load_string(pair_str,device->compile_string().c_str());
   k_pair_fast.set_function(*pair_program,s_fast.c_str());
@@ -282,4 +283,4 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseAtomic<PRECISION,ACC_PRECISION>;
-
+}

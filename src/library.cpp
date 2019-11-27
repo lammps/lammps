@@ -14,14 +14,12 @@
 // C or Fortran style library interface to LAMMPS
 // customize by adding new LAMMPS-specific functions
 
+#include "library.h"
 #include <mpi.h>
+#include <cctype>
 #include <cstring>
 #include <cstdlib>
-#include "library.h"
-#include "lmptype.h"
-#include "lammps.h"
 #include "universe.h"
-#include "input.h"
 #include "atom_vec.h"
 #include "atom.h"
 #include "domain.h"
@@ -39,6 +37,11 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "fix_external.h"
+
+#if defined(LAMMPS_EXCEPTIONS)
+#include "exceptions.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -801,6 +804,20 @@ void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
      Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_atoms(void *ptr, char * /*name */,
+                         int /*type*/, int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_atoms() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
 void lammps_gather_atoms(void *ptr, char *name,
                          int type, int count, void *data)
 {
@@ -905,6 +922,7 @@ void lammps_gather_atoms(void *ptr, char *name,
   }
   END_CAPTURE
 }
+#endif
 
 /* ----------------------------------------------------------------------
    gather the named atom-based entity for all atoms
@@ -927,6 +945,20 @@ void lammps_gather_atoms(void *ptr, char *name,
      Allgather Nlocal atoms from each proc into data
 ------------------------------------------------------------------------- */
 
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_atoms_concat(void *ptr, char * /*name */,
+                                int /*type*/, int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_atoms_concat() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
 void lammps_gather_atoms_concat(void *ptr, char *name,
                                 int type, int count, void *data)
 {
@@ -1047,6 +1079,7 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
   }
   END_CAPTURE
 }
+#endif
 
 /* ----------------------------------------------------------------------
    gather the named atom-based entity for a subset of atoms
@@ -1071,6 +1104,21 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
      Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_atoms_subset(void *ptr, char * /*name */,
+                                int /*type*/, int /*count*/,
+                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_atoms_subset() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
 void lammps_gather_atoms_subset(void *ptr, char *name,
                                 int type, int count,
                                 int ndata, int *ids, void *data)
@@ -1188,6 +1236,7 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
   }
   END_CAPTURE
 }
+#endif
 
 /* ----------------------------------------------------------------------
    scatter the named atom-based entity in data to all atoms
@@ -1205,6 +1254,20 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
      loop over Natoms, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
 
+#if defined(LAMMPS_BIGBIG)
+void lammps_scatter_atoms(void *ptr, char * /*name */,
+                          int /*type*/, int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_scatter_atoms() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
 void lammps_scatter_atoms(void *ptr, char *name,
                           int type, int count, void *data)
 {
@@ -1299,6 +1362,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
   }
   END_CAPTURE
 }
+#endif
 
 /* ----------------------------------------------------------------------
    scatter the named atom-based entity in data to a subset of atoms
@@ -1318,6 +1382,21 @@ void lammps_scatter_atoms(void *ptr, char *name,
      loop over Ndata, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
 
+#if defined(LAMMPS_BIGBIG)
+void lammps_scatter_atoms_subset(void *ptr, char * /*name */,
+                                int /*type*/, int /*count*/,
+                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_scatter_atoms_subset() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
 void lammps_scatter_atoms_subset(void *ptr, char *name,
                                  int type, int count,
                                  int ndata, int *ids, void *data)
@@ -1363,9 +1442,11 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
       int *dptr = (int *) data;
 
       if (count == 1) {
-        for (i = 0; i < ndata; i++)
-          if ((m = lmp->atom->map(i+1)) >= 0)
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0)
             vector[m] = dptr[i];
+        }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {
@@ -1418,6 +1499,7 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
   }
   END_CAPTURE
 }
+#endif
 
 /* ----------------------------------------------------------------------
    create N atoms and assign them to procs based on coords
@@ -1514,7 +1596,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
-      sprintf(str,"Library warning in lammps_create_atoms, "
+      snprintf(str, 128, "Library warning in lammps_create_atoms, "
               "invalid total atoms " BIGINT_FORMAT " " BIGINT_FORMAT,
               lmp->atom->natoms,natoms_prev+n);
       if (lmp->comm->me == 0)
@@ -1523,6 +1605,40 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
   }
   END_CAPTURE
 }
+
+/* ----------------------------------------------------------------------
+   find fix external with given ID and set the callback function
+   and caller pointer
+------------------------------------------------------------------------- */
+
+void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr callback_ptr, void * caller)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  FixExternal::FnPtr callback = (FixExternal::FnPtr) callback_ptr;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      char str[128];
+      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0){
+      char str[128];
+      snprintf(str, 128, "Fix '%s' is not of style external!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_callback(callback, caller);
+  }
+  END_CAPTURE
+}
+
 
 // ----------------------------------------------------------------------
 // library API functions for accessing LAMMPS configuration

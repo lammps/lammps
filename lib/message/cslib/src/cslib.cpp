@@ -12,7 +12,11 @@
    See the README file in the top-level CSlib directory.
 ------------------------------------------------------------------------- */
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -637,6 +641,7 @@ void CSlib::onefield(int ftype, int flen, int &nbytes, int &nbytesround)
   else if (ftype == 3) bigbytes = biglen * sizeof(float);
   else if (ftype == 4) bigbytes = biglen * sizeof(double);
   else if (ftype == 5) bigbytes = biglen * sizeof(char);
+  else bigbytes = 0;
   bigbytesround = roundup(bigbytes,8);
 
   if (nbuf + bigbytesround > INT_MAX)

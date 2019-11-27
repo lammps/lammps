@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "group.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <cstdlib>
-#include "group.h"
+#include <utility>
 #include "domain.h"
 #include "atom.h"
 #include "force.h"
@@ -32,6 +31,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <map>
 
@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 #define MAX_GROUP 32
 #define EPSILON 1.0e-6
 
-enum{TYPE,MOLECULE,ID};
+enum{NONE,TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
@@ -202,10 +202,16 @@ void Group::assign(int narg, char **arg)
 
     if (narg < 3) error->all(FLERR,"Illegal group command");
 
-    int category;
+    int category=NONE;
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
+
+    if ((category == MOLECULE) && (!atom->molecular))
+      error->all(FLERR,"Group command requires atom attribute molecule");
+
+    if ((category == ID) && (!atom->tag_enable))
+      error->all(FLERR,"Group command requires atom IDs");
 
     // args = logical condition
 
@@ -362,10 +368,13 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"include") == 0) {
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[2],"molecule") != 0)
-      error->all(FLERR,"Illegal group command");
+    if (strcmp(arg[2],"molecule") == 0) {
+      if (!atom->molecular)
+        error->all(FLERR,"Group command requires atom attribute molecule");
 
-    add_molecules(igroup,bit);
+      add_molecules(igroup,bit);
+
+    } else error->all(FLERR,"Illegal group command");
 
   // style = subtract
 
@@ -727,7 +736,7 @@ void Group::read_restart(FILE *fp)
 
   for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
 
-  if (me == 0) fread(&ngroup,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
 
   // use count to not change restart format with deleted groups
@@ -739,11 +748,11 @@ void Group::read_restart(FILE *fp)
       names[i] = NULL;
       continue;
     }
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
       names[i] = new char[n];
-      if (me == 0) fread(names[i],sizeof(char),n,fp);
+      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,NULL,error);
       MPI_Bcast(names[i],n,MPI_CHAR,0,world);
       count++;
     } else names[i] = NULL;

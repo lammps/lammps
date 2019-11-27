@@ -85,14 +85,19 @@ class lammps(object):
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
 
+    if any([f.startswith('liblammps') and f.endswith('.dylib') for f in os.listdir(modpath)]):
+      lib_ext = ".dylib"
+    else:
+      lib_ext = ".so"
+
     if not self.lib:
       try:
-        if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),
+        if not name: self.lib = CDLL(join(modpath,"liblammps" + lib_ext),RTLD_GLOBAL)
+        else: self.lib = CDLL(join(modpath,"liblammps_%s" % name + lib_ext),
                               RTLD_GLOBAL)
       except:
-        if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-        else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+        if not name: self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
+        else: self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
 
     # define ctypes API for each library method
     # NOTE: should add one of these for each lib function
@@ -214,6 +219,12 @@ class lammps(object):
     self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
     self._installed_packages = None
 
+    # add way to insert Python callback for fix external
+    self.callback = {}
+    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, c_void_p, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
+    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, c_void_p]
+    self.lib.lammps_set_fix_external_callback.restype = None
+
   # shut-down LAMMPS instance
 
   def __del__(self):
@@ -265,7 +276,7 @@ class lammps(object):
 
   def extract_setting(self, name):
     if name: name = name.encode()
-    self.lib.lammps_extract_atom.restype = c_int
+    self.lib.lammps_extract_setting.restype = c_int
     return int(self.lib.lammps_extract_setting(self.lmp,name))
 
   # extract global info
@@ -379,23 +390,23 @@ class lammps(object):
   def extract_compute(self,id,style,type):
     if id: id = id.encode()
     if type == 0:
-      if style > 0: return None
-      self.lib.lammps_extract_compute.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-      return ptr[0]
+      if style == 0:
+        self.lib.lammps_extract_compute.restype = POINTER(c_double)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+      elif style == 1:
+        return None
+      elif style == 2:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        return ptr[0]
     if type == 1:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     if type == 2:
-      if style == 0:
-        self.lib.lammps_extract_compute.restype = POINTER(c_int)
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr[0]
-      else:
-        self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr
+      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+      return ptr
     return None
 
   # extract fix info
@@ -596,6 +607,42 @@ class lammps(object):
         self.lib.lammps_config_package_name(idx, sb, 100)
         self._installed_packages.append(sb.value.decode())
     return self._installed_packages
+
+  def set_fix_external_callback(self, fix_name, callback, caller=None):
+    import numpy as np
+    def _ctype_to_numpy_int(ctype_int):
+          if ctype_int == c_int32:
+            return np.int32
+          elif ctype_int == c_int64:
+            return np.int64
+          return np.intc
+
+    def callback_wrapper(caller_ptr, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
+      if cast(caller_ptr,POINTER(py_object)).contents:
+        pyCallerObj = cast(caller_ptr,POINTER(py_object)).contents.value
+      else:
+        pyCallerObj = None
+
+      tptr = cast(tag_ptr, POINTER(self.c_tagint * nlocal))
+      tag = np.frombuffer(tptr.contents, dtype=_ctype_to_numpy_int(self.c_tagint))
+      tag.shape = (nlocal)
+
+      xptr = cast(x_ptr[0], POINTER(c_double * nlocal * 3))
+      x = np.frombuffer(xptr.contents)
+      x.shape = (nlocal, 3)
+
+      fptr = cast(fext_ptr[0], POINTER(c_double * nlocal * 3))
+      f = np.frombuffer(fptr.contents)
+      f.shape = (nlocal, 3)
+
+      callback(pyCallerObj, ntimestep, nlocal, tag, x, f)
+
+    cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
+    cCaller = cast(pointer(py_object(caller)), c_void_p)
+
+    self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
+
+    self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -867,8 +914,8 @@ class PyLammps(object):
     output = self.__getattr__('run')(*args, **kwargs)
 
     if(lammps.has_mpi4py):
-      output = self.lmp.comm.bcast(output, root=0) 
-    
+      output = self.lmp.comm.bcast(output, root=0)
+
     self.runs += get_thermo_data(output)
     return output
 
@@ -986,7 +1033,7 @@ class PyLammps(object):
       elif line.startswith("Dihedrals"):
         parts = self._split_values(line)
         system['ndihedrals'] = int(self._get_pair(parts[0])[1])
-        system['nangletypes'] = int(self._get_pair(parts[1])[1])
+        system['ndihedraltypes'] = int(self._get_pair(parts[1])[1])
         system['dihedral_style'] = self._get_pair(parts[2])[1]
       elif line.startswith("Impropers"):
         parts = self._split_values(line)

@@ -33,12 +33,17 @@ tasks, act as a reference and provide examples of typical use cases.
       * [Package-Specific Configuration Options](#package-specific-configuration-options)
          * [KSPACE Package](#kspace-package)
          * [MKL](#mkl)
-         * [FFTW2](#fftw2)
          * [FFTW3](#fftw3)
+         * [BLAS](#blas)
          * [LAPACK](#lapack)
          * [PYTHON Package](#python-package)
          * [GPU Package](#gpu-package)
+         * [MESSAGE Package](#message-package)
+         * [MSCG Package](#mscg-package)
          * [VORONOI Package](#voronoi-package)
+         * [USER-LATTE Package](#user-latte-package)
+         * [USER-PLUMED Package](#user-plumed-package)
+         * [USER-SCAFACOS Package](#user-scafacos-package)
          * [USER-SMD Package](#user-smd-package)
       * [Optional Features](#optional-features)
          * [zlib support](#zlib-support)
@@ -50,8 +55,6 @@ tasks, act as a reference and provide examples of typical use cases.
          * [Building with GNU Compilers](#building-with-gnu-compilers)
          * [Building with Intel Compilers](#building-with-intel-compilers)
          * [Building with LLVM/Clang Compilers](#building-with-llvmclang-compilers)
-      * [Examples](#examples)
-
 
 ## Quick Start for the Impatient
 If you want to skip ahead and just run the compilation using `cmake`, please
@@ -155,11 +158,13 @@ make
 
 The CMake build exposes a lot of different options. In the old build system
 some of the package selections were possible by using special make target like
-`make yes-std` or `make no-lib`. Achieving the same result with cmake requires
+`make yes-std` or `make no-lib`. Achieving a similar result with cmake requires
 specifying all options manually. This can quickly become a very long command
 line that is hard to handle.  While these could be stored in a simple script
 file, there is another way of defining "presets" to compile LAMMPS in a certain
-way.
+way. Since the cmake build process - contrary to the conventional build system -
+includes the compilation of the bundled libraries into the standard build process,
+the grouping of those presets is somewhat different.
 
 A preset is a regular CMake script file that can use constructs such as
 variables, lists and for-loops to manipulate configuration options and create
@@ -171,10 +176,10 @@ Such a file can then be passed to cmake via the `-C` flag. Several examples of
 presets can be found in the `cmake/presets` folder.
 
 ```bash
-# build LAMMPS with all "standard" packages which don't use libraries and enable GPU package
+# build LAMMPS with all packages enabled which don't use external libraries and enable GPU package
 mkdir build
 cd build
-cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
+cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on ../cmake
 ```
 
 # Reference
@@ -203,13 +208,15 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <td>Controls if debugging symbols are added to the generated binaries</td>
   <td>
   <dl>
-  <dt><code>Release</code> (default)</dt>
+  <dt><code>RelWithDebInfo (default)</code></dt>
+  <dt><code>Release</code></dt>
   <dt><code>Debug</code></dt>
+  <dt><code>MinSizeRel</code></dt>
   </dl>
   </td>
 </tr>
 <tr>
-  <td><code><CMAKE_VERBOSE_MAKEFILE/code></td>
+  <td><code>CMAKE_VERBOSE_MAKEFILE</code></td>
   <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
   <td>
   <dl>
@@ -248,6 +255,16 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   </td>
 </tr>
 <tr>
+  <td><code>LAMMPS_LONGLONG_TO_LONG</code></td>
+  <td>Workaround if your system or MPI version does not recognize <code>long long</code> data types</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>LAMMPS_MEMALIGN</code></td>
   <td>controls the alignment of blocks of memory allocated by LAMMPS</td>
   <td>
@@ -269,7 +286,16 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
 </tr>
 <tr>
   <td><code>LAMMPS_MACHINE</code></td>
-  <td>allows appending a machine suffix to the generate LAMMPS binary</td>
+  <td>allows appending a machine suffix to the generated LAMMPS binary</td>
+  <td>
+  <dl>
+    <dt>*none*  (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>LAMMPS_LIB_SUFFIX</code></td>
+  <td>allows appending a suffix to the generated LAMMPS library</td>
   <td>
   <dl>
     <dt>*none*  (default)</dt>
@@ -317,8 +343,8 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   </td>
 </tr>
 <tr>
-  <td><code>LAMMPS_LONGLONG_TO_LONG</code></td>
-  <td>Workaround if your system or MPI version does not recognize <code>long long</code> data types</td>
+  <td><code>BUILD_TOOLS</code></td>
+  <td>control whether to build LAMMPS tools</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -560,23 +586,6 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   </td>
 </tr>
 <tr>
-  <td><code>PKG_MEAM</code></td>
-  <td>
-<p>A pair style for the modified embedded atom (MEAM) potential.</p>
-
-<p><strong>Please note that the MEAM package has been superseded by the USER-MEAMC package,
-which is a direct translation of the MEAM package to C++. USER-MEAMC contains
-additional optimizations making it run faster than MEAM on most machines, while
-providing the identical features and USER interface.</strong></p>
-  </td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
   <td><code>PKG_MISC</code></td>
   <td>
   A variety of compute, fix, pair, dump styles with specialized capabilities that
@@ -633,21 +642,6 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>PKG_REAX</code></td>
-  <td>
-  A pair style which wraps a Fortran library which implements the ReaxFF
-  potential, which is a universal reactive force field. See the USER-REAXC
-  package for an alternate implementation in C/C++. Also a fix reax/bonds
-  command for monitoring molecules as bonds are created and destroyed.
-  </td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
   <td><code>PKG_REPLICA</code></td>
   <td>
   A collection of multi-replica methods which can be used when running multiple
@@ -686,6 +680,16 @@ providing the identical features and USER interface.</strong></p>
   Fixes for running impact simulations where a shock-wave passes through a
   material.
   </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PKG_SPIN</code></td>
+  <td>Model atomic magnetic spins classically, coupled to atoms moving in the usual manner via MD. Various pair, fix, and compute styles.</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -756,6 +760,16 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
+  <td><code>PKG_MESSAGE</code></td>
+  <td>Commands to use LAMMPS as either a client or server and couple it to another application.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>PKG_MSCG</code></td>
   <td>
   A fix mscg command which can parameterize a Multi-Scale Coarse-Graining (MSCG)
@@ -809,6 +823,18 @@ providing the identical features and USER interface.</strong></p>
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>PKG_VORONOI</code></td>
+  <td>
+  A compute command which calculates the Voronoi tesselation of a collection of atoms by wrapping the Voro++ library. This can be used to calculate the local volume or each atoms or its near neighbors.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
 </tbody>
 </table>
 
@@ -823,6 +849,16 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 </thead>
 <tbody>
+<tr>
+  <td><code>PKG_USER-ADIOS</code></td>
+  <td>ADIOS is a high-performance I/O library. This package implements the dump “atom/adios” and dump “custom/adios” commands to write data using the ADIOS library.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
 <tr>
   <td><code>PKG_USER-ATC</code></td>
   <td>
@@ -843,6 +879,18 @@ providing the identical features and USER interface.</strong></p>
   AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics. This package
   implements an atom, pair, and fix style which allows electrons to be treated
   as explicit particles in a classical molecular dynamics model.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PKG_USER-BOCS</code></td>
+  <td>
+  This package provides fix bocs, a modified version of fix npt which includes the pressure correction to the barostat as outlined in: N. J. H. Dunn and W. G. Noid, “Bottom-up coarse-grained models that accurately describe the structure, pressure, and compressibility of molecular liquids,” J. Chem. Phys. 143, 243148 (2015).
   </td>
   <td>
   <dl>
@@ -1141,6 +1189,30 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
+  <td><code>PKG_USER-PLUMED</code></td>
+  <td>
+  The fix plumed command allows you to use the PLUMED free energy plugin for molecular dynamics to analyze and bias your LAMMPS trajectory on the fly. The PLUMED library is called from within the LAMMPS input script by using the <code>fix plumed</code> command.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PKG_USER-PTM</code></td>
+  <td>
+  A <code>compute ptm/atom</code> command that calculates local structure characterization using the Polyhedral Template Matching methodology.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>PKG_USER-QTB</code></td>
   <td>
   Two fixes which provide a self-consistent quantum treatment of vibrational modes in a classical molecular dynamics simulation. By coupling the MD simulation to a colored thermostat, it introduces zero point energy into the system, altering the energy power spectrum and the heat capacity to account for their quantum nature. This is useful when modeling systems at temperatures lower than their classical limits or when temperatures ramp across the classical limits in a simulation.
@@ -1188,6 +1260,33 @@ providing the identical features and USER interface.</strong></p>
   the two packages. Also two fixes for monitoring molecules as bonds are created
   and destroyed.
   </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PKG_USER-SCAFACOS</code></td>
+  <td>
+  A KSpace style which wraps the ScaFaCoS Coulomb solver library to compute long-range Coulombic interactions.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PKG_USER-SDPD</code></td>
+  <td>
+  A pair style for smoothed dissipative particle dynamics (SDPD), which is an
+  extension of smoothed particle hydrodynamics (SPH) to mesoscale where thermal
+  fluctuations are important (see the USER-SPH package). Also two fixes for
+  moving and rigid body integration of SPH/SDPD particles (particles of
+  <code>atom_style meso</code>).</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -1278,6 +1377,23 @@ providing the identical features and USER interface.</strong></p>
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>PKG_USER-YAFF</code></td>
+  <td>
+  Some potentials that are also implemented in the Yet Another Force Field (YAFF) code.
+  The expressions and their use are discussed in the following papers:
+  <ul>
+    <li><a href="http://dx.doi.org/10.1002/jcc.23877" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015)</a></li>
+    <li><a href="http://dx.doi.org/10.1002/jcc.25173" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018)</a></li>
+  </ul>
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
 </tbody>
 </table>
 
@@ -1298,14 +1414,27 @@ providing the identical features and USER interface.</strong></p>
   <td><code>FFT</code></td>
   <td>
     <p>FFT library for KSPACE package</p>
-    <p>If either MKL or FFTW is selected <code>cmake</code> will try to locate these libraries automatically. To control which one should be used please see the options below for each FFT library.</p>
+    <p>If either MKL or FFTW is selected <code>cmake</code> will try to locate
+    these libraries automatically. To control which one should be used please see
+    the options below for each FFT library.  Otherwise it will default to KISS
+    FFT.</p>
   </td>
   <td>
   <dl>
-    <dt><code>KISS</code></dt>
     <dt><code>FFTW3</code></dt>
     <dt><code>FFTW2</code></dt>
     <dt><code>MKL</code></dt>
+    <dt><code>KISS</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>FFT_SINGLE</code></td>
+  <td>Use single-precision floating-point in FFT</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default = double precision)</dt>
+    <dt><code>on</code></dt>
   </dl>
   </td>
 </tr>
@@ -1318,60 +1447,6 @@ providing the identical features and USER interface.</strong></p>
     <dt><code>pointer</code></dt>
     <dt><code>memcpy</code></dt>
   </dl>
-  </td>
-</tr>
-</tbody>
-</table>
-
-### MKL
-
-<table>
-<thead>
-<tr>
-  <th>Option</th>
-  <th>Description</th>
-  <th>Values</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td><code>MKL_INCLUDE_DIRS</code></td>
-  <td></td>
-  <td>
-  </td>
-</tr>
-<tr>
-  <td><code>MKL_LIBRARIES</code></td>
-  <td></td>
-  <td>
-  </td>
-</tr>
-</tbody>
-</table>
-
-TODO static vs dynamic linking
-
-### FFTW2
-
-<table>
-<thead>
-<tr>
-  <th>Option</th>
-  <th>Description</th>
-  <th>Values</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td><code>FFTW2_INCLUDE_DIRS</code></td>
-  <td></td>
-  <td>
-  </td>
-</tr>
-<tr>
-  <td><code>FFTW2_LIBRARIES</code></td>
-  <td></td>
-  <td>
   </td>
 </tr>
 </tbody>
@@ -1390,23 +1465,56 @@ TODO static vs dynamic linking
 <tbody>
 <tr>
   <td><code>FFTW3_INCLUDE_DIRS</code></td>
-  <td></td>
+  <td>path to FFTW3 include files</td>
   <td>
   </td>
 </tr>
 <tr>
   <td><code>FFTW3_LIBRARIES</code></td>
-  <td></td>
+  <td>list of paths to FFTW3 libraries</td>
   <td>
   </td>
 </tr>
 </tbody>
 </table>
 
+### MKL
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>MKL_INCLUDE_DIRS</code></td>
+  <td>path to MKL include files</td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>MKL_LIBRARIES</code></td>
+  <td>list of paths to MKL libraries</td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### BLAS
+
+See [FindBLAS documentation](https://cmake.org/cmake/help/latest/module/FindBLAS.html)
+
 ### LAPACK
-TODO
+
+See [FindLAPACK documentation](https://cmake.org/cmake/help/latest/module/FindLAPACK.html)
 
 ### PYTHON Package
+
+See [FindPYTHON documentation](https://cmake.org/cmake/help/latest/module/FindPython.html)
 
 ### USER-INTEL Package
 
@@ -1426,6 +1534,17 @@ TODO
   <dl>
     <dt><code>cpu</code> (default)</dt>
     <dt><code>knl</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>INTEL_LRT_MODE</code></td>
+  <td>How to support Long-range thread mode in Verlet integration</td>
+  <td>
+  <dl>
+    <dt><code>threads</code> (default, if pthreads available)</dt>
+    <dt><code>none</code> (default, if pthreads not available)</dt>
+    <dt><code>c++11</code></dt>
   </dl>
   </td>
 </tr>
@@ -1486,10 +1605,11 @@ target API.
   <td>
   <dl>
     <dt><code>sm_20</code> (Fermi)</dt>
-    <dt><code>sm_30</code> (Kepler)</dt>
+    <dt><code>sm_30</code> (Kepler) (default)</dt>
     <dt><code>sm_50</code> (Maxwell)</dt>
     <dt><code>sm_60</code> (Pascal)</dt>
     <dt><code>sm_70</code> (Volta)</dt>
+    <dt><code>sm_75</code> (Turing)</dt>
   </dl>
   </td>
 </tr>
@@ -1504,6 +1624,16 @@ target API.
   </td>
 </tr>
 <tr>
+  <td><code>CUDA_MPS_SUPPORT</code> (CUDA only)</td>
+  <td>Enable tweaks for running with Nvidia CUDA Multi-process services daemon</td>
+  <td>
+  <dl>
+    <dt><code>on</code></dt>
+    <dt><code>off</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>BIN2C</code> (CUDA only)</td>
   <td>Path to bin2c executable, will automatically pick up the first one in your $PATH.</td>
   <td>(automatic)</td>
@@ -1511,13 +1641,14 @@ target API.
 </tbody>
 </table>
 
-### VORONOI Package
+### KIM Package
 
-TODO
+Requires installation of the KIM library with API v2
 
-### USER-SMD Package
-
-Requires a Eigen3 installation
+If `DOWNLOAD_KIM` is set, the KIM library will be downloaded and built inside
+the CMake build directory. If the KIM library is already on your system (in a
+location CMake cannot find it), set the `PKG_CONFIG_PATH` environment variable
+so that `libkim-api` can be found.
 
 <table>
 <thead>
@@ -1529,8 +1660,348 @@ Requires a Eigen3 installation
 </thead>
 <tbody>
 <tr>
+  <td><code>DOWNLOAD_KIM</code></td>
+  <td>Download KIM API v2 and compile it as part of the build.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### MESSAGE Package
+
+This package can optionally include support for messaging via sockets, using the open-source [ZeroMQ library](http://zeromq.org/), which must be installed on your system.
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>MESSAGE_ZMQ</code></td>
+  <td>Build with ZeroMQ support</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ZMQ_LIBRARY</code></td>
+  <td>
+    ZMQ library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>ZMG_INCLUDE_DIR</code></td>
+  <td>
+    Provide include directory of existing ZMQ installation (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### MSCG Package
+
+Requires installation of the MSCG library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_MSCG</code></td>
+  <td>Download MSCG and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>MSCG_LIBRARY</code></td>
+  <td>
+    MSCG library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>MSCG_INCLUDE_DIR</code></td>
+  <td>
+    Provide include directory of existing MSCG installation (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### VORONOI Package
+
+Requires installation of the Voro++ library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_VORO</code></td>
+  <td>Download Voro++ and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>VORO_LIBRARY</code></td>
+  <td>
+    Voro++ library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>VORO_INCLUDE_DIR</code></td>
+  <td>
+    Provide include directory of existing Voro++ installation (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### USER-COLVARS Package
+
+Requires a C++11 compiler to compile with the Lepton library included.
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>COLVARS_LEPTON</code></td>
+  <td>Enable the use of the Lepton library inside the Colvars library.
+  <td>
+  <dl>
+    <dt><code>on</code> (default)</dt>
+    <dt><code>off</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### USER-LATTE Package
+
+Requires installation of the LATTE library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_LATTE</code></td>
+  <td>Download LATTE and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>LATTE_LIBRARY</code></td>
+  <td>
+    LATTE library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### USER-PLUMED Package
+
+Requires installation of the PLUMED library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_PLUMED</code></td>
+  <td>Download PLUMED and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>PLUMED_MODE</code></td>
+  <td>
+    Determines the linkage mode for the PLUMED library.
+  </td>
+  <td>
+  <dl>
+    <dt><code>static</code> (default)</dt>
+    <dt><code>shared</code></dt>
+    <dt><code>runtime</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### USER-LATTE Package
+
+Requires installation of the LATTE library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_LATTE</code></td>
+  <td>Download LATTE and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>LATTE_LIBRARY</code></td>
+  <td>
+    LATTE library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+### USER-SMD Package
+
+Requires installation of the Eigen3 library
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_EIGEN3</code></td>
+  <td>Download Eigen3 and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>EIGEN3_INCLUDE_DIR</code></td>
-  <td></td>
+  <td>
+    Provide include directory of existing Eigen3 installation (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+</tbody>
+</table>
+
+
+### USER-SCAFACOS Package
+
+To build with this package, you must download and build the [ScaFaCoS Coulomb solver library](http://www.scafacos.de/)
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>DOWNLOAD_SCAFACOS</code></td>
+  <td>Download SCAFACOS and compile it as part of the build</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>SCAFACOS_LIBRARY</code></td>
+  <td>
+    SCAFACOS library file (only needed if at custom location)
+  </td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>SCAFACOS_INCLUDE_DIR</code></td>
+  <td>
+    SCAFACOS include directory (only needed if at custom location)
+  </td>
   <td>
   </td>
 </tr>
@@ -1768,5 +2239,82 @@ cmake -D CMAKE_C_COMPILER=icc -D CMAKE_CXX_COMPILER=icpc -D CMAKE_Fortran_COMPIL
 cmake -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_Fortran_COMPILER=flang ../cmake
 ```
 
+## LAMMPS Developer Options
 
-## Examples
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>ENABLE_TESTING</code></td>
+  <td>Control wheather to add tests via CTest</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>LAMMPS_TESTING_SOURCE_DIR</code></td>
+  <td>Custom location of lammps-testing repository (optional). If not specified it will download it via Git</td>
+  <td>
+  </td>
+</tr>
+<tr>
+  <td><code>LAMMPS_TESTING_GIT_TAG</code></td>
+  <td>If lammps-testing repository is cloned, this is the tag/commit that will be checked out</td>
+  <td>
+  <dl>
+    <dt><code>master</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_COVERAGE</code></td>
+  <td>Enables code coverage support via gcov and adds a gcovr build target to generate a coverage report.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_SANITIZE_ADDRESS</code></td>
+  <td>Enables Address Sanitizer support when compiling using GCC or Clang for detecting memory leaks in binaries while running them. See https://clang.llvm.org/docs/AddressSanitizer.html</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_SANITIZE_UNDEFINED</code></td>
+  <td>Enables Undefined Behavior Sanitizer support when compiling using GCC or Clang for detecting code that is running into undefined behavior of the language. See https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_SANITIZE_THREAD</code></td>
+  <td>Enables Thread Sanitizer support when compiling using GCC or Clang for detecting data races in binaries while running them. See https://clang.llvm.org/docs/ThreadSanitizer.html</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>

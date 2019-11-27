@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_coord_atom.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "compute_coord_atom.h"
 #include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -25,6 +24,7 @@
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
+#include "group.h"
 #include "memory.h"
 #include "error.h"
 
@@ -37,10 +37,12 @@ using namespace LAMMPS_NS;
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
-  id_orientorder(NULL), normv(NULL)
+  group2(NULL), id_orientorder(NULL), normv(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
+  jgroup = group->find("all");
+  jgroupbit = group->bitmask[jgroup];
   cstyle = NONE;
 
   if (strcmp(arg[3],"cutoff") == 0) {
@@ -48,18 +50,29 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     double cutoff = force->numeric(FLERR,arg[4]);
     cutsq = cutoff*cutoff;
 
-    ncol = narg-5 + 1;
+    int iarg = 5;
+    if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
+      int len = strlen(arg[6])+1;
+      group2 = new char[len];
+      strcpy(group2,arg[6]);
+      iarg += 2;
+      jgroup = group->find(group2);
+      if (jgroup == -1)
+        error->all(FLERR,"Compute coord/atom group2 ID does not exist");
+      jgroupbit = group->bitmask[jgroup];
+    }
+
+    ncol = narg-iarg + 1;
     int ntypes = atom->ntypes;
     typelo = new int[ncol];
     typehi = new int[ncol];
 
-    if (narg == 5) {
+    if (narg == iarg) {
       ncol = 1;
       typelo[0] = 1;
       typehi[0] = ntypes;
     } else {
       ncol = 0;
-      int iarg = 5;
       while (iarg < narg) {
         force->bounds(FLERR,arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
         if (typelo[ncol] > typehi[ncol])
@@ -106,6 +119,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
+  delete [] group2;
   delete [] typelo;
   delete [] typehi;
   memory->destroy(cvec);
@@ -143,12 +157,6 @@ void ComputeCoordAtom::init()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
-
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"coord/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute coord/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,13 +237,15 @@ void ComputeCoordAtom::compute_peratom()
             j = jlist[jj];
             j &= NEIGHMASK;
 
-            jtype = type[j];
-            delx = xtmp - x[j][0];
-            dely = ytmp - x[j][1];
-            delz = ztmp - x[j][2];
-            rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0])
-              n++;
+            if (mask[j] & jgroupbit) {
+              jtype = type[j];
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
+              if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0])
+                n++;
+            }
           }
 
           cvec[i] = n;

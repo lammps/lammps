@@ -16,29 +16,19 @@
      Based on fix qeq/reax by H. Metin Aktulga
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
 #include "force.h"
-#include "kspace.h"
-#include "group.h"
-#include "pair.h"
-#include "respa.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace FixConst;
 
 #define MAXLINE 1024
@@ -100,6 +90,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q1 = NULL;
   q2 = NULL;
   streitz_flag = 0;
+  reax_flag = 0;
   qv = NULL;
 
   comm_forward = comm_reverse = 1;
@@ -117,6 +108,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
     streitz_flag = 1;
+  } else if (strcmp(arg[7],"reax/c") == 0) {
+    reax_flag = 1;
   } else {
     read_file(arg[7]);
   }
@@ -138,7 +131,7 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  if (!streitz_flag) {
+  if (!streitz_flag && !reax_flag) {
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);
@@ -483,6 +476,7 @@ int FixQEq::pack_forward_comm(int n, int *list, double *buf,
     for(m = 0; m < n; m++) buf[m] = t[list[m]];
   else if( pack_flag == 4 )
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else m = 0;
 
   return m;
 }

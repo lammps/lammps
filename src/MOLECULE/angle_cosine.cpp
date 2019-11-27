@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -22,6 +22,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,7 +37,7 @@ AngleCosine::AngleCosine(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleCosine::~AngleCosine()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
   }
@@ -52,8 +53,7 @@ void AngleCosine::compute(int eflag, int vflag)
   double rsq1,rsq2,r1,r2,c,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -194,7 +194,7 @@ void AngleCosine::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0) fread(&k[1],sizeof(double),atom->nangletypes,fp);
+  if (comm->me == 0) utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;

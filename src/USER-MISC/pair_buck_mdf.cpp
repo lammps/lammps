@@ -15,21 +15,19 @@
    Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck_mdf.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,7 +50,6 @@ PairBuckMDF::~PairBuckMDF()
     memory->destroy(rhoinv);
     memory->destroy(buck1);
     memory->destroy(buck2);
-    memory->destroy(offset);
   }
 }
 
@@ -68,8 +65,7 @@ void PairBuckMDF::compute(int eflag, int vflag)
   double dp, d, tt, dt, dd;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -178,7 +174,6 @@ void PairBuckMDF::allocate()
   memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
   memory->create(buck1,n+1,n+1,"pair:buck1");
   memory->create(buck2,n+1,n+1,"pair:buck2");
-  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -208,7 +203,8 @@ void PairBuckMDF::settings(int narg, char **arg)
 
 void PairBuckMDF::coeff(int narg, char **arg)
 {
-  if (narg != 5 && narg != 7) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 5 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -259,11 +255,6 @@ double PairBuckMDF::init_one(int i, int j)
   buck1[i][j] = a[i][j]/rho[i][j];
   buck2[i][j] = 6.0*c[i][j];
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
-    double rexp = exp(-cut[i][j]/rho[i][j]);
-    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0);
-  } else offset[i][j] = 0.0;
-
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
@@ -273,36 +264,6 @@ double PairBuckMDF::init_one(int i, int j)
   rhoinv[j][i] = rhoinv[i][j];
   buck1[j][i] = buck1[i][j];
   buck2[j][i] = buck2[i][j];
-  offset[j][i] = offset[i][j];
-
-  // compute I,J contribution to long-range tail correction
-  // count total # of atoms of type I and J via Allreduce
-
-  if (tail_flag) {
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-
-    double count[2],all[2];
-    count[0] = count[1] = 0.0;
-    for (int k = 0; k < nlocal; k++) {
-      if (type[k] == i) count[0] += 1.0;
-      if (type[k] == j) count[1] += 1.0;
-    }
-    MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-
-    double rho1 = rho[i][j];
-    double rho2 = rho1*rho1;
-    double rho3 = rho2*rho1;
-    double rc = cut[i][j];
-    double rc2 = rc*rc;
-    double rc3 = rc2*rc;
-    etail_ij = 2.0*MY_PI*all[0]*all[1]*
-      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) -
-       c[i][j]/(3.0*rc3));
-    ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1]*
-      (-a[i][j]*exp(-rc/rho1)*
-       (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
-  }
 
   return cut[i][j];
 }
@@ -342,14 +303,14 @@ void PairBuckMDF::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a[i][j],sizeof(double),1,fp);
-          fread(&rho[i][j],sizeof(double),1,fp);
-          fread(&c[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&rho[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
@@ -378,10 +339,10 @@ void PairBuckMDF::write_restart_settings(FILE *fp)
 void PairBuckMDF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -427,7 +388,7 @@ double PairBuckMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
 void *PairBuckMDF::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"aparm") == 0) return (void *) a;
-  if (strcmp(str,"cparm") == 0) return (void *) c;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str,"c") == 0) return (void *) c;
   return NULL;
 }

@@ -1,12 +1,12 @@
 # Makefile for LAMMPS documentation
 
 SHELL         = /bin/bash
-SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
-BUILDDIR      = /tmp/lammps-docs-$(SHA1)
-RSTDIR        = $(BUILDDIR)/rst
+BUILDDIR      = ${CURDIR}
+RSTDIR        = $(BUILDDIR)/src
+TXTDIR        = $(BUILDDIR)/txt
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
-ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
+ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
 
 PYTHON        = $(shell which python3)
 VIRTUALENV     = virtualenv
@@ -28,10 +28,10 @@ HAS_VIRTUALENV = YES
 endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
-OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
+SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
+OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -39,36 +39,36 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
 	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
 	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
-	@echo "  txt2html   build txt2html tool"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees
 
 clean:
-	rm -rf $(RSTDIR) html old epub
+	rm -rf html epub latex
 	rm -rf spelling
 
 clean-spelling:
 	rm -rf spelling
 
+rst: clean $(OBJECTS) $(ANCHORCHECK)
+
 html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
-		doc_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -88,8 +88,7 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
-		cp -r src/* $(RSTDIR)/ ;\
-        cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
@@ -102,7 +101,6 @@ epub: $(OBJECTS)
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
@@ -115,30 +113,43 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: utils/txt2html/txt2html.exe
+pdf: $(OBJECTS) $(ANCHORCHECK)
 	@(\
-		set -e; \
 		cd src/Developer; \
 		pdflatex developer; \
 		pdflatex developer; \
 		mv developer.pdf ../../Developer.pdf; \
-		cd ..; \
-		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q ^$$s lammps.book || \
-			echo WARNING: doc file $$s missing in src/lammps.book; done; \
-		rm *.html; \
+		cd ../../; \
 	)
-
-old: utils/txt2html/txt2html.exe
-	@rm -rf old
-	@mkdir old; mkdir old/Eqs; mkdir old/JPG; mkdir old/PDF
-	@cd src; ../utils/txt2html/txt2html.exe -b *.txt; \
-	  mv *.html ../old; \
-	  cp Eqs/*.jpg ../old/Eqs; \
-	  cp JPG/* ../old/JPG; \
-	  cp PDF/* ../old/PDF;
+	@(\
+                . $(VENV)/bin/activate ;\
+                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+                echo "############################################" ;\
+                rst_anchor_check src/*.rst ;\
+                echo "############################################" ;\
+                deactivate ;\
+	)
+	@cd latex && \
+          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+	  mv temp Makefile && \
+	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  make && \
+	  make && \
+	  mv LAMMPS.pdf ../Manual.pdf && \
+	  cd ../;
+	@rm -rf latex/_sources
+	@rm -rf latex/PDF
+	@rm -rf latex/USER
+	@cp -r src/PDF latex/PDF
+	@cp -r src/USER latex/USER
+	@rm -rf latex/PDF/.[sg]*
+	@rm -rf latex/USER/.[sg]*
+	@rm -rf latex/USER/*/.[sg]*
+	@rm -rf latex/USER/*/*.[sg]*
+	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
 fetch:
 	@rm -rf html_www Manual_www.pdf Developer_www.pdf
@@ -148,21 +159,16 @@ fetch:
 	@tar xzf lammps-doc.tar.gz
 	@rm -f lammps-doc.tar.gz
 
-txt2html: utils/txt2html/txt2html.exe
-
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		doc_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.txt ;\
 		deactivate ;\
 	)
 
 # ------------------------------------------
 
-utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
-	g++ -O -Wall -o $@ $<
-
-$(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
+$(RSTDIR)/%.rst : $(TXTDIR)/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\

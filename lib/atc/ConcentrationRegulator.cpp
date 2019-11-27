@@ -47,7 +47,7 @@ const double kMinScale_ = 10000.;
   //    parses and adjusts charge regulator state based on
   //    user input, in the style of LAMMPS user input
   //--------------------------------------------------------
-  bool ConcentrationRegulator::modify(int narg, char **arg)
+  bool ConcentrationRegulator::modify(int /* narg */, char ** /* arg */)
   {
     bool foundMatch = false;
     return foundMatch;
@@ -166,7 +166,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   //  size vector
   //--------------------------------------------------------
-  int ConcentrationRegulator::size_vector(int i) const
+  int ConcentrationRegulator::size_vector(int /* i */) const
   {
     int n = (regulators_.size())*5; 
     if (n==0) n = 20; 
@@ -319,7 +319,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   //  accept
   //--------------------------------------------------------
-  bool ConcentrationRegulatorMethodTransition::accept(double energy, double T) const 
+  bool ConcentrationRegulatorMethodTransition::accept(double energy, double /* T */) const 
   { 
 #ifdef ATC_VERBOSE2
     if (energy < maxEnergy_) lammpsInterface_->print_msg(" energy "+to_string(energy)+" "+to_string(rngCounter_));
@@ -423,7 +423,7 @@ const double kMinScale_ = 10000.;
     int * tag = lammpsInterface_->atom_tag();
     for (itr = list.begin(); itr != list.end(); itr++) {
       int atag = tag[itr->second]; 
-      double d = abs(atag-r);
+      double d = fabs(atag-r);
       if (d < min) {
         min = d;
         idx = i;

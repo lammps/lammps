@@ -14,7 +14,6 @@
 #ifndef LMP_MEMORY_H
 #define LMP_MEMORY_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -435,6 +434,53 @@ class Memory : protected Pointers {
   TYPE *****create(TYPE *****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
                    const char *name)
   {fail(name); return NULL;}
+
+/* ----------------------------------------------------------------------
+  grow or shrink 1st dim of a 4d array
+  last 3 dims must stay the same
+  ------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+  TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, int n4,
+          const char *name)
+  {
+          if (array == NULL) return create(array, n1, n2, n3, n4, name);
+
+          bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2*n3*n4;
+          TYPE *data = (TYPE *)srealloc(array[0][0][0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE *)) * n1*n2*n3;
+          TYPE **cube = (TYPE **)srealloc(array[0][0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE **)) * n1*n2;
+          TYPE ***plane = (TYPE ***)srealloc(array[0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE ***)) * n1;
+          array = (TYPE ****)srealloc(array, nbytes, name);
+
+          int i, j, k;
+          bigint m1, m2;
+          bigint n = 0;
+          for (i = 0; i < n1; i++) {
+                  m2 = ((bigint)i) * n2;
+                  array[i] = &plane[m2];
+                  for (j = 0; j < n2; j++) {
+                          m1 = ((bigint)i) * n2 + j;
+                          m2 = ((bigint)i) * n2*n3 + j*n3;
+                          plane[m1] = &cube[m2];
+                          for (k = 0; k < n3; k++) {
+                                  m1 = ((bigint)i) * n2*n3 + j*n3 + k;
+                                  cube[m1] = &data[n];
+                                  n += n4;
+                          }
+                  }
+          }
+          return array;
+  }
+
+  template <typename TYPE>
+  TYPE *****grow(TYPE *****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
+          const char *name)
+  {
+          fail(name); return NULL;
+  }
 
 /* ----------------------------------------------------------------------
    destroy a 4d array

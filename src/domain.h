@@ -15,9 +15,9 @@
 #define LMP_DOMAIN_H
 
 #include <cmath>
-#include "pointers.h"
 #include <map>
 #include <string>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -269,7 +269,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Unknown region style
+E: Unrecognized region style
 
 The choice of region style is unknown.
 

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "reader_native.h"
 #include <cstring>
 #include <cstdlib>
-#include "reader_native.h"
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
@@ -56,10 +56,18 @@ int ReaderNative::read_time(bigint &ntimestep)
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
 
+  // skip over unit information, if present.
+
+  if (strstr(line,"ITEM: UNITS") == line)
+    read_lines(2);
+
   if (strstr(line,"ITEM: TIMESTEP") != line)
     error->one(FLERR,"Dump file is incorrectly formatted");
+
   read_lines(1);
-  sscanf(line,BIGINT_FORMAT,&ntimestep);
+  int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
+  if (rv != 1)
+    error->one(FLERR,"Dump file is incorrectly formatted");
 
   return 0;
 }
@@ -73,7 +81,9 @@ void ReaderNative::skip()
 {
   read_lines(2);
   bigint natoms;
-  sscanf(line,BIGINT_FORMAT,&natoms);
+  int rv = sscanf(line,BIGINT_FORMAT,&natoms);
+  if (rv != 1)
+    error->one(FLERR,"Dump file is incorrectly formatted");
 
   read_lines(5);
 
@@ -103,30 +113,40 @@ void ReaderNative::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderNative::read_header(double box[3][3], int &triclinic,
+bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                  int fieldinfo, int nfield,
                                  int *fieldtype, char **fieldlabel,
                                  int scaleflag, int wrapflag, int &fieldflag,
                                  int &xflag, int &yflag, int &zflag)
 {
   bigint natoms;
-  read_lines(2);
-  sscanf(line,BIGINT_FORMAT,&natoms);
+  int rv;
 
+  read_lines(2);
+  rv = sscanf(line,BIGINT_FORMAT,&natoms);
+  if (rv != 1)
+    error->one(FLERR,"Dump file is incorrectly formatted");
+
+  boxinfo = 1;
   triclinic = 0;
   box[0][2] = box[1][2] = box[2][2] = 0.0;
   read_lines(1);
   if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
 
   read_lines(1);
-  if (!triclinic) sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
-  else sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
+  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
+  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
+  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+
   read_lines(1);
-  if (!triclinic) sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
-  else sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
+  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
+  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
+  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+
   read_lines(1);
-  if (!triclinic) sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
-  else sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
+  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
+  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
+  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
 
   read_lines(1);
 

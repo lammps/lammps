@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_client_md.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_client_md.h"
 #include "update.h"
 #include "atom.h"
 #include "comm.h"
@@ -89,7 +89,7 @@ FixClientMD::~FixClientMD()
 
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   // clean-up
 
@@ -173,8 +173,6 @@ void FixClientMD::min_setup(int vflag)
 
 void FixClientMD::post_force(int vflag)
 {
-  int i,j,m;
-
   // energy and virial setup
 
   if (vflag) v_setup(vflag);
@@ -286,7 +284,7 @@ void FixClientMD::receive_fev(int vflag)
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
 
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   double *forces = (double *) cs->unpack(FORCES);
   double **f = atom->f;

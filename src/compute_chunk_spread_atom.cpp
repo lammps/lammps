@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_chunk_spread_atom.h"
 #include <cstring>
 #include <cstdlib>
-#include "compute_chunk_spread_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -23,6 +23,7 @@
 #include "input.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -71,7 +72,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
     ids[nvalues] = NULL;
 
     if (strncmp(arg[iarg],"c_",2) == 0 ||
-	strncmp(arg[iarg],"f_",2) == 0) {
+        strncmp(arg[iarg],"f_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
 
@@ -116,22 +117,20 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute ID for compute chunk/spread/atom "
                    "does not exist");
 
-      char *ptr = strstr(modify->compute[icompute]->style,"/chunk");
-      if (!ptr || (ptr !=  modify->compute[icompute]->style +
-                   strlen(modify->compute[icompute]->style) - strlen("/chunk")))
+      if (!utils::strmatch(modify->compute[icompute]->style,"/chunk$"))
         error->all(FLERR,"Compute for compute chunk/spread/atom "
                    "does not calculate per-chunk values");
 
       if (argindex[i] == 0) {
-	if (!modify->compute[icompute]->vector_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom compute "
+        if (!modify->compute[icompute]->vector_flag)
+          error->all(FLERR,"Compute chunk/spread/atom compute "
                      "does not calculate global vector");
       } else {
-	if (!modify->compute[icompute]->array_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom compute "
+        if (!modify->compute[icompute]->array_flag)
+          error->all(FLERR,"Compute chunk/spread/atom compute "
                      "does not calculate global array");
-	if (argindex[i] > modify->compute[icompute]->size_array_cols)
-	  error->all(FLERR,"Compute chunk/spread/atom compute array "
+        if (argindex[i] > modify->compute[icompute]->size_array_cols)
+          error->all(FLERR,"Compute chunk/spread/atom compute array "
                      "is accessed out-of-range");
       }
 
@@ -140,15 +139,15 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute chunk/spread/atom does not exist");
       if (argindex[i] == 0) {
-	if (!modify->fix[ifix]->vector_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom fix "
+        if (!modify->fix[ifix]->vector_flag)
+          error->all(FLERR,"Compute chunk/spread/atom fix "
                      "does not calculate global vector");
       } else {
-	if (!modify->fix[ifix]->array_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom fix "
+        if (!modify->fix[ifix]->array_flag)
+          error->all(FLERR,"Compute chunk/spread/atom fix "
                      "does not calculate global array");
-	if (argindex[i] > modify->fix[ifix]->size_array_cols)
-	  error->all(FLERR,"Compute chunk/spread/atom fix array "
+        if (argindex[i] > modify->fix[ifix]->size_array_cols)
+          error->all(FLERR,"Compute chunk/spread/atom fix array "
                      "is accessed out-of-range");
       }
     }
@@ -281,14 +280,14 @@ void ComputeChunkSpreadAtom::compute_peratom()
           compute->compute_vector();
           compute->invoked_flag |= INVOKED_VECTOR;
         }
-	double *cvector = compute->vector;
-	for (i = 0; i < nlocal; i++, ptr += nstride) {
-	  *ptr = 0.0;
-	  if (!(mask[i] & groupbit)) continue;
-	  index = ichunk[i]-1;
-	  if (index < 0 || index >= nchunk) continue;
-	  *ptr = cvector[index];
-	}
+        double *cvector = compute->vector;
+        for (i = 0; i < nlocal; i++, ptr += nstride) {
+          *ptr = 0.0;
+          if (!(mask[i] & groupbit)) continue;
+          index = ichunk[i]-1;
+          if (index < 0 || index >= nchunk) continue;
+          *ptr = cvector[index];
+        }
 
       } else {
         if (!(compute->invoked_flag & INVOKED_ARRAY)) {
@@ -297,13 +296,13 @@ void ComputeChunkSpreadAtom::compute_peratom()
         }
         int icol = argindex[m]-1;
         double **carray = compute->array;
-	for (i = 0; i < nlocal; i++, ptr += nstride) {
-	  *ptr = 0.0;
-	  if (!(mask[i] & groupbit)) continue;
-	  index = ichunk[i]-1;
-	  if (index < 0 || index >= nchunk) continue;
-	  *ptr = carray[index][icol];
-	}
+        for (i = 0; i < nlocal; i++, ptr += nstride) {
+          *ptr = 0.0;
+          if (!(mask[i] & groupbit)) continue;
+          index = ichunk[i]-1;
+          if (index < 0 || index >= nchunk) continue;
+          *ptr = carray[index][icol];
+        }
       }
 
     // access fix data, check if fix frequency is a match

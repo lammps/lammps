@@ -79,7 +79,7 @@ ElectronFluxThermopower::ElectronFluxThermopower(
 }
 
 ElectronFluxConvection::ElectronFluxConvection(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & /* parameters */) 
   : ElectronFlux()
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");

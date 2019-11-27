@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_npt_sphere.h"
+#include <cstring>
 #include "modify.h"
 #include "error.h"
 

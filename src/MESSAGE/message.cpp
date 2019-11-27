@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "message.h"
+#include <cstring>
 #include "error.h"
 
 // CSlib interface
@@ -22,28 +22,22 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
-// customize by adding a new server protocol enum
-
-enum{MD,MC};
-
 /* ---------------------------------------------------------------------- */
 
 void Message::command(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal message command");
 
-  int clientserver;
+  int clientserver=0;
   if (strcmp(arg[0],"client") == 0) clientserver = 1;
   else if (strcmp(arg[0],"server") == 0) clientserver = 2;
   else error->all(FLERR,"Illegal message command");
   lmp->clientserver = clientserver;
 
-  // customize by adding a new server protocol
+  // validate supported protocols
 
-  int protocol;
-  if (strcmp(arg[1],"md") == 0) protocol = MD;
-  else if (strcmp(arg[1],"mc") == 0) protocol = MC;
-  else error->all(FLERR,"Unknown message protocol");
+  if ((strcmp(arg[1],"md") != 0) && (strcmp(arg[1],"mc") != 0))
+    error->all(FLERR,"Unknown message protocol");
 
   // instantiate CSlib with chosen communication mode
 

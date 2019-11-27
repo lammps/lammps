@@ -14,9 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
 
 namespace LAMMPS_NS {
 
@@ -125,7 +123,7 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int);
+  void print_var_error(const char *, int, const char *, int, int global=1);
   void print_tree(Tree *, int);
 };
 
@@ -209,6 +207,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

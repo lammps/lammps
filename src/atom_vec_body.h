@@ -21,7 +21,6 @@ AtomStyle(body,AtomVecBody)
 #define LMP_ATOM_VEC_BODY_H
 
 #include "atom_vec.h"
-#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 
@@ -92,6 +91,8 @@ class AtomVecBody : public AtomVec {
   double radius_body(int, int, int *, double *);
   void set_quat(int, double *);
 
+  int nlocal_bonus;
+
  private:
   tagint *tag;
   int *type,*mask;
@@ -102,7 +103,7 @@ class AtomVecBody : public AtomVec {
   double **angmom,**torque;
   int *body;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+  int nghost_bonus,nmax_bonus;
   int intdoubleratio;       // sizeof(double) / sizeof(int)
 
   MyPoolChunk<int> *icp;
@@ -110,7 +111,6 @@ class AtomVecBody : public AtomVec {
 
   void grow_bonus();
   void copy_bonus(int, int);
-  //void check(int);
 };
 
 }
@@ -128,7 +128,7 @@ E: Invalid atom_style body command
 
 No body style argument was provided.
 
-E: Unknown body style
+E: Unrecognized body style
 
 The choice of body style is unknown.
 

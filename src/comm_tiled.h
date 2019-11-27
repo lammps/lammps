@@ -88,7 +88,6 @@ class CommTiled : public Comm {
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm
   int maxsend,maxrecv;          // current size of send/recv buffer
-  int bufextra;                 // extra space beyond maxsend in send buffer
   int smaxone,rmaxone;          // max size in atoms of single borders send/recv
   int smaxall,rmaxall;          // max size in atoms of any borders send/recv
                                 //   for comm to all procs in one swap

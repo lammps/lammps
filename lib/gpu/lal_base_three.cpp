@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 #include "lal_base_three.h"
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BaseThreeT BaseThree<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -27,6 +27,7 @@ BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0) {
   #ifdef THREE_CONCURRENT
   ans2=new Answer<numtyp,acctyp>();
   #endif
+  pair_program=NULL;
 }
 
 template <class numtyp, class acctyp>
@@ -36,6 +37,12 @@ BaseThreeT::~BaseThree() {
   #ifdef THREE_CONCURRENT
   delete ans2;
   #endif
+  if (pair_program) delete pair_program;
+  k_three_center.clear();
+  k_three_end.clear();
+  k_three_end_vatom.clear();
+  k_pair.clear();
+  k_short_nbor.clear();
 }
 
 template <class numtyp, class acctyp>
@@ -78,9 +85,12 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom*_threads_per_atom>device->warp_size())
     return -10;
 
-  int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,false,
-                           _threads_per_atom);
+  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  if (success!=0)
+    return success;
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
 
@@ -136,16 +146,6 @@ void BaseThreeT::clear_atomic() {
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
-  if (_compiled) {
-    k_three_center.clear();
-    k_three_end.clear();
-    k_three_end_vatom.clear();
-    k_pair.clear();
-    k_short_nbor.clear();
-    delete pair_program;
-    _compiled=false;
-  }
-
   time_pair.clear();
   hd_balancer.clear();
 
@@ -158,7 +158,6 @@ void BaseThreeT::clear_atomic() {
   // ucl_device will clean up the command queue in its destructor
 //  ucl_device->pop_command_queue();
   #endif
-  device->clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -375,7 +374,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
     return;
 
   std::string vatom_name=std::string(three_end)+"_vatom";
-
+  if (pair_program) delete pair_program;
   pair_program=new UCL_Program(dev);
   pair_program->load_string(pair_str,device->compile_string().c_str());
   k_three_center.set_function(*pair_program,three_center);
@@ -394,4 +393,4 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseThree<PRECISION,ACC_PRECISION>;
-
+}

@@ -14,7 +14,7 @@
 #ifndef LMP_COMPUTE_H
 #define LMP_COMPUTE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -59,6 +59,8 @@ class Compute : protected Pointers {
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
                       // must have both compute_scalar, compute_vector
   int pressatomflag;  // 1 if Compute calculates per-atom virial
+                      // 2 if Compute calculates per-atom centroid virial
+                      // 3 if Compute calculates both
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
   int peatomflag;     // 1 if Compute calculates per-atom PE
   int create_attribute;    // 1 if compute stores attributes that need

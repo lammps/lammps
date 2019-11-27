@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -31,35 +31,21 @@
 #include "force.h"
 #include "input.h"
 #include "variable.h"
-#include "output.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-#define MAXLINE 1024
-#define CHUNK 1024
-#define ATTRIBUTE_PERBODY 20
-
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
-
-#define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
-#define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), step_respa(NULL),
-  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
+  inpfile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
   body(NULL), displace(NULL), masstotal(NULL), xcm(NULL),
   vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
   ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
@@ -327,7 +313,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   t_iter = 1;
   t_order = 3;
   p_chain = 10;
-  infile = NULL;
+  inpfile = NULL;
 
   pcouple = NONE;
   pstyle = ANISO;
@@ -546,12 +532,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"infile") == 0) {
+    } else if (strcmp(arg[iarg],"inpfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      delete [] infile;
+      delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;
-      infile = new char[n];
-      strcpy(infile,arg[iarg+1]);
+      inpfile = new char[n];
+      strcpy(inpfile,arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -606,21 +592,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++)
     if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
 
-  // bitmasks for properties of extended particles
-
-  POINT = 1;
-  SPHERE = 2;
-  ELLIPSOID = 4;
-  LINE = 8;
-  TRIANGLE = 16;
-  DIPOLE = 32;
-  OMEGA = 64;
-  ANGMOM = 128;
-  TORQUE = 256;
-
-  MINUSPI = -MY_PI;
-  TWOPI = 2.0*MY_PI;
-
   // wait to setup bodies until first init() using current atom properties
 
   setupflag = 0;
@@ -649,7 +620,7 @@ FixRigid::~FixRigid()
   atom->delete_callback(id,0);
 
   delete random;
-  delete [] infile;
+  delete [] inpfile;
   memory->destroy(mol2body);
   memory->destroy(body2mol);
 
@@ -760,14 +731,14 @@ void FixRigid::init()
   // setup rigid bodies, using current atom info. if reinitflag is not set,
   // do the initialization only once, b/c properties may not be re-computable
   // especially if overlapping particles.
-  //   do not do dynamic init if read body properties from infile.
-  // this is b/c the infile defines the static and dynamic properties and may
+  //   do not do dynamic init if read body properties from inpfile.
+  // this is b/c the inpfile defines the static and dynamic properties and may
   // not be computable if contain overlapping particles.
-  //   setup_bodies_static() reads infile itself
+  //   setup_bodies_static() reads inpfile itself
 
   if (reinitflag || !setupflag) {
     setup_bodies_static();
-    if (!infile) setup_bodies_dynamic();
+    if (!inpfile) setup_bodies_dynamic();
     setupflag = 1;
   }
 
@@ -1473,8 +1444,8 @@ void FixRigid::set_xv()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];
@@ -1640,7 +1611,7 @@ void FixRigid::set_v()
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
    sets body image flags
-   may read some properties from infile
+   may read some properties from inpfile
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_static()
@@ -1791,7 +1762,7 @@ void FixRigid::setup_bodies_static()
     xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
   }
 
-  // set vcm, angmom = 0.0 in case infile is used
+  // set vcm, angmom = 0.0 in case inpfile is used
   // and doesn't overwrite all body's values
   // since setup_bodies_dynamic() will not be called
 
@@ -1810,7 +1781,7 @@ void FixRigid::setup_bodies_static()
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
-  if (infile) {
+  if (inpfile) {
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
     readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);
@@ -1918,7 +1889,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
+  if (inpfile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2019,8 +1990,8 @@ void FixRigid::setup_bodies_static()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
+        while (orient[i][0] <= -MY_PI) orient[i][0] += MY_2PI;
+        while (orient[i][0] > MY_PI) orient[i][0] -= MY_2PI;
         if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
       } else if (eflags[i] & TRIANGLE) {
         quatatom = tbonus[tri[i]].quat;
@@ -2116,11 +2087,11 @@ void FixRigid::setup_bodies_static()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   // error check that re-computed moments of inertia match diagonalized ones
-  // do not do test for bodies with params read from infile
+  // do not do test for bodies with params read from inpfile
 
   double norm;
   for (ibody = 0; ibody < nbody; ibody++) {
-    if (infile && inbody[ibody]) continue;
+    if (inpfile && inbody[ibody]) continue;
     if (inertia[ibody][0] == 0.0) {
       if (fabs(all[ibody][0]) > TOLERANCE)
         error->all(FLERR,"Fix rigid: Bad principal moments");
@@ -2149,7 +2120,7 @@ void FixRigid::setup_bodies_static()
       error->all(FLERR,"Fix rigid: Bad principal moments");
   }
 
-  if (infile) memory->destroy(inbody);
+  if (inpfile) memory->destroy(inbody);
 }
 
 /* ----------------------------------------------------------------------
@@ -2268,10 +2239,10 @@ void FixRigid::readfile(int which, double *vec,
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(infile,"r");
+    fp = fopen(inpfile,"r");
     if (fp == NULL) {
       char str[128];
-      snprintf(str,128,"Cannot open fix rigid infile %s",infile);
+      snprintf(str,128,"Cannot open fix rigid inpfile %s",inpfile);
       error->one(FLERR,str);
     }
 
@@ -2371,7 +2342,7 @@ void FixRigid::readfile(int which, double *vec,
 
 /* ----------------------------------------------------------------------
    write out restart info for mass, COM, inertia tensor, image flags to file
-   identical format to infile option, so info can be read in when restarting
+   identical format to inpfile option, so info can be read in when restarting
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
 

@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "memory.h"
+#include <cstdlib>
 #include "error.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
@@ -22,11 +20,12 @@
 #define LMP_USE_TBB_ALLOCATOR
 #include "tbb/scalable_allocator.h"
 #else
+#include <cstring>
 #include <malloc.h>
 #endif
 #endif
 
-#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN)
+#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
 

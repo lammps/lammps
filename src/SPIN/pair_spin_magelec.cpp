@@ -21,38 +21,22 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_magelec.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_magelec.h"
 #include "update.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
-/* ---------------------------------------------------------------------- */
-
-PairSpinMagelec::PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp),
-lockfixnvespin(NULL)
-{
-  single_enable = 0;
-  no_virial_fdotr_compute = 1;
-  lattice_flag = 0;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,11 +60,8 @@ PairSpinMagelec::~PairSpinMagelec()
 
 void PairSpinMagelec::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
+  PairSpin::settings(narg,arg);
 
   cut_spin_magelec_global = force->numeric(FLERR,arg[0]);
 
@@ -142,43 +123,6 @@ void PairSpinMagelec::coeff(int narg, char **arg)
   }
   if (count == 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinMagelec::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  // checking if nve/spin is a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    ifix++;
-  }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -226,8 +170,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -287,7 +230,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       // compute me interaction
 
       if (rsq <= local_cut2) {
-        compute_magelec(i,j,rsq,eij,fmi,spj);
+        compute_magelec(i,j,eij,fmi,spj);
         if (lattice_flag) {
           compute_magelec_mech(i,j,fi,spi,spj);
         }
@@ -320,7 +263,9 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
 {
@@ -332,55 +277,79 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-    local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    delx = xi[0] - x[j][0];
-    dely = xi[1] - x[j][1];
-    delz = xi[2] - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = -inorm*delx;
-    eij[1] = -inorm*dely;
-    eij[2] = -inorm*delz;
-
-    if (rsq <= local_cut2) {
-      compute_magelec(i,j,rsq,eij,fmi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
+
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = -inorm*delx;
+      eij[1] = -inorm*dely;
+      eij[2] = -inorm*delz;
+
+      if (rsq <= local_cut2) {
+        compute_magelec(ii,j,eij,fmi,spj);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMagelec::compute_magelec(int i, int j, double /*rsq*/, double eij[3], double fmi[3], double spj[3])
+void PairSpinMagelec::compute_magelec(int i, int j, double eij[3], double fmi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
@@ -495,15 +464,15 @@ void PairSpinMagelec::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&ME[i][j],sizeof(double),1,fp);
-          fread(&v_mex[i][j],sizeof(double),1,fp);
-          fread(&v_mey[i][j],sizeof(double),1,fp);
-          fread(&v_mez[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_magelec[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&ME[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&v_mex[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&v_mey[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&v_mez[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_magelec[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&ME[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_mex[i][j],1,MPI_DOUBLE,0,world);
@@ -533,9 +502,9 @@ void PairSpinMagelec::write_restart_settings(FILE *fp)
 void PairSpinMagelec::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_magelec_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_spin_magelec_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_spin_magelec_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

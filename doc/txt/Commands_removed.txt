@@ -1,0 +1,66 @@
+"Higher level section"_Commands.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands.html)
+
+:line
+
+Removed commands and packages :h3
+
+This page lists LAMMPS commands and packages that have been removed from
+the distribution and provides suggestions for alternatives or replacements.
+LAMMPS has special dummy styles implemented, that will stop LAMMPS and
+print a suitable error message in most cases, when a style/command is used
+that has been removed.
+
+Fix ave/spatial and fix ave/spatial/sphere :h4
+
+The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
+since they were superseded by the more general and extensible "chunk
+infrastructure".  Here the system is partitioned in one of many possible
+ways through the "compute chunk/atom"_compute_chunk_atom.html command
+and then averaging is done using "fix ave/chunk"_fix_ave_chunk.html.
+Please refer to the "chunk HOWTO"_Howto_chunk.html section for an overview.
+
+MEAM package :h4
+
+The MEAM package has been removed since it was superseded by the
+"USER-MEAMC package"_Package_details.html#PKG-USER-MEAMC. The code in
+the USER-MEAMC package is a translation of the Fortran code of MEAM into C++,
+which removes several restrictions (e.g. there can be multiple instances
+in hybrid pair styles) and allows for some optimizations leading
+to better performance.  The new pair style "meam/c"_pair_meamc.html has
+the exact same syntax as the old "meam" pair style and thus pair style
+"meam"_pair_meamc.html is an alias to the new style and backward
+compatibility of old inputs is preserved.
+
+REAX package :h4
+
+The REAX package has been removed since it was superseded by the
+"USER-REAXC package"_Package_details.html#PKG-USER-REAXC.  The USER-REAXC
+package has been tested to yield equivalent results to the REAX package,
+offers better performance, supports OpenMP multi-threading via USER-OMP,
+and GPU and threading parallelization through KOKKOS.  The new pair styles
+are not syntax compatible with the removed reax pair style, so input
+files will have to be adapted.
+
+USER-CUDA package :h4
+
+The USER-CUDA package had been removed, since it had been unmaintained
+for a long time and had known bugs and problems.  Significant parts of
+the design were transferred to the
+"KOKKOS package"_Package_details.html#PKG-KOKKOS, which has similar
+performance characteristics on Nvidia GPUs. Both, the KOKKOS
+and the "GPU package"_Package_details.html#PKG-GPU are maintained
+and allow running LAMMPS with GPU acceleration.
+
+restart2data tool :h4
+
+The functionality of the restart2data tool has been folded into the
+LAMMPS executable directly instead of having a separate tool.  A
+combination of the commands "read_restart"_read_restart.html and
+"write_data"_write_data.html can be used to the same effect.  For added
+convenience this conversion can also be triggered by "command line
+flags"_Run_options.html

@@ -154,12 +154,12 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int nlocal = atom->nlocal;
 
   #ifndef _LMP_INTEL_OFFLOAD
-  int * const mask = atom->mask;
-  tagint * const molecule = atom->molecule;
+  int * _noalias const mask = atom->mask;
+  tagint * _noalias const molecule = atom->molecule;
   #endif
 
   int tnum;
-  int *overflow;
+  int * _noalias overflow;
   #ifdef _LMP_INTEL_OFFLOAD
   double *timer_compute;
   if (offload) {
@@ -191,7 +191,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   flt_t * _noalias const ncachez = buffers->get_ncachez();
   int * _noalias const ncachej = buffers->get_ncachej();
   int * _noalias const ncachejtype = buffers->get_ncachejtype();
-  int * _noalias const ncachetag = buffers->get_ncachetag();
+  tagint * _noalias const ncachetag = buffers->get_ncachetag();
   const int ncache_stride = buffers->ncache_stride();
 
   int sb = 1;
@@ -298,8 +298,8 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       const int obound = maxnbors * 3;
       #endif
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = intel_list + ct;
-      int *neighptr2;
+      int * _noalias neighptr = intel_list + ct;
+      int * _noalias neighptr2;
       if (THREE) neighptr2 = neighptr;
 
       const int toffs = tid * ncache_stride;
@@ -308,7 +308,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       flt_t * _noalias const tz = ncachez + toffs;
       int * _noalias const tj = ncachej + toffs;
       int * _noalias const tjtype = ncachejtype + toffs;
-      int * _noalias const ttag = ncachetag + toffs;
+      tagint * _noalias const ttag = ncachetag + toffs;
 
       flt_t * _noalias itx;
       flt_t * _noalias ity;
@@ -501,7 +501,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
 
           if (THREE) {
-            const int jtag = ttag[u];
+            const tagint jtag = ttag[u];
             int flist = 0;
             if (itag > jtag) {
               if (((itag+jtag) & 1) == 0) flist = 1;

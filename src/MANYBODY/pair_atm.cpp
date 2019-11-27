@@ -15,8 +15,9 @@
    Contributing author: Sergey Lishchuk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_atm.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -26,6 +27,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -82,8 +84,7 @@ void PairATM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -310,10 +311,10 @@ void PairATM::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) for (k = j; k <= atom->ntypes; k++) {
-        if (me == 0) fread(&nu[i][j][k],sizeof(double),1,fp);
+          if (me == 0) utils::sfread(FLERR,&nu[i][j][k],sizeof(double),1,fp,NULL,error);
         MPI_Bcast(&nu[i][j][k],1,MPI_DOUBLE,0,world);
       }
     }
@@ -338,8 +339,8 @@ void PairATM::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&cut_triple,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_triple,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_triple,1,MPI_DOUBLE,0,world);

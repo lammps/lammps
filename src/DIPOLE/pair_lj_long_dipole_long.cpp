@@ -15,25 +15,22 @@
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_dipole_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_const.h"
 #include "math_vector.h"
-#include "pair_lj_long_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,10 +64,10 @@ void PairLJLongDipoleLong::options(char **arg, int order)
   if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
     case 0: ewald_order |= 1<<order; break;             // set kspace r^-order
     case 2: ewald_off |= 1<<order;                      // turn r^-order off
     case 1: break;
+    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   }
 }
 
@@ -348,13 +345,13 @@ void PairLJLongDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon_read[i][j],sizeof(double),1,fp);
-          fread(&sigma_read[i][j],sizeof(double),1,fp);
-          fread(&cut_lj_read[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj_read[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
@@ -383,11 +380,11 @@ void PairLJLongDipoleLong::write_restart_settings(FILE *fp)
 void PairLJLongDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&ewald_order,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -405,8 +402,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;

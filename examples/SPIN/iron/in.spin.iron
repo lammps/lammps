@@ -19,7 +19,8 @@ create_atoms 	1 box
 
 mass		1 55.845
 
-set 		group all spin/random 31 2.2
+#set 		group all spin/random 31 2.2
+set 		group all spin 2.2 0.0 0.0 1.0
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
@@ -32,7 +33,7 @@ neigh_modify 	every 10 check yes delay 20
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice moving
 timestep	0.0001
 
 # compute and output options

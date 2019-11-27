@@ -103,7 +103,6 @@ bool mat_same(T x1[3][3], T x2[3][3])
 template<typename T>
 void transpose(T m[3][3])
 {
-  T t[3][3];
   for (int k=0;k<3;k++)
     for (int j=k+1;j<3;j++) {
       T x = m[k][j];

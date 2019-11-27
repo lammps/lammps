@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_bond_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_bond_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 #define DELTA 10000
 #define EPSILON 1.0e-12
 
-enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,VARIABLE};
+enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -64,6 +64,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
     else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
+    else if (strcmp(arg[iarg],"fx") == 0) bstyle[nvalues++] = FX;
+    else if (strcmp(arg[iarg],"fy") == 0) bstyle[nvalues++] = FY;
+    else if (strcmp(arg[iarg],"fz") == 0) bstyle[nvalues++] = FZ;
     else if (strcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
     else if (strcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
     else if (strcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
@@ -105,9 +108,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for copute bond/local does not exist");
+        error->all(FLERR,"Variable name for copute bond/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute bond/local is invalid style");
+        error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
 
     if (dstr) {
@@ -127,7 +130,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   singleflag = 0;
   velflag = 0;
   for (int i = 0; i < nvalues; i++) {
-    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
+    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE || bstyle[i] == FX       ||
+        bstyle[i] == FY     || bstyle[i] == FZ) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
         bstyle[i] == ENGVIB || bstyle[i] == ENGROT) velflag = 1;
   }
@@ -168,7 +172,7 @@ void ComputeBondLocal::init()
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for compute bond/local does not exist");
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
     }
 
     if (dstr) {
@@ -377,10 +381,10 @@ int ComputeBondLocal::compute_bonds(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
-	if (nvar) {
-	  ivar = 0;
-	  if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
-	}
+        if (nvar) {
+          ivar = 0;
+          if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
+        }
 
         for (n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
@@ -392,6 +396,15 @@ int ComputeBondLocal::compute_bonds(int flag)
             break;
           case FORCE:
             ptr[n] = sqrt(rsq)*fbond;
+            break;
+          case FX:
+            ptr[n] = dx*fbond;
+            break;
+          case FY:
+            ptr[n] = dy*fbond;
+            break;
+          case FZ:
+            ptr[n] = dz*fbond;
             break;
           case ENGVIB:
             ptr[n] = engvib;
@@ -408,10 +421,10 @@ int ComputeBondLocal::compute_bonds(int flag)
           case VELVIB:
             ptr[n] = vvib;
             break;
-	  case VARIABLE:
-	    ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	    ivar++;
-	    break;
+          case VARIABLE:
+            ptr[n] = input->variable->compute_equal(vvar[ivar]);
+            ivar++;
+            break;
           }
         }
       }

@@ -20,11 +20,11 @@
     1) Tersoff, Phys. Rev. B 39, 5566 (1988)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_table.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -117,8 +117,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
   double evdwl = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

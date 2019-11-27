@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_nh_kokkos.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_nh_kokkos.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -106,8 +106,8 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 
     if (t0 == 0.0) {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
-      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
       t0 = temperature->compute_scalar();
+      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
       if (t0 == 0.0) {
         if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
         else t0 = 300.0;
@@ -119,8 +119,8 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
   if (pstat_flag) compute_press_target();
 
   atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   t_current = temperature->compute_scalar();
+  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   tdof = temperature->dof;
 
   if (pstat_flag) {
@@ -250,10 +250,11 @@ void FixNHKokkos<DeviceType>::final_integrate()
   //   per-atom values are invalid if reneigh/comm occurred
   //     since temp->compute() in initial_integrate()
 
-  if (which == BIAS && neighbor->ago == 0)
+  if (which == BIAS && neighbor->ago == 0) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
     t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+  }
 
   if (pstat_flag) nh_v_press();
 
@@ -261,8 +262,8 @@ void FixNHKokkos<DeviceType>::final_integrate()
   // compute appropriately coupled elements of mvv_current
 
   atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   t_current = temperature->compute_scalar();
+  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   tdof = temperature->dof;
 
   if (pstat_flag) {
@@ -476,8 +477,6 @@ void FixNHKokkos<DeviceType>::remap()
 template<class DeviceType>
 void FixNHKokkos<DeviceType>::nh_v_press()
 {
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
-
   v = atomKK->k_v.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
@@ -492,6 +491,8 @@ void FixNHKokkos<DeviceType>::nh_v_press()
     temperature->remove_bias_all();
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   }
+
+  atomKK->sync(execution_space,V_MASK | MASK_MASK);
 
   copymode = 1;
   if (pstyle == TRICLINIC)
@@ -536,7 +537,6 @@ template<class DeviceType>
 void FixNHKokkos<DeviceType>::nve_v()
 {
   atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
-  atomKK->modified(execution_space,V_MASK);
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -553,6 +553,8 @@ void FixNHKokkos<DeviceType>::nve_v()
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<0> >(0,nlocal),*this);
   copymode = 0;
+
+  atomKK->modified(execution_space,V_MASK);
 }
 
 template<class DeviceType>
@@ -616,8 +618,6 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
 template<class DeviceType>
 void FixNHKokkos<DeviceType>::nh_v_temp()
 {
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
-
   v = atomKK->k_v.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
@@ -628,6 +628,8 @@ void FixNHKokkos<DeviceType>::nh_v_temp()
     temperature->remove_bias_all();
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   }
+
+  atomKK->sync(execution_space,V_MASK | MASK_MASK);
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nh_v_temp>(0,nlocal),*this);
@@ -733,7 +735,7 @@ void FixNHKokkos<DeviceType>::pre_exchange()
 
 namespace LAMMPS_NS {
 template class FixNHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNHKokkos<LMPHostType>;
 #endif
 }

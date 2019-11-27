@@ -15,19 +15,14 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-
 #include "dihedral_table_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "force.h"
-#include "update.h"
-#include "error.h"
-
+#include "timer.h"
 #include "math_const.h"
 #include "math_extra.h"
 
@@ -111,10 +106,7 @@ DihedralTableOMP::DihedralTableOMP(class LAMMPS *lmp)
 
 void DihedralTableOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -129,7 +121,7 @@ void DihedralTableOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {

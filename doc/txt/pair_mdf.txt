@@ -1,0 +1,157 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+pair_style lj/mdf command :h3
+pair_style buck/mdf command :h3
+pair_style lennard/mdf command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = {lj/mdf} or {buck/mdf} or {lennard/mdf} :ulb,l
+args = list of arguments for a particular style :l
+  {lj/mdf} args = cutoff1 cutoff2
+    cutoff1 = inner cutoff for the start of the tapering function
+    cutoff1 = out cutoff for the end of the tapering function
+  {buck/mdf} args = cutoff1 cutoff2
+    cutoff1 = inner cutoff for the start of the tapering function
+    cutoff1 = out cutoff for the end of the tapering function
+  {lennard/mdf} args = cutoff1 cutoff2
+    cutoff1 = inner cutoff for the start of the tapering function
+    cutoff1 = out cutoff for the end of the tapering function :pre
+:ule
+
+[Examples:]
+
+pair_style lj/mdf 2.5 3.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.1 2.8 3.0 3.2 :pre
+
+pair_style buck 2.5 3.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff * * 100.0 1.5 200.0 3.0 3.5 :pre
+
+pair_style lennard/mdf 2.5 3.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1021760.3664 2120.317338 3.0 3.2 :pre
+
+[Description:]
+
+The {lj/mdf}, {buck/mdf} and {lennard/mdf} compute the standard 12-6
+Lennard-Jones and Buckingham potential with the addition of a taper
+function that ramps the energy and force smoothly to zero between an
+inner and outer cutoff.
+
+:c,image(Eqs/pair_mdf-1.jpg)
+
+The tapering, {f(r)}, is done by using the Mei, Davenport, Fernando
+function "(Mei)"_#Mei.
+
+:c,image(Eqs/pair_mdf-2.jpg)
+
+where
+
+:c,image(Eqs/pair_mdf-3.jpg)
+
+Here {r_m} is the inner cutoff radius and {r_cut} is the outer cutoff
+radius.
+
+:line
+
+For the {lj/mdf} pair_style, the potential energy, {E(r)}, is the
+standard 12-6 Lennard-Jones written in the epsilon/sigma form:
+
+:c,image(Eqs/pair_mdf-4.jpg)
+
+Either the first two or all of the following coefficients must be
+defined for each pair of atoms types via the pair_coeff command as
+in the examples above, or in the data file read by the
+"read_data"_read_data.html. The two cutoffs default to the global
+values and epsilon and sigma can also be determined by mixing as
+described below:
+
+epsilon (energy units)
+sigma (distance units)
+r_m (distance units)
+r_{cut} (distance units) :ul
+
+:line
+
+For the {buck/mdf} pair_style, the potential energy, {E(r)}, is the
+standard Buckingham potential with three required coefficients.
+The two cutoffs can be omitted and default to the corresponding
+global values:
+
+:c,image(Eqs/pair_mdf-5.jpg)
+
+A (energy units)
+\rho (distance units)
+C (energy-distance^6 units)
+r_m (distance units)
+r_{cut} (distance units) :ul
+
+:line
+
+For the {lennard/mdf} pair_style, the potential energy, {E(r)}, is the
+standard 12-6 Lennard-Jones written in the A/B form:
+
+:c,image(Eqs/pair_mdf-6.jpg)
+
+The following coefficients must be defined for each pair of atoms
+types via the pair_coeff command as in the examples above, or in the
+data file read by the read_data commands, or by mixing as described below.
+The two cutoffs default to their global values and must be either both
+given or both left out:
+
+A (energy-distance^12 units)
+B (energy-distance^6 units)
+r_m (distance units)
+r_{cut} (distance units) :ul
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distances for the lj/mdf pair style can be mixed.
+The default mix value is {geometric}.  See the "pair_modify" command
+for details. The other two pair styles buck/mdf and lennard/mdf do not
+support mixing, so all I,J pairs of coefficients must be specified
+explicitly.
+
+None of the lj/mdf, buck/mdf, or lennard/mdf pair styles supports
+the "pair_modify"_pair_modify.html shift option or long-range
+tail corrections to pressure and energy.
+
+These styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+These styles can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  They do not support the {inner},
+{middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+These pair styles can only be used if LAMMPS was built with the
+USER-MISC package.  See the "Build package"_Build_package.html doc
+page for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Mei)
+[(Mei)] Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)

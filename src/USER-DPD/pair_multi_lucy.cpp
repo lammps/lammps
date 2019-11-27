@@ -33,7 +33,9 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "citeme.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -95,8 +97,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
   int tlm1 = tablength - 1;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -363,16 +364,16 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
     if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
   }
 
   // read args on 2nd line of section
-  // allocate table arrays for file values
+  // allocate table arrays for file valuesutils::s
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
@@ -385,9 +386,9 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
   int itmp;
   double rtmp;
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
 
     if (tb->rflag == RLINEAR)
@@ -706,8 +707,8 @@ void PairMultiLucy::write_restart_settings(FILE *fp)
 void PairMultiLucy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);

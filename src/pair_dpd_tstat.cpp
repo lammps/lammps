@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_dpd_tstat.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -20,6 +21,7 @@
 #include "comm.h"
 #include "random_mars.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,8 +45,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
   double rsq,r,rinv,dot,wd,randnum,factor_dpd;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // adjust sigma if target T is changing
 
@@ -231,12 +232,12 @@ void PairDPDTstat::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&gamma[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -264,11 +265,11 @@ void PairDPDTstat::write_restart_settings(FILE *fp)
 void PairDPDTstat::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&t_start,sizeof(double),1,fp);
-    fread(&t_stop,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&t_start,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&t_stop,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&t_start,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&t_stop,1,MPI_DOUBLE,0,world);

@@ -1,0 +1,61 @@
+"Higher level section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Multi-replica simulations :h3
+
+Several commands in LAMMPS run multi-replica simulations, meaning
+that multiple instances (replicas) of your simulation are run
+simultaneously, with small amounts of data exchanged between replicas
+periodically.
+
+These are the relevant commands:
+
+"neb"_neb.html for nudged elastic band calculations
+"neb_spin"_neb_spin.html for magnetic nudged elastic band calculations
+"prd"_prd.html for parallel replica dynamics
+"tad"_tad.html for temperature accelerated dynamics
+"temper"_temper.html for parallel tempering
+"fix pimd"_fix_pimd.html for path-integral molecular dynamics (PIMD) :ul
+
+NEB is a method for finding transition states and barrier energies.
+PRD and TAD are methods for performing accelerated dynamics to find
+and perform infrequent events.  Parallel tempering or replica exchange
+runs different replicas at a series of temperature to facilitate
+rare-event sampling.
+
+These commands can only be used if LAMMPS was built with the REPLICA
+package.  See the "Build package"_Build_package.html doc page for more
+info.
+
+PIMD runs different replicas whose individual particles are coupled
+together by springs to model a system or ring-polymers.
+
+This commands can only be used if LAMMPS was built with the USER-MISC
+package.  See the "Build package"_Build_package.html doc page for more
+info.
+
+In all these cases, you must run with one or more processors per
+replica.  The processors assigned to each replica are determined at
+run-time by using the "-partition command-line
+switch"_Run_options.html to launch LAMMPS on multiple partitions,
+which in this context are the same as replicas.  E.g.  these commands:
+
+mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
+mpirun -np 8 lmp_linux -partition 8x1 -in in.neb :pre
+
+would each run 8 replicas, on either 16 or 8 processors.  Note the use
+of the "-in command-line switch"_Run_options.html to specify the input
+script which is required when running in multi-replica mode.
+
+Also note that with MPI installed on a machine (e.g. your desktop),
+you can run on more (virtual) processors than you have physical
+processors.  Thus the above commands could be run on a
+single-processor (or few-processor) desktop so that you can run
+a multi-replica simulation on more replicas than you have
+physical processors.

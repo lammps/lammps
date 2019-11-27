@@ -17,7 +17,9 @@
 */
 
 #include <mpi.h>
+#if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
+#endif
 
 /* ifdefs allow this file to be included in a C program */
 
@@ -55,6 +57,17 @@ void lammps_gather_atoms_concat(void *, char *, int, int, void *);
 void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+
+#ifdef LAMMPS_BIGBIG
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#elif LAMMPS_SMALLBIG
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#else
+typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#endif
 
 int lammps_config_has_package(char * package_name);
 int lammps_config_package_count();

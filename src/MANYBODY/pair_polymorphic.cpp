@@ -16,11 +16,11 @@
    This modifies from pair_tersoff.cpp by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_polymorphic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_polymorphic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -29,11 +29,9 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
-#include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -117,8 +115,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
   double emb;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -577,8 +574,8 @@ void PairPolymorphic::read_file(char *file)
       error->one(FLERR,str);
     }
     // move past comments to first data line
-    fgets(line,MAXLINE,fp);
-    while (line == strchr(line,'#')) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    while (line == strchr(line,'#')) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -594,7 +591,7 @@ void PairPolymorphic::read_file(char *file)
   // map the elements in the potential file to LAMMPS atom types
   for (int i = 0; i < nelements; i++) {
     if (comm->me == 0) {
-      fgets(line,MAXLINE,fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
       n = strlen(line) + 1;
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -612,7 +609,7 @@ void PairPolymorphic::read_file(char *file)
   }
   // sizes
   if (comm->me == 0) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     n = strlen(line) + 1;
   }
 
@@ -648,7 +645,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) {
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      fgets(line,MAXLINE,fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
       n = strlen(line) + 1;
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -879,7 +876,7 @@ void PairPolymorphic::grab(FILE *fp, int n, double *list)
 
   int i = 0;
   while (i < n) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
     while ((ptr = strtok(NULL," \t\n\r\f")))

@@ -15,9 +15,9 @@
    Contributing authors: Mario Orsi & Wei Ding (QMUL), m.orsi@qmul.ac.uk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_dipole.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -59,8 +60,7 @@ void AngleDipole::compute(int eflag, int vflag)
   double r,cosGamma,deltaGamma,kdg,rmu;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x; // position vector
   double **mu = atom->mu; // point-dipole components and moment magnitude
@@ -206,8 +206,8 @@ void AngleDipole::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&gamma0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&gamma0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&gamma0[1],atom->nangletypes,MPI_DOUBLE,0,world);

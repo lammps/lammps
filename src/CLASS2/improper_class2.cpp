@@ -15,19 +15,19 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "improper_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "improper_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -90,8 +90,7 @@ void ImproperClass2::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (i = 0; i < 3; i++)
     for (j = 0; j < 4; j++)
@@ -606,15 +605,15 @@ void ImproperClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k0[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&chi0[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&k0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&chi0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
 
-    fread(&aa_k1[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&aa_k2[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&aa_k3[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&aa_k1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_k2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_k3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&k0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

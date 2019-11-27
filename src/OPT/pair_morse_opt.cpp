@@ -18,9 +18,9 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
+#include "pair_morse_opt.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_morse_opt.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -35,8 +35,7 @@ PairMorseOpt::PairMorseOpt(LAMMPS *lmp) : PairMorse(lmp) {}
 
 void PairMorseOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {

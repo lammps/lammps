@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_gayberne_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_gayberne_gpu.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -92,8 +92,7 @@ PairGayBerneGPU::~PairGayBerneGPU()
 
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -221,8 +220,9 @@ double PairGayBerneGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                  int *ilist, int *numneigh, int **firstneigh)
+void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag,
+                                  int /* vflag */, int *ilist,
+                                  int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;

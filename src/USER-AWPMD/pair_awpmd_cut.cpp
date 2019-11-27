@@ -15,11 +15,12 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_awpmd_cut.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
 #include "atom.h"
 #include "update.h"
 #include "min.h"
@@ -31,7 +32,11 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
+#include "logexc.h"
+#include "vector_3.h"
+#include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
 
 using namespace LAMMPS_NS;
@@ -108,10 +113,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (int i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag)
-    ev_setup(eflag,vflag);
-  else
-    evflag = vflag_fdotr = 0; //??
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -599,10 +601,10 @@ void PairAWPMDCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -626,9 +628,9 @@ void PairAWPMDCut::write_restart_settings(FILE *fp)
 void PairAWPMDCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -641,7 +643,7 @@ void PairAWPMDCut::read_restart_settings(FILE *fp)
    these arrays are stored locally by pair style
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
+void PairAWPMDCut::min_xf_pointers(int /* ignore */, double **xextra, double **fextra)
 {
   // grow arrays if necessary
   // need to be atom->nmax in length
@@ -664,7 +666,7 @@ void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
    calculate and store in min_eradius and min_erforce
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_get(int ignore)
+void PairAWPMDCut::min_xf_get(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double *erforce = atom->erforce;
@@ -703,7 +705,7 @@ void PairAWPMDCut::min_xf_get(int ignore)
    propagate the minimizer values to the atom values
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_x_set(int ignore)
+void PairAWPMDCut::min_x_set(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double **v=atom->v;

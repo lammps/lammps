@@ -50,6 +50,7 @@
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_Layout.hpp>
+#include <Kokkos_Extents.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_ViewCtor.hpp>
@@ -195,7 +196,7 @@ struct ViewDimension
     {}
 
   KOKKOS_INLINE_FUNCTION
-  constexpr size_t extent( const unsigned r ) const
+  constexpr size_t extent( const unsigned r ) const noexcept
     {
       return r == 0 ? N0 : (
              r == 1 ? N1 : (
@@ -205,6 +206,19 @@ struct ViewDimension
              r == 5 ? N5 : (
              r == 6 ? N6 : (
              r == 7 ? N7 : 0 )))))));
+    }
+
+  static KOKKOS_INLINE_FUNCTION
+  constexpr size_t static_extent( const unsigned r ) noexcept
+    {
+      return r == 0 ? ArgN0 : (
+             r == 1 ? ArgN1 : (
+             r == 2 ? ArgN2 : (
+             r == 3 ? ArgN3 : (
+             r == 4 ? ArgN4 : (
+             r == 5 ? ArgN5 : (
+             r == 6 ? ArgN6 : (
+             r == 7 ? ArgN7 : 0 )))))));
     }
 
   template< size_t N >
@@ -262,7 +276,7 @@ struct ALL_t {
   constexpr const ALL_t & operator()() const { return *this ; }
 
   KOKKOS_INLINE_FUNCTION
-  constexpr bool operator == ( const ALL_t & right) const { return true;}
+  constexpr bool operator == ( const ALL_t & ) const { return true;}
 };
 
 }} // namespace Kokkos::Impl
@@ -1535,7 +1549,7 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
   template< class DimRHS >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset
-    ( const ViewOffset< DimRHS , Kokkos::LayoutRight , void > & rhs
+    ( const ViewOffset< DimRHS , Kokkos::LayoutRight , void > &
     , const SubviewExtents< DimRHS::rank , dimension_type::rank > & sub
     )
     : m_dim( sub.range_extent(0) , 0, 0, 0, 0, 0, 0, 0 )
@@ -2306,7 +2320,7 @@ struct ViewDataHandle< Traits ,
                             &&
                             std::is_same< typename Traits::specialize , void >::value
                             &&
-                            Traits::memory_traits::Atomic
+                            Traits::memory_traits::is_atomic
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
@@ -2335,16 +2349,16 @@ struct ViewDataHandle< Traits ,
   typename std::enable_if<(
                             std::is_same< typename Traits::specialize , void >::value
                             &&
-                            (!Traits::memory_traits::Aligned)
+                            (!Traits::memory_traits::is_aligned)
                             &&
-                            Traits::memory_traits::Restrict
+                            Traits::memory_traits::is_restrict
 #ifdef KOKKOS_ENABLE_CUDA
                             &&
                             (!( std::is_same< typename Traits::memory_space,Kokkos::CudaSpace>::value ||
                                 std::is_same< typename Traits::memory_space,Kokkos::CudaUVMSpace>::value ))
 #endif
                             &&
-                            (!Traits::memory_traits::Atomic)
+                            (!Traits::memory_traits::is_atomic)
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
@@ -2353,17 +2367,17 @@ struct ViewDataHandle< Traits ,
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
   KOKKOS_INLINE_FUNCTION
-  static handle_type assign( value_type * arg_data_ptr
+  static value_type* assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
-    return handle_type( arg_data_ptr );
+    return (value_type*)( arg_data_ptr );
   }
 
   KOKKOS_INLINE_FUNCTION
-  static handle_type assign( handle_type const arg_data_ptr
+  static value_type* assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
-    return handle_type( arg_data_ptr + offset );
+    return (value_type*)( arg_data_ptr + offset );
   }
 };
 
@@ -2372,16 +2386,16 @@ struct ViewDataHandle< Traits ,
   typename std::enable_if<(
                             std::is_same< typename Traits::specialize , void >::value
                             &&
-                            Traits::memory_traits::Aligned
+                            Traits::memory_traits::is_aligned
 			    &&
-                            (!Traits::memory_traits::Restrict)
+                            (!Traits::memory_traits::is_restrict)
 #ifdef KOKKOS_ENABLE_CUDA
                             &&
                             (!( std::is_same< typename Traits::memory_space,Kokkos::CudaSpace>::value ||
                                 std::is_same< typename Traits::memory_space,Kokkos::CudaUVMSpace>::value ))
 #endif
                             &&
-                            (!Traits::memory_traits::Atomic)
+                            (!Traits::memory_traits::is_atomic)
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
@@ -2415,16 +2429,16 @@ struct ViewDataHandle< Traits ,
   typename std::enable_if<(
                             std::is_same< typename Traits::specialize , void >::value
                             &&
-                            Traits::memory_traits::Aligned
+                            Traits::memory_traits::is_aligned
                             &&
-                            Traits::memory_traits::Restrict
+                            Traits::memory_traits::is_restrict
 #ifdef KOKKOS_ENABLE_CUDA
                             &&
                             (!( std::is_same< typename Traits::memory_space,Kokkos::CudaSpace>::value ||
                                 std::is_same< typename Traits::memory_space,Kokkos::CudaUVMSpace>::value ))
 #endif
                             &&
-                            (!Traits::memory_traits::Atomic)
+                            (!Traits::memory_traits::is_atomic)
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
@@ -2433,23 +2447,23 @@ struct ViewDataHandle< Traits ,
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
   KOKKOS_INLINE_FUNCTION
-  static handle_type assign( value_type * arg_data_ptr
+  static value_type* assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
     if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
-    return handle_type( arg_data_ptr );
+    return (value_type*)( arg_data_ptr );
   }
 
   KOKKOS_INLINE_FUNCTION
-  static handle_type assign( handle_type const arg_data_ptr
+  static value_type* assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
     if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
-    return handle_type( arg_data_ptr + offset );
+    return (value_type*)( arg_data_ptr + offset );
   }
 };
 }} // namespace Kokkos::Impl
@@ -2639,6 +2653,12 @@ public:
   template< typename iType >
   KOKKOS_INLINE_FUNCTION constexpr size_t extent( const iType & r ) const
     { return m_impl_offset.m_dim.extent(r); }
+
+  static KOKKOS_INLINE_FUNCTION constexpr size_t static_extent( const unsigned r ) noexcept
+    {
+      using dim_type = typename offset_type::dimension_type;
+      return dim_type::static_extent(r);
+    }
 
   KOKKOS_INLINE_FUNCTION constexpr
   typename Traits::array_layout layout() const
@@ -2936,7 +2956,8 @@ private:
     };
 
 public:
-
+  enum { is_assignable_data_type = is_assignable_value_type &&
+                                   is_assignable_dimension };
   enum { is_assignable = is_assignable_space &&
                          is_assignable_value_type &&
                          is_assignable_dimension &&
@@ -3033,7 +3054,8 @@ private:
                            , typename SrcTraits::dimension >::value };
 
 public:
-
+  enum { is_assignable_data_type = is_assignable_value_type &&
+                                   is_assignable_dimension };
   enum { is_assignable = is_assignable_space &&
                          is_assignable_value_type &&
                          is_assignable_dimension };
@@ -3043,7 +3065,7 @@ public:
   typedef ViewMapping< SrcTraits , void >  SrcType ;
 
   KOKKOS_INLINE_FUNCTION
-  static bool assignable_layout_check(DstType & dst, const SrcType & src) //Runtime check
+  static bool assignable_layout_check(DstType &, const SrcType & src) //Runtime check
     {
       size_t strides[9];
       bool assignable = true;
@@ -3115,6 +3137,73 @@ public:
 // Subview mapping.
 // Deduce destination view type from source view traits and subview arguments
 
+template <class, class ValueType, class Exts, class... Args>
+struct SubViewDataTypeImpl;
+
+/* base case */
+template <class ValueType>
+struct SubViewDataTypeImpl<
+  void,
+  ValueType,
+  Experimental::Extents<>
+>
+{ using type = ValueType; };
+
+/* for integral args, subview doesn't have that dimension */
+template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class Integral, class... Args>
+struct SubViewDataTypeImpl<
+  typename std::enable_if<std::is_integral<typename std::decay<Integral>::type>::value>::type,
+  ValueType,
+  Experimental::Extents<Ext, Exts...>,
+  Integral, Args...
+> : SubViewDataTypeImpl<
+      void, ValueType,
+      Experimental::Extents<Exts...>,
+      Args...
+    >
+{ };
+
+
+/* for ALL slice, subview has the same dimension */
+template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class... Args>
+struct SubViewDataTypeImpl<
+  void,
+  ValueType,
+  Experimental::Extents<Ext, Exts...>,
+  ALL_t, Args...
+> : SubViewDataTypeImpl<
+      void, typename ApplyExtent<ValueType, Ext>::type,
+      Experimental::Extents<Exts...>,
+      Args...
+    >
+{ };
+
+
+/* for pair-style slice, subview has dynamic dimension, since pair doesn't give static sizes */
+/* Since we don't allow interleaving of dynamic and static extents, make all of the dimensions to the left dynamic  */
+template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class PairLike, class... Args>
+struct SubViewDataTypeImpl<
+  typename std::enable_if<is_pair_like<PairLike>::value>::type,
+  ValueType,
+  Experimental::Extents<Ext, Exts...>,
+  PairLike, Args...
+> : SubViewDataTypeImpl<
+      void, typename make_all_extents_into_pointers<ValueType>::type*,
+      Experimental::Extents<Exts...>,
+      Args...
+    >
+{ };
+
+
+template <class ValueType, class Exts, class... Args>
+struct SubViewDataType
+  : SubViewDataTypeImpl<
+      void, ValueType, Exts, Args...
+    >
+{ };
+
+//----------------------------------------------------------------------------
+
 template< class SrcTraits , class ... Args >
 struct ViewMapping
   < typename std::enable_if<(
@@ -3182,17 +3271,25 @@ private:
 
   typedef typename SrcTraits::value_type  value_type ;
 
-  typedef typename std::conditional< rank == 0 , value_type ,
-          typename std::conditional< rank == 1 , value_type * ,
-          typename std::conditional< rank == 2 , value_type ** ,
-          typename std::conditional< rank == 3 , value_type *** ,
-          typename std::conditional< rank == 4 , value_type **** ,
-          typename std::conditional< rank == 5 , value_type ***** ,
-          typename std::conditional< rank == 6 , value_type ****** ,
-          typename std::conditional< rank == 7 , value_type ******* ,
-                                                 value_type ********
-          >::type >::type >::type >::type >::type >::type >::type >::type
-     data_type ;
+  using data_type =
+    typename SubViewDataType<
+      value_type,
+      typename Kokkos::Impl::ParseViewExtents<
+        typename SrcTraits::data_type
+      >::type,
+      Args...
+    >::type;
+  //typedef typename std::conditional< rank == 0 , value_type ,
+  //        typename std::conditional< rank == 1 , value_type * ,
+  //        typename std::conditional< rank == 2 , value_type ** ,
+  //        typename std::conditional< rank == 3 , value_type *** ,
+  //        typename std::conditional< rank == 4 , value_type **** ,
+  //        typename std::conditional< rank == 5 , value_type ***** ,
+  //        typename std::conditional< rank == 6 , value_type ****** ,
+  //        typename std::conditional< rank == 7 , value_type ******* ,
+  //                                               value_type ********
+  //        >::type >::type >::type >::type >::type >::type >::type >::type
+  //   data_type ;
 
 public:
 

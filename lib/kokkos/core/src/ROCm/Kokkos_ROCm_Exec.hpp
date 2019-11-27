@@ -227,7 +227,7 @@ struct ROCmParallelLaunch< DriverType
 
 //#if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
 //      ROCM_SAFE_CALL( rocmGetLastError() );
-//      Kokkos::ROCm::fence();
+//      Kokkos::ROCm().fence();
 //#endif
     }
   }

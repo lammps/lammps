@@ -49,9 +49,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
 {
   double pv0=0.0,pv1=0.0,pv2=0.0;
 
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   REBO_neigh_thr();
 
@@ -68,7 +66,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv0,thr);
     if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv1,thr);
@@ -1869,7 +1867,7 @@ there probably also need to be performed here.
 
 */
 
-double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double rijmag_mod,
+double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], double rijmag_mod,
                                       double VA, double rij[3], double rijmag,
                                       int vflag_atom, ThrData * const thr)
 {

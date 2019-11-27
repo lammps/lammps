@@ -27,7 +27,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *remap* or *var* or *set* or *units*
+* keyword = *mol* or *basis* or *subset* or *remap* or *var* or *set* or *units*
   
   .. parsed-literal::
   
@@ -37,6 +37,7 @@ Syntax
        *basis* values = M itype
          M = which basis atom
          itype = atom type (1-N) to assign to this basis atom
+       *subset* value = N = number of particles to add at lattice points
        *remap* value = *yes* or *no*
        *var* value = name = variable name to evaluate for test of atom creation
        *set* values = dim name
@@ -213,6 +214,11 @@ basis atoms as they are created.  See the :doc:`lattice <lattice>`
 command for specifics on how basis atoms are defined for the unit cell
 of the lattice.  By default, all created atoms are assigned the
 argument *type* as their atom type.
+
+The *subset* keyword can be used in conjunction with the *box* or
+*region* styles to limit the total number of particles inserted. The
+specified number of particles N are placed randomly on the available
+lattice points.
 
 The *remap* keyword only applies to the *single* style.  If it is set
 to *yes*\ , then if the specified position is outside the simulation

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecDipole : public AtomVec {
  public:
   AtomVecDipole(class LAMMPS *);
-  void data_atom(double *, imageint, char **);
+  void data_atom_post(int);
 };
 
 }

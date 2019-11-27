@@ -67,11 +67,10 @@ AtomVecAngle::~AtomVecAngle()
 }
 
 /* ----------------------------------------------------------------------
-   pack atom I's data for restart file
-   modify/unmodify values for default AtomVec::pack_restart() to pack
+   modify values for AtomVec::pack_restart() to pack
 ------------------------------------------------------------------------- */
 
-int AtomVecAngle::pack_restart(int i, double *buf)
+void AtomVecAngle::pack_restart_pre(int i)
 {
   // insure negative vectors are needed length
 
@@ -110,51 +109,49 @@ int AtomVecAngle::pack_restart(int i, double *buf)
       any_angle_negative = 1;
     } else angle_negative[m] = 0;
   }
-
-  // perform the pack with adjusted values
-
-  int n = AtomVec::pack_restart(i,buf);
-
-  // restore the flagged types to their negative values
-
-  if (any_bond_negative) {
-    for (int m = 0; m < num_bond[i]; m++)
-      if (bond_negative[m]) bond_type[i][m] = -bond_type[i][m];
-  }
-  if (any_angle_negative) {
-    for (int m = 0; m < num_angle[i]; m++)
-      if (angle_negative[m]) angle_type[i][m] = -angle_type[i][m];
-  }
-
-  return n;
 }
 
 /* ----------------------------------------------------------------------
-   unpack data for one atom from restart file including extra quantities
-   initialize other atom quantities
+   unmodify values packed by AtomVec::pack_restart()
 ------------------------------------------------------------------------- */
 
-int AtomVecAngle::unpack_restart(double *buf)
+void AtomVecAngle::pack_restart_post(int i)
 {
-  AtomVec::unpack_restart(buf);
-  int ilocal = atom->nlocal-1;
+  // restore the flagged types to their negative values
 
+  if (any_bond_negative) {
+    int *num_bond = atom->num_bond;
+    int **bond_type = atom->bond_type;
+    for (int m = 0; m < num_bond[i]; m++)
+      if (bond_negative[m]) bond_type[i][m] = -bond_type[i][m];
+  }
+
+  if (any_angle_negative) {
+    int *num_angle = atom->num_angle;
+    int **angle_type = atom->angle_type;
+    for (int m = 0; m < num_angle[i]; m++)
+      if (angle_negative[m]) angle_type[i][m] = -angle_type[i][m];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize other atom quantities after AtomVec::unpack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecAngle::unpack_restart_init(int ilocal)
+{
   atom->nspecial[ilocal][0] = 0;
   atom->nspecial[ilocal][1] = 0;
   atom->nspecial[ilocal][2] = 0;
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   modify what default AtomVec::data_atom() just unpacked
+   modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecAngle::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecAngle::data_atom_post(int ilocal)
 {
-  AtomVec::data_atom(coord,imagetmp,values);
-  int ilocal = atom->nlocal-1;
-
   atom->num_bond[ilocal] = 0;
   atom->num_angle[ilocal] = 0;
   atom->nspecial[ilocal][0] = 0;

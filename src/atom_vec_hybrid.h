@@ -34,48 +34,16 @@ class AtomVecHybrid : public AtomVec {
   ~AtomVecHybrid();
   void process_args(int, char **);
   void init();
-  void grow(int);
-  void grow_reset();
-  void copy(int, int, int);
-  void clear_bonus();
   void force_clear(int, size_t);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **) {return 0;}
-  void data_vel(int, char **);
-  void pack_data(double **);
-  void write_data(FILE *, int, double **);
-  void pack_vel(double **);
-  void write_vel(FILE *, int, double **);
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
-  bigint memory_usage();
 
  private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-  double **omega,**angmom;
-
   int nallstyles;
   char **allstyles;
 
+  void concatenate_fields();
+  void concatenate(char *&, char *);
   void build_styles();
   int known_style(char *);
 };

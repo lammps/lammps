@@ -97,29 +97,22 @@ void AtomVecTemplate::process_args(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of itype at coord
-   modify what default AtomVec::create_atom() just created
+   initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecTemplate::create_atom(int itype, double *coord)
+void AtomVecTemplate::create_atom_post(int ilocal)
 {
-  AtomVec::create_atom(itype,coord);
-
-  int ilocal = atom->nlocal-1;
   atom->molindex[ilocal] = -1;
   atom->molatom[ilocal] = -1;
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   error check what default AtomVec::data_atom() just unpacked
+   modify what AtomVec::data_atom() just unpacked
+   or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecTemplate::data_atom_post(int ilocal)
 {
-  AtomVec::data_atom(coord,imagetmp,values);
-
-  int ilocal = atom->nlocal-1;
   int molindex = atom->molindex[ilocal];
   int molatom = atom->molatom[ilocal];
 

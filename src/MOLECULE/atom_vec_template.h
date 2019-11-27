@@ -28,8 +28,8 @@ class AtomVecTemplate : public AtomVec {
  public:
   AtomVecTemplate(class LAMMPS *);
   void process_args(int, char **);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
+  void create_atom_post(int);
+  void data_atom_post(int);
 };
 
 }

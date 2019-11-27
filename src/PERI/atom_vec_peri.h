@@ -28,7 +28,7 @@ class AtomVecPeri : public AtomVec {
  public:
   AtomVecPeri(class LAMMPS *);
   void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
+  void data_atom_post(int);
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
 };

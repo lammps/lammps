@@ -88,20 +88,16 @@ void AtomVecPeri::create_atom(int itype, double *coord)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   modify what default AtomVec::data_atom() just unpacked
+   modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecPeri::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecPeri::data_atom_post(int ilocal)
 {
-  AtomVec::data_atom(coord,imagetmp,values);
-  int ilocal = atom->nlocal-1;
-
   atom->s0[ilocal] = DBL_MAX;
-  atom->x0[ilocal][0] = coord[0];
-  atom->x0[ilocal][1] = coord[1];
-  atom->x0[ilocal][2] = coord[2];
+  atom->x0[ilocal][0] = atom->x[ilocal][0];
+  atom->x0[ilocal][1] = atom->x[ilocal][1];
+  atom->x0[ilocal][2] = atom->x[ilocal][2];
 
   if (atom->rmass[ilocal] <= 0.0) 
     error->one(FLERR,"Invalid mass in Atoms section of data file");

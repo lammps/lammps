@@ -2498,3 +2498,4 @@ bigint Atom::memory_usage()
 
   return bytes;
 }
+

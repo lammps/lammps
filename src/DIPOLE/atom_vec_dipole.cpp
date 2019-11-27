@@ -55,16 +55,12 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   modify what the default AtomVec::data_atom() just initialized
+   modify what AtomVec::data_atom() just unpacked
+   or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecDipole::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecDipole::data_atom_post(int ilocal)
 {
-  AtomVec::data_atom(coord,imagetmp,values);
-
-  int ilocal = atom->nlocal-1;
-  double mu = atom->mu[ilocal];
+  double *mu = atom->mu[ilocal];
   mu[3] = sqrt(mu[0]*mu[0] + mu[1]*mu[1] + mu[2]*mu[2]);
 }
-

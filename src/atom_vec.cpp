@@ -146,223 +146,6 @@ void AtomVec::init()
 }
 
 /* ----------------------------------------------------------------------
-   process field strings to initialize data structs for all other methods
-------------------------------------------------------------------------- */
-
-void AtomVec::setup_fields()
-{
-  int n,cols;
-
-  if (!fields_data_atom) 
-    error->all(FLERR,"Atom style requires fields_data_atom");
-
-  // process field strings
-  // return # of fields and matching index into atom->peratom (in Method struct)
-
-  ngrow = process_fields(fields_grow,default_grow,&mgrow);
-  ncopy = process_fields(fields_copy,default_copy,&mcopy);
-  ncomm = process_fields(fields_comm,default_comm,&mcomm);
-  ncomm_vel = process_fields(fields_comm_vel,default_comm_vel,&mcomm_vel);
-  nreverse = process_fields(fields_reverse,default_reverse,&mreverse);
-  nborder = process_fields(fields_border,default_border,&mborder);
-  nborder_vel = process_fields(fields_border_vel,default_border_vel,&mborder_vel);
-  nexchange = process_fields(fields_exchange,default_exchange,&mexchange);
-  nrestart = process_fields(fields_restart,default_restart,&mrestart);
-  ncreate = process_fields(fields_create,default_create,&mcreate);
-  ndata_atom = process_fields(fields_data_atom,default_data_atom,&mdata_atom);
-  ndata_vel = process_fields(fields_data_vel,default_data_vel,&mdata_vel);
-
-  // populate field-based data struct for each method to use
-
-  create_method(ngrow,&mgrow);
-  create_method(ncopy,&mcopy);
-  create_method(ncomm,&mcomm);
-  create_method(ncomm_vel,&mcomm_vel);
-  create_method(nreverse,&mreverse);
-  create_method(nborder,&mborder);
-  create_method(nborder_vel,&mborder_vel);
-  create_method(nexchange,&mexchange);
-  create_method(nrestart,&mrestart);
-  create_method(ncreate,&mcreate);
-  create_method(ndata_atom,&mdata_atom);
-  create_method(ndata_vel,&mdata_vel);
-
-  // create threads data struct for grow and memory_usage to use
-
-  threads = new int[ngrow];
-  for (int i = 0; i < ngrow; i++) {
-    Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
-    if (field->threadflag) threads[i] = nthreads;
-    else threads[i] = 1;
-  }
-
-  // set style-specific variables
-  // NOTE: check for others vars in atom_vec.cpp/h ??
-
-  if (ncomm == 0) comm_x_only = 1;
-  else comm_x_only = 0;
-
-  if (nreverse == 0) comm_f_only = 1;
-  else comm_f_only = 0;
-
-  size_forward = 3;
-  for (n = 0; n < ncomm; n++) {
-    cols = mcomm.cols[n];
-    if (cols == 0) size_forward++;
-    else size_forward += cols;
-  }
-
-  size_reverse = 3;
-  for (n = 0; n < nreverse; n++) {
-    cols = mreverse.cols[n];
-    if (cols == 0) size_reverse++;
-    else size_reverse += cols;
-  }
-
-  size_border = 6;
-  for (n = 0; n < nborder; n++) {
-    cols = mborder.cols[n];
-    if (cols == 0) size_border++;
-    else size_border += cols;
-  }
-
-  size_velocity = 3;
-  for (n = 0; n < ncomm_vel; n++) {
-    cols = mcomm_vel.cols[n];
-    if (cols == 0) size_velocity++;
-    else size_velocity += cols;
-  }
-
-  size_data_atom = 0;
-  for (n = 0; n < ndata_atom; n++) {
-    cols = mdata_atom.cols[n];
-    if (strcmp(atom->peratom[mdata_atom.index[n]].name,"x") == 0) 
-      xcol_data = size_data_atom + 1;
-    if (cols == 0) size_data_atom++;
-    else size_data_atom += cols;
-  }
-
-  size_data_vel = 4;
-  for (n = 0; n < ndata_vel; n++) {
-    cols = mdata_vel.cols[n];
-    if (cols == 0) size_data_vel++;
-    else size_data_vel += cols;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   process a single field string
-------------------------------------------------------------------------- */
-
-int AtomVec::process_fields(char *list, const char *default_list, Method *method)
-{
-  int i,n;
-  char match[128];
-
-  if (list == NULL) {
-    method->index = NULL;
-    return 0;
-  }
-
-  // make copy of list of fields so can tokenize it
-
-  n = strlen(list) + 1;
-  char *copy = new char[n];
-  strcpy(copy,list);
-
-  int nfield = atom->count_words(copy);
-  int *index = new int[nfield];
-
-  Atom::PerAtom *peratom = atom->peratom;
-  int nperatom = atom->nperatom;
-  
-  nfield = 0;
-  char *field = strtok(copy," ");
-  while (field) {
-    
-    // find field in master Atom::peratom list
-
-    for (i = 0; i < nperatom; i++)
-      if (strcmp(field,peratom[i].name) == 0) break;
-    if (i == nperatom) error->all(FLERR,"Atom_style unrecognized peratom field");
-    index[nfield++] = i;
-
-    // error if field is in default list or appears multiple times
-
-    sprintf(match," %s ",field);
-    if (strstr(default_list,match))
-      error->all(FLERR,"Atom_style repeat of default peratom field");
-
-    for (i = 0; i < nfield-1; i++)
-      if (index[i] == index[nfield-1])
-        error->all(FLERR,"Atom_style duplicated peratom field");
-
-    field = strtok(NULL," ");
-  }
-
-  delete [] copy;
-
-  method->index = index;
-  return nfield;
-}
-
-/* ----------------------------------------------------------------------
-   create a method data structs for processing fields
-------------------------------------------------------------------------- */
-
-void AtomVec::create_method(int nfield, Method *method)
-{
-  method->pdata = new void*[nfield];
-  method->datatype = new int[nfield];
-  method->cols = new int[nfield];
-  method->maxcols = new int*[nfield];
-  method->collength = new int[nfield];
-  method->plength = new void*[nfield];
-
-  for (int i = 0; i < nfield; i++) {
-    Atom::PerAtom *field = &atom->peratom[method->index[i]];
-    method->pdata[i] = (void *) field->address;
-    method->datatype[i] = field->datatype;
-    method->cols[i] = field->cols;
-    if (method->cols[i] < 0) {
-      method->maxcols[i] = field->address_maxcols;
-      method->collength[i] = field->collength;
-      method->plength[i] = field->address_length;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   free memory in a method data structs
-------------------------------------------------------------------------- */
-
-void AtomVec::init_method(Method *method)
-{
-  method->pdata = NULL;
-  method->datatype = NULL;
-  method->cols = NULL;
-  method->maxcols = NULL;
-  method->collength = NULL;
-  method->plength = NULL;
-  method->index = NULL;
-}
-
-/* ----------------------------------------------------------------------
-   free memory in a method data structs
-------------------------------------------------------------------------- */
-
-void AtomVec::destroy_method(Method *method)
-{
-  delete [] method->pdata;
-  delete [] method->datatype;
-  delete [] method->cols;
-  delete [] method->maxcols;
-  delete [] method->collength;
-  delete [] method->plength;
-  delete [] method->index;
-}
-
-/* ----------------------------------------------------------------------
    grow nmax so it is a multiple of DELTA
 ------------------------------------------------------------------------- */
 
@@ -444,18 +227,6 @@ void AtomVec::grow(int n)
 
   for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
     modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
-}
-
-/* ----------------------------------------------------------------------
-   reset local array ptrs
-------------------------------------------------------------------------- */
-
-void AtomVec::grow_reset()
-{
-  // NOTE: is this method needed anymore
-  tag = atom->tag; type = atom->type;
-  mask = atom->mask; image = atom->image;
-  x = atom->x; v = atom->v; f = atom->f;
 }
 
 /* ----------------------------------------------------------------------
@@ -1614,6 +1385,10 @@ int AtomVec::pack_restart(int i, double *buf)
   int mm,nn,datatype,cols,collength,ncols;
   void *pdata,*plength;
 
+  // if needed, change values before packing
+
+  pack_restart_pre(i);
+
   int m = 1;
   buf[m++] = x[i][0];
   buf[m++] = x[i][1];
@@ -1683,6 +1458,12 @@ int AtomVec::pack_restart(int i, double *buf)
       }
     }
   }
+
+  // if needed, restore values after packing
+
+  pack_restart_post(i);
+
+  // invoke fixes which store peratom restart info
 
   for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
     m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i,&buf[m]);
@@ -1777,6 +1558,12 @@ int AtomVec::unpack_restart(double *buf)
     }
   }
 
+  // if needed, initialize other peratom values
+
+  unpack_restart_init(nlocal);
+
+  // store extra restart info which fixes can unpack when instantiated
+
   double **extra = atom->extra;
   if (atom->nextra_store) {
     int size = static_cast<int> (buf[0]) - m;
@@ -1812,7 +1599,7 @@ void AtomVec::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
-  // special-case initialization for some fields
+  // initialization additional fields
 
   for (n = 0; n < ncreate; n++) {
     pdata = mcreate.pdata[n];
@@ -1848,12 +1635,16 @@ void AtomVec::create_atom(int itype, double *coord)
     }
   }
 
+  // if needed, initialize other peratom values
+
+  create_atom_post(nlocal);
+
   atom->nlocal++;
 }
 
 /* ----------------------------------------------------------------------
    unpack one line from Atoms section of data file
-   initialize other atom quantities
+   initialize other peratom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
@@ -1919,6 +1710,10 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
   if (atom->type[nlocal] <= 0 || atom->type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
+  // if needed, modify unpacked values or initialize other peratom values
+
+  data_atom_post(nlocal);
+
   atom->nlocal++;
 }
 
@@ -1933,6 +1728,11 @@ void AtomVec::pack_data(double **buf)
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
+
+    // if needed, change values before packing
+
+    pack_data_pre(i);
+
     j = 0;
     for (n = 0; n < ndata_atom; n++) {
       pdata = mdata_atom.pdata[n];
@@ -1971,6 +1771,10 @@ void AtomVec::pack_data(double **buf)
     buf[i][j++] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
     buf[i][j++] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
     buf[i][j++] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+
+    // if needed, restore values after packing
+
+    pack_data_post(i);
   }
 }
 
@@ -2492,4 +2296,228 @@ bigint AtomVec::memory_usage()
   }
 
   return bytes;
+}
+
+// ----------------------------------------------------------------------
+// internal methods
+// ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   process field strings to initialize data structs for all other methods
+------------------------------------------------------------------------- */
+
+void AtomVec::setup_fields()
+{
+  int n,cols;
+
+  if (!fields_data_atom) 
+    error->all(FLERR,"Atom style requires fields_data_atom");
+  if (strstr(fields_data_atom,"id ") != fields_data_atom)
+    error->all(FLERR,"Atom style fields_data_atom must have id as first field");
+
+  // process field strings
+  // return # of fields and matching index into atom->peratom (in Method struct)
+
+  ngrow = process_fields(fields_grow,default_grow,&mgrow);
+  ncopy = process_fields(fields_copy,default_copy,&mcopy);
+  ncomm = process_fields(fields_comm,default_comm,&mcomm);
+  ncomm_vel = process_fields(fields_comm_vel,default_comm_vel,&mcomm_vel);
+  nreverse = process_fields(fields_reverse,default_reverse,&mreverse);
+  nborder = process_fields(fields_border,default_border,&mborder);
+  nborder_vel = process_fields(fields_border_vel,default_border_vel,&mborder_vel);
+  nexchange = process_fields(fields_exchange,default_exchange,&mexchange);
+  nrestart = process_fields(fields_restart,default_restart,&mrestart);
+  ncreate = process_fields(fields_create,default_create,&mcreate);
+  ndata_atom = process_fields(fields_data_atom,default_data_atom,&mdata_atom);
+  ndata_vel = process_fields(fields_data_vel,default_data_vel,&mdata_vel);
+
+  // populate field-based data struct for each method to use
+
+  create_method(ngrow,&mgrow);
+  create_method(ncopy,&mcopy);
+  create_method(ncomm,&mcomm);
+  create_method(ncomm_vel,&mcomm_vel);
+  create_method(nreverse,&mreverse);
+  create_method(nborder,&mborder);
+  create_method(nborder_vel,&mborder_vel);
+  create_method(nexchange,&mexchange);
+  create_method(nrestart,&mrestart);
+  create_method(ncreate,&mcreate);
+  create_method(ndata_atom,&mdata_atom);
+  create_method(ndata_vel,&mdata_vel);
+
+  // create threads data struct for grow and memory_usage to use
+
+  threads = new int[ngrow];
+  for (int i = 0; i < ngrow; i++) {
+    Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
+    if (field->threadflag) threads[i] = nthreads;
+    else threads[i] = 1;
+  }
+
+  // set style-specific variables
+  // NOTE: check for others vars in atom_vec.cpp/h ??
+  // NOTE: need to set maxexchange, e.g for style hybrid?
+
+  if (ncomm == 0) comm_x_only = 1;
+  else comm_x_only = 0;
+
+  if (nreverse == 0) comm_f_only = 1;
+  else comm_f_only = 0;
+
+  size_forward = 3;
+  for (n = 0; n < ncomm; n++) {
+    cols = mcomm.cols[n];
+    if (cols == 0) size_forward++;
+    else size_forward += cols;
+  }
+
+  size_reverse = 3;
+  for (n = 0; n < nreverse; n++) {
+    cols = mreverse.cols[n];
+    if (cols == 0) size_reverse++;
+    else size_reverse += cols;
+  }
+
+  size_border = 6;
+  for (n = 0; n < nborder; n++) {
+    cols = mborder.cols[n];
+    if (cols == 0) size_border++;
+    else size_border += cols;
+  }
+
+  size_velocity = 3;
+  for (n = 0; n < ncomm_vel; n++) {
+    cols = mcomm_vel.cols[n];
+    if (cols == 0) size_velocity++;
+    else size_velocity += cols;
+  }
+
+  size_data_atom = 0;
+  for (n = 0; n < ndata_atom; n++) {
+    cols = mdata_atom.cols[n];
+    if (strcmp(atom->peratom[mdata_atom.index[n]].name,"x") == 0) 
+      xcol_data = size_data_atom + 1;
+    if (cols == 0) size_data_atom++;
+    else size_data_atom += cols;
+  }
+
+  size_data_vel = 4;
+  for (n = 0; n < ndata_vel; n++) {
+    cols = mdata_vel.cols[n];
+    if (cols == 0) size_data_vel++;
+    else size_data_vel += cols;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process a single field string
+------------------------------------------------------------------------- */
+
+int AtomVec::process_fields(char *list, const char *default_list, Method *method)
+{
+  int i,n;
+  char match[128];
+
+  if (list == NULL) {
+    method->index = NULL;
+    return 0;
+  }
+
+  // make copy of list of fields so can tokenize it
+
+  n = strlen(list) + 1;
+  char *copy = new char[n];
+  strcpy(copy,list);
+
+  int nfield = atom->count_words(copy);
+  int *index = new int[nfield];
+
+  Atom::PerAtom *peratom = atom->peratom;
+  int nperatom = atom->nperatom;
+  
+  nfield = 0;
+  char *field = strtok(copy," ");
+  while (field) {
+    
+    // find field in master Atom::peratom list
+
+    for (i = 0; i < nperatom; i++)
+      if (strcmp(field,peratom[i].name) == 0) break;
+    if (i == nperatom) error->all(FLERR,"Atom_style unrecognized peratom field");
+    index[nfield++] = i;
+
+    // error if field is in default list or appears multiple times
+
+    sprintf(match," %s ",field);
+    if (strstr(default_list,match))
+      error->all(FLERR,"Atom_style repeat of default peratom field");
+
+    for (i = 0; i < nfield-1; i++)
+      if (index[i] == index[nfield-1])
+        error->all(FLERR,"Atom_style duplicated peratom field");
+
+    field = strtok(NULL," ");
+  }
+
+  delete [] copy;
+
+  method->index = index;
+  return nfield;
+}
+
+/* ----------------------------------------------------------------------
+   create a method data structs for processing fields
+------------------------------------------------------------------------- */
+
+void AtomVec::create_method(int nfield, Method *method)
+{
+  method->pdata = new void*[nfield];
+  method->datatype = new int[nfield];
+  method->cols = new int[nfield];
+  method->maxcols = new int*[nfield];
+  method->collength = new int[nfield];
+  method->plength = new void*[nfield];
+
+  for (int i = 0; i < nfield; i++) {
+    Atom::PerAtom *field = &atom->peratom[method->index[i]];
+    method->pdata[i] = (void *) field->address;
+    method->datatype[i] = field->datatype;
+    method->cols[i] = field->cols;
+    if (method->cols[i] < 0) {
+      method->maxcols[i] = field->address_maxcols;
+      method->collength[i] = field->collength;
+      method->plength[i] = field->address_length;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free memory in a method data structs
+------------------------------------------------------------------------- */
+
+void AtomVec::init_method(Method *method)
+{
+  method->pdata = NULL;
+  method->datatype = NULL;
+  method->cols = NULL;
+  method->maxcols = NULL;
+  method->collength = NULL;
+  method->plength = NULL;
+  method->index = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   free memory in a method data structs
+------------------------------------------------------------------------- */
+
+void AtomVec::destroy_method(Method *method)
+{
+  delete [] method->pdata;
+  delete [] method->datatype;
+  delete [] method->cols;
+  delete [] method->maxcols;
+  delete [] method->collength;
+  delete [] method->plength;
+  delete [] method->index;
 }

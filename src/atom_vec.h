@@ -49,60 +49,68 @@ class AtomVec : protected Pointers {
   int nargcopy;          // copy of command-line args for atom_style command
   char **argcopy;        // used when AtomVec is realloced (restart,replicate)
 
+  // additional list of peratom fields operated on by different methods
+  // set by child styles
+
+  char *fields_grow,*fields_copy;
+  char *fields_comm,*fields_comm_vel,*fields_reverse;
+  char *fields_border,*fields_border_vel;
+  char *fields_exchange,*fields_restart;
+  char *fields_create,*fields_data_atom,*fields_data_vel;
+
+  // methods
+
   AtomVec(class LAMMPS *);
   virtual ~AtomVec();
   void store_args(int, char **);
   virtual void process_args(int, char **);
   virtual void init();
 
+  virtual void force_clear(int, size_t) {}
+
   void grow(int);
-  void grow_reset();
   void copy(int, int, int);
   void clear_bonus() {}
-  void force_clear(int, size_t) {}
 
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
-  int pack_comm_hybrid(int, int *, double *) {return 0;}
   void unpack_comm(int, int, double *);
   void unpack_comm_vel(int, int, double *);
-  int unpack_comm_hybrid(int, int, double *) {return 0;}
 
   int pack_reverse(int, int, double *);
-  int pack_reverse_hybrid(int, int, double *) {return 0;}
   void unpack_reverse(int, int *, double *);
-  int unpack_reverse_hybrid(int, int *, double *) {return 0;}
 
   int pack_border(int, int *, double *, int, int *);
   int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *) {return 0;}
   void unpack_border(int, int, double *);
   void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *) {return 0;}
 
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
 
   int size_restart();
-  virtual int pack_restart(int, double *);
-  virtual int unpack_restart(double *);
+  virtual void pack_restart_pre(int) {}
+  int pack_restart(int, double *);
+  virtual void pack_restart_post(int) {}
+  int unpack_restart(double *);
+  virtual void unpack_restart_init(int) {}
 
-  virtual void create_atom(int, double *);
+  void create_atom(int, double *);
+  virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, char **);
+  void data_atom(double *, imageint, char **);
+  virtual void data_atom_post(int) {}
+
   void data_atom_bonus(int, char **) {}
-  int data_atom_hybrid(int, char **) {return 0;}
   void data_vel(int, char **);
-  int data_vel_hybrid(int, char **) {return 0;}
 
+  virtual void pack_data_pre(int) {}
   void pack_data(double **);
+  virtual void pack_data_post(int) {}
   int pack_data_hybrid(int, double *) {return 0;}
   void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *) {return 0;}
   void pack_vel(double **);
-  int pack_vel_hybrid(int, double *) {return 0;}
   void write_vel(FILE *, int, double **);
-  int write_vel_hybrid(FILE *, double *) {return 0;}
 
   int pack_bond(tagint **);
   void write_bond(FILE *, int, tagint **, int);
@@ -129,17 +137,14 @@ class AtomVec : protected Pointers {
   imageint *image;
   double **x,**v,**f;
 
+  // standard list of peratom fields always operated on by different methods
+  // common to all styles, so not listed in field strings
+
   const char *default_grow,*default_copy;
   const char *default_comm,*default_comm_vel,*default_reverse;
   const char *default_border,*default_border_vel;
   const char *default_exchange,*default_restart;
   const char *default_create,*default_data_atom,*default_data_vel;
-
-  char *fields_grow,*fields_copy;
-  char *fields_comm,*fields_comm_vel,*fields_reverse;
-  char *fields_border,*fields_border_vel;
-  char *fields_exchange,*fields_restart;
-  char *fields_create,*fields_data_atom,*fields_data_vel;
 
   struct Method {
     void **pdata;

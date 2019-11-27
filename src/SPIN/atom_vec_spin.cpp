@@ -62,25 +62,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   modify what default AtomVec::data_atom() just unpacked
-   or initialize other atom quantities
-------------------------------------------------------------------------- */
-
-void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
-{
-  AtomVec::data_atom(coord,imagetmp,values);
-  int ilocal = atom->nlocal-1;
-
-  double *sp = atom->sp[ilocal];
-  double inorm = 1.0/sqrt(sp[0]*sp[0] + sp[1]*sp[1] + sp[2]*sp[2]);
-  sp[0] *= inorm;
-  sp[1] *= inorm;
-  sp[2] *= inorm;
-}
-
-/* ----------------------------------------------------------------------
-   clear all forces (mech and mag)
+   clear all forces (mechanical and magnetic)
 ------------------------------------------------------------------------- */
 
 void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
@@ -88,4 +70,18 @@ void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);
   memset(&atom->fm_long[0][0],0,3*nbytes);
+}
+
+/* ----------------------------------------------------------------------
+   modify what AtomVec::data_atom() just unpacked
+   or initialize other atom quantities
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::data_atom_post(int ilocal)
+{
+  double *sp = atom->sp[ilocal];
+  double inorm = 1.0/sqrt(sp[0]*sp[0] + sp[1]*sp[1] + sp[2]*sp[2]);
+  sp[0] *= inorm;
+  sp[1] *= inorm;
+  sp[2] *= inorm;
 }

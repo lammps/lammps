@@ -715,7 +715,6 @@ void Special::combine()
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   }
 
-  atom->avec->grow_reset();
   tagint **special = atom->special;
 
   // ----------------------------------------------------

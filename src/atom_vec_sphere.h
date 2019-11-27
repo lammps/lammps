@@ -27,12 +27,16 @@ namespace LAMMPS_NS {
 class AtomVecSphere : public AtomVec {
  public:
   AtomVecSphere(class LAMMPS *);
+  void process_args(int, char **);
   void init();
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
+  void create_atom_post(int);
+  void data_atom_post(int);
+  void pack_data_pre(int);
+  void pack_data_post(int);
 
  private:
   int radvary;
+  double radius,rmass;
 };
 
 }

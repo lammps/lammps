@@ -19,6 +19,7 @@
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -54,58 +55,61 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 }
 
+/* ----------------------------------------------------------------------
+   process sub-style args
+   optional arg = 0/1 for static/dynamic particle radii
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::process_args(int narg, char **arg)
+{
+  if (narg == 0) return;
+  if (narg != 1) error->all(FLERR,"Illegal atom_style sphere command");
+
+  radvary = utils::numeric(FLERR,arg[0],true,lmp);
+  if (radvary < 0 || radvary > 1)
+    error->all(FLERR,"Illegal atom_style sphere command");
+  if (radvary == 0) return;
+
+  // dynamic particle radius and mass must be communicated every step
+
+  fields_comm = (char *) "radius rmass";
+  fields_comm_vel = (char *) "radius rmass omega";
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecSphere::init()
 {
   AtomVec::init();
 
-  // set radvary if particle diameters are time-varying due to fix adapt
-  // NOTE: change this to a atom_style sphere optional arg
-
-  radvary = 0;
-  //comm_x_only = 1;
-  //size_forward = 3;
+  // check if optional radvary setting should have been set to 1
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"adapt") == 0) {
       FixAdapt *fix = (FixAdapt *) modify->fix[i];
-      if (fix->diamflag) {
-        radvary = 1;
-        comm_x_only = 0;
-        size_forward = 5;
-      }
+      if (fix->diamflag && radvary == 0)
+        error->all(FLERR,"Fix adapt changes particle radii "
+                   "but atom_style sphere is not dynamic");
     }
-
-  //fields_comm = (char *) "radius rmass";
-  //fields_comm_vel = (char *) "radius rmass";
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of itype at coord
-   modify what default AtomVec::create_atom() just created
+   initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecSphere::create_atom(int itype, double *coord)
+void AtomVecSphere::create_atom_post(int ilocal)
 {
-  AtomVec::create_atom(itype,coord);
-  int ilocal = atom->nlocal-1;
-
   atom->radius[ilocal] = 0.5;
   atom->rmass[ilocal] = 4.0*MY_PI/3.0 * 0.5*0.5*0.5;
 }
 
 /* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   modify what default AtomVec::data_atom() just unpacked
+   modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecSphere::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecSphere::data_atom_post(int ilocal)
 {
-  AtomVec::data_atom(coord,imagetmp,values);
-  int ilocal = atom->nlocal-1;
-
   double radius = 0.5 * atom->radius[ilocal];
   atom->radius[ilocal] = radius;
   if (radius > 0.0) 
@@ -114,4 +118,28 @@ void AtomVecSphere::data_atom(double *coord, imageint imagetmp, char **values)
 
   if (atom->rmass[ilocal] <= 0.0) 
     error->one(FLERR,"Invalid mass in Atoms section of data file");
+}
+
+/* ----------------------------------------------------------------------
+   modify values for AtomVec::pack_data() to pack
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::pack_data_pre(int ilocal)
+{ 
+  radius = atom->radius[ilocal];
+  rmass = atom->rmass[ilocal];
+
+  atom->radius[ilocal] *= 2.0;
+  if (radius == 0.0) 
+    atom->rmass[ilocal] = rmass / (4.0*MY_PI/3.0 * radius*radius*radius);
+}
+
+/* ----------------------------------------------------------------------
+   unmodify values packed by AtomVec::pack_data()
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::pack_data_post(int ilocal)
+{ 
+  atom->radius[ilocal] = radius;
+  atom->rmass[ilocal] = rmass;
 }

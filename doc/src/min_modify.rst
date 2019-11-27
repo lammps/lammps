@@ -15,7 +15,7 @@ Syntax
   
   .. parsed-literal::
   
-     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor*
+     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *tmax*
        *dmax* value = max
          max = maximum distance for line search to move (distance units)
        *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
@@ -28,6 +28,10 @@ Syntax
          damping = fictitious Gilbert damping for spin minimization (adim)
        *discrete_factor* value = factor
          factor = discretization factor for adaptive spin timestep (adim)
+       *integrator* value = *eulerimplicit* or *verlet*
+         time integration scheme for fire2 minimization
+       *tmax* value = factor
+         factor = maximum adaptive timestep for fire2 minimization
 
 
 
@@ -38,6 +42,7 @@ Examples
 .. parsed-literal::
 
    min_modify dmax 0.2
+   min_modify integrator verlet tmax 4
 
 Description
 """""""""""
@@ -127,6 +132,29 @@ The *spin\_none* is a default value for *line* keyword for both *spin/lbfgs*
 and *spin/cg*\ . Convergence of *spin/lbfgs* can be more robust if
 *spin\_cubic* line search is used.
 
+The Newton *integrator* used for *fire2* minimization can be selected to be
+either the symplectic Euler (\ *eulerimplicit*\ ) or velocity Verlet (\ *verlet*\ ).
+*tmax* define the maximum value for the adaptive timestep
+during a *fire2* minimization. It is multiplication factor applied
+to the current :doc:`timestep <timestep>` (not in time unit). For example,
+*tmax* = 4.0 in metal :doc:`units <units>` means that the maximum value
+the timestep can reach during a minimization is 4fs (with the default
+:doc:`timestep <timestep>` value). Note that parameters defaults has been
+chosen to be reliable in most cases, but one should consider adjusting
+:doc:`timestep <timestep>` and *tmax* to optimize the minimization for large
+or complex systems.
+Others parameters of the *fire2* minimization can be tuned (\ *tmin*\ , *delaystep*\ ,
+*dtgrow*\ , *dtshrink*\ , *alpha0*\ , and *alphashrink*\ ). Please refer to the article
+describing the *fire2* :doc:`min\_style <min_style>`.
+
+An additional stopping criteria *vdfmax* is added in order to avoid unnecessary looping
+when it is reasonable to think the system will not be relaxed further.
+Note that in this case the system will NOT be relaxed. This could
+happen when the system comes to be stuck in a local basin of the phase space.
+*vdfmax* is the maximum number of consecutive iterations with P(t) < 0.
+For debugging purposes, it is possible to switch off the inertia correction
+(\ *halfstepback* = *no*\ ) and the initial delay (\ *initialdelay* = *no*\ ).
+
 Restrictions
 """"""""""""
 
@@ -149,7 +177,7 @@ For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the
 option defaults are alpha\_damp = 1.0, discrete\_factor = 10.0,
 line = spin\_none, and norm = euclidean.
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+For the *fire2* style, the option defaults are
+integrator = eulerimplicit, tmax = 10.0, tmin = 0.02,
+delaystep = 20, dtgrow = 1.1, dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99,
+vdfmax = 2000, halfstepback = yes and initialdelay = yes.

@@ -11,7 +11,7 @@ Syntax
 
    min_style style
 
-* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *spin* or *spin/cg* or *spin/lbfgs*
+* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire2* or *spin* or *spin/cg* or *spin/lbfgs*
 
 Examples
 """"""""
@@ -67,6 +67,9 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
+Style *fire2* is an optimization of the style *fire*\ , including different
+time integration schemes, described in :ref:`(Guenole) <Guenole>`.
+
 Style *spin* is a damped spin dynamics with an adaptive
 timestep.
 
@@ -81,7 +84,7 @@ combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno
 See the :doc:`min/spin <min_spin>` doc page for more information
 about the *spin*\ , *spin/cg* and *spin/lbfgs* styles.
 
-Either the *quickmin* and *fire* styles are useful in the context of
+Either the *quickmin*\ , *fire* and *fire2* styles are useful in the context of
 nudged elastic band (NEB) calculations via the :doc:`neb <neb>` command.
 
 Either the *spin*\ , *spin/cg* and *spin/lbfgs* styles are useful 
@@ -163,6 +166,13 @@ Jonsson, Mills, Jacobsen.
 
 **(Bitzek)** Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
+
+.. _Guenole:
+
+
+
+**(Guenole)** Guenole, Nöhring, Vaid, Houllé, Xie, Prakash, Bitzek,
+Preprint, arXiv:190802038 (2019).
 
 
 .. _lws: http://lammps.sandia.gov

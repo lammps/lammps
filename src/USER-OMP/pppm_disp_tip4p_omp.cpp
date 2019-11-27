@@ -356,11 +356,11 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
     int iH1,iH2;
 
@@ -432,11 +432,11 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
   const int nyhi_out = nyhi_o;
   const int nzhi_out = nzhi_o;
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
 
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // current particle coord can be outside global and local box

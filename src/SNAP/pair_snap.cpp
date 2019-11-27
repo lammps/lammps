@@ -108,7 +108,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
   // compute dE_i/dB_i = beta_i for all i in list
 
-  if (quadraticflag || eflag) 
+  if (quadraticflag || eflag)
     compute_bispectrum();
   compute_beta();
 
@@ -165,7 +165,7 @@ void PairSNAP::compute(int eflag, int vflag)
     snaptr->compute_ui(ninside);
 
     // for neighbors of I within cutoff:
-    // compute Fij = dEi/dRj = -dEi/dRi 
+    // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
@@ -273,7 +273,7 @@ void PairSNAP::compute_bispectrum()
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
+  int *jlist;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -350,9 +350,9 @@ void PairSNAP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSNAP::settings(int narg, char **arg)
+void PairSNAP::settings(int narg, char ** /* arg */)
 {
-  for (int i=0; i < narg; i++)
+  if (narg > 0)
     error->all(FLERR,"Illegal pair_style command");
 }
 

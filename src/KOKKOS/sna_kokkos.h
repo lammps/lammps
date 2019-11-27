@@ -165,7 +165,7 @@ inline
   void grow_rij(int, int);
 
   int twojmax, diagonalstyle;
-  
+
   t_sna_2d blist;
   t_sna_2c ulisttot;
   t_sna_2c_lr ulisttot_lr;

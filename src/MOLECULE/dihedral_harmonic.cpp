@@ -25,6 +25,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -327,9 +328,9 @@ void DihedralHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&sign[1],sizeof(int),atom->ndihedraltypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&sign[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&sign[1],atom->ndihedraltypes,MPI_INT,0,world);

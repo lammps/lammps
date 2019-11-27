@@ -39,7 +39,7 @@ ComputeGyrationShape::ComputeGyrationShape(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 0;
 
-  // ID of compute gyration 
+  // ID of compute gyration
   int n = strlen(arg[3]) + 1;
   id_gyration = new char[n];
   strcpy(id_gyration,arg[3]);

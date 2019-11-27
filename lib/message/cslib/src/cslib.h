@@ -17,6 +17,10 @@
 
 #include <stdint.h>
 
+#if defined(LAMMPS_BIGBIG)
+#error CSlib is not compatible with -DLAMMPS_BIGBIG
+#endif
+
 namespace CSLIB_NS {
 
 class CSlib {

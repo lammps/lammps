@@ -425,7 +425,7 @@ public:
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
   ///    NOW ASSIGNS BASED ON THE FIRST PAIR ONLY
-  pair<double, double> check_part1(int s1,int icj1,int ick2, int s2=-1,int icj3=-1,int ick4=-1){
+  pair<double, double> check_part1(int s1,int icj1,int ick2){
     int res=check_ee(s1,icj1,ick2);    
     if(res==1){ // my term
       //printf(" *\n");

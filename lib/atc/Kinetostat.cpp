@@ -445,7 +445,7 @@ namespace ATC {
   //--------------------------------------------------------
   void GlcKinetostat::apply_to_atoms(PerAtomQuantity<double> * quantity,
                                      const DENS_MAT & lambdaAtom,
-                                     double dt)
+                                     double /* dt */)
   {
     *quantity -= lambdaAtom;
   }
@@ -576,7 +576,7 @@ namespace ATC {
   //            sets up the right-hand side of the
   //            kinetostat equations
   //--------------------------------------------------------
-  void DisplacementGlc::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void DisplacementGlc::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (Upsilon)_Ii
     rhs = nodalAtomicMassWeightedDisplacement_->quantity();
@@ -922,7 +922,7 @@ namespace ATC {
   //            sets up the right-hand side of the
   //            kinetostat equations
   //--------------------------------------------------------
-  void VelocityGlc::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void VelocityGlc::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (\dot{Upsilon})_Ii
     rhs = nodalAtomicMomentum_->quantity();
@@ -1252,7 +1252,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void StressFlux::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void StressFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -1381,7 +1381,7 @@ namespace ATC {
   //    computes the boundary flux to be consistent with
   //    the controller
   //--------------------------------------------------------
-  void StressFluxGhost::compute_boundary_flux(FIELDS & fields)
+  void StressFluxGhost::compute_boundary_flux(FIELDS & /* fields */)
   {
     // This is only used in computation of atomic sources
     boundaryFlux_[VELOCITY] = 0.;
@@ -1407,7 +1407,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void StressFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void StressFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -1985,7 +1985,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void KinetostatFlux::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void KinetostatFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -2056,7 +2056,7 @@ namespace ATC {
   //    computes the boundary flux to be consistent with
   //    the controller
   //--------------------------------------------------------
-  void KinetostatFluxGhost::compute_boundary_flux(FIELDS & fields)
+  void KinetostatFluxGhost::compute_boundary_flux(FIELDS & /* fields */)
   {
     // This is only used in computation of atomic sources
     boundaryFlux_[VELOCITY] = 0.;
@@ -2086,7 +2086,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void KinetostatFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void KinetostatFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -2348,7 +2348,7 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetostatFixed::add_to_momentum(const DENS_MAT & nodalLambdaForce,
                                        DENS_MAT & deltaMomentum,
-                                       double dt)
+                                        double /* dt */)
   {
     deltaMomentum.resize(nNodes_,nsd_);
     const set<int> & regulatedNodes(regulatedNodes_->quantity());

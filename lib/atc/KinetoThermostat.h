@@ -75,8 +75,11 @@ namespace ATC {
   
     KinetoThermostatShapeFunction(AtomicRegulator * kinetoThermostat,
                                   int couplingMaxIterations,
-                                  const std::string & regulatorPrefix = "") : RegulatorMethod(kinetoThermostat),
+                                  const std::string & /* regulatorPrefix */) : RegulatorMethod(kinetoThermostat),
       couplingMaxIterations_(couplingMaxIterations) {};
+    KinetoThermostatShapeFunction(AtomicRegulator * kinetoThermostat,
+                                  int couplingMaxIterations)
+      : RegulatorMethod(kinetoThermostat), couplingMaxIterations_(couplingMaxIterations) {};
         
     virtual ~KinetoThermostatShapeFunction() {};
 
@@ -120,9 +123,9 @@ namespace ATC {
     virtual void initialize();
     
     /** applies kinetostat to atoms */
-    virtual void apply_mid_predictor(double dt){};
+    virtual void apply_mid_predictor(double /* dt */){};
     /** applies kinetostat to atoms */
-    virtual void apply_post_corrector(double dt){};
+    virtual void apply_post_corrector(double /* dt */){};
     
     /** local shape function matrices are incompatible with this mode */
     virtual bool use_local_shape_functions() const {return false;};
@@ -142,15 +145,17 @@ namespace ATC {
 
     // disable un-needed functionality
     /** does initial filtering operations before main computation */
-    virtual void apply_pre_filtering(double dt){};
+    virtual void apply_pre_filtering(double /* dt */){};
     /** applies kinetostat correction to atoms */
-    virtual void apply_kinetostat(double dt) {};
+    virtual void apply_kinetostat(double /* dt */) {};
     /** computes the nodal FE force applied by the kinetostat */
-    virtual void compute_nodal_lambda_force(double dt){};
+    virtual void compute_nodal_lambda_force(double /* dt */){};
     /** apply any required corrections for localized kinetostats */
-    virtual void apply_localization_correction(const DENS_MAT & source,
-                                               DENS_MAT & nodalField,
-                                               double weight = 1.){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */,
+                                               double /* weight */){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */){};
 
   private:
 
@@ -177,7 +182,7 @@ namespace ATC {
         
     // deactivate un-needed methods
     /** applies thermostat to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
+    virtual void apply_post_corrector(double /* dt */){};
         
   protected:
 
@@ -187,7 +192,7 @@ namespace ATC {
 
     // deactivate un-needed methods
     /** apply solution to atomic quantities */
-    virtual void apply_to_atoms(PerAtomQuantity<double> * atomVelocities){};
+    virtual void apply_to_atoms(PerAtomQuantity<double> * /* atomVelocities */){};
 
     /** construct the RHS vector */
     virtual void set_rhs(DENS_MAT & rhs);
@@ -223,7 +228,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
     {boundaryFlux_[TEMPERATURE] = 0.; boundaryFlux_[VELOCITY] = 0.;};
 
     /** get data for output */
@@ -291,7 +296,7 @@ namespace ATC {
         
     // deactivate un-needed methods
     /** applies thermostat to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
+    virtual void apply_post_corrector(double /* dt */){};
         
   protected:
 
@@ -301,7 +306,7 @@ namespace ATC {
 
     // deactivate un-needed methods
     /** apply solution to atomic quantities */
-    virtual void apply_to_atoms(PerAtomQuantity<double> * atomVelocities){};
+    virtual void apply_to_atoms(PerAtomQuantity<double> * /* atomVelocities */){};
 
     /** construct the RHS vector */
     virtual void set_rhs(DENS_MAT & rhs);

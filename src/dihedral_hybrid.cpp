@@ -21,8 +21,10 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
+
 
 #define EXTRA 1000
 
@@ -127,6 +129,14 @@ void DihedralHybrid::compute(int eflag, int vflag)
       for (i = 0; i < n; i++)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
+    }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (i = 0; i < n; i++)
+        for (j = 0; j < 9; j++)
+          cvatom[i][j] += cvatom_substyle[i][j];
     }
   }
 
@@ -319,7 +329,7 @@ void DihedralHybrid::write_restart(FILE *fp)
 void DihedralHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
@@ -328,10 +338,10 @@ void DihedralHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_dihedral(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
@@ -346,6 +356,7 @@ double DihedralHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxdihedral[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

@@ -37,6 +37,7 @@ template<class DeviceType>
 PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
 {
   respa_enable = 0;
+  single_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;

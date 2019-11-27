@@ -33,13 +33,13 @@ class EwaldDipoleSpin : public EwaldDipole {
   void compute(int, int);
 
  protected:
-  double hbar;                  // reduced Planck's constant      
-  double mub;                   // Bohr's magneton                
+  double hbar;                  // reduced Planck's constant
+  double mub;                   // Bohr's magneton
   double mu_0;                  // vacuum permeability
   double mub2mu0;               // prefactor for mech force
   double mub2mu0hbinv;          // prefactor for mag force
 
-  void spsum_musq(); 
+  void spsum_musq();
   virtual void eik_dot_r();
   void slabcorr();
 

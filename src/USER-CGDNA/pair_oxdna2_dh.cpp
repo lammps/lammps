@@ -25,6 +25,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -359,19 +360,6 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdna2Dh::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
-}
-
-/* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 
@@ -450,16 +438,16 @@ void PairOxdna2Dh::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          fread(&kappa_dh[i][j],sizeof(double),1,fp);
-          fread(&qeff_dh_pf[i][j],sizeof(double),1,fp);
-          fread(&b_dh[i][j],sizeof(double),1,fp);
-          fread(&cut_dh_ast[i][j],sizeof(double),1,fp);
-          fread(&cut_dh_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&kappa_dh[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&qeff_dh_pf[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_dh[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_dh_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_dh_c[i][j],sizeof(double),1,fp,NULL,error);
 
         }
 
@@ -492,9 +480,9 @@ void PairOxdna2Dh::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

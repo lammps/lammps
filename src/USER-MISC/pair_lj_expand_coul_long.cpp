@@ -31,6 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -785,9 +786,9 @@ double PairLJExpandCoulLong::init_one(int i, int j)
        (1.0/3.0 + 2.0*shift1/(4.0*rc1) + shift2/(5.0*rc2))/rc3);
     ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * sig6 *
       ((1.0/9.0 + 3.0*shift1/(10.0*rc1) +
-	3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
+        3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
        (1.0/3.0 + 3.0*shift1/(4.0*rc1) +
-	3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
+        3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
   }
 
   return cut;
@@ -828,14 +829,14 @@ void PairLJExpandCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&shift[i][j],sizeof(double),1,fp);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&shift[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -867,13 +868,13 @@ void PairLJExpandCoulLong::write_restart_settings(FILE *fp)
 void PairLJExpandCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);

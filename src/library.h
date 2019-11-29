@@ -16,8 +16,12 @@
    new LAMMPS-specific functions can be added
 */
 
+/*
+ * Follow the behavior of regular LAMMPS compilation and assume
+ * -DLAMMPS_SMALLBIG when no define is set.
+ */
 #if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
-#error Must define LAMMPS_BIGBIG, LAMMPS_SMALLBIG, or LAMMPS_SMALLSMALL
+#define LAMMPS_SMALLBIG
 #endif
 
 #include <mpi.h>

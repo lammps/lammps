@@ -173,11 +173,14 @@ void PairHybrid::compute(int eflag, int vflag)
             cvatom[i][j] += cvatom_substyle[i][j];
       } else {
         double **vatom_substyle = styles[m]->vatom;
-        for (i = 0; i < n; i++)
-          for (j = 0; j < 6; j++)
+        for (i = 0; i < n; i++) {
+          for (j = 0; j < 6; j++) {
             cvatom[i][j] += vatom_substyle[i][j];
-          for (j = 6; j < 9; j++)
+          }
+          for (j = 6; j < 9; j++) {
             cvatom[i][j] += vatom_substyle[i][j-3];
+          }
+        }
       }
     }
 

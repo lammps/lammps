@@ -848,17 +848,16 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
-
-  sp[nlocal][0] = utils::numeric(FLERR,values[0],true,lmp);
-  sp[nlocal][1] = utils::numeric(FLERR,values[1],true,lmp);
-  sp[nlocal][2] = utils::numeric(FLERR,values[2],true,lmp);
+  sp[nlocal][3] = utils::numeric(FLERR,values[0],true,lmp);
+  sp[nlocal][0] = utils::numeric(FLERR,values[1],true,lmp);
+  sp[nlocal][1] = utils::numeric(FLERR,values[2],true,lmp);
+  sp[nlocal][2] = utils::numeric(FLERR,values[3],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
   sp[nlocal][0] *= inorm;
   sp[nlocal][1] *= inorm;
   sp[nlocal][2] *= inorm;
-  sp[nlocal][3] = utils::numeric(FLERR,values[3],true,lmp);
 
   return 4;
 }

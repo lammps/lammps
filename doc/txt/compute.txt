@@ -278,9 +278,10 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "smd/ulsph/strain/rate"_compute_smd_ulsph_strain_rate.html -
 "smd/ulsph/stress"_compute_smd_ulsph_stress.html - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 "smd/vol"_compute_smd_vol.html - per-particle volumes and their sum in Smooth Mach Dynamics
-"sna/atom"_compute_sna_atom.html - calculate bispectrum coefficients for each atom
-"snad/atom"_compute_sna_atom.html - derivative of bispectrum coefficients for each atom
-"snav/atom"_compute_sna_atom.html - virial contribution from bispectrum coefficients for each atom
+"snap"_compute_sna_atom.html - bispectrum components and related quantities for a group of atoms
+"sna/atom"_compute_sna_atom.html - bispectrum components for each atom
+"snad/atom"_compute_sna_atom.html - derivative of bispectrum components for each atom
+"snav/atom"_compute_sna_atom.html - virial contribution from bispectrum components for each atom
 "spin"_compute_spin.html - magnetic quantities for a system of atoms having spins
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "stress/mop"_compute_stress_mop.html - normal components of the local stress tensor using the method of planes

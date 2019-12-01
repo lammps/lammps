@@ -129,6 +129,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>`
    * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>`
    * :doc:`smd/vol <compute_smd_vol>`
+   * :doc:`snap <compute_sna_atom>`
    * :doc:`sna/atom <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
@@ -162,7 +163,6 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
-   *
    *
    *
    *

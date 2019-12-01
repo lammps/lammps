@@ -319,7 +319,6 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
   // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
 
-  //i = ilist[ii];
   if (locflag == 1) {
 
     xi[0] = x[ii][0];
@@ -373,9 +372,9 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
   dmiy = eij[2]*v_dmx[itype][jtype] - eij[0]*v_dmz[itype][jtype];
   dmiz = eij[0]*v_dmy[itype][jtype] - eij[1]*v_dmx[itype][jtype];
 
-  fmi[0] -= 2.0*(dmiy*spj[2] - dmiz*spj[1]);
-  fmi[1] -= 2.0*(dmiz*spj[0] - dmix*spj[2]);
-  fmi[2] -= 2.0*(dmix*spj[1] - dmiy*spj[0]);
+  fmi[0] -= (dmiy*spj[2] - dmiz*spj[1]);
+  fmi[1] -= (dmiz*spj[0] - dmix*spj[2]);
+  fmi[2] -= (dmix*spj[1] - dmiy*spj[0]);
 }
 
 /* ----------------------------------------------------------------------

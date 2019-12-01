@@ -5,10 +5,10 @@
    * :doc:`Fix styles <Commands_fix>`
    * :doc:`Compute styles <Commands_compute>`
    * :doc:`Pair styles <Commands_pair>`
-   * :doc:`Bond styles <Commands_bond>`
-   * :doc:`Angle styles <Commands_angle>`
-   * :doc:`Dihedral styles <Commands_dihedral>`
-   * :doc:`Improper styles <Commands_improper>`
+   * :ref:`Bond styles <bond>`
+   * :ref:`Angle styles <angle>`
+   * :ref:`Dihedral styles <dihedral>`
+   * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
 
 KSpace solvers

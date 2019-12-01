@@ -21,9 +21,6 @@ commands in it are used to define a LAMMPS simulation.
    Commands_compute
    Commands_pair
    Commands_bond
-   Commands_angle
-   Commands_dihedral
-   Commands_improper
    Commands_kspace
 
 .. toctree::

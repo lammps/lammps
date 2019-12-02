@@ -1675,6 +1675,7 @@ int FixBondReact::check_constraints()
         delx1 = x[atom1][0] - x[atom2][0];
         dely1 = x[atom1][1] - x[atom2][1];
         delz1 = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx1,dely1,delz1); // ghost location fix
         rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
         r1 = sqrt(rsq1);
 
@@ -1682,6 +1683,7 @@ int FixBondReact::check_constraints()
         delx2 = x[atom3][0] - x[atom2][0];
         dely2 = x[atom3][1] - x[atom2][1];
         delz2 = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(delx2,dely2,delz2); // ghost location fix
         rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
         r2 = sqrt(rsq2);
 

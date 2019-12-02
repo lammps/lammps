@@ -24,6 +24,7 @@ class PairMesoCNT : public Pair {
  protected:
   int uinf_points,gamma_points,phi_points,usemi_points;
   int redlist_size,chain_size,end_size;
+  int numred,numchain;
   int n;
   int *redlist,*nchain,*end;
   int **chain;
@@ -43,7 +44,9 @@ class PairMesoCNT : public Pair {
   char *uinf_file,*gamma_file,*phi_file,*usemi_file;
 
   void allocate();
-  void sort(int *, int);
+  void neigh_common(int, int);
+  void chain_split();
+  void sort(int *);
   void read_file(const char *, double *, double &, double &, int);
   void read_file(const char *, double **, double &, double &, 
 		  double &, double &, int);
@@ -60,9 +63,7 @@ class PairMesoCNT : public Pair {
   double dyspline(double, double, double, double, double, double, 
 		  double ****, int);
 
-  void geominf(const double *, const double *, const double *, 
-		  const double *, double *, double **);
-  void geomsemi(const double *, const double *, const double *,
+  void geometry(const double *, const double *, const double *,
 		  const double *, const double *, double *, double **);
   double weight(const double *, const double *, const double *,
 		  const double *);

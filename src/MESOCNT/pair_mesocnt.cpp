@@ -109,11 +109,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int *tag = atom->tag;
   int *mol = atom->molecule;
   int nbondlist = neighbor->nbondlist;
-  int nlocal = atom->nlocal;
-
-  int *numneigh = list->numneigh;
-  int **firstneigh = list->firstneigh;
-
+  
   // iterate over all bonds
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
@@ -126,110 +122,20 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
     // reduce neighbors to common list
 
-    int numneigh1,numneigh2;
-    int *neighlist1,*neighlist2;
-    if (i1 > nlocal-1) numneigh1 = 0;
-    else {
-      neighlist1 = firstneigh[i1];
-      numneigh1 = numneigh[i1];
-    }
-    if (i2 > nlocal-1) numneigh2 = 0;
-    else {
-      neighlist2 = firstneigh[i2];
-      numneigh2 = numneigh[i2];
-    }
-
-    int numneigh_max = numneigh1 + numneigh2;
-    if (numneigh_max < 2) continue;
-    if (numneigh_max > redlist_size) {
-      redlist_size = 2 * numneigh_max;
-      memory->grow(redlist,redlist_size,"pair:redlist");
-    }
-
-    int numred = 0;
-    for (int j = 0; j < numneigh1; j++) {
-      int ind = neighlist1[j];
-      if (mol[ind] == mol[i1] && abs(tag[ind] - tag[i1]) < SELF_CUTOFF)
-	      continue;
-      redlist[numred++] = ind;
-    }
-    int inflag = 0;
-    for (int j2 = 0; j2 < numneigh2; j2++) {
-      for (int j1 = 0; j1 < numneigh1; j1++) {
-        if (neighlist1[j1] == neighlist2[j2]) {
-          inflag = 1;
-	  break;
-	}
-      }
-      if (inflag) {
-        inflag = 0;
-	continue;
-      }
-      int ind = neighlist2[j2];
-      if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF)
-	      continue;
-      redlist[numred++] = ind;
-    }
-
+    neigh_common(i1,i2);
     if (numred < 2) continue;
 
     // sort list according to atom-id
 
-    sort(redlist,numred);
+    sort(redlist);
 
-    // split neighbor list into connected chains
+    // set up connected chains
 
-    int cid = 0;
-    int clen = 0;
-
-    if (numred > chain_size) {
-      chain_size = 2 * numred;
-      memory->destroy(chain);
-      memory->create(chain,chain_size,chain_size,"pair:chain");
-      memory->grow(nchain,chain_size,"pair:nchain");
-    }
-
-    for (int j = 0; j < numred-1; j++) {
-      int j1 = redlist[j];
-      int j2 = redlist[j+1];
-      chain[cid][clen++] = j1;
-      if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) {
-        nchain[cid++] = clen;
-	clen = 0;
-      }
-    }
-    chain[cid][clen++] = redlist[numred-1];
-    nchain[cid++] = clen;
-
-    // check for chain ends
-
-    if (cid > end_size) {
-      end_size = 2 * cid;
-      memory->grow(end,end_size,"pair:end");
-    }
-
-    for (int j = 0; j < cid; j++) {
-      int clen = nchain[j];
-      int cstart = chain[j][0];
-      int cend = chain[j][clen-1];
-      int tagstart = tag[cstart];
-      int tagend = tag[cend];
-      end[j] = 0;
-      if (tagstart == 1) end[j] = 1;
-      else {
-        int idprev = atom->map(tagstart-1);
-	if (idprev == -1 || mol[tagstart] != mol[idprev]) end[j] = 1;
-      }
-      if (tagend == atom->natoms) end[j] = 2;
-      else {
-        int idnext = atom->map(tagend+1);
-	if (idnext == -1 || mol[tagend] != mol[idnext]) end[j] = 2;
-      }
-    }
+    chain_split();
 
     // iterate over all neighbouring chains
 
-    for (int j = 0; j < cid; j++) {
+    for (int j = 0; j < numchain; j++) {
       if (nchain[j] < 2) continue;
       
       zero3(p1);
@@ -273,7 +179,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // infinite CNT case
 
       if (end[j] == 0) {
-        geominf(r1,r2,p1,p2,param,basis);
+        geometry(r1,r2,p1,p2,NULL,param,basis);
 	if (param[0] > cutoff) continue;
 	finf(param,evdwl,flocal);
       }
@@ -281,7 +187,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at start of chain
 
       else if (end[j] == 1) {
-        geomsemi(r1,r2,p1,p2,p1,param,basis);
+        geometry(r1,r2,p1,p2,p1,param,basis);
 	if (param[0] > cutoff) continue;
 	fsemi(param,evdwl,flocal);
       }
@@ -289,7 +195,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at end of chain
 
       else {
-        geomsemi(r1,r2,p1,p2,p2,param,basis);
+        geometry(r1,r2,p1,p2,p2,param,basis);
 	if (param[0] > cutoff) continue;
 	fsemi(param,evdwl,flocal);
       }
@@ -375,7 +281,7 @@ void PairMesoCNT::allocate()
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
 
-  memory->create(param,7,"pair:param");
+  memory->create(param,5,"pair:param");
 
   memory->create(flocal,2,3,"pair:flocal");
   memory->create(basis,3,3,"pair:basis");
@@ -531,15 +437,134 @@ double PairMesoCNT::init_one(int i, int j)
   return cutoff;
 }
 
+
+/* ----------------------------------------------------------------------
+   extract common neighbor list for bond
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::neigh_common(int i1, int i2)
+{
+  int nlocal = atom->nlocal;
+  int *tag = atom->tag;
+  int *mol = atom->molecule;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int numneigh1,numneigh2;
+  int *neighlist1,*neighlist2;
+
+  if (i1 > nlocal-1) numneigh1 = 0;
+  else {
+    neighlist1 = firstneigh[i1];
+    numneigh1 = numneigh[i1];
+  }
+  if (i2 > nlocal-1) numneigh2 = 0;
+  else {
+    neighlist2 = firstneigh[i2];
+    numneigh2 = numneigh[i2];
+  }
+
+  int numneigh_max = numneigh1 + numneigh2;
+  numred = 0;
+  if (numneigh_max < 2) return;
+  if (numneigh_max > redlist_size) {
+    redlist_size = 2 * numneigh_max;
+    memory->grow(redlist,redlist_size,"pair:redlist");
+  }
+
+  for (int j = 0; j < numneigh1; j++) {
+    int ind = neighlist1[j];
+    if (mol[ind] == mol[i1] && abs(tag[ind] - tag[i1]) < SELF_CUTOFF)
+	    continue;
+    redlist[numred++] = ind;
+  }
+  int inflag = 0;
+  for (int j2 = 0; j2 < numneigh2; j2++) {
+    for (int j1 = 0; j1 < numneigh1; j1++) {
+      if (neighlist1[j1] == neighlist2[j2]) {
+        inflag = 1;
+	break;
+      }
+    }
+    if (inflag) {
+      inflag = 0;
+      continue;
+    }
+    int ind = neighlist2[j2];
+    if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF)
+	    continue;
+    redlist[numred++] = ind;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   split neighbors into chains and identify ends
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::chain_split()
+{
+  int *tag = atom->tag;
+  int *mol = atom->molecule;
+  int clen = 0;
+  int cid = 0;
+
+  // split neighbor list into connected chains
+
+  if (numred > chain_size) {
+    chain_size = 2 * numred;
+    memory->destroy(chain);
+    memory->create(chain,chain_size,chain_size,"pair:chain");
+    memory->grow(nchain,chain_size,"pair:nchain");
+  }
+
+  for (int j = 0; j < numred-1; j++) {
+    int j1 = redlist[j];
+    int j2 = redlist[j+1];
+    chain[cid][clen++] = j1;
+    if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) {
+      nchain[cid++] = clen;
+      clen = 0;
+    }
+  }
+  chain[cid][clen++] = redlist[numred-1];
+  nchain[cid++] = clen;
+
+  // check for chain ends
+
+  if (cid > end_size) {
+    end_size = 2 * cid;
+    memory->grow(end,end_size,"pair:end");
+  }
+
+  for (int j = 0; j < cid; j++) {
+    int cstart = chain[j][0];
+    int cend = chain[j][nchain[j]-1];
+    int tagstart = tag[cstart];
+    int tagend = tag[cend];
+    end[j] = 0;
+    if (tagstart == 1) end[j] = 1;
+    else {
+      int idprev = atom->map(tagstart-1);
+      if (idprev == -1 || mol[tagstart] != mol[idprev]) end[j] = 1;
+    }
+    if (tagend == atom->natoms) end[j] = 2;
+    else {
+      int idnext = atom->map(tagend+1);
+      if (idnext == -1 || mol[tagend] != mol[idnext]) end[j] = 2;
+    }
+  }
+
+  numchain = cid;
+}
+
 /* ----------------------------------------------------------------------
    insertion sort list according to corresponding atom ID
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::sort(int *list, int size)
+void PairMesoCNT::sort(int *list)
 {
   int i,j,temp1,temp2;
   int *tag = atom->tag;
-  for (int i = 1; i < size; i++) {
+  for (int i = 1; i < numred; i++) {
     j = i;
     temp1 = list[j-1];
     temp2 = list[j];
@@ -1186,95 +1211,11 @@ double PairMesoCNT::dyspline(double x, double y,
   return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
 }
 
-
 /* ----------------------------------------------------------------------
-   geometric parameters for infinite CNT case
+   compute local geometric parameters
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::geominf(const double *r1, const double *r2, 
-		const double *p1, const double *p2, 
-		double *param, double **basis)
-{
-  double r[3],p[3],delr[3],m[3],l[3],rbar[3],pbar[3],delrbar[3];
-  double psil[3],psim[3],dell_psim[3],delpsil_m[3];
-  double delr1[3],delr2[3],delp1[3],delp2[3];
-
-  double *ex = basis[0];
-  double *ey = basis[1];
-  double *ez = basis[2];
-
-  add3(r1,r2,r);
-  scale3(0.5,r);
-  add3(p1,p2,p);
-  scale3(0.5,p);
-
-  sub3(p,r,delr);
-
-  sub3(r2,r1,l);
-  norm3(l);
-  sub3(p2,p1,m);
-  norm3(m);
-
-  double psi = dot3(l,m);
-  if (psi > 1.0) psi = 1.0;
-  else if (psi < -1.0) psi = -1.0;
-  double denom = 1.0 - psi*psi;
-
-  copy3(l,psil);
-  scale3(psi,psil);
-  copy3(m,psim);
-  scale3(psi,psim);
-
-  double taur,taup;
-  
-  // parallel case
-  
-  if (denom < SWITCH) {
-    taur = dot3(delr,l);
-    taup = 0;
-  }
-
-  // non-parallel case
-
-  else {
-    double frac = 1.0 / denom;
-    sub3(l,psim,dell_psim);
-    sub3(psil,m,delpsil_m);
-    taur = dot3(delr,dell_psim) * frac;
-    taup = dot3(delr,delpsil_m) * frac;
-  }
-
-  scaleadd3(taur,l,r,rbar);
-  scaleadd3(taup,m,p,pbar);
-  sub3(pbar,rbar,delrbar);
-
-  double h = len3(delrbar);
-
-  copy3(delrbar,ex);
-  copy3(l,ez);
-  scale3(1.0/h,ex);
-  cross3(ez,ex,ey);
-
-  double alpha;
-  if(dot3(m,ey) < 0) alpha = acos(psi);
-  else alpha = MY_2PI - acos(psi);
-
-  sub3(r1,rbar,delr1);
-  sub3(r2,rbar,delr2);
-  double xi1 = dot3(delr1,l);
-  double xi2 = dot3(delr2,l);
-
-  param[0] = h;
-  param[1] = alpha;
-  param[2] = xi1;
-  param[3] = xi2;
-}
-
-/* ----------------------------------------------------------------------
-   geometric parameters for semi-infinite CNT case
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::geomsemi(const double *r1, const double *r2, 
+void PairMesoCNT::geometry(const double *r1, const double *r2, 
 		const double *p1, const double *p2, const double *qe,
 		double *param, double **basis)
 {
@@ -1308,10 +1249,12 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   copy3(m,psim);
   scale3(psi,psim);
 
-  sub3(p,qe,delpqe);
-  double rhoe = dot3(delpqe,m);
-  double taur,taup;
-  double etae;
+  double rhoe,etae,taur,taup;
+  if (qe) {
+    sub3(p,qe,delpqe);
+    rhoe = dot3(delpqe,m);
+  }
+  else rhoe = 0;
 
   // parallel case
   
@@ -1356,7 +1299,7 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   param[1] = alpha;
   param[2] = xi1;
   param[3] = xi2;
-  param[6] = etae; 
+  param[4] = etae; 
 }
 
 
@@ -1528,7 +1471,7 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   double alpha = param[1];
   double xi1 = param[2] * angrec;
   double xi2 = param[3] * angrec;
-  double etae = param[6] * angrec;
+  double etae = param[4] * angrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha * sin_alpha;

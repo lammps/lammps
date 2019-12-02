@@ -29,6 +29,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -38,7 +39,7 @@ using namespace MathConst;
 using namespace MathExtra;
 
 #define MAXLINE 1024
-#define SELF_CUTOFF 5
+#define SELF_CUTOFF 20
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
 #define DELTA1 1.0
@@ -78,10 +79,12 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(phi_coeff);
     memory->destroy(usemi_coeff);
 
-    memory->destroy(redlist);
-    memory->destroy(chain);
-    memory->destroy(nchain);
-    memory->destroy(end);
+    memory->destroy(reduced_neighlist);
+    memory->destroy(reduced_nlist);
+    memory->destroy(numchainlist);
+    memory->destroy(nchainlist);
+    memory->destroy(endlist);
+    memory->destroy(chainlist);
 
     memory->destroy(p1);
     memory->destroy(p2);
@@ -110,7 +113,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int *mol = atom->molecule;
   int nbondlist = neighbor->nbondlist;
   
+  // update bond neighbor list when necessary
+  if (update->ntimestep == neighbor->lastcall) bond_neigh();
+
   // iterate over all bonds
+
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
@@ -120,18 +127,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
     r1 = x[i1];
     r2 = x[i2];
 
-    // reduce neighbors to common list
-
-    neigh_common(i1,i2);
-    if (numred < 2) continue;
-
-    // sort list according to atom-id
-
-    sort(redlist);
-
-    // set up connected chains
-
-    chain_split();
+    int numchain = numchainlist[i];
+    int *end = endlist[i];
+    int *nchain = nchainlist[i];
+    int **chain = chainlist[i];
 
     // iterate over all neighbouring chains
 
@@ -187,7 +186,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at start of chain
 
       else if (end[j] == 1) {
-        geometry(r1,r2,p1,p2,p1,param,basis);
+        geometry(r1,r2,p1,p2,qe,param,basis);
 	if (param[0] > cutoff) continue;
 	fsemi(param,evdwl,flocal);
       }
@@ -195,7 +194,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at end of chain
 
       else {
-        geometry(r1,r2,p1,p2,p2,param,basis);
+        geometry(r1,r2,p1,p2,qe,param,basis);
 	if (param[0] > cutoff) continue;
 	fsemi(param,evdwl,flocal);
       }
@@ -258,9 +257,8 @@ void PairMesoCNT::allocate()
 {
   allocated = 1;
   int ntypes = atom->ntypes;
-  redlist_size = 64;
-  chain_size = 64;
-  end_size = 64;
+  nlocal_size = 512;
+  reduced_neigh_size = 64;
   
   memory->create(cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
@@ -273,10 +271,15 @@ void PairMesoCNT::allocate()
   memory->create(phi_coeff,phi_points,phi_points,4,4,"pair:phi_coeff");
   memory->create(usemi_coeff,usemi_points,usemi_points,4,4,"pair:usemi_coeff");
 
-  memory->create(redlist,redlist_size,"pair:redlist");
-  memory->create(chain,chain_size,chain_size,"pair:chain");
-  memory->create(nchain,chain_size,"pair:nchain");
-  memory->create(end,end_size,"pair:end");
+  memory->create(reduced_nlist,nlocal_size,"pair:reduced_nlist");
+  memory->create(numchainlist,nlocal_size,"pair:numchainlist");
+
+  memory->create(reduced_neighlist,
+		  nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
+  memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
+  memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
+  memory->create(chainlist,nlocal_size,
+		  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
@@ -437,12 +440,89 @@ double PairMesoCNT::init_one(int i, int j)
   return cutoff;
 }
 
+/* ----------------------------------------------------------------------
+   update bond neighbor lists
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::bond_neigh()
+{
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+
+  int update_memory = 0;
+  if (nbondlist > nlocal_size) {
+    nlocal_size = 2 * nbondlist;
+    update_memory = 1;
+  }
+  int *numneigh = list->numneigh;
+  int numneigh_max = 0;
+  for (int i = 0; i < nbondlist; i++) {
+    int i1 = bondlist[i][0];
+    int i2 = bondlist[i][1];
+    int numneigh1,numneigh2;
+    if (i1 > nlocal-1) numneigh1 = 0;
+    else numneigh1 = numneigh[i1];
+    if (i2 > nlocal-1) numneigh2 = 0;
+    else numneigh2 = numneigh[i2];
+
+    int numneigh_max_local = numneigh1 + numneigh1;
+    if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
+  }
+  if (numneigh_max > reduced_neigh_size) {
+    reduced_neigh_size = 2 * numneigh_max;
+    update_memory = 1;
+  }
+
+  if (update_memory) {
+    memory->destroy(reduced_neighlist);
+    memory->destroy(numchainlist);
+    memory->destroy(reduced_nlist);
+    memory->destroy(nchainlist);
+    memory->destroy(endlist);
+    memory->destroy(chainlist);
+    
+    memory->create(reduced_nlist,nlocal_size,"pair:reduced_nlist");
+    memory->create(numchainlist,nlocal_size,"pair:numchainlist");
+    memory->create(reduced_neighlist,
+		    nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
+    memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
+    memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
+    memory->create(chainlist,nlocal_size,
+		    reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
+  }
+
+  for (int i = 0; i < nbondlist; i++) {
+    int i1 = bondlist[i][0];
+    int i2 = bondlist[i][1];
+    i1 &= NEIGHMASK;
+    i2 &= NEIGHMASK;
+
+    int *reduced_neigh = reduced_neighlist[i];
+    int *end = endlist[i];
+    int *nchain = nchainlist[i];
+    int **chain = chainlist[i];
+
+    // reduce neighbors to common list
+
+    neigh_common(i1,i2,reduced_nlist[i],reduced_neigh);
+
+    // sort list according to atom-id
+
+    sort(reduced_neigh,reduced_nlist[i]);
+
+    // set up connected chains
+
+    chain_split(reduced_neigh,
+		    reduced_nlist[i],numchainlist[i],chain,nchain,end);
+  }
+}
 
 /* ----------------------------------------------------------------------
    extract common neighbor list for bond
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::neigh_common(int i1, int i2)
+void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
 {
   int nlocal = atom->nlocal;
   int *tag = atom->tag;
@@ -466,10 +546,6 @@ void PairMesoCNT::neigh_common(int i1, int i2)
   int numneigh_max = numneigh1 + numneigh2;
   numred = 0;
   if (numneigh_max < 2) return;
-  if (numneigh_max > redlist_size) {
-    redlist_size = 2 * numneigh_max;
-    memory->grow(redlist,redlist_size,"pair:redlist");
-  }
 
   for (int j = 0; j < numneigh1; j++) {
     int ind = neighlist1[j];
@@ -500,7 +576,8 @@ void PairMesoCNT::neigh_common(int i1, int i2)
    split neighbors into chains and identify ends
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::chain_split()
+void PairMesoCNT::chain_split(int *redlist, int numred, 
+		int &numchain, int **chain, int *nchain, int *end)
 {
   int *tag = atom->tag;
   int *mol = atom->molecule;
@@ -508,13 +585,6 @@ void PairMesoCNT::chain_split()
   int cid = 0;
 
   // split neighbor list into connected chains
-
-  if (numred > chain_size) {
-    chain_size = 2 * numred;
-    memory->destroy(chain);
-    memory->create(chain,chain_size,chain_size,"pair:chain");
-    memory->grow(nchain,chain_size,"pair:nchain");
-  }
 
   for (int j = 0; j < numred-1; j++) {
     int j1 = redlist[j];
@@ -529,11 +599,6 @@ void PairMesoCNT::chain_split()
   nchain[cid++] = clen;
 
   // check for chain ends
-
-  if (cid > end_size) {
-    end_size = 2 * cid;
-    memory->grow(end,end_size,"pair:end");
-  }
 
   for (int j = 0; j < cid; j++) {
     int cstart = chain[j][0];
@@ -560,11 +625,11 @@ void PairMesoCNT::chain_split()
    insertion sort list according to corresponding atom ID
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::sort(int *list)
+void PairMesoCNT::sort(int *list, int size)
 {
   int i,j,temp1,temp2;
   int *tag = atom->tag;
-  for (int i = 1; i < numred; i++) {
+  for (int i = 1; i < size; i++) {
     j = i;
     temp1 = list[j-1];
     temp2 = list[j];

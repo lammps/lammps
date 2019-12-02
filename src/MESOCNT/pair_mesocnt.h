@@ -23,11 +23,11 @@ class PairMesoCNT : public Pair {
 
  protected:
   int uinf_points,gamma_points,phi_points,usemi_points;
-  int redlist_size,chain_size,end_size;
-  int numred,numchain;
+  int nlocal_size,reduced_neigh_size;
   int n;
-  int *redlist,*nchain,*end;
-  int **chain;
+  int *reduced_nlist,*numchainlist;
+  int **reduced_neighlist,**nchainlist,**endlist;
+  int ***chainlist;
 
   double ang,angrec,e,erec,funit;
   double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
@@ -44,9 +44,10 @@ class PairMesoCNT : public Pair {
   char *uinf_file,*gamma_file,*phi_file,*usemi_file;
 
   void allocate();
-  void neigh_common(int, int);
-  void chain_split();
-  void sort(int *);
+  void bond_neigh();
+  void neigh_common(int, int, int &, int *);
+  void chain_split(int *, int, int &, int **, int *, int *);
+  void sort(int *, int);
   void read_file(const char *, double *, double &, double &, int);
   void read_file(const char *, double **, double &, double &, 
 		  double &, double &, int);

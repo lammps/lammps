@@ -28,8 +28,8 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) 
     "molecule num_bond bond_type bond_atom "
@@ -37,9 +37,9 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   fields_copy = (char *)
     "molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
-  fields_comm = NULL;
-  fields_comm_vel = NULL;
-  fields_reverse = NULL;
+  fields_comm = (char *) "";
+  fields_comm_vel = (char *) "";
+  fields_reverse = (char *) "";
   fields_border = (char *) "molecule";
   fields_border_vel = (char *) "molecule";
   fields_exchange = (char *)
@@ -50,7 +50,7 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3";
   fields_create = (char *) "molecule num_bond num_angle nspecial";
   fields_data_atom = (char *) "id molecule type x";
-  fields_data_vel = NULL;
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 
@@ -70,7 +70,7 @@ AtomVecAngle::~AtomVecAngle()
    modify values for AtomVec::pack_restart() to pack
 ------------------------------------------------------------------------- */
 
-void AtomVecAngle::pack_restart_pre(int i)
+void AtomVecAngle::pack_restart_pre(int ilocal)
 {
   // insure negative vectors are needed length
 
@@ -93,19 +93,19 @@ void AtomVecAngle::pack_restart_pre(int i)
   int **angle_type = atom->angle_type;
 
   int any_bond_negative = 0;
-  for (int m = 0; m < num_bond[i]; m++) {
-    if (bond_type[i][m] < 0) {
+  for (int m = 0; m < num_bond[ilocal]; m++) {
+    if (bond_type[ilocal][m] < 0) {
       bond_negative[m] = 1;
-      bond_type[i][m] = -bond_type[i][m];
+      bond_type[ilocal][m] = -bond_type[ilocal][m];
       any_bond_negative = 1;
     } else bond_negative[m] = 0;
   }
 
   int any_angle_negative = 0;
-  for (int m = 0; m < num_angle[i]; m++) {
-    if (angle_type[i][m] < 0) {
+  for (int m = 0; m < num_angle[ilocal]; m++) {
+    if (angle_type[ilocal][m] < 0) {
       angle_negative[m] = 1;
-      angle_type[i][m] = -angle_type[i][m];
+      angle_type[ilocal][m] = -angle_type[ilocal][m];
       any_angle_negative = 1;
     } else angle_negative[m] = 0;
   }
@@ -115,22 +115,22 @@ void AtomVecAngle::pack_restart_pre(int i)
    unmodify values packed by AtomVec::pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecAngle::pack_restart_post(int i)
+void AtomVecAngle::pack_restart_post(int ilocal)
 {
   // restore the flagged types to their negative values
 
   if (any_bond_negative) {
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;
-    for (int m = 0; m < num_bond[i]; m++)
-      if (bond_negative[m]) bond_type[i][m] = -bond_type[i][m];
+    for (int m = 0; m < num_bond[ilocal]; m++)
+      if (bond_negative[m]) bond_type[ilocal][m] = -bond_type[ilocal][m];
   }
 
   if (any_angle_negative) {
     int *num_angle = atom->num_angle;
     int **angle_type = atom->angle_type;
-    for (int m = 0; m < num_angle[i]; m++)
-      if (angle_negative[m]) angle_type[i][m] = -angle_type[i][m];
+    for (int m = 0; m < num_angle[ilocal]; m++)
+      if (angle_negative[m]) angle_type[ilocal][m] = -angle_type[ilocal][m];
   }
 }
 

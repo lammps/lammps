@@ -35,6 +35,33 @@ class AtomVecHybrid : public AtomVec {
   void process_args(int, char **);
   void init();
   void force_clear(int, size_t);
+
+  void copy_bonus(int, int, int);
+  void clear_bonus() {}
+  int pack_comm_bonus(int, int *, double *);
+  void unpack_comm_bonus(int, int, double *);
+  int pack_border_bonus(int, int *, double *);
+  int unpack_border_bonus(int, int, double *);
+  int pack_exchange_bonus(int, double *);
+  int unpack_exchange_bonus(int, double *);
+  int size_restart_bonus();
+  int pack_restart_bonus(int, double *);
+  int unpack_restart_bonus(int, double *);
+  bigint memory_usage_bonus();
+
+  void pack_restart_pre(int);
+  void pack_restart_post(int);
+  void unpack_restart_init(int);
+  void create_atom_post(int);
+  void data_atom_post(int);
+  void pack_data_pre(int);
+  void pack_data_post(int);
+
+  //void create_atom_post(int);
+  //void data_atom_post(int);
+  //void pack_data_pre(int);
+  //void pack_data_post(int);
+
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
 
@@ -42,8 +69,15 @@ class AtomVecHybrid : public AtomVec {
   int nallstyles;
   char **allstyles;
 
-  void concatenate_fields();
-  void concatenate(char *&, char *);
+  struct FieldStrings {
+    char **fstr;
+  };
+  FieldStrings *fieldstrings;
+
+  int nstyles_bonus;
+  class AtomVec **styles_bonus;
+
+  char *merge_fields(int, char *, int, char *&);
   void build_styles();
   int known_style(char *);
 };

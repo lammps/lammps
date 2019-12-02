@@ -42,8 +42,8 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "sp fm fm_long";
   fields_copy = (char *) "sp";
@@ -56,7 +56,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "sp";
   fields_create = (char *) "sp";
   fields_data_atom = (char *) "id type x sp";
-  fields_data_vel = (char *) "omega";
+  fields_data_vel = (char *) "id v omega";
 
   setup_fields();
 }

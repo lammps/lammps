@@ -55,7 +55,7 @@ class AtomVec : protected Pointers {
   char **argcopy;        // used when AtomVec is realloced (restart,replicate)
 
   // additional list of peratom fields operated on by different methods
-  // set by child styles
+  // set or created by child styles
 
   char *fields_grow,*fields_copy;
   char *fields_comm,*fields_comm_vel,*fields_reverse;
@@ -220,6 +220,7 @@ class AtomVec : protected Pointers {
   int grow_nmax_bonus(int);
   void setup_fields();
   int process_fields(char *, const char *, Method *);
+  int tokenize(char *, char **&, char *&);
   void create_method(int, Method *);
   void init_method(Method *);
   void destroy_method(Method *);

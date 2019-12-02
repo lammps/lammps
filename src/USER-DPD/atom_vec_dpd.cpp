@@ -33,21 +33,21 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "rho dpdTheta uCond uMech uChem uCG uCGnew duChem";
   fields_copy = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
   fields_comm = (char *) "dpdTheta uCond uMech uChem";
   fields_comm_vel = (char *) "dpdTheta uCond uMech uChem";
-  fields_reverse = NULL;
+  fields_reverse = (char *) "";
   fields_border = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
   fields_border_vel = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
   fields_exchange = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
   fields_restart = (char *) "dpdTheta uCond uMech uChem";
   fields_create = (char *) "rho dpdTheta uCond uMech uChem uCG uCGnew duChem";
   fields_data_atom = (char *) "id type dpdTheta x";
-  fields_data_vel = (char *) "omega";
+  fields_data_vel = (char *) "id v omega";
 
   setup_fields();
 }

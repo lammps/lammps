@@ -55,20 +55,19 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
-  // leading/trailing whitespace just facilitates matching in process_args()
 
-  default_grow = " id type mask image x v f ";
-  default_copy = " id type mask image x v ";
-  default_comm = " x ";
-  default_comm_vel = " x v ";
-  default_reverse = " f ";
-  default_border = " id type mask x ";
-  default_border_vel = " id type mask x v ";
-  default_exchange = " id type mask image x v ";
-  default_restart = " id type mask image x v ";
-  default_create = " id type mask image x v ";
+  default_grow = "id type mask image x v f";
+  default_copy = "id type mask image x v";
+  default_comm = "x";
+  default_comm_vel = "x v";
+  default_reverse = "f";
+  default_border = "id type mask x";
+  default_border_vel = "id type mask x v";
+  default_exchange = "id type mask image x v";
+  default_restart = "id type mask image x v";
+  default_create = "id type mask image x v";
   default_data_atom = "";
-  default_data_vel = " v ";
+  default_data_vel = "";
 
   // initializations
 
@@ -1757,6 +1756,7 @@ void AtomVec::pack_data(double **buf)
   void *pdata;
 
   int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) {
 
     // if needed, change values before packing
@@ -1877,37 +1877,39 @@ void AtomVec::data_vel(int ilocal, char **values)
   v[ilocal][1] = utils::numeric(FLERR,values[1],true,lmp);
   v[ilocal][2] = utils::numeric(FLERR,values[2],true,lmp);
 
-  int ivalue = 3;
-  for (n = 0; n < ndata_vel; n++) {
-    pdata = mdata_vel.pdata[n];
-    datatype = mdata_vel.datatype[n];
-    cols = mdata_vel.cols[n];
-    if (datatype == DOUBLE) {
-      if (cols == 0) {
-        double *vec = *((double **) pdata);
-        vec[ilocal] = utils::numeric(FLERR,values[ivalue++],true,lmp);
-      } else {
-        double **array = *((double ***) pdata);
-        for (m = 0; m < cols; m++)
-          array[ilocal][m] = utils::numeric(FLERR,values[ivalue++],true,lmp);
-      }
-    } else if (datatype == INT) {
-      if (cols == 0) {
-        int *vec = *((int **) pdata);
-        vec[ilocal] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
-      } else {
-        int **array = *((int ***) pdata);
-        for (m = 0; m < cols; m++)
-          array[ilocal][m] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
-      }
-    } else if (datatype == BIGINT) {
-      if (cols == 0) {
-        bigint *vec = *((bigint **) pdata);
-        vec[ilocal] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
-      } else {
-        bigint **array = *((bigint ***) pdata);
-        for (m = 0; m < cols; m++)
-          array[ilocal][m] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
+  if (ndata_vel) {
+    int ivalue = 3;
+    for (n = 0; n < ndata_vel; n++) {
+      pdata = mdata_vel.pdata[n];
+      datatype = mdata_vel.datatype[n];
+      cols = mdata_vel.cols[n];
+      if (datatype == DOUBLE) {
+        if (cols == 0) {
+          double *vec = *((double **) pdata);
+          vec[ilocal] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+        } else {
+          double **array = *((double ***) pdata);
+          for (m = 0; m < cols; m++)
+            array[ilocal][m] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+        }
+      } else if (datatype == INT) {
+        if (cols == 0) {
+          int *vec = *((int **) pdata);
+          vec[ilocal] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
+        } else {
+          int **array = *((int ***) pdata);
+          for (m = 0; m < cols; m++)
+            array[ilocal][m] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
+        }
+      } else if (datatype == BIGINT) {
+        if (cols == 0) {
+          bigint *vec = *((bigint **) pdata);
+          vec[ilocal] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
+        } else {
+          bigint **array = *((bigint ***) pdata);
+          for (m = 0; m < cols; m++)
+            array[ilocal][m] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
+        }
       }
     }
   }
@@ -1922,49 +1924,40 @@ void AtomVec::pack_vel(double **buf)
   int i,j,m,n,datatype,cols;
   void *pdata;
 
-  double **v = atom->v;
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    buf[i][0] = ubuf(tag[i]).d;
-    buf[i][1] = v[i][0];
-    buf[i][2] = v[i][1];
-    buf[i][3] = v[i][2];
-
-    j = 4;
-    if (ndata_vel) {
-      for (n = 0; n < ndata_vel; n++) {
-        pdata = mdata_vel.pdata[n];
-        datatype = mdata_vel.datatype[n];
-        cols = mdata_vel.cols[n];
-        if (datatype == DOUBLE) {
-          if (cols == 0) {
-            double *vec = *((double **) pdata);
-            buf[i][j++] = vec[i];
-          } else {
-            double **array = *((double ***) pdata);
-            for (m = 0; m < cols; m++)
-              buf[i][j++] = array[i][m];
-          }
-        } else if (datatype == INT) {
-          if (cols == 0) {
-            int *vec = *((int **) pdata);
-            buf[i][j++] = ubuf(vec[i]).d;
-          } else {
-            int **array = *((int ***) pdata);
-            for (m = 0; m < cols; m++)
-              buf[i][j++] = ubuf(array[i][m]).d;
-          }
-        } else if (datatype == BIGINT) {
-          if (cols == 0) {
-            bigint *vec = *((bigint **) pdata);
-            buf[i][j++] = ubuf(vec[i]).d;
-          } else {
-            bigint **array = *((bigint ***) pdata);
-            for (m = 0; m < cols; m++)
-              buf[i][j++] = ubuf(array[i][m]).d;
-          }
+    j = 0;
+    for (n = 0; n < ndata_vel; n++) {
+      pdata = mdata_vel.pdata[n];
+      datatype = mdata_vel.datatype[n];
+      cols = mdata_vel.cols[n];
+      if (datatype == DOUBLE) {
+        if (cols == 0) {
+          double *vec = *((double **) pdata);
+          buf[i][j++] = vec[i];
+        } else {
+          double **array = *((double ***) pdata);
+          for (m = 0; m < cols; m++)
+            buf[i][j++] = array[i][m];
+        }
+      } else if (datatype == INT) {
+        if (cols == 0) {
+          int *vec = *((int **) pdata);
+          buf[i][j++] = ubuf(vec[i]).d;
+        } else {
+          int **array = *((int ***) pdata);
+          for (m = 0; m < cols; m++)
+            buf[i][j++] = ubuf(array[i][m]).d;
+        }
+      } else if (datatype == BIGINT) {
+        if (cols == 0) {
+          bigint *vec = *((bigint **) pdata);
+          buf[i][j++] = ubuf(vec[i]).d;
+        } else {
+          bigint **array = *((bigint ***) pdata);
+          for (m = 0; m < cols; m++)
+            buf[i][j++] = ubuf(array[i][m]).d;
         }
       }
     }
@@ -1985,37 +1978,39 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
     fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
             (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 
-    j = 4;
-    for (nn = 0; nn < ndata_vel; nn++) {
-      pdata = mdata_vel.pdata[nn];
-      datatype = mdata_vel.datatype[nn];
-      cols = mdata_vel.cols[nn];
-      if (datatype == DOUBLE) {
-        if (cols == 0) {
-          double *vec = *((double **) pdata);
-          fprintf(fp," %-1.16e",buf[i][j++]);
-        } else {
-          double **array = *((double ***) pdata);
-          for (m = 0; m < cols; m++)
+    if (ndata_vel) {
+      j = 4;
+      for (nn = 0; nn < ndata_vel; nn++) {
+        pdata = mdata_vel.pdata[nn];
+        datatype = mdata_vel.datatype[nn];
+        cols = mdata_vel.cols[nn];
+        if (datatype == DOUBLE) {
+          if (cols == 0) {
+            double *vec = *((double **) pdata);
             fprintf(fp," %-1.16e",buf[i][j++]);
-        }
-      } else if (datatype == INT) {
-        if (cols == 0) {
-          int *vec = *((int **) pdata);
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
-        } else {
-          int **array = *((int ***) pdata);
-          for (m = 0; m < cols; m++)
+          } else {
+            double **array = *((double ***) pdata);
+            for (m = 0; m < cols; m++)
+              fprintf(fp," %-1.16e",buf[i][j++]);
+          }
+        } else if (datatype == INT) {
+          if (cols == 0) {
+            int *vec = *((int **) pdata);
             fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
-        }
-      } else if (datatype == BIGINT) {
-        if (cols == 0) {
-          bigint *vec = *((bigint **) pdata);
-          fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
-        } else {
-          bigint **array = *((bigint ***) pdata);
-          for (m = 0; m < cols; m++)
+          } else {
+            int **array = *((int ***) pdata);
+            for (m = 0; m < cols; m++)
+              fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          }
+        } else if (datatype == BIGINT) {
+          if (cols == 0) {
+            bigint *vec = *((bigint **) pdata);
             fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+          } else {
+            bigint **array = *((bigint ***) pdata);
+            for (m = 0; m < cols; m++)
+              fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+          }
         }
       }
     }
@@ -2342,10 +2337,11 @@ void AtomVec::setup_fields()
 {
   int n,cols;
 
-  if (!fields_data_atom) 
-    error->all(FLERR,"Atom style requires fields_data_atom");
   if (strstr(fields_data_atom,"id ") != fields_data_atom)
     error->all(FLERR,"Atom style fields_data_atom must have id as first field");
+  if (strstr(fields_data_vel,"id v") != fields_data_vel)
+    error->all(FLERR,"Atom style fields_data_vel must have "
+               "'id v' as first fields");
 
   // process field strings
   // return # of fields and matching index into atom->peratom (in Method struct)
@@ -2387,7 +2383,7 @@ void AtomVec::setup_fields()
     else threads[i] = 1;
   }
 
-  // set style-specific variables
+  // set style-specific sizes
   // NOTE: check for others vars in atom_vec.cpp/h ??
   // NOTE: need to set maxexchange, e.g for style hybrid?
 
@@ -2437,7 +2433,7 @@ void AtomVec::setup_fields()
     else size_data_atom += cols;
   }
 
-  size_data_vel = 4;
+  size_data_vel = 0;
   for (n = 0; n < ndata_vel; n++) {
     cols = mdata_vel.cols[n];
     if (cols == 0) size_data_vel++;
@@ -2449,59 +2445,94 @@ void AtomVec::setup_fields()
    process a single field string
 ------------------------------------------------------------------------- */
 
-int AtomVec::process_fields(char *list, const char *default_list, Method *method)
+int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
-  int i,n;
-  char match[128];
-
-  if (list == NULL) {
+  if (str == NULL) {
     method->index = NULL;
     return 0;
   }
 
-  // make copy of list of fields so can tokenize it
+  // tokenize words in both strings
 
-  n = strlen(list) + 1;
-  char *copy = new char[n];
-  strcpy(copy,list);
+  char *copy1,*copy2;
+  char **words,**defwords;
+  int nfield = tokenize(str,words,copy1);
+  int ndef = tokenize((char *) default_str,defwords,copy2);
 
-  int nfield = atom->count_words(copy);
-  int *index = new int[nfield];
-
+  // process fields one by one, add to index vector
+  
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
-  
-  nfield = 0;
-  char *field = strtok(copy," ");
-  while (field) {
+
+  int *index = new int[nfield];
+  int match;
+
+  for (int i = 0; i < nfield; i++) {
     
     // find field in master Atom::peratom list
 
-    for (i = 0; i < nperatom; i++)
-      if (strcmp(field,peratom[i].name) == 0) break;
-    if (i == nperatom) {
-      printf("FIELD %s\n",field);
-      error->all(FLERR,"Atom_style unrecognized peratom field");
+    for (match = 0; match < nperatom; match++)
+      if (strcmp(words[i],peratom[match].name) == 0) break;
+    if (match == nperatom) {
+      char str[128];
+      sprintf(str,"Peratom field %s not recognized",words[i]);
+      error->all(FLERR,str);
     }
-    index[nfield++] = i;
+    index[i] = match;
 
-    // error if field is in default list or appears multiple times
+    // error if field appears multiple times
 
-    sprintf(match," %s ",field);
-    if (strstr(default_list,match))
-      error->all(FLERR,"Atom_style repeat of default peratom field");
+    for (match = 0; match < i; match++)
+      if (index[i] == index[match]) {
+	char str[128];
+	sprintf(str,"Peratom field %s is repeated",words[i]);
+	error->all(FLERR,str);
+      }
 
-    for (i = 0; i < nfield-1; i++)
-      if (index[i] == index[nfield-1])
-        error->all(FLERR,"Atom_style duplicated peratom field");
+    // error if field is in default str
 
-    field = strtok(NULL," ");
+    for (match = 0; match < ndef; match++)
+      if (strcmp(words[i],defwords[match]) == 0) {
+	char str[128];
+	sprintf(str,"Peratom field %s is a default",words[i]);
+	error->all(FLERR,str);
+      }
+
   }
 
-  delete [] copy;
+  delete [] copy1;
+  delete [] copy2;
+  delete [] words;
+  delete [] defwords;
 
   method->index = index;
   return nfield;
+}
+
+/* ----------------------------------------------------------------------
+   tokenize str into white-space separated words
+   return nwords = number of words
+   return words = vector of ptrs to each word
+   also return copystr since words points into it, caller will delete copystr
+------------------------------------------------------------------------- */
+
+int AtomVec::tokenize(char *str, char **&words, char *&copystr)
+{
+  int n = strlen(str) + 1;
+  copystr = new char[n];
+  strcpy(copystr,str);
+
+  int nword = atom->count_words(copystr);
+  words = new char*[nword];
+
+  nword = 0;
+  char *word = strtok(copystr," ");
+  while (word) {
+    words[nword++] = word;
+    word = strtok(NULL," ");
+  }
+
+  return nword;
 }
 
 /* ----------------------------------------------------------------------

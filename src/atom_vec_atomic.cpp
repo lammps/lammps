@@ -24,21 +24,21 @@ AtomVecAtomic::AtomVecAtomic(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = NULL;
-  fields_copy = NULL;
-  fields_comm = NULL;
-  fields_comm_vel = NULL;
-  fields_reverse = NULL;
-  fields_border = NULL;
-  fields_border_vel = NULL;
-  fields_exchange = NULL;
-  fields_restart = NULL;
-  fields_create = NULL;
+  fields_grow = (char *) "";
+  fields_copy = (char *) "";
+  fields_comm = (char *) "";
+  fields_comm_vel = (char *) "";
+  fields_reverse = (char *) "";
+  fields_border = (char *) "";
+  fields_border_vel = (char *) "";
+  fields_exchange = (char *) "";
+  fields_restart = (char *) "";
+  fields_create = (char *) "";
   fields_data_atom = (char *) "id type x";
-  fields_data_vel = NULL;
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

@@ -42,7 +42,6 @@ class AtomVecTri : public AtomVec {
   void clear_bonus();
   int pack_comm_bonus(int, int *, double *);
   void unpack_comm_bonus(int, int, double *);
-  int pack_reverse_bonus(int, int, double *);
   int pack_border_bonus(int, int *, double *);
   int unpack_border_bonus(int, int, double *);
   int pack_exchange_bonus(int, double *);

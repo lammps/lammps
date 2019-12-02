@@ -52,12 +52,12 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "molecule radius rmass omega angmom torque tri";
   fields_copy = (char *) "molecule radius rmass omega angmom";
-  fields_comm = NULL;
+  fields_comm = (char *) "";
   fields_comm_vel = (char *) "omega angmom";
   fields_reverse = (char *) "torque";
   fields_border = (char *) "molecule radius rmass";
@@ -66,7 +66,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "molecule radius rmass omega angmom";
   fields_create = (char *) "molecule radius rmass omega angmom line";
   fields_data_atom = (char *) "id molecule type tri rmass x";
-  fields_data_vel = (char *) "omega angmom";
+  fields_data_vel = (char *) "id v omega angmom";
 
   setup_fields();
 }

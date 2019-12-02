@@ -50,12 +50,12 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "molecule radius rmass omega torque line";
   fields_copy = (char *) "molecule radius rmass omega";
-  fields_comm = NULL;
+  fields_comm = (char *) "";
   fields_comm_vel = (char *) "omega";
   fields_reverse = (char *) "torque";
   fields_border = (char *) "molecule radius rmass";
@@ -64,7 +64,7 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "molecule radius rmass omega";
   fields_create = (char *) "molecule radius rmass omega line";
   fields_data_atom = (char *) "id molecule type line rmass x";
-  fields_data_vel = (char *) "omega";
+  fields_data_vel = (char *) "id v omega";
 
   setup_fields();
 }

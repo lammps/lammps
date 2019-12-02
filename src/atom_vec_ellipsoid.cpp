@@ -49,12 +49,12 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "rmass angmom torque ellipsoid";
   fields_copy = (char *) "rmass angmom";
-  fields_comm = NULL;
+  fields_comm = (char *) "";
   fields_comm_vel = (char *) "angmom";
   fields_reverse = (char *) "torque";
   fields_border = (char *) "rmass";
@@ -63,7 +63,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "rmass angmom";
   fields_create = (char *) "rmass angmom ellipsoid";
   fields_data_atom = (char *) "id type ellipsoid rmass x";
-  fields_data_vel = (char *) "angmom";
+  fields_data_vel = (char *) "id v angmom";
 
   setup_fields();
 }

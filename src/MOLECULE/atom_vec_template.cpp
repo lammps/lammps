@@ -40,16 +40,16 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = (char *) "molecule molindex molatom";
   fields_copy = (char *) "molecule molindex molatom";
-  fields_comm = NULL;
-  fields_comm_vel = NULL;
-  fields_reverse = NULL;
+  fields_comm = (char *) "";
+  fields_comm_vel = (char *) "";
+  fields_reverse = (char *) "";
   fields_border = (char *) "molecule molindex molatom";
   fields_border_vel = (char *) "molecule molindex molatom";
   fields_exchange = (char *) "molecule molindex molatom";
   fields_restart = (char *) "molecule molindex molatom";
   fields_create = (char *) "molecule molindex molatom";
   fields_data_atom = (char *) "id molecule molindex molatom type x";
-  fields_data_vel = NULL;
+  fields_data_vel = (char *) "";
 
   setup_fields();
 }

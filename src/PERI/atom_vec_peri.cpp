@@ -50,21 +50,21 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "rmass vfrac s0 x0";
   fields_copy = (char *) "rmass vfrac s0 x0";
   fields_comm = (char *) "s0";
   fields_comm_vel = (char *) "s0";
-  fields_reverse = NULL;
+  fields_reverse = (char *) "";
   fields_border = (char *) "rmass vfrac s0 x0";
   fields_border_vel = (char *) "rmass vfrac s0 x0";
   fields_exchange = (char *) "rmass vfrac s0 x0";
   fields_restart = (char *) "rmass vfrac s0 x0";
   fields_create = (char *) "rmass vfrac s0 x0";
   fields_data_atom = (char *) "id type vfrac rmass x";
-  fields_data_vel = (char *) "omega";
+  fields_data_vel = (char *) "id v omega";
 
   setup_fields();
 }

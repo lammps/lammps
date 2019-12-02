@@ -35,21 +35,21 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) "q mu";
   fields_copy = (char *) "q mu";
   fields_comm = (char *) "mu3";
   fields_comm_vel = (char *) "mu3";
-  fields_reverse = NULL;
+  fields_reverse = (char *) "";
   fields_border = (char *) "q mu";
   fields_border_vel = (char *) "q mu";
   fields_exchange = (char *) "q mu";
   fields_restart = (char *) "q mu";
   fields_create = (char *) "q mu";
   fields_data_atom = (char *) "id type q x mu3";
-  fields_data_vel = NULL;
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

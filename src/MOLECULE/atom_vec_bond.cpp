@@ -28,16 +28,16 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
-  // order of fields in the string does not matter
-  //   except fields_data_atom and fields_data_vel which must match data file
+  // order of fields in a string does not matter
+  // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) 
     "molecule num_bond bond_type bond_atom nspecial special";
   fields_copy = (char *)
     "molecule num_bond bond_type bond_atom nspecial special";
-  fields_comm = NULL;
-  fields_comm_vel = NULL;
-  fields_reverse = NULL;
+  fields_comm = (char *) "";
+  fields_comm_vel = (char *) "";
+  fields_reverse = (char *) "";
   fields_border = (char *) "molecule";
   fields_border_vel = (char *) "molecule";
   fields_exchange = (char *)
@@ -45,7 +45,7 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "molecule num_bond bond_type bond_atom";
   fields_create = (char *) "molecule num_bond nspecial";
   fields_data_atom = (char *) "id molecule type x";
-  fields_data_vel = NULL;
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 
@@ -64,7 +64,7 @@ AtomVecBond::~AtomVecBond()
    modify values for AtomVec::pack_restart() to pack
 ------------------------------------------------------------------------- */
 
-void AtomVecBond::pack_restart_pre(int i)
+void AtomVecBond::pack_restart_pre(int ilocal)
 {
   // insure bond_negative vector is needed length
 
@@ -80,10 +80,10 @@ void AtomVecBond::pack_restart_pre(int i)
   int **bond_type = atom->bond_type;
 
   any_bond_negative = 0;
-  for (int m = 0; m < num_bond[i]; m++) {
-    if (bond_type[i][m] < 0) {
+  for (int m = 0; m < num_bond[ilocal]; m++) {
+    if (bond_type[ilocal][m] < 0) {
       bond_negative[m] = 1;
-      bond_type[i][m] = -bond_type[i][m];
+      bond_type[ilocal][m] = -bond_type[ilocal][m];
       any_bond_negative = 1;
     } else bond_negative[m] = 0;
   }
@@ -93,15 +93,15 @@ void AtomVecBond::pack_restart_pre(int i)
    unmodify values packed by AtomVec::pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecBond::pack_restart_post(int i)
+void AtomVecBond::pack_restart_post(int ilocal)
 {
   // restore the flagged types to their negative values
 
   if (any_bond_negative) {
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;
-    for (int m = 0; m < num_bond[i]; m++)
-      if (bond_negative[m]) bond_type[i][m] = -bond_type[i][m];
+    for (int m = 0; m < num_bond[ilocal]; m++)
+      if (bond_negative[m]) bond_type[ilocal][m] = -bond_type[ilocal][m];
   }
 }
 

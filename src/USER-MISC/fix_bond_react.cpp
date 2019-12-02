@@ -1655,11 +1655,10 @@ evaluate constraints: return 0 if any aren't satisfied
 int FixBondReact::check_constraints()
 {
   tagint atom1,atom2,atom3;
-  double unwrap[3],delx,dely,delz,rsq;
+  double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
 
-  imageint *image = atom->image;
   double **x = atom->x;
 
   for (int i = 0; i < nconstraints; i++) {
@@ -1720,9 +1719,9 @@ int FixBondReact::check_constraints()
         for (int jj = 0; jj < 4; jj++) {
           if (atom->type[atom->map(xspecial[atom1][j])] == chiral_atoms[i][jj+2][rxnID]) {
             atom2 = atom->map(xspecial[atom1][j]);
-            domain->unmap(x[atom2],image[atom2],unwrap);
+            atom2 = domain->closest_image(atom1,atom2);
             for (int k = 0; k < 3; k++) {
-              my4coords[3*jj+k] = unwrap[k];
+              my4coords[3*jj+k] = x[atom2][k];
             }
             break;
           }

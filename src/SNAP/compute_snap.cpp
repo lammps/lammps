@@ -19,8 +19,8 @@
 -DONE: size_array_rows = 1 + total number of atoms + 6
 -DONE: size_peratom = (3+6)*nperdim*ntypes
 INCOMPLETE: Mappy from local to global
-INCOMPLETE: modify->find_compute() 
-DONE: eliminate local peratom array for viral, replace with fdotr 
+INCOMPLETE: modify->find_compute()
+DONE: eliminate local peratom array for viral, replace with fdotr
 
  */
 #include "compute_snap.h"
@@ -191,7 +191,7 @@ void ComputeSnap::init()
                  "snap:snapall");
   array = snapall;
 
-  // INCOMPLETE: modify->find_compute() 
+  // INCOMPLETE: modify->find_compute()
   // was called 223960 times by snappy Ta example
   // that is over 600 times per config?
   // how is this possible???
@@ -397,7 +397,7 @@ void ComputeSnap::compute_array()
       }
 
       // Accumulate Bi
-      
+
       // linear contributions
 
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
@@ -458,24 +458,24 @@ void ComputeSnap::compute_array()
 
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
-  snapall[irow++][lastcol] = reference_energy; 
+  snapall[irow++][lastcol] = reference_energy;
 
   // assign virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
   irow += 3*natoms;
-  snapall[irow++][lastcol] = c_virial->vector[0]; 
-  snapall[irow++][lastcol] = c_virial->vector[1]; 
-  snapall[irow++][lastcol] = c_virial->vector[2]; 
-  snapall[irow++][lastcol] = c_virial->vector[5]; 
-  snapall[irow++][lastcol] = c_virial->vector[4]; 
-  snapall[irow++][lastcol] = c_virial->vector[3]; 
+  snapall[irow++][lastcol] = c_virial->vector[0];
+  snapall[irow++][lastcol] = c_virial->vector[1];
+  snapall[irow++][lastcol] = c_virial->vector[2];
+  snapall[irow++][lastcol] = c_virial->vector[5];
+  snapall[irow++][lastcol] = c_virial->vector[4];
+  snapall[irow++][lastcol] = c_virial->vector[3];
 
 }
 
 /* ----------------------------------------------------------------------
-   compute global virial contributions via summing r_i.dB^j/dr_i over 
+   compute global virial contributions via summing r_i.dB^j/dr_i over
    own & ghost atoms
 ------------------------------------------------------------------------- */
 
@@ -515,9 +515,9 @@ void ComputeSnap::dbdotr_compute()
 double ComputeSnap::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols * 
+  double bytes = size_array_rows*size_array_cols *
     sizeof(double);                                     // snap
-  bytes += size_array_rows*size_array_cols * 
+  bytes += size_array_rows*size_array_cols *
     sizeof(double);                                     // snapall
   bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object

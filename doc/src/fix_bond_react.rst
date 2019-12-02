@@ -20,9 +20,9 @@ Syntax
 * the common keyword/values may be appended directly after 'bond/react'
 * this applies to all reaction specifications (below)
 * common\_keyword = *stabilization*
-  
+
   .. parsed-literal::
-  
+
        *stabilization* values = *no* or *yes* *group-ID* *xmax*
          *no* = no reaction site stabilization
          *yes* = perform reaction site stabilization
@@ -40,9 +40,9 @@ Syntax
 * map\_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
 * individual\_keyword = *prob* or *max\_rxn* or *stabilize\_steps* or *update\_edges*
-  
+
   .. parsed-literal::
-  
+
          *prob* values = fraction seed
            fraction = initiate reaction with this probability if otherwise eligible
            seed = random number seed (positive integer)
@@ -269,10 +269,11 @@ The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
    N *deleteIDs* = # of atoms N that are specified for deletion
+   N *chiralIDs* = # of specified chiral centers N
    N *customIDs* = # of atoms N that are specified for a custom update
    N *constraints* = # of specified reaction constraints N
 
-The body of the map file contains two mandatory sections and four
+The body of the map file contains two mandatory sections and five
 optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
@@ -284,12 +285,14 @@ molecule template. The first optional section begins with the keyword
 'EdgeIDs' and lists the atom IDs of edge atoms in the pre-reacted
 molecule template. The second optional section begins with the keyword
 'DeleteIDs' and lists the atom IDs of pre-reaction template atoms to
-delete. The third optional section begins with the keyword 'Custom
+delete. The third optional section begins with the keyword 'ChiralIDs'
+lists the atom IDs of chiral atoms whose handedness should be
+enforced. The fourth optional section begins with the keyword 'Custom
 Edges' and allows for forcing the update of a specific atom's atomic
 charge. The first column is the ID of an atom near the edge of the
 pre-reacted molecule template, and the value of the second column is
 either 'none' or 'charges.' Further details are provided in the
-discussion of the 'update\_edges' keyword. The fourth optional section
+discussion of the 'update\_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
 there are three types of constraints available, as discussed below.
@@ -331,6 +334,15 @@ A sample map file is given below:
 
 ----------
 
+
+The handedness of atoms that are chiral centers can be enforced by
+listing their IDs in the ChiralIDs section. A chiral atom must be
+bonded to four atoms with mutually different atom types. This feature
+uses the coordinates and types of the involved atoms in the
+pre-reaction template to determine handedness. Three atoms bonded to
+the chiral center are arbitrarily chosen, to define an oriented plane,
+and the relative position of the fourth bonded atom determines the
+chiral center's handedness.
 
 Any number of additional constraints may be specified in the
 Constraints section of the map file. The constraint of type 'distance'

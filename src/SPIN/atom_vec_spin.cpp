@@ -62,14 +62,16 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   clear all forces (mechanical and magnetic)
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+   include f b/c this is invoked from within SPIN pair styles
 ------------------------------------------------------------------------- */
 
-void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
+void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->f[0][0],0,3*nbytes);
-  memset(&atom->fm[0][0],0,3*nbytes);
-  memset(&atom->fm_long[0][0],0,3*nbytes);
+  memset(&atom->f[n][0],0,3*nbytes);
+  memset(&atom->fm[n][0],0,3*nbytes);
+  memset(&atom->fm_long[n][0],0,3*nbytes);
 }
 
 /* ----------------------------------------------------------------------

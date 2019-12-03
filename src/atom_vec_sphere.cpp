@@ -28,6 +28,7 @@ using namespace MathConst;
 
 AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
+  mass_type = 0;
   molecular = 0;
 
   atom->sphere_flag = 1;
@@ -51,8 +52,6 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
   fields_create = (char *) "radius rmass omega";
   fields_data_atom = (char *) "id type radius rmass x";
   fields_data_vel = (char *) "id v omega";
-
-  setup_fields();
 }
 
 /* ----------------------------------------------------------------------
@@ -74,6 +73,10 @@ void AtomVecSphere::process_args(int narg, char **arg)
 
   fields_comm = (char *) "radius rmass";
   fields_comm_vel = (char *) "radius rmass omega";
+
+  // delay setting up of fields until now
+
+  setup_fields();
 }
 
 /* ---------------------------------------------------------------------- */

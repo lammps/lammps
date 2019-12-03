@@ -57,11 +57,6 @@ class AtomVecHybrid : public AtomVec {
   void pack_data_pre(int);
   void pack_data_post(int);
 
-  //void create_atom_post(int);
-  //void data_atom_post(int);
-  //void pack_data_pre(int);
-  //void pack_data_post(int);
-
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
 

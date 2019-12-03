@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecEDPD : public AtomVec {
  public:
   AtomVecEDPD(class LAMMPS *);
+  void init();
   void force_clear(int, size_t);
   void create_atom_post(int);
   void data_atom_post(int);

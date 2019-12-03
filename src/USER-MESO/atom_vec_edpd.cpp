@@ -29,9 +29,6 @@ using namespace LAMMPS_NS;
 
 AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
 {
-  if (strcmp(update->unit_style,"lj") != 0)
-    error->all(FLERR,"Atom style edpd requires lj units");
-
   molecular = 0;
   mass_type = 1;
   forceclearflag = 1;
@@ -62,9 +59,22 @@ AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecEDPD::force_clear(int /*n*/, size_t nbytes)
+void AtomVecEDPD::init()
 {
-  memset(&atom->edpd_flux[0],0,nbytes);
+  AtomVec::init();
+
+  if (strcmp(update->unit_style,"lj") != 0)
+    error->all(FLERR,"Atom style edpd requires lj units");
+}
+
+/* ----------------------------------------------------------------------
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+------------------------------------------------------------------------- */
+
+void AtomVecEDPD::force_clear(int n, size_t nbytes)
+{
+  memset(&atom->edpd_flux[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------

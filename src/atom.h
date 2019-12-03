@@ -60,6 +60,8 @@ class Atom : protected Pointers {
   imageint *image;
   double **x,**v,**f;
 
+  // charged and dipolar particles
+
   double *rmass;
   double *q,**mu;
 
@@ -69,7 +71,7 @@ class Atom : protected Pointers {
   double **omega,**angmom,**torque;
   int *ellipsoid,*line,*tri,*body;
 
-  // MOLECULE package
+  // molecular systems
 
   tagint *molecule;
   int *molindex,*molatom;
@@ -101,15 +103,14 @@ class Atom : protected Pointers {
 
   // SPIN package
 
-  double **sp;
-  double **fm;
-  double **fm_long;
+  double **sp,**fm,**fm_long;
 
-  // USER-AWPMD and USER_EFF packages
+  // USER_EFF and USER-AWPMD packages
 
   int *spin;
-  double *eradius,*ervel,*erforce,*ervelforce;
-  double *cs,*csforce,*vforce;
+  double *eradius,*ervel,*erforce;
+  double *ervelforce,*cs,*csforce;
+  double **vforce;
   int *etag;
 
   // USER-DPD package
@@ -261,6 +262,7 @@ class Atom : protected Pointers {
   void settings(class Atom *);
   void peratom_create();
   void add_peratom(const char *, void *, int, int, int threadflag=0);
+  void add_peratom_change_columns(const char *, int);
   void add_peratom_vary(const char *, void *, int, int *, 
                         void *, int collength=0);
   void create_avec(const char *, int, char **, int);

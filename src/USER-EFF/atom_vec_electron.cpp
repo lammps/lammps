@@ -18,14 +18,8 @@
 #include "atom_vec_electron.h"
 #include <cstring>
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
 #include "citeme.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -46,6 +40,8 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_eff_package);
 
+  mass_type = 1;
+  molecular = 0;
   forceclearflag = 1;
 
   atom->ecp_flag = 0;
@@ -75,11 +71,14 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+------------------------------------------------------------------------- */
 
-void AtomVecElectron::force_clear(int /*n*/, size_t nbytes)
+void AtomVecElectron::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->erforce[0],0,nbytes);
+  memset(&atom->erforce[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------

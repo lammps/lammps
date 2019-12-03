@@ -81,50 +81,21 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   image = NULL;
   x = v = f = NULL;
 
-  molecule = NULL;
-  molindex = molatom = NULL;
+  // charged and dipolar particles
+
   q = NULL;
   mu = NULL;
+
+  // finite-size particles
+
   omega = angmom = torque = NULL;
   radius = rmass = NULL;
   ellipsoid = line = tri = body = NULL;
 
-  vfrac = s0 = NULL;
-  x0 = NULL;
+  // molecular systems
 
-  spin = NULL;
-  eradius = ervel = erforce = NULL;
-  cs = csforce = vforce = ervelforce = NULL;
-  etag = NULL;
-
-  rho = drho = e = de = cv = NULL;
-  vest = NULL;
-
-  // SPIN package
-
-  sp = fm = fm_long = NULL;
-
-  // USER-DPD
-
-  uCond = uMech = uChem = uCG = uCGnew = NULL;
-  duChem = NULL;
-  dpdTheta = NULL;
-
-  // USER-MESO
-
-  cc = cc_flux = NULL;
-  edpd_temp = edpd_flux = edpd_cv = NULL;
-
-  // USER-SMD
-
-  contact_radius = NULL;
-  smd_data_9 = NULL;
-  smd_stress = NULL;
-  eff_plastic_strain = NULL;
-  eff_plastic_strain_rate = NULL;
-  damage = NULL;
-
-  // molecular info
+  molecule = NULL;
+  molindex = molatom = NULL;
 
   bond_per_atom =  extra_bond_per_atom = 0;
   num_bond = NULL;
@@ -149,6 +120,47 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   maxspecial = 1;
   nspecial = NULL;
   special = NULL;
+
+  // PERI package
+
+  vfrac = s0 = NULL;
+  x0 = NULL;
+
+  // SPIN package
+
+  sp = fm = fm_long = NULL;
+
+  // USER-EFF and USER-AWPMD packages
+
+  spin = NULL;
+  eradius = ervel = erforce = NULL;
+  ervelforce = cs = csforce = NULL;
+  vforce = NULL;
+  etag = NULL;
+
+  // USER-DPD package
+  
+  uCond = uMech = uChem = uCG = uCGnew = NULL;
+  duChem = dpdTheta = NULL;
+
+  // USER-MESO package
+
+  cc = cc_flux = NULL;
+  edpd_temp = edpd_flux = edpd_cv = NULL;
+
+  // USER-SMD package
+
+  contact_radius = NULL;
+  smd_data_9 = NULL;
+  smd_stress = NULL;
+  eff_plastic_strain = NULL;
+  eff_plastic_strain_rate = NULL;
+  damage = NULL;
+
+  // USER-SPH package
+  
+  rho = drho = e = de = cv = NULL;
+  vest = NULL;
 
   // user-defined molecules
 
@@ -532,9 +544,16 @@ void Atom::peratom_create()
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
 
+  // USER-AWPMD package
+
+  add_peratom("cs",&cs,DOUBLE,0);
+  add_peratom("csforce",&csforce,DOUBLE,0);
+  add_peratom("vforce",&vforce,DOUBLE,3);
+  add_peratom("ervelforce",&ervelforce,DOUBLE,0);
+  add_peratom("etag",&etag,INT,0);
+
   // USER-DPD package
 
-  add_peratom("rho",&eradius,DOUBLE,0);
   add_peratom("dpdTheta",&dpdTheta,DOUBLE,0);
   add_peratom("uCond",&uCond,DOUBLE,0);
   add_peratom("uMech",&uMech,DOUBLE,0);
@@ -548,7 +567,26 @@ void Atom::peratom_create()
   add_peratom("edpd_cv",&edpd_cv,DOUBLE,0);
   add_peratom("edpd_temp",&edpd_temp,DOUBLE,0);
   add_peratom("edpd_flux",&edpd_flux,DOUBLE,0,1);     // set per-thread flag
-  add_peratom("vest",&vest,DOUBLE,4);
+  add_peratom("cc",&cc,DOUBLE,1);
+  add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
+
+  // USER-SPH package
+
+  add_peratom("rho",&rho,DOUBLE,0);
+  add_peratom("drho",&drho,DOUBLE,0,1);               // set per-thread flag
+  add_peratom("e",&e,DOUBLE,0);
+  add_peratom("de",&de,DOUBLE,0,1);                   // set per-thread flag
+  add_peratom("vest",&vest,DOUBLE,3);
+  add_peratom("cv",&cv,DOUBLE,0);
+
+  // USER-SMD package
+
+  add_peratom("contact_radius",&contact_radius,DOUBLE,0);
+  add_peratom("smd_data_9",&smd_data_9,DOUBLE,1);
+  add_peratom("smd_stress",&smd_stress,DOUBLE,1);
+  add_peratom("eff_plastic_strain",&eff_plastic_strain,DOUBLE,0);
+  add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
+  add_peratom("damage",&damage,DOUBLE,0);
 }
 
 /* ----------------------------------------------------------------------
@@ -577,6 +615,18 @@ void Atom::add_peratom(const char *name, void *address,
   peratom[nperatom].address_length = NULL;
 
   nperatom++;
+}
+
+/* ----------------------------------------------------------------------
+   change the column count fof an existing peratom array entry
+   allows atom_style to specify column count as an argument
+   see atom_style tdpd as an example
+------------------------------------------------------------------------- */
+
+void Atom::add_peratom_change_columns(const char *name, int cols)
+{
+  for (int i = 0; i < nperatom; i++)
+    if (strcmp(name,peratom[i].name) == 0) peratom[i].cols = cols;
 }
 
 /* ----------------------------------------------------------------------

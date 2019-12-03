@@ -164,6 +164,7 @@ azimuthal
 Azuri
 ba
 Babadi
+Babaei
 backcolor
 Baczewski
 Bagi
@@ -212,6 +213,7 @@ Berne
 Bertotti
 Bessarab
 Beutler
+Bext
 bgq
 Bh
 Biersack
@@ -933,7 +935,7 @@ funcs
 functionalities
 functionals
 funroll
-für
+fuer
 fx
 fy
 fz
@@ -1041,6 +1043,7 @@ Gunsteren
 Gunzenmuller
 Guo
 gw
+gyromagnetic
 gz
 gzipped
 Haak
@@ -1060,6 +1063,7 @@ Haswell
 Haugk
 Hayoun
 Hayre
+hbar
 hbcut
 hbn
 hbnewflag
@@ -1340,6 +1344,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+Kikugawa
 kim
 kJ
 kk
@@ -1401,6 +1406,7 @@ Lammps
 LAMMPS
 lammpsplot
 Lamoureux
+Lande
 Landron
 langevin
 Langevin
@@ -1594,6 +1600,7 @@ Materias
 mathbf
 matlab
 matplotlib
+Matsubara
 Mattice
 Mattox
 Mattson
@@ -1772,6 +1779,7 @@ mtk
 Mtotal
 muB
 Muccioli
+mui
 Mukherjee
 Mulders
 multi
@@ -2017,6 +2025,7 @@ Nz
 ocl
 octahedral
 octants
+Ohara
 ohenrich
 ok
 Okabe
@@ -2688,6 +2697,7 @@ Sunderland
 superset
 supersphere
 Supinski
+Surblys
 surfactants
 Suter
 Sutmann

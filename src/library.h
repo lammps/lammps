@@ -16,6 +16,14 @@
    new LAMMPS-specific functions can be added
 */
 
+/*
+ * Follow the behavior of regular LAMMPS compilation and assume
+ * -DLAMMPS_SMALLBIG when no define is set.
+ */
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#define LAMMPS_SMALLBIG
+#endif
+
 #include <mpi.h>
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
@@ -58,10 +66,10 @@ void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
-#ifdef LAMMPS_BIGBIG
+#if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-#elif LAMMPS_SMALLBIG
+#elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #else

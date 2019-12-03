@@ -1,22 +1,22 @@
-.. index:: angle\_style charmm
+.. index:: angle_style charmm
 
-angle\_style charmm command
-===========================
+angle_style charmm command
+==========================
 
-angle\_style charmm/intel command
-=================================
+angle_style charmm/intel command
+================================
 
-angle\_style charmm/kk command
+angle_style charmm/kk command
+=============================
+
+angle_style charmm/omp command
 ==============================
-
-angle\_style charmm/omp command
-===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style charmm
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style charmm
    angle_coeff 1 300.0 107.0 50.0 3.0
@@ -34,12 +34,15 @@ Description
 
 The *charmm* angle style uses the potential
 
-.. image:: Eqs/angle_charmm.jpg
-   :align: center
+.. math::
 
-with an additional Urey\_Bradley term based on the distance *r* between
-the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
-coefficients defined for each angle type.
+   E = K (\theta - \theta_0)^2 + K_{ub} (r - r_{ub})^2
+
+
+with an additional Urey\_Bradley term based on the distance :math:`r` between
+the 1st and 3rd atoms in the angle.  :math:`K`, :math:`\theta_0`,
+:math:`K_{ub}`, and :math:`R_{ub}` are coefficients defined for each angle
+type.
 
 See :ref:`(MacKerell) <angle-MacKerell>` for a description of the CHARMM force
 field.
@@ -49,13 +52,13 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/radian\^2)
-* theta0 (degrees)
-* K\_ub (energy/distance\^2)
-* r\_ub (distance)
+* :math:`K` (energy/radian\^2)
+* :math:`\theta_0` (degrees)
+* :math:`K_{ub}` (energy/distance\^2)
+* :math:`r_{ub}` (distance)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of :math:`K` are in energy/radian\^2.
 
 
 ----------
@@ -108,8 +111,3 @@ Related commands
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

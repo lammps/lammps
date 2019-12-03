@@ -191,6 +191,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`bond <compute_bond>` - energy of each bond sub-style
 * :doc:`bond/local <compute_bond_local>` - distance and energy of each bond
 * :doc:`centro/atom <compute_centro_atom>` - centro-symmetry parameter for each atom
+* :doc:`centroid/stress/atom <compute_stress_atom>` - centroid based stress tensor for each atom
 * :doc:`chunk/atom <compute_chunk_atom>` - assign chunk IDs to each atom
 * :doc:`chunk/spread/atom <compute_chunk_spread_atom>` - spreads chunk values to each atom in chunk
 * :doc:`cluster/atom <compute_cluster_atom>` - cluster ID for each atom
@@ -286,9 +287,10 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` -
 * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>` - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
-* :doc:`sna/atom <compute_sna_atom>` - calculate bispectrum coefficients for each atom
-* :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum coefficients for each atom
-* :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum coefficients for each atom
+* :doc:`snap <compute_sna_atom>` - bispectrum components and related quantities for a group of atoms
+* :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
+* :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum components for each atom
+* :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum components for each atom
 * :doc:`spin <compute_spin>` - magnetic quantities for a system of atoms having spins
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes

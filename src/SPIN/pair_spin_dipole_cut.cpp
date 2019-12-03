@@ -252,7 +252,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
       if (eflag) {
         if (rsq <= local_cut2) {
           evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-          evdwl *= hbar;
+          evdwl *= 0.5*hbar;
         }
       } else evdwl = 0.0;
 

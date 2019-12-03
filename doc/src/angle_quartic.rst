@@ -1,16 +1,16 @@
-.. index:: angle\_style quartic
+.. index:: angle_style quartic
 
-angle\_style quartic command
-============================
+angle_style quartic command
+===========================
 
-angle\_style quartic/omp command
-================================
+angle_style quartic/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style quartic
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style quartic
    angle_coeff 1 129.1948 56.8726 -25.9442 -14.2221
@@ -28,24 +28,26 @@ Description
 
 The *quartic* angle style uses the potential
 
-.. image:: Eqs/angle_quartic.jpg
-   :align: center
+.. math::
 
-where theta0 is the equilibrium value of the angle, and K is a
-prefactor.  Note that the usual 1/2 factor is included in K.
+   E = K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4
+
+
+where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
+prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* theta0 (degrees)
-* K2 (energy/radian\^2)
-* K3 (energy/radian\^3)
-* K4 (energy/radian\^4)
+* :math:`\theta_0` (degrees)
+* :math:`K_2` (energy/radian\^2)
+* :math:`K_3` (energy/radian\^3)
+* :math:`K_4` (energy/radian\^4)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of :math:`K` are in energy/radian\^2.
 
 
 ----------
@@ -87,8 +89,3 @@ Related commands
 :doc:`angle\_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,13 +1,13 @@
-.. index:: angle\_style
+.. index:: angle_style
 
-angle\_style command
-====================
+angle_style command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style style
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style harmonic
    angle_style charmm
@@ -29,19 +29,19 @@ Description
 Set the formula(s) LAMMPS uses to compute angle interactions between
 triplets of atoms, which remain in force for the duration of the
 simulation.  The list of angle triplets is read in by a
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` command
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` command
 from a data or restart file.
 
 Hybrid models where angles are computed using different angle
 potentials can be setup using the *hybrid* angle style.
 
 The coefficients associated with a angle style can be specified in a
-data or restart file or via the :doc:`angle\_coeff <angle_coeff>` command.
+data or restart file or via the :doc:`angle_coeff <angle_coeff>` command.
 
 All angle potentials store their coefficient data in binary restart
-files which means angle\_style and :doc:`angle\_coeff <angle_coeff>`
+files which means angle_style and :doc:`angle_coeff <angle_coeff>`
 commands do not need to be re-specified in an input script that
-restarts a simulation.  See the :doc:`read\_restart <read_restart>`
+restarts a simulation.  See the :doc:`read_restart <read_restart>`
 command for details on how to do this.  The one exception is that
 angle\_style *hybrid* only stores the list of sub-styles in the restart
 file; angle coefficients need to be re-specified.
@@ -49,7 +49,7 @@ file; angle coefficients need to be re-specified.
 .. note::
 
    When both an angle and pair style is defined, the
-   :doc:`special\_bonds <special_bonds>` command often needs to be used to
+   :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
    exist between 3 bonded atoms.
 
@@ -62,11 +62,11 @@ between the 3 atoms in the angle.
 
 Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated :doc:`angle\_coeff <angle_coeff>` command.
+specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
 arguments specified in the angle\_style command, and coefficients
-specified by the associated :doc:`angle\_coeff <angle_coeff>` command.
+specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
@@ -115,17 +115,12 @@ individual bond potentials tell if it is part of a package.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

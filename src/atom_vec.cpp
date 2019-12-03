@@ -133,7 +133,8 @@ void AtomVec::process_args(int narg, char ** /*arg*/)
 }
 
 /* ----------------------------------------------------------------------
-   copy of velocity remap settings from Domain
+   pull settings from Domain needed for pack_comm_vel and pack_border_vel
+   child classes may override this method, but should also invoke it
 ------------------------------------------------------------------------- */
 
 void AtomVec::init()

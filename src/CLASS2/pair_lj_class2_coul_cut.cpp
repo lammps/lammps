@@ -284,10 +284,14 @@ double PairLJClass2CoulCut::init_one(int i, int j)
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
   cut_coulsq[i][j] = cut_coul[i][j] * cut_coul[i][j];
 
-  lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
-  lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-  lj3[i][j] = 2.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
-  lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  //lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
+  //lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  //lj3[i][j] = 2.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
+  //lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  lj1[i][j] = 9.0 * epsilon[i][j];
+  lj2[i][j] = 0;
+  lj3[i][j] = epsilon[i][j];
+  lj4[i][j] = 0;
 
   if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];

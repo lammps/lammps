@@ -6104,7 +6104,7 @@ void asa_default
     Parm->nshrink = (int) 10 ;
 
     /* maximum number of secant iterations in line search is nline */
-    Parm->nline = (int) 50 ;
+    Parm->nline = (int) 5000 ;
 
     /* conjugate gradient method restarts after (n*restart_fac) iterations */
     Parm->restart_fac = 6.0 ;

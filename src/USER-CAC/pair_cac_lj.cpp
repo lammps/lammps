@@ -78,7 +78,7 @@ PairCACLJ::~PairCACLJ() {
     memory->destroy(lj4);
     memory->destroy(offset);
     memory->destroy(mass_matrix);
-	  memory->destroy(inner_neighbor_coords);
+    memory->destroy(inner_neighbor_coords);
     memory->destroy(inner_neighbor_types);
   }
 }
@@ -127,21 +127,21 @@ void PairCACLJ::allocate()
 global settings
 ------------------------------------------------------------------------- */
 void PairCACLJ::settings(int narg, char **arg) {
-	if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style command");
+  if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style command");
 
-	force->newton_pair = 0;
-	cut_global_s = force->numeric(FLERR, arg[0]);
-	if (narg == 2) {
-		if (strcmp(arg[1], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-		else error->all(FLERR, "Unexpected argument in pair style cac/lj invocation; only accepts cutoff and the 'one' keyword");
-	}
+  force->newton_pair = 0;
+  cut_global_s = force->numeric(FLERR, arg[0]);
+  if (narg == 2) {
+    if (strcmp(arg[1], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
+    else error->all(FLERR, "Unexpected argument in pair style cac/lj invocation; only accepts cutoff and the 'one' keyword");
+  }
 
-	if (allocated) {
-		int i, j;
-		for (i = 1; i <= atom->ntypes; i++)
-			for (j = i; j <= atom->ntypes; j++)
-				if (setflag[i][j]) cut[i][j] = cut_global_s;
-	}
+  if (allocated) {
+    int i, j;
+    for (i = 1; i <= atom->ntypes; i++)
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) cut[i][j] = cut_global_s;
+  }
 }
 
 
@@ -232,8 +232,8 @@ if (setflag[i][j] == 0) {
     ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
   }
- 	
-	return cut_global_s;
+   
+  return cut_global_s;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,12 +298,12 @@ void PairCACLJ::init_style()
   dof_set[5][3] = 7;
 
   for (int si = 0; si < 6; si++) {
-	  sort_dof_set[si][0] = dof_set[si][0];
-	  sort_dof_set[si][1] = dof_set[si][1];
-	  sort_dof_set[si][2] = dof_set[si][2];
-	  sort_dof_set[si][3] = dof_set[si][3];
-	  sort_surf_set[si][0] = surf_set[si][0];
-	  sort_surf_set[si][1] = surf_set[si][1];
+    sort_dof_set[si][0] = dof_set[si][0];
+    sort_dof_set[si][1] = dof_set[si][1];
+    sort_dof_set[si][2] = dof_set[si][2];
+    sort_dof_set[si][3] = dof_set[si][3];
+    sort_surf_set[si][0] = surf_set[si][0];
+    sort_surf_set[si][1] = surf_set[si][1];
   }
 
 }
@@ -312,7 +312,7 @@ void PairCACLJ::init_style()
 
 
 void PairCACLJ::force_densities(int iii, double s, double t, double w, double coefficients,
-	double &force_densityx, double &force_densityy, double &force_densityz) {
+  double &force_densityx, double &force_densityy, double &force_densityz) {
 
 double delx,dely,delz;
 double r2inv;
@@ -357,48 +357,48 @@ unit_cell[2] = w;
   current_position[1]=0;
   current_position[2]=0;
 
-	if (!atomic_flag) {
+  if (!atomic_flag) {
     nodes_per_element = nodes_count_list[current_element_type];
-		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
-			shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
-			current_position[0] += current_nodal_positions[kkk][0] * shape_func;
-			current_position[1] += current_nodal_positions[kkk][1] * shape_func;
-			current_position[2] += current_nodal_positions[kkk][2] * shape_func;
-		}
-	}
-	else {
-		current_position[0] = s;
-		current_position[1] = t;
-		current_position[2] = w;
-	}
+    for (int kkk = 0; kkk < nodes_per_element; kkk++) {
+      shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
+      current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+      current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+      current_position[2] += current_nodal_positions[kkk][2] * shape_func;
+    }
+  }
+  else {
+    current_position[0] = s;
+    current_position[1] = t;
+    current_position[2] = w;
+  }
 
-	rcut = cut_global_s;
-	int origin_type = type_array[poly_counter];
+  rcut = cut_global_s;
+  int origin_type = type_array[poly_counter];
 
-	//precompute virtual neighbor atom locations
+  //precompute virtual neighbor atom locations
 
-			int listtype;
-			int listindex;
-			int poly_index;
-			double force_contribution[3];
-			int scan_type;
-			int poly_grad_scan;
-			int element_index;
-			int *ilist, *jlist, *numneigh, **firstneigh;
-			int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
-			int **node_types = atom->node_types;
+      int listtype;
+      int listindex;
+      int poly_index;
+      double force_contribution[3];
+      int scan_type;
+      int poly_grad_scan;
+      int element_index;
+      int *ilist, *jlist, *numneigh, **firstneigh;
+      int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
+      int **node_types = atom->node_types;
       int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
-			ilist = list->ilist;
-			numneigh = list->numneigh;
-			firstneigh = list->firstneigh;
-			jlist = firstneigh[iii];
-				//if(update->ntimestep==1)
+      ilist = list->ilist;
+      numneigh = list->numneigh;
+      firstneigh = list->firstneigh;
+      jlist = firstneigh[iii];
+        //if(update->ntimestep==1)
       
       if(neigh_max>local_inner_max){
-			memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3,"Pair_CAC_lj:inner_neighbor_coords");
-			memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
-	     local_inner_max=neigh_max+EXPAND;
-	    }
+      memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3,"Pair_CAC_lj:inner_neighbor_coords");
+      memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
+       local_inner_max=neigh_max+EXPAND;
+      }
       
       for (int l = 0; l < neigh_max; l++){ 
       element_index = inner_quad_indices[l][0];
@@ -408,38 +408,38 @@ unit_cell[2] = w;
       //interpolate virtual atom coordinates from shape functions corresponding to unit cells
       interpolation(iii);
 
-			for (int l = 0; l < neigh_max; l++) {
+      for (int l = 0; l < neigh_max; l++) {
 
-				scan_type = inner_neighbor_types[l];
-				scan_position[0] = inner_neighbor_coords[l][0];
-				scan_position[1] = inner_neighbor_coords[l][1];
-				scan_position[2] = inner_neighbor_coords[l][2];
-				delx = current_position[0] - scan_position[0];
-				dely = current_position[1] - scan_position[1];
-				delz = current_position[2] - scan_position[2];
-				distancesq = delx*delx + dely*dely + delz*delz;
-
-				r2inv = 1.0 / distancesq;
-				r6inv = r2inv*r2inv*r2inv;
-				factor_lj = special_lj[sbmask(iii)];
-				forcelj = r6inv * (lj1[scan_type][origin_type]
-					* r6inv - lj2[scan_type][origin_type]);
-				fpair = factor_lj*forcelj*r2inv;
-				force_densityx += delx*fpair;
-				force_densityy += dely*fpair;
-				force_densityz += delz*fpair;
+        scan_type = inner_neighbor_types[l];
+        scan_position[0] = inner_neighbor_coords[l][0];
+        scan_position[1] = inner_neighbor_coords[l][1];
+        scan_position[2] = inner_neighbor_coords[l][2];
+        delx = current_position[0] - scan_position[0];
+        dely = current_position[1] - scan_position[1];
+        delz = current_position[2] - scan_position[2];
+        distancesq = delx*delx + dely*dely + delz*delz;
+        if(distancesq>=cut_global_s*cut_global_s) continue;
+        r2inv = 1.0 / distancesq;
+        r6inv = r2inv*r2inv*r2inv;
+        factor_lj = special_lj[sbmask(iii)];
+        forcelj = r6inv * (lj1[scan_type][origin_type]
+          * r6inv - lj2[scan_type][origin_type]);
+        fpair = factor_lj*forcelj*r2inv;
+        force_densityx += delx*fpair;
+        force_densityy += dely*fpair;
+        force_densityz += delz*fpair;
         if(atom->CAC_virial){
-		    virial_density[0] += 0.5*delx*delx*fpair;
-		    virial_density[1] += 0.5*dely*dely*fpair;
-		    virial_density[2] += 0.5*delz*delz*fpair;
-		    virial_density[3] += 0.5*delx*dely*fpair;
-		    virial_density[4] += 0.5*delx*delz*fpair;
-		    virial_density[5] += 0.5*dely*delz*fpair;
-		    }
+        virial_density[0] += 0.5*delx*delx*fpair;
+        virial_density[1] += 0.5*dely*dely*fpair;
+        virial_density[2] += 0.5*delz*delz*fpair;
+        virial_density[3] += 0.5*delx*dely*fpair;
+        virial_density[4] += 0.5*delx*delz*fpair;
+        virial_density[5] += 0.5*dely*delz*fpair;
+        }
         if (quad_eflag) 
-					quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
-						offset[origin_type][scan_type]/2;
-				//end of energy portion
-			}
+          quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
+            offset[origin_type][scan_type]/2;
+        //end of energy portion
+      }
 //end of scanning loop
 }

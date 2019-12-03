@@ -530,14 +530,10 @@ double PairLJClass2::init_one(int i, int j)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
-  //lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
-  //lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-  //lj3[i][j] = 2.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
-  //lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-  lj1[i][j] = 9.0 * epsilon[i][j];
-  lj2[i][j] = 0;
-  lj3[i][j] = epsilon[i][j];
-  lj4[i][j] = 0;
+  lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
+  lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  lj3[i][j] = 2.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
+  lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];

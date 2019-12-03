@@ -213,6 +213,7 @@ Berne
 Bertotti
 Bessarab
 Beutler
+Bext
 bgq
 Bh
 Biersack
@@ -1042,6 +1043,7 @@ Gunsteren
 Gunzenmuller
 Guo
 gw
+gyromagnetic
 gz
 gzipped
 Haak
@@ -1061,6 +1063,7 @@ Haswell
 Haugk
 Hayoun
 Hayre
+hbar
 hbcut
 hbn
 hbnewflag
@@ -1403,6 +1406,7 @@ Lammps
 LAMMPS
 lammpsplot
 Lamoureux
+Lande
 Landron
 langevin
 Langevin
@@ -1775,6 +1779,7 @@ mtk
 Mtotal
 muB
 Muccioli
+mui
 Mukherjee
 Mulders
 multi

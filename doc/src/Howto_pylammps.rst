@@ -362,18 +362,17 @@ accessible through its thermo name:
 
 .. code-block:: Python
 
-   L.runs[0].step # list of time steps in first run
-   L.runs[0].ke   # list of kinetic energy values in first run
+   L.runs[0].thermo.Step # list of time steps in first run
+   L.runs[0].thermo.Ke   # list of kinetic energy values in first run
 
 Together with matplotlib plotting data out of LAMMPS becomes simple:
-
-import matplotlib.plot as plt
 
 
 .. code-block:: Python
 
-   steps = L.runs[0].step
-   ke    = L.runs[0].ke
+   import matplotlib.plot as plt
+   steps = L.runs[0].thermo.Step
+   ke    = L.runs[0].thermo.Ke
    plt.plot(steps, ke)
 
 Error handling with PyLammps

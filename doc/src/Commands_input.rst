@@ -55,8 +55,3 @@ Many input script errors are detected by LAMMPS and an ERROR or
 WARNING message is printed.  The :doc:`Errors <Errors>` doc page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

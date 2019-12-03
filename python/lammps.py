@@ -32,6 +32,11 @@ import select
 import re
 import sys
 
+LAMMPS_INT    = 0
+LAMMPS_DOUBLE = 1
+LAMMPS_BIGINT = 2
+LAMMPS_TAGINT = 3
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32
@@ -221,8 +226,8 @@ class lammps(object):
 
     # add way to insert Python callback for fix external
     self.callback = {}
-    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, c_void_p, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
-    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, c_void_p]
+    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
+    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, py_object]
     self.lib.lammps_set_fix_external_callback.restype = None
 
   # shut-down LAMMPS instance
@@ -283,10 +288,14 @@ class lammps(object):
 
   def extract_global(self,name,type):
     if name: name = name.encode()
-    if type == 0:
+    if type == LAMMPS_INT:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
-    elif type == 1:
+    elif type == LAMMPS_DOUBLE:
       self.lib.lammps_extract_global.restype = POINTER(c_double)
+    elif type == LAMMPS_BIGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
+    elif type == LAMMPS_TAGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
     else: return None
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
@@ -357,26 +366,38 @@ class lammps(object):
           else:
             c_int_type = c_int
 
+          if dim == 1:
+            raw_ptr = self.lmp.extract_atom(name, 0)
+          else:
+            raw_ptr = self.lmp.extract_atom(name, 1)
+
+          return self.iarray(c_int_type, raw_ptr, nelem, dim)
+
+        def extract_atom_darray(self, name, nelem, dim=1):
+          if dim == 1:
+            raw_ptr = self.lmp.extract_atom(name, 2)
+          else:
+            raw_ptr = self.lmp.extract_atom(name, 3)
+
+          return self.darray(raw_ptr, nelem, dim)
+
+        def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
           np_int_type = self._ctype_to_numpy_int(c_int_type)
 
           if dim == 1:
-            tmp = self.lmp.extract_atom(name, 0)
-            ptr = cast(tmp, POINTER(c_int_type * nelem))
+            ptr = cast(raw_ptr, POINTER(c_int_type * nelem))
           else:
-            tmp = self.lmp.extract_atom(name, 1)
-            ptr = cast(tmp[0], POINTER(c_int_type * nelem * dim))
+            ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
           a = np.frombuffer(ptr.contents, dtype=np_int_type)
           a.shape = (nelem, dim)
           return a
 
-        def extract_atom_darray(self, name, nelem, dim=1):
+        def darray(self, raw_ptr, nelem, dim=1):
           if dim == 1:
-            tmp = self.lmp.extract_atom(name, 2)
-            ptr = cast(tmp, POINTER(c_double * nelem))
+            ptr = cast(raw_ptr, POINTER(c_double * nelem))
           else:
-            tmp = self.lmp.extract_atom(name, 3)
-            ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
+            ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
           a = np.frombuffer(ptr.contents)
           a.shape = (nelem, dim)
@@ -617,28 +638,14 @@ class lammps(object):
             return np.int64
           return np.intc
 
-    def callback_wrapper(caller_ptr, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
-      if cast(caller_ptr,POINTER(py_object)).contents:
-        pyCallerObj = cast(caller_ptr,POINTER(py_object)).contents.value
-      else:
-        pyCallerObj = None
-
-      tptr = cast(tag_ptr, POINTER(self.c_tagint * nlocal))
-      tag = np.frombuffer(tptr.contents, dtype=_ctype_to_numpy_int(self.c_tagint))
-      tag.shape = (nlocal)
-
-      xptr = cast(x_ptr[0], POINTER(c_double * nlocal * 3))
-      x = np.frombuffer(xptr.contents)
-      x.shape = (nlocal, 3)
-
-      fptr = cast(fext_ptr[0], POINTER(c_double * nlocal * 3))
-      f = np.frombuffer(fptr.contents)
-      f.shape = (nlocal, 3)
-
-      callback(pyCallerObj, ntimestep, nlocal, tag, x, f)
+    def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
+      tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)
+      x   = self.numpy.darray(x_ptr, nlocal, 3)
+      f   = self.numpy.darray(fext_ptr, nlocal, 3)
+      callback(caller, ntimestep, nlocal, tag, x, f)
 
     cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
-    cCaller = cast(pointer(py_object(caller)), c_void_p)
+    cCaller = caller
 
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
 

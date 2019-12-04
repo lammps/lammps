@@ -33,6 +33,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src/_ext'))
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.imgmath',
+    'sphinx.ext.autodoc',
     'table_from_list',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
@@ -326,3 +327,5 @@ import LAMMPSLexer
 from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))

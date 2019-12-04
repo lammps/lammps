@@ -2016,12 +2016,8 @@ void CommTiled::allocate_swap(int n)
 
   pbc_flag = new int*[n];
   pbc = new int**[n];
-   //if(mode == SINGLE){ 
-     sendbox = new double**[n];
-   //}
-   //else{  
-     sendbox_multi = new double***[n];
-     //}
+  sendbox = new double**[n];
+  sendbox_multi = new double***[n];
   maxsendlist = new int*[n];
   sendlist = new int**[n];
 
@@ -2034,12 +2030,8 @@ void CommTiled::allocate_swap(int n)
 
     pbc_flag[i] = NULL;
     pbc[i] = NULL;
-    //if(mode == SINGLE){
-      sendbox[i] = NULL;
-     // }
-    //else{
-      sendbox_multi[i] = NULL;
-      //}
+    sendbox[i] = NULL;
+    sendbox_multi[i] = NULL;
     maxsendlist[i] = NULL;
     sendlist[i] = NULL;
   }
@@ -2086,14 +2078,10 @@ void CommTiled::grow_swap_send(int i, int n, int nold)
   pbc_flag[i] = new int[n];
   memory->destroy(pbc[i]);
   memory->create(pbc[i],n,6,"comm:pbc_flag");
-  //if(mode == SINGLE){
   memory->destroy(sendbox[i]);
   memory->create(sendbox[i],n,6,"comm:sendbox");
-  //}
-  //else {
   memory->destroy(sendbox_multi[i]);
   memory->create(sendbox_multi[i],n,atom->ntypes+1,6,"comm:sendbox_multi");
-  //}
 
   delete [] maxsendlist[i];
   maxsendlist[i] = new int[n];
@@ -2151,12 +2139,8 @@ void CommTiled::deallocate_swap(int n)
 
     delete [] pbc_flag[i];
     memory->destroy(pbc[i]);
-    //if(mode == Comm::SINGLE){
-      memory->destroy(sendbox[i]);
-     // }
-    //else{
-      memory->destroy(sendbox_multi[i]);
-     // }
+    memory->destroy(sendbox[i]);
+    memory->destroy(sendbox_multi[i]);
     delete [] maxsendlist[i];
 
     for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
@@ -2176,12 +2160,8 @@ void CommTiled::deallocate_swap(int n)
 
   delete [] pbc_flag;
   delete [] pbc;
-  //if(mode == SINGLE){
-     delete [] sendbox;
-    // }
-  //else{ 
-    delete [] sendbox_multi;
-    //}
+  delete [] sendbox;
+  delete [] sendbox_multi;
   delete [] maxsendlist;
   delete [] sendlist;
 

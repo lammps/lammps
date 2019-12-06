@@ -112,14 +112,18 @@ void ljtip4p_long_gpu_clear() {
 
 int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial,
+                        double *sublo, double *subhi,
+                        tagint *tag, int *map_array, int map_size,
+                        int *sametag, int max_same,
+                        int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
                         bool &success, double *host_q, double *boxlo,
                         double *prd) {
   return LJTIP4PLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
-                       subhi, tag, nspecial, special, eflag, vflag, eatom,
+                       subhi, tag, map_array, map_size, sametag, max_same,
+                       nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
                        host_q,boxlo, prd);
 }
@@ -139,10 +143,10 @@ double ljtip4p_long_gpu_bytes() {
   return LJTIP4PLMF.host_memory_usage();
 }
 
-void ljtip4p_long_copy_molecule_data(int **hn, double **m, int n, int* tag,
+void ljtip4p_long_copy_molecule_data(int n, int* tag,
     int *map_array, int map_size,
     int *sametag, int max_same, int ago){
-  LJTIP4PLMF.copy_relations_data(hn, m, n, tag,map_array,map_size,sametag, max_same, ago);
+  LJTIP4PLMF.copy_relations_data(n, tag, map_array, map_size, sametag, max_same, ago);
 }
 
 

@@ -62,9 +62,28 @@ public:
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
 
-  /// Copy data which is easier to compute in LAMMPS_NS
-  void copy_relations_data(int **hn, double **m, int n,int* tag, int *map_array, int map_size,
+  /// Copy data from LAMMPS_NS
+  void copy_relations_data(int n,int* tag, int *map_array, int map_size,
       int *sametag, int max_same, int ago);
+
+  /// Reimplement BaseCharge pair loop with host neighboring
+  void compute(const int f_ago, const int inum_full, const int nall,
+               double **host_x, int *host_type, int *ilist, int *numj,
+               int **firstneigh, const bool eflag, const bool vflag,
+               const bool eatom, const bool vatom, int &host_start,
+               const double cpu_time, bool &success, double *charge,
+               const int nlocal, double *boxlo, double *prd);
+
+  /// Reimplement BaseCharge pair loop with device neighboring
+  int** compute(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, double *sublo,
+                double *subhi, tagint *tag,int *map_array, int map_size, int *sametag, int max_same,
+                int **nspecial,
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double *charge, double *boxlo, double *prd);
+
 
   // --------------------------- TYPE DATA --------------------------
 
@@ -77,7 +96,6 @@ public:
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;
 
-  /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
   /// Number of atom types
@@ -98,10 +116,11 @@ public:
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 
-  UCL_Kernel k_pair_distrib;
+  UCL_Kernel k_pair_distrib, k_pair_reneigh;
 
  private:
   bool _allocated;
+  int t_ago;
   void loop(const bool _eflag, const bool _vflag);
 };
 

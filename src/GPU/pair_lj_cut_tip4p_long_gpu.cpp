@@ -64,7 +64,10 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 void ljtip4p_long_gpu_clear();
 int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum,
     const int nall, double **host_x, int *host_type,
-    double *sublo, double *subhi, tagint *tag, int **nspecial,
+    double *sublo, double *subhi,
+    tagint *tag, int *map_array, int map_size,
+    int *sametag, int max_same,
+    int **nspecial,
     tagint **special, const bool eflag, const bool vflag,
     const bool eatom, const bool vatom, int &host_start,
     int **ilist, int **jnum,
@@ -78,7 +81,7 @@ void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall,
     bool &success, double *host_q, const int nlocal,
     double *boxlo, double *prd);
 double ljtip4p_long_gpu_bytes();
-void ljtip4p_long_copy_molecule_data(int **, double **, int, int* , int *,
+void ljtip4p_long_copy_molecule_data(int, int* , int *,
 		int, int *, int , int);
 
 /* ---------------------------------------------------------------------- */
@@ -112,17 +115,16 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
-  ljtip4p_long_copy_molecule_data(hneigh, newsite, nall, atom->tag,
-      atom->get_map_array(), atom->get_map_size(),
-      atom->sametag, atom->get_max_same(), neighbor->ago);
-
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = ljtip4p_long_gpu_compute_n(neighbor->ago, inum, nall,
         atom->x, atom->type, domain->sublo,
-        domain->subhi, atom->tag, atom->nspecial,
+        domain->subhi,
+        atom->tag, atom->get_map_array(), atom->get_map_size(),
+        atom->sametag, atom->get_max_same(),
+        atom->nspecial,
         atom->special, eflag, vflag, eflag_atom,
         vflag_atom, host_start, &ilist, &numneigh,
         cpu_time, success, atom->q, domain->boxlo,
@@ -132,6 +134,9 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
+    ljtip4p_long_copy_molecule_data(nall, atom->tag,
+        atom->get_map_array(), atom->get_map_size(),
+        atom->sametag, atom->get_max_same(), neighbor->ago);
     ljtip4p_long_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
         ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
         vflag_atom, host_start, cpu_time, success, atom->q,

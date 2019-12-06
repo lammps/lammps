@@ -24,26 +24,26 @@ const char *lj_tip4p=0;
 #include "lal_lj_tip4p_long.h"
 #include <cassert>
 using namespace LAMMPS_AL;
-#define LJ_TIP4PLong_T LJ_TIP4PLong<numtyp, acctyp>
+#define LJTIP4PLongT LJ_TIP4PLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJ_TIP4PLong<numtyp, acctyp>::LJ_TIP4PLong(): BaseCharge<numtyp,acctyp>(), _allocated(false) {
+LJTIP4PLongT::LJ_TIP4PLong(): BaseCharge<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJ_TIP4PLong<numtyp, acctyp>::~LJ_TIP4PLong() {
+LJTIP4PLongT::~LJ_TIP4PLong() {
   clear();
 }
 
 template <class numtyp, class acctyp>
-int LJ_TIP4PLong<numtyp, acctyp>::bytes_per_atom(const int max_nbors) const {
+int LJTIP4PLongT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
+int LJTIP4PLongT::init(const int ntypes,
     double **host_cutsq, double **host_lj1,
     double **host_lj2, double **host_lj3,
     double **host_lj4, double **host_offset,
@@ -65,6 +65,7 @@ int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
   if (success!=0)
     return success;
   k_pair_distrib.set_function(*this->pair_program,"k_lj_tip4p_long_distrib");
+  k_pair_reneigh.set_function(*this->pair_program,"k_lj_tip4p_reneigh");
 
   TypeH = tH;
   TypeO = tO;
@@ -143,7 +144,7 @@ int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
 
 
 template <class numtyp, class acctyp>
-void LJ_TIP4PLong<numtyp, acctyp>::clear() {
+void LJTIP4PLongT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -161,12 +162,13 @@ void LJ_TIP4PLong<numtyp, acctyp>::clear() {
   //force_comp.clear();
 
   k_pair_distrib.clear();
+  k_pair_reneigh.clear();
 
   this->clear_atomic();
 }
 
 template <class numtyp, class acctyp>
-double LJ_TIP4PLong<numtyp, acctyp>::host_memory_usage() const {
+double LJTIP4PLongT::host_memory_usage() const {
   return this->host_memory_usage_atomic()+sizeof(LJ_TIP4PLong<numtyp,acctyp>);
 }
 
@@ -174,7 +176,7 @@ double LJ_TIP4PLong<numtyp, acctyp>::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJ_TIP4PLong<numtyp, acctyp>::loop(const bool _eflag, const bool _vflag) {
+void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -188,13 +190,24 @@ void LJ_TIP4PLong<numtyp, acctyp>::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
 
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-
   int ainum=this->ans->inum();
+  const int nall = this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
+  int GX;
 
+  if (t_ago == 0) {
+    GX=static_cast<int>(ceil(static_cast<double>(nall)/BX));
+    this->k_pair_reneigh.set_size(GX,BX);
+    this->k_pair_reneigh.run(&this->atom->x,
+        &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+        &nall, &ainum,&nbor_pitch, &this->_threads_per_atom,
+        &hneight, &m, &TypeO, &TypeH,
+        &tag, &map_array, &atom_sametag);
+  }
+
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
   this->k_pair.set_size(GX,BX);
   if (vflag){
 	  this->ansO.resize_ib(ainum*3);
@@ -213,17 +226,16 @@ void LJ_TIP4PLong<numtyp, acctyp>::loop(const bool _eflag, const bool _vflag) {
           &atom_sametag, &this->ansO);
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   this->k_pair_distrib.set_size(GX,BX);
-  this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv, &eflag, &vflag,
-      &ainum, &nbor_pitch, &this->_threads_per_atom,
-      &hneight, &m, &TypeO, &TypeH, &alpha,
-      &this->atom->q,  &this->ansO);
+  this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv,
+      &eflag, &vflag, &ainum, &nbor_pitch, &this->_threads_per_atom,
+      &hneight, &m, &TypeO, &TypeH, &alpha,&this->atom->q,  &this->ansO);
   this->time_pair.stop();
 }
 
 
 template <class numtyp, class acctyp>
-void LJ_TIP4PLong<numtyp, acctyp>::copy_relations_data(int **hn, double **newsite, int n,
-    int* tag, int *map_array, int map_size, int *sametag, int max_same, int ago){
+void LJTIP4PLongT::copy_relations_data(int n, int* tag, int *map_array,
+                      int map_size, int *sametag, int max_same, int ago){
   int nall = n;
   const int hn_sz = n*4; // matrix size = col size * col number
   hneight.resize_ib(hn_sz);
@@ -249,5 +261,119 @@ void LJ_TIP4PLong<numtyp, acctyp>::copy_relations_data(int **hn, double **newsit
 
   host_tag_write.clear();
 }
+
+
+
+
+// ---------------------------------------------------------------------------
+// Copy nbor list from host if necessary and then calculate forces, virials,..
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
+                               const int nall, double **host_x, int *host_type,
+                               int *ilist, int *numj, int **firstneigh,
+                               const bool eflag, const bool vflag,
+                               const bool eatom, const bool vatom,
+                               int &host_start, const double cpu_time,
+                               bool &success, double *host_q,
+                               const int nlocal, double *boxlo, double *prd) {
+  this->acc_timers();
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    this->resize_atom(0,nall,success);
+    this->zero_timers();
+    return;
+  }
+
+  int ago=this->hd_balancer.ago_first(f_ago);
+  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
+  this->ans->inum(inum);
+  host_start=inum;
+
+  if (ago==0) {
+    this->reset_nbors(nall, inum, ilist, numj, firstneigh, success);
+    if (!success)
+      return;
+  }
+
+  this->atom->cast_x_data(host_x,host_type);
+  this->atom->cast_q_data(host_q);
+  this->hd_balancer.start_timer();
+  this->atom->add_x_data(host_x,host_type);
+  this->atom->add_q_data();
+
+  this->device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
+
+  t_ago = ago;
+  loop(eflag,vflag);
+  this->ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  this->device->add_ans_object(this->ans);
+  this->hd_balancer.stop_timer();
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary and then compute forces, virials, energies
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** LJTIP4PLongT::compute(const int ago, const int inum_full,
+                                const int nall, double **host_x, int *host_type,
+                                double *sublo, double *subhi, tagint *tag,
+                                int *map_array, int map_size, int *sametag, int max_same,
+                                int **nspecial, tagint **special, const bool eflag,
+                                const bool vflag, const bool eatom,
+                                const bool vatom, int &host_start,
+                                int **ilist, int **jnum,
+                                const double cpu_time, bool &success,
+                                double *host_q, double *boxlo, double *prd) {
+  this->acc_timers();
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    this->resize_atom(0,nall,success);
+    this->zero_timers();
+    return NULL;
+  }
+
+  this->hd_balancer.balance(cpu_time);
+  int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  this->ans->inum(inum);
+  host_start=inum;
+
+  // Build neighbor list on GPU if necessary
+  if (ago==0) {
+    this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+                    sublo, subhi, tag, nspecial, special, success);
+    if (!success)
+      return NULL;
+    this->atom->cast_q_data(host_q);
+    this->hd_balancer.start_timer();
+  } else {
+    this->atom->cast_x_data(host_x,host_type);
+    this->atom->cast_q_data(host_q);
+    this->hd_balancer.start_timer();
+    this->atom->add_x_data(host_x,host_type);
+  }
+  this->atom->add_q_data();
+  *ilist=this->nbor->host_ilist.begin();
+  *jnum=this->nbor->host_acc.begin();
+
+  copy_relations_data(nall, tag, map_array, map_size, sametag, max_same, ago);
+
+  this->device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
+
+  t_ago = ago;
+  loop(eflag,vflag);
+  this->ans->copy_answers(eflag,vflag,eatom,vatom);
+  this->device->add_ans_object(this->ans);
+  this->hd_balancer.stop_timer();
+
+  return this->nbor->host_jlist.begin()-host_start;
+}
+
+
+
 
 template class LJ_TIP4PLong<PRECISION,ACC_PRECISION>;

@@ -158,6 +158,62 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
+__kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
+    const __global int * dev_nbor,
+    const __global int * dev_packed,
+    const int nall, const int inum,
+    const int nbor_pitch, const int t_per_atom,
+    __global int *restrict hneigh,
+    __global numtyp4 *restrict m,
+    const int typeO, const int typeH,
+    const __global int *restrict tag, const __global int *restrict map,
+    const __global int *restrict sametag) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
+
+  if (i<nall) {
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+
+    int iH1, iH2, iO;
+    int itype = ix.w;
+    if(itype == typeO) {
+      iO  = i;
+      if (hneigh[i*4+2] != -1) {
+        iH1 = atom_mapping(map, tag[i] + 1);
+        iH2 = atom_mapping(map, tag[i] + 2);
+        // set iH1,iH2 to closest image to O
+        iH1 = closest_image(i, iH1, sametag, x_);
+        iH2 = closest_image(i, iH2, sametag, x_);
+        hneigh[i*4  ] = iH1;
+        hneigh[i*4+1] = iH2;
+        hneigh[i*4+2] = -1;
+      }
+    } else {
+      if (hneigh[i*4+2] != -1) {
+        int iI, iH;
+        iI = atom_mapping(map,tag[i] - 1);
+        numtyp4 iIx; fetch4(iIx,iI,pos_tex); //x_[iI];
+        if ((int)iIx.w == typeH) {
+          iO = atom_mapping(map,tag[i] - 2);
+          iO  = closest_image(i, iO, sametag, x_);
+          iH1 = closest_image(i, iI, sametag, x_);
+          iH2 = i;
+        } else { //if ((int)iIx.w == typeO)
+          iH = atom_mapping(map, tag[i] + 1);
+          iO  = closest_image(i,iI,sametag, x_);
+          iH1 = i;
+          iH2 = closest_image(i,iH,sametag, x_);
+        }
+        hneigh[i*4+0] = iO;
+        hneigh[i*4+1] += -1;
+        hneigh[i*4+2] = -1;
+      }
+    }
+  }
+}
+
+
 __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp4 *restrict lj1,
     const __global numtyp4 *restrict lj3,
@@ -211,63 +267,17 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
 
     if(itype == typeO) {
       iO  = i;
-      if (hneigh[i*4+2] != -1) {
-        iH1 = atom_mapping(map, tag[i] + 1);
-        iH2 = atom_mapping(map, tag[i] + 2);
-        // set iH1,iH2 to closest image to O
-        iH1 = closest_image(i, iH1, sametag, x_);
-        iH2 = closest_image(i, iH2, sametag, x_);
-        hneigh[  i*4  ] = iH1;
-        hneigh[  i*4+1] = iH2;
-        hneigh[  i*4+2] = -1;
-        hneigh[iH1*4  ] = i;
-        hneigh[iH1*4+1] += -1;
-        hneigh[iH1*4+2] = -1;
-        hneigh[iH2*4  ] = i;
-        hneigh[iH2*4+1] += -1;
-        hneigh[iH2*4+2] = -1;
-      } else {
-        iH1 = hneigh[i*4  ];
-        iH2 = hneigh[i*4+1];
-      }
+      iH1 = hneigh[i*4  ];
+      iH2 = hneigh[i*4+1];
       if(fabs(m[iO].w) <= eq_zero) {
         compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
         m[iO].w = qtmp;
       }
       x1 = m[iO];
     } else {
-      if (hneigh[i*4+2] != -1) {
-        int iI, iH;
-        iI = atom_mapping(map,tag[i] - 1);
-        numtyp4 iIx; fetch4(iIx,iI,pos_tex); //x_[iI];
-        if ((int)iIx.w == typeH) {
-          iO = atom_mapping(map,tag[i] - 2);
-          iO  = closest_image(i, iO, sametag, x_);
-          iH1 = closest_image(i, iI, sametag, x_);
-          iH2 = i;
-        } else { //if ((int)iIx.w == typeO)
-          iH = atom_mapping(map, tag[i] + 1);
-          iO  = closest_image(i,iI,sametag, x_);
-          iH1 = i;
-          iH2 = closest_image(i,iH,sametag, x_);
-        }
-
-        hneigh[iH1*4+0] = iO;
-        hneigh[iH1*4+1] += -1;
-        hneigh[iH1*4+2] = -1;
-
-        hneigh[iH2*4+0] = iO;
-        hneigh[iH2*4+1] += -1;
-        hneigh[iH2*4+2] = -1;
-
-        hneigh[iO*4+0] = iH1;
-        hneigh[iO*4+1] = iH2;
-        hneigh[iO*4+2] = -1;
-      } else {
-        iO  = hneigh[i *4  ];
-        iH1 = hneigh[iO*4  ];
-        iH2 = hneigh[iO*4+1];
-      }
+      iO  = hneigh[i *4  ];
+      iH1 = hneigh[iO*4  ];
+      iH2 = hneigh[iO*4+1];
       if (iO >= inum) {
         non_local_oxy = 1;
         if(fabs(m[iO].w) <= eq_zero) {
@@ -327,25 +337,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
         if(itype == typeO || jtype == typeO) {
           if (jtype == typeO) {
             jO = j;
-            if (hneigh[j*4+2] != -1) {
-              jH1 = atom_mapping(map,tag[j] + 1);
-              jH2 = atom_mapping(map,tag[j] + 2);
-              // set iH1,iH2 to closest image to O
-              jH1 = closest_image(j, jH1, sametag, x_);
-              jH2 = closest_image(j, jH2, sametag, x_);
-              hneigh[j*4  ] = jH1;
-              hneigh[j*4+1] = jH2;
-              hneigh[j*4+2] = -1;
-              hneigh[jH1*4  ] = j;
-              hneigh[jH1*4+1] += -1;
-              hneigh[jH1*4+2] = -1;
-              hneigh[jH2*4  ] = j;
-              hneigh[jH2*4+1] += -1;
-              hneigh[jH2*4+2] = -1;
-            } else {
-              jH1 = hneigh[j*4  ];
-              jH2 = hneigh[j*4+1];
-            }
+            jH1 = hneigh[j*4  ];
+            jH2 = hneigh[j*4+1];
             if (fabs(m[j].w) <= eq_zero) {
               compute_newsite(j, jH1, jH2, &m[j], alpha, x_);
               m[j].w = qj;
@@ -405,7 +398,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
                 vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
                 vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
-                vdj.w = vdj.w;
+                //vdj.w = vdj.w;
                 virial[0] += (ix.x - vdj.x)*fd.x;
                 virial[1] += (ix.y - vdj.y)*fd.y;
                 virial[2] += (ix.z - vdj.z)*fd.z;
@@ -422,7 +415,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
               vdi.x = xO.x*cO + xH1.x*cH + xH2.x*cH;
               vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
               vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
-              vdi.w = vdi.w;
+              //vdi.w = vdi.w;
               if (jtype != typeH){
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
@@ -430,7 +423,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
                 vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
                 vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
-                vdj.w = vdj.w;
+                //vdj.w = vdj.w;
               } else vdj = jx;
               vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
               vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;

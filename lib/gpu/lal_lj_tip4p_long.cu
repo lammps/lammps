@@ -271,6 +271,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
       iH2 = hneigh[i*4+1];
       if(fabs(m[iO].w) <= eq_zero) {
         compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
+        __threadfence();
         m[iO].w = qtmp;
       }
       x1 = m[iO];
@@ -283,6 +284,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
         if(fabs(m[iO].w) <= eq_zero) {
           compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
           numtyp qO; fetch(qO,iO,q_tex);
+          __threadfence();
           m[iO].w = qO;
         }
       }
@@ -341,6 +343,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             jH2 = hneigh[j*4+1];
             if (fabs(m[j].w) <= eq_zero) {
               compute_newsite(j, jH1, jH2, &m[j], alpha, x_);
+              __threadfence();
               m[j].w = qj;
             }
             x2 = m[j];

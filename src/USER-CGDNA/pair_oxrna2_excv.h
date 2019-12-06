@@ -13,43 +13,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna2/dh,PairOxdna2Dh)
+PairStyle(oxrna2/excv,PairOxrna2Excv)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA2_DH_H
-#define LMP_PAIR_OXDNA2_DH_H
+#ifndef LMP_PAIR_OXRNA2_EXCV_H
+#define LMP_PAIR_OXRNA2_EXCV_H
 
-#include "pair.h"
+#include "pair_oxdna_excv.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdna2Dh : public Pair {
+class PairOxrna2Excv : public PairOxdnaExcv {
  public:
-  PairOxdna2Dh(class LAMMPS *);
-  virtual ~PairOxdna2Dh();
-  virtual void compute_interaction_sites(double *, double *, double *, 
-    double *);
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  void *extract(const char *, int &);
-
- protected:
-
-  double **qeff_dh_pf,**kappa_dh;
-  double **b_dh,**cut_dh_ast,**cutsq_dh_ast,**cut_dh_c,**cutsq_dh_c;
-
-  virtual void allocate();
-
+  PairOxrna2Excv(class LAMMPS *);
+  virtual ~PairOxrna2Excv();
+  virtual void compute_interaction_sites(double *, double *,
+    double *, double *, double *);
 };
 
 }

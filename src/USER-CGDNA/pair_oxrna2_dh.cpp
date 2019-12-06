@@ -35,7 +35,7 @@ PairOxrna2Dh::~PairOxrna2Dh()
 /* ----------------------------------------------------------------------
     compute vector COM-sugar-phosphate backbone interaction site in oxRNA2
 ------------------------------------------------------------------------- */
-void PairOxrna2Dh::compute_interaction_sites(double e1[3], double /*e2*/[3], 
+void PairOxrna2Dh::compute_interaction_sites(double e1[3], double /*e2*/[3],
   double e3[3], double r[3])
 {
   double d_cs_x=-0.4, d_cs_z=+0.2;

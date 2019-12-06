@@ -36,9 +36,10 @@ class FixGravity : public Fix {
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
   double compute_scalar();
+  void *extract(const char *, int &);
 
  protected:
-  int style;
+  int style,disable;
   double magnitude;
   double vert,phi,theta;
   double xdir,ydir,zdir;
@@ -46,6 +47,8 @@ class FixGravity : public Fix {
   double degree2rad;
   int ilevel_respa;
   int time_origin;
+  double gvec[3];
+
   int eflag;
   double egrav,egrav_all;
 

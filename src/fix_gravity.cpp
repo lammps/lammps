@@ -37,7 +37,8 @@ enum{CONSTANT,EQUAL};
 
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL), xstr(NULL), ystr(NULL), zstr(NULL)
+  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL), 
+  xstr(NULL), ystr(NULL), zstr(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
@@ -61,8 +62,10 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     mstyle = CONSTANT;
   }
 
+  int iarg;
+
   if (strcmp(arg[4],"chute") == 0) {
-    if (narg != 6) error->all(FLERR,"Illegal fix gravity command");
+    if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
     if (strstr(arg[5],"v_") == arg[5]) {
       int n = strlen(&arg[5][2]) + 1;
@@ -73,9 +76,10 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       vert = force->numeric(FLERR,arg[5]);
       vstyle = CONSTANT;
     }
+    iarg = 6;
 
   } else if (strcmp(arg[4],"spherical") == 0) {
-    if (narg != 7) error->all(FLERR,"Illegal fix gravity command");
+    if (narg < 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
     if (strstr(arg[5],"v_") == arg[5]) {
       int n = strlen(&arg[5][2]) + 1;
@@ -95,9 +99,10 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       theta = force->numeric(FLERR,arg[6]);
       tstyle = CONSTANT;
     }
+    iarg = 7;
 
   } else if (strcmp(arg[4],"vector") == 0) {
-    if (narg != 8) error->all(FLERR,"Illegal fix gravity command");
+    if (narg < 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
     if (strstr(arg[5],"v_") == arg[5]) {
       int n = strlen(&arg[5][2]) + 1;
@@ -126,8 +131,22 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       zdir = force->numeric(FLERR,arg[7]);
       zstyle = CONSTANT;
     }
+    iarg = 8;
 
   } else error->all(FLERR,"Illegal fix gravity command");
+
+  // optional keywords
+
+  disable = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"disable") == 0) {
+      disable = 1;
+      iarg++;
+    } else error->all(FLERR,"Illegal fix gravity command");
+  }
+
+  // initializations
 
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
@@ -266,6 +285,12 @@ void FixGravity::post_force(int /*vflag*/)
     set_acceleration();
   }
 
+  // just exit if application of force is disabled
+
+  if (disable) return;
+
+  // apply gravity force to each particle
+
   double **x = atom->x;
   double **f = atom->f;
   double *rmass = atom->rmass;
@@ -338,9 +363,9 @@ void FixGravity::set_acceleration()
     }
   }
 
-  xacc = magnitude*xgrav;
-  yacc = magnitude*ygrav;
-  zacc = magnitude*zgrav;
+  gvec[0] = xacc = magnitude*xgrav;
+  gvec[1] = yacc = magnitude*ygrav;
+  gvec[2] = zacc = magnitude*zgrav;
 }
 
 /* ----------------------------------------------------------------------
@@ -356,4 +381,17 @@ double FixGravity::compute_scalar()
     eflag = 1;
   }
   return egrav_all;
+}
+
+/* ----------------------------------------------------------------------
+   extract current gravity direction vector
+------------------------------------------------------------------------- */
+
+void *FixGravity::extract(const char *name, int &dim)
+{
+  if (strcmp(name,"gvec") == 0) {
+    dim = 1;
+    return (void *) gvec;
+  }
+  return NULL;
 }

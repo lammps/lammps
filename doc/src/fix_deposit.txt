@@ -19,7 +19,7 @@ type = atom type to assign to inserted atoms (offset for molecule insertion) :l
 M = insert a single atom or molecule every M steps :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
-keyword = {region} or {id} or {global} or {local} or {near} or {gaussian} or {attempt} or {rate} or {vx} or {vy} or {vz} or {mol} or {rigid} or {shake} or {units} :l
+keyword = {region} or {id} or {global} or {local} or {near} or {gaussian} or {attempt} or {rate} or {vx} or {vy} or {vz} or {mol} or {rigid} or {shake} or {units} or {orientation} :l
   {region} value = region-ID
     region-ID = ID of region to use as insertion volume
   {id} value = {max} or {next}
@@ -247,6 +247,8 @@ distance units are in lattice spacings.  The "lattice"_lattice.html
 command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
 units of distance or velocity.
+
+The {orientation} keyword determines the fixed rotation axis r = (rx,ry,rz) for randomly rotated of any inserted molecules. Note that the for a 2d simulation, (rx,ry,rz) should equal to (0,0,1).
 
 NOTE: If you are monitoring the temperature of a system where the atom
 count is changing due to adding particles, you typically should use

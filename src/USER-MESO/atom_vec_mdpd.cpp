@@ -55,6 +55,8 @@ AtomVecMDPD::AtomVecMDPD(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecMDPD::init()
 {
+  AtomVec::init();
+
   if (strcmp(update->unit_style,"lj") != 0)
     error->all(FLERR,"Atom style mdpd requires lj units");
 }

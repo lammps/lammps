@@ -65,11 +65,12 @@ ucl_inline int closest_image(int i, int j, const __global int* sametag,
 }
 
 ucl_inline void compute_newsite(int iO, int  iH1, int  iH2,
-    __global numtyp4 *xM,
+    __global numtyp4 *xM, numtyp q,
     numtyp alpha, const __global numtyp4 *restrict x_){
   numtyp4 xO;  fetch4(xO,iO,pos_tex);
   numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
   numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
+  numtyp4 M;
 
   numtyp delx1 = xH1.x - xO.x;
   numtyp dely1 = xH1.y - xO.y;
@@ -81,9 +82,12 @@ ucl_inline void compute_newsite(int iO, int  iH1, int  iH2,
 
   numtyp ap = alpha * (numtyp)0.5;
 
-  (*xM).x = xO.x + ap * (delx1 + delx2);
-  (*xM).y = xO.y + ap * (dely1 + dely2);
-  (*xM).z = xO.z + ap * (delz1 + delz2);
+  M.x = xO.x + ap * (delx1 + delx2);
+  M.y = xO.y + ap * (dely1 + dely2);
+  M.z = xO.z + ap * (delz1 + delz2);
+  M.w = q;
+
+  *xM = M;
 }
 
 __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
@@ -214,6 +218,37 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
 }
 
 
+__kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
+    const __global int * dev_nbor,
+    const __global int * dev_packed,
+    const int nall, const int inum,
+    const int nbor_pitch, const int t_per_atom,
+    __global int *restrict hneigh,
+    __global numtyp4 *restrict m,
+    const int typeO, const int typeH,
+    const numtyp alpha, const __global numtyp *restrict q_,
+    const __global int *restrict tag, const __global int *restrict map,
+    const __global int *restrict sametag) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
+
+  if (i<nall) {
+    int iO, iH1, iH2;
+    iO  = i;
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype = ix.w;
+    if (itype == typeO){
+      int iH1, iH2, iO;
+      iH1 = hneigh[i*4  ];
+      iH2 = hneigh[i*4+1];
+      iO  = i;
+      numtyp qO; fetch(qO,iO,q_tex);
+      compute_newsite(iO,iH1,iH2, &m[iO], qO, alpha, x_);
+    }
+  }
+}
+
 __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp4 *restrict lj1,
     const __global numtyp4 *restrict lj3,
@@ -269,11 +304,6 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
       iO  = i;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
-      if(fabs(m[iO].w) <= eq_zero) {
-        compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
-        __threadfence();
-        m[iO].w = qtmp;
-      }
       x1 = m[iO];
     } else {
       iO  = hneigh[i *4  ];
@@ -281,12 +311,6 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
       iH2 = hneigh[iO*4+1];
       if (iO >= inum) {
         non_local_oxy = 1;
-        if(fabs(m[iO].w) <= eq_zero) {
-          compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
-          numtyp qO; fetch(qO,iO,q_tex);
-          __threadfence();
-          m[iO].w = qO;
-        }
       }
     }
 
@@ -341,11 +365,6 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             jO = j;
             jH1 = hneigh[j*4  ];
             jH2 = hneigh[j*4+1];
-            if (fabs(m[j].w) <= eq_zero) {
-              compute_newsite(j, jH1, jH2, &m[j], alpha, x_);
-              __threadfence();
-              m[j].w = qj;
-            }
             x2 = m[j];
           }
           delx = x1.x-x2.x;

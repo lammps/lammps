@@ -116,7 +116,7 @@ public:
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 
-  UCL_Kernel k_pair_distrib, k_pair_reneigh;
+  UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite;
 
  private:
   bool _allocated;

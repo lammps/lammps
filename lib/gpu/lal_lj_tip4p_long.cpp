@@ -66,6 +66,7 @@ int LJTIP4PLongT::init(const int ntypes,
     return success;
   k_pair_distrib.set_function(*this->pair_program,"k_lj_tip4p_long_distrib");
   k_pair_reneigh.set_function(*this->pair_program,"k_lj_tip4p_reneigh");
+  k_pair_newsite.set_function(*this->pair_program,"k_lj_tip4p_newsite");
 
   TypeH = tH;
   TypeO = tO;
@@ -163,6 +164,7 @@ void LJTIP4PLongT::clear() {
 
   k_pair_distrib.clear();
   k_pair_reneigh.clear();
+  k_pair_newsite.clear();
 
   this->clear_atomic();
 }
@@ -195,9 +197,8 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   int GX;
-
+  GX=static_cast<int>(ceil(static_cast<double>(nall)/BX));
   if (t_ago == 0) {
-    GX=static_cast<int>(ceil(static_cast<double>(nall)/BX));
     this->k_pair_reneigh.set_size(GX,BX);
     this->k_pair_reneigh.run(&this->atom->x,
         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
@@ -205,6 +206,14 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
         &hneight, &m, &TypeO, &TypeH,
         &tag, &map_array, &atom_sametag);
   }
+  this->k_pair_newsite.set_size(GX,BX);
+  this->k_pair_newsite.run(&this->atom->x,
+          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+          &nall, &ainum,
+          &nbor_pitch, &this->_threads_per_atom,
+          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &this->atom->q, &tag, &map_array,
+          &atom_sametag);
 
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));

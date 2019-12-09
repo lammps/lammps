@@ -220,7 +220,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
-  if (nmpi > 0) {
+  if (nmpi > 1) {
 
 #if defined(MPI_VERSION) && (MPI_VERSION > 2)
     // Check for IBM Spectrum MPI
@@ -397,6 +397,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
+#ifdef KOKKOS_ENABLE_CUDA
+
   // if "cuda/aware off" and "comm device", change to "comm host"
 
   if (!cuda_aware_flag) {
@@ -430,6 +432,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       reverse_comm_changed = 0;
     }
   }
+
+#endif
 
   // set newton flags
   // set neighbor binsize, same as neigh_modify command

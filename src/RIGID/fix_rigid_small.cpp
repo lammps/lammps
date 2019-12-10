@@ -57,7 +57,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
   itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL),
-  id_dilate(NULL), onemols(NULL)
+  id_dilate(NULL), id_gravity(NULL), onemols(NULL)
 {
   int i;
 
@@ -107,7 +107,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       bodyID = new tagint[nlocal];
       customflag = 1;
 
-      // determine whether atom-style variable or atom property is used.
+      // determine whether atom-style variable or atom property is used
+
       if (strstr(arg[4],"i_") == arg[4]) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
@@ -356,6 +357,13 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_chain = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"gravity") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      delete [] id_gravity;
+      int n = strlen(arg[iarg+1]) + 1;
+      id_gravity = new char[n];
+      strcpy(id_gravity,arg[iarg+1]);
+      iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid/small command");
   }
@@ -515,6 +523,8 @@ FixRigidSmall::~FixRigidSmall()
 
   delete random;
   delete [] inpfile;
+  delete [] id_dilate;
+  delete [] id_gravity;
 
   memory->destroy(langextra);
   memory->destroy(mass_body);
@@ -543,6 +553,7 @@ void FixRigidSmall::init()
   triclinic = domain->triclinic;
 
   // warn if more than one rigid fix
+  // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
@@ -573,6 +584,17 @@ void FixRigidSmall::init()
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
+  }
+
+  // add gravity forces based on gravity vector from fix
+
+  if (id_gravity) {
+    int ifix = modify->find_fix(id_gravity);
+    if (ifix < 0) error->all(FLERR,"Fix rigid/small cannot find fix gravity ID");
+    if (strcmp(modify->fix[ifix]->style,"gravity") != 0) 
+      error->all(FLERR,"Fix rigid/small gravity fix is invalid");
+    int tmp;
+    gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
   }
 
   // timestep info
@@ -954,8 +976,20 @@ void FixRigidSmall::compute_forces_and_torques()
       tcm[2] += langextra[ibody][5];
     }
   }
-}
 
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+    double mass;
+    for (ibody = 0; ibody < nlocal_body; ibody++) {
+      mass = body[ibody].mass;
+      fcm = body[ibody].fcm;
+      fcm[0] += gvec[0]*mass;
+      fcm[1] += gvec[1]*mass;
+      fcm[2] += gvec[2]*mass;
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 

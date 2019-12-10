@@ -399,9 +399,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 #ifdef KOKKOS_ENABLE_CUDA
 
+  int nmpi = 0;
+  MPI_Comm_size(world,&nmpi);
+
   // if "cuda/aware off" and "comm device", change to "comm host"
 
-  if (!cuda_aware_flag) {
+  if (!cuda_aware_flag && nmpi > 1) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_on_host = 1;
       exchange_comm_changed = 1;

@@ -547,10 +547,10 @@ the *cuda/aware* keyword is automatically set to *off* by default. When
 the *cuda/aware* keyword is set to *off* while any of the *comm*
 keywords are set to *device*\ , the value for these *comm* keywords will
 be automatically changed to *host*\ . This setting has no effect if not
-running on GPUs. CUDA-aware MPI is available for OpenMPI 1.8 (or later
-versions), Mvapich2 1.9 (or later) when the "MV2\_USE\_CUDA" environment
-variable is set to "1", CrayMPI, and IBM Spectrum MPI when the "-gpu"
-flag is used.
+running on GPUs or if using only one MPI rank. CUDA-aware MPI is available
+for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
+"MV2\_USE\_CUDA" environment variable is set to "1", CrayMPI, and IBM
+Spectrum MPI when the "-gpu" flag is used.
 
 
 ----------

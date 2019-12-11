@@ -354,7 +354,7 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & COMM) {
-    int major,minor,len;
+    int major,minor;
     const char *version = get_mpi_info(major,minor);
 
     fprintf(out,"\nCommunication information:\n");

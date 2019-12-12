@@ -130,7 +130,7 @@ on the head node of a GPU cluster, this library may not be installed,
 so you may need to copy it over from one of the compute nodes (best into
 this directory). Recent CUDA toolkits starting from CUDA 9 provide a dummy
 libcuda.so library (typically under $(CUDA_HOME)/lib64/stubs), that can be used for
-linking (but not for running).
+linking.
 
 The gpu library supports 3 precision modes as determined by 
 the CUDA_PRECISION variable:

@@ -253,7 +253,7 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and four optional keywords. The
+contains one mandatory keyword and five optional keywords. The
 mandatory keyword is 'equivalences':
 
 

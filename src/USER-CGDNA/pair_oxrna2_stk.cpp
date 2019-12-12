@@ -49,7 +49,7 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) : Pair(lmp)
   // sequence-specific stacking strength
   // A:0 C:1 G:2 U:3, 5'- [i][j] -3'
 
-  eta_st[0][0] = 0.93851; 
+  eta_st[0][0] = 0.93851;
   eta_st[0][1] = 1.12901;
   eta_st[0][2] = 1.15626;
   eta_st[0][3] = 0.88850;
@@ -133,7 +133,7 @@ PairOxrna2Stk::~PairOxrna2Stk()
    tally energy and virial into global and per-atom accumulators
 
    NOTE: Although this is a pair style interaction, the algorithm below
-   follows the virial incrementation of the bond style. This is because 
+   follows the virial incrementation of the bond style. This is because
    the bond topology is used in the main compute loop.
 ------------------------------------------------------------------------- */
 
@@ -391,13 +391,13 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cost6p < -1.0) cost6p = -1.0;
     theta6p = acos(cost6p);
 
-    aux3p[0] = d3p_x * ax[0] + d3p_y * ay[0] + d3p_z * az[0]; 
-    aux3p[1] = d3p_x * ax[1] + d3p_y * ay[1] + d3p_z * az[1]; 
-    aux3p[2] = d3p_x * ax[2] + d3p_y * ay[2] + d3p_z * az[2]; 
+    aux3p[0] = d3p_x * ax[0] + d3p_y * ay[0] + d3p_z * az[0];
+    aux3p[1] = d3p_x * ax[1] + d3p_y * ay[1] + d3p_z * az[1];
+    aux3p[2] = d3p_x * ax[2] + d3p_y * ay[2] + d3p_z * az[2];
 
-    aux5p[0] = d5p_x * bx[0] + d5p_y * by[0] + d5p_z * bz[0]; 
-    aux5p[1] = d5p_x * bx[1] + d5p_y * by[1] + d5p_z * bz[1]; 
-    aux5p[2] = d5p_x * bx[2] + d5p_y * by[2] + d5p_z * bz[2]; 
+    aux5p[0] = d5p_x * bx[0] + d5p_y * by[0] + d5p_z * bz[0];
+    aux5p[1] = d5p_x * bx[1] + d5p_y * by[1] + d5p_z * bz[1];
+    aux5p[2] = d5p_x * bx[2] + d5p_y * by[2] + d5p_z * bz[2];
 
     cost9 = MathExtra::dot3(delr_ss_norm,aux3p);
     if (cost9 >  1.0) cost9 =  1.0;

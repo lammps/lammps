@@ -51,6 +51,57 @@ class MPIAbortException(Exception):
   def __str__(self):
     return repr(self.message)
 
+class NeighList:
+    """This is a wrapper class that exposes the contents of a neighbor list
+
+    It can be used like a regular Python list.
+
+    Internally it uses the lower-level LAMMPS C-library interface.
+
+    :param lmp: reference to instance of :class:`lammps`
+    :type  lmp: lammps
+    :param idx: neighbor list index
+    :type  idx: int
+    """
+    def __init__(self, lmp, idx):
+        self.lmp = lmp
+        self.idx = idx
+
+    def __str__(self):
+        return "Neighbor List ({} atoms)".format(self.size)
+
+    def __repr__(self):
+        return self.__str__()
+
+    @property
+    def size(self):
+        """
+        :return: number of elements in neighbor list
+        """
+        return self.lmp.get_neighlist_size(self.idx)
+
+    def get(self, element):
+        """
+        :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
+        :rtype:  (int, int, numpy.array)
+        """
+        iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
+        return iatom, numneigh, neighbors
+
+    # the methods below implement the iterator interface, so NeighList can be used like a regular Python list
+
+    def __getitem__(self, element):
+        return self.get(element)
+
+    def __len__(self):
+        return self.size
+
+    def __iter__(self):
+        inum = self.size
+
+        for ii in range(inum):
+            yield self.get(ii)
+
 class lammps(object):
 
   # detect if Python is using version of mpi4py that can pass a communicator
@@ -73,6 +124,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
+    self.lmp = None
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
@@ -136,6 +188,21 @@ class lammps(object):
     self.lib.lammps_scatter_atoms_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
+
+    self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
+    self.lib.lammps_find_pair_neighlist.restype  = c_int
+
+    self.lib.lammps_find_fix_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_fix_neighlist.restype  = c_int
+
+    self.lib.lammps_find_compute_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_compute_neighlist.restype  = c_int
+
+    self.lib.lammps_neighlist_num_elements.argtypes = [c_void_p, c_int]
+    self.lib.lammps_neighlist_num_elements.restype  = c_int
+
+    self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
+    self.lib.lammps_neighlist_element_neighbors.restype  = None
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -650,6 +717,101 @@ class lammps(object):
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
 
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+
+  def get_neighlist(self, idx):
+    """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
+
+    :param idx: index of neighbor list
+    :type  idx: int
+    :return: an instance of :class:`NeighList` wrapping access to neighbor list data
+    :rtype:  NeighList
+    """
+    if idx < 0:
+        return None
+    return NeighList(self, idx)
+
+  def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
+    """Find neighbor list index of pair style neighbor list
+
+    Try finding pair instance that matches style. If exact is set, the pair must
+    match style exactly. If exact is 0, style must only be contained. If pair is
+    of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+
+    Once the pair instance has been identified, multiple neighbor list requests
+    may be found. Every neighbor list is uniquely identified by its request
+    index. Thus, providing this request index ensures that the correct neighbor
+    list index is returned.
+
+    :param style: name of pair style that should be searched for
+    :type  style: string
+    :param exact: controls whether style should match exactly or only must be contained in pair style name, defaults to True
+    :type  exact: bool, optional
+    :param nsub:  match nsub-th hybrid sub-style, defaults to 0
+    :type  nsub:  int, optional
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    style = style.encode()
+    exact = int(exact)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
+    return self.get_neighlist(idx)
+
+  def find_fix_neighlist(self, fixid, request=0):
+    """Find neighbor list index of fix neighbor list
+
+    :param fixid: name of fix
+    :type  fixid: string
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    fixid = fixid.encode()
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    return self.get_neighlist(idx)
+
+  def find_compute_neighlist(self, computeid, request=0):
+    """Find neighbor list index of compute neighbor list
+
+    :param computeid: name of compute
+    :type  computeid: string
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    computeid = computeid.encode()
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    return self.get_neighlist(idx)
+
+  def get_neighlist_size(self, idx):
+    """Return the number of elements in neighbor list with the given index
+
+    :param idx: neighbor list index
+    :type  idx: int
+    :return: number of elements in neighbor list with index idx
+    :rtype:  int
+     """
+    return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
+
+  def get_neighlist_element_neighbors(self, idx, element):
+    """Return data of neighbor list entry
+
+    :param element: neighbor list index
+    :type  element: int
+    :param element: neighbor list element index
+    :type  element: int
+    :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
+    :rtype:  (int, int, numpy.array)
+    """
+    c_iatom = c_int()
+    c_numneigh = c_int()
+    c_neighbors = POINTER(c_int)()
+    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
+    neighbors = self.numpy.iarray(c_int, c_neighbors, c_numneigh.value, 1)
+    return c_iatom.value, c_numneigh.value, neighbors
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------

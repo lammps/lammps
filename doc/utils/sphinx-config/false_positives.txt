@@ -2079,7 +2079,9 @@ Ouyang
 overlayed
 Ovito
 oxdna
+oxrna
 oxDNA
+oxRNA
 padua
 Padua
 palegoldenrod

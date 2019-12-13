@@ -37,7 +37,7 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 
   size_forward_bonus = 1;
   size_border_bonus = 3;
-  size_restart_bonus_one = 2;
+  size_restart_bonus_one = 3;
   size_data_bonus = 5;
 
   atom->line_flag = 1;
@@ -286,7 +286,7 @@ int AtomVecLine::size_restart_bonus()
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
     if (line[i] >= 0) n += size_restart_bonus_one;
-    n++;
+    else n++;
   }
 
   return n;

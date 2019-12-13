@@ -128,7 +128,7 @@ void AtomVecFull::pack_restart_pre(int ilocal)
   int *num_improper = atom->num_improper;
   int **improper_type = atom->improper_type;
 
-  int any_bond_negative = 0;
+  any_bond_negative = 0;
   for (int m = 0; m < num_bond[ilocal]; m++) {
     if (bond_type[ilocal][m] < 0) {
       bond_negative[m] = 1;
@@ -137,7 +137,7 @@ void AtomVecFull::pack_restart_pre(int ilocal)
     } else bond_negative[m] = 0;
   }
 
-  int any_angle_negative = 0;
+  any_angle_negative = 0;
   for (int m = 0; m < num_angle[ilocal]; m++) {
     if (angle_type[ilocal][m] < 0) {
       angle_negative[m] = 1;
@@ -146,7 +146,7 @@ void AtomVecFull::pack_restart_pre(int ilocal)
     } else angle_negative[m] = 0;
   }
 
-  int any_dihedral_negative = 0;
+  any_dihedral_negative = 0;
   for (int m = 0; m < num_dihedral[ilocal]; m++) {
     if (dihedral_type[ilocal][m] < 0) {
       dihedral_negative[m] = 1;
@@ -155,7 +155,7 @@ void AtomVecFull::pack_restart_pre(int ilocal)
     } else dihedral_negative[m] = 0;
   }
 
-  int any_improper_negative = 0;
+  any_improper_negative = 0;
   for (int m = 0; m < num_improper[ilocal]; m++) {
     if (improper_type[ilocal][m] < 0) {
       improper_negative[m] = 1;

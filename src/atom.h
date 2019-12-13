@@ -124,6 +124,7 @@ class Atom : protected Pointers {
 
   double **cc,**cc_flux;         // cc = chemical concentration
   double *edpd_temp,*edpd_flux;  // temperature and heat flux
+  double *vest_temp;
   double *edpd_cv;               // heat capacity
   int cc_species;
 
@@ -161,10 +162,6 @@ class Atom : protected Pointers {
   // SPIN package
 
   int sp_flag;
-
-  // USER-EFF package
-
-  int ecp_flag;
 
   // USER-SMD package
 

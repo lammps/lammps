@@ -63,7 +63,7 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = (char *) 
     "de vfrac rmass x0 radius contact_radius molecule "
-    "smd_data_9 e vest tlsph_stress "
+    "smd_data_9 e vest smd_stress "
     "eff_plastic_strain eff_plastic_strain_rate damage";
   fields_copy = (char *) 
     "vfrac rmass x0 radius contact_radius molecule e "
@@ -91,7 +91,7 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress damage";
   fields_data_atom = (char *) 
     "id type molecule vfrac rmass radius contact_radius x";
-  fields_data_vel = (char *) "id v vest";
+  fields_data_vel = (char *) "id v";
 
   // set these array sizes based on defines
 

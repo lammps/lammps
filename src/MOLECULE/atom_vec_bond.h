@@ -28,6 +28,7 @@ class AtomVecBond : public AtomVec {
  public:
   AtomVecBond(class LAMMPS *);
   ~AtomVecBond();
+  void grow(int);
   void pack_restart_pre(int);
   void pack_restart_post(int);
   void unpack_restart_init(int);
@@ -37,6 +38,9 @@ class AtomVecBond : public AtomVec {
   int any_bond_negative;
   int bond_per_atom;
   int *bond_negative;
+
+  int *num_bond;
+  int **bond_type;
 };
 
 }

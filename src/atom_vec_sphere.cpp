@@ -61,18 +61,22 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecSphere::process_args(int narg, char **arg)
 {
-  if (narg == 0) return;
-  if (narg != 1) error->all(FLERR,"Illegal atom_style sphere command");
-
-  radvary = utils::numeric(FLERR,arg[0],true,lmp);
-  if (radvary < 0 || radvary > 1)
+  if (narg != 0 && narg != 1) 
     error->all(FLERR,"Illegal atom_style sphere command");
-  if (radvary == 0) return;
+
+  radvary = 0;
+  if (narg == 1) {
+    radvary = utils::numeric(FLERR,arg[0],true,lmp);
+    if (radvary < 0 || radvary > 1)
+      error->all(FLERR,"Illegal atom_style sphere command");
+  }
 
   // dynamic particle radius and mass must be communicated every step
 
-  fields_comm = (char *) "radius rmass";
-  fields_comm_vel = (char *) "radius rmass omega";
+  if (radvary) {
+    fields_comm = (char *) "radius rmass";
+    fields_comm_vel = (char *) "radius rmass omega";
+  }
 
   // delay setting up of fields until now
 

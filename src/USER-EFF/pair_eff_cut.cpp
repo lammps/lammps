@@ -801,7 +801,7 @@ void PairEffCut::settings(int narg, char **arg)
 
   int atype;
   int iarg = 1;
-  int ecp_found = 0;
+  ecp_found = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"limit/eradius") == 0) {
@@ -821,17 +821,15 @@ void PairEffCut::settings(int narg, char **arg)
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
         else if (strcmp(arg[iarg+1],"Al") == 0) ecp_type[atype] = 13;
         else if (strcmp(arg[iarg+1],"Si") == 0) ecp_type[atype] = 14;
-        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n");
+        else error->all(FLERR, "No default parameters for this atom ECP\n");
         iarg += 2;
         ecp_found = 1;
       }
-    }
+    } else error->all(FLERR,"Illegal pair style command");
   }
 
-  if (!ecp_found && atom->ecp_flag)
-    error->all(FLERR,"Need to specify ECP type on pair_style command");
-
   // Need to introduce 2 new constants w/out changing update.cpp
+
   if (force->qqr2e==332.06371) {        // i.e. Real units chosen
     h2e = 627.509;                      // hartree->kcal/mol
     hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
@@ -872,8 +870,23 @@ void PairEffCut::init_style()
 
   if (update->whichflag == 1) {
     if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
+      error->all(FLERR,"Must lower the default real units timestep for pEFF ");
   }
+
+  // check if any atom's spin = 3 and ECP type was not set
+
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] == 3) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+
+  if (flagall && !ecp_found)
+    error->all(FLERR,"Need to specify ECP type on pair_style command");
 
   // need a half neigh list and optionally a granular history neigh list
 

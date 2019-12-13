@@ -45,6 +45,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   forceclearflag = 0;
   maxexchange = 0;
   bonus_flag = 0;
+  size_forward_bonus = size_border_bonus = 0;
 
   kokkosable = 0;
 
@@ -176,7 +177,7 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 
 void AtomVec::grow(int n)
 {
-  int i,datatype,cols,maxcols;
+  int datatype,cols,maxcols;
   void *pdata,*plength;
 
   if (n == 0) grow_nmax();
@@ -193,7 +194,7 @@ void AtomVec::grow(int n)
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*nthreads,3,"atom:f");
 
-  for (i = 0; i < ngrow; i++) {
+  for (int i = 0; i < ngrow; i++) {
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];
     cols = mgrow.cols[i];
@@ -415,7 +416,7 @@ int AtomVec::pack_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 int AtomVec::pack_comm_vel(int n, int *list, double *buf,
-                                 int pbc_flag, int *pbc)
+                           int pbc_flag, int *pbc)
 {
   int i,j,m,mm,nn,datatype,cols;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -1375,15 +1376,15 @@ int AtomVec::size_restart()
 
   if (nrestart) {
     for (nn = 0; nn < nrestart; nn++) {
-      cols = mrestart.cols[i];
+      cols = mrestart.cols[nn];
       if (cols == 0) n += nlocal;
       else if (cols > 0) n += cols*nlocal;
       else {
         collength = mrestart.collength[nn];
         plength = mrestart.plength[nn];
         for (i = 0; i < nlocal; i++) {
-          if (collength) ncols = (*((int ***) plength))[nlocal][collength-1];
-          else ncols = (*((int **) plength))[nlocal];
+          if (collength) ncols = (*((int ***) plength))[i][collength-1];
+          else ncols = (*((int **) plength))[i];
           n += ncols;
         }
       }
@@ -1435,7 +1436,7 @@ int AtomVec::pack_restart(int i, double *buf)
       if (cols == 0) {
         double *vec = *((double **) pdata);
         buf[m++] = vec[i];
-      } else if (ncols > 0) {
+      } else if (cols > 0) {
         double **array = *((double ***) pdata);
         for (mm = 0; mm < cols; mm++)
           buf[m++] = array[i][mm];
@@ -1469,7 +1470,7 @@ int AtomVec::pack_restart(int i, double *buf)
       if (cols == 0) {
         bigint *vec = *((bigint **) pdata);
         buf[m++] = ubuf(vec[i]).d;
-      } else if (ncols > 0) {
+      } else if (cols > 0) {
         bigint **array = *((bigint ***) pdata);
         for (mm = 0; mm < cols; mm++)
           buf[m++] = ubuf(array[i][mm]).d;
@@ -1705,7 +1706,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
         vec[nlocal] = utils::numeric(FLERR,values[ivalue++],true,lmp);
       } else {
         double **array = *((double ***) pdata);
-        if (array == atom->x) {      // already set by coord arg
+        if (array == atom->x) {      // x was already set by coord arg
           ivalue += cols;
           continue;
         }
@@ -1878,9 +1879,9 @@ void AtomVec::data_vel(int ilocal, char **values)
   v[ilocal][1] = utils::numeric(FLERR,values[1],true,lmp);
   v[ilocal][2] = utils::numeric(FLERR,values[2],true,lmp);
 
-  if (ndata_vel) {
+  if (ndata_vel > 2) {
     int ivalue = 3;
-    for (n = 0; n < ndata_vel; n++) {
+    for (n = 2; n < ndata_vel; n++) {
       pdata = mdata_vel.pdata[n];
       datatype = mdata_vel.datatype[n];
       cols = mdata_vel.cols[n];
@@ -2433,6 +2434,7 @@ void AtomVec::setup_fields()
     if (cols == 0) size_data_atom++;
     else size_data_atom += cols;
   }
+
 
   size_data_vel = 0;
   for (n = 0; n < ndata_vel; n++) {

@@ -74,7 +74,7 @@ class AtomVec : protected Pointers {
 
   virtual void force_clear(int, size_t) {}
 
-  void grow(int);
+  virtual void grow(int);
   void copy(int, int, int);
 
   virtual void copy_bonus(int, int, int) {}
@@ -122,13 +122,11 @@ class AtomVec : protected Pointers {
 
   void data_atom(double *, imageint, char **);
   virtual void data_atom_post(int) {}
-
-  void data_atom_bonus(int, char **) {}
-  void data_body(int, int, int, int *, double *) {}
+  virtual void data_atom_bonus(int, char **) {}
+  virtual void data_body(int, int, int, int *, double *) {}
 
   void pack_data(double **);
   void write_data(FILE *, int, double **);
-
   virtual void pack_data_pre(int) {}
   virtual void pack_data_post(int) {}
 
@@ -145,19 +143,19 @@ class AtomVec : protected Pointers {
   int pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
 
-  int property_atom(char *) {return -1;}
-  void pack_property_atom(int, double *, int, int) {}
+  virtual int property_atom(char *) {return -1;}
+  virtual void pack_property_atom(int, double *, int, int) {}
 
   bigint memory_usage();
   virtual bigint memory_usage_bonus() {}
 
  protected:
-  int nmax;                             // local copy of atom->nmax
-  int deform_vremap;                    // local copy of domain properties
+  int nmax;                    // local copy of atom->nmax
+  int deform_vremap;           // local copy of domain properties
   int deform_groupbit;
   double *h_rate;
 
-  tagint *tag;                          // peratom fields common to all styles
+  tagint *tag;                 // peratom fields common to all styles
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;

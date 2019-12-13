@@ -40,8 +40,8 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   // size_data_bonus is not used by Atom class for body style
 
   size_forward_bonus = 4;
-  size_border_bonus = 9;
-  size_restart_bonus_one = 9;
+  size_border_bonus = 10;
+  size_restart_bonus_one = 10;
   size_data_bonus = 0;
 
   atom->body_flag = 1;
@@ -72,11 +72,9 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   fields_border_vel = (char *) "radius rmass angmom";
   fields_exchange = (char *) "radius rmass angmom";
   fields_restart = (char *) "radius rmass angmom";
-  fields_create = (char *) "radius rmass angmom tri";
+  fields_create = (char *) "radius rmass angmom body";
   fields_data_atom = (char *) "id type body rmass x";
   fields_data_vel = (char *) "id v angmom";
-
-  setup_fields();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,6 +125,20 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   size_forward_bonus += bptr->size_forward;
   size_border_bonus += bptr->size_border;
+
+  setup_fields();
+}
+
+/* ----------------------------------------------------------------------
+   grow atom arrays
+   must set local copy of body ptr
+   needed in replicate when 2 atom classes exist and pack_restart() is called
+------------------------------------------------------------------------- */
+
+void AtomVecBody::grow(int n)
+{
+  AtomVec::grow(n);
+  body = atom->body;
 }
 
 /* ----------------------------------------------------------------------
@@ -150,8 +162,6 @@ void AtomVecBody::grow_bonus()
 
 void AtomVecBody::copy_bonus(int i, int j, int delflag)
 {
-  int *body = atom->body;
-
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && body[j] >= 0) {
@@ -206,8 +216,6 @@ int AtomVecBody::pack_comm_bonus(int n, int *list, double *buf)
   int i,j,m;
   double *quat;
 
-  int *body = atom->body;
-
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -231,8 +239,6 @@ void AtomVecBody::unpack_comm_bonus(int n, int first, double *buf)
   int i,m,last;
   double *quat;
 
-  int *body = atom->body;
-
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
@@ -253,8 +259,6 @@ int AtomVecBody::pack_border_bonus(int n, int *list, double *buf)
 {
   int i,j,m;
   double *quat,*inertia;
-
-  int *body = atom->body;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -286,8 +290,6 @@ int AtomVecBody::unpack_border_bonus(int n, int first, double *buf)
 {
   int i,j,m,last;
   double *quat,*inertia;
-
-  int *body = atom->body;
 
   m = 0;
   last = first + n;
@@ -330,8 +332,6 @@ int AtomVecBody::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  int *body = atom->body;
-
   if (body[i] < 0) buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
@@ -362,8 +362,6 @@ int AtomVecBody::pack_exchange_bonus(int i, double *buf)
 int AtomVecBody::unpack_exchange_bonus(int ilocal, double *buf)
 {
   int m = 0;
-
-  int *body = atom->body;
 
   body[ilocal] = (int) ubuf(buf[m++]).i;
   if (body[ilocal] == 0) body[ilocal] = -1;
@@ -408,8 +406,6 @@ int AtomVecBody::size_restart_bonus()
 {
   int i;
 
-  int *body = atom->body;
-
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
@@ -418,8 +414,7 @@ int AtomVecBody::size_restart_bonus()
       if (intdoubleratio == 1) n += bonus[body[i]].ninteger;
       else n += (bonus[body[i]].ninteger+1)/2;
       n += bonus[body[i]].ndouble;
-    }
-    n++;
+    } else n++;
   }
 
   return n;
@@ -434,8 +429,6 @@ int AtomVecBody::size_restart_bonus()
 int AtomVecBody::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
-
-  int *body = atom->body;
 
   if (body[i] < 0) buf[m++] = ubuf(0).d;
   else {
@@ -469,8 +462,6 @@ int AtomVecBody::pack_restart_bonus(int i, double *buf)
 int AtomVecBody::unpack_restart_bonus(int ilocal, double *buf)
 {
   int m = 0;
-
-  int *body = atom->body;
 
   body[ilocal] = (int) ubuf(buf[m++]).i;
   if (body[ilocal] == 0) body[ilocal] = -1;

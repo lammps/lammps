@@ -38,7 +38,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 
   size_forward_bonus = 4;
   size_border_bonus = 17;
-  size_restart_bonus_one = 16;
+  size_restart_bonus_one = 17;
   size_data_bonus = 10;
 
   atom->tri_flag = 1;
@@ -64,7 +64,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   fields_border_vel = (char *) "molecule radius rmass omega";
   fields_exchange = (char *) "molecule radius rmass omega angmom";
   fields_restart = (char *) "molecule radius rmass omega angmom";
-  fields_create = (char *) "molecule radius rmass omega angmom line";
+  fields_create = (char *) "molecule radius rmass omega angmom tri";
   fields_data_atom = (char *) "id molecule type tri rmass x";
   fields_data_vel = (char *) "id v omega angmom";
 
@@ -381,7 +381,7 @@ int AtomVecTri::size_restart_bonus()
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
     if (tri[i] >= 0) n += size_restart_bonus_one;
-    n++;
+    else n++;
   }
 
   return n;

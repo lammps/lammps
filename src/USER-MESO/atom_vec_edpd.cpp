@@ -41,16 +41,16 @@ AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "edpd_cv edpd_temp edpd_flux vest";
-  fields_copy = (char *) "edpd_cv edpd_temp edpd_flux vest";
-  fields_comm = (char *) "edpd_temp vest";
-  fields_comm_vel = (char *) "edpd_temp vest";
+  fields_grow = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
+  fields_copy = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
+  fields_comm = (char *) "edpd_temp vest vest_temp";
+  fields_comm_vel = (char *) "edpd_temp vest vest_temp";
   fields_reverse = (char *) "edpd_flux";
-  fields_border = (char *) "edpd_cv edpd_temp vest";
-  fields_border_vel = (char *) "edpd_cv edpd_temp vest";
-  fields_exchange = (char *) "edpd_cv edpd_temp vest";
-  fields_restart = (char * ) "edpd_cv edpd_temp vest";
-  fields_create = (char *) "edpd_cv edpd_temp edpd_flux vest";
+  fields_border = (char *) "edpd_cv edpd_temp vest vest_temp";
+  fields_border_vel = (char *) "edpd_cv edpd_temp vest vest_temp";
+  fields_exchange = (char *) "edpd_cv edpd_temp vest vest_temp";
+  fields_restart = (char * ) "edpd_cv edpd_temp vest vest_temp";
+  fields_create = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
   fields_data_atom = (char *) "id type edpd_temp edpd_cv x";
   fields_data_vel = (char *) "id v";
 
@@ -85,7 +85,7 @@ void AtomVecEDPD::create_atom_post(int ilocal)
 {
   atom->edpd_temp[ilocal] = 1.0;
   atom->edpd_cv[ilocal]= 1.0e5;
-  atom->vest[ilocal][3] = atom->edpd_temp[ilocal];
+  atom->vest_temp[ilocal] = atom->edpd_temp[ilocal];
 }
 
 /* ----------------------------------------------------------------------
@@ -99,5 +99,5 @@ void AtomVecEDPD::data_atom_post(int ilocal)
   atom->vest[ilocal][0] = 0.0;
   atom->vest[ilocal][1] = 0.0;
   atom->vest[ilocal][2] = 0.0;
-  atom->vest[ilocal][3] = atom->edpd_temp[ilocal];
+  atom->vest_temp[ilocal] = atom->edpd_temp[ilocal];
 }

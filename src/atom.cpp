@@ -566,6 +566,7 @@ void Atom::peratom_create()
 
   add_peratom("edpd_cv",&edpd_cv,DOUBLE,0);
   add_peratom("edpd_temp",&edpd_temp,DOUBLE,0);
+  add_peratom("vest_temp",&vest_temp,DOUBLE,0);
   add_peratom("edpd_flux",&edpd_flux,DOUBLE,0,1);     // set per-thread flag
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
@@ -625,8 +626,11 @@ void Atom::add_peratom(const char *name, void *address,
 
 void Atom::add_peratom_change_columns(const char *name, int cols)
 {
+  int i;
   for (int i = 0; i < nperatom; i++)
     if (strcmp(name,peratom[i].name) == 0) peratom[i].cols = cols;
+  if (i == nperatom) 
+    error->all(FLERR,"Could not find name of peratom array for column change");
 }
 
 /* ----------------------------------------------------------------------

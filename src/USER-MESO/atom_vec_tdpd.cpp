@@ -63,7 +63,7 @@ void AtomVecTDPD::process_args(int narg, char **arg)
   cc_species = atom->cc_species;
 
   atom->add_peratom_change_columns("cc",cc_species);
-  atom->add_peratom_change_columns("cc_species",cc_species);
+  atom->add_peratom_change_columns("cc_flux",cc_species);
 
   // delay setting up of fields until now
 

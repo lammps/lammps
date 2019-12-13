@@ -43,6 +43,7 @@ class AtomVecBody : public AtomVec {
   ~AtomVecBody();
   void process_args(int, char **);
 
+  void grow(int);
   void copy_bonus(int, int, int);
   void clear_bonus();
   int pack_comm_bonus(int, int *, double *);
@@ -73,6 +74,8 @@ class AtomVecBody : public AtomVec {
   int nghost_bonus,nmax_bonus;
   int intdoubleratio;            // sizeof(double) / sizeof(int)
   int body_flag;
+
+  int *body;
 
   MyPoolChunk<int> *icp;
   MyPoolChunk<double> *dcp;

@@ -44,8 +44,6 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
   molecular = 0;
   forceclearflag = 1;
 
-  atom->ecp_flag = 0;
-
   atom->electron_flag = 1;
   atom->q_flag = atom->spin_flag = atom->eradius_flag =
     atom->ervel_flag = atom->erforce_flag = 1;
@@ -99,7 +97,6 @@ void AtomVecElectron::create_atom_post(int ilocal)
 void AtomVecElectron::data_atom_post(int ilocal)
 {
   atom->ervel[ilocal] = 0.0;
-  if (atom->spin[ilocal] == 3) atom->ecp_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

@@ -38,7 +38,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 
   size_forward_bonus = 4;
   size_border_bonus = 8;
-  size_restart_bonus_one = 7;
+  size_restart_bonus_one = 8;
   size_data_bonus = 8;
 
   atom->ellipsoid_flag = 1;
@@ -320,7 +320,7 @@ int AtomVecEllipsoid::size_restart_bonus()
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
     if (ellipsoid[i] >= 0) n += size_restart_bonus_one;
-    n++;
+    else n++;
   }
 
   return n;

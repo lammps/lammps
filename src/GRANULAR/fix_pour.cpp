@@ -40,6 +40,7 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 enum{ONE,RANGE,POLY};
+enum{CONSTANT,EQUAL};    // same as FixGravity
 
 #define EPSILON 0.001
 #define SMALL 1.0e-10
@@ -317,6 +318,10 @@ void FixPour::init()
   int ifix = modify->find_fix_by_style("^gravity");
   if (ifix == -1)
     error->all(FLERR,"No fix gravity defined for fix pour");
+
+  int varflag = ((FixGravity *) modify->fix[ifix])->varflag;
+  if (varflag != CONSTANT) 
+    error->all(FLERR,"Fix gravity for fix pour must be constant");
 
   double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
   double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;

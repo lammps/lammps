@@ -47,7 +47,7 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "dpdTheta uCond uMech uChem";
   fields_create = (char *) "rho dpdTheta uCond uMech uChem uCG uCGnew duChem";
   fields_data_atom = (char *) "id type dpdTheta x";
-  fields_data_vel = (char *) "id v omega";
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

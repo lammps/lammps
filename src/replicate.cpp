@@ -331,35 +331,43 @@ void Replicate::command(int narg, char **arg)
 
     if (me == 0 && screen) {
       fprintf(screen,"  bounding box image = (%i %i %i) to (%i %i %i)\n",
-              _imagelo[0],_imagelo[1],_imagelo[2],_imagehi[0],_imagehi[1],_imagehi[2]);
+              _imagelo[0],_imagelo[1],_imagelo[2],
+              _imagehi[0],_imagehi[1],_imagehi[2]);
       fprintf(screen,"  bounding box extra memory = %.2f MB\n",
               (double)size_buf_all*sizeof(double)/1024/1024);
     }
 
     // rnk offsets
 
-    int * disp_buf_rnk;
+    int *disp_buf_rnk;
     memory->create(disp_buf_rnk, nprocs, "replicate:disp_buf_rnk");
     disp_buf_rnk[0] = 0;
-    for (i=1; i<nprocs; ++i) disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
+    for (i = 1; i < nprocs; i++) 
+      disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
 
     // allgather buf_all
 
     double * buf_all;
     memory->create(buf_all, size_buf_all, "replicate:buf_all");
 
-    MPI_Allgatherv(buf, n, MPI_DOUBLE, buf_all, size_buf_rnk, disp_buf_rnk, MPI_DOUBLE, world);
+    MPI_Allgatherv(buf,n,MPI_DOUBLE,buf_all,size_buf_rnk,disp_buf_rnk,
+                   MPI_DOUBLE,world);
 
     // bounding box of original unwrapped system
 
     double _orig_lo[3], _orig_hi[3];
     if (triclinic) {
-      _orig_lo[0] = domain->boxlo[0] + _imagelo[0] * old_xprd + _imagelo[1] * old_xy + _imagelo[2] * old_xz;
-      _orig_lo[1] = domain->boxlo[1] + _imagelo[1] * old_yprd + _imagelo[2] * old_yz;
+      _orig_lo[0] = domain->boxlo[0] + 
+        _imagelo[0] * old_xprd + _imagelo[1] * old_xy + _imagelo[2] * old_xz;
+      _orig_lo[1] = domain->boxlo[1] + 
+        _imagelo[1] * old_yprd + _imagelo[2] * old_yz;
       _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
 
-      _orig_hi[0] = domain->boxlo[0] + (_imagehi[0]+1) * old_xprd + (_imagehi[1]+1) * old_xy + (_imagehi[2]+1) * old_xz;
-      _orig_hi[1] = domain->boxlo[1] + (_imagehi[1]+1) * old_yprd + (_imagehi[2]+1) * old_yz;
+      _orig_hi[0] = domain->boxlo[0] + 
+        (_imagehi[0]+1) * old_xprd + 
+        (_imagehi[1]+1) * old_xy + (_imagehi[2]+1) * old_xz;
+      _orig_hi[1] = domain->boxlo[1] + 
+        (_imagehi[1]+1) * old_yprd + (_imagehi[2]+1) * old_yz;
       _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
     } else {
       _orig_lo[0] = domain->boxlo[0] + _imagelo[0] * old_xprd;
@@ -605,7 +613,8 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0 && screen)
-      fprintf(screen,"  average # of replicas added to proc = %.2f out of %i (%.2f %%)\n",
+      fprintf(screen,"  average # of replicas added to proc = %.2f "
+              "out of %i (%.2f %%)\n",
               avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
 
   } else {

@@ -14,10 +14,10 @@ neighbor 1 bin
 
 timestep 0.1
 
-fix nve all nve
 fix lang all langevin 10 10 1 26488 gjf vhalf
+fix nve all nve
 
 thermo 200
-run 50000
+run 5000
 
 

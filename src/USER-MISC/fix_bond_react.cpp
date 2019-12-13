@@ -71,7 +71,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE};
+enum{DISTANCE,ANGLE,ARRHENIUS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -100,6 +100,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   rxnID = 0;
   nconstraints = 0;
+  narrhenius = 0;
   status = PROCEED;
 
   nxspecial = NULL;
@@ -113,7 +114,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = (char *) "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->find_fix_by_style("bond/react") != -1)
+  if (modify->find_fix_by_style("^bond/react") != -1)
     error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -258,12 +259,12 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                        "probability seed must be positive");
         iarg += 3;
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
-	      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-	      			                        "'max_rxn' has too few arguments");
-	      max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
-	      if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
-	      				                         "'max_rxn' cannot be negative");
-	      iarg += 2;
+              if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                                        "'max_rxn' has too few arguments");
+              max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+              if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
+                                                                 "'max_rxn' cannot be negative");
+              iarg += 2;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -322,6 +323,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     find_landlocked_atoms(i);
   }
 
+  // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
+
+  rrhandom = new class RanMars*[narrhenius];
+  int tmp = 0;
+  for (int i = 0; i < nconstraints; i++) {
+    if (constraints[i][1] == ARRHENIUS) {
+      rrhandom[tmp++] = new RanMars(lmp,(int) constraints[i][6] + me);
+    }
+  }
+
   for (int i = 0; i < nreacts; i++) {
     delete [] files[i];
   }
@@ -348,7 +359,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // initialize Marsaglia RNG with processor-unique seed
+  // initialize Marsaglia RNG with processor-unique seed ('prob' keyword)
 
   random = new class RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
@@ -1640,7 +1651,7 @@ int FixBondReact::check_constraints()
   tagint atom1,atom2,atom3;
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
-  double rsq1,rsq2,r1,r2,c;
+  double rsq1,rsq2,r1,r2,c,t,prrhob;
 
   double **x = atom->x;
 
@@ -1680,10 +1691,52 @@ int FixBondReact::check_constraints()
         if (c > 1.0) c = 1.0;
         if (c < -1.0) c = -1.0;
         if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+      } else if (constraints[i][1] == ARRHENIUS) {
+        t = get_temperature();
+        prrhob = constraints[i][3]*pow(t,constraints[i][4])*
+               exp(-constraints[i][5]/(force->boltz*t));
+        if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
       }
     }
   }
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+compute local temperature: average over all atoms in reaction template
+------------------------------------------------------------------------- */
+
+double FixBondReact::get_temperature()
+{
+  int i,ilocal;
+  double adof = domain->dimension;
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+
+  double t = 0.0;
+
+  if (rmass) {
+    for (i = 0; i < onemol->natoms; i++) {
+      ilocal = atom->map(glove[i][1]);
+      t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
+        v[ilocal][2]*v[ilocal][2]) * rmass[ilocal];
+    }
+  } else {
+    for (i = 0; i < onemol->natoms; i++) {
+      ilocal = atom->map(glove[i][1]);
+      t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
+        v[ilocal][2]*v[ilocal][2]) * mass[type[ilocal]];
+    }
+  }
+
+  // final temperature
+  double dof = adof*onemol->natoms;
+  double tfactor = force->mvv2e / (dof * force->boltz);
+  t *= tfactor;
+  return t;
 }
 
 /* ----------------------------------------------------------------------
@@ -1857,7 +1910,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     if (dedup_mode == 1) ghostly_rxn_count[i] = 0;
   }
 
-  int dedup_size;
+  int dedup_size = 0;
   if (dedup_mode == 0) {
     dedup_size = local_num_mega;
   } else if (dedup_mode == 1) {
@@ -2814,13 +2867,11 @@ void FixBondReact::read(int myrxn)
     }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"constraints")) sscanf(line,"%d",&nconstr);
-    else break;
+    else if (strstr(line,"constraints")) {
+      sscanf(line,"%d",&nconstr);
+      memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
+    } else break;
   }
-
-  memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
-
-  //count = NULL;
 
   // grab keyword and skip next line
 
@@ -2829,7 +2880,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
+  int equivflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2838,7 +2889,6 @@ void FixBondReact::read(int myrxn)
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
-      edgeflag = 1;
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
@@ -2949,6 +2999,14 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[2];
       constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
       constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+    } else if (strcmp(constraint_type,"arrhenius") == 0) {
+      constraints[nconstraints][1] = ARRHENIUS;
+      constraints[nconstraints][2] = narrhenius++;
+      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      constraints[nconstraints][3] = tmp[0];
+      constraints[nconstraints][4] = tmp[1];
+      constraints[nconstraints][5] = tmp[2];
+      constraints[nconstraints][6] = tmp[3];
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
     nconstraints++;
@@ -3180,8 +3238,8 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    int n = strlen(rxn_name[i]) + 1;
-    strncpy(set[i].rxn_name,rxn_name[i],n);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
   if (me == 0) {

@@ -111,14 +111,17 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) {gjfflag = 0; osflag = 0;}
+      if (strcmp(arg[iarg+1],"no") == 0) {
+        gjfflag = 0;
+        osflag = 0;
+      }
       else if (strcmp(arg[iarg+1],"vfull") == 0) {
-      gjfflag = 1;
-      osflag = 1;
+        gjfflag = 1;
+        osflag = 1;
       }
       else if (strcmp(arg[iarg+1],"vhalf") == 0) {
-      gjfflag = 1;
-      osflag = 0;
+        gjfflag = 1;
+        osflag = 0;
       }
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
@@ -229,7 +232,7 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
-  if (gjfflag){
+  if (gjfflag) {
     if (t_period*2 == update->dt)
       error->all(FLERR,"Fix langevin gjf cannot have t_period equal to dt/2");
 
@@ -240,7 +243,7 @@ void FixLangevin::init()
       if (strcmp(id,modify->fix[i]->id) == 0) before = 0;
       else if ((modify->fmask[i] && utils::strmatch(modify->fix[i]->style,"^nve")) && before) flag = 1;
     }
-    if (flag && comm->me == 0)
+    if (flag)
       error->all(FLERR,"Fix langevin gjf should come before fix nve");
   }
 
@@ -295,12 +298,12 @@ void FixLangevin::init()
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
       if (gjfflag)
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
-                    force->ftm2v;
+          sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       else
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
-                    force->ftm2v;
+          sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       gfactor1[i] *= 1.0/ratio[i];
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
@@ -323,7 +326,7 @@ void FixLangevin::init()
 
 void FixLangevin::setup(int vflag)
 {
-  if (gjfflag){
+  if (gjfflag) {
     double dtfm;
     double dt = update->dt;
     double **v = atom->v;
@@ -373,7 +376,7 @@ void FixLangevin::setup(int vflag)
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  if (gjfflag){
+  if (gjfflag) {
     double dtfm;
     double dt = update->dt;
     double **f = atom->f;
@@ -420,7 +423,7 @@ void FixLangevin::initial_integrate(int /* vflag */)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       f[i][0] /= gjfa;
       f[i][1] /= gjfa;
       f[i][2] /= gjfa;
@@ -473,7 +476,7 @@ void FixLangevin::post_force(int /*vflag*/)
             if (zeroflag) post_force_templated<1,1,0,0,0,1>();
             else          post_force_templated<1,1,0,0,0,0>();
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<1,0,1,1,1,1>();
@@ -505,7 +508,7 @@ void FixLangevin::post_force(int /*vflag*/)
             else          post_force_templated<1,0,0,0,0,0>();
   else
     if (gjfflag)
-      if (tallyflag)
+      if (tallyflag  || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<0,1,1,1,1,1>();
@@ -536,7 +539,7 @@ void FixLangevin::post_force(int /*vflag*/)
             if (zeroflag) post_force_templated<0,1,0,0,0,1>();
             else          post_force_templated<0,1,0,0,0,0>();
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<0,0,1,1,1,1>();
@@ -660,12 +663,11 @@ void FixLangevin::post_force_templated()
         gamma2 = gfactor2[type[i]] * tsqrt;
       }
 
-      if (Tp_GJF){
+      if (Tp_GJF) {
         fran[0] = gamma2*random->gaussian();
         fran[1] = gamma2*random->gaussian();
         fran[2] = gamma2*random->gaussian();
-      }
-      else{
+      } else {
         fran[0] = gamma2*(random->uniform()-0.5);
         fran[1] = gamma2*(random->uniform()-0.5);
         fran[2] = gamma2*(random->uniform()-0.5);
@@ -729,7 +731,7 @@ void FixLangevin::post_force_templated()
       }
 
       if (Tp_TALLY) {
-        if (Tp_GJF){
+        if (Tp_GJF) {
           fdrag[0] = gamma1*lv[i][0]/gjfsib/gjfsib;
           fdrag[1] = gamma1*lv[i][1]/gjfsib/gjfsib;
           fdrag[2] = gamma1*lv[i][2]/gjfsib/gjfsib;
@@ -938,8 +940,8 @@ void FixLangevin::end_of_step()
 
   energy_onestep = 0.0;
 
-  if (tallyflag){
-    if (gjfflag){
+  if (tallyflag) {
+    if (gjfflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           if (tbiasflag)
@@ -957,19 +959,18 @@ void FixLangevin::end_of_step()
                             flangevin[i][2]*v[i][2];
   }
 
-  if (gjfflag){
+  if (gjfflag) {
     double tmp[3];
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit){
+      if (mask[i] & groupbit) {
         tmp[0] = v[i][0];
         tmp[1] = v[i][1];
         tmp[2] = v[i][2];
-        if (!osflag){
+        if (!osflag) {
           v[i][0] = lv[i][0];
           v[i][1] = lv[i][1];
           v[i][2] = lv[i][2];
-        }
-        else{
+        } else {
           if (atom->rmass) {
             dtfm = force->ftm2v * 0.5 * dt / rmass[i];
           } else {
@@ -1007,11 +1008,20 @@ void FixLangevin::reset_dt()
 {
   if (atom->mass) {
     for (int i = 1; i <= atom->ntypes; i++) {
-      gfactor2[i] = sqrt(atom->mass[i]) *
-        sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
-        force->ftm2v;
+      if (gjfflag)
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
+      else
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
+  }
+  if (gjfflag) {
+    gjfa = (1.0-update->dt/2.0/t_period)/(1.0+update->dt/2.0/t_period);
+    gjfsib = sqrt(1.0+update->dt/2.0/t_period);
   }
 }
 
@@ -1055,16 +1065,15 @@ double FixLangevin::compute_scalar()
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
-    if (!gjfflag){
+    if (!gjfflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
                             flangevin[i][2]*v[i][2];
       energy = 0.5*energy_onestep*update->dt;
-    }
-    else{
+    } else {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit){
+        if (mask[i] & groupbit) {
           if (tbiasflag)
             temperature->remove_bias(i, lv[i]);
           energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +

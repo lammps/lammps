@@ -268,6 +268,8 @@ void FixGCMC::options(int narg, char **arg)
   tfac_insert = 1.0;
   overlap_cutoffsq = 0.0;
   overlap_flag = 0;
+  min_ngas = -1;
+  max_ngas = INT_MAX;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -386,6 +388,14 @@ void FixGCMC::options(int narg, char **arg)
       double rtmp = force->numeric(FLERR,arg[iarg+1]);
       overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"min") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      min_ngas = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"max") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      max_ngas = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -893,7 +903,7 @@ void FixGCMC::attempt_atomic_deletion()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   int i = pick_random_gas_atom();
 
@@ -933,6 +943,8 @@ void FixGCMC::attempt_atomic_insertion()
   double lamda[3];
 
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   // pick coordinates for insertion point
 
@@ -1248,7 +1260,7 @@ void FixGCMC::attempt_molecule_deletion()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
@@ -1286,6 +1298,8 @@ void FixGCMC::attempt_molecule_insertion()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double com_coord[3];
   if (regionflag) {
@@ -1570,7 +1584,7 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   double energy_before = energy_stored;
 
@@ -1618,6 +1632,8 @@ void FixGCMC::attempt_atomic_insertion_full()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double energy_before = energy_stored;
 
@@ -1914,7 +1930,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
@@ -1996,6 +2012,8 @@ void FixGCMC::attempt_molecule_insertion_full()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double energy_before = energy_stored;
 

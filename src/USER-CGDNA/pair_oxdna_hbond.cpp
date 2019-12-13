@@ -26,19 +26,12 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
-
-// sequence-specific base-pairing strength
-// A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double alpha_hb[4][4] = 
-{{1.00000,1.00000,1.00000,0.82915},
- {1.00000,1.00000,1.15413,1.00000},
- {1.00000,1.15413,1.00000,1.00000},
- {0.82915,1.00000,1.00000,1.00000}};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +39,30 @@ PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+
+  // sequence-specific base-pairing strength
+  // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
+
+  alpha_hb[0][0] = 1.00000;
+  alpha_hb[0][1] = 1.00000;
+  alpha_hb[0][2] = 1.00000;
+  alpha_hb[0][3] = 0.82915;
+
+  alpha_hb[1][0] = 1.00000;
+  alpha_hb[1][1] = 1.00000;
+  alpha_hb[1][2] = 1.15413;
+  alpha_hb[1][3] = 1.00000;
+
+  alpha_hb[2][0] = 1.00000;
+  alpha_hb[2][1] = 1.15413;
+  alpha_hb[2][2] = 1.00000;
+  alpha_hb[2][3] = 1.00000;
+
+  alpha_hb[3][0] = 0.82915;
+  alpha_hb[3][1] = 1.00000;
+  alpha_hb[3][2] = 1.00000;
+  alpha_hb[3][3] = 1.00000;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -616,7 +633,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
   if (narg != 27) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/hbond");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
+  int ilo,ihi,jlo,jhi,imod4,jmod4;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
@@ -729,8 +746,13 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
+      imod4 = i%4;
+      if (imod4 == 0) imod4 = 4;
+      jmod4 = j%4;
+      if (jmod4 == 0) jmod4 = 4;
+
       epsilon_hb[i][j] = epsilon_hb_one;
-      if (seqdepflag) epsilon_hb[i][j] *= alpha_hb[i-1][j-1];
+      if (seqdepflag) epsilon_hb[i][j] *= alpha_hb[imod4-1][jmod4-1];
       a_hb[i][j] = a_hb_one;
       cut_hb_0[i][j] = cut_hb_0_one;
       cut_hb_c[i][j] = cut_hb_c_one;
@@ -741,7 +763,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
       b_hb_lo[i][j] = b_hb_lo_one;
       b_hb_hi[i][j] = b_hb_hi_one;
       shift_hb[i][j] = shift_hb_one;
-      if (seqdepflag) shift_hb[i][j] *= alpha_hb[i-1][j-1];
+      if (seqdepflag) shift_hb[i][j] *= alpha_hb[imod4-1][jmod4-1];
 
       a_hb1[i][j] = a_hb1_one;
       theta_hb1_0[i][j] = theta_hb1_0_one;
@@ -789,20 +811,6 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdnaHbond::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
-
-}
-
-/* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 
@@ -820,6 +828,7 @@ void PairOxdnaHbond::init_list(int id, NeighList *ptr)
 
 double PairOxdnaHbond::init_one(int i, int j)
 {
+  int imod4,jmod4;
 
   if (setflag[i][j] == 0) {
     error->all(FLERR,"Coefficient mixing not defined in oxDNA");
@@ -828,8 +837,13 @@ double PairOxdnaHbond::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxDNA");
   }
 
+  imod4 = i%4;
+  if (imod4 == 0) imod4 = 4;
+  jmod4 = j%4;
+  if (jmod4 == 0) jmod4 = 4;
+
   if (seqdepflag) {
-    epsilon_hb[j][i] = epsilon_hb[i][j] / alpha_hb[i-1][j-1] * alpha_hb[j-1][i-1];
+    epsilon_hb[j][i] = epsilon_hb[i][j] / alpha_hb[imod4-1][jmod4-1] * alpha_hb[jmod4-1][imod4-1];
   }
   else {
     epsilon_hb[j][i] = epsilon_hb[i][j];
@@ -844,7 +858,7 @@ double PairOxdnaHbond::init_one(int i, int j)
   cut_hb_lc[j][i] = cut_hb_lc[i][j];
   cut_hb_hc[j][i] = cut_hb_hc[i][j];
   if (seqdepflag) {
-    shift_hb[j][i] = shift_hb[i][j] / alpha_hb[i-1][j-1] * alpha_hb[j-1][i-1];
+    shift_hb[j][i] = shift_hb[i][j] / alpha_hb[imod4-1][jmod4-1] * alpha_hb[jmod4-1][imod4-1];
   }
   else {
     shift_hb[j][i] = shift_hb[i][j];
@@ -973,58 +987,58 @@ void PairOxdnaHbond::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          fread(&epsilon_hb[i][j],sizeof(double),1,fp);
-          fread(&a_hb[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_0[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_c[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_lo[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_hi[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_lc[i][j],sizeof(double),1,fp);
-          fread(&cut_hb_hc[i][j],sizeof(double),1,fp);
-          fread(&b_hb_lo[i][j],sizeof(double),1,fp);
-          fread(&b_hb_hi[i][j],sizeof(double),1,fp);
-          fread(&shift_hb[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon_hb[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_hb[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_lo[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_lc[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_hb_hc[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb_lo[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&shift_hb[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb1[i][j],sizeof(double),1,fp);
-          fread(&theta_hb1_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb1_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb1[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb1_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb1_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb1_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb1_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb2[i][j],sizeof(double),1,fp);
-          fread(&theta_hb2_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb2_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb2[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb2_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb2_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb2_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb2_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb3[i][j],sizeof(double),1,fp);
-          fread(&theta_hb3_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb3_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb3[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb3_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb3_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb3_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb3_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb4[i][j],sizeof(double),1,fp);
-          fread(&theta_hb4_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb4_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb4[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb4_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb4[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb4_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb4_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb4[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb4_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb7[i][j],sizeof(double),1,fp);
-          fread(&theta_hb7_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb7_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb7[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb7_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb7[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb7_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb7_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb7[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb7_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_hb8[i][j],sizeof(double),1,fp);
-          fread(&theta_hb8_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb8_ast[i][j],sizeof(double),1,fp);
-          fread(&b_hb8[i][j],sizeof(double),1,fp);
-          fread(&dtheta_hb8_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_hb8[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_hb8_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb8_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_hb8[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_hb8_c[i][j],sizeof(double),1,fp,NULL,error);
 
         }
 
@@ -1099,9 +1113,9 @@ void PairOxdnaHbond::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

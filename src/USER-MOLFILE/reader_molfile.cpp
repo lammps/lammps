@@ -282,7 +282,7 @@ bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic
   }
 
   // if no field info requested, just return
- 
+
  if (!fieldinfo) return natoms;
 
   memory->create(fieldindex,nfield,"read_dump:fieldindex");

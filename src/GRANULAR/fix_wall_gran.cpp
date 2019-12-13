@@ -1143,8 +1143,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     a2 = a*a;
     knfac = normal_coeffs[0]*a;
     Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
-  }
-  else{
+  } else {
     knfac = E; //Hooke
     a = sqrt(dR);
     Fne = knfac*delta;
@@ -1158,16 +1157,13 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
   if (damping_model == VELOCITY) {
     damp_normal = 1;
-  }
-  else if (damping_model == MASS_VELOCITY) {
+  } else if (damping_model == MASS_VELOCITY) {
     damp_normal = meff;
-  }
-  else if (damping_model == VISCOELASTIC) {
+  } else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;
-  }
-  else if (damping_model == TSUJI) {
+  } else if (damping_model == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;

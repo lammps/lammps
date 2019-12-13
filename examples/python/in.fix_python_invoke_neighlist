@@ -1,0 +1,72 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 2 0 2 0 2
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.1 bin
+
+neigh_modify	every 20 delay 0 check no
+
+python         post_force_callback here """
+from __future__ import print_function
+from lammps import lammps
+
+def post_force_callback(lmp, v):
+  try:
+    import os
+    pid = os.getpid()
+    pid_prefix = "[{}] ".format(pid)
+
+    L = lammps(ptr=lmp)
+    t = L.extract_global("ntimestep", 0)
+    print(pid_prefix, "### POST_FORCE ###", t)
+
+    #mylist = L.get_neighlist(0)
+    mylist = L.find_pair_neighlist("lj/cut", request=0)
+    print(pid_prefix, mylist)
+    nlocal = L.extract_global("nlocal", 0)
+    nghost = L.extract_global("nghost", 0)
+    ntypes = L.extract_global("ntypes", 0)
+    mass = L.numpy.extract_atom_darray("mass", ntypes+1)
+    atype = L.numpy.extract_atom_iarray("type", nlocal+nghost)
+    x = L.numpy.extract_atom_darray("x", nlocal+nghost, dim=3)
+    v = L.numpy.extract_atom_darray("v", nlocal+nghost, dim=3)
+    f = L.numpy.extract_atom_darray("f", nlocal+nghost, dim=3)
+
+    for iatom, numneigh, neighs in mylist:
+      print(pid_prefix, "- {}".format(iatom), x[iatom], v[iatom], f[iatom], " : ",  numneigh, "Neighbors")
+      for jatom in neighs:
+        if jatom < nlocal:
+            print(pid_prefix, "    *  ", jatom, x[jatom], v[jatom], f[jatom])
+        else:
+            print(pid_prefix, "    * [GHOST]", jatom, x[jatom], v[jatom], f[jatom])
+  except Exception as e:
+    print(e)
+"""
+
+fix		1 all nve
+fix     3 all python/invoke 50 post_force post_force_callback
+
+#dump		id all atom 1 dump.melt
+
+#dump		2 all image 1 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 1 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		1
+run		100

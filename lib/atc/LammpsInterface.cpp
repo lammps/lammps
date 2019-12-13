@@ -902,7 +902,7 @@ int LammpsInterface::reset_ghosts(int deln) const
 
 //* energy for interactions within the shortrange cutoff
 double LammpsInterface::shortrange_energy(double *coord, 
-  int itype, int id, double max) const
+                                          int itype, int id, double /* max */) const
 {
   LAMMPS_NS::Atom * atom  = lammps_->atom;
   double **x = atom->x;
@@ -1293,7 +1293,7 @@ int LammpsInterface::nsteps() const    { return lammps_->update->nsteps; }
 
 int LammpsInterface::sbmask(int j) const {return j >> SBBITS & 3; }
 
-void LammpsInterface::set_list(int id, LAMMPS_NS::NeighList *ptr) { list_ = ptr; }
+void LammpsInterface::set_list(int /* id */, LAMMPS_NS::NeighList *ptr) { list_ = ptr; }
 
 int   LammpsInterface::neighbor_list_inum() const { return list_->inum; }
 

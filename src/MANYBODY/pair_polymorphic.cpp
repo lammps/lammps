@@ -582,12 +582,12 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&n,1,MPI_INT,0,world);
   MPI_Bcast(line,n,MPI_CHAR,0,world);
   r_token = line;
-  ptr = strtok_r(r_token," \t\n\r\f",&r_token); // 1st line, 1st token
+  ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token); // 1st line, 1st token
   int ntypes = atoi(ptr);
   if (ntypes != nelements)
     error->all(FLERR,"Incorrect number of elements in potential file");
   match = new int[nelements];
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 1st line, 2nd token
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 1st line, 2nd token
   eta = (atoi(ptr)>0) ? true:false;
 
   // map the elements in the potential file to LAMMPS atom types
@@ -599,9 +599,9 @@ void PairPolymorphic::read_file(char *file)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
     r_token = line;
-    ptr = strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
-    ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 2st token
-    ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 3st token
+    ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
+    ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 2st token
+    ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 3st token
     int j;
     for (j = 0; j < nelements; j++) {
       if (strcmp(ptr,elements[j]) == 0) break;
@@ -623,13 +623,13 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(line,n,MPI_CHAR,0,world);
   r_token = line;
   nr = ng = nx = 0;
-  ptr = strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
+  ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
   if (ptr) nr = atoi(ptr);
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 2nd token
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 2nd token
   if (ptr) ng = atoi(ptr);
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 3rd token
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 3rd token
   if (ptr) nx = atoi(ptr);
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 4th token
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 4th token
   if (ptr) maxX = atof(ptr);
   if (ptr == NULL)
     error->all(FLERR,"Potential file incompatible with this pair style version");
@@ -655,10 +655,10 @@ void PairPolymorphic::read_file(char *file)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
     r_token = line;
-    ptr = strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
+    ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token); // 1st token
     p.cut = atof(ptr);
     p.cutsq = p.cut*p.cut;
-    ptr = strtok_r(NULL," \t\n\r\f",&r_token); // 2nd token
+    ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token); // 2nd token
     p.xi = (atoi(ptr)>0) ? true:false;
   }
 
@@ -884,9 +884,9 @@ void PairPolymorphic::grab(FILE *fp, int n, double *list)
   while (i < n) {
     utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
     r_token = line;
-    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
+    ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
     list[i++] = atof(ptr);
-    while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token)))
+    while ((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token)))
       list[i++] = atof(ptr);
   }
 }

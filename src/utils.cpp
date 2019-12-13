@@ -188,6 +188,31 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
   return;
 }
 
+/* like strtok() but reentrant; POSIX standard but not found everywhere */
+char *utils::strtok_r(char *str, const char *delim, char **saveptr)
+{
+  if (str == NULL)
+    str = *saveptr;
+
+  str += strspn(str, delim);
+
+  if (*str == '\0')
+  {
+    *saveptr = str;
+    return NULL;
+  }
+
+  *saveptr = str + strcspn(str, delim);
+
+  if (**saveptr != '\0')
+  {
+    **saveptr = '\0';
+    ++*saveptr;
+  }
+
+  return str;
+}
+
 /* ------------------------------------------------------------------ */
 
 std::string utils::check_packages_for_style(std::string style,

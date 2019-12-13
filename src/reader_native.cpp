@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -162,13 +163,13 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   nwords = atom->count_words(labelline);
   r_token = labelline;
   char **labels = new char*[nwords];
-  labels[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+  labels[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
   if (labels[0] == NULL) {
     delete[] labels;
     return 1;
   }
   for (int m = 1; m < nwords; m++) {
-    labels[m] = strtok_r(NULL," \t\n\r\f",&r_token);
+    labels[m] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
     if (labels[m] == NULL) {
       delete[] labels;
       return 1;
@@ -329,9 +330,9 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
     // tokenize the line
     r_token = line;
 
-    words[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+    words[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
     for (m = 1; m < nwords; m++)
-      words[m] = strtok_r(NULL," \t\n\r\f",&r_token);
+      words[m] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
 
     // convert selected fields to floats
 

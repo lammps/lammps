@@ -50,11 +50,3 @@ inline int mkdir(const char *path, int){
   return _mkdir(path);
 }
 
-// MSVC does not have strtok_r, but its strtok is thread-safe
-#ifdef _MSC_VER
-static inline char *strtok_r(char * _noalias str, const char * _noalias delim, char ** _noalias saveptr) {
-  LMP_UNUSED_PARAM(saveptr);
-  return strtok(str, delim);
-}
-#endif
-

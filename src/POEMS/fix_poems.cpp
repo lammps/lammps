@@ -34,6 +34,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -969,11 +970,11 @@ void FixPOEMS::readfile(char *file)
     MPI_Bcast(line,nlen,MPI_CHAR,0,world);
     r_token = line;
 
-    ptr = strtok_r(r_token," ,\t\n\0",&r_token);
+    ptr = utils::strtok_r(r_token," ,\t\n\0",&r_token);
     if (ptr == NULL || ptr[0] == '#') continue;
-    ptr = strtok_r(NULL," ,\t\n\0",&r_token);
+    ptr = utils::strtok_r(NULL," ,\t\n\0",&r_token);
 
-    while ((ptr = strtok_r(NULL," ,\t\n\0",&r_token))) {
+    while ((ptr = utils::strtok_r(NULL," ,\t\n\0",&r_token))) {
       id = atoi(ptr);
       i = atom->map(id);
       if (i < 0 || i >= nlocal) continue;

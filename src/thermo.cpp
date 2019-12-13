@@ -44,6 +44,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -239,8 +240,8 @@ void Thermo::init()
 
     if (format_line) {
       r_token = format_line;
-      if (i == 0) format_line_ptr = strtok_r(r_token," \0",&r_token);
-      else format_line_ptr = strtok_r(NULL," \0",&r_token);
+      if (i == 0) format_line_ptr = utils::strtok_r(r_token," \0",&r_token);
+      else format_line_ptr = utils::strtok_r(NULL," \0",&r_token);
     }
 
     if (format_column_user[i]) ptr = format_column_user[i];
@@ -725,7 +726,7 @@ void Thermo::parse_fields(char *str)
   // customize a new keyword by adding to if statement
   r_token = str;
 
-  char *word = strtok_r(r_token," \0",&r_token);
+  char *word = utils::strtok_r(r_token," \0",&r_token);
   while (word) {
 
     if (strcmp(word,"step") == 0) {
@@ -998,7 +999,7 @@ void Thermo::parse_fields(char *str)
 
     } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
-    word = strtok_r(NULL," \0",&r_token);
+    word = utils::strtok_r(NULL," \0",&r_token);
   }
 }
 

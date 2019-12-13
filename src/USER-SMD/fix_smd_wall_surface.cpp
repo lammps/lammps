@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "error.h"
 #include "atom_vec.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -201,12 +202,12 @@ int FixSMDWallSurface::count_words(const char *line) {
                 *ptr = '\0';
         r_token = copy;
 
-        if (strtok_r(r_token, " \t\n\r\f",&r_token) == NULL) {
+        if (utils::strtok_r(r_token, " \t\n\r\f",&r_token) == NULL) {
                 memory->destroy(copy);
                 return 0;
         }
         n = 1;
-        while (strtok_r(NULL, " \t\n\r\f",&r_token))
+        while (utils::strtok_r(NULL, " \t\n\r\f",&r_token))
                 n++;
 
         memory->destroy(copy);
@@ -276,11 +277,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
 //      r_token = line;
 //      values = new char*[nwords];
-//      values[0] = strtok_r(r_token, " \t\n\r\f",&r_token);
+//      values[0] = utils::strtok_r(r_token, " \t\n\r\f",&r_token);
 //      if (values[0] == NULL)
 //              error->all(FLERR, "Incorrect atom format in data file");
 //      for (m = 1; m < nwords; m++) {
-//              values[m] = strtok_r(NULL, " \t\n\r\f",&r_token);
+//              values[m] = utils::strtok_r(NULL, " \t\n\r\f",&r_token);
 //              if (values[m] == NULL)
 //                      error->all(FLERR, "Incorrect atom format in data file");
 //      }
@@ -306,11 +307,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     values = new char*[nwords];
     r_token = line;
-    values[0] = strtok_r(r_token, " \t\n\r\f", &r_token);
+    values[0] = utils::strtok_r(r_token, " \t\n\r\f", &r_token);
     if (values[0] == NULL)
       error->all(FLERR, "Incorrect atom format in data file");
     for (m = 1; m < nwords; m++) {
-      values[m] = strtok_r(NULL, " \t\n\r\f", &r_token);
+      values[m] = utils::strtok_r(NULL, " \t\n\r\f", &r_token);
       if (values[m] == NULL)
         error->all(FLERR, "Incorrect atom format in data file");
     }
@@ -346,11 +347,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
       values = new char*[nwords];
       r_token = line;
-      values[0] = strtok_r(r_token, " \t\n\r\f", &r_token);
+      values[0] = utils::strtok_r(r_token, " \t\n\r\f", &r_token);
       if (values[0] == NULL)
         error->all(FLERR,"Incorrect vertex line");
       for (m = 1; m < nwords; m++) {
-        values[m] = strtok_r(NULL, " \t\n\r\f", &r_token);
+        values[m] = utils::strtok_r(NULL, " \t\n\r\f", &r_token);
         if (values[m] == NULL)
           error->all(FLERR, "Incorrect vertex line");
       }

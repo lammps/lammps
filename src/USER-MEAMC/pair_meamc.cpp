@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -417,8 +418,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     r_token = line;
     nwords = 0;
-    words[nwords++] = strtok_r(r_token,"' \t\n\r\f",&r_token);
-    while ((words[nwords++] = strtok_r(NULL,"' \t\n\r\f",&r_token))) continue;
+    words[nwords++] = utils::strtok_r(r_token,"' \t\n\r\f",&r_token);
+    while ((words[nwords++] = utils::strtok_r(NULL,"' \t\n\r\f",&r_token))) continue;
 
     // skip if element name isn't in element list
 
@@ -554,9 +555,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     r_token = line;
     nparams = 0;
-    params[nparams++] = strtok_r(r_token,"=(), '\t\n\r\f",&r_token);
+    params[nparams++] = utils::strtok_r(r_token,"=(), '\t\n\r\f",&r_token);
     while (nparams < maxparams &&
-           (params[nparams++] = strtok_r(NULL,"=(), '\t\n\r\f",&r_token)))
+           (params[nparams++] = utils::strtok_r(NULL,"=(), '\t\n\r\f",&r_token)))
       continue;
     nparams--;
 

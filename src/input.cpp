@@ -1152,14 +1152,14 @@ void Input::partition()
   int ilo,ihi;
   force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
 
-  // copy original line to copy, since will use strtok_r() on it
+  // copy original line to copy, since will use utils::strtok_r() on it
   // ptr = start of 4th word
 
   strcpy(copy,line);
   r_token = copy;
-  char *ptr = strtok_r(r_token," \t\n\r\f",&r_token);
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token);
-  ptr = strtok_r(NULL," \t\n\r\f",&r_token);
+  char *ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token);
+  ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token);
   ptr += strlen(ptr) + 1;
   ptr += strspn(ptr," \t\n\r\f");
 

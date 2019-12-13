@@ -155,8 +155,8 @@ void PairEAMAlloy::read_file(char *filename)
   char **words = new char*[file->nelements+1];
   r_token = line;
   nwords = 0;
-  strtok_r(r_token," \t\n\r\f",&r_token);
-  while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
+  utils::strtok_r(r_token," \t\n\r\f",&r_token);
+  while ((words[nwords++] = utils::strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
   file->elements = new char*[file->nelements];
   for (int i = 0; i < file->nelements; i++) {

@@ -610,8 +610,8 @@ void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
         // Parse first derivatives at beginning and end of spline.
         utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
         r_token = line;
-        double d0 = atof(strtok_r(r_token, " \t\n\r\f",&r_token));
-        double dN = atof(strtok_r(NULL, " \t\n\r\f",&r_token));
+        double d0 = atof(utils::strtok_r(r_token, " \t\n\r\f",&r_token));
+        double dN = atof(utils::strtok_r(NULL, " \t\n\r\f",&r_token));
         init(n, d0, dN);
 
         // Skip line.

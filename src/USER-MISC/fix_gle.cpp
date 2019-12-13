@@ -29,6 +29,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -256,10 +257,10 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     if (nwords == 0) continue;
     r_token = line;
 
-    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
+    ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
     do {
       A[ndone] = atof(ptr);
-      ptr = strtok_r(NULL," \t\n\r\f",&r_token);
+      ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       ndone++;
     } while ((ptr != NULL) && (ndone < ns1sq));
   }
@@ -329,10 +330,10 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       if (nwords == 0) continue;
       r_token = line;
 
-      ptr = strtok_r(r_token," \t\n\r\f",&r_token);
+      ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
       do {
         C[ndone] = cfac*atof(ptr);
-        ptr = strtok_r(NULL," \t\n\r\f",&r_token);
+        ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token);
         ndone++;
       } while ((ptr != NULL) && (ndone < ns1sq));
     }

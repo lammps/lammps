@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -514,12 +515,12 @@ void PairEAMCD::read_h_coeff(char *filename)
       strcpy(line, nextline);
     }
     r_token = line;
-    char* ptr = strtok_r(r_token, " \t\n\r\f",&r_token);
+    char* ptr = utils::strtok_r(r_token, " \t\n\r\f",&r_token);
     int degree = atoi(ptr);
     nhcoeff = degree+1;
     hcoeff = new double[nhcoeff];
     int i = 0;
-    while((ptr = strtok_r(NULL," \t\n\r\f",&r_token)) != NULL && i < nhcoeff) {
+    while((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token)) != NULL && i < nhcoeff) {
       hcoeff[i++] = atof(ptr);
     }
     if (i != nhcoeff || nhcoeff < 1)

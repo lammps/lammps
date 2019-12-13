@@ -28,6 +28,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -116,8 +117,8 @@ void PairTersoffMOD::read_file(char *file)
 
     r_token = line;
     nwords = 0;
-    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
-    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
+    words[nwords++] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = utils::strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line

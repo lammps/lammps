@@ -41,6 +41,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "utils.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -112,7 +113,7 @@ void concatenate_lines(char *ptr)
     ptr[nend] = ' ';
     r_token = ptr;
     ptr[n] = ' ';
-    strtok_r(r_token,"\n",&r_token);
+    utils::strtok_r(r_token,"\n",&r_token);
     nend = strlen(ptr);
     n = nend-1;
     while (n && isspace(ptr[n])) n--;
@@ -285,7 +286,7 @@ void lammps_commands_string(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // make copy of str so can strtok_r() it
+  // make copy of str so can utils::strtok_r() it
 
   int n = strlen(str) + 1;
   char *copy = new char[n];

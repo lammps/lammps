@@ -84,6 +84,16 @@ namespace LAMMPS_NS {
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);
 
+    /** \brief Tokenize a C string in a reentrant manner
+     *
+     *  \param str     string to be tokenized on first call, NULL thereafter
+     *  \param delim   set of characters that delimit the tokens
+     *  \param saveptr parsing state, to be maintained between calls
+     *  \return pointer to next token, or NULL if none remaining
+     */
+    char *strtok_r(char * _noalias str, const char * _noalias delim,
+                   char ** _noalias saveptr);
+
     /** \brief Report if a requested style is in a package or may have a typo
      *
      *  \param style type of style that is to be checked for

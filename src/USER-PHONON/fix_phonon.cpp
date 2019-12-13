@@ -38,6 +38,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -572,10 +573,10 @@ void FixPhonon::readmap()
   if (fgets(line,MAXLINE,fp) == NULL)
     error->all(FLERR,"Error while reading header of mapping file!");
   r_token = line;
-  nx     = force->inumeric(FLERR, strtok_r(r_token, " \n\t\r\f",&r_token));
-  ny     = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
-  nz     = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
-  nucell = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+  nx     = force->inumeric(FLERR, utils::strtok_r(r_token, " \n\t\r\f",&r_token));
+  ny     = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
+  nz     = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
+  nucell = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
   ntotal = nx*ny*nz;
   if (ntotal*nucell != ngroup)
     error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
@@ -589,11 +590,11 @@ void FixPhonon::readmap()
   for (int i = 0; i < ngroup; ++i){
     if (fgets(line,MAXLINE,fp) == NULL) {info = 1; break;}
     r_token = line;
-    ix   = force->inumeric(FLERR, strtok_r(r_token, " \n\t\r\f",&r_token));
-    iy   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
-    iz   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
-    iu   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
-    itag = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+    ix   = force->inumeric(FLERR, utils::strtok_r(r_token, " \n\t\r\f",&r_token));
+    iy   = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
+    iz   = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
+    iu   = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
+    itag = force->inumeric(FLERR, utils::strtok_r(NULL, " \n\t\r\f",&r_token));
 
     // check if index is in correct range
     if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||

@@ -367,8 +367,8 @@ void FixEOStableRX::read_file(char *file)
 
     r_token = line;
     nwords = 0;
-    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
-    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
+    words[nwords++] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = utils::strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
@@ -436,7 +436,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     r_token = line;
-    char *word = strtok_r(r_token," \t\n\r",&r_token);
+    char *word = utils::strtok_r(r_token," \t\n\r",&r_token);
     if (strcmp(word,keyword) == 0) break;           // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
@@ -486,8 +486,8 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     }
     r_token = line;
     nwords = 0;
-    word = strtok_r(r_token," \t\n\r\f",&r_token);
-    word = strtok_r(NULL," \t\n\r\f",&r_token);
+    word = utils::strtok_r(r_token," \t\n\r\f",&r_token);
+    word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
     rtmp = atof(word);
 
     for (int icolumn=0;icolumn<ncolumn;icolumn++){
@@ -496,7 +496,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
       Table *tbl = &tables[ispecies];
       Table *tbl2 = &tables2[ispecies];
 
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tmpE = atof(word);
 
       tbl->rfile[i] = rtmp;
@@ -579,13 +579,13 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   tb->ninput = 0;
   r_token = line;
 
-  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
+  char *word = utils::strtok_r(r_token," \t\n\r\f",&r_token);
   if (strcmp(word,"N") == 0) {
-    word = strtok_r(NULL," \t\n\r\f",&r_token);
+    word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
     tb->ninput = atoi(word);
   } else
     error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
-  word = strtok_r(NULL," \t\n\r\f",&r_token);
+  word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
 
   if(rx_flag){
     while (word) {
@@ -599,7 +599,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
         printf("name=%s not found in species list\n",word);
         error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
       }
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
     }
 
     for (int icolumn = 0; icolumn < ncolumn; icolumn++)

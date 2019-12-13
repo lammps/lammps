@@ -35,6 +35,7 @@
 #endif
 
 #include "error.h"
+#include "utils.h"
 
 struct timeval tim;
 double t_end;
@@ -64,7 +65,7 @@ int Tokenize( char* s, char*** tok )
   strncpy( test, s, MAX_LINE-1);
 
   r_token = test;
-  for( word = strtok_r(r_token, sep,&r_token); word; word = strtok_r(NULL, sep,&r_token) ) {
+  for( word = utils::strtok_r(r_token, sep,&r_token); word; word = utils::strtok_r(NULL, sep,&r_token) ) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
   }

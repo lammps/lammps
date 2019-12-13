@@ -736,19 +736,19 @@ void PairLocalDensity::parse_file(char *filename) {
         // parse and broadcast central atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         r_token = line;
-        char *tmp = strtok_r(r_token, " /t/n/r/f", &r_token);
+        char *tmp = utils::strtok_r(r_token, " /t/n/r/f", &r_token);
         while (tmp != NULL) {
             a[k][atoi(tmp)] = 1;
-            tmp = strtok_r(NULL, " /t/n/r/f", &r_token);
+            tmp = utils::strtok_r(NULL, " /t/n/r/f", &r_token);
         }
 
         // parse neighbor atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         r_token = line;
-        tmp = strtok_r(r_token, " /t/n/r/f", &r_token);
+        tmp = utils::strtok_r(r_token, " /t/n/r/f", &r_token);
         while (tmp != NULL) {
             b[k][atoi(tmp)] = 1;
-            tmp = strtok_r(NULL, " /t/n/r/f", &r_token);
+            tmp = utils::strtok_r(NULL, " /t/n/r/f", &r_token);
         }
 
         // parse min, max and delta rho values

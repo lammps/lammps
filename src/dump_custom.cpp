@@ -28,6 +28,7 @@
 #include "error.h"
 #include "update.h"
 #include "variable.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -280,8 +281,8 @@ void DumpCustom::init_style()
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     r_token = format;
-    if (i == 0) ptr = strtok_r(r_token," \0",&r_token);
-    else ptr = strtok_r(NULL," \0",&r_token);
+    if (i == 0) ptr = utils::strtok_r(r_token," \0",&r_token);
+    else ptr = utils::strtok_r(NULL," \0",&r_token);
     if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
 

@@ -69,6 +69,7 @@
 #include "input.h"
 #include "variable.h"
 #include "fix_store_kim.h"
+#include "utils.h"
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -176,7 +177,7 @@ void KimInteractions::do_setup(int narg, char **arg)
           simulatorModel,&sim_num_species);
       strcpy(strbuf,atom_type_sym_list.c_str());
       r_token = strbuf;
-      strword = strtok_r(r_token," \t",&r_token);
+      strword = utils::strtok_r(r_token," \t",&r_token);
       while (strword) {
         species_is_supported = false;
         if (strcmp(strword,"NULL") == 0) continue;
@@ -191,7 +192,7 @@ void KimInteractions::do_setup(int narg, char **arg)
           msg += "' is not supported by this KIM Simulator Model";
           error->all(FLERR,msg.c_str());
         }
-        strword = strtok_r(NULL," \t",&r_token);
+        strword = utils::strtok_r(NULL," \t",&r_token);
       }
       delete[] strbuf;
     }

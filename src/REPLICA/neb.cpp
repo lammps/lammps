@@ -33,6 +33,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -461,9 +462,9 @@ void NEB::readfile(char *file, int flag)
       next = strchr(buf,'\n');
       r_token = buf;
 
-      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+      values[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
+        values[j] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
 
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas

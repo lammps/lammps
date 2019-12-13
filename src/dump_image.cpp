@@ -35,6 +35,7 @@
 #include "math_extra.h"
 #include "error.h"
 #include "memory.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1261,8 +1262,8 @@ int DumpImage::modify_param(int narg, char **arg)
     char **ptrs = new char*[ncount+1];
     r_token = arg[2];
     ncount = 0;
-    ptrs[ncount++] = strtok_r(r_token,"/",&r_token);
-    while ((ptrs[ncount++] = strtok_r(NULL,"/",&r_token)));
+    ptrs[ncount++] = utils::strtok_r(r_token,"/",&r_token);
+    while ((ptrs[ncount++] = utils::strtok_r(NULL,"/",&r_token)));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types
@@ -1325,8 +1326,8 @@ int DumpImage::modify_param(int narg, char **arg)
     char **ptrs = new char*[ncount+1];
     r_token = arg[2];
     ncount = 0;
-    ptrs[ncount++] = strtok_r(r_token,"/",&r_token);
-    while ((ptrs[ncount++] = strtok_r(NULL,"/",&r_token)));
+    ptrs[ncount++] = utils::strtok_r(r_token,"/",&r_token);
+    while ((ptrs[ncount++] = utils::strtok_r(NULL,"/",&r_token)));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types

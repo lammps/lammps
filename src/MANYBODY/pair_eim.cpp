@@ -895,8 +895,8 @@ int PairEIM::grabglobal(FILE *fptr)
     pch = strstr(line,"global");
     if (pch != NULL) {
       r_token = line;
-      data = strtok_r (r_token," \t\n\r\f",&r_token);
-      data = strtok_r (NULL,"?",&r_token);
+      data = utils::strtok_r (r_token," \t\n\r\f",&r_token);
+      data = utils::strtok_r (NULL,"?",&r_token);
       sscanf(data,"%lg %lg %lg",&setfl->division,&setfl->rbig,&setfl->rsmall);
     }
   }
@@ -920,12 +920,12 @@ int PairEIM::grabsingle(FILE *fptr, int i)
   while (pch1 == NULL || pch2 == NULL) {
     if (fgets(line,MAXLINE,fptr) == NULL) break;
     r_token = line;
-    pch1 = strtok_r (r_token," \t\n\r\f",&r_token);
+    pch1 = utils::strtok_r (r_token," \t\n\r\f",&r_token);
     pch1 = strstr(pch1,"element:");
     if (pch1 != NULL) {
-      pch2 = strtok_r(NULL, " \t\n\r\f",&r_token);
+      pch2 = utils::strtok_r(NULL, " \t\n\r\f",&r_token);
       if (pch2 != NULL) {
-        data = strtok_r (NULL, "?",&r_token);
+        data = utils::strtok_r (NULL, "?",&r_token);
         if (strcmp(pch2,elements[i]) == 0) {
           sscanf(data,"%d %lg %lg %lg %lg %lg %lg",&setfl->ielement[i],
             &setfl->mass[i],&setfl->negativity[i],&setfl->ra[i],
@@ -959,12 +959,12 @@ int PairEIM::grabpair(FILE *fptr, int i, int j)
   while (pch1 == NULL || pch2 == NULL || pch3 == NULL) {
     if (fgets(line,MAXLINE,fptr) == NULL) break;
     r_token = line;
-    pch1 = strtok_r (r_token," \t\n\r\f",&r_token);
+    pch1 = utils::strtok_r (r_token," \t\n\r\f",&r_token);
     pch1 = strstr(pch1,"pair:");
     if (pch1 != NULL) {
-      pch2 = strtok_r (r_token, " \t\n\r\f",&r_token);
-      if (pch2 != NULL) pch3 = strtok_r (NULL, " \t\n\r\f",&r_token);
-      if (pch3 != NULL) data = strtok_r (NULL, "?",&r_token);
+      pch2 = utils::strtok_r (r_token, " \t\n\r\f",&r_token);
+      if (pch2 != NULL) pch3 = utils::strtok_r (NULL, " \t\n\r\f",&r_token);
+      if (pch3 != NULL) data = utils::strtok_r (NULL, "?",&r_token);
       if ((pch2 != NULL) && (pch3 != NULL)) {
         if ((strcmp(pch2,elements[i]) == 0 &&
           strcmp(pch3,elements[j]) == 0) ||

@@ -32,6 +32,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -256,7 +257,7 @@ void FixElectronStopping::read_table(const char *file)
     if (line[0] == '#') continue; // comment
 
     r_token = line;
-    char *pch = strtok_r(r_token, " \t\n\r", &r_token);
+    char *pch = utils::strtok_r(r_token, " \t\n\r", &r_token);
     if (pch == NULL) continue; // blank line
 
     if (l >= maxlines) grow_table();
@@ -264,7 +265,7 @@ void FixElectronStopping::read_table(const char *file)
     int i = 0;
     for ( ; i < ncol && pch != NULL; i++) {
       elstop_ranges[i][l] = force->numeric(FLERR, pch);
-      pch = strtok_r(NULL, " \t\n\r", &r_token);
+      pch = utils::strtok_r(NULL, " \t\n\r", &r_token);
     }
 
     if (i != ncol || pch != NULL) // too short or too long

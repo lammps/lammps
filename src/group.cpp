@@ -315,11 +315,11 @@ void Group::assign(int narg, char **arg)
         delta = 1;
         if (strchr(arg[iarg],':')) {
           r_token = arg[iarg];
-          ptr = strtok_r(r_token,":",&r_token);
+          ptr = utils::strtok_r(r_token,":",&r_token);
           start = force->tnumeric(FLERR,ptr);
-          ptr = strtok_r(NULL,":",&r_token);
+          ptr = utils::strtok_r(NULL,":",&r_token);
           stop = force->tnumeric(FLERR,ptr);
-          ptr = strtok_r(NULL,":",&r_token);
+          ptr = utils::strtok_r(NULL,":",&r_token);
           if (ptr) delta = force->tnumeric(FLERR,ptr);
         } else {
           start = stop = force->tnumeric(FLERR,arg[iarg]);

@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -2289,9 +2290,9 @@ void FixRigid::readfile(int which, double *vec,
       next = strchr(buf,'\n');
       r_token = buf;
 
-      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+      values[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
+        values[j] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
 
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {

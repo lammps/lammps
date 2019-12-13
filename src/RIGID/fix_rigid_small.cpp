@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 #include <map>
 
@@ -2454,9 +2455,9 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
       next = strchr(buf,'\n');
       r_token = buf;
 
-      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+      values[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
+        values[j] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
 
       id = ATOTAGINT(values[0]);
       if (id <= 0 || id > maxmol)

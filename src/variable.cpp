@@ -5124,7 +5124,7 @@ int VarReader::read_scalar(char *str)
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       r_token = str;
-      if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
+      if (utils::strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
     }
@@ -5169,7 +5169,7 @@ int VarReader::read_peratom()
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       r_token = str;
-      if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
+      if (utils::strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
     }

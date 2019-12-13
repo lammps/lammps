@@ -38,6 +38,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <algorithm>
 
@@ -3091,9 +3092,9 @@ int FixBondReact::parse(char *line, char **words, int max)
 
   r_token = line;
   int nwords = 0;
-  words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+  words[nwords++] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
 
-  while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) {
+  while ((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

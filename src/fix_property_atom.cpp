@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -239,7 +240,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
     r_token = buf;
 
-    values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
+    values[0] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
     if (values[0] == NULL) {
       char str[128];
       snprintf(str,128,"Too few lines in %s section of data file",keyword);
@@ -247,7 +248,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     }
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
-      values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
+      values[j] = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       if (values[j] == NULL) format_ok = 0;
     }
     if (!format_ok) {

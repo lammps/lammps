@@ -364,7 +364,7 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     r_token = line;
-    char *word = strtok_r(r_token," \t\n\r",&r_token);
+    char *word = utils::strtok_r(r_token," \t\n\r",&r_token);
     if (strcmp(word,keyword) == 0) break;           // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
@@ -482,29 +482,29 @@ void PairMultiLucy::param_extract(Table *tb, char *line)
   tb->fpflag = 0;
   r_token = line;
 
-  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
+  char *word = utils::strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tb->ninput = atoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tb->rlo = atof(word);
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tb->rhi = atof(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fplo = atof(word);
-      word = strtok_r(NULL," \t\n\r\f",&r_token);
+      word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fphi = atof(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");
     }
-    word = strtok_r(NULL," \t\n\r\f",&r_token);
+    word = utils::strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");

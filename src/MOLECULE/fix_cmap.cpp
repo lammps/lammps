@@ -41,6 +41,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -686,14 +687,14 @@ void FixCMAP::read_grid_map(char *cmapfile)
     // 6. Glycine before proline map
     r_token = line;
 
-    chunk = strtok_r(r_token, " \r\n",&r_token);
+    chunk = utils::strtok_r(r_token, " \r\n",&r_token);
     while (chunk != NULL) {
 
       // alanine map
 
       if (counter < CMAPDIM*CMAPDIM) {
         cmapgrid[0][i1][j1] = atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j1++;
         if (j1 == CMAPDIM) {
           j1 = 0;
@@ -707,7 +708,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= CMAPDIM*CMAPDIM &&
                counter < 2*CMAPDIM*CMAPDIM) {
         cmapgrid[1][i2][j2]= atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j2++;
         if (j2 == CMAPDIM) {
           j2 = 0;
@@ -721,7 +722,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 2*CMAPDIM*CMAPDIM &&
                counter < 3*CMAPDIM*CMAPDIM) {
         cmapgrid[2][i3][j3] = atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j3++;
         if (j3 == CMAPDIM) {
           j3 = 0;
@@ -735,7 +736,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 3*CMAPDIM*CMAPDIM &&
                counter < 4*CMAPDIM*CMAPDIM) {
         cmapgrid[3][i4][j4] = atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j4++;
         if (j4 == CMAPDIM) {
           j4 = 0;
@@ -749,7 +750,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 4*CMAPDIM*CMAPDIM &&
                counter < 5*CMAPDIM*CMAPDIM) {
         cmapgrid[4][i5][j5] = atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j5++;
         if (j5 == CMAPDIM) {
           j5 = 0;
@@ -763,7 +764,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 5*CMAPDIM*CMAPDIM &&
                counter < 6*CMAPDIM*CMAPDIM) {
         cmapgrid[5][i6][j6] = atof(chunk);
-        chunk = strtok_r(NULL, " \r\n",&r_token);
+        chunk = utils::strtok_r(NULL, " \r\n",&r_token);
         j6++;
         if (j6 == CMAPDIM) {
           j6 = 0;

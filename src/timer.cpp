@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -48,11 +49,11 @@ static double timespec2seconds(char *timespec)
   vals[0] = vals[1] = vals[2] = 0;
   r_token = timespec;
 
-  num = strtok_r(r_token,":",&r_token);
+  num = utils::strtok_r(r_token,":",&r_token);
   while ((num != NULL) && (i < 3)) {
     vals[i] = atoi(num);
     ++i;
-    num = strtok_r(NULL,":",&r_token);
+    num = utils::strtok_r(NULL,":",&r_token);
   }
 
   if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];

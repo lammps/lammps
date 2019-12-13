@@ -794,9 +794,9 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
   while (i < n) {
     utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
     r_token = line;
-    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
+    ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
     list[i++] = atof(ptr);
-    while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) list[i++] = atof(ptr);
+    while ((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token))) list[i++] = atof(ptr);
   }
 }
 

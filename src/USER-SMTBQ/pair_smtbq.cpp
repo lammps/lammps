@@ -56,6 +56,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <fstream>
 #include <iomanip>
@@ -3569,7 +3570,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   strncpy( test, s, MAXLINE-1 );
   r_token = test;
 
-  for( mot = strtok_r(r_token, sep,&r_token); mot; mot = strtok_r(NULL, sep,&r_token) ) {
+  for( mot = utils::strtok_r(r_token, sep,&r_token); mot; mot = utils::strtok_r(NULL, sep,&r_token) ) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }

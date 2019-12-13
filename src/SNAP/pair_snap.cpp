@@ -25,6 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -538,9 +539,9 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   char* words[MAXWORD];
   r_token = line;
   int iword = 0;
-  words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
+  words[iword] = utils::strtok_r(r_token,"' \t\n\r\f",&r_token);
   iword = 1;
-  words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
+  words[iword] = utils::strtok_r(NULL,"' \t\n\r\f",&r_token);
 
   nelements = atoi(words[0]);
   ncoeffall = atoi(words[1]);
@@ -575,11 +576,11 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     r_token = line;
     iword = 0;
-    words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
+    words[iword] = utils::strtok_r(r_token,"' \t\n\r\f",&r_token);
     iword = 1;
-    words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
+    words[iword] = utils::strtok_r(NULL,"' \t\n\r\f",&r_token);
     iword = 2;
-    words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
+    words[iword] = utils::strtok_r(NULL,"' \t\n\r\f",&r_token);
 
     char* elemtmp = words[0];
     int n = strlen(elemtmp) + 1;
@@ -618,7 +619,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
       r_token = line;
       iword = 0;
-      words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
+      words[iword] = utils::strtok_r(r_token,"' \t\n\r\f",&r_token);
 
       coeffelem[ielem][icoeff] = atof(words[0]);
 
@@ -679,8 +680,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip single and double quotes from words
     r_token = line;
 
-    char* keywd = strtok_r(r_token,"' \t\n\r\f",&r_token);
-    char* keyval = strtok_r(NULL,"' \t\n\r\f",&r_token);
+    char* keywd = utils::strtok_r(r_token,"' \t\n\r\f",&r_token);
+    char* keyval = utils::strtok_r(NULL,"' \t\n\r\f",&r_token);
 
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP keyword %s %s \n",keywd,keyval);

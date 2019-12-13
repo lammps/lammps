@@ -27,6 +27,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -750,9 +751,9 @@ void FixQEq::read_file(char *file)
     // words = ptrs to first 6 words in line
     r_token = line;
 
-    for (n=0, words[n] = strtok_r(r_token," \t\n\r\f",&r_token);
+    for (n=0, words[n] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
          n < 6;
-         words[++n] = strtok_r(NULL," \t\n\r\f",&r_token));
+         words[++n] = utils::strtok_r(NULL," \t\n\r\f",&r_token));
 
     force->bounds(FLERR,words[0],ntypes,nlo,nhi);
     for (n=nlo; n <=nhi; ++n) {

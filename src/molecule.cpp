@@ -25,6 +25,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -1347,16 +1348,16 @@ void Molecule::body(int flag, int pflag, char *line)
     if (flag) {
       if (pflag == 0) {
         r_token = line;
-        ibodyparams[nword++] = force->inumeric(FLERR,strtok_r(r_token," \t\n\r\f",&r_token));
+        ibodyparams[nword++] = force->inumeric(FLERR,utils::strtok_r(r_token," \t\n\r\f",&r_token));
         for (i = 1; i < ncount; i++)
           ibodyparams[nword++] =
-            force->inumeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
+            force->inumeric(FLERR,utils::strtok_r(NULL," \t\n\r\f",&r_token));
       } else {
         r_token = line;
-        dbodyparams[nword++] = force->numeric(FLERR,strtok_r(r_token," \t\n\r\f",&r_token));
+        dbodyparams[nword++] = force->numeric(FLERR,utils::strtok_r(r_token," \t\n\r\f",&r_token));
         for (i = 1; i < ncount; i++)
           dbodyparams[nword++] =
-            force->numeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
+            force->numeric(FLERR,utils::strtok_r(NULL," \t\n\r\f",&r_token));
       }
     } else nword += ncount;
   }
@@ -1726,9 +1727,9 @@ int Molecule::parse(char *line, char **words, int max)
   r_token = line;
 
   int nwords = 0;
-  words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+  words[nwords++] = utils::strtok_r(r_token," \t\n\r\f",&r_token);
 
-  while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) {
+  while ((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

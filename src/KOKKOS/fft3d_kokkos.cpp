@@ -148,7 +148,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
 #if defined(FFT_FFTW3) || defined(FFT_CUFFT)
-    FFT_SCALAR* out_ptr = (FFT_SCALAR *)d_out(i);
+    FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
 #elif defined(FFT_MKL)

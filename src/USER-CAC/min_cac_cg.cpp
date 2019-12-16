@@ -101,8 +101,8 @@ void CACMinCG::init()
 void CACMinCG::setup_style()
 {
   // memory for x0,g,h for atomic dof
-	// original values for the add_vectors was 3
-	// changed to maxpoly*nodes_per_element since thats the quantity of nodal values per element
+  // original values for the add_vectors was 3
+  // changed to maxpoly*nodes_per_element since thats the quantity of nodal values per element
   fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
   fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
   fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
@@ -154,15 +154,15 @@ void CACMinCG::reset_vectors()
   nvec=atom->dense_count;
 
 
-	//lammps uses a 1D representation of N-D arrays constructed with memory->grow and memory->create
-	//as a result the algorithm here seems to just dereference up to the rank one pointer status
-	//hence the three dereferences for the 4-D array
-	//nvec will loop over all elements of the array with that size
+  //lammps uses a 1D representation of N-D arrays constructed with memory->grow and memory->create
+  //as a result the algorithm here seems to just dereference up to the rank one pointer status
+  //hence the three dereferences for the 4-D array
+  //nvec will loop over all elements of the array with that size
   if (nvec) xvec = min_x;
   if (nvec) fvec = min_f;
   //if you want to use the computed nodal forces instead of energy gradients comment out gradients
   //and uncomment the forces below
-	//if (nvec) fvec = atom->nodal_forces[0][0][0];
+  //if (nvec) fvec = atom->nodal_forces[0][0][0];
   x0 = fix_minimize->request_vector(0);
   g = fix_minimize->request_vector(1);
   h = fix_minimize->request_vector(2);
@@ -216,23 +216,23 @@ int *npoly = atom->poly_count;
 
     // update x for elements and atoms using nodal variables
   for (int i = 0; i < atom->nlocal; i++){
-		//determine element type
+    //determine element type
 
-	  nodes_per_element=nodes_per_element_list[element_type[i]];
-		x[i][0] = 0;
-		x[i][1] = 0;
-		x[i][2] = 0;
+    nodes_per_element=nodes_per_element_list[element_type[i]];
+    x[i][0] = 0;
+    x[i][1] = 0;
+    x[i][2] = 0;
 
     for (int poly_counter = 0; poly_counter < npoly[i];poly_counter++) {
       for(int k=0; k<nodes_per_element; k++){
-				x[i][0] += nodal_positions[i][poly_counter][k][0];
-				x[i][1] += nodal_positions[i][poly_counter][k][1];
-				x[i][2] += nodal_positions[i][poly_counter][k][2];
-			}
-		}
-	x[i][0] = x[i][0] / nodes_per_element / npoly[i];
-	x[i][1] = x[i][1] / nodes_per_element / npoly[i];
-	x[i][2] = x[i][2] / nodes_per_element / npoly[i];
+        x[i][0] += nodal_positions[i][poly_counter][k][0];
+        x[i][1] += nodal_positions[i][poly_counter][k][1];
+        x[i][2] += nodal_positions[i][poly_counter][k][2];
+      }
+    }
+  x[i][0] = x[i][0] / nodes_per_element / npoly[i];
+  x[i][1] = x[i][1] / nodes_per_element / npoly[i];
+  x[i][2] = x[i][2] / nodes_per_element / npoly[i];
   }
 
 }
@@ -243,152 +243,152 @@ minimization via conjugate gradient iterations
 
 int CACMinCG::iterate(int maxiter)
 {
-	int i, m, n, fail, ntimestep;
-	double beta, gg, dot[2], dotall[2];
-	double *fatom, *gatom, *hatom;
+  int i, m, n, fail, ntimestep;
+  double beta, gg, dot[2], dotall[2];
+  double *fatom, *gatom, *hatom;
   nvec=atom->dense_count; //needed for setup step so nvec isn't zero
   if (nvec) xvec = atom->min_x;
   if (nvec) fvec = atom->min_f;
-	// nlimit = max # of CG iterations before restarting
-	// set to ndoftotal unless too big
+  // nlimit = max # of CG iterations before restarting
+  // set to ndoftotal unless too big
 
-	int nlimit = static_cast<int> (MIN(MAXSMALLINT, ndoftotal));
+  int nlimit = static_cast<int> (MIN(MAXSMALLINT, ndoftotal));
 
-	// initialize working vectors
+  // initialize working vectors
 
-	for (i = 0; i < nvec; i++) h[i] = g[i] = fvec[i];
-	if (nextra_atom)
-		for (m = 0; m < nextra_atom; m++) {
-			fatom = fextra_atom[m];
-			gatom = gextra_atom[m];
-			hatom = hextra_atom[m];
-			n = extra_nlen[m];
-			for (i = 0; i < n; i++) hatom[i] = gatom[i] = fatom[i];
-		}
-	if (nextra_global)
-		for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i] = fextra[i];
+  for (i = 0; i < nvec; i++) h[i] = g[i] = fvec[i];
+  if (nextra_atom)
+    for (m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      gatom = gextra_atom[m];
+      hatom = hextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++) hatom[i] = gatom[i] = fatom[i];
+    }
+  if (nextra_global)
+    for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i] = fextra[i];
 
-	gg = fnorm_sqr();
+  gg = fnorm_sqr();
 
-	for (int iter = 0; iter < maxiter; iter++) {
+  for (int iter = 0; iter < maxiter; iter++) {
 
-		if (timer->check_timeout(niter))
-			return TIMEOUT;
+    if (timer->check_timeout(niter))
+      return TIMEOUT;
 
-		ntimestep = ++update->ntimestep;
-		niter++;
+    ntimestep = ++update->ntimestep;
+    niter++;
 
-		// line minimization along direction h from current atom->x
+    // line minimization along direction h from current atom->x
 
-		eprevious = ecurrent;
-		fail = (this->*linemin)(ecurrent, alpha_final);
-		if (fail) return fail;
+    eprevious = ecurrent;
+    fail = (this->*linemin)(ecurrent, alpha_final);
+    if (fail) return fail;
 
-		// function evaluation criterion
+    // function evaluation criterion
 
-		if (neval >= update->max_eval) return MAXEVAL;
+    if (neval >= update->max_eval) return MAXEVAL;
 
-		// energy tolerance criterion
+    // energy tolerance criterion
 
-		if (fabs(ecurrent - eprevious) <
-			update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
-			return ETOL;
+    if (fabs(ecurrent - eprevious) <
+      update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+      return ETOL;
 
-		// force tolerance criterion
+    // force tolerance criterion
 
-		dot[0] = dot[1] = 0.0;
-		for (i = 0; i < nvec; i++) {
-			dot[0] += fvec[i] * fvec[i];
-			dot[1] += fvec[i] * g[i];
-		}
-		if (nextra_atom)
-			for (m = 0; m < nextra_atom; m++) {
-				fatom = fextra_atom[m];
-				gatom = gextra_atom[m];
-				n = extra_nlen[m];
-				for (i = 0; i < n; i++) {
-					dot[0] += fatom[i] * fatom[i];
-					dot[1] += fatom[i] * gatom[i];
-				}
-			}
-		MPI_Allreduce(dot, dotall, 2, MPI_DOUBLE, MPI_SUM, world);
-		if (nextra_global)
-			for (i = 0; i < nextra_global; i++) {
-				dotall[0] += fextra[i] * fextra[i];
-				dotall[1] += fextra[i] * gextra[i];
-			}
+    dot[0] = dot[1] = 0.0;
+    for (i = 0; i < nvec; i++) {
+      dot[0] += fvec[i] * fvec[i];
+      dot[1] += fvec[i] * g[i];
+    }
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+        fatom = fextra_atom[m];
+        gatom = gextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) {
+          dot[0] += fatom[i] * fatom[i];
+          dot[1] += fatom[i] * gatom[i];
+        }
+      }
+    MPI_Allreduce(dot, dotall, 2, MPI_DOUBLE, MPI_SUM, world);
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++) {
+        dotall[0] += fextra[i] * fextra[i];
+        dotall[1] += fextra[i] * gextra[i];
+      }
 
-		if (dotall[0] < update->ftol*update->ftol) return FTOL;
+    if (dotall[0] < update->ftol*update->ftol) return FTOL;
 
-		// update new search direction h from new f = -Grad(x) and old g
-		// this is Polak-Ribieri formulation
-		// beta = dotall[0]/gg would be Fletcher-Reeves
-		// reinitialize CG every ndof iterations by setting beta = 0.0
+    // update new search direction h from new f = -Grad(x) and old g
+    // this is Polak-Ribieri formulation
+    // beta = dotall[0]/gg would be Fletcher-Reeves
+    // reinitialize CG every ndof iterations by setting beta = 0.0
 
-		beta = MAX(0.0, (dotall[0] - dotall[1]) / gg);
-		if ((niter + 1) % nlimit == 0) beta = 0.0;
-		gg = dotall[0];
+    beta = MAX(0.0, (dotall[0] - dotall[1]) / gg);
+    if ((niter + 1) % nlimit == 0) beta = 0.0;
+    gg = dotall[0];
 
-		for (i = 0; i < nvec; i++) {
-			g[i] = fvec[i];
-			h[i] = g[i] + beta*h[i];
-		}
-		if (nextra_atom)
-			for (m = 0; m < nextra_atom; m++) {
-				fatom = fextra_atom[m];
-				gatom = gextra_atom[m];
-				hatom = hextra_atom[m];
-				n = extra_nlen[m];
-				for (i = 0; i < n; i++) {
-					gatom[i] = fatom[i];
-					hatom[i] = gatom[i] + beta*hatom[i];
-				}
-			}
-		if (nextra_global)
-			for (i = 0; i < nextra_global; i++) {
-				gextra[i] = fextra[i];
-				hextra[i] = gextra[i] + beta*hextra[i];
-			}
+    for (i = 0; i < nvec; i++) {
+      g[i] = fvec[i];
+      h[i] = g[i] + beta*h[i];
+    }
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+        fatom = fextra_atom[m];
+        gatom = gextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) {
+          gatom[i] = fatom[i];
+          hatom[i] = gatom[i] + beta*hatom[i];
+        }
+      }
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++) {
+        gextra[i] = fextra[i];
+        hextra[i] = gextra[i] + beta*hextra[i];
+      }
 
-		// reinitialize CG if new search direction h is not downhill
+    // reinitialize CG if new search direction h is not downhill
 
-		dot[0] = 0.0;
-		for (i = 0; i < nvec; i++) dot[0] += g[i] * h[i];
-		if (nextra_atom)
-			for (m = 0; m < nextra_atom; m++) {
-				gatom = gextra_atom[m];
-				hatom = hextra_atom[m];
-				n = extra_nlen[m];
-				for (i = 0; i < n; i++) dot[0] += gatom[i] * hatom[i];
-			}
-		MPI_Allreduce(dot, dotall, 1, MPI_DOUBLE, MPI_SUM, world);
-		if (nextra_global)
-			for (i = 0; i < nextra_global; i++)
-				dotall[0] += gextra[i] * hextra[i];
+    dot[0] = 0.0;
+    for (i = 0; i < nvec; i++) dot[0] += g[i] * h[i];
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+        gatom = gextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) dot[0] += gatom[i] * hatom[i];
+      }
+    MPI_Allreduce(dot, dotall, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++)
+        dotall[0] += gextra[i] * hextra[i];
 
-		if (dotall[0] <= 0.0) {
-			for (i = 0; i < nvec; i++) h[i] = g[i];
-			if (nextra_atom)
-				for (m = 0; m < nextra_atom; m++) {
-					gatom = gextra_atom[m];
-					hatom = hextra_atom[m];
-					n = extra_nlen[m];
-					for (i = 0; i < n; i++) hatom[i] = gatom[i];
-				}
-			if (nextra_global)
-				for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
-		}
+    if (dotall[0] <= 0.0) {
+      for (i = 0; i < nvec; i++) h[i] = g[i];
+      if (nextra_atom)
+        for (m = 0; m < nextra_atom; m++) {
+          gatom = gextra_atom[m];
+          hatom = hextra_atom[m];
+          n = extra_nlen[m];
+          for (i = 0; i < n; i++) hatom[i] = gatom[i];
+        }
+      if (nextra_global)
+        for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
+    }
 
-		// output for thermo, dump, restart files
+    // output for thermo, dump, restart files
 
-		if (output->next == ntimestep) {
-			timer->stamp();
-			output->write(ntimestep);
-			timer->stamp(Timer::OUTPUT);
-		}
-	}
+    if (output->next == ntimestep) {
+      timer->stamp();
+      output->write(ntimestep);
+      timer->stamp(Timer::OUTPUT);
+    }
+  }
 
-	return MAXITER;
+  return MAXITER;
 }
 
 /* ----------------------------------------------------------------------
@@ -1113,7 +1113,7 @@ double CACMinCG::alpha_step(double alpha, int resetflag)
       }
   }
 
- 
+
 
   //
   // compute and return new energy

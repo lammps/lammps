@@ -220,7 +220,7 @@ int CACMinFire::iterate(int maxiter)
     // Euler integration step
 
     double *x = atom->min_x;
-    
+
     if (rmass) {
       for (int i = 0; i < nvec; i++) {
         dtfm = dtf / rmass[i];
@@ -239,7 +239,7 @@ int CACMinFire::iterate(int maxiter)
 
               x[dense+0] += dtv * v[dense+0];
               x[dense+1] += dtv * v[dense+1];
-              x[dense+2] += dtv * v[dense+2];              
+              x[dense+2] += dtv * v[dense+2];
               v[dense+0] += dtfm * f[dense+0];
               v[dense+1] += dtfm * f[dense+1];
               v[dense+2] += dtfm * f[dense+2];
@@ -333,7 +333,7 @@ int *npoly = atom->poly_count;
          nodal_positions[element_counter][poly_counter][node_counter][2] = min_x[dense_count_x++];
          nodal_forces[element_counter][poly_counter][node_counter][0] = min_f[dense_count_f++];
          nodal_forces[element_counter][poly_counter][node_counter][1] = min_f[dense_count_f++];
-         nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];         
+         nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];
          nodal_velocities[element_counter][poly_counter][node_counter][0] = min_v[dense_count_v++];
          nodal_velocities[element_counter][poly_counter][node_counter][1] = min_v[dense_count_v++];
          nodal_velocities[element_counter][poly_counter][node_counter][2] = min_v[dense_count_v++];
@@ -352,11 +352,11 @@ int *npoly = atom->poly_count;
 
     for (int poly_counter = 0; poly_counter < npoly[i];poly_counter++) {
       for(int k=0; k<nodes_per_element; k++){
-				x[i][0] += nodal_positions[i][poly_counter][k][0];
-				x[i][1] += nodal_positions[i][poly_counter][k][1];
-				x[i][2] += nodal_positions[i][poly_counter][k][2];
-			}
-		}
+        x[i][0] += nodal_positions[i][poly_counter][k][0];
+        x[i][1] += nodal_positions[i][poly_counter][k][1];
+        x[i][2] += nodal_positions[i][poly_counter][k][2];
+      }
+    }
   x[i][0] = x[i][0] / nodes_per_element / npoly[i];
   x[i][1] = x[i][1] / nodes_per_element / npoly[i];
   x[i][2] = x[i][2] / nodes_per_element / npoly[i];

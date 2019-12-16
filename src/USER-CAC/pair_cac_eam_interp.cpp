@@ -762,7 +762,7 @@ void PairCACEAMInterp::pre_force_densities() {
   }
   //test if maxexchange atom is large enough for quadrature count of each element
   comm->increase_max_atom(max_quad_per_element*atom->maxpoly);
-  
+
   //commmunicate nodal electron densities of atoms/elements that are ghosts of other tasks
   comm->forward_comm_pair(this);
 }
@@ -772,33 +772,33 @@ void PairCACEAMInterp::pre_force_densities() {
 
 void PairCACEAMInterp::compute_electron_densities(int i) {
 
-	int *nodes_count_list = atom->nodes_per_element_list;	
-	double coefficients;
-	int nodes_per_element;
-	int init_quad_list_counter = quad_list_counter;
-	double s, t, w;
-	double sq, tq, wq;
+  int *nodes_count_list = atom->nodes_per_element_list;	
+  double coefficients;
+  int nodes_per_element;
+  int init_quad_list_counter = quad_list_counter;
+  double s, t, w;
+  double sq, tq, wq;
 
-	nodes_per_element = nodes_count_list[current_element_type];
+  nodes_per_element = nodes_count_list[current_element_type];
   
     //sum over quadrature points to compute force density
-	 
+   
   for (int quad_loop=0; quad_loop < quadrature_counts[i] ; quad_loop++){
   if(!atomic_flag){
-	s = quadrature_point_data[init_quad_list_counter+quad_loop][0];
-	t = quadrature_point_data[init_quad_list_counter+quad_loop][1];
-	w = quadrature_point_data[init_quad_list_counter+quad_loop][2];
-	sq = quadrature_point_data[init_quad_list_counter+quad_loop][3];
-	tq = quadrature_point_data[init_quad_list_counter+quad_loop][4];
-	wq = quadrature_point_data[init_quad_list_counter+quad_loop][5];
-	coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
+  s = quadrature_point_data[init_quad_list_counter+quad_loop][0];
+  t = quadrature_point_data[init_quad_list_counter+quad_loop][1];
+  w = quadrature_point_data[init_quad_list_counter+quad_loop][2];
+  sq = quadrature_point_data[init_quad_list_counter+quad_loop][3];
+  tq = quadrature_point_data[init_quad_list_counter+quad_loop][4];
+  wq = quadrature_point_data[init_quad_list_counter+quad_loop][5];
+  coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
   }
-	if(!atomic_flag)
-	quad_electron_density(i, s, t, w);
-	else
-	quad_electron_density(i, current_x[0], current_x[1], current_x[2]);
-	neigh_quad_counter = neigh_quad_counter + 1;
-	quad_list_counter++;
+  if(!atomic_flag)
+  quad_electron_density(i, s, t, w);
+  else
+  quad_electron_density(i, current_x[0], current_x[1], current_x[2]);
+  neigh_quad_counter = neigh_quad_counter + 1;
+  quad_list_counter++;
   }
     
 }
@@ -915,7 +915,6 @@ void PairCACEAMInterp::force_densities(int iii, double s, double t, double w, do
     double &force_densityx, double &force_densityy, double &force_densityz) {
 
 double delx,dely,delz;
-
 double r2inv;
 double r6inv;
 double shape_func;
@@ -996,10 +995,10 @@ int distanceflag=0;
     int **node_types = atom->node_types;
     origin_type = type_array[poly_counter];
     double inner_scan_position[3];
-    //precompute virtual neighbor atom locations
-      
+
     //assign electron density to quadrature origin
     rho[0] = quad_electron_densities[iii][neigh_quad_counter];
+    //precompute virtual/real neighbor atom densities
     for (int l = 0; l < neigh_max_inner; l++) {
       element_index = inner_quad_indices[l][0];
       poly_index = inner_quad_indices[l][1];
@@ -1095,13 +1094,13 @@ int distanceflag=0;
         force_densityy += dely*fpair;
         force_densityz += delz*fpair;
         if(atom->CAC_virial){
-		    virial_density[0] += 0.5*delx*delx*fpair;
-		    virial_density[1] += 0.5*dely*dely*fpair;
-		    virial_density[2] += 0.5*delz*delz*fpair;
-		    virial_density[3] += 0.5*delx*dely*fpair;
-		    virial_density[4] += 0.5*delx*delz*fpair;
-		    virial_density[5] += 0.5*dely*delz*fpair;
-		    }
+        virial_density[0] += 0.5*delx*delx*fpair;
+        virial_density[1] += 0.5*dely*dely*fpair;
+        virial_density[2] += 0.5*delz*delz*fpair;
+        virial_density[3] += 0.5*delx*dely*fpair;
+        virial_density[4] += 0.5*delx*delz*fpair;
+        virial_density[5] += 0.5*dely*delz*fpair;
+        }
         if (quad_eflag) 
           quadrature_energy += 0.5*scale[origin_type][scan_type]*phi;
         
@@ -1166,26 +1165,26 @@ void PairCACEAMInterp::unpack_forward_comm(int n, int first, double *buf)
 //allocate array storing electron densities for quadrature points and atoms
 
 void PairCACEAMInterp::allocate_quad_attribute(int n1,int n2,int n3) {
-	int *element_type = atom->element_type;
+  int *element_type = atom->element_type;
   int quad = quadrature_node_count;
-	
-	// initialize quadrature point neighbor list vectors
-	if (quad_allocated) {
-		for (int init = 0; init < old_all_atom_count; init++) {
-			memory->destroy(quad_electron_densities[init]);
-		}
-		memory->sfree(quad_electron_densities);
-	}
+  
+  // initialize quadrature point neighbor list vectors
+  if (quad_allocated) {
+    for (int init = 0; init < old_all_atom_count; init++) {
+      memory->destroy(quad_electron_densities[init]);
+    }
+    memory->sfree(quad_electron_densities);
+  }
 
-		quad_electron_densities= (double **) memory->smalloc(sizeof(double *)*(atom->nlocal+atom->nghost), "Pair CACEAMInterp:quad_electron_densities");
-		for (int init = 0; init < atom->nlocal+atom->nghost; init++) {
-			if (element_type[init] == 0) {
-				memory->create(quad_electron_densities[init],1, "Pair CACEAMInterp:quad_electron_densities");
-			}
-			else {
-				memory->create(quad_electron_densities[init],max_quad_per_element*atom->maxpoly, "Pair CACEAMInterp:quad_electron_densities");
-			}
-		}
+    quad_electron_densities= (double **) memory->smalloc(sizeof(double *)*(atom->nlocal+atom->nghost), "Pair CACEAMInterp:quad_electron_densities");
+    for (int init = 0; init < atom->nlocal+atom->nghost; init++) {
+      if (element_type[init] == 0) {
+        memory->create(quad_electron_densities[init],1, "Pair CACEAMInterp:quad_electron_densities");
+      }
+      else {
+        memory->create(quad_electron_densities[init],max_quad_per_element*atom->maxpoly, "Pair CACEAMInterp:quad_electron_densities");
+      }
+    }
 }
 
 

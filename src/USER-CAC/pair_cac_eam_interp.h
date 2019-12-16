@@ -47,7 +47,7 @@ class PairCACEAMInterp : public PairCAC {
   virtual double init_one(int, int);
   
   virtual void *extract(const char *, int &);
-  void swap_eam(double *, double **);
+  virtual void swap_eam(double *, double **);
 
   struct Param {
     double epsilon, sigma;
@@ -110,15 +110,15 @@ class PairCACEAMInterp : public PairCAC {
   };
   Fs *fs;
 
-  void interpolate(int, double, double *, double **);
-  void grab(FILE *, int, double *);
+  virtual void interpolate(int, double, double *, double **);
+  virtual void grab(FILE *, int, double *);
 
   //further CAC functions 
-  void force_densities(int, double, double, double, double, double
+  virtual void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
-  void pre_force_densities();
-  void compute_electron_densities(int);
-  void quad_electron_density(int, double, double, double);
+  virtual void pre_force_densities();
+  virtual void compute_electron_densities(int);
+  virtual void quad_electron_density(int, double, double, double);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
 

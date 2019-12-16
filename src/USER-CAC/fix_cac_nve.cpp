@@ -90,7 +90,7 @@ void FixNVECAC::initial_integrate(int vflag)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
-    for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++){
   nodes_per_element = nodes_count_list[element_type[i]];
 
   if (mask[i] & groupbit) {
@@ -125,11 +125,11 @@ void FixNVECAC::initial_integrate(int vflag)
   v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
   v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
   v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
-    }
+  }
 
 
 
-      }
+  }
 
   } else {
     for (int i = 0; i < nlocal; i++){
@@ -229,7 +229,7 @@ void FixNVECAC::final_integrate()
       v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
       }
 
-      }
+    }
 
   } else {
     for (int i = 0; i < nlocal; i++){

@@ -221,7 +221,7 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
   double px1, px2, py1, py2, pz1, pz2;
   double unit_cell_mapped[3];
   double shape_func2, shape_func1;
-    double surf_args[3];
+  double surf_args[3];
   //get necessary data from pair pointer about the current element iteration
   double *quad_r = pair_pointer->quad_r;
   int *neighbor_element_scale = pair_pointer->neighbor_element_scale;
@@ -324,11 +324,10 @@ double Asa_Data::myvalue_neigh_check(asa_objective *asa)
 {
   double f, t, *x;
   double px, py, pz;
-    
   double shape_func2;
     //get class data for current element
   int min_element_index = avec_pointer->min_element_index;
-    int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
+  int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
   int min_nodes_per_element = avec_pointer->min_nodes_per_element;
   int poly_min = avec_pointer->poly_min;
   double **current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index][poly_min];
@@ -364,7 +363,7 @@ void Asa_Data::mygrad_neigh_check(asa_objective *asa)
   double shape_func3,shape_func2, shape_func1;
     //get class data for current element
   int min_element_index = avec_pointer->min_element_index;
-    int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
+  int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
   int min_nodes_per_element = avec_pointer->min_nodes_per_element;
   int poly_min = avec_pointer->poly_min;
   double **current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index][poly_min];

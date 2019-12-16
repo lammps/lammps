@@ -82,12 +82,12 @@ double ComputeNodalTemp::compute_scalar()
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
-  int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;
   int nodes_per_element;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
- 
+
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -95,33 +95,33 @@ double ComputeNodalTemp::compute_scalar()
 
   if (rmass) {
 
-	  for (int i = 0; i < nlocal; i++) {
-		  
-			  if (mask[i] & groupbit){
+    for (int i = 0; i < nlocal; i++) {
+
+        if (mask[i] & groupbit){
            nodes_per_element = nodes_count_list[element_type[i]];
-				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
-					  for (int n = 0; n < nodes_per_element; n++)
-						  t += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
-							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
-							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])
-						  * rmass[i] / nodes_per_element / poly_count[i];
+          for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
+            for (int n = 0; n < nodes_per_element; n++)
+              t += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+                + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+                + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])
+              * rmass[i] / nodes_per_element / poly_count[i];
         }
-	  }
+    }
   }
   else {
-	  
-	  for (int i = 0; i < nlocal; i++) {
 
-			  if (mask[i] & groupbit){
+    for (int i = 0; i < nlocal; i++) {
+
+        if (mask[i] & groupbit){
          nodes_per_element = nodes_count_list[element_type[i]];
-				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
-					  for (int n = 0; n < nodes_per_element; n++)
-						  t += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
-							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
-							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])*
-						  mass[node_types[i][ipoly]] / nodes_per_element / poly_count[i];
+          for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
+            for (int n = 0; n < nodes_per_element; n++)
+              t += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+                + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+                + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])*
+              mass[node_types[i][ipoly]] / nodes_per_element / poly_count[i];
         }
-	  }
+    }
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);

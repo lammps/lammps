@@ -272,8 +272,8 @@ void DumpCACInitialNodes::write_lines(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            typenames[static_cast<int> (mybuf[m+1])],
-            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+      typenames[static_cast<int> (mybuf[m+1])],
+      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }
 

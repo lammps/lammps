@@ -614,6 +614,7 @@ void PairCAC::compute_quad_neighbors(int iii){
     memory->create(quadrature_point_data,quadrature_point_max,7,"pairCAC:quadrature_point_data");
   }
   if (!atomic_flag) {
+    if(current_element_scale[0]>2&&current_element_scale[1]>2&&current_element_scale[2]>2){
     for (int i = 0; i < quadrature_node_count; i++) {
       for (int j = 0; j < quadrature_node_count; j++) {
         for (int k = 0; k < quadrature_node_count; k++) {
@@ -660,7 +661,7 @@ void PairCAC::compute_quad_neighbors(int iii){
         }
       }
     }
-
+    }
 
 
     //compute surface contributions to element
@@ -671,6 +672,7 @@ void PairCAC::compute_quad_neighbors(int iii){
     interior_flag = 0;
 
     // s axis surface contributions
+    if(current_element_scale[1]>2&&current_element_scale[2]>2){
     for (int sc = 0; sc < 2; sc++) {
       for (int i = 0; i < isurface_counts[0]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
@@ -713,9 +715,9 @@ void PairCAC::compute_quad_neighbors(int iii){
         }
       }
     }
-
+    }
     // t axis contributions
-
+    if(current_element_scale[0]>2&&current_element_scale[2]>2){
     for (int sc = 0; sc < 2; sc++) {
       for (int i = 0; i < isurface_counts[1]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
@@ -758,7 +760,9 @@ void PairCAC::compute_quad_neighbors(int iii){
         }
       }
     }
-        //w axis contributions
+    }
+    //w axis contributions
+    if(current_element_scale[0]>2&&current_element_scale[1]>2){
     for (int sc = 0; sc < 2; sc++) {
       for (int i = 0; i < isurface_counts[2]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
@@ -802,7 +806,7 @@ void PairCAC::compute_quad_neighbors(int iii){
         }
       }
     }
-
+    }
     int surface_countsx;
     int surface_countsy;
     double unit_mappedx;
@@ -812,6 +816,7 @@ void PairCAC::compute_quad_neighbors(int iii){
 
     for (int sc = 0; sc < 12; sc++) {
       if (sc == 0 || sc == 1 || sc == 2 || sc == 3) {
+        if(current_element_scale[2]<=2) continue;
         interior_scalez = interior_scale[2];
         surface_countsx = isurface_counts[0];
         surface_countsy = isurface_counts[1];
@@ -819,6 +824,7 @@ void PairCAC::compute_quad_neighbors(int iii){
         unit_mappedy = unit_cell_mapped[1];
       }
       else if (sc == 4 || sc == 5 || sc == 6 || sc == 7) {
+        if(current_element_scale[0]<=2) continue;
         interior_scalez = interior_scale[0];
         surface_countsx = isurface_counts[1];
         surface_countsy = isurface_counts[2];
@@ -826,6 +832,7 @@ void PairCAC::compute_quad_neighbors(int iii){
         unit_mappedy = unit_cell_mapped[2];
       }
       else if (sc == 8 || sc == 9 || sc == 10 || sc == 11) {
+        if(current_element_scale[1]<=2) continue;
         interior_scalez = interior_scale[1];
         surface_countsx = isurface_counts[0];
         surface_countsy = isurface_counts[2];

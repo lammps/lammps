@@ -114,7 +114,7 @@ void FixViscousCAC::post_force(int vflag)
 
   double ****nodal_velocities = atom->nodal_velocities;
   double ****nodal_forces = atom->nodal_forces;
-  int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -127,17 +127,17 @@ void FixViscousCAC::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-	
-			nodes_per_element = nodes_count_list[element_type[i]];
-	  
-		for (int k = 0; k < poly_count[i]; k++) {
-		  for (int j = 0; j < nodes_per_element; j++) {
-				drag = gamma[type[i]];
-				nodal_forces[i][k][j][0] -= drag * nodal_velocities[i][k][j][0];
-				nodal_forces[i][k][j][1] -= drag * nodal_velocities[i][k][j][1];
-				nodal_forces[i][k][j][2] -= drag * nodal_velocities[i][k][j][2];
-			}
-		}
+
+      nodes_per_element = nodes_count_list[element_type[i]];
+
+    for (int k = 0; k < poly_count[i]; k++) {
+      for (int j = 0; j < nodes_per_element; j++) {
+        drag = gamma[type[i]];
+        nodal_forces[i][k][j][0] -= drag * nodal_velocities[i][k][j][0];
+        nodal_forces[i][k][j][1] -= drag * nodal_velocities[i][k][j][1];
+        nodal_forces[i][k][j][2] -= drag * nodal_velocities[i][k][j][2];
+      }
+    }
     }
 }
 

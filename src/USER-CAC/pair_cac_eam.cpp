@@ -228,7 +228,7 @@ void PairCACEAM::coeff(int narg, char **arg) {
   if (ifuncfl == nfuncfl) {
     nfuncfl++;
     funcfl = (Funcfl *)
-      memory->srealloc(funcfl, nfuncfl * sizeof(Funcfl), "pair:funcfl");
+    memory->srealloc(funcfl, nfuncfl * sizeof(Funcfl), "pair:funcfl");
     read_file(arg[2]);
     int n = strlen(arg[2]) + 1;
     funcfl[ifuncfl].file = new char[n];
@@ -858,16 +858,13 @@ int distanceflag=0;
     scan_position[1] = inner_neighbor_coords[l][1];
     scan_position[2] = inner_neighbor_coords[l][2];
 
-
     delx = current_position[0] - scan_position[0];
     dely = current_position[1] - scan_position[1];
     delz = current_position[2] - scan_position[2];
     distancesq = delx*delx + dely*dely + delz*delz;
-
     
     if (distancesq >= cutforcesq) continue;
 
-    
     p = sqrt(distancesq)*rdr + 1.0;
     m = static_cast<int> (p);
     m = MIN(m, nr - 1);
@@ -890,9 +887,6 @@ int distanceflag=0;
     delr1[0] = inner_scan_position[0] - current_position[0];
     delr1[1] = inner_scan_position[1] - current_position[1];
     delr1[2] = inner_scan_position[2] - current_position[2];
-    
-
-    
 
     rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
     if (rsq1 >= cutforcesq) continue;
@@ -904,8 +898,6 @@ int distanceflag=0;
     p = MIN(p, 1.0);
     coeff = rhor_spline[type2rhor[origin_type][scan_type]][m];
     rho[l+1] += ((coeff[3] * p + coeff[4])*p + coeff[5])*p + coeff[6];
-
-
 
     for (int k = 0; k < neigh_max_inner; k++) {
       if(l==k) continue;
@@ -930,8 +922,6 @@ int distanceflag=0;
 
     }
     for (int k = 0; k < neigh_max_outer; k++) {
-      
-
       scan_type2 = outer_neighbor_types[k];
       scan_position[0] = outer_neighbor_coords[k][0];
       scan_position[1] = outer_neighbor_coords[k][1];
@@ -985,19 +975,15 @@ int distanceflag=0;
   }
   //compute force contribution
   for (int l = 0; l < neigh_max_inner; l++) {
-
-
     scan_type = inner_neighbor_types[l];;
     scan_position[0] = inner_neighbor_coords[l][0];
     scan_position[1] = inner_neighbor_coords[l][1];
     scan_position[2] = inner_neighbor_coords[l][2];
 
-
     delx = current_position[0] - scan_position[0];
     dely = current_position[1] - scan_position[1];
     delz = current_position[2] - scan_position[2];
     distancesq = delx*delx + dely*dely + delz*delz;
-
 
     if (distancesq >= cutforcesq) continue;
     
@@ -1048,9 +1034,8 @@ int distanceflag=0;
       quadrature_energy += 0.5*scale[origin_type][scan_type]*phi;
 
   }
-   
-//end of scanning loop
 
+//end of scanning loop
 }
 
 //--------------------------------------------------------------------------

@@ -129,62 +129,62 @@ int FixCAC_Set_Force::setmask()
 
 void FixCAC_Set_Force::init()
 {
-	// check variables
+  // check variables
   if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
-	if (xstr) {
-		xvar = input->variable->find(xstr);
-		if (xvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
-		if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
-		else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
-	}
-	if (ystr) {
-		yvar = input->variable->find(ystr);
-		if (yvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
-		if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
-		else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
-	}
-	if (zstr) {
-		zvar = input->variable->find(zstr);
-		if (zvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
-		if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
-		else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
-	}
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setforce does not exist");
+    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
+  }
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setforce does not exist");
+    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
+  }
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setforce does not exist");
+    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
+  }
 
-	// set index and check validity of region
+  // set index and check validity of region
 
-	if (iregion >= 0) {
-		iregion = domain->find_region(idregion);
-		if (iregion == -1)
-			error->all(FLERR, "Region ID for fix cac/setforce does not exist");
-	}
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all(FLERR, "Region ID for fix cac/setforce does not exist");
+  }
 
-	if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
-		varflag = ATOM;
-	else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
-		varflag = EQUAL;
-	else varflag = CONSTANT;
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
+    varflag = ATOM;
+  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
+    varflag = EQUAL;
+  else varflag = CONSTANT;
 
 
-	// cannot use non-zero forces for a minimization since no energy is integrated
-	// use fix addforce instead
+  // cannot use non-zero forces for a minimization since no energy is integrated
+  // use fix addforce instead
 
-	int flag = 0;
-	if (update->whichflag == 2) {
-		if (xstyle == EQUAL || xstyle == ATOM) flag = 1;
-		if (ystyle == EQUAL || ystyle == ATOM) flag = 1;
-		if (zstyle == EQUAL || zstyle == ATOM) flag = 1;
-		if (xstyle == CONSTANT && xvalue != 0.0) flag = 1;
-		if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
-		if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
-	}
-	if (flag)
-		error->all(FLERR, "Cannot use non-zero forces in an energy minimization");
+  int flag = 0;
+  if (update->whichflag == 2) {
+    if (xstyle == EQUAL || xstyle == ATOM) flag = 1;
+    if (ystyle == EQUAL || ystyle == ATOM) flag = 1;
+    if (zstyle == EQUAL || zstyle == ATOM) flag = 1;
+    if (xstyle == CONSTANT && xvalue != 0.0) flag = 1;
+    if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
+    if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
+  }
+  if (flag)
+    error->all(FLERR, "Cannot use non-zero forces in an energy minimization");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,7 +213,7 @@ void FixCAC_Set_Force::post_force(int vflag)
   double **f = atom->f;
   double ****nodal_forces = atom->nodal_forces;
   int nodes_per_element;
-  int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -238,29 +238,29 @@ void FixCAC_Set_Force::post_force(int vflag)
   double ****nodal_positions = atom->nodal_positions;
   //double ****initial_nodal_positions = atom->initial_nodal_positions;
   double ****nodal_velocities = atom->nodal_velocities;
- 
+
 
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
 
   if (varflag == CONSTANT) {
-	  for (int i = 0; i < nlocal; i++) {
-		  if (mask[i] & groupbit) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
         for (int l = 0; l < poly_count[i]; l++) {
-			    for (int j = 0; j < nodes_per_element; j++) {
-					  if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-					  foriginal[0] += nodal_forces[i][l][j][0];
-					  foriginal[1] += nodal_forces[i][l][j][1];
-					  foriginal[2] += nodal_forces[i][l][j][2];
-					  if (xstyle) nodal_forces[i][l][j][0] = xvalue;
-					  if (ystyle) nodal_forces[i][l][j][1] = yvalue;
-					  if (zstyle) nodal_forces[i][l][j][2] = zvalue;
-				  }
-			  }
-		  }
-	  }
+          for (int j = 0; j < nodes_per_element; j++) {
+            if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+            foriginal[0] += nodal_forces[i][l][j][0];
+            foriginal[1] += nodal_forces[i][l][j][1];
+            foriginal[2] += nodal_forces[i][l][j][2];
+            if (xstyle) nodal_forces[i][l][j][0] = xvalue;
+            if (ystyle) nodal_forces[i][l][j][1] = yvalue;
+            if (zstyle) nodal_forces[i][l][j][2] = zvalue;
+          }
+        }
+      }
+    }
   // variable force, wrap with clear/add
 
   } else {
@@ -283,7 +283,7 @@ void FixCAC_Set_Force::post_force(int vflag)
       if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
         for (int l = 0; l < poly_count[i]; l++) {
-			    for (int j = 0; j < nodes_per_element; j++) {
+          for (int j = 0; j < nodes_per_element; j++) {
           if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           foriginal[0] += nodal_forces[i][l][j][0];
           foriginal[1] += nodal_forces[i][l][j][1];
@@ -299,7 +299,7 @@ void FixCAC_Set_Force::post_force(int vflag)
       }
     }
   }
-  
+
 }
 
 

@@ -85,7 +85,7 @@ void ComputeCACKEAtom::compute_peratom()
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
-  int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;
   int nodes_per_element;
 
   if (rmass) {
@@ -93,12 +93,12 @@ void ComputeCACKEAtom::compute_peratom()
       if (mask[i] & groupbit){
          nodes_per_element = nodes_count_list[element_type[i]];
          ke[i]=0;
-				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
-					  for (int n = 0; n < nodes_per_element; n++)
-						  ke[i] = 0.5 * mvv2e *(nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
-							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
-							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])
-						  * rmass[i]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
+          for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
+            for (int n = 0; n < nodes_per_element; n++)
+              ke[i] = 0.5 * mvv2e *(nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+                + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+                + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])
+              * rmass[i]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
       }
       else ke[i] = 0;
     }
@@ -107,12 +107,12 @@ void ComputeCACKEAtom::compute_peratom()
       if (mask[i] & groupbit){
         nodes_per_element = nodes_count_list[element_type[i]];
         ke[i]=0;
-				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
-					  for (int n = 0; n < nodes_per_element; n++)
-						  ke[i] += 0.5 * mvv2e *(nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
-							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
-							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])*
-						  mass[node_types[i][ipoly]]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
+          for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
+            for (int n = 0; n < nodes_per_element; n++)
+              ke[i] += 0.5 * mvv2e *(nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+                + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+                + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])*
+              mass[node_types[i][ipoly]]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
       }
       else ke[i] = 0;
     }

@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 DumpCACXYZ::DumpCACXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(NULL)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
-  if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");
+  if (narg != 5) error->all(FLERR,"Illegal dump cac/xyz command");
+  if (binary || multiproc) error->all(FLERR,"Invalid dump cac/xyz filename");
 
   size_one = 5;
 
@@ -109,21 +109,21 @@ void DumpCACXYZ::init_style()
 /*------------------------------------------------------------------------*/
 int DumpCACXYZ::count()
 {
-	int *mask = atom->mask;
-	int nlocal = atom->nlocal;
-	int *poly_count = atom->poly_count;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int *poly_count = atom->poly_count;
 
 
-	int **element_scale = atom->element_scale;
+  int **element_scale = atom->element_scale;
 
-	int m = 0;
-	for (int i = 0; i < nlocal; i++)
-	{
+  int m = 0;
+  for (int i = 0; i < nlocal; i++)
+  {
 
-			if (mask[i] & groupbit) m = m + element_scale[i][0]*element_scale[i][1]*element_scale[i][2]*poly_count[i];
+      if (mask[i] & groupbit) m = m + element_scale[i][0]*element_scale[i][1]*element_scale[i][2]*poly_count[i];
 
-	}
-	return m;
+  }
+  return m;
 }
 /* ---------------------------------------------------------------------- */
 
@@ -194,7 +194,6 @@ if(flag==2){
     shape_function=(1-s)*(1+t)*(1+w)/8;
     }
 
-
 }
 return shape_function;
 }
@@ -239,8 +238,8 @@ void DumpCACXYZ::pack(tagint *ids)
       }
       else if(element_type[i]==1){
       unit_cell_mapped[0] = 2 / double(element_scale[i][0]);
-			unit_cell_mapped[1] = 2 / double(element_scale[i][1]);
-			unit_cell_mapped[2] = 2 / double(element_scale[i][2]);
+      unit_cell_mapped[1] = 2 / double(element_scale[i][1]);
+      unit_cell_mapped[2] = 2 / double(element_scale[i][2]);
       current_nodal_positions=nodal_positions[i];
       nodes_per_element=8;
 
@@ -256,10 +255,10 @@ void DumpCACXYZ::pack(tagint *ids)
                 xmap[1]=0;
                 xmap[2]=0;
                 for (int kk = 0; kk < nodes_per_element; kk++) {
-            	    shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
-				          xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;
-				          xmap[1] += current_nodal_positions[polyscan][kk][1] * shape_func;
-				          xmap[2] += current_nodal_positions[polyscan][kk][2] * shape_func;
+                  shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
+                  xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;
+                  xmap[1] += current_nodal_positions[polyscan][kk][1] * shape_func;
+                  xmap[2] += current_nodal_positions[polyscan][kk][2] * shape_func;
                 }
               //test if mapped particle is in box and remap otherwise
               if(periodicity[0]){
@@ -281,7 +280,7 @@ void DumpCACXYZ::pack(tagint *ids)
               buf[m++] = xmap[2];
             }
           }
-		    }
+        }
       }
       }
     if (ids) ids[n++] = tag[i];

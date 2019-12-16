@@ -121,74 +121,74 @@ FixCAC_Set_Velocity::~FixCAC_Set_Velocity()
 
 int FixCAC_Set_Velocity::setmask()
 {
-	int mask = 0;
-	mask |= INITIAL_INTEGRATE;
+  int mask = 0;
+  mask |= INITIAL_INTEGRATE;
 
-	return mask;
+  return mask;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixCAC_Set_Velocity::init()
 {
-	// check variables
+  // check variables
   if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
-	if (xstr) {
-		xvar = input->variable->find(xstr);
-		if (xvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
-		if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
-		else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
-	}
-	if (ystr) {
-		yvar = input->variable->find(ystr);
-		if (yvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
-		if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
-		else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
-	}
-	if (zstr) {
-		zvar = input->variable->find(zstr);
-		if (zvar < 0)
-			error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
-		if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
-		else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-		else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
-	}
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
+    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
+  }
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
+    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
+  }
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0)
+      error->all(FLERR, "Variable name for fix cac/setvelocity does not exist");
+    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
+    else error->all(FLERR, "Variable for fix cac/setvelocity is invalid style");
+  }
 
-	// set index and check validity of region
+  // set index and check validity of region
 
-	if (iregion >= 0) {
-		iregion = domain->find_region(idregion);
-		if (iregion == -1)
-			error->all(FLERR, "Region ID for fix cac/setvelocity does not exist");
-	}
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all(FLERR, "Region ID for fix cac/setvelocity does not exist");
+  }
 
-	if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
-		varflag = ATOM;
-	else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
-		varflag = EQUAL;
-	else varflag = CONSTANT;
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
+    varflag = ATOM;
+  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
+    varflag = EQUAL;
+  else varflag = CONSTANT;
 
-	
+  
 
-	// cannot use non-zero forces for a minimization since no energy is integrated
-	// use fix addforce instead
+  // cannot use non-zero forces for a minimization since no energy is integrated
+  // use fix addforce instead
 
-	int flag = 0;
-	if (update->whichflag == 2) {
-		if (xstyle == EQUAL || xstyle == ATOM) flag = 1;
-		if (ystyle == EQUAL || ystyle == ATOM) flag = 1;
-		if (zstyle == EQUAL || zstyle == ATOM) flag = 1;
-		if (xstyle == CONSTANT && xvalue != 0.0) flag = 1;
-		if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
-		if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
-	}
-	if (flag)
-		error->all(FLERR, "Cannot use non-zero forces in an energy minimization");
-	
+  int flag = 0;
+  if (update->whichflag == 2) {
+    if (xstyle == EQUAL || xstyle == ATOM) flag = 1;
+    if (ystyle == EQUAL || ystyle == ATOM) flag = 1;
+    if (zstyle == EQUAL || zstyle == ATOM) flag = 1;
+    if (xstyle == CONSTANT && xvalue != 0.0) flag = 1;
+    if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
+    if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
+  }
+  if (flag)
+    error->all(FLERR, "Cannot use non-zero forces in an energy minimization");
+  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,10 +217,10 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
   double **f = atom->f;
   double ****nodal_forces = atom->nodal_forces;
   int nodes_per_element;
-	int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;	
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
- double dt = update->dt;
+  double dt = update->dt;
   // update region if necessary
 
   Region *region = NULL;
@@ -250,44 +250,44 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
   
   
   if (varflag == CONSTANT) {
-	  for (int i = 0; i < nlocal; i++) {
-		  if (mask[i] & groupbit) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
 
-			  x[i][0] = 0;
-			  x[i][1] = 0;
-			  x[i][2] = 0;
-			  v[i][0] = 0;
-			  v[i][1] = 0;
-			  v[i][2] = 0;
+        x[i][0] = 0;
+        x[i][1] = 0;
+        x[i][2] = 0;
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
         nodes_per_element = nodes_count_list[element_type[i]];
-				for (int l = 0; l < poly_count[i]; l++) {
-			    for (int j = 0; j < nodes_per_element; j++) {
-					  if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-					  voriginal[0] += nodal_velocities[i][l][j][0];
-					  voriginal[1] += nodal_velocities[i][l][j][1];
-					  voriginal[2] += nodal_velocities[i][l][j][2];
-					  if (xstyle) nodal_velocities[i][l][j][0] = xvalue;
-					  if (ystyle) nodal_velocities[i][l][j][1] = yvalue;
-					  if (zstyle) nodal_velocities[i][l][j][2] = zvalue;
-					  if (xstyle) nodal_positions[i][l][j][0] += xvalue*dt;
-					  if (ystyle) nodal_positions[i][l][j][1] += yvalue*dt;
-					  if (zstyle) nodal_positions[i][l][j][2] += zvalue*dt;
-					  if (xstyle) x[i][0] += nodal_positions[i][l][j][0];
-					  if (ystyle) x[i][1] += nodal_positions[i][l][j][1];
-					  if (zstyle) x[i][2] += nodal_positions[i][l][j][2];
-					  if (xstyle) v[i][0] += nodal_velocities[i][l][j][0];
-					  if (ystyle) v[i][1] += nodal_velocities[i][l][j][1];
-					  if (zstyle) v[i][2] += nodal_velocities[i][l][j][2];
-				  }
-			  }
-			  x[i][0] = x[i][0] / nodes_per_element / poly_count[i];
-			  x[i][1] = x[i][1] / nodes_per_element / poly_count[i];
-			  x[i][2] = x[i][2] / nodes_per_element / poly_count[i];
-			  v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
-			  v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
-			  v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
-		  }
-	  }
+        for (int l = 0; l < poly_count[i]; l++) {
+          for (int j = 0; j < nodes_per_element; j++) {
+            if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+            voriginal[0] += nodal_velocities[i][l][j][0];
+            voriginal[1] += nodal_velocities[i][l][j][1];
+            voriginal[2] += nodal_velocities[i][l][j][2];
+            if (xstyle) nodal_velocities[i][l][j][0] = xvalue;
+            if (ystyle) nodal_velocities[i][l][j][1] = yvalue;
+            if (zstyle) nodal_velocities[i][l][j][2] = zvalue;
+            if (xstyle) nodal_positions[i][l][j][0] += xvalue*dt;
+            if (ystyle) nodal_positions[i][l][j][1] += yvalue*dt;
+            if (zstyle) nodal_positions[i][l][j][2] += zvalue*dt;
+            if (xstyle) x[i][0] += nodal_positions[i][l][j][0];
+            if (ystyle) x[i][1] += nodal_positions[i][l][j][1];
+            if (zstyle) x[i][2] += nodal_positions[i][l][j][2];
+            if (xstyle) v[i][0] += nodal_velocities[i][l][j][0];
+            if (ystyle) v[i][1] += nodal_velocities[i][l][j][1];
+            if (zstyle) v[i][2] += nodal_velocities[i][l][j][2];
+          }
+        }
+        x[i][0] = x[i][0] / nodes_per_element / poly_count[i];
+        x[i][1] = x[i][1] / nodes_per_element / poly_count[i];
+        x[i][2] = x[i][2] / nodes_per_element / poly_count[i];
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+      }
+    }
   // variable force, wrap with clear/add
 
   } else {
@@ -309,12 +309,12 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
-				for (int l = 0; l < poly_count[i]; l++) {
-			    for (int j = 0; j < nodes_per_element; j++) {
+        for (int l = 0; l < poly_count[i]; l++) {
+          for (int j = 0; j < nodes_per_element; j++) {
             if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
             voriginal[0] += nodal_velocities[i][l][j][0];
-				    voriginal[1] += nodal_velocities[i][l][j][1];
-				    voriginal[2] += nodal_velocities[i][l][j][2];
+            voriginal[1] += nodal_velocities[i][l][j][1];
+            voriginal[2] += nodal_velocities[i][l][j][2];
             if (xstyle == ATOM) nodal_velocities[i][l][j][0] = svelocity[i][0];
             else if (xstyle) nodal_velocities[i][l][j][0] = xvalue;
             if (ystyle == ATOM) nodal_velocities[i][l][j][1] = svelocity[i][1];
@@ -324,9 +324,9 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
          }
         }
         
-			  v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
-			  v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
-			  v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
       }
     }
   }

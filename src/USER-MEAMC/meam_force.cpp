@@ -17,7 +17,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   double v[6], fi[3], fj[3];
   double third, sixth;
   double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
-  double r, recip, phi, phip;
+  double recip, phi, phip;
   double sij;
   double a1, a1i, a1j, a2, a2i, a2j;
   double a3i, a3j;
@@ -71,7 +71,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
       rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
       if (rij2 < this->cutforcesq) {
         rij = sqrt(rij2);
-        r = rij;
+        recip = 1.0 / rij;
 
         //     Compute phi and phip
         ind = this->eltind[elti][eltj];
@@ -80,10 +80,8 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         kk = std::min(kk, this->nrar - 2);
         pp = pp - kk;
         pp = std::min(pp, 1.0);
-        phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
-          this->phirar[ind][kk];
+        phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp + this->phirar[ind][kk];
         phip = (this->phirar6[ind][kk] * pp + this->phirar5[ind][kk]) * pp + this->phirar4[ind][kk];
-        recip = 1.0 / r;
 
         if (eflag_either != 0) {
           double phi_sc = phi * scaleij;

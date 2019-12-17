@@ -296,6 +296,7 @@ accelerated styles exist.
 "precession/spin"_fix_precession_spin.html -
 "press/berendsen"_fix_press_berendsen.html - pressure control by Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
+"propel/self"_fix_propel_self.html - add self-propelling force
 "property/atom"_fix_property_atom.html - add customized per-atom values
 "python/invoke"_fix_python_invoke.html - call a Python function during a simulation
 "python/move"_fix_python_move.html -  call a Python function during a simulation run

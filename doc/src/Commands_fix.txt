@@ -157,6 +157,7 @@ OPT.
 "precession/spin"_fix_precession_spin.html,
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
+"propel/self"_fix_propel_self.html,
 "property/atom (k)"_fix_property_atom.html,
 "python/invoke"_fix_python_invoke.html,
 "python/move"_fix_python_move.html,

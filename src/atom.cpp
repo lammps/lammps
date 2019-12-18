@@ -175,42 +175,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   iname = dname = NULL;
 
   // initialize atom style and array existence flags
-  // customize by adding new flag
 
-  sphere_flag = peri_flag = electron_flag = 0;
-  wavepacket_flag = sph_flag = 0;
-
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  omega_flag = torque_flag = angmom_flag = 0;
-  radius_flag = rmass_flag = 0;
-  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
-
-  // magnetic flags
-
-  sp_flag = 0;
-
-  vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
-  cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
-
-  rho_flag = e_flag = cv_flag = vest_flag = 0;
-  dpd_flag = edpd_flag = tdpd_flag = 0;
-
-  // USER-SMD
-
-  smd_flag = 0;
-  contact_radius_flag = 0;
-  smd_data_9_flag = 0;
-  smd_stress_flag = 0;
-  x0_flag = 0;
-  eff_plastic_strain_flag = 0;
-  eff_plastic_strain_rate_flag = 0;
-  damage_flag = 0;
-
-  // Peridynamic scale factor
-
-  pdscale = 1.0;
+  set_atomflag_defaults();
 
   // initialize peratom data structure
 
@@ -669,6 +635,32 @@ void Atom::add_peratom_vary(const char *name, void *address,
 }
 
 /* ----------------------------------------------------------------------
+   add info for a single per-atom array to PerAtom data struct
+   customize by adding new flag, identical list as atom.h 2nd customization
+------------------------------------------------------------------------- */
+
+void Atom::set_atomflag_defaults()
+{
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  peri_flag = electron_flag = 0;
+  wavepacket_flag = sph_flag = 0;
+  molecule_flag = molindex_flag = molatom_flag = 0;
+  q_flag = mu_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
+  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
+  rho_flag = e_flag = cv_flag = vest_flag = 0;
+  dpd_flag = edpd_flag = tdpd_flag = 0;
+  sp_flag = 0;
+  x0_flag = 0;
+  smd_flag = damage_flag = 0;
+  contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
+  eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
+
+  pdscale = 1.0;
+}
+
+/* ----------------------------------------------------------------------
    create an AtomVec style
    called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
@@ -682,26 +674,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   // unset atom style and array existence flags
   // may have been set by old avec
-  // customize by adding new flag
 
-  sphere_flag = peri_flag = electron_flag = 0;
-  wavepacket_flag = sph_flag = 0;
-
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  omega_flag = torque_flag = angmom_flag = 0;
-  radius_flag = rmass_flag = 0;
-  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
-
-  // magnetic flags
-
-  sp_flag = 0;
-
-  vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
-  cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
-
-  rho_flag = e_flag = cv_flag = vest_flag = 0;
+  set_atomflag_defaults();
 
   // create instance of AtomVec
   // use grow() to initialize atom-based arrays to length 1
@@ -784,6 +758,7 @@ AtomVec *Atom::avec_creator(LAMMPS *lmp)
 {
   return new T(lmp);
 }
+
 
 /* ---------------------------------------------------------------------- */
 

@@ -61,18 +61,16 @@ AtomVecBond::~AtomVecBond()
 }
 
 /* ----------------------------------------------------------------------
-   grow atom arrays
-   must set local copy of body ptr
-   needed in replicate when 2 atom classes exist and pack_restart() is called
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecBond::grow(int n)
+void AtomVecBond::grow_pointers()
 {
-  AtomVec::grow(n);
   num_bond = atom->num_bond;
   bond_type = atom->bond_type;
+  nspecial = atom->nspecial;
 }
-
 
 /* ----------------------------------------------------------------------
    modify values for AtomVec::pack_restart() to pack
@@ -89,9 +87,6 @@ void AtomVecBond::pack_restart_pre(int ilocal)
   }
 
   // flip any negative types to positive and flag which ones
-
-  //int *num_bond = atom->num_bond;
-  //int **bond_type = atom->bond_type;
 
   any_bond_negative = 0;
   for (int m = 0; m < num_bond[ilocal]; m++) {
@@ -112,8 +107,6 @@ void AtomVecBond::pack_restart_post(int ilocal)
   // restore the flagged types to their negative values
 
   if (any_bond_negative) {
-    //int *num_bond = atom->num_bond;
-    //int **bond_type = atom->bond_type;
     for (int m = 0; m < num_bond[ilocal]; m++)
       if (bond_negative[m]) bond_type[ilocal][m] = -bond_type[ilocal][m];
   }
@@ -125,9 +118,9 @@ void AtomVecBond::pack_restart_post(int ilocal)
 
 void AtomVecBond::unpack_restart_init(int ilocal)
 {
-  atom->nspecial[ilocal][0] = 0;
-  atom->nspecial[ilocal][1] = 0;
-  atom->nspecial[ilocal][2] = 0;
+  nspecial[ilocal][0] = 0;
+  nspecial[ilocal][1] = 0;
+  nspecial[ilocal][2] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -137,8 +130,8 @@ void AtomVecBond::unpack_restart_init(int ilocal)
 
 void AtomVecBond::data_atom_post(int ilocal)
 {
-  atom->num_bond[ilocal] = 0;
-  atom->nspecial[ilocal][0] = 0;
-  atom->nspecial[ilocal][1] = 0;
-  atom->nspecial[ilocal][2] = 0;
+  num_bond[ilocal] = 0;
+  nspecial[ilocal][0] = 0;
+  nspecial[ilocal][1] = 0;
+  nspecial[ilocal][2] = 0;
 }

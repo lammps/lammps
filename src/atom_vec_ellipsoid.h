@@ -36,6 +36,7 @@ class AtomVecEllipsoid : public AtomVec {
   AtomVecEllipsoid(class LAMMPS *);
   ~AtomVecEllipsoid();
 
+  void grow_pointers();
   void copy_bonus(int, int, int);
   void clear_bonus();
   int pack_comm_bonus(int, int *, double *);
@@ -62,9 +63,12 @@ class AtomVecEllipsoid : public AtomVec {
   int nlocal_bonus;
 
  private:
+  int *ellipsoid;
+  double *rmass;
+
   int nghost_bonus,nmax_bonus;
   int ellipsoid_flag;
-  double rmass;
+  double rmass_one;
 
   void grow_bonus();
   void copy_bonus_all(int, int);

@@ -34,8 +34,9 @@ class AtomVecHybrid : public AtomVec {
   ~AtomVecHybrid();
   void process_args(int, char **);
   void init();
-  void force_clear(int, size_t);
 
+  void grow_pointers();
+  void force_clear(int, size_t);
   void copy_bonus(int, int, int);
   void clear_bonus() {}
   int pack_comm_bonus(int, int *, double *);

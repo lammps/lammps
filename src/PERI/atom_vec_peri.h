@@ -27,10 +27,17 @@ namespace LAMMPS_NS {
 class AtomVecPeri : public AtomVec {
  public:
   AtomVecPeri(class LAMMPS *);
+
+  void grow_pointers();
   void create_atom_post(int);
   void data_atom_post(int);
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
+
+ private:
+  double *rmass,*vfrac,*s0;
+  double **x0;
+
 };
 
 }

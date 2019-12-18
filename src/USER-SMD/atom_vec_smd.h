@@ -38,9 +38,17 @@ namespace LAMMPS_NS {
 class AtomVecSMD : public AtomVec {
  public:
   AtomVecSMD(class LAMMPS *);
+
+  void grow_pointers();
   void force_clear(int, size_t);
   void create_atom_post(int);
   void data_atom_post(int);
+
+ private:
+  int *molecule;
+  double *e,*de,*vfrac,*rmass,*radius,*contact_radius;
+  double *eff_plastic_strain,*eff_plastic_strain_rate,*damage;
+  double **x0,**smd_data_9,**smd_stress,**vest;
 };
 
 }

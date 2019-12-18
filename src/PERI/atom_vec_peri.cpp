@@ -70,17 +70,30 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecPeri::grow_pointers()
+{
+  rmass = atom->rmass;
+  vfrac = atom->vfrac;
+  s0 = atom->s0;
+  x0 = atom->x0;
+}
+
+/* ----------------------------------------------------------------------
    initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecPeri::create_atom_post(int ilocal)
 {
-  atom->vfrac[ilocal] = 1.0;
-  atom->rmass[ilocal] = 1.0;
-  atom->s0[ilocal] = DBL_MAX;
-  atom->x0[ilocal][0] = atom->x[ilocal][0];
-  atom->x0[ilocal][1] = atom->x[ilocal][1];
-  atom->x0[ilocal][2] = atom->x[ilocal][2];
+  vfrac[ilocal] = 1.0;
+  rmass[ilocal] = 1.0;
+  s0[ilocal] = DBL_MAX;
+  x0[ilocal][0] = x[ilocal][0];
+  x0[ilocal][1] = x[ilocal][1];
+  x0[ilocal][2] = x[ilocal][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -90,12 +103,12 @@ void AtomVecPeri::create_atom_post(int ilocal)
 
 void AtomVecPeri::data_atom_post(int ilocal)
 {
-  atom->s0[ilocal] = DBL_MAX;
-  atom->x0[ilocal][0] = atom->x[ilocal][0];
-  atom->x0[ilocal][1] = atom->x[ilocal][1];
-  atom->x0[ilocal][2] = atom->x[ilocal][2];
+  s0[ilocal] = DBL_MAX;
+  x0[ilocal][0] = x[ilocal][0];
+  x0[ilocal][1] = x[ilocal][1];
+  x0[ilocal][2] = x[ilocal][2];
 
-  if (atom->rmass[ilocal] <= 0.0) 
+  if (rmass[ilocal] <= 0.0) 
     error->one(FLERR,"Invalid mass in Atoms section of data file");
 }
 
@@ -124,14 +137,12 @@ void AtomVecPeri::pack_property_atom(int index, double *buf,
   int n = 0;
 
   if (index == 0) {
-    double *vfrac = atom->vfrac;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = vfrac[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
-    double *s0 = atom->s0;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = s0[i];
       else buf[n] = 0.0;

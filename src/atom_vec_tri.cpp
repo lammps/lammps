@@ -89,6 +89,20 @@ void AtomVecTri::init()
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecTri::grow_pointers()
+{
+  tri = atom->tri;
+  radius = atom->radius;
+  rmass = atom->rmass;
+  omega = atom->omega;
+  angmom = atom->angmom;
+}
+
+/* ----------------------------------------------------------------------
    grow bonus data structure
 ------------------------------------------------------------------------- */
 
@@ -109,8 +123,6 @@ void AtomVecTri::grow_bonus()
 
 void AtomVecTri::copy_bonus(int i, int j, int delflag)
 {
-  int *tri = atom->tri;
-
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && tri[j] >= 0) {
@@ -132,7 +144,7 @@ void AtomVecTri::copy_bonus(int i, int j, int delflag)
 
 void AtomVecTri::copy_bonus_all(int i, int j)
 {
-  atom->tri[bonus[i].ilocal] = j;
+  tri[bonus[i].ilocal] = j;
   memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
 }
 
@@ -157,8 +169,6 @@ int AtomVecTri::pack_comm_bonus(int n, int *list, double *buf)
   int i,j,m;
   double *quat;
 
-  int *tri = atom->tri;
-
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -181,8 +191,6 @@ void AtomVecTri::unpack_comm_bonus(int n, int first, double *buf)
   int i,m,last;
   double *quat;
 
-  int *tri = atom->tri;
-
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
@@ -202,8 +210,6 @@ int AtomVecTri::pack_border_bonus(int n, int *list, double *buf)
 {
   int i,j,m;
   double *quat,*c1,*c2,*c3,*inertia;
-
-  int *tri = atom->tri;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -244,8 +250,6 @@ int AtomVecTri::unpack_border_bonus(int n, int first, double *buf)
 {
   int i,j,m,last;
   double *quat,*c1,*c2,*c3,*inertia;
-
-  int *tri = atom->tri;
 
   m = 0;
   last = first + n;
@@ -294,8 +298,6 @@ int AtomVecTri::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  int *tri = atom->tri;
-
   if (tri[i] < 0) buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
@@ -331,8 +333,6 @@ int AtomVecTri::pack_exchange_bonus(int i, double *buf)
 int AtomVecTri::unpack_exchange_bonus(int ilocal, double *buf)
 {
   int m = 0;
-
-  int *tri = atom->tri;
 
   tri[ilocal] = (int) ubuf(buf[m++]).i;
   if (tri[ilocal] == 0) tri[ilocal] = -1;
@@ -375,8 +375,6 @@ int AtomVecTri::size_restart_bonus()
 {
   int i;
 
-  int *tri = atom->tri;
-
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
@@ -394,8 +392,6 @@ int AtomVecTri::size_restart_bonus()
 int AtomVecTri::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
-
-  int *tri = atom->tri;
 
   if (tri[i] < 0) buf[m++] = ubuf(0).d;
   else {
@@ -435,8 +431,6 @@ int AtomVecTri::unpack_restart_bonus(int ilocal, double *buf)
 {
   int m = 0;
 
-  int *tri = atom->tri;
-
   tri[ilocal] = (int) ubuf(buf[m++]).i;
   if (tri[ilocal] == 0) tri[ilocal] = -1;
   else {
@@ -475,8 +469,6 @@ int AtomVecTri::unpack_restart_bonus(int ilocal, double *buf)
 
 void AtomVecTri::data_atom_bonus(int m, char **values)
 {
-  int *tri = atom->tri;
-
   if (tri[m]) error->one(FLERR,"Assigning tri parameters to non-tri atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
@@ -523,9 +515,9 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   if (delta/size > EPSILON)
     error->one(FLERR,"Inconsistent triangle in data file");
 
-  atom->x[m][0] = centroid[0];
-  atom->x[m][1] = centroid[1];
-  atom->x[m][2] = centroid[2];
+  x[m][0] = centroid[0];
+  x[m][1] = centroid[1];
+  x[m][2] = centroid[2];
 
   // reset tri radius and mass
   // rmass currently holds density
@@ -533,22 +525,22 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 
   double c4[3];
   MathExtra::sub3(c1,centroid,c4);
-  atom->radius[m] = MathExtra::lensq3(c4);
+  radius[m] = MathExtra::lensq3(c4);
   MathExtra::sub3(c2,centroid,c4);
-  atom->radius[m] = MAX(atom->radius[m],MathExtra::lensq3(c4));
+  radius[m] = MAX(radius[m],MathExtra::lensq3(c4));
   MathExtra::sub3(c3,centroid,c4);
-  atom->radius[m] = MAX(atom->radius[m],MathExtra::lensq3(c4));
-  atom->radius[m] = sqrt(atom->radius[m]);
+  radius[m] = MAX(radius[m],MathExtra::lensq3(c4));
+  radius[m] = sqrt(radius[m]);
 
   double norm[3];
   MathExtra::cross3(c2mc1,c3mc1,norm);
   double area = 0.5 * MathExtra::len3(norm);
-  atom->rmass[m] *= area;
+  rmass[m] *= area;
 
   // inertia = inertia tensor of triangle as 6-vector in Voigt notation
 
   double inertia[6];
-  MathExtra::inertia_triangle(c1,c2,c3,atom->rmass[m],inertia);
+  MathExtra::inertia_triangle(c1,c2,c3,rmass[m],inertia);
 
   // diagonalize inertia tensor via Jacobi rotations
   // bonus[].inertia = 3 eigenvalues = principal moments of inertia
@@ -622,10 +614,10 @@ bigint AtomVecTri::memory_usage_bonus()
 
 void AtomVecTri::create_atom_post(int ilocal)
 {
-  double radius = 0.5;
-  atom->radius[ilocal] = radius;
-  atom->rmass[ilocal] = 4.0*MY_PI/3.0 * radius*radius*radius;
-  atom->tri[ilocal] = -1;
+  double radius_one = 0.5;
+  radius[ilocal] = radius_one;
+  rmass[ilocal] = 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
+  tri[ilocal] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -635,27 +627,27 @@ void AtomVecTri::create_atom_post(int ilocal)
 
 void AtomVecTri::data_atom_post(int ilocal)
 {
-  tri_flag = atom->tri[ilocal];
+  tri_flag = tri[ilocal];
   if (tri_flag == 0) tri_flag = -1;
   else if (tri_flag == 1) tri_flag = 0;
   else error->one(FLERR,"Invalid tri flag in Atoms section of data file");
-  atom->tri[ilocal] = tri_flag;
+  tri[ilocal] = tri_flag;
 
-  if (atom->rmass[ilocal] <= 0.0)
+  if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
   if (tri_flag < 0) {
-    double radius = 0.5;
-    atom->radius[ilocal] = radius;
-    atom->rmass[ilocal] *= 4.0*MY_PI/3.0 * radius*radius*radius;
-  } else atom->radius[ilocal] = 0.0;
+    double radius_one = 0.5;
+    radius[ilocal] = radius_one;
+    rmass[ilocal] *= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
+  } else radius[ilocal] = 0.0;
 
-  atom->omega[ilocal][0] = 0.0;
-  atom->omega[ilocal][1] = 0.0;
-  atom->omega[ilocal][2] = 0.0;
-  atom->angmom[ilocal][0] = 0.0;
-  atom->angmom[ilocal][1] = 0.0;
-  atom->angmom[ilocal][2] = 0.0;
+  omega[ilocal][0] = 0.0;
+  omega[ilocal][1] = 0.0;
+  omega[ilocal][2] = 0.0;
+  angmom[ilocal][0] = 0.0;
+  angmom[ilocal][1] = 0.0;
+  angmom[ilocal][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -664,22 +656,22 @@ void AtomVecTri::data_atom_post(int ilocal)
 
 void AtomVecTri::pack_data_pre(int ilocal)
 { 
-  tri_flag = atom->tri[ilocal];
-  rmass = atom->rmass[ilocal];
+  tri_flag = tri[ilocal];
+  rmass_one = rmass[ilocal];
 
-  if (tri_flag < 0) atom->tri[ilocal] = 0;
-  else atom->tri[ilocal] = 1;
+  if (tri_flag < 0) tri[ilocal] = 0;
+  else tri[ilocal] = 1;
 
   if (tri_flag < 0) {
-    double radius = atom->radius[ilocal];
-    atom->rmass[ilocal] /= 4.0*MY_PI/3.0 * radius*radius*radius;
+    double radius_one = radius[ilocal];
+    rmass[ilocal] /= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
   } else {
     double c2mc1[3],c3mc1[3],norm[3];
     MathExtra::sub3(bonus[tri_flag].c2,bonus[tri_flag].c1,c2mc1);
     MathExtra::sub3(bonus[tri_flag].c3,bonus[tri_flag].c1,c3mc1);
     MathExtra::cross3(c2mc1,c3mc1,norm);
     double area = 0.5 * MathExtra::len3(norm);
-    atom->rmass[ilocal] /= area;
+    rmass[ilocal] /= area;
   }
 }
 
@@ -689,8 +681,8 @@ void AtomVecTri::pack_data_pre(int ilocal)
 
 void AtomVecTri::pack_data_post(int ilocal)
 { 
-  atom->tri[ilocal] = tri_flag;
-  atom->rmass[ilocal] = rmass;
+  tri[ilocal] = tri_flag;
+  rmass[ilocal] = rmass_one;
 }
 
 /* ----------------------------------------------------------------------
@@ -703,8 +695,6 @@ void AtomVecTri::set_equilateral(int i, double size)
 {
   // also set radius = distance from center to corner-pt = len(c1)
   // unless size = 0.0, then set diameter = 1.0
-
-  int *tri = atom->tri;
 
   if (tri[i] < 0) {
     if (size == 0.0) return;
@@ -730,11 +720,11 @@ void AtomVecTri::set_equilateral(int i, double size)
     inertia[0] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[1] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[2] = sqrt(3.0)/48.0 * size*size*size*size;
-    atom->radius[i] = MathExtra::len3(c1);
+    radius[i] = MathExtra::len3(c1);
     bonus[nlocal_bonus].ilocal = i;
     tri[i] = nlocal_bonus++;
   } else if (size == 0.0) {
-    atom->radius[i] = 0.5;
+    radius[i] = 0.5;
     copy_bonus_all(nlocal_bonus-1,tri[i]);
     nlocal_bonus--;
     tri[i] = -1;
@@ -755,6 +745,6 @@ void AtomVecTri::set_equilateral(int i, double size)
     inertia[0] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[1] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[2] = sqrt(3.0)/48.0 * size*size*size*size;
-    atom->radius[i] = MathExtra::len3(c1);
+    radius[i] = MathExtra::len3(c1);
   }
 }

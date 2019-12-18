@@ -76,6 +76,17 @@ AtomVecEllipsoid::~AtomVecEllipsoid()
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::grow_pointers()
+{
+  ellipsoid = atom->ellipsoid;
+  rmass = atom->rmass;
+}
+
+/* ----------------------------------------------------------------------
    grow bonus data structure
 ------------------------------------------------------------------------- */
 
@@ -95,8 +106,6 @@ void AtomVecEllipsoid::grow_bonus()
 
 void AtomVecEllipsoid::copy_bonus(int i, int j, int delflag)
 {
-  int *ellipsoid = atom->ellipsoid;
-
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && ellipsoid[j] >= 0) {
@@ -118,7 +127,7 @@ void AtomVecEllipsoid::copy_bonus(int i, int j, int delflag)
 
 void AtomVecEllipsoid::copy_bonus_all(int i, int j)
 {
-  atom->ellipsoid[bonus[i].ilocal] = j;
+  ellipsoid[bonus[i].ilocal] = j;
   memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
 }
 
@@ -143,8 +152,6 @@ int AtomVecEllipsoid::pack_comm_bonus(int n, int *list, double *buf)
   int i,j,m;
   double *quat;
 
-  int *ellipsoid = atom->ellipsoid;
-
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -167,8 +174,6 @@ void AtomVecEllipsoid::unpack_comm_bonus(int n, int first, double *buf)
   int i,m,last;
   double *quat;
 
-  int *ellipsoid = atom->ellipsoid;
-
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
@@ -189,8 +194,6 @@ int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
   int i,j,m;
   double dx,dy,dz;
   double *shape,*quat;
-
-  int *ellipsoid = atom->ellipsoid;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -219,8 +222,6 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
 {
   int i,j,m,last;
   double *shape,*quat;
-
-  int *ellipsoid = atom->ellipsoid;
 
   m = 0;
   last = first + n;
@@ -257,8 +258,6 @@ int AtomVecEllipsoid::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  int *ellipsoid = atom->ellipsoid;
-
   if (ellipsoid[i] < 0) buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
@@ -282,8 +281,6 @@ int AtomVecEllipsoid::pack_exchange_bonus(int i, double *buf)
 int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
 {
   int m = 0;
-
-  int *ellipsoid = atom->ellipsoid;
 
   ellipsoid[ilocal] = (int) ubuf(buf[m++]).i;
   if (ellipsoid[ilocal] == 0) ellipsoid[ilocal] = -1;
@@ -314,8 +311,6 @@ int AtomVecEllipsoid::size_restart_bonus()
 {
   int i;
 
-  int *ellipsoid = atom->ellipsoid;
-
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
@@ -335,8 +330,6 @@ int AtomVecEllipsoid::size_restart_bonus()
 int AtomVecEllipsoid::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
-
-  int *ellipsoid = atom->ellipsoid;
 
   if (ellipsoid[i] < 0) buf[m++] = ubuf(0).d;
   else {
@@ -361,8 +354,6 @@ int AtomVecEllipsoid::pack_restart_bonus(int i, double *buf)
 int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
 {
   int m = 0;
-
-  int *ellipsoid = atom->ellipsoid;
 
   ellipsoid[ilocal] = (int) ubuf(buf[m++]).i;
   if (ellipsoid[ilocal] == 0) ellipsoid[ilocal] = -1;
@@ -390,8 +381,6 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
 
 void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
 {
-  int *ellipsoid = atom->ellipsoid;
-
   if (ellipsoid[m])
     error->one(FLERR,"Assigning ellipsoid parameters to non-ellipsoid atom");
 
@@ -414,7 +403,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  atom->rmass[m] *= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
+  rmass[m] *= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
 
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;
@@ -437,8 +426,8 @@ bigint AtomVecEllipsoid::memory_usage_bonus()
 
 void AtomVecEllipsoid::create_atom_post(int ilocal)
 {
-  atom->rmass[ilocal] = 1.0;
-  atom->ellipsoid[ilocal] = -1;
+  rmass[ilocal] = 1.0;
+  ellipsoid[ilocal] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -448,13 +437,13 @@ void AtomVecEllipsoid::create_atom_post(int ilocal)
 
 void AtomVecEllipsoid::data_atom_post(int ilocal)
 {
-  ellipsoid_flag = atom->ellipsoid[ilocal];
+  ellipsoid_flag = ellipsoid[ilocal];
   if (ellipsoid_flag == 0) ellipsoid_flag = -1;
   else if (ellipsoid_flag == 1) ellipsoid_flag = 0;
   else error->one(FLERR,"Invalid ellipsoid flag in Atoms section of data file");
-  atom->ellipsoid[ilocal] = ellipsoid_flag;
+  ellipsoid[ilocal] = ellipsoid_flag;
 
-  if (atom->rmass[ilocal] <= 0.0)
+  if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 }
 
@@ -467,14 +456,14 @@ void AtomVecEllipsoid::pack_data_pre(int ilocal)
   double *shape;
 
   ellipsoid_flag = atom->ellipsoid[ilocal];
-  rmass = atom->rmass[ilocal];
+  rmass_one = atom->rmass[ilocal];
 
-  if (ellipsoid_flag < 0) atom->ellipsoid[ilocal] = 0;
-  else atom->ellipsoid[ilocal] = 1;
+  if (ellipsoid_flag < 0) ellipsoid[ilocal] = 0;
+  else ellipsoid[ilocal] = 1;
 
   if (ellipsoid_flag >= 0) {
     shape = bonus[ellipsoid_flag].shape;
-    atom->rmass[ilocal] /= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
+    rmass[ilocal] /= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
   }
 }
 
@@ -484,8 +473,8 @@ void AtomVecEllipsoid::pack_data_pre(int ilocal)
 
 void AtomVecEllipsoid::pack_data_post(int ilocal)
 { 
-  atom->ellipsoid[ilocal] = ellipsoid_flag;
-  atom->rmass[ilocal] = rmass;
+  ellipsoid[ilocal] = ellipsoid_flag;
+  rmass[ilocal] = rmass_one;
 }
 
 /* ----------------------------------------------------------------------
@@ -497,8 +486,6 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 void AtomVecEllipsoid::
 set_shape(int i, double shapex, double shapey, double shapez)
 {
-  int *ellipsoid = atom->ellipsoid;
-
   if (ellipsoid[i] < 0) {
     if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) return;
     if (nlocal_bonus == nmax_bonus) grow_bonus();

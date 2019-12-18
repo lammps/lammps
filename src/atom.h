@@ -143,7 +143,8 @@ class Atom : protected Pointers {
   double **vest;
 
   // --------------------------------------------------------------------
-  // 1st customization section: customize by adding new flags
+  // 2nd customization section: customize by adding new flags
+  // identical list as Atom::set_atomflag_defaults()
   // most are existence flags for per-atom vectors and arrays
   // 1 if variable is used, 0 if not
 
@@ -165,14 +166,10 @@ class Atom : protected Pointers {
 
   // USER-SMD package
 
-  int smd_flag;
-  int contact_radius_flag;
-  int smd_data_9_flag;
-  int smd_stress_flag;
   int x0_flag;
-  int eff_plastic_strain_flag;
-  int eff_plastic_strain_rate_flag;
-  int damage_flag;
+  int smd_flag,damage_flag;
+  int contact_radius_flag,smd_data_9_flag,smd_stress_flag;
+  int eff_plastic_strain_flag,eff_plastic_strain_rate_flag;
 
   // Peridynamics scale factor, used by dump cfg
 
@@ -264,6 +261,7 @@ class Atom : protected Pointers {
                         void *, int collength=0);
   void create_avec(const char *, int, char **, int);
   virtual class AtomVec *new_avec(const char *, int, int &);
+
   void init();
   void setup();
 
@@ -380,6 +378,7 @@ class Atom : protected Pointers {
   double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 
+  void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
 

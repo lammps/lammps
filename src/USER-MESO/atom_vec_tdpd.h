@@ -29,10 +29,15 @@ class AtomVecTDPD : public AtomVec {
   AtomVecTDPD(class LAMMPS *);
   void process_args(int, char **);
   void init();
+
+  void grow_pointers();
   void force_clear(int, size_t);
   void data_atom_post(int);
 
  protected:
+  double **cc_flux;
+  double **vest;
+
   int cc_species;
 };
 

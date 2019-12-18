@@ -28,12 +28,18 @@ class AtomVecAngle : public AtomVec {
  public:
   AtomVecAngle(class LAMMPS *);
   ~AtomVecAngle();
+
+  void grow_pointers();
   void pack_restart_pre(int);
   void pack_restart_post(int);
   void unpack_restart_init(int);
   void data_atom_post(int);
 
  private:
+  int *num_bond,*num_angle;
+  int **bond_type,**angle_type;
+  int **nspecial;
+
   int any_bond_negative,any_angle_negative;
   int bond_per_atom,angle_per_atom;
   int *bond_negative,*angle_negative;

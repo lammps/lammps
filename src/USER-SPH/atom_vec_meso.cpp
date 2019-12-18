@@ -53,14 +53,29 @@ AtomVecMeso::AtomVecMeso(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecMeso::grow_pointers()
+{
+  rho = atom->rho;
+  drho = atom->drho;
+  e = atom->e;
+  de = atom->de;
+  cv = atom->cv;
+  vest = atom->vest;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
 void AtomVecMeso::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->de[n],0,nbytes);
-  memset(&atom->drho[n],0,nbytes);
+  memset(&de[n],0,nbytes);
+  memset(&drho[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -69,7 +84,7 @@ void AtomVecMeso::force_clear(int n, size_t nbytes)
 
 void AtomVecMeso::create_atom_post(int ilocal)
 {
-  atom->cv[ilocal] = 1.0;
+  cv[ilocal] = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -79,11 +94,11 @@ void AtomVecMeso::create_atom_post(int ilocal)
 
 void AtomVecMeso::data_atom_post(int ilocal)
 {
-  atom->vest[ilocal][0] = 0.0;
-  atom->vest[ilocal][1] = 0.0;
-  atom->vest[ilocal][2] = 0.0;
-  atom->de[ilocal] = 0.0;
-  atom->drho[ilocal] = 0.0;
+  vest[ilocal][0] = 0.0;
+  vest[ilocal][1] = 0.0;
+  vest[ilocal][2] = 0.0;
+  de[ilocal] = 0.0;
+  drho[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -114,35 +129,30 @@ void AtomVecMeso::pack_property_atom(int index, double *buf,
   int n = 0;
 
   if (index == 0) {
-    double *rho = atom->rho;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = rho[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
-    double *drho = atom->drho;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = drho[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
-    double *e = atom->e;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = e[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
-    double *de = atom->de;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = de[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 4) {
-    double *cv = atom->cv;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = cv[i];
       else buf[n] = 0.0;

@@ -29,14 +29,18 @@ class AtomVecSphere : public AtomVec {
   AtomVecSphere(class LAMMPS *);
   void process_args(int, char **);
   void init();
+
+  void grow_pointers();
   void create_atom_post(int);
   void data_atom_post(int);
   void pack_data_pre(int);
   void pack_data_post(int);
 
  private:
+  double *radius,*rmass;
+
   int radvary;
-  double radius,rmass;
+  double radius_one,rmass_one;
 };
 
 }

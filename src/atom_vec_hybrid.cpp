@@ -36,7 +36,6 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
 
   // NOTE: set bonus_flag if any substyle does
   //       set nstyles_bonus, styles_bonus
-  // NOTE: call method in each sub-style to set q_flag ??
 
   // these strings will be concatenated from sub-style strings
   // fields_data_atom & fields_data_vel start with fields common to all styles
@@ -124,8 +123,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   for (int k = 0; k < nstyles; k++) {
     if ((styles[k]->molecular == 1 && molecular == 2) ||
         (styles[k]->molecular == 2 && molecular == 1))
-      error->all(FLERR,"Cannot mix molecular and molecule template "
-                 "atom styles");
+      error->all(FLERR,
+                 "Cannot mix molecular and molecule template atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
 
     bonds_allow = MAX(bonds_allow,styles[k]->bonds_allow);
@@ -135,11 +134,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     mass_type = MAX(mass_type,styles[k]->mass_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
+    maxexchange += styles[k]->maxexchange;
 
     if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
-
-    // NOTE: need to sum this one?
-    maxexchange += styles[k]->maxexchange;
   }
 
   // issue a warning if both per-type mass and per-atom rmass are defined
@@ -233,6 +230,13 @@ void AtomVecHybrid::init()
 {
   AtomVec::init();
   for (int k = 0; k < nstyles; k++) styles[k]->init();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::grow_pointers()
+{
+  for (int k = 0; k < nstyles; k++) styles[k]->grow_pointers();
 }
 
 /* ---------------------------------------------------------------------- */

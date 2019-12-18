@@ -67,6 +67,20 @@ AtomVecAngle::~AtomVecAngle()
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecAngle::grow_pointers()
+{
+  num_bond = atom->num_bond;
+  bond_type = atom->bond_type;
+  num_angle = atom->num_angle;
+  angle_type = atom->angle_type;
+  nspecial = atom->nspecial;
+}
+
+/* ----------------------------------------------------------------------
    modify values for AtomVec::pack_restart() to pack
 ------------------------------------------------------------------------- */
 
@@ -86,11 +100,6 @@ void AtomVecAngle::pack_restart_pre(int ilocal)
   }
 
   // flip any negative types to positive and flag which ones
-
-  int *num_bond = atom->num_bond;
-  int **bond_type = atom->bond_type;
-  int *num_angle = atom->num_angle;
-  int **angle_type = atom->angle_type;
 
   int any_bond_negative = 0;
   for (int m = 0; m < num_bond[ilocal]; m++) {
@@ -120,15 +129,11 @@ void AtomVecAngle::pack_restart_post(int ilocal)
   // restore the flagged types to their negative values
 
   if (any_bond_negative) {
-    int *num_bond = atom->num_bond;
-    int **bond_type = atom->bond_type;
     for (int m = 0; m < num_bond[ilocal]; m++)
       if (bond_negative[m]) bond_type[ilocal][m] = -bond_type[ilocal][m];
   }
 
   if (any_angle_negative) {
-    int *num_angle = atom->num_angle;
-    int **angle_type = atom->angle_type;
     for (int m = 0; m < num_angle[ilocal]; m++)
       if (angle_negative[m]) angle_type[ilocal][m] = -angle_type[ilocal][m];
   }
@@ -140,9 +145,9 @@ void AtomVecAngle::pack_restart_post(int ilocal)
 
 void AtomVecAngle::unpack_restart_init(int ilocal)
 {
-  atom->nspecial[ilocal][0] = 0;
-  atom->nspecial[ilocal][1] = 0;
-  atom->nspecial[ilocal][2] = 0;
+  nspecial[ilocal][0] = 0;
+  nspecial[ilocal][1] = 0;
+  nspecial[ilocal][2] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -152,9 +157,9 @@ void AtomVecAngle::unpack_restart_init(int ilocal)
 
 void AtomVecAngle::data_atom_post(int ilocal)
 {
-  atom->num_bond[ilocal] = 0;
-  atom->num_angle[ilocal] = 0;
-  atom->nspecial[ilocal][0] = 0;
-  atom->nspecial[ilocal][1] = 0;
-  atom->nspecial[ilocal][2] = 0;
+  num_bond[ilocal] = 0;
+  num_angle[ilocal] = 0;
+  nspecial[ilocal][0] = 0;
+  nspecial[ilocal][1] = 0;
+  nspecial[ilocal][2] = 0;
 }

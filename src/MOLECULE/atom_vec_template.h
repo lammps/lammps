@@ -27,9 +27,14 @@ namespace LAMMPS_NS {
 class AtomVecTemplate : public AtomVec {
  public:
   AtomVecTemplate(class LAMMPS *);
+
+  void grow_pointers();
   void process_args(int, char **);
   void create_atom_post(int);
   void data_atom_post(int);
+
+ private:
+  int *molindex,*molatom;
 };
 
 }

@@ -38,6 +38,7 @@ class AtomVecTri : public AtomVec {
   ~AtomVecTri();
   void init();
 
+  void grow_pointers();
   void copy_bonus(int, int, int);
   void clear_bonus();
   int pack_comm_bonus(int, int *, double *);
@@ -64,9 +65,13 @@ class AtomVecTri : public AtomVec {
   int nlocal_bonus;
 
  private:
+  int *tri;
+  double *radius,*rmass;
+  double **omega,**angmom;
+
   int nghost_bonus,nmax_bonus;
   int tri_flag;
-  double rmass;
+  double rmass_one;
 
   void grow_bonus();
   void copy_bonus_all(int, int);

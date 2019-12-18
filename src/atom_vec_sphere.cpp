@@ -101,13 +101,24 @@ void AtomVecSphere::init()
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::grow_pointers()
+{
+  radius = atom->radius;
+  rmass = atom->rmass;
+}
+
+/* ----------------------------------------------------------------------
    initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecSphere::create_atom_post(int ilocal)
 {
-  atom->radius[ilocal] = 0.5;
-  atom->rmass[ilocal] = 4.0*MY_PI/3.0 * 0.5*0.5*0.5;
+  radius[ilocal] = 0.5;
+  rmass[ilocal] = 4.0*MY_PI/3.0 * 0.5*0.5*0.5;
 }
 
 /* ----------------------------------------------------------------------
@@ -117,13 +128,12 @@ void AtomVecSphere::create_atom_post(int ilocal)
 
 void AtomVecSphere::data_atom_post(int ilocal)
 {
-  double radius = 0.5 * atom->radius[ilocal];
-  atom->radius[ilocal] = radius;
-  if (radius > 0.0) 
-    atom->rmass[ilocal] = 
-      4.0*MY_PI/3.0 * radius*radius*radius * atom->rmass[ilocal];
+  radius_one = 0.5 * atom->radius[ilocal];
+  radius[ilocal] = radius_one;
+  if (radius_one > 0.0) 
+    rmass[ilocal] *= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
 
-  if (atom->rmass[ilocal] <= 0.0) 
+  if (rmass[ilocal] <= 0.0) 
     error->one(FLERR,"Invalid density in Atoms section of data file");
 }
 
@@ -132,13 +142,14 @@ void AtomVecSphere::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecSphere::pack_data_pre(int ilocal)
-{ 
-  radius = atom->radius[ilocal];
-  rmass = atom->rmass[ilocal];
+{
+  radius_one = radius[ilocal];
+  rmass_one = rmass[ilocal];
 
-  atom->radius[ilocal] *= 2.0;
-  if (radius == 0.0) 
-    atom->rmass[ilocal] = rmass / (4.0*MY_PI/3.0 * radius*radius*radius);
+  radius[ilocal] *= 2.0;
+  if (radius_one!= 0.0) 
+    rmass[ilocal] = 
+      rmass_one / (4.0*MY_PI/3.0 * radius_one*radius_one*radius_one);
 }
 
 /* ----------------------------------------------------------------------
@@ -146,7 +157,7 @@ void AtomVecSphere::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecSphere::pack_data_post(int ilocal)
-{ 
-  atom->radius[ilocal] = radius;
-  atom->rmass[ilocal] = rmass;
+{
+  radius[ilocal] = radius_one;
+  rmass[ilocal] = rmass_one;
 }

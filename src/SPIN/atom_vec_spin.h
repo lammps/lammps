@@ -27,8 +27,13 @@ namespace LAMMPS_NS {
 class AtomVecSpin : public AtomVec {
  public:
   AtomVecSpin(class LAMMPS *);
+
+  void grow_pointers();
   void force_clear(int, size_t);
   void data_atom_post(int);
+
+ private:
+  double **sp,**fm,**fm_long;
 };
 
 }

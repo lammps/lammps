@@ -62,11 +62,11 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) 
-    "de vfrac rmass x0 radius contact_radius molecule "
-    "smd_data_9 e vest smd_stress "
+    "e de vfrac rmass x0 radius contact_radius molecule "
+    "smd_data_9 vest smd_stress "
     "eff_plastic_strain eff_plastic_strain_rate damage";
   fields_copy = (char *) 
-    "vfrac rmass x0 radius contact_radius molecule e "
+    "e vfrac rmass x0 radius contact_radius molecule "
     "eff_plastic_strain eff_plastic_strain_rate vest "
     "smd_data_9 smd_stress damage";
   fields_comm = (char *) "radius vfrac vest e";
@@ -102,6 +102,29 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecSMD::grow_pointers()
+{
+  e = atom->e;
+  de = atom->de;
+  vfrac = atom->vfrac;
+  rmass = atom->rmass;
+  x0 = atom->x0;
+  radius = atom->radius;
+  contact_radius = atom->contact_radius;
+  molecule = atom->molecule;
+  smd_data_9 = atom->smd_data_9;
+  vest = atom->vest;
+  smd_stress = atom->smd_stress;
+  eff_plastic_strain = atom->eff_plastic_strain;
+  eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
+  damage = atom->damage;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
    NOTE: does f need to be re-cleared?
@@ -109,8 +132,8 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecSMD::force_clear(int n, size_t nbytes) 
 {
-  memset(&atom->de[n],0,nbytes);
-  memset(&atom->f[n][0],0,3*nbytes);
+  memset(&de[n],0,nbytes);
+  memset(&f[n][0],0,3*nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -119,19 +142,19 @@ void AtomVecSMD::force_clear(int n, size_t nbytes)
 
 void AtomVecSMD::create_atom_post(int ilocal)
 {
-  atom->x0[ilocal][0] = atom->x[ilocal][0];
-  atom->x0[ilocal][1] = atom->x[ilocal][1];
-  atom->x0[ilocal][2] = atom->x[ilocal][2];
+  x0[ilocal][0] = x[ilocal][0];
+  x0[ilocal][1] = x[ilocal][1];
+  x0[ilocal][2] = x[ilocal][2];
 
-  atom->vfrac[ilocal] = 1.0;
-  atom->rmass[ilocal] = 1.0;
-  atom->radius[ilocal] = 0.5;
-  atom->contact_radius[ilocal] = 0.5;
-  atom->molecule[ilocal] = 1;
+  vfrac[ilocal] = 1.0;
+  rmass[ilocal] = 1.0;
+  radius[ilocal] = 0.5;
+  contact_radius[ilocal] = 0.5;
+  molecule[ilocal] = 1;
   
-  atom->smd_data_9[ilocal][0] = 1.0; // xx
-  atom->smd_data_9[ilocal][4] = 1.0; // yy
-  atom->smd_data_9[ilocal][8] = 1.0; // zz
+  smd_data_9[ilocal][0] = 1.0; // xx
+  smd_data_9[ilocal][4] = 1.0; // yy
+  smd_data_9[ilocal][8] = 1.0; // zz
 }
 
 /* ----------------------------------------------------------------------
@@ -141,32 +164,27 @@ void AtomVecSMD::create_atom_post(int ilocal)
 
 void AtomVecSMD::data_atom_post(int ilocal)
 {
-  atom->e[ilocal] = 0.0;
-  atom->x0[ilocal][0] = atom->x[ilocal][0];
-  atom->x0[ilocal][1] = atom->x[ilocal][1];
-  atom->x0[ilocal][2] = atom->x[ilocal][2];
+  e[ilocal] = 0.0;
+  x0[ilocal][0] = x[ilocal][0];
+  x0[ilocal][1] = x[ilocal][1];
+  x0[ilocal][2] = x[ilocal][2];
 
-  atom->vest[ilocal][0] = 0.0;
-  atom->vest[ilocal][1] = 0.0;
-  atom->vest[ilocal][2] = 0.0;
+  vest[ilocal][0] = 0.0;
+  vest[ilocal][1] = 0.0;
+  vest[ilocal][2] = 0.0;
 
-  atom->damage[ilocal] = 0.0;
+  damage[ilocal] = 0.0;
 
-  atom->eff_plastic_strain[ilocal] = 0.0;
-  atom->eff_plastic_strain_rate[ilocal] = 0.0;
+  eff_plastic_strain[ilocal] = 0.0;
+  eff_plastic_strain_rate[ilocal] = 0.0;
 
   for (int k = 0; k < NMAT_FULL; k++)
-    atom->smd_data_9[ilocal][k] = 0.0;
+    smd_data_9[ilocal][k] = 0.0;
 
   for (int k = 0; k < NMAT_SYMM; k++)
-    atom->smd_stress[ilocal][k] = 0.0;
+    smd_stress[ilocal][k] = 0.0;
 
-  atom->smd_data_9[ilocal][0] = 1.0; // xx
-  atom->smd_data_9[ilocal][4] = 1.0; // yy
-  atom->smd_data_9[ilocal][8] = 1.0; // zz
+  smd_data_9[ilocal][0] = 1.0; // xx
+  smd_data_9[ilocal][4] = 1.0; // yy
+  smd_data_9[ilocal][8] = 1.0; // zz
 }
-
-
-
-
-

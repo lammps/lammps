@@ -27,8 +27,15 @@ namespace LAMMPS_NS {
 class AtomVecDPD : public AtomVec {
  public:
   AtomVecDPD(class LAMMPS *);
+
+  void grow_pointers();
   void unpack_restart_init(int);
   void data_atom_post(int);
+
+private:
+  double *rho,*dpdTheta;
+  double *uCond,*uMech,*uChem;
+  double *uCG,*uCGnew;
 };
 
 }

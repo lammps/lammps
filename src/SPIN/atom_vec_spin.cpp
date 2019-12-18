@@ -62,6 +62,18 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::grow_pointers()
+{
+  sp = atom->sp;
+  fm = atom->fm;
+  fm_long = atom->fm_long;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
    include f b/c this is invoked from within SPIN pair styles
@@ -69,9 +81,9 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->f[n][0],0,3*nbytes);
-  memset(&atom->fm[n][0],0,3*nbytes);
-  memset(&atom->fm_long[n][0],0,3*nbytes);
+  memset(&f[n][0],0,3*nbytes);
+  memset(&fm[n][0],0,3*nbytes);
+  memset(&fm_long[n][0],0,3*nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -81,9 +93,10 @@ void AtomVecSpin::force_clear(int n, size_t nbytes)
 
 void AtomVecSpin::data_atom_post(int ilocal)
 {
-  double *sp = atom->sp[ilocal];
-  double inorm = 1.0/sqrt(sp[0]*sp[0] + sp[1]*sp[1] + sp[2]*sp[2]);
-  sp[0] *= inorm;
-  sp[1] *= inorm;
-  sp[2] *= inorm;
+  double *sp_one = sp[ilocal];
+  double norm = 
+    1.0/sqrt(sp_one[0]*sp_one[0] + sp_one[1]*sp_one[1] + sp_one[2]*sp_one[2]);
+  sp_one[0] *= norm;
+  sp_one[1] *= norm;
+  sp_one[2] *= norm;
 }

@@ -71,11 +71,13 @@ class AtomVecBody : public AtomVec {
   int nlocal_bonus;
 
  private:
+  int *body;
+  double *rmass,*radius;
+  double **angmom;
+
   int nghost_bonus,nmax_bonus;
   int intdoubleratio;            // sizeof(double) / sizeof(int)
   int body_flag;
-
-  int *body;
 
   MyPoolChunk<int> *icp;
   MyPoolChunk<double> *dcp;

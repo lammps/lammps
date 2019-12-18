@@ -28,19 +28,21 @@ class AtomVecBond : public AtomVec {
  public:
   AtomVecBond(class LAMMPS *);
   ~AtomVecBond();
-  void grow(int);
+
+  void grow_pointers();
   void pack_restart_pre(int);
   void pack_restart_post(int);
   void unpack_restart_init(int);
   void data_atom_post(int);
 
  private:
+  int *num_bond;        
+  int **bond_type;
+  int **nspecial;
+
   int any_bond_negative;
   int bond_per_atom;
   int *bond_negative;
-
-  int *num_bond;
-  int **bond_type;
 };
 
 }

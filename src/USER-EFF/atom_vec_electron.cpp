@@ -70,13 +70,26 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::grow_pointers()
+{
+  spin = atom->spin;
+  eradius = atom->eradius;
+  ervel = atom->ervel;
+  erforce = atom->erforce;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
 void AtomVecElectron::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->erforce[n],0,nbytes);
+  memset(&erforce[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -85,8 +98,8 @@ void AtomVecElectron::force_clear(int n, size_t nbytes)
 
 void AtomVecElectron::create_atom_post(int ilocal)
 {
-  atom->spin[ilocal] = 1;
-  atom->eradius[ilocal] = 1.0;
+  spin[ilocal] = 1;
+  eradius[ilocal] = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -96,7 +109,7 @@ void AtomVecElectron::create_atom_post(int ilocal)
 
 void AtomVecElectron::data_atom_post(int ilocal)
 {
-  atom->ervel[ilocal] = 0.0;
+  ervel[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -126,28 +139,24 @@ void AtomVecElectron::pack_property_atom(int index, double *buf,
   int n = 0;
 
   if (index == 0) {
-    int *spin = atom->spin;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = spin[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
-    double *eradius = atom->eradius;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = eradius[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
-    double *ervel = atom->ervel;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = ervel[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
-    double *erforce = atom->erforce;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = erforce[i];
       else buf[n] = 0.0;

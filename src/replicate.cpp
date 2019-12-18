@@ -100,7 +100,8 @@ void Replicate::command(int narg, char **arg)
     maxmol = maxmol_all;
   }
 
-  // check image flags maximum extent; only efficient small image flags compared to new system
+  // check image flags maximum extent
+  // only efficient small image flags compared to new system
 
   int _imagelo[3], _imagehi[3];
   _imagelo[0] = 0;

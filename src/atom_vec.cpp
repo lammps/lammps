@@ -185,7 +185,7 @@ void AtomVec::grow(int n)
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
-  
+
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
@@ -230,6 +230,8 @@ void AtomVec::grow(int n)
 
   for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
     modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+
+  grow_pointers();
 }
 
 /* ----------------------------------------------------------------------
@@ -2387,7 +2389,6 @@ void AtomVec::setup_fields()
 
   // set style-specific sizes
   // NOTE: check for others vars in atom_vec.cpp/h ??
-  // NOTE: need to set maxexchange, e.g for style hybrid?
 
   comm_x_only = 1;
   if (ncomm) comm_x_only = 0;
@@ -2434,7 +2435,6 @@ void AtomVec::setup_fields()
     if (cols == 0) size_data_atom++;
     else size_data_atom += cols;
   }
-
 
   size_data_vel = 0;
   for (n = 0; n < ndata_vel; n++) {

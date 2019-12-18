@@ -62,13 +62,25 @@ void AtomVecMDPD::init()
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecMDPD::grow_pointers()
+{
+  rho = atom->rho;
+  drho = atom->drho;
+  vest = atom->vest;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
 void AtomVecMDPD::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->drho[n],0,nbytes);
+  memset(&drho[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -78,10 +90,10 @@ void AtomVecMDPD::force_clear(int n, size_t nbytes)
 
 void AtomVecMDPD::data_atom_post(int ilocal)
 {
-  atom->drho[ilocal] = 0.0;
-  atom->vest[ilocal][0] = 0.0;
-  atom->vest[ilocal][1] = 0.0;
-  atom->vest[ilocal][2] = 0.0;
+  drho[ilocal] = 0.0;
+  vest[ilocal][0] = 0.0;
+  vest[ilocal][1] = 0.0;
+  vest[ilocal][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -109,14 +121,12 @@ void AtomVecMDPD::pack_property_atom(int index, double *buf,
 
   int n = 0;
   if (index == 0) {
-    double *rho = atom->rho;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = rho[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
-    double *drho = atom->drho;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = drho[i];
       else buf[n] = 0.0;

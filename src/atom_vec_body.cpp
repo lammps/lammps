@@ -100,6 +100,7 @@ AtomVecBody::~AtomVecBody()
 void AtomVecBody::process_args(int narg, char **arg)
 {
   // suppress unused parameter warning dependent on style_body.h
+
   (void)(arg);
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
@@ -120,11 +121,12 @@ void AtomVecBody::process_args(int narg, char **arg)
   icp = bptr->icp;
   dcp = bptr->dcp;
 
-  // max size of forward/border comm
+  // max size of forward/border and exchange comm
   // bptr values = max number of additional ivalues/dvalues from Body class
 
   size_forward_bonus += bptr->size_forward;
   size_border_bonus += bptr->size_border;
+  maxexchange = bptr->maxexchange;
 
   setup_fields();
 }
@@ -138,7 +140,11 @@ void AtomVecBody::process_args(int narg, char **arg)
 void AtomVecBody::grow(int n)
 {
   AtomVec::grow(n);
+
   body = atom->body;
+  rmass = atom->rmass;
+  radius = atom->radius;
+  angmom = atom->angmom;
 }
 
 /* ----------------------------------------------------------------------
@@ -186,7 +192,7 @@ void AtomVecBody::copy_bonus(int i, int j, int delflag)
 
 void AtomVecBody::copy_bonus_all(int i, int j)
 {
-  atom->body[bonus[i].ilocal] = j;
+  body[bonus[i].ilocal] = j;
   memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
 }
 
@@ -503,9 +509,9 @@ int AtomVecBody::unpack_restart_bonus(int ilocal, double *buf)
 
 void AtomVecBody::create_atom_post(int ilocal)
 {
-  atom->radius[ilocal] = 0.5;
-  atom->rmass[ilocal] = 1.0;
-  atom->body[ilocal] = -1;
+  radius[ilocal] = 0.5;
+  rmass[ilocal] = 1.0;
+  body[ilocal] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -515,19 +521,19 @@ void AtomVecBody::create_atom_post(int ilocal)
 
 void AtomVecBody::data_atom_post(int ilocal)
 {
-  body_flag = atom->body[ilocal];
+  body_flag = body[ilocal];
   if (body_flag == 0) body_flag = -1;
   else if (body_flag == 1) body_flag = 0;
   else error->one(FLERR,"Invalid body flag in Atoms section of data file");
-  atom->body[ilocal] = body_flag;
+  body[ilocal] = body_flag;
 
-  if (atom->rmass[ilocal] <= 0.0)
+  if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
-  atom->radius[ilocal] = 0.5;
-  atom->angmom[ilocal][0] = 0.0;
-  atom->angmom[ilocal][1] = 0.0;
-  atom->angmom[ilocal][2] = 0.0;
+  radius[ilocal] = 0.5;
+  angmom[ilocal][0] = 0.0;
+  angmom[ilocal][1] = 0.0;
+  angmom[ilocal][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -537,12 +543,12 @@ void AtomVecBody::data_atom_post(int ilocal)
 void AtomVecBody::data_body(int m, int ninteger, int ndouble,
                             int *ivalues, double *dvalues)
 {
-  if (atom->body[m]) 
+  if (body[m]) 
     error->one(FLERR,"Assigning body parameters to non-body atom");
   if (nlocal_bonus == nmax_bonus) grow_bonus();
   bonus[nlocal_bonus].ilocal = m;
   bptr->data_body(nlocal_bonus,ninteger,ndouble,ivalues,dvalues);
-  atom->body[m] = nlocal_bonus++;
+  body[m] = nlocal_bonus++;
 }
 
 /* ----------------------------------------------------------------------
@@ -570,10 +576,10 @@ bigint AtomVecBody::memory_usage_bonus()
 
 void AtomVecBody::pack_data_pre(int ilocal)
 { 
-  body_flag = atom->body[ilocal];
+  body_flag = body[ilocal];
 
-  if (body_flag < 0) atom->body[ilocal] = 0;
-  else atom->body[ilocal] = 1;
+  if (body_flag < 0) body[ilocal] = 0;
+  else body[ilocal] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -582,7 +588,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
 void AtomVecBody::pack_data_post(int ilocal)
 { 
-  atom->body[ilocal] = body_flag;
+  body[ilocal] = body_flag;
 }
 
 /* ----------------------------------------------------------------------
@@ -602,8 +608,8 @@ double AtomVecBody::radius_body(int ninteger, int ndouble,
 
 void AtomVecBody::set_quat(int m, double *quat_external)
 {
-  if (atom->body[m] < 0) error->one(FLERR,"Assigning quat to non-body atom");
-  double *quat = bonus[atom->body[m]].quat;
+  if (body[m] < 0) error->one(FLERR,"Assigning quat to non-body atom");
+  double *quat = bonus[body[m]].quat;
   quat[0] = quat_external[0]; quat[1] = quat_external[1];
   quat[2] = quat_external[2]; quat[3] = quat_external[3];
 }
@@ -616,15 +622,15 @@ void AtomVecBody::set_quat(int m, double *quat_external)
 void AtomVecBody::check(int flag)
 {
   for (int i = 0; i < atom->nlocal; i++) {
-    if (atom->body[i] >= 0 && atom->body[i] >= nlocal_bonus) {
+    if (body[i] >= 0 && body[i] >= nlocal_bonus) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD AAA");
     }
   }
   for (int i = atom->nlocal; i < atom->nlocal+atom->nghost; i++) {
-    if (atom->body[i] >= 0 &&
-        (atom->body[i] < nlocal_bonus ||
-         atom->body[i] >= nlocal_bonus+nghost_bonus)) {
+    if (body[i] >= 0 &&
+        (body[i] < nlocal_bonus ||
+         body[i] >= nlocal_bonus+nghost_bonus)) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD BBB");
     }
@@ -636,7 +642,7 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = 0; i < nlocal_bonus; i++) {
-    if (atom->body[bonus[i].ilocal] != i) {
+    if (body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD DDD");
     }
@@ -649,7 +655,7 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
-    if (atom->body[bonus[i].ilocal] != i) {
+    if (body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD FFF");
     }

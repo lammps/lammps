@@ -53,13 +53,29 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecDPD::grow_pointers()
+{
+  rho = atom->rho;
+  dpdTheta = atom->dpdTheta;
+  uCond = atom->uCond;
+  uMech = atom->uMech;
+  uChem = atom->uChem;
+  uCG = atom->uCG;
+  uCGnew = atom->uCGnew;
+}
+
+/* ----------------------------------------------------------------------
    initialize other atom quantities after AtomVec::unpack_restart()
 ------------------------------------------------------------------------- */
 
 void AtomVecDPD::unpack_restart_init(int ilocal)
 {
-  atom->uCG[ilocal] = 0.0;
-  atom->uCGnew[ilocal] = 0.0;
+  uCG[ilocal] = 0.0;
+  uCGnew[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -69,14 +85,14 @@ void AtomVecDPD::unpack_restart_init(int ilocal)
 
 void AtomVecDPD::data_atom_post(int ilocal)
 {
-  atom->rho[ilocal] = 0.0;
-  atom->uCond[ilocal] = 0.0;
-  atom->uMech[ilocal] = 0.0;
-  atom->uChem[ilocal] = 0.0;
-  atom->uCG[ilocal] = 0.0;
-  atom->uCGnew[ilocal] = 0.0;
+  rho[ilocal] = 0.0;
+  uCond[ilocal] = 0.0;
+  uMech[ilocal] = 0.0;
+  uChem[ilocal] = 0.0;
+  uCG[ilocal] = 0.0;
+  uCGnew[ilocal] = 0.0;
 
-  if (atom->dpdTheta[ilocal] <= 0)
+  if (dpdTheta[ilocal] <= 0)
     error->one(FLERR,"Internal temperature in Atoms section of date file "
                "must be > zero");
 }

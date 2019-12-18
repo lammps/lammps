@@ -28,12 +28,18 @@ class AtomVecMolecular : public AtomVec {
  public:
   AtomVecMolecular(class LAMMPS *);
   ~AtomVecMolecular();
+
+  void grow_pointers();
   void pack_restart_pre(int);
   void pack_restart_post(int);
   void unpack_restart_init(int);
   void data_atom_post(int);
 
  private:
+  int *num_bond,*num_angle,*num_dihedral,*num_improper;
+  int **bond_type,**angle_type,**dihedral_type,**improper_type;
+  int **nspecial;
+
   int any_bond_negative,any_angle_negative,
     any_dihedral_negative,any_improper_negative;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;

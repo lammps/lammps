@@ -27,11 +27,17 @@ namespace LAMMPS_NS {
 class AtomVecWavepacket : public AtomVec {
 public:
   AtomVecWavepacket(class LAMMPS *);
+
+  void grow_pointers();
   void force_clear(int, size_t);
   void create_atom_post(int);
   void data_atom_post(int);
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
+
+ private:
+  int *spin;
+  double *q,*eradius,*ervel,*erforce;
 };
 
 }

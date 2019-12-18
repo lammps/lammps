@@ -109,8 +109,8 @@ class Atom : protected Pointers {
 
   int *spin;
   double *eradius,*ervel,*erforce;
-  double *ervelforce,*cs,*csforce;
-  double **vforce;
+  double *ervelforce;
+  double **cs,**csforce,**vforce;
   int *etag;
 
   // USER-DPD package
@@ -322,7 +322,7 @@ class Atom : protected Pointers {
   inline int get_map_size() {return map_tag_max+1;};
   inline int get_map_maxarray() {return map_maxarray+1;};
 
-  // NOTE: placeholder method until AtomVec is refactored
+  // NOTE: placeholder method until KOKKOS/AtomVec is refactored
   int memcheck(const char *) {return 1;}
 
   bigint memory_usage();

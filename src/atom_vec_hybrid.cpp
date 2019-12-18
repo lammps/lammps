@@ -31,11 +31,9 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
   keywords = NULL;
   fieldstrings = NULL;
 
+  bonus_flag = 0;
   nstyles_bonus = 0;
   styles_bonus = NULL;
-
-  // NOTE: set bonus_flag if any substyle does
-  //       set nstyles_bonus, styles_bonus
 
   // these strings will be concatenated from sub-style strings
   // fields_data_atom & fields_data_vel start with fields common to all styles
@@ -45,6 +43,8 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
   fields_exchange = fields_restart = fields_create = (char *) "";
   fields_data_atom = (char *) "id type x";
   fields_data_vel = (char *) "id v";
+
+  fields_allocated = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,7 +56,10 @@ AtomVecHybrid::~AtomVecHybrid()
   for (int k = 0; k < nstyles; k++) delete [] keywords[k];
   delete [] keywords;
 
-  // NOTE: need to check these have actually been allocated
+  for (int k = 0; k < nstyles_bonus; k++) delete styles_bonus[k];
+  delete [] styles_bonus;
+
+  if (!fields_allocated) return;
 
   delete [] fields_grow;
   delete [] fields_copy;
@@ -198,6 +201,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   fields_data_atom = merge_fields(10,fields_data_atom,0,null);
   fields_data_vel = merge_fields(11,fields_data_vel,0,null);
 
+  fields_allocated = 1;
+
   // check concat_grow for multiple special-case fields
   // may cause issues with style-specific create_atom() and data_atom() methods
   // issue warnings if appear in multiple sub-styles
@@ -218,6 +223,23 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   }
 
   delete [] concat_grow;
+
+  // set bonus_flag if any substyle has bonus data
+  // set nstyles_bonus & styles_bonus
+
+  nstyles_bonus = 0;
+  for (int k = 0; k < nstyles; k++)
+    if (styles[k]->bonus_flag) nstyles_bonus++;
+
+  if (nstyles_bonus) {
+    bonus_flag = 1;
+    styles_bonus = new AtomVec*[nstyles_bonus];
+    nstyles_bonus = 0;
+    for (int k = 0; k < nstyles; k++) {
+      if (styles[k]->bonus_flag)
+        styles_bonus[nstyles_bonus++] = styles[k];
+    }
+  }
 
   // parent AtomVec can now operate on merged fields
 
@@ -326,7 +348,13 @@ void AtomVecHybrid::copy_bonus(int i, int j, int delflag)
     styles_bonus[k]->copy_bonus(i,j,delflag);
 }
 
-// NOTE: need a clear_bonus() ?
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::clear_bonus()
+{
+  for (int k = 0; k < nstyles_bonus; k++)
+    styles_bonus[k]->clear_bonus();
+}
 
 /* ---------------------------------------------------------------------- */
 

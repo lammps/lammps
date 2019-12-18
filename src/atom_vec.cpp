@@ -1368,7 +1368,7 @@ int AtomVec::size_restart()
   int i,nn,cols,collength,ncols;
   void *plength;
 
-  // NOTE: need to worry about overflow of returned int ??
+  // NOTE: need to worry about overflow of returned int N
 
   int nlocal = atom->nlocal;
 
@@ -1738,9 +1738,9 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
 
   // error checks applicable to all styles
 
-  if (atom->tag[nlocal] <= 0)
+  if (tag[nlocal] <= 0)
     error->one(FLERR,"Invalid atom ID in Atoms section of data file");
-  if (atom->type[nlocal] <= 0 || atom->type[nlocal] > atom->ntypes)
+  if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   // if needed, modify unpacked values or initialize other peratom values
@@ -2388,7 +2388,6 @@ void AtomVec::setup_fields()
   }
 
   // set style-specific sizes
-  // NOTE: check for others vars in atom_vec.cpp/h ??
 
   comm_x_only = 1;
   if (ncomm) comm_x_only = 0;

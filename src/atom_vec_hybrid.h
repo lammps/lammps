@@ -38,7 +38,7 @@ class AtomVecHybrid : public AtomVec {
   void grow_pointers();
   void force_clear(int, size_t);
   void copy_bonus(int, int, int);
-  void clear_bonus() {}
+  void clear_bonus();
   int pack_comm_bonus(int, int *, double *);
   void unpack_comm_bonus(int, int, double *);
   int pack_border_bonus(int, int *, double *);
@@ -64,6 +64,7 @@ class AtomVecHybrid : public AtomVec {
  private:
   int nallstyles;
   char **allstyles;
+  int fields_allocated;
 
   struct FieldStrings {
     char **fstr;

@@ -62,13 +62,27 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecWavepacket::grow_pointers()
+{
+  q = atom->q;
+  spin = atom->spin;
+  eradius = atom->eradius;
+  ervel = atom->ervel;
+  erforce = atom->erforce;
+}
+
+/* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
 void AtomVecWavepacket::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->erforce[n],0,nbytes);
+  memset(&erforce[n],0,nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -78,7 +92,7 @@ void AtomVecWavepacket::force_clear(int n, size_t nbytes)
 
 void AtomVecWavepacket::create_atom_post(int ilocal)
 {
-  atom->q[ilocal] = 1.0;
+  q[ilocal] = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,7 +102,7 @@ void AtomVecWavepacket::create_atom_post(int ilocal)
 
 void AtomVecWavepacket::data_atom_post(int ilocal)
 {
-  atom->ervel[ilocal] = 0.0;
+  ervel[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -113,33 +127,28 @@ int AtomVecWavepacket::property_atom(char *name)
 void AtomVecWavepacket::pack_property_atom(int index, double *buf,
                                            int nvalues, int groupbit)
 {
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = 0;
   if (index == 0) {
-    int *spin = atom->spin;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = spin[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
-    double *eradius = atom->eradius;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = eradius[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
-    double *ervel = atom->ervel;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = ervel[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
-    double *erforce = atom->erforce;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = erforce[i];
       else buf[n] = 0.0;

@@ -134,8 +134,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   spin = NULL;
   eradius = ervel = erforce = NULL;
-  ervelforce = cs = csforce = NULL;
-  vforce = NULL;
+  ervelforce = NULL;
+  cs = csforce = vforce = NULL;
   etag = NULL;
 
   // USER-DPD package
@@ -512,8 +512,8 @@ void Atom::peratom_create()
 
   // USER-AWPMD package
 
-  add_peratom("cs",&cs,DOUBLE,0);
-  add_peratom("csforce",&csforce,DOUBLE,0);
+  add_peratom("cs",&cs,DOUBLE,2);
+  add_peratom("csforce",&csforce,DOUBLE,2);
   add_peratom("vforce",&vforce,DOUBLE,3);
   add_peratom("ervelforce",&ervelforce,DOUBLE,0);
   add_peratom("etag",&etag,INT,0);

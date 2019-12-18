@@ -132,15 +132,12 @@ void AtomVecBody::process_args(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   grow atom arrays
-   must set local copy of body ptr
-   needed in replicate when 2 atom classes exist and pack_restart() is called
+   set local copies of all grow ptrs used by this class, except defaults
+   needed in replicate when 2 atom classes exist and it calls pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::grow(int n)
+void AtomVecBody::grow_pointers()
 {
-  AtomVec::grow(n);
-
   body = atom->body;
   rmass = atom->rmass;
   radius = atom->radius;

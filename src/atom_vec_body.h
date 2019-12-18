@@ -43,7 +43,7 @@ class AtomVecBody : public AtomVec {
   ~AtomVecBody();
   void process_args(int, char **);
 
-  void grow(int);
+  void grow_pointers();
   void copy_bonus(int, int, int);
   void clear_bonus();
   int pack_comm_bonus(int, int *, double *);

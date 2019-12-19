@@ -188,7 +188,7 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
         continue;
       }
       
-      double f_act[3] = { 0.0, 0.0, 1.0 };
+      double f_act[3] = { 1.0, 0.0, 0.0 };
       double f_rot[3];
 
       double *quat  = bonus[ellipsoid[i]].quat;

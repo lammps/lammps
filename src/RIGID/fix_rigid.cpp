@@ -728,6 +728,23 @@ void FixRigid::init()
     }
   }
 
+  // warn if body properties are read from inpfile
+  //   and the gravity keyword is not set and a gravity fix exists
+  // this could mean body particles are overlapped
+  //   and gravity is not applied correctly
+
+  if (inpfile && !id_gravity) {
+    for (i = 0; i < modify->nfix; i++) {
+      if (strcmp(modify->fix[i]->style,"gravity") == 0) {
+        if (comm->me == 0) 
+          error->warning(FLERR,"Gravity may not be correctly applied "
+                         "to rigid bodies if they consist of "
+                         "overlapped particles");
+        break;
+      }
+    }
+  }
+
   // error if npt,nph fix comes before rigid fix
 
   for (i = 0; i < modify->nfix; i++) {

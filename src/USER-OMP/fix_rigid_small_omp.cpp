@@ -196,6 +196,21 @@ void FixRigidSmallOMP::compute_forces_and_torques()
       tcm[2] += langextra[ibody][5];
     }
   }
+
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
+#endif
+    for (int ibody = 0; ibody < nbody; ibody++) {
+      double * _noalias const fcm = body[ibody].fcm;
+      const double mass = body[ibody].mass;
+      fcm[0] += gvec[0]*mass;
+      fcm[1] += gvec[1]*mass;
+      fcm[2] += gvec[2]*mass;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

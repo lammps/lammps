@@ -152,19 +152,19 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       for (int k = 0; k < clen-1; k++) {
         q1 = x[chain[j][k]];
-	q2 = x[chain[j][k+1]];
+	      q2 = x[chain[j][k+1]];
 
-	double w = weight(r1,r2,q1,q2);
+	      double w = weight(r1,r2,q1,q2);
 
-	if (w == 0) {
+	      if (w == 0) {
           if (end[j] == 1 && k == 0) end[j] = 0;
-	  else if (end[j] == 2 && k == clen-2) end[j] = 0;
-	  continue;
-	}
-	sumw += w;
+	        else if (end[j] == 2 && k == clen-2) end[j] = 0;
+	        continue;
+	      }
+	      sumw += w;
 
-	scaleadd3(w,q1,p1,p1);
-	scaleadd3(w,q2,p2,p2);
+	      scaleadd3(w,q1,p1,p1);
+	      scaleadd3(w,q2,p2,p2);
       }
 
       if (sumw == 0) continue;
@@ -179,24 +179,24 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       if (end[j] == 0) {
         geometry(r1,r2,p1,p2,NULL,param,basis);
-	if (param[0] > cutoff) continue;
-	finf(param,evdwl,flocal);
+	      if (param[0] > cutoff) continue;
+	      finf(param,evdwl,flocal);
       }
 
       // semi-infinite CNT case with end at start of chain
 
       else if (end[j] == 1) {
         geometry(r1,r2,p1,p2,qe,param,basis);
-	if (param[0] > cutoff) continue;
-	fsemi(param,evdwl,flocal);
+	      if (param[0] > cutoff) continue;
+	      fsemi(param,evdwl,flocal);
       }
 
       // semi-infinite CNT case with end at end of chain
 
       else {
         geometry(r1,r2,p1,p2,qe,param,basis);
-	if (param[0] > cutoff) continue;
-	fsemi(param,evdwl,flocal);
+	      if (param[0] > cutoff) continue;
+	      fsemi(param,evdwl,flocal);
       }
 
       // convert forces to global coordinate system
@@ -223,14 +223,15 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // compute energy
 
       if (eflag_either) {
-	if (eflag_global) eng_vdwl += 0.5 * evdwl;
-	if (eflag_atom) {
+	      if (eflag_global) eng_vdwl += 0.5 * evdwl;
+	      if (eflag_atom) {
           eatom[i1] += 0.25 * evdwl;
-	  eatom[i2] += 0.25 * evdwl;
-	}
+	        eatom[i2] += 0.25 * evdwl;
+	      }
       }
 
-      // compute
+      // compute virial
+
       if (vflag_atom) {
         vatom[i1][0] += f[i1][0]*x[i1][0];
         vatom[i1][1] += f[i1][1]*x[i1][1];
@@ -275,11 +276,11 @@ void PairMesoCNT::allocate()
   memory->create(numchainlist,nlocal_size,"pair:numchainlist");
 
   memory->create(reduced_neighlist,
-		  nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
+		nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
   memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
   memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
   memory->create(chainlist,nlocal_size,
-		  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
+		reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
@@ -369,9 +370,9 @@ void PairMesoCNT::coeff(int narg, char **arg)
     read_file(uinf_file,uinf_data,hstart_uinf,delh_uinf,uinf_points);
     read_file(gamma_file,gamma_data,hstart_gamma,delh_gamma,gamma_points);
     read_file(phi_file,phi_data,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_points);
+		  delh_phi,delpsi_phi,phi_points);
     read_file(usemi_file,usemi_data,hstart_usemi,xistart_usemi,
-		    delh_usemi,delxi_usemi,usemi_points);
+		  delh_usemi,delxi_usemi,usemi_points);
   }
 
   MPI_Bcast(&hstart_uinf,1,MPI_DOUBLE,0,world);
@@ -485,11 +486,11 @@ void PairMesoCNT::bond_neigh()
     memory->create(reduced_nlist,nlocal_size,"pair:reduced_nlist");
     memory->create(numchainlist,nlocal_size,"pair:numchainlist");
     memory->create(reduced_neighlist,
-		    nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
+		  nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
     memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
     memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
     memory->create(chainlist,nlocal_size,
-		    reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
+		  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
   }
 
   for (int i = 0; i < nbondlist; i++) {
@@ -514,7 +515,7 @@ void PairMesoCNT::bond_neigh()
     // set up connected chains
 
     chain_split(reduced_neigh,
-		    reduced_nlist[i],numchainlist[i],chain,nchain,end);
+		  reduced_nlist[i],numchainlist[i],chain,nchain,end);
   }
 }
 
@@ -558,7 +559,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
     for (int j1 = 0; j1 < numneigh1; j1++) {
       if (neighlist1[j1] == neighlist2[j2]) {
         inflag = 1;
-	break;
+	      break;
       }
     }
     if (inflag) {
@@ -568,7 +569,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
     int ind = neighlist2[j2];
     if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF)
 	    continue;
-    redlist[numred++] = ind;
+     redlist[numred++] = ind;
   }
 }
 
@@ -688,8 +689,8 @@ void PairMesoCNT::read_file(const char *file, double *data,
   if (cerror) { 
     char str[128];
     sprintf(str,"%d of %d lines were incomplete\n"
-		    "  or could not be parsed completely\n" 
-		    "  in pair table ",cerror,ninput);
+		  "  or could not be parsed completely\n" 
+		  "  in pair table ",cerror,ninput);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());
@@ -700,7 +701,7 @@ void PairMesoCNT::read_file(const char *file, double *data,
   if (serror) {
     char str[128];
     sprintf(str,"%d spacings in first column were different\n"
-		    "  from first spacing in pair table ",serror);
+		  "  from first spacing in pair table ",serror);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());
@@ -747,9 +748,9 @@ void PairMesoCNT::read_file(const char *file, double **data,
       if (3 != sscanf(line,"%lg %lg %lg",&x,&y,&data[i][j])) cerror++;
       if (i == 0 && j == 0) ystart = y;
       if (j > 0) {
-	dytemp = y - ytemp;
-    	if (j == 1) dy = dytemp;
-	if (fabs(dytemp - dy)/dy > SMALL) syerror++;
+	      dytemp = y - ytemp;
+    	  if (j == 1) dy = dytemp;
+	      if (fabs(dytemp - dy)/dy > SMALL) syerror++;
       }
     }
     if (i == 0) xstart = x;
@@ -765,8 +766,8 @@ void PairMesoCNT::read_file(const char *file, double **data,
   if (cerror) { 
     char str[128];
     sprintf(str,"%d of %d lines were incomplete\n"
-		    "  or could not be parsed completely\n" 
-		    "  in pair table ",cerror,ninput*ninput);
+		  "  or could not be parsed completely\n" 
+		  "  in pair table ",cerror,ninput*ninput);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());
@@ -777,7 +778,7 @@ void PairMesoCNT::read_file(const char *file, double **data,
   if (sxerror) {
     char str[128];
     sprintf(str,"%d spacings in first column were different\n"
-		    "  from first spacing in pair table ",sxerror);
+		  "  from first spacing in pair table ",sxerror);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());
@@ -785,7 +786,7 @@ void PairMesoCNT::read_file(const char *file, double **data,
   if (syerror) {
     char str[128];
     sprintf(str,"%d spacings in first column were different\n"
-		    "  from first spacing in pair table ",syerror);
+		  "  from first spacing in pair table ",syerror);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());
@@ -1020,7 +1021,7 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
     for (int j = 1; j < n; j++) {
       for (int l = 0; l < 4; l++)
         for (int m = 0; m < 4; m++)
-	  g[i][j][l][m] = 0;
+	        g[i][j][l][m] = 0;
       
       double k[4][4] =
       {
@@ -1033,8 +1034,8 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
       for (int l = 0; l < 4; l++)
         for (int m = 0; m < 4; m++)
           for (int n = 0; n < 4; n++)
-	    for (int o = 0; o < 4; o++)
-	      g[i][j][l][m] += ax[l][n] * k[n][o] * ay[m][o];
+	          for (int o = 0; o < 4; o++)
+	            g[i][j][l][m] += ax[l][n] * k[n][o] * ay[m][o];
     }
 
   memory->destroy(p);
@@ -1471,17 +1472,17 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double psi2 = delzeta2 * zeta_rangerec;
 
     double phi1 = spline(h,psi1,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
     double dh_phibar1 = dxspline(h,psi1,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
     double dpsi_phibar1 = dyspline(h,psi1,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
     double phi2 = spline(h,psi2,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
     double dh_phibar2 = dxspline(h,psi2,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
     double dpsi_phibar2 = dyspline(h,psi2,hstart_phi,psistart_phi,
-		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+		  delh_phi,delpsi_phi,phi_coeff,phi_points);
 
     double dzeta_range = dzetamax - dzetamin;
     double dh_psi1 = -zeta_rangerec * (dzetamin + dzeta_range*psi1);
@@ -1554,9 +1555,9 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   double c2 = theta * etae;
 
   double gamma_orth = spline(h,hstart_gamma,delh_gamma,
-		  gamma_coeff,gamma_points);
+		gamma_coeff,gamma_points);
   double dgamma_orth = dspline(h,hstart_gamma,delh_gamma,
-		  gamma_coeff,gamma_points);
+		gamma_coeff,gamma_points);
   double gamma = 1.0 + (gamma_orth - 1)*sin_alphasq;
   double gammarec = 1.0 / gamma;
   double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
@@ -1582,13 +1583,13 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
     if (i == 0 || i == QUADRATURE-1) c = 0.5;
 
     double u = c * spline(hbar,thetabar,hstart_usemi,xistart_usemi,
-		    delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
+		  delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
     double uh;
     if (hbar == 0) uh = 0;
     else uh = c / hbar * dxspline(hbar,thetabar,hstart_usemi,xistart_usemi,
-		    delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
+		  delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
     double uxi = c * dyspline(hbar,thetabar,hstart_usemi,xistart_usemi,
-		    delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
+		  delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
 
     double uh1 = xibar * uh;
     jh += uh;

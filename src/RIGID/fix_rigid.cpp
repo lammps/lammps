@@ -52,7 +52,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
   tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
   remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
-  dorient(NULL), id_dilate(NULL), id_gravity(NULL), random(NULL), 
+  dorient(NULL), id_dilate(NULL), id_gravity(NULL), random(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
@@ -736,7 +736,7 @@ void FixRigid::init()
   if (inpfile && !id_gravity) {
     for (i = 0; i < modify->nfix; i++) {
       if (strcmp(modify->fix[i]->style,"gravity") == 0) {
-        if (comm->me == 0) 
+        if (comm->me == 0)
           error->warning(FLERR,"Gravity may not be correctly applied "
                          "to rigid bodies if they consist of "
                          "overlapped particles");
@@ -763,7 +763,7 @@ void FixRigid::init()
   if (id_gravity) {
     int ifix = modify->find_fix(id_gravity);
     if (ifix < 0) error->all(FLERR,"Fix rigid cannot find fix gravity ID");
-    if (strcmp(modify->fix[ifix]->style,"gravity") != 0) 
+    if (strcmp(modify->fix[ifix]->style,"gravity") != 0)
       error->all(FLERR,"Fix rigid gravity fix is invalid");
     int tmp;
     gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);

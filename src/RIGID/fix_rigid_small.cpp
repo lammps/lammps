@@ -582,7 +582,7 @@ void FixRigidSmall::init()
   if ((inpfile || onemols) && !id_gravity) {
     for (i = 0; i < modify->nfix; i++) {
       if (strcmp(modify->fix[i]->style,"gravity") == 0) {
-        if (comm->me == 0) 
+        if (comm->me == 0)
           error->warning(FLERR,"Gravity may not be correctly applied "
                          "to rigid bodies if they consist of "
                          "overlapped particles");
@@ -608,7 +608,7 @@ void FixRigidSmall::init()
   if (id_gravity) {
     int ifix = modify->find_fix(id_gravity);
     if (ifix < 0) error->all(FLERR,"Fix rigid/small cannot find fix gravity ID");
-    if (strcmp(modify->fix[ifix]->style,"gravity") != 0) 
+    if (strcmp(modify->fix[ifix]->style,"gravity") != 0)
       error->all(FLERR,"Fix rigid/small gravity fix is invalid");
     int tmp;
     gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);

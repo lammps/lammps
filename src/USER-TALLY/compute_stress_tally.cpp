@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_stress_tally.h"
+#include <mpi.h>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -41,6 +41,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 6;
   extscalar = 0;

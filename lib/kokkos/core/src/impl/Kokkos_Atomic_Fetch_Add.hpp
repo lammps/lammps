@@ -90,10 +90,12 @@ __inline__ __device__
 T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union U {
+  // to work around a bug in the clang cuda compiler, the name here needs to be
+  // different from the one internal to the other overloads
+  union U1 {
     int i ;
     T t ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    KOKKOS_INLINE_FUNCTION U1() {};
   } assume , oldval , newval ;
 
   oldval.t = *dest ;
@@ -113,10 +115,12 @@ T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union U {
+  // to work around a bug in the clang cuda compiler, the name here needs to be
+  // different from the one internal to the other overloads
+  union U2 {
     unsigned long long int i ;
     T t ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    KOKKOS_INLINE_FUNCTION U2() {};
   } assume , oldval , newval ;
 
   oldval.t = *dest ;
@@ -176,7 +180,7 @@ T atomic_fetch_add( volatile T * const dest ,
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
-#if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_ENABLE_ISA_X86_64 )
+#if defined( KOKKOS_ENABLE_ASM ) && (defined(KOKKOS_ENABLE_ISA_X86_64) || defined(KOKKOS_KNL_USE_ASM_WORKAROUND))
 inline
 int atomic_fetch_add( volatile int * dest , const int val )
 {

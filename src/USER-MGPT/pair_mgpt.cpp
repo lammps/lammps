@@ -21,17 +21,16 @@
    (2011).  See LLNL copyright notice at bottom of this file.
 ------------------------------------------------------------------------- */
 
+#include "pair_mgpt.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 
-#include "pair_mgpt.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

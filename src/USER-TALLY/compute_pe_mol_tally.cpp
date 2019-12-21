@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_mol_tally.h"
+#include <mpi.h>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
 #include "update.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "comm.h"
@@ -39,6 +38,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 4;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   extvector = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run

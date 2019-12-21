@@ -16,8 +16,14 @@
                           Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "info.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cctype>
+#include <ctime>
+#include <map>
+#include <string>
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -44,23 +50,17 @@
 #include "error.h"
 #include "utils.h"
 
-#include <ctime>
-#include <map>
-#include <string>
-#include <algorithm>
-
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
 #include <stdint.h> // <cstdint> requires C++-11
 #include <psapi.h>
 #else
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #endif
 
-#if defined __linux
+#if defined(__linux)
 #include <malloc.h>
 #endif
 
@@ -281,6 +281,7 @@ void Info::command(int narg, char **arg)
     infobuf = get_compiler_info();
     fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
     delete[] infobuf;
+    fprintf(out,"C++ standard: %s\n",get_cxx_info());
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -354,10 +355,11 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    MPI_Get_version(&major,&minor);
+    const char *version = get_mpi_info(major,minor);
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"MPI version: %s\n",version);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
@@ -366,7 +368,7 @@ void Info::command(int narg, char **arg)
     if (comm->mode == 0) {
       fprintf(out,"Communication mode = single\n");
       fprintf(out,"Communication cutoff = %g\n",
-              MAX(comm->cutghostuser,neighbor->cutneighmax));
+              comm->get_comm_cutoff());
     }
 
     if (comm->mode == 1) {
@@ -1192,6 +1194,42 @@ const char *Info::get_openmp_info()
   return (const char *)"unknown OpenMP version";
 #endif
 
+#endif
+}
+
+const char *Info::get_mpi_info(int &major, int &minor)
+{
+  int len;
+  #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+  static char version[MPI_MAX_LIBRARY_VERSION_STRING];
+  MPI_Get_library_version(version,&len);
+#else
+  static char version[] = "Undetected MPI implementation";
+  len = strlen(version);
+#endif
+
+  MPI_Get_version(&major,&minor);
+  if (len > 80) {
+    char *ptr = strchr(version+80,'\n');
+    if (ptr) *ptr = '\0';
+  }
+  return version;
+}
+
+const char *Info::get_cxx_info()
+{
+#if __cplusplus > 201703L
+  return (const char *)"newer than C++17";
+#elif __cplusplus == 201703L
+  return (const char *)"C++17";
+#elif __cplusplus == 201402L
+  return (const char *)"C++14";
+#elif __cplusplus == 201103L
+  return (const char *)"C++11";
+#elif __cplusplus == 199711L
+  return (const char *)"C++98";
+#else
+  return (const char *)"unknown";
 #endif
 }
 

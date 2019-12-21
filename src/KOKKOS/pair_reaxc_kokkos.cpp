@@ -15,11 +15,10 @@
    Contributing author: Ray Shan (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_reaxc_kokkos.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_reaxc_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -27,9 +26,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list_kokkos.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory_kokkos.h"
@@ -38,7 +34,6 @@
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
-#include "modify.h"
 
 
 #define TEAMSIZE 128

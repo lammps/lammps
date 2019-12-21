@@ -319,7 +319,7 @@ namespace ATC {
   //  modify
   //    parses inputs and modifies state of the filter
   //--------------------------------------------------------
-  bool ATC_CouplingMomentumEnergy::modify(int narg, char **arg)
+  bool ATC_CouplingMomentumEnergy::modify(int /* narg */, char ** /* arg */)
   {
     return false;
   }

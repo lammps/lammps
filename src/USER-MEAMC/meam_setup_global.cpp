@@ -2,6 +2,21 @@
 #include <cmath>
 using namespace LAMMPS_NS;
 
+template <typename TYPE, int maxi, int maxj>
+static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
+  for (int i = 0; i < maxi; i++)
+    for (int j = 0; j < maxj; j++)
+      arr[i][j] = v;
+}
+
+template <typename TYPE, int maxi, int maxj, int maxk>
+static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
+  for (int i = 0; i < maxi; i++)
+    for (int j = 0; j < maxj; j++)
+      for (int k = 0; k < maxk; k++)
+        arr[i][j][k] = v;
+}
+
 void
 MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* /*atwt*/, double* alpha,
                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
@@ -56,7 +71,7 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
   setall2d(this->repuls_meam, 0.0);
   setall3d(this->Cmax_meam, 2.8);
   setall3d(this->Cmin_meam, 2.0);
-  setall2d(this->ebound_meam, pow(2.8, 2) / (4.0 * (2.8 - 1.0)));
+  setall2d(this->ebound_meam, (2.8*2.8) / (4.0 * (2.8 - 1.0)));
   setall2d(this->delta_meam, 0.0);
   setall2d(this->nn2_meam, 0);
   setall2d(this->zbl_meam, 1);

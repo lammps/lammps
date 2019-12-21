@@ -16,15 +16,15 @@ under
          Contributing author: PM Larsen (MIT)
 ------------------------------------------------------------------------- */
 
+#include "compute_ptm_atom.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <vector>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
-#include "compute_ptm_atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -32,7 +32,6 @@ under
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
 #include "update.h"
 
 #include "ptm_functions.h"
@@ -83,6 +82,9 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
       PTM_CHECK_GRAPHENE,
       PTM_CHECK_ALL,
       PTM_CHECK_FCC | PTM_CHECK_HCP | PTM_CHECK_BCC | PTM_CHECK_ICO};
+
+  if (lmp->citeme)
+    lmp->citeme->add(cite_user_ptm_package);
 
   input_flags = 0;
   while (*ptr != '\0') {

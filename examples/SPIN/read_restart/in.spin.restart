@@ -24,7 +24,7 @@ neigh_modify 	every 1 check no delay 0
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice moving
 timestep	0.0001
 
 # define outputs

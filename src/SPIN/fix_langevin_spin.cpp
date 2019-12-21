@@ -21,31 +21,20 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "fix_langevin_spin.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-
-#include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
-#include "compute.h"
-#include "domain.h"
 #include "error.h"
-#include "fix_langevin_spin.h"
 #include "force.h"
-#include "group.h"
-#include "input.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
+// #include "random_park.h"
 #include "random_mars.h"
-#include "random_park.h"
-#include "region.h"
 #include "respa.h"
 #include "update.h"
-#include "variable.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -86,7 +75,8 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  random = new RanPark(lmp,seed + comm->me);
+  // random = new RanPark(lmp,seed + comm->me);
+  random = new RanMars(lmp,seed + comm->me);
 
 }
 
@@ -94,8 +84,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
 FixLangevinSpin::~FixLangevinSpin()
 {
-  memory->destroy(spi);
-  memory->destroy(fmi);
   delete random;
 }
 
@@ -125,15 +113,15 @@ void FixLangevinSpin::init()
   }
   if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin has to come after all other spin fixes");
 
-  memory->create(spi,3,"langevin:spi");
-  memory->create(fmi,3,"langevin:fmi");
-
   gil_factor = 1.0/(1.0+(alpha_t)*(alpha_t));
-  dts = update->dt;
+  dts = 0.25 * update->dt;
 
   double hbar = force->hplanck/MY_2PI;  // eV/(rad.THz)
   double kb = force->boltz;             // eV/K
-  D = (MY_2PI*alpha_t*gil_factor*kb*temp);
+  // D = (MY_2PI*alpha_t*gil_factor*kb*temp);
+
+  D = (alpha_t*gil_factor*kb*temp);
+  // D = (12.0/MY_2PI)*(MY_2PI*alpha_t*gil_factor*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
 }
@@ -142,13 +130,11 @@ void FixLangevinSpin::init()
 
 void FixLangevinSpin::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
-  }
+  } else post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,9 +157,12 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 void FixLangevinSpin::add_temperature(double fmi[3])
 {
 
-  double rx = sigma*(2.0*random->uniform() - 1.0);
-  double ry = sigma*(2.0*random->uniform() - 1.0);
-  double rz = sigma*(2.0*random->uniform() - 1.0);
+  // double rx = sigma*(2.0*random->uniform() - 1.0);
+  // double ry = sigma*(2.0*random->uniform() - 1.0);
+  // double rz = sigma*(2.0*random->uniform() - 1.0);
+  double rx = sigma*random->gaussian();
+  double ry = sigma*random->gaussian();
+  double rz = sigma*random->gaussian();
 
   // adding the random field
 

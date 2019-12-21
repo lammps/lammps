@@ -20,7 +20,6 @@ BondStyle(table,BondTable)
 #ifndef LMP_BOND_TABLE_H
 #define LMP_BOND_TABLE_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -35,6 +34,8 @@ class BondTable : public Bond {
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int, double, int, int, double &);
 
  protected:

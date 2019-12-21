@@ -15,13 +15,10 @@
    Contributing authors: Stan Moore (SNL), Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "kokkos.h"
 #include "pair_kokkos.h"
-#include "pair_eam_kokkos.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "comm.h"
@@ -40,6 +37,7 @@ template<class DeviceType>
 PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
 {
   respa_enable = 0;
+  single_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;

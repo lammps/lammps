@@ -14,7 +14,7 @@
 #ifndef LMP_KSPACE_H
 #define LMP_KSPACE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -44,7 +44,7 @@ class KSpace : protected Pointers {
   int dispersionflag;            // 1 if a LJ/dispersion solver
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
-  int spinflag;			 // 1 if a spin solver
+  int spinflag;                  // 1 if a spin solver
   int differentiation_flag;
   int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists

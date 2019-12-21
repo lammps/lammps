@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_region.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_region.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -49,7 +49,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

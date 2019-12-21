@@ -1,0 +1,13 @@
+BootStrap: docker
+From: centos:8
+
+%post
+	dnf -y install epel-release dnf-utils
+        dnf config-manager --set-enabled PowerTools
+        dnf -y update
+	dnf -y install vim-enhanced ccache gcc-c++ gcc-gfortran clang gdb make cmake patch which file git libpng-devel libjpeg-devel openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel enchant platform-python-devel python3-virtualenv valgrind openblas ninja-build eigen3-devel
+
+#No match for argument: valgrind-openmpi
+
+%labels
+	Author akohlmey

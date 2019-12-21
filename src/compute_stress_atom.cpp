@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "compute_stress_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"

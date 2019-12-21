@@ -15,10 +15,9 @@
    Contributing author: Pablo Piaggi (EPFL Lausanne)
 ------------------------------------------------------------------------- */
 
+#include "compute_entropy_atom.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "compute_entropy_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -28,12 +27,10 @@
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
-#include "math_extra.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

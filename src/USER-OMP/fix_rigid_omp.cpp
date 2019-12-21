@@ -16,15 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_omp.h"
-
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
+#include "error.h"
 #include "domain.h"
-
-#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -32,14 +33,12 @@
 
 #include "math_extra.h"
 #include "math_const.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};    // same as in FixRigid
-
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
+using namespace RigidConst;
 
 typedef struct { double x,y,z; } dbl3_t;
 
@@ -47,12 +46,10 @@ typedef struct { double x,y,z; } dbl3_t;
 
 void FixRigidOMP::initial_integrate(int vflag)
 {
-  int ibody;
-
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
 
     // update vcm by 1/2 step
 
@@ -121,12 +118,11 @@ void FixRigidOMP::compute_forces_and_torques()
    if (rstyle == SINGLE) {
      // we have just one rigid body. use OpenMP reduction to get sum[]
      double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-     int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for default(none) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-     for (i = 0; i < nlocal; i++) {
+     for (int i = 0; i < nlocal; i++) {
        const int ibody = body[i];
        if (ibody < 0) continue;
 
@@ -160,12 +156,11 @@ void FixRigidOMP::compute_forces_and_torques()
 
      for (int ib = 0; ib < nbody; ++ib) {
        double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-       int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) shared(ib) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for default(none) shared(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-       for (i = 0; i < nlocal; i++) {
+       for (int i = 0; i < nlocal; i++) {
          const int ibody = body[i];
          if (ibody != ib) continue;
 
@@ -249,12 +244,11 @@ void FixRigidOMP::compute_forces_and_torques()
   // update vcm and angmom
   // include Langevin thermostat forces
   // fflag,tflag = 0 for some dimensions in 2d
-  int ibody;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
     fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
     fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
@@ -268,16 +262,14 @@ void FixRigidOMP::compute_forces_and_torques()
 
 void FixRigidOMP::final_integrate()
 {
-  int ibody;
-
   if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
 
     // update vcm by 1/2 step
 
@@ -339,12 +331,11 @@ void FixRigidOMP::set_xv_thr()
   // set x and v of each atom
 
   const int nlocal = atom->nlocal;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for default(none) reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     const int ibody = body[i];
     if (ibody < 0) continue;
 
@@ -487,8 +478,8 @@ void FixRigidOMP::set_xv_thr()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];
@@ -540,12 +531,11 @@ void FixRigidOMP::set_v_thr()
   // set v of each atom
 
   const int nlocal = atom->nlocal;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for default(none) reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     const int ibody = body[i];
     if (ibody < 0) continue;
 

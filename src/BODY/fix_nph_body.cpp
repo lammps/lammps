@@ -15,8 +15,8 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nph_body.h"
+#include <cstring>
 #include "modify.h"
 #include "error.h"
 

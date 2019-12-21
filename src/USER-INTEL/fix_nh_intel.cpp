@@ -335,7 +335,7 @@ void FixNHIntel::reset_dt()
   if (nlocal > _nlocal_max) {
     if (_nlocal_max) memory->destroy(_dtfm);
     _nlocal_max = static_cast<int>(1.20 * nlocal);
-    memory->create(_dtfm, _nlocal_max * 3, "fix_nve_intel:dtfm");
+    memory->create(_dtfm, _nlocal_max * 3, "fix_nh_intel:dtfm");
   }
 
   _nlocal3 = nlocal * 3;

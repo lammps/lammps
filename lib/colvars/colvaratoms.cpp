@@ -178,6 +178,31 @@ int cvm::atom_group::remove_atom(cvm::atom_iter ai)
 }
 
 
+int cvm::atom_group::set_dummy()
+{
+  if (atoms_ids.size() > 0) {
+    return cvm::error("Error: setting group with keyword \""+key+
+                      "\" and name \""+name+"\" as dummy, but it already "
+                      "contains atoms.\n", INPUT_ERROR);
+  }
+  b_dummy = true;
+  return COLVARS_OK;
+}
+
+
+int cvm::atom_group::set_dummy_pos(cvm::atom_pos const &pos)
+{
+  if (b_dummy) {
+    dummy_atom_pos = pos;
+  } else {
+    return cvm::error("Error: setting dummy position for group with keyword \""+
+                      key+"\" and name \""+name+
+                      "\", but it is not dummy.\n", INPUT_ERROR);
+  }
+  return COLVARS_OK;
+}
+
+
 int cvm::atom_group::init()
 {
   if (!key.size()) key = "unnamed";
@@ -469,20 +494,15 @@ int cvm::atom_group::parse(std::string const &group_conf)
   // checks of doubly-counted atoms have been handled by add_atom() already
 
   if (get_keyval(group_conf, "dummyAtom", dummy_atom_pos, cvm::atom_pos())) {
-    b_dummy = true;
-    // note: atoms_ids.size() is used here in lieu of atoms.size(),
-    // which can be empty for scalable groups
-    if (atoms_ids.size()) {
-      cvm::error("Error: cannot set up group \""+
-                 key+"\" as a dummy atom "
-                 "and provide it with atom definitions.\n", INPUT_ERROR);
-    }
+
+    parse_error |= set_dummy();
+    parse_error |= set_dummy_pos(dummy_atom_pos);
+
   } else {
-    b_dummy = false;
 
     if (!(atoms_ids.size())) {
-      cvm::error("Error: no atoms defined for atom group \""+
-                 key+"\".\n", INPUT_ERROR);
+      parse_error |= cvm::error("Error: no atoms defined for atom group \""+
+                                key+"\".\n", INPUT_ERROR);
     }
 
     // whether these atoms will ever receive forces or not

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_store_state.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_store_state.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"

@@ -11,23 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_snap.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +49,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   beta_max = 0;
   beta = NULL;
   bispectrum = NULL;
+  snaptr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,7 +108,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
   // compute dE_i/dB_i = beta_i for all i in list
 
-  if (quadraticflag || eflag) 
+  if (quadraticflag || eflag)
     compute_bispectrum();
   compute_beta();
 
@@ -167,7 +165,7 @@ void PairSNAP::compute(int eflag, int vflag)
     snaptr->compute_ui(ninside);
 
     // for neighbors of I within cutoff:
-    // compute Fij = dEi/dRj = -dEi/dRi 
+    // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
@@ -175,7 +173,7 @@ void PairSNAP::compute(int eflag, int vflag)
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
-                             snaptr->wj[jj],snaptr->rcutij[jj]);
+                             snaptr->wj[jj],snaptr->rcutij[jj],jj);
 
       snaptr->compute_deidrj(fij);
 
@@ -275,7 +273,7 @@ void PairSNAP::compute_bispectrum()
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
+  int *jlist;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -352,9 +350,9 @@ void PairSNAP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSNAP::settings(int narg, char **arg)
+void PairSNAP::settings(int narg, char ** /* arg */)
 {
-  for (int i=0; i < narg; i++)
+  if (narg > 0)
     error->all(FLERR,"Illegal pair_style command");
 }
 

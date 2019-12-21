@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "atom.h"
+#include <mpi.h>
+#include <cmath>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -334,7 +335,7 @@ void Atom::map_delete()
       map_bucket = NULL;
       map_hash = NULL;
     }
-    map_nhash = 0;
+    map_nhash = map_nbucket = 0;
   }
 }
 

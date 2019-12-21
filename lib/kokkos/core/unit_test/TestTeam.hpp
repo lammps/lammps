@@ -72,6 +72,7 @@ struct TestTeamPolicy {
     const int tid = member.team_rank() + member.team_size() * member.league_rank();
 
     m_flags( member.team_rank(), member.league_rank() ) = tid;
+    static_assert((std::is_same<typename team_member::execution_space,ExecSpace>::value),"TeamMember::execution_space is not the same as TeamPolicy<>::execution_space");
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -265,7 +266,7 @@ public:
       Kokkos::parallel_reduce( team_exec, functor_type( nwork ), tmp );
     }
 
-    execution_space::fence();
+    execution_space().fence();
 
     for ( unsigned i = 0; i < Repeat; ++i ) {
       for ( unsigned j = 0; j < Count; ++j ) {
@@ -391,7 +392,7 @@ public:
       Kokkos::deep_copy( functor.accum, total );
 
       Kokkos::parallel_reduce( team_exec, functor, result_type( & error ) );
-      DeviceType::fence();
+      DeviceType().fence();
 
       Kokkos::deep_copy( accum, functor.accum );
       Kokkos::deep_copy( total, functor.total );
@@ -400,7 +401,7 @@ public:
       ASSERT_EQ( total, accum );
     }
 
-    execution_space::fence();
+    execution_space().fence();
   }
 };
 
@@ -495,6 +496,7 @@ struct TestSharedTeam {
     typename Functor::value_type error_count = 0;
 
     Kokkos::parallel_reduce( team_exec, Functor(), result_type( & error_count ) );
+    Kokkos::fence();
 
     ASSERT_EQ( error_count, 0 );
   }
@@ -568,6 +570,8 @@ struct TestLambdaSharedTeam {
         }
       }
     }, result_type( & error_count ) );
+
+    Kokkos::fence();
 
     ASSERT_EQ( error_count, 0 );
   }
@@ -679,6 +683,7 @@ struct TestScratchTeam {
     Kokkos::parallel_reduce( team_exec.set_scratch_size( 1, Kokkos::PerTeam( team_scratch_size ),
                                                          Kokkos::PerThread( thread_scratch_size ) ),
                              Functor(), result_type( & error_count ) );
+    Kokkos::fence();
     ASSERT_EQ( error_count, 0 );
   }
 };
@@ -822,7 +827,6 @@ struct ClassNoShmemSizeFunction {
       Kokkos::TeamPolicy< TagReduce, ExecSpace, ScheduleType > policy( 10, team_size, 16 );
 
       Kokkos::parallel_reduce( policy.set_scratch_size( 0, Kokkos::PerTeam( per_team0 ), Kokkos::PerThread( per_thread0 ) ).set_scratch_size( 1, Kokkos::PerTeam( per_team1 ), Kokkos::PerThread( per_thread1 ) ), *this, error );
-      Kokkos::fence();
 
       ASSERT_EQ( error, 0 );
     }
@@ -877,7 +881,6 @@ struct ClassWithShmemSizeFunction {
       Kokkos::parallel_reduce( policy.set_scratch_size( 1, Kokkos::PerTeam( per_team1 ),
                                                         Kokkos::PerThread( per_thread1 ) ),
                                *this, error );
-      Kokkos::fence();
 
       ASSERT_EQ( error, 0 );
     }
@@ -929,7 +932,6 @@ void test_team_mulit_level_scratch_test_lambda() {
     count += test_team_mulit_level_scratch_loop_body< ExecSpace >( team );
   }, error );
   ASSERT_EQ( error, 0 );
-  Kokkos::fence();
 #endif
 #endif
 }

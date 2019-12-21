@@ -21,8 +21,8 @@ namespace ATC {
       ElectronPhononExchange()  {};
       virtual ~ElectronPhononExchange() {};
       /** computes heat capacity */
-      virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
-                                                  DENS_MAT &flux) { return false; }
+      virtual bool electron_phonon_exchange(const FIELD_MATS & /* fields */,
+                                            DENS_MAT & /* flux */) { return false; }
   };
   //-------------------------------------------------------------------
 

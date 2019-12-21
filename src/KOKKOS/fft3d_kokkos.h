@@ -31,7 +31,16 @@
 #endif
 #endif
 
-#if defined(FFT_FFTW3)
+#if defined(FFT_MKL)
+  #include "mkl_dfti.h"
+  #if defined(FFT_SINGLE)
+    typedef float _Complex FFT_DATA;
+    #define FFT_MKL_PREC DFTI_SINGLE
+  #else
+    typedef double _Complex FFT_DATA;
+    #define FFT_MKL_PREC DFTI_DOUBLE
+  #endif
+#elif defined(FFT_FFTW3)
   #include "fftw3.h"
   #if defined(FFT_SINGLE)
     typedef fftwf_complex FFT_DATA;
@@ -84,7 +93,11 @@ struct fft_plan_3d_kokkos {
   double norm;                      // normalization factor for rescaling
 
                                     // system specific 1d FFT info
-#if defined(FFT_FFTW3)
+#if defined(FFT_MKL)
+  DFTI_DESCRIPTOR *handle_fast;
+  DFTI_DESCRIPTOR *handle_mid;
+  DFTI_DESCRIPTOR *handle_slow;
+#elif defined(FFT_FFTW3)
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;
   FFTW_API(plan) plan_mid_forward;

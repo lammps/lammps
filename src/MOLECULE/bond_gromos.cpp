@@ -15,17 +15,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_gromos.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -168,8 +167,8 @@ void BondGromos::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);

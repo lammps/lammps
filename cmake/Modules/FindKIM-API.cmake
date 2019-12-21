@@ -37,6 +37,26 @@
 # KIM-API-CMAKE_Fortran_COMPILER
 #
 
+function(_KIMAPI_GET_VERSION _OUT_ver _version_hdr)
+  if(NOT EXISTS ${_version_hdr})
+    message(FATAL_ERROR "Header file ${_version_hdr} not found (check value of KIM-API_INCLUDE_DIR)")
+  endif()
+  foreach(_var KIM_VERSION_MAJOR KIM_VERSION_MINOR KIM_VERSION_PATCH)  
+    file(STRINGS ${_version_hdr} _contents REGEX "#define ${_var}[ \t]+")
+    if(_contents)
+      string(REGEX REPLACE ".*#define ${_var}[ \t]+([0-9]+).*" "\\1" _${_var} "${_contents}")
+      if(${_${_var}} STREQUAL "")
+        message(FATAL_ERROR "Version parsing failed for ${_var} in ${_version_hdr}, got empty return!")
+      elseif(NOT ${_${_var}} MATCHES "^[0-9]+$")
+        message(FATAL_ERROR "Version parsing failed for ${_var} in ${_version_hdr}, excepted a number but got ${_${_var}}!")
+      endif()
+    else()
+      message(FATAL_ERROR "No ${_var} line found in include file ${_version_hdr}")
+    endif()
+  endforeach()
+  set(${_OUT_ver} ${_KIM_VERSION_MAJOR}.${_KIM_VERSION_MINOR}.${_KIM_VERSION_PATCH} PARENT_SCOPE)
+endfunction()
+
 if(KIM-API_FIND_QUIETLY)
   set(REQ_OR_QUI "QUIET")
 else()
@@ -54,6 +74,12 @@ if(KIM-API_FOUND)
   pkg_get_variable(KIM-API_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
 endif()
 
+if(KIM-API_INCLUDEDIR)
+  _KIMAPI_GET_VERSION(KIM-API_VERSION ${KIM-API_INCLUDEDIR}/KIM_Version.h)
+else()
+  set(KIM-API_VERSION 0)
+endif()
+
 # handle the QUIETLY and REQUIRED arguments and set KIM-API_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(KIM-API REQUIRED_VARS KIM-API_LIBRARIES)
+find_package_handle_standard_args(KIM-API REQUIRED_VARS KIM-API_LIBRARIES VERSION_VAR KIM-API_VERSION)

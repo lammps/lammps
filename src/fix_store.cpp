@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_store.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -106,6 +105,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
       for (int i = 0; i < nlocal; i++)
         for (int j = 0; j < nvalues; j++)
           astore[i][j] = 0.0;
+    maxexchange = nvalues;
   }
 }
 

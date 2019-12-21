@@ -30,6 +30,8 @@ Kokkos_SharedAlloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_SharedAlloc.cpp
 Kokkos_MemoryPool.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
+Kokkos_HostSpace_deepcopy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp 
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
@@ -38,8 +40,8 @@ endif
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-Kokkos_Cuda_Impl.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
+Kokkos_Cuda_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Instance.cpp
 Kokkos_CudaSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 Kokkos_Cuda_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
@@ -90,6 +92,13 @@ Kokkos_OpenMP_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokko
 ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
   include $(KOKKOS_ETI_PATH)/OpenMP/Makefile.eti_OpenMP
 endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+Kokkos_HPX.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX.cpp
+Kokkos_HPX_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX_Task.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX_Task.cpp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)

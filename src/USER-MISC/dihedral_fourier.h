@@ -20,7 +20,6 @@ DihedralStyle(fourier,DihedralFourier)
 #ifndef LMP_DIHEDRAL_FOURIER_H
 #define LMP_DIHEDRAL_FOURIER_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

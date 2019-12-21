@@ -15,17 +15,11 @@
    Contributing author: Mike Brown (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_event.h"
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "universe.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -14,12 +14,12 @@
 /* ----------------------------------------------------------------------
    Contributing author: Anders Hafreager (UiO)
 ------------------------------------------------------------------------- */
-#include <limits>
+
+#include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -234,9 +234,11 @@ void PairVashishtaGPU::init_style()
     neighbor->requests[irequest]->ghost = 1;
   }
 
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
+  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser=2.0*cutmax + neighbor->skin;
-
+    if (comm->me == 0)
+       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  }
 }
 
 /* ----------------------------------------------------------------------

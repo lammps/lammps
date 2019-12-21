@@ -68,9 +68,10 @@ void test_host_fixture( comm::Machine machine ,
                         size_t gang_worker_count ,
                         size_t nx , size_t ny , size_t nz )
 {
-  Kokkos::HostSpace::execution_space::initialize( gang_count * gang_worker_count );
+  Kokkos::InitArguments args(gang_count * gang_worker_count);
+  Kokkos::initialize( args );
   test_box_fixture<Kokkos::HostSpace::execution_space>( machine , gang_count , nx , ny , nz );
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
 }
 
 //----------------------------------------------------------------------------
@@ -82,9 +83,10 @@ void test_host_implicit( comm::Machine machine ,
                          size_t elem_count_end ,
                          size_t count_run )
 {
-  Kokkos::HostSpace::execution_space::initialize( gang_count * gang_worker_count );
+  Kokkos::InitArguments args(gang_count * gang_worker_count);
+  Kokkos::initialize( args );
   HybridFEM::Implicit::driver<double,Kokkos::HostSpace::execution_space>( "Threads" , machine , gang_count , elem_count_begin , elem_count_end , count_run );
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
 }
 
 //----------------------------------------------------------------------------
@@ -96,9 +98,10 @@ void test_host_explicit( comm::Machine machine ,
                          size_t elem_count_end ,
                          size_t count_run )
 {
-  Kokkos::HostSpace::execution_space::initialize( gang_count * gang_worker_count );
+  Kokkos::InitArguments args(gang_count * gang_worker_count);
+  Kokkos::initialize( args );
   Explicit::driver<double,Kokkos::HostSpace::execution_space>( "Threads" , machine , gang_count , elem_count_begin , elem_count_end , count_run );
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
 }
 
 //----------------------------------------------------------------------------
@@ -111,11 +114,12 @@ void test_host_nonlinear( comm::Machine machine ,
                           size_t elem_count_end ,
                           size_t count_run )
 {
-  Kokkos::HostSpace::execution_space::initialize( gang_count * gang_worker_count );
+  Kokkos::InitArguments args(gang_count * gang_worker_count);
+  Kokkos::initialize( args );
   typedef FixtureElementHex8 hex8 ;
   typedef Kokkos::HostSpace::execution_space             device ;
   HybridFEM::Nonlinear::driver<double,device,hex8>( "Threads" , machine , gang_count , elem_count_begin , elem_count_end , count_run );
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
 }
 
 void test_host_nonlinear_quadratic( comm::Machine machine ,
@@ -125,11 +129,12 @@ void test_host_nonlinear_quadratic( comm::Machine machine ,
                                     size_t elem_count_end ,
                                     size_t count_run )
 {
-  Kokkos::HostSpace::execution_space::initialize( gang_count * gang_worker_count );
+  Kokkos::InitArguments args(gang_count * gang_worker_count);
+  Kokkos::initialize( args );
   typedef FixtureElementHex27 hex27 ;
   typedef Kokkos::HostSpace::execution_space              device ;
   HybridFEM::Nonlinear::driver<double,device,hex27>( "Threads" , machine , gang_count , elem_count_begin , elem_count_end , count_run );
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
 }
 
 //----------------------------------------------------------------------------

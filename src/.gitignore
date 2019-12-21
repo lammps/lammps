@@ -905,6 +905,8 @@
 /pair_meam_spline.h
 /pair_meam_sw_spline.cpp
 /pair_meam_sw_spline.h
+/pair_mesocnt.cpp
+/pair_mesocnt.h
 /pair_morse_soft.cpp
 /pair_morse_soft.h
 /pair_nb3b_harmonic.cpp

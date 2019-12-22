@@ -86,12 +86,12 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(endlist);
     memory->destroy(chainlist);
 
-    memory->destroy(p1);
-    memory->destroy(p2);
+    memory->destroy(w);
 
     memory->destroy(param);
 
     memory->destroy(flocal);
+    memory->destroy(fglobal);
     memory->destroy(basis);
   }
 }
@@ -154,31 +154,34 @@ void PairMesoCNT::compute(int eflag, int vflag)
         q1 = x[chain[j][k]];
 	      q2 = x[chain[j][k+1]];
 
-	      double w = weight(r1,r2,q1,q2);
+	      double wtemp = weight(r1,r2,q1,q2);
+        w[k] = wtemp;
 
-	      if (w == 0) {
+	      if (wtemp == 0) {
           if (end[j] == 1 && k == 0) end[j] = 0;
 	        else if (end[j] == 2 && k == clen-2) end[j] = 0;
 	        continue;
 	      }
-	      sumw += w;
+	      sumw += wtemp;
 
-	      scaleadd3(w,q1,p1,p1);
-	      scaleadd3(w,q2,p2,p2);
+	      scaleadd3(wtemp,q1,p1,p1);
+	      scaleadd3(wtemp,q2,p2,p2);
       }
 
       if (sumw == 0) continue;
 
-      double sumwrec = 1.0 / sumw;
-      scale3(sumwrec,p1);
-      scale3(sumwrec,p2);
+      double sumw_inv = 1.0 / sumw;
+      scale3(sumw_inv,p1);
+      scale3(sumw_inv,p2);
 
       // compute geometry and forces
+
+      double fend;
 
       // infinite CNT case
 
       if (end[j] == 0) {
-        geometry(r1,r2,p1,p2,NULL,param,basis);
+        geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
 	      finf(param,evdwl,flocal);
       }
@@ -186,40 +189,77 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at start of chain
 
       else if (end[j] == 1) {
-        geometry(r1,r2,p1,p2,qe,param,basis);
+        geometry(r1,r2,p1,p2,qe,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
-	      fsemi(param,evdwl,flocal);
+	      fsemi(param,evdwl,fend,flocal);
       }
 
       // semi-infinite CNT case with end at end of chain
 
       else {
-        geometry(r1,r2,p1,p2,qe,param,basis);
+        geometry(r1,r2,p1,p2,qe,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
-	      fsemi(param,evdwl,flocal);
+	      fsemi(param,evdwl,fend,flocal);
       }
 
-      // convert forces to global coordinate system
+      // transform to global coordinate system
 
-      f[i1][0] += flocal[0][0]*basis[0][0]
-	      + flocal[0][1]*basis[1][0]
-	      + flocal[0][2]*basis[2][0];
-      f[i1][1] += flocal[0][0]*basis[0][1]
-	      + flocal[0][1]*basis[1][1]
-	      + flocal[0][2]*basis[2][1];
-      f[i1][2] += flocal[0][0]*basis[0][2]
-	      + flocal[0][1]*basis[1][2]
-	      + flocal[0][2]*basis[2][2];
-      f[i2][0] += flocal[1][0]*basis[0][0]
-	      + flocal[1][1]*basis[1][0]
-	      + flocal[1][2]*basis[2][0];
-      f[i2][1] += flocal[1][0]*basis[0][1]
-	      + flocal[1][1]*basis[1][1]
-	      + flocal[1][2]*basis[2][1];
-      f[i2][2] += flocal[1][0]*basis[0][2]
-	      + flocal[1][1]*basis[1][2]
-	      + flocal[1][2]*basis[2][2];
+      matvec(basis[0],basis[1],basis[2],flocal[0],fglobal[0]);
+      matvec(basis[0],basis[1],basis[2],flocal[1],fglobal[1]);
 
+      // forces acting on approximate chain
+
+      double ftotal[3],ftorque[3],torque[3],delr1[3],delr2[3];
+      double t1[3],t2[3];
+      
+      add3(fglobal[0],fglobal[1],ftotal);
+      scale3(-0.5,ftotal);
+      
+      sub3(r1,p,delr1);
+      sub3(r2,p,delr2);
+      cross3(delr1,f[0],t1);
+      cross3(delr2,f[1],t2);
+      add3(t1,t2,torque);
+
+      cross3(torque,m,ftorque);
+      double lp = param[5] - param[4];
+      scale3(1.0/lp,ftorque);
+
+      add3(ftotal,ftorque,fglobal[2]);
+      sub3(ftotal,ftorque,fglobal[3]);
+
+      // add forces to nodes
+      
+      scaleadd3(0.5,fglobal[0],f[i1],f[i1]);
+      scaleadd3(0.5,fglobal[1],f[i2],f[i2]);
+
+      // nodes in approximate chain
+
+      scale3(0.5,fglobal[2]);
+      scale3(0.5,fglobal[3]);
+
+      for (int k = 0; k < clen-1; k++) {
+        if (w[k] == 0.0) continue;
+        double scale = w[k] * sumw_inv;
+        scaleadd3(scale,fglobal[2],
+          f[chain[j][k]],f[chain[j][k]]);
+        scaleadd3(scale,fglobal[3],
+          f[chain[j][k+1]],f[chain[j][k+1]]);
+      }
+
+      // force on node at CNT end
+      
+      if (end[j] == 1) {
+        double fend_vector[3];
+        copy3(m,fend_vector);
+        scaleadd3(0.5*fend,fend_vector,f[chain[j][0]],f[chain[j][0]]);
+      }
+      else if (end[j] == 2) {
+        double fend_vector[3];
+        copy3(m,fend_vector);
+        scaleadd3(0.5*fend,fend_vector,f[chain[j][clen-1]],f[chain[j][clen-1]]);
+      }
+      
       // compute energy
 
       if (eflag_either) {
@@ -282,12 +322,12 @@ void PairMesoCNT::allocate()
   memory->create(chainlist,nlocal_size,
 		reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
 
-  memory->create(p1,3,"pair:p1");
-  memory->create(p2,3,"pair:p2");
+  memory->create(w,reduced_neigh_size,"pair:w");
 
-  memory->create(param,5,"pair:param");
+  memory->create(param,7,"pair:param");
 
   memory->create(flocal,2,3,"pair:flocal");
+  memory->create(fglobal,4,3,"pair:fglobal");
   memory->create(basis,3,3,"pair:basis");
 }
 
@@ -339,23 +379,23 @@ void PairMesoCNT::coeff(int narg, char **arg)
 
   // units
   ang = force->angstrom;
-  angrec = 1.0 / ang;
+  ang_inv = 1.0 / ang;
   e = force->qelectron;
-  erec = 1.0 / e;
-  funit = e * angrec;
+  e_inv = 1.0 / e;
+  funit = e * ang_inv;
 
   // potential variables
   r = 1.421 * 3 * n / MY_2PI * ang;
   rsq = r * r;
   d = 2 * r;
-  d_ang = d * angrec;
+  d_ang = d * ang_inv;
   rc = 3.0 * sig;
   cutoff = rc + d;
   cutoffsq = cutoff * cutoff;
-  cutoff_ang = cutoff * angrec;
+  cutoff_ang = cutoff * ang_inv;
   cutoffsq_ang = cutoff_ang * cutoff_ang;
-  comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r*angrec));
-  ctheta = 0.35 + 0.0226*(r*angrec - 6.785);
+  comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r*ang_inv));
+  ctheta = 0.35 + 0.0226*(r*ang_inv - 6.785);
 
   // parse and bcast data
   int me;
@@ -475,6 +515,8 @@ void PairMesoCNT::bond_neigh()
     update_memory = 1;
   }
 
+  // grow arrays if necessary
+
   if (update_memory) {
     memory->destroy(reduced_neighlist);
     memory->destroy(numchainlist);
@@ -491,6 +533,8 @@ void PairMesoCNT::bond_neigh()
     memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
     memory->create(chainlist,nlocal_size,
 		  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
+
+    memory->grow(w,reduced_neigh_size,"pair:w");
   }
 
   for (int i = 0; i < nbondlist; i++) {
@@ -812,22 +856,22 @@ void PairMesoCNT::spline_coeff(double *data, double **coeff,
   memory->create(bprime,n,"pair:bprime");
   memory->create(dprime,n,"pair:dprime");
 
-  double dxrec = 1.0 / dx;
-  double dxsqrec = dxrec * dxrec;
-  double dxcbrec = dxrec * dxsqrec;
+  double dx_inv = 1.0 / dx;
+  double dxsq_inv = dx_inv * dx_inv;
+  double dxcb_inv = dx_inv * dxsq_inv;
 
   double ax[4][4] =
   {
     {1, 0, 0, 0},
     {0, 1, 0, 0},
-    {-3*dxsqrec, -2*dxrec, 3*dxsqrec, -dxrec},
-    {2*dxcbrec, dxsqrec, -2*dxcbrec, dxsqrec}
+    {-3*dxsq_inv, -2*dx_inv, 3*dxsq_inv, -dx_inv},
+    {2*dxcb_inv, dxsq_inv, -2*dxcb_inv, dxsq_inv}
   };
 
   // compute finite difference derivatives at boundaries
   
-  p[0] = (u[1] - u[0]) * dxrec;
-  p[n-1] = (u[n-1] - u[n-2]) * dxrec;
+  p[0] = (u[1] - u[0]) * dx_inv;
+  p[n-1] = (u[n-1] - u[n-2]) * dx_inv;
 
   // compute derivatives inside domain
   
@@ -890,44 +934,44 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
   memory->create(bprime,n,"pair:bprime");
   memory->create(dprime,n,"pair:dprime");
 
-  double dxrec = 1.0 / dx;
-  double dyrec = 1.0 / dy;
-  double dxsqrec = dxrec * dxrec;
-  double dysqrec = dyrec * dyrec;
-  double dxcbrec = dxrec * dxsqrec;
-  double dycbrec = dyrec * dysqrec;
+  double dx_inv = 1.0 / dx;
+  double dy_inv = 1.0 / dy;
+  double dxsq_inv = dx_inv * dx_inv;
+  double dysq_inv = dy_inv * dy_inv;
+  double dxcb_inv = dx_inv * dxsq_inv;
+  double dycb_inv = dy_inv * dysq_inv;
 
   double ax[4][4] =
   {
     {1, 0, 0, 0},
     {0, 1, 0, 0},
-    {-3*dxsqrec, -2*dxrec, 3*dxsqrec, -dxrec},
-    {2*dxcbrec, dxsqrec, -2*dxcbrec, dxsqrec}
+    {-3*dxsq_inv, -2*dx_inv, 3*dxsq_inv, -dx_inv},
+    {2*dxcb_inv, dxsq_inv, -2*dxcb_inv, dxsq_inv}
   };
   double ay[4][4] =
   {
     {1, 0, 0, 0},
     {0, 1, 0, 0},
-    {-3*dysqrec, -2*dyrec, 3*dysqrec, -dyrec},
-    {2*dycbrec, dysqrec, -2*dycbrec, dysqrec}
+    {-3*dysq_inv, -2*dy_inv, 3*dysq_inv, -dy_inv},
+    {2*dycb_inv, dysq_inv, -2*dycb_inv, dysq_inv}
   };
 
   // compute finite difference derivatives at boundaries
 
   for (int i = 0; i < n; i++) {
-    p[0][i] = (u[1][i] - u[0][i]) * dxrec;
-    p[n-1][i] = (u[n-1][i] - u[n-2][i]) * dxrec;
+    p[0][i] = (u[1][i] - u[0][i]) * dx_inv;
+    p[n-1][i] = (u[n-1][i] - u[n-2][i]) * dx_inv;
   }
 
   for (int i = 0; i < n; i++) {
-    q[i][0] = (u[i][1] - u[i][0]) * dyrec;
-    q[i][n-1] = (u[i][n-1] - u[i][n-2]) * dyrec;
+    q[i][0] = (u[i][1] - u[i][0]) * dy_inv;
+    q[i][n-1] = (u[i][n-1] - u[i][n-2]) * dy_inv;
   }
 
-  s[0][0] = (p[0][1] - p[0][0]) * dyrec;
-  s[0][n-1] = (p[0][n-1] - p[0][n-2]) * dyrec;
-  s[n-1][0] = (p[n-1][1] - p[n-1][0]) * dyrec;
-  s[n-1][n-1] = (p[n-1][n-1] - p[n-1][n-2]) * dyrec;
+  s[0][0] = (p[0][1] - p[0][0]) * dy_inv;
+  s[0][n-1] = (p[0][n-1] - p[0][n-2]) * dy_inv;
+  s[n-1][0] = (p[n-1][1] - p[n-1][0]) * dy_inv;
+  s[n-1][n-1] = (p[n-1][n-1] - p[n-1][n-2]) * dy_inv;
 
   // compute derivatives inside domain
 
@@ -1283,9 +1327,9 @@ double PairMesoCNT::dyspline(double x, double y,
 
 void PairMesoCNT::geometry(const double *r1, const double *r2, 
 		const double *p1, const double *p2, const double *qe,
-		double *param, double **basis)
+    double *p, double *m, double *param, double **basis)
 {
-  double r[3],p[3],delr[3],m[3],l[3],rbar[3],pbar[3],delrbar[3];
+  double r[3],delr[3],l[3],rbar[3],pbar[3],delrbar[3];
   double psil[3],psim[3],dell_psim[3],delpsil_m[3];
   double delr1[3],delr2[3],delp1[3],delp2[3],delpqe[3];
 
@@ -1358,14 +1402,20 @@ void PairMesoCNT::geometry(const double *r1, const double *r2,
 
   sub3(r1,rbar,delr1);
   sub3(r2,rbar,delr2);
+  sub3(p1,pbar,delp1);
+  sub3(p2,pbar,delp2);
   double xi1 = dot3(delr1,l);
   double xi2 = dot3(delr2,l);
+  double eta1 = dot3(delp1,m);
+  double eta2 = dot3(delp2,m);
 
   param[0] = h;
   param[1] = alpha;
   param[2] = xi1;
   param[3] = xi2;
-  param[4] = etae; 
+  param[4] = eta1;
+  param[5] = eta2;
+  param[6] = etae; 
 }
 
 
@@ -1397,10 +1447,10 @@ double PairMesoCNT::weight(const double *r1, const double *r2,
 
 void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 {
-  double h = param[0] * angrec;
+  double h = param[0] * ang_inv;
   double alpha = param[1];
-  double xi1 = param[2] * angrec;
-  double xi2 = param[3] * angrec;
+  double xi1 = param[2] * ang_inv;
+  double xi2 = param[3] * ang_inv;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha * sin_alpha;
@@ -1424,14 +1474,14 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
   // non-parallel case
   
   else {
-    double sin_alpharec = 1.0 / sin_alpha;
-    double sin_alphasqrec = sin_alpharec * sin_alpharec;
+    double sin_alpha_inv = 1.0 / sin_alpha;
+    double sin_alphasq_inv = sin_alpha_inv * sin_alpha_inv;
     double cos_alpha = cos(alpha);
-    double cot_alpha = cos_alpha * sin_alpharec;
+    double cot_alpha = cos_alpha * sin_alpha_inv;
 
     double omega = 1.0 / (1.0 - comega*sin_alphasq);
     double c1 = omega * sin_alpha;
-    double c1rec = 1.0 / c1;
+    double c1_inv = 1.0 / c1;
     double domega = 2 * comega * cos_alpha * c1 * omega;
 
     double gamma_orth = 
@@ -1439,7 +1489,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double dgamma_orth = 
 	    dspline(h,hstart_gamma,delh_gamma,gamma_coeff,gamma_points);
     double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
-    double gammarec = 1.0 / gamma;
+    double gamma_inv = 1.0 / gamma;
     double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
     double dh_gamma = dgamma_orth * sin_alphasq;
 
@@ -1464,12 +1514,12 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 	    dzetaminbar*smooth + zetaminbar*dsmooth/(DELTA2-DELTA1);
     double dzetamax = -h / zetamax;
 
-    double zeta_rangerec = 1.0 / (zetamax - zetamin);
+    double zeta_range_inv = 1.0 / (zetamax - zetamin);
     double delzeta1 = fabs(zeta1) - zetamin;
     double delzeta2 = fabs(zeta2) - zetamin;
 
-    double psi1 = delzeta1 * zeta_rangerec;
-    double psi2 = delzeta2 * zeta_rangerec;
+    double psi1 = delzeta1 * zeta_range_inv;
+    double psi2 = delzeta2 * zeta_range_inv;
 
     double phi1 = spline(h,psi1,hstart_phi,psistart_phi,
 		  delh_phi,delpsi_phi,phi_coeff,phi_points);
@@ -1485,13 +1535,13 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 		  delh_phi,delpsi_phi,phi_coeff,phi_points);
 
     double dzeta_range = dzetamax - dzetamin;
-    double dh_psi1 = -zeta_rangerec * (dzetamin + dzeta_range*psi1);
-    double dh_psi2 = -zeta_rangerec * (dzetamin + dzeta_range*psi2);
+    double dh_psi1 = -zeta_range_inv * (dzetamin + dzeta_range*psi1);
+    double dh_psi2 = -zeta_range_inv * (dzetamin + dzeta_range*psi2);
     double dh_phi1 = dh_phibar1 + dpsi_phibar1*dh_psi1;
     double dh_phi2 = dh_phibar2 + dpsi_phibar2*dh_psi2;
 
-    double dzeta_phi1 = dpsi_phibar1 * zeta_rangerec;
-    double dzeta_phi2 = dpsi_phibar2 * zeta_rangerec;
+    double dzeta_phi1 = dpsi_phibar1 * zeta_range_inv;
+    double dzeta_phi2 = dpsi_phibar2 * zeta_range_inv;
 
     if (zeta1 < 0) {
       phi1 *= -1;
@@ -1504,23 +1554,23 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 
     double deldzeta_phi = dzeta_phi2 - dzeta_phi1;
     
-    double c2 = gamma * c1rec;
+    double c2 = gamma * c1_inv;
     double u = c2 * (phi2 - phi1);
-    double c3 = u * gammarec;
+    double c3 = u * gamma_inv;
 
     double dh_u = dh_gamma*c3 + c2*(dh_phi2 - dh_phi1);
     double dalpha_u = dalpha_gamma*c3 
-	    + c1rec*(domega*sin_alpha + omega*cos_alpha)
+	    + c1_inv*(domega*sin_alpha + omega*cos_alpha)
 	    * (gamma*(xi2*dzeta_phi2 - xi1*dzeta_phi1) - u);
 
-    double lrec = 1.0 / (xi2 - xi1);
-    double cx = h * gamma * sin_alphasqrec * deldzeta_phi;
+    double lr_inv = 1.0 / (xi2 - xi1);
+    double cx = h * gamma * sin_alphasq_inv * deldzeta_phi;
     double cy = gamma * cot_alpha * deldzeta_phi;
 
-    f[0][0] = lrec * (xi2*dh_u - cx) * funit;
-    f[1][0] = lrec * (-xi1*dh_u + cx) * funit;
-    f[0][1] = lrec * (dalpha_u - xi2*cy) * funit;
-    f[1][1] = lrec * (-dalpha_u + xi1*cy) * funit;
+    f[0][0] = lr_inv * (xi2*dh_u - cx) * funit;
+    f[1][0] = lr_inv * (-xi1*dh_u + cx) * funit;
+    f[0][1] = lr_inv * (dalpha_u - xi2*cy) * funit;
+    f[1][1] = lr_inv * (-dalpha_u + xi1*cy) * funit;
     f[0][2] = gamma * dzeta_phi1 * funit;
     f[1][2] = -gamma * dzeta_phi2 * funit;
     evdwl = u * e;
@@ -1531,13 +1581,14 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
    forces for semi-infinite CNT case
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
+void PairMesoCNT::fsemi(const double *param, double &evdwl, 
+                        double &fend, double **f)
 {
-  double h = param[0] * angrec;
+  double h = param[0] * ang_inv;
   double alpha = param[1];
-  double xi1 = param[2] * angrec;
-  double xi2 = param[3] * angrec;
-  double etae = param[4] * angrec;
+  double xi1 = param[2] * ang_inv;
+  double xi2 = param[3] * ang_inv;
+  double etae = param[6] * ang_inv;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha * sin_alpha;
@@ -1559,7 +1610,7 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   double dgamma_orth = dspline(h,hstart_gamma,delh_gamma,
 		gamma_coeff,gamma_points);
   double gamma = 1.0 + (gamma_orth - 1)*sin_alphasq;
-  double gammarec = 1.0 / gamma;
+  double gamma_inv = 1.0 / gamma;
   double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
   double dh_gamma = dgamma_orth * sin_alphasq;
 
@@ -1607,7 +1658,7 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   jxi1 *= c3;
   ubar *= c3;
 
-  double c4 = gammarec * ubar;
+  double c4 = gamma_inv * ubar;
   double dh_ubar = dh_gamma*c4 + h*jh;
   double dalpha_ubar = dalpha_gamma*c4
 	  + c1*(domega*sin_alpha + omega*cos_alpha)*jh2
@@ -1618,12 +1669,14 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   double cz1 = c1sq*jh1 + cos_alpha*jxi;
   double cz2 = c1sq*jh2 + cos_alpha*jxi1;
 
-  double lrec = 1.0 / (xi2 - xi1);
-  f[0][0] = lrec * (xi2*dh_ubar - cx) * funit;
-  f[1][0] = lrec * (cx - xi1*dh_ubar) * funit;
-  f[0][1] = lrec * (dalpha_ubar - xi2*cy) * funit;
-  f[1][1] = lrec * (xi1*cy - dalpha_ubar) * funit;
-  f[0][2] = lrec * (cz2 + ubar - xi2*cz1) * funit;
-  f[1][2] = lrec * (xi1*cz1 - cz2 - ubar) * funit;
+  double l_inv = 1.0 / (xi2 - xi1);
+  f[0][0] = l_inv * (xi2*dh_ubar - cx) * funit;
+  f[1][0] = l_inv * (cx - xi1*dh_ubar) * funit;
+  f[0][1] = l_inv * (dalpha_ubar - xi2*cy) * funit;
+  f[1][1] = l_inv * (xi1*cy - dalpha_ubar) * funit;
+  f[0][2] = l_inv * (cz2 + ubar - xi2*cz1) * funit;
+  f[1][2] = l_inv * (xi1*cz1 - cz2 - ubar) * funit;
   evdwl = ubar * e;
+
+  fend = theta * jxi * funit;
 }

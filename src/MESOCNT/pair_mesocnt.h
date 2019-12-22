@@ -29,7 +29,7 @@ class PairMesoCNT : public Pair {
   int **reduced_neighlist,**nchainlist,**endlist;
   int ***chainlist;
 
-  double ang,angrec,e,erec,funit;
+  double ang,ang_inv,e,e_inv,funit;
   double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
   double r_ang,rsq_ang,d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
   double sig,comega,ctheta;
@@ -37,9 +37,10 @@ class PairMesoCNT : public Pair {
 	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
   double delh_uinf,delh_gamma,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
   
+  double p1[3],p2[3],p[3],m[3];
+  double *param,*w;
   double **uinf_coeff,**gamma_coeff,****phi_coeff,****usemi_coeff;
-  double *p1,*p2,*param;
-  double **flocal,**basis;
+  double **flocal,**fglobal,**basis;
 
   char *uinf_file,*gamma_file,*phi_file,*usemi_file;
 
@@ -65,12 +66,13 @@ class PairMesoCNT : public Pair {
 		  double ****, int);
 
   void geometry(const double *, const double *, const double *,
-		  const double *, const double *, double *, double **);
+		  const double *, const double *, 
+      double *, double *, double *, double **);
   double weight(const double *, const double *, const double *,
 		  const double *);
 
   void finf(const double *, double &, double **);
-  void fsemi(const double *, double &, double **);
+  void fsemi(const double *, double &, double &, double **);
 
   // inlined functions for efficiency
 

@@ -259,9 +259,9 @@ void LJTIP4PLongT::copy_relations_data(int n, int* tag, int *map_array,
   ucl_copy(this->tag, host_tag_write, nall, false);
 
   host_tag_write.resize_ib(max_same);
-  this->atom_sametag.resize_ib(nall);
-  for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
-  ucl_copy(this->atom_sametag, host_tag_write, nall, false);
+  this->atom_sametag.resize_ib(max_same);
+  for(int i=0; i<max_same; ++i) host_tag_write[i] = sametag[i];
+  ucl_copy(this->atom_sametag, host_tag_write, max_same, false);
 
   host_tag_write.resize_ib(map_size);
   this->map_array.resize_ib(map_size);

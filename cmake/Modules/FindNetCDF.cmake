@@ -53,7 +53,7 @@ string(REGEX REPLACE "/include/?$" "/lib"
   NETCDF_LIB_HINT ${NETCDF_INCLUDE_DIR})
 
 find_library (NETCDF_LIBRARY NAMES netcdf
-  HINTS "${NETCDF_DIR}/lib" "${NETCDF_LIB_HINT}")
+  HINTS "${NETCDF_DIR}" "${NETCDF_LIB_HINT}" PATH_SUFFIXES lib lib64)
 mark_as_advanced (NETCDF_LIBRARY)
 
 set (NETCDF_C_LIBRARIES ${NETCDF_LIBRARY})

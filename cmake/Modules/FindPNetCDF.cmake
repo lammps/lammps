@@ -38,7 +38,7 @@ if ((NOT PNETCDF_LIBRARIES) OR (NOT PNETCDF_INCLUDES))
 
   if (PNETCDF_LIBRARIES)
     get_filename_component(PNETCDF_LIB_DIR ${PNETCDF_LIBRARIES} PATH)
-    string(REGEX REPLACE "/lib/?$" "/include"
+    string(REGEX REPLACE "/(lib|lib64)/?$" "/include"
       PNETCDF_H_HINT ${PNETCDF_LIB_DIR})
 
     find_path (PNETCDF_INCLUDES pnetcdf.h

@@ -52,19 +52,10 @@ AngleHarmonic::~AngleHarmonic()
 void AngleHarmonic::compute(int eflag, int vflag)
 {
   int i1,i2,i3,n,type;
-  int i,j;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double dtheta,tk;
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
-  double rsq1inv,rsq2inv,r1inv,r2inv,c2,c3,s2,s3,s3inv;
-  double v11[3][3],v13[3][3],v33[3][3];
-  double dyadic1[3][3],dyadic2[3][3],dyadic3[3][3];
-
-  double a11_11,a11_12,a11_21,a11_22,u11;
-  double a13_11,a13_12,a13_21,a13_22,u13;
-  double a33_11,a33_12,a33_21,a33_22,u33;
-  double b11,b13,b33;
 
   eangle = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -88,7 +79,6 @@ void AngleHarmonic::compute(int eflag, int vflag)
     delx1 = x[i1][0] - x[i2][0];
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
-    double del1[3] = {delx1,dely1,delz1};
 
     rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
     r1 = sqrt(rsq1);
@@ -98,7 +88,6 @@ void AngleHarmonic::compute(int eflag, int vflag)
     delx2 = x[i3][0] - x[i2][0];
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
-    double del2[3] = {delx2,dely2,delz2};
 
     rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
     r2 = sqrt(rsq2);

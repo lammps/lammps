@@ -48,7 +48,7 @@ BondHarmonic::~BondHarmonic()
 void BondHarmonic::compute(int eflag, int vflag)
 {
   int i1,i2,n,type;
-  double delx,dely,delz,ebond,fbond,gbond;
+  double delx,dely,delz,ebond,fbond;
   double rsq,r,dr,rk;
 
   ebond = 0.0;

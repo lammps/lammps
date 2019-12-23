@@ -100,7 +100,14 @@ PairMesoCNT::~PairMesoCNT()
 
 void PairMesoCNT::compute(int eflag, int vflag)
 {
+  int i,j,k,i1,i2,j1,j2;
+  int clen,numchain;
+  int *end,*nchain;
+  int **chain;
+  double fend,lp,scale,sumw,sumw_inv,wtemp;
   double *r1,*r2,*q1,*q2,*qe;
+  double ftotal[3],ftorque[3],torque[3],delr1[3],delr2[3];
+  double t1[3],t2[3],fend_vector[3];
 
   double evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,evflag);
@@ -111,37 +118,36 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int **bondlist = neighbor->bondlist;
   int *tag = atom->tag;
   int *mol = atom->molecule;
+  int nlocal = atom->nlocal;
   int nbondlist = neighbor->nbondlist;
-  
+
   // update bond neighbor list when necessary
   if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
   // iterate over all bonds
 
-  for (int i = 0; i < nbondlist; i++) {
-    int i1 = bondlist[i][0];
-    int i2 = bondlist[i][1];
-    i1 &= NEIGHMASK;
-    i2 &= NEIGHMASK;
+  for (i = 0; i < nbondlist; i++) {
+    i1 = bondlist[i][0];
+    i2 = bondlist[i][1];
 
     r1 = x[i1];
     r2 = x[i2];
 
-    int numchain = numchainlist[i];
-    int *end = endlist[i];
-    int *nchain = nchainlist[i];
-    int **chain = chainlist[i];
+    numchain = numchainlist[i];
+    end = endlist[i];
+    nchain = nchainlist[i];
+    chain = chainlist[i];
 
     // iterate over all neighbouring chains
 
-    for (int j = 0; j < numchain; j++) {
+    for (j = 0; j < numchain; j++) {
       if (nchain[j] < 2) continue;
       
       zero3(p1);
       zero3(p2);
       
-      double sumw = 0;
-      int clen = nchain[j];
+      sumw = 0;
+      clen = nchain[j];
 
       // assign end position
 
@@ -150,11 +156,15 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // compute substitute straight (semi-)infinite CNT
 
-      for (int k = 0; k < clen-1; k++) {
-        q1 = x[chain[j][k]];
-	      q2 = x[chain[j][k+1]];
+      for (k = 0; k < clen-1; k++) {
+        j1 = chain[j][k];
+        j2 = chain[j][k+1];
+        j1 &= NEIGHMASK;
+        j2 &= NEIGHMASK;
+        q1 = x[j1];
+	      q2 = x[j2];
 
-	      double wtemp = weight(r1,r2,q1,q2);
+	      wtemp = weight(r1,r2,q1,q2);
         w[k] = wtemp;
 
 	      if (wtemp == 0) {
@@ -170,13 +180,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       if (sumw == 0) continue;
 
-      double sumw_inv = 1.0 / sumw;
+      sumw_inv = 1.0 / sumw;
       scale3(sumw_inv,p1);
       scale3(sumw_inv,p2);
 
       // compute geometry and forces
-
-      double fend;
 
       // infinite CNT case
 
@@ -208,10 +216,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       matvec(basis[0],basis[1],basis[2],flocal[1],fglobal[1]);
 
       // forces acting on approximate chain
-
-      double ftotal[3],ftorque[3],torque[3],delr1[3],delr2[3];
-      double t1[3],t2[3];
-      
+ 
       add3(fglobal[0],fglobal[1],ftotal);
       scale3(-0.5,ftotal);
       
@@ -222,7 +227,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       add3(t1,t2,torque);
 
       cross3(torque,m,ftorque);
-      double lp = param[5] - param[4];
+      lp = param[5] - param[4];
       scale3(1.0/lp,ftorque);
 
       add3(ftotal,ftorque,fglobal[2]);
@@ -238,26 +243,34 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(0.5,fglobal[2]);
       scale3(0.5,fglobal[3]);
 
-      for (int k = 0; k < clen-1; k++) {
+      for (k = 0; k < clen-1; k++) {
         if (w[k] == 0.0) continue;
-        double scale = w[k] * sumw_inv;
-        scaleadd3(scale,fglobal[2],
-          f[chain[j][k]],f[chain[j][k]]);
-        scaleadd3(scale,fglobal[3],
-          f[chain[j][k+1]],f[chain[j][k+1]]);
+        j1 = chain[j][k];
+        j2 = chain[j][k+1];
+        j1 &= NEIGHMASK;
+        j2 &= NEIGHMASK;
+        scale = w[k] * sumw_inv;
+        if (j1 < nlocal) scaleadd3(scale,fglobal[2],f[j1],f[j1]);
+        if (j2 < nlocal) scaleadd3(scale,fglobal[3],f[j2],f[j2]);
       }
 
       // force on node at CNT end
       
       if (end[j] == 1) {
-        double fend_vector[3];
-        copy3(m,fend_vector);
-        scaleadd3(0.5*fend,fend_vector,f[chain[j][0]],f[chain[j][0]]);
+        j1 = chain[j][0];
+        j1 &= NEIGHMASK;
+        if (j1 < nlocal) {
+          copy3(m,fend_vector);
+          scaleadd3(0.5*fend,fend_vector,f[j1],f[j1]);
+        }
       }
       else if (end[j] == 2) {
-        double fend_vector[3];
-        copy3(m,fend_vector);
-        scaleadd3(0.5*fend,fend_vector,f[chain[j][clen-1]],f[chain[j][clen-1]]);
+        j1 = chain[j][clen-1];
+        j1 &= NEIGHMASK;
+        if (j1 < nlocal) {
+          copy3(m,fend_vector);
+          scaleadd3(0.5*fend,fend_vector,f[j1],f[j1]);
+        }
       }
       
       // compute energy
@@ -540,8 +553,6 @@ void PairMesoCNT::bond_neigh()
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
-    i1 &= NEIGHMASK;
-    i2 &= NEIGHMASK;
 
     int *reduced_neigh = reduced_neighlist[i];
     int *end = endlist[i];
@@ -613,7 +624,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
     int ind = neighlist2[j2];
     if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF)
 	    continue;
-     redlist[numred++] = ind;
+    redlist[numred++] = ind;
   }
 }
 
@@ -624,13 +635,20 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
 void PairMesoCNT::chain_split(int *redlist, int numred, 
 		int &numchain, int **chain, int *nchain, int *end)
 {
+  // empty neighbor list
+
+  if (numred == 0) {
+    numchain = 0;
+    return;
+  }
+
   int *tag = atom->tag;
   int *mol = atom->molecule;
   int clen = 0;
   int cid = 0;
 
   // split neighbor list into connected chains
-
+  
   for (int j = 0; j < numred-1; j++) {
     int j1 = redlist[j];
     int j2 = redlist[j+1];

@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_custom_adios.h"
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
@@ -32,6 +30,8 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include <cmath>
+#include <cstring>
 
 #include "adios2.h"
 
@@ -124,7 +124,7 @@ public:
     // (individual list of 'columns' string)
     std::vector<std::string> columnNames;
 };
-}
+} // namespace LAMMPS_NS
 
 /* ---------------------------------------------------------------------- */
 
@@ -415,7 +415,7 @@ void DumpCustomADIOS::init_style()
         "columns", internal->columnNames.data(), nColumns);
     internal->io.DefineAttribute<std::string>("columnstr", columns);
     internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
-    internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "atom");
+    internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "custom");
     internal->io.DefineAttribute<std::string>("LAMMPS/version",
                                               universe->version);
     internal->io.DefineAttribute<std::string>("LAMMPS/num_ver",

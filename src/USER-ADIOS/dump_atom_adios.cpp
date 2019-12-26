@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_atom_adios.h"
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
@@ -24,6 +23,7 @@
 #include "memory.h"
 #include "universe.h"
 #include "update.h"
+#include <cstring>
 
 #include "adios2.h"
 
@@ -50,7 +50,7 @@ public:
     // one ADIOS output variable we need to change every step
     adios2::Variable<double> varAtoms;
 };
-}
+} // namespace LAMMPS_NS
 
 /* ---------------------------------------------------------------------- */
 
@@ -248,14 +248,21 @@ void DumpAtomADIOS::init_style()
 
     // setup column string
 
-    if (scale_flag == 0 && image_flag == 0)
+    std::vector<std::string> columnNames;
+
+    if (scale_flag == 0 && image_flag == 0) {
         columns = (char *)"id type x y z";
-    else if (scale_flag == 0 && image_flag == 1)
+        columnNames = {"id", "type", "x", "y", "z"};
+    } else if (scale_flag == 0 && image_flag == 1) {
         columns = (char *)"id type x y z ix iy iz";
-    else if (scale_flag == 1 && image_flag == 0)
+        columnNames = {"id", "type", "x", "y", "z", "ix", "iy", "iz"};
+    } else if (scale_flag == 1 && image_flag == 0) {
         columns = (char *)"id type xs ys zs";
-    else if (scale_flag == 1 && image_flag == 1)
+        columnNames = {"id", "type", "xs", "ys", "zs"};
+    } else if (scale_flag == 1 && image_flag == 1) {
         columns = (char *)"id type xs ys zs ix iy iz";
+        columnNames = {"id", "type", "xs", "ys", "zs", "ix", "iy", "iz"};
+    }
 
     // setup function ptrs
 
@@ -316,7 +323,10 @@ void DumpAtomADIOS::init_style()
     int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
     internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
-    internal->io.DefineAttribute<std::string>("columns", columns);
+    size_t nColumns = static_cast<size_t>(size_one);
+    internal->io.DefineAttribute<std::string>("columns", columnNames.data(),
+                                              nColumns);
+    internal->io.DefineAttribute<std::string>("columnstr", columns);
     internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
     internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "atom");
     internal->io.DefineAttribute<std::string>("LAMMPS/version",
@@ -332,7 +342,6 @@ void DumpAtomADIOS::init_style()
     // atom table size is not known at the moment
     // it will be correctly defined at the moment of write
     size_t UnknownSizeYet = 1;
-    size_t nColumns = static_cast<size_t>(size_one);
     internal->varAtoms = internal->io.DefineVariable<double>(
         "atoms", {UnknownSizeYet, nColumns}, {UnknownSizeYet, 0},
         {UnknownSizeYet, nColumns});

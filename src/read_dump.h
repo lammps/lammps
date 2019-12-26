@@ -92,6 +92,8 @@ private:
   int npurge,nreplace,ntrim,nadd;     // stats on processed atoms
   int yindex,zindex;                  // field index for Y,Z coords
 
+  bool isReaderParallel;    // true when all processes participate in IO (e.g. ADIOS)
+
   class Reader **readers;   // class that reads a dump file
                             // nreader-length list of readers if proc reads
                             //   from multiple parallel dump files

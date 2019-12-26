@@ -255,6 +255,7 @@ void ReadDump::setup_reader(int narg, char **arg)
   else if (strcmp(readerstyle,#key) == 0) { \
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
+    isReaderParallel = (#key == "adios"); \
   }
 #include "style_reader.h"
 #undef READER_CLASS
@@ -262,6 +263,11 @@ void ReadDump::setup_reader(int narg, char **arg)
   // unrecognized style
 
   else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
+
+  if (isReaderParallel) {
+      // everyone is a reader
+      filereader = 1;
+  }
 
   // pass any arguments to readers
 
@@ -284,7 +290,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0) {
+  if (me == 0 || isReaderParallel) {
 
     // exit file loop when dump timestep >= nrequest
     // or files exhausted
@@ -317,10 +323,12 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     if (exact && ntimestep != nrequest) ntimestep = -1;
   }
 
-  // proc 0 broadcasts timestep and currentfile to all procs
+  if (!isReaderParallel) {
+    // proc 0 broadcasts timestep and currentfile to all procs
 
-  MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
-  MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+    MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
+    MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+  }
 
   // if ntimestep < 0:
   // all filereader procs close all their files and return
@@ -379,7 +387,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0) {
+  if (me == 0 || isReaderParallel) {
 
     // exit file loop when dump timestep matches all criteria
     // or files exhausted
@@ -425,10 +433,12 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     if (ntimestep > nlast) ntimestep = -1;
   }
 
-  // proc 0 broadcasts timestep and currentfile to all procs
+  if (!isReaderParallel) {
+    // proc 0 broadcasts timestep and currentfile to all procs
 
-  MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
-  MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+    MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
+    MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+  }
 
   // if ntimestep < 0:
   // all filereader procs close all their files and return
@@ -489,10 +499,12 @@ void ReadDump::header(int fieldinfo)
                                               xflag,yflag,zflag);
   }
 
-  MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
-  MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
-  MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
-  MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
+  if (!isReaderParallel) {
+    MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
+    MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
+    MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
+    MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
+  }
 
   // local copy of snapshot box parameters
   // used in xfield,yfield,zfield when converting dump atom to absolute coords
@@ -715,7 +727,7 @@ void ReadDump::read_atoms()
   // each reading proc reads one file and splits data across cluster
   // cluster can be all procs or a subset
 
-  if (!multiproc || multiproc_nfile < nprocs) {
+  if (!isReaderParallel && (!multiproc || multiproc_nfile < nprocs)) {
     nsnap = nsnapatoms[0];
 
     if (filereader) {
@@ -787,7 +799,7 @@ void ReadDump::read_atoms()
   // every proc is a filereader, reads one or more files
   // each proc keeps all data it reads, no communication required
 
-  } else if (multiproc_nfile >= nprocs) {
+  } else if (multiproc_nfile >= nprocs || isReaderParallel) {
     bigint sum = 0;
     for (int i = 0; i < nreader; i++)
       sum += nsnapatoms[i];
@@ -805,7 +817,11 @@ void ReadDump::read_atoms()
       nsnap = nsnapatoms[i];
       ntotal = 0;
       while (ntotal < nsnap) {
-        nread = MIN(CHUNK,nsnap-ntotal);
+        if (isReaderParallel) {
+            nread = nsnap-ntotal; // read the whole thing at once
+        } else {
+          nread = MIN(CHUNK,nsnap-ntotal);
+        }
         readers[i]->read_atoms(nread,nfield,&fields[nnew+ntotal]);
         ntotal += nread;
       }

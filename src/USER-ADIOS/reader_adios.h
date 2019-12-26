@@ -15,23 +15,28 @@
 
 #ifdef READER_CLASS
 
-ReaderStyle(molfile, ReaderMolfile)
+ReaderStyle(adios, ReaderADIOS)
 
 #else
 
-#ifndef LMP_READER_MOLFILE_H
-#define LMP_READER_MOLFILE_H
+#ifndef LMP_READER_ADIOS_H
+#define LMP_READER_ADIOS_H
 
 #include "reader.h"
 
+#include <map>
+#include <string>
+#include <vector>
+
 namespace LAMMPS_NS
 {
+class ReadADIOSInternal;
 
-class ReaderMolfile : public Reader
+class ReaderADIOS : public Reader
 {
 public:
-    ReaderMolfile(class LAMMPS *);
-    virtual ~ReaderMolfile();
+    ReaderADIOS(class LAMMPS *);
+    virtual ~ReaderADIOS();
 
     virtual void settings(int, char **);
 
@@ -45,20 +50,20 @@ public:
     virtual void close_file();
 
 private:
-    int *fieldindex; // mapping of input fields to dump
-
-    class MolfileInterface *mf;
-    float *coords; // pointer to temporary coordinate storage
-    float *vels;   // pointer to temporary velocity storage
-    int *types;    // pointer to temporary type info storage
-    float cell[6]; // box info (stored as, a, b, c, alpha, beta, gamma)
-    int natoms;    // current number of atoms
-    int needvels;  // 1 if velocities are required, otherwise 0
+    int *fieldindex;      // mapping of input fields to dump
+    uint64_t nAtomsTotal; // current number of atoms in entire dump step
+    uint64_t nAtoms;      // current number of atoms for this process
+                          // (Sum(nAtoms)=nAtomsTotal)
+    uint64_t atomOffset;  // starting atom position for this process to read
 
     bigint nstep; // current (time) step number
     bigint nid;   // current atom id.
 
     int me;
+    ReadADIOSInternal *internal;
+
+    int find_label(const std::string &label,
+                   const std::map<std::string, int> &labels);
 };
 
 } // namespace LAMMPS_NS

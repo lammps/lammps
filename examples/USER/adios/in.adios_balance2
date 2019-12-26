@@ -37,12 +37,13 @@ fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
 comm_style      tiled
 fix             10 all balance 50 0.9 rcb
 
+#read_dump       balance_custom.dump 200 x y 
+read_dump       balance_atom.bp 200 x y format adios
 compute         1 all property/atom proc
 variable        p atom c_1%10
-dump            5 all atom 50 balance_atom.dump 
-dump            2 all custom 50 balance_custom.dump id type x y z vx vy vz ix iy iz fx fy fz
-dump            3 all custom/adios 50 balance_custom.bp id type x y z vx vy vz ix iy iz fx fy fz
-dump            4 all atom/adios 50 balance_atom.bp 
+dump            2 all custom 50 balance2.dump id v_p x y z
+dump            3 all custom/adios 50 balance_custom2.bp id v_p x y z
+dump            4 all atom/adios 50 balance_atom2.bp 
 
 #dump            3 all image 50 image.*.jpg v_p type &
 #                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02
@@ -55,4 +56,5 @@ thermo_style    custom step temp epair press f_10[3] f_10
 thermo          100                
 
 run		200
-write_dump      all atom/adios balance_atom_final.bp 
+write_dump      all atom/adios balance_atom_final2.bp 
+write_dump      all atom balance_atom_final2.dump

@@ -146,8 +146,3 @@ comment indicator in (2) or substituted for as a variable in (3).
    triple quotes can be nested in the usual manner.  See the doc pages
    for those commands for examples.  Only one of level of nesting is
    allowed, but that should be sufficient for most use cases.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

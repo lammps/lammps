@@ -85,6 +85,9 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   // USER-DPD package
 
   np = NULL;
+
+  requestor = NULL;
+  requestor_type = NeighList::NONE;
 }
 
 /* ---------------------------------------------------------------------- */

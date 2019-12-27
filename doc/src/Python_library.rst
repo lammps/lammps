@@ -9,7 +9,7 @@ below assumes you have first imported the "lammps" module in your
 Python script, as follows:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from lammps import lammps
 
@@ -23,7 +23,7 @@ The python/examples directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
                             # 4 optional args are allowed: name, cmdargs, ptr, comm
@@ -100,7 +100,7 @@ can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 The lines
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from lammps import lammps
    lmp = lammps()
@@ -117,7 +117,7 @@ prompt.
 If the ptr argument is set like this:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    lmp = lammps(ptr=lmpptr)
 
@@ -134,7 +134,7 @@ Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from lammps import lammps
    lmp1 = lammps()
@@ -230,7 +230,7 @@ ctypes vector of ints or doubles, allocated and initialized something
 like this:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from ctypes import \*
    natoms = lmp.get_natoms()
@@ -265,6 +265,15 @@ following steps:
   Python script.
 
 
+----------
+
+.. autoclass:: lammps.lammps
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: lammps.NeighList
+   :members:
+   :no-undoc-members:
 
 .. _lws: http://lammps.sandia.gov
 .. _ld: Manual.html

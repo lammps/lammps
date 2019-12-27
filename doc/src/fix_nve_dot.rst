@@ -26,11 +26,11 @@ Examples
 Description
 """""""""""
 
-Apply a rigid-body integrator as described in :ref:`(Davidchack) <Davidchack1>`
+Apply a rigid-body integrator as described in :ref:`(Davidchack) <Davidchack4>`
 to a group of atoms, but without Langevin dynamics.
 This command performs Molecular dynamics (MD)
 via a velocity-Verlet algorithm and an evolution operator that rotates
-the quaternion degrees of freedom, similar to the scheme outlined in :ref:`(Miller) <Miller1>`.
+the quaternion degrees of freedom, similar to the scheme outlined in :ref:`(Miller) <Miller4>`.
 
 This command is the equivalent of the :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 without damping and noise and can be used to determine the stability range
@@ -40,7 +40,7 @@ The command is equivalent to the :doc:`fix nve <fix_nve>`.
 The particles are always considered to have a finite size.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex1/.
-Further details of the implementation and stability of the integrator are contained in :ref:`(Henrich) <Henrich3>`.
+Further details of the implementation and stability of the integrator are contained in :ref:`(Henrich) <Henrich4>`.
 The preprint version of the article can be found `here <PDF/USER-CGDNA.pdf>`_.
 
 
@@ -66,19 +66,15 @@ Related commands
 ----------
 
 
-.. _Davidchack1:
-
-
-
-.. _Miller1:
+.. _Davidchack4:
 
 **(Davidchack)** R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
 
-
-.. _Henrich3:
+.. _Miller4:
 
 **(Miller)** T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
 
+.. _Henrich4:
 
 **(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
 

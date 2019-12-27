@@ -84,8 +84,3 @@ command.  Energy minimization (molecular statics) is performed using
 the :doc:`minimize <minimize>` command.  A parallel tempering
 (replica-exchange) simulation can be run using the
 :doc:`temper <temper>` command.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

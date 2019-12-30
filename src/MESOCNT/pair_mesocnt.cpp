@@ -87,6 +87,10 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(chainlist);
 
     memory->destroy(w);
+    memory->destroy(wnode);
+    memory->destroy(dq_w);
+    memory->destroy(q1_dq_w);
+    memory->destroy(q2_dq_w);
 
     memory->destroy(param);
 
@@ -104,10 +108,18 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int clen,numchain;
   int *end,*nchain;
   int **chain;
-  double fend,lp,scale,sumw,sumw_inv,wtemp;
+  double fend,lp,scale,sumw,sumw_inv;
   double *r1,*r2,*q1,*q2,*qe;
   double ftotal[3],ftorque[3],torque[3],delr1[3],delr2[3];
   double t1[3],t2[3],fend_vector[3];
+  double dr1_sumw[3],dr2_sumw[3];
+  double dr1_w[3],dr2_w[3],dq1_w[3],dq2_w[3];
+  double fgrad_r1_p1[3],fgrad_r1_p2[3],fgrad_r2_p1[3],fgrad_r2_p2[3];
+  double fgrad_q_p1[3],fgrad_q_p2[3];
+  double q1_dr1_w[3][3],q1_dr2_w[3][3],q2_dr1_w[3][3],q2_dr2_w[3][3];
+  double dr1_p1[3][3],dr1_p2[3][3],dr2_p1[3][3],dr2_p2[3][3];
+  double dq_p1[3][3],dq_p2[3][3];
+  double temp[3][3];
 
   double evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,evflag);
@@ -141,13 +153,24 @@ void PairMesoCNT::compute(int eflag, int vflag)
     // iterate over all neighbouring chains
 
     for (j = 0; j < numchain; j++) {
-      if (nchain[j] < 2) continue;
-      
+      clen = nchain[j];
+      if (clen < 2) continue;
+
       zero3(p1);
       zero3(p2);
-      
-      sumw = 0;
-      clen = nchain[j];
+      zero3(dr1_sumw);
+      zero3(dr2_sumw);
+      zeromat3(q1_dr1_w);
+      zeromat3(q2_dr1_w);
+      zeromat3(q1_dr2_w);
+      zeromat3(q2_dr2_w);
+      for (k = 0; k < clen; k++) {
+        wnode[k] = 0.0;
+        zero3(dq_w[k]);
+        zeromat3(q1_dq_w[k]);
+        zeromat3(q2_dq_w[k]);
+      }
+      sumw = 0.0;
 
       // assign end position
 
@@ -164,21 +187,48 @@ void PairMesoCNT::compute(int eflag, int vflag)
         q1 = x[j1];
 	      q2 = x[j2];
 
-	      wtemp = weight(r1,r2,q1,q2);
-        w[k] = wtemp;
+	      weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
-	      if (wtemp == 0) {
+	      if (w[k] == 0.0) {
           if (end[j] == 1 && k == 0) end[j] = 0;
 	        else if (end[j] == 2 && k == clen-2) end[j] = 0;
 	        continue;
 	      }
-	      sumw += wtemp;
+	      sumw += w[k];
+        wnode[k] += w[k];
+        wnode[k+1] += w[k];
 
-	      scaleadd3(wtemp,q1,p1,p1);
-	      scaleadd3(wtemp,q2,p2,p2);
+	      scaleadd3(w[k],q1,p1,p1);
+	      scaleadd3(w[k],q2,p2,p2);
+
+        // weight gradient terms
+        
+        add3(dr1_w,dr1_sumw,dr1_sumw);
+        add3(dr2_w,dr2_sumw,dr2_sumw);
+        
+        outer3(q1,dr1_w,temp);
+        plus3(temp,q1_dr1_w,q1_dr1_w);
+        outer3(q2,dr1_w,temp);
+        plus3(temp,q2_dr1_w,q2_dr1_w);
+        outer3(q1,dr2_w,temp);
+        plus3(temp,q1_dr2_w,q1_dr2_w);
+        outer3(q2,dr2_w,temp);
+        plus3(temp,q2_dr2_w,q2_dr2_w);
+
+        add3(dq1_w,dq_w[k],dq_w[k]);
+        add3(dq2_w,dq_w[k+1],dq_w[k+1]);
+
+        outer3(q1,dq1_w,temp);
+        plus3(temp,q1_dq_w[k],q1_dq_w[k]);
+        outer3(q1,dq2_w,temp);
+        plus3(temp,q1_dq_w[k+1],q1_dq_w[k+1]);
+        outer3(q2,dq1_w,temp);
+        plus3(temp,q2_dq_w[k],q2_dq_w[k]);
+        outer3(q2,dq2_w,temp);
+        plus3(temp,q2_dq_w[k+1],q2_dq_w[k+1]);
       }
 
-      if (sumw == 0) continue;
+      if (sumw == 0.0) continue;
 
       sumw_inv = 1.0 / sumw;
       scale3(sumw_inv,p1);
@@ -233,15 +283,35 @@ void PairMesoCNT::compute(int eflag, int vflag)
       add3(ftotal,ftorque,fglobal[2]);
       sub3(ftotal,ftorque,fglobal[3]);
 
-      // add forces to nodes
+      scale3(0.5,fglobal[2]);
+      scale3(0.5,fglobal[3]);
+
+      // weight gradient terms acting on current segment
+
+      outer3(p1,dr1_sumw,temp);
+      minus3(q1_dr1_w,temp,dr1_p1);
+      outer3(p2,dr1_sumw,temp);
+      minus3(q2_dr1_w,temp,dr1_p2);
+      outer3(p1,dr2_sumw,temp);
+      minus3(q1_dr2_w,temp,dr2_p1);
+      outer3(p2,dr2_sumw,temp);
+      minus3(q2_dr2_w,temp,dr2_p2);
+      
+      transpose_matvec(dr1_p1,fglobal[2],fgrad_r1_p1);
+      transpose_matvec(dr1_p2,fglobal[3],fgrad_r1_p2);
+      transpose_matvec(dr2_p1,fglobal[2],fgrad_r2_p1);
+      transpose_matvec(dr2_p2,fglobal[3],fgrad_r2_p2);
+
+      // add forces to nodes in current segment
       
       scaleadd3(0.5,fglobal[0],f[i1],f[i1]);
       scaleadd3(0.5,fglobal[1],f[i2],f[i2]);
+      scaleadd3(sumw_inv,fgrad_r1_p1,f[i1],f[i1]);
+      scaleadd3(sumw_inv,fgrad_r1_p2,f[i1],f[i1]);
+      scaleadd3(sumw_inv,fgrad_r2_p1,f[i2],f[i2]);
+      scaleadd3(sumw_inv,fgrad_r2_p2,f[i2],f[i2]);
 
-      // nodes in approximate chain
-
-      scale3(0.5,fglobal[2]);
-      scale3(0.5,fglobal[3]);
+      // add forces in approximate chain
 
       for (k = 0; k < clen-1; k++) {
         if (w[k] == 0.0) continue;
@@ -254,6 +324,26 @@ void PairMesoCNT::compute(int eflag, int vflag)
         if (j2 < nlocal) scaleadd3(scale,fglobal[3],f[j2],f[j2]);
       }
 
+      // weight gradient terms acting on approximate chain
+      // iterate over nodes instead of segments
+      
+      for (k = 0; k < clen; k++) {
+        if (wnode[k] == 0.0) continue;
+        j1 = chain[j][k];
+        j1 &= NEIGHMASK;
+        if (j1 >= nlocal) continue;
+        outer3(p1,dq_w[k],temp);
+        minus3(q1_dq_w[k],temp,dq_p1);
+        outer3(p2,dq_w[k],temp);
+        minus3(q2_dq_w[k],temp,dq_p2);
+
+        transpose_matvec(dq_p1,fglobal[2],fgrad_q_p1);
+        transpose_matvec(dq_p2,fglobal[3],fgrad_q_p2);
+        
+        scaleadd3(sumw_inv,fgrad_q_p1,f[j1],f[j1]);
+        scaleadd3(sumw_inv,fgrad_q_p2,f[j1],f[j1]);
+      }
+      
       // force on node at CNT end
       
       if (end[j] == 1) {
@@ -336,6 +426,10 @@ void PairMesoCNT::allocate()
 		reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
 
   memory->create(w,reduced_neigh_size,"pair:w");
+  memory->create(wnode,reduced_neigh_size,"pair:wnode");
+  memory->create(dq_w,reduced_neigh_size,3,"pair:dq_w");
+  memory->create(q1_dq_w,reduced_neigh_size,3,3,"pair:q1_dq_w");
+  memory->create(q2_dq_w,reduced_neigh_size,3,3,"pair:q2_dq_w");
 
   memory->create(param,7,"pair:param");
 
@@ -548,6 +642,10 @@ void PairMesoCNT::bond_neigh()
 		  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
 
     memory->grow(w,reduced_neigh_size,"pair:w");
+    memory->grow(wnode,reduced_neigh_size,"pair:wnode");
+    memory->grow(dq_w,reduced_neigh_size,3,"pair:dq_w");
+    memory->grow(q1_dq_w,reduced_neigh_size,3,3,"pair:q1_dq_w");
+    memory->grow(q2_dq_w,reduced_neigh_size,3,3,"pair:q2_dq_w");
   }
 
   for (int i = 0; i < nbondlist; i++) {
@@ -1441,22 +1539,56 @@ void PairMesoCNT::geometry(const double *r1, const double *r2,
    weight for substitute CNT chain
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::weight(const double *r1, const double *r2,
-		const double *p1, const double *p2)
+void PairMesoCNT::weight(const double *r1, const double *r2,
+		                     const double *p1, const double *p2, double &w, 
+                         double *dr1_w, double *dr2_w, 
+                         double *dp1_w, double *dp2_w)
 {
-  double r[3],p[3],delr[3];
+  double dr,dp,rhoc,rhomin,rho,frac,arg,factor;
+  double r[3],p[3];
+  double dr_rho[3],dr_rhoc[3],dp_rhoc[3];
 
   add3(r1,r2,r);
   add3(p1,p2,p);
   scale3(0.5,r);
   scale3(0.5,p);
 
-  double temp = sqrt(0.25*distsq3(r1,r2) + rsq);
-  double rhoc = temp + sqrt(0.25*distsq3(p1,p2) + rsq) + rc;
-  double rhomin = 0.72 * rhoc;
-  double rho = sqrt(distsq3(r,p));
+  dr = sqrt(0.25*distsq3(r1,r2) + rsq);
+  dp = sqrt(0.25*distsq3(p1,p2) + rsq);
+  rhoc = dr + dp + rc;
+  rhomin = 2.0e-9;
+  rho = sqrt(distsq3(r,p));
 
-  return s((rho-rhomin)/(rhoc-rhomin));
+  frac = 1.0 / (rhoc - rhomin);
+  arg = frac * (rho - rhomin);
+  w = s(arg);
+
+  if (w == 0.0 || w == 1.0) {
+    zero3(dr1_w);
+    zero3(dr2_w);
+    zero3(dp1_w);
+    zero3(dp2_w);
+  }
+  else {
+    factor = ds(arg) * frac;
+
+    sub3(r,p,dr_rho);
+    sub3(r1,r2,dr_rhoc);
+    sub3(p1,p2,dp_rhoc);
+    scale3(0.5/rho,dr_rho);
+    scale3(0.25/dr,dr_rhoc);
+    scale3(0.25/dp,dp_rhoc);
+
+    scaleadd3(-arg,dr_rhoc,dr_rho,dr1_w);
+    scaleadd3(arg,dr_rhoc,dr_rho,dr2_w);
+    negate3(dr_rho);
+    scaleadd3(-arg,dp_rhoc,dr_rho,dp1_w);
+    scaleadd3(arg,dp_rhoc,dr_rho,dp2_w);
+    scale3(factor,dr1_w);
+    scale3(factor,dr2_w);
+    scale3(factor,dp1_w);
+    scale3(factor,dp2_w);
+  }
 }
 
 /* ----------------------------------------------------------------------

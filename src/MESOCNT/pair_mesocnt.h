@@ -38,7 +38,9 @@ class PairMesoCNT : public Pair {
   double delh_uinf,delh_gamma,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
   
   double p1[3],p2[3],p[3],m[3];
-  double *param,*w;
+  double *param,*w,*wnode;
+  double **dq_w;
+  double ***q1_dq_w,***q2_dq_w;
   double **uinf_coeff,**gamma_coeff,****phi_coeff,****usemi_coeff;
   double **flocal,**fglobal,**basis;
 
@@ -51,7 +53,7 @@ class PairMesoCNT : public Pair {
   void sort(int *, int);
   void read_file(const char *, double *, double &, double &, int);
   void read_file(const char *, double **, double &, double &, 
-		  double &, double &, int);
+		             double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);
@@ -59,26 +61,27 @@ class PairMesoCNT : public Pair {
   double spline(double, double, double, double **, int);
   double dspline(double, double, double, double **, int);
   double spline(double, double, double, double, double, double, 
-		  double ****, int);
+		            double ****, int);
   double dxspline(double, double, double, double, double, double, 
-		  double ****, int);
+		              double ****, int);
   double dyspline(double, double, double, double, double, double, 
-		  double ****, int);
+		              double ****, int);
 
   void geometry(const double *, const double *, const double *,
-		  const double *, const double *, 
-      double *, double *, double *, double **);
-  double weight(const double *, const double *, const double *,
-		  const double *);
+		            const double *, const double *, 
+                double *, double *, double *, double **);
+  void weight(const double *, const double *, const double *,
+		          const double *, double &, double *, double *, 
+              double *, double *);
 
   void finf(const double *, double &, double **);
   void fsemi(const double *, double &, double &, double **);
 
   // inlined functions for efficiency
 
-  inline int heaviside(double x) {
-    if (x > 0) return 1;
-    else return 0;
+  inline double heaviside(double x) {
+    if (x > 0) return 1.0;
+    else return 0.0;
   }
 
   inline double s(double x) {

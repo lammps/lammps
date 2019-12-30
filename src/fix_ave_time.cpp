@@ -1028,7 +1028,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   offlist = NULL;
   overwrite = 0;
   format_user = NULL;
-  format = (char *) " %f";
+  format = (char *) " %g";
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;

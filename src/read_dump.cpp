@@ -74,6 +74,8 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   readers = NULL;
   nsnapatoms = NULL;
   clustercomm = MPI_COMM_NULL;
+  filereader = 0;
+  parallel = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,7 +257,6 @@ void ReadDump::setup_reader(int narg, char **arg)
   else if (strcmp(readerstyle,#key) == 0) { \
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
-    isReaderParallel = (#key == "adios"); \
   }
 #include "style_reader.h"
 #undef READER_CLASS
@@ -264,8 +265,9 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
 
-  if (isReaderParallel) {
-      // everyone is a reader
+  if (utils::strmatch(readerstyle,"^adios")) {
+      // everyone is a reader with adios
+      parallel = 1;
       filereader = 1;
   }
 
@@ -290,7 +292,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0 || isReaderParallel) {
+  if (me == 0 || parallel) {
 
     // exit file loop when dump timestep >= nrequest
     // or files exhausted
@@ -323,7 +325,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     if (exact && ntimestep != nrequest) ntimestep = -1;
   }
 
-  if (!isReaderParallel) {
+  if (!parallel) {
     // proc 0 broadcasts timestep and currentfile to all procs
 
     MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -387,7 +389,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0 || isReaderParallel) {
+  if (me == 0 || parallel) {
 
     // exit file loop when dump timestep matches all criteria
     // or files exhausted
@@ -433,7 +435,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     if (ntimestep > nlast) ntimestep = -1;
   }
 
-  if (!isReaderParallel) {
+  if (!parallel) {
     // proc 0 broadcasts timestep and currentfile to all procs
 
     MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -499,7 +501,7 @@ void ReadDump::header(int fieldinfo)
                                               xflag,yflag,zflag);
   }
 
-  if (!isReaderParallel) {
+  if (!parallel) {
     MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
     MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
     MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
@@ -727,7 +729,7 @@ void ReadDump::read_atoms()
   // each reading proc reads one file and splits data across cluster
   // cluster can be all procs or a subset
 
-  if (!isReaderParallel && (!multiproc || multiproc_nfile < nprocs)) {
+  if (!parallel && (!multiproc || multiproc_nfile < nprocs)) {
     nsnap = nsnapatoms[0];
 
     if (filereader) {
@@ -799,7 +801,7 @@ void ReadDump::read_atoms()
   // every proc is a filereader, reads one or more files
   // each proc keeps all data it reads, no communication required
 
-  } else if (multiproc_nfile >= nprocs || isReaderParallel) {
+  } else if (multiproc_nfile >= nprocs || parallel) {
     bigint sum = 0;
     for (int i = 0; i < nreader; i++)
       sum += nsnapatoms[i];
@@ -817,8 +819,9 @@ void ReadDump::read_atoms()
       nsnap = nsnapatoms[i];
       ntotal = 0;
       while (ntotal < nsnap) {
-        if (isReaderParallel) {
-            nread = nsnap-ntotal; // read the whole thing at once
+        if (parallel) {
+          // read the whole thing at once
+          nread = nsnap-ntotal;
         } else {
           nread = MIN(CHUNK,nsnap-ntotal);
         }

@@ -58,6 +58,7 @@ private:
   int firstfile;           // index of 1st dump file my cluster reads
                            //   (0 to multiproc_nfile-1)
   int filereader;          // 1 if this proc reads from a dump file(s)
+  int parallel;            // 1 if parallel reading (e.g. via ADIOS2)
 
   int dimension;           // same as in Domain
   int triclinic;
@@ -91,8 +92,6 @@ private:
 
   int npurge,nreplace,ntrim,nadd;     // stats on processed atoms
   int yindex,zindex;                  // field index for Y,Z coords
-
-  bool isReaderParallel;    // true when all processes participate in IO (e.g. ADIOS)
 
   class Reader **readers;   // class that reads a dump file
                             // nreader-length list of readers if proc reads

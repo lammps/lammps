@@ -63,6 +63,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _three_body_neighbor = 0;
   _pair_intel_count = 0;
   _hybrid_nonpair = 0;
+  _print_pkg_info = 1;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -290,6 +291,7 @@ int FixIntel::setmask()
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   #endif
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -475,7 +477,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
   set_offload_affinity();
   #endif
 
-  if (comm->me == 0) {
+  if (_print_pkg_info && comm->me == 0) {
     if (screen) {
       fprintf(screen,
               "----------------------------------------------------------\n");
@@ -498,6 +500,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
               "----------------------------------------------------------\n");
     }
   }
+  _print_pkg_info = 0;
 }
 
 /* ---------------------------------------------------------------------- */

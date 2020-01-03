@@ -54,6 +54,8 @@ class FixIntel : public Fix {
   inline void min_pre_reverse(int eflag = 0, int vflag = 0)
     { pre_reverse(eflag, vflag); }
 
+  void post_run() { _print_pkg_info = 1; }
+
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
 
@@ -101,7 +103,7 @@ class FixIntel : public Fix {
   IntelBuffers<double,double> *_double_buffers;
 
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
-  int _pair_intel_count, _pair_hybrid_flag;
+  int _pair_intel_count, _pair_hybrid_flag, _print_pkg_info;
   // These should be removed in subsequent update w/ simpler hybrid arch
   int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
 

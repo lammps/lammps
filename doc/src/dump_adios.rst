@@ -1,6 +1,7 @@
-.. index:: dump atoms/adios 
+.. index:: dump atom/adios 
+.. index:: dump custom/adios 
 
-dump atoms/adios  command
+dump atom/adios  command
 =========================
 
 dump custom/adios command
@@ -12,7 +13,7 @@ Syntax
 
 .. parsed-literal::
 
-   dump ID group-ID atoms/adios N file.bp
+   dump ID group-ID atom/adios N file.bp
 
    dump ID group-ID custom/adios N file.bp args
 

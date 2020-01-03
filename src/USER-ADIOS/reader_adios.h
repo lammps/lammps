@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 
-   Contributed by Axel Kohlmeyer (Temple U)
+   Contributed by Norbert Podhorszki (Oak Ridge National Laboratory)
 ------------------------------------------------------------------------- */
 
 #ifdef READER_CLASS

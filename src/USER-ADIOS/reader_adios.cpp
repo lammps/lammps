@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author: Norbert Podhorszki (Oak Ridge National Laboratory)
 ------------------------------------------------------------------------- */
 
 #include "reader_adios.h"

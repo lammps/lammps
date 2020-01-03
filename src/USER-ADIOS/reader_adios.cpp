@@ -21,6 +21,7 @@
 #include "memory.h"
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 
 #include "adios2.h"
 #include "math_const.h"

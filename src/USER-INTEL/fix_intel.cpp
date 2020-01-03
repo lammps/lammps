@@ -529,6 +529,7 @@ void FixIntel::kspace_init_check()
     intel_pair = 1;
   else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
+    pair_init_check();     // need to run this here explicitly, since pair->init() was not run yet.
     if (_pair_intel_count) intel_pair = 1;
   }
 

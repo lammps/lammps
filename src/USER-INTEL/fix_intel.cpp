@@ -312,12 +312,7 @@ void FixIntel::init()
   #endif
 
   const int nstyles = _pair_intel_count;
-  if (force->pair_match("hybrid", 1) != NULL) {
-    _pair_hybrid_flag = 1;
-    if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
-      error->all(FLERR,
-                 "Intel package requires fdotr virial with newton on.");
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+  if (force->pair_match("^hybrid", 0) != NULL) {
     _pair_hybrid_flag = 1;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
@@ -513,12 +508,9 @@ void FixIntel::bond_init_check()
       "USER-INTEL package requires same setting for newton bond and non-bond.");
 
   int intel_pair = 0;
-  if (force->pair_match("/intel", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != NULL)
     intel_pair = 1;
-  else if (force->pair_match("hybrid", 1) != NULL) {
-    _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+  else if (force->pair_match("^hybrid", 1) != NULL) {
     _hybrid_nonpair = 1;
     if (_pair_intel_count) intel_pair = 1;
   }
@@ -533,12 +525,9 @@ void FixIntel::bond_init_check()
 void FixIntel::kspace_init_check()
 {
   int intel_pair = 0;
-  if (force->pair_match("/intel", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != NULL)
     intel_pair = 1;
-  else if (force->pair_match("hybrid", 1) != NULL) {
-    _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
     if (_pair_intel_count) intel_pair = 1;
   }

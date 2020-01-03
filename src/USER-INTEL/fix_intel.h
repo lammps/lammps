@@ -85,13 +85,12 @@ class FixIntel : public Fix {
   }
   inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
-    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1)
+    if (force->kspace_match("^pppm/.*intel$", 0) && update->whichflag == 1)
       return _lrt;
     else return 0;
   }
   inline int pppm_table() {
-    if (force->kspace_match("pppm/intel", 0) ||
-        force->kspace_match("pppm/disp/intel",0))
+    if (force->kspace_match("^pppm/.*intel$", 0))
       return INTEL_P3M_TABLE;
     else return 0;
   }

@@ -104,7 +104,7 @@ PairMesoCNT::~PairMesoCNT()
 
 void PairMesoCNT::compute(int eflag, int vflag)
 {
-  int i,j,k,i1,i2,j1,j2;
+  int i,j,k,i1,i2,j1,j2,end_index;
   int clen,numchain;
   int *end,*nchain;
   int **chain;
@@ -174,8 +174,14 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // assign end position
 
-      if (end[j] == 1) qe = x[chain[j][0]];
-      else if (end[j] == 2) qe = x[chain[j][clen-1]];
+      if (end[j] == 1) {
+        end_index = chain[j][0];
+        qe = x[end_index];
+      }
+      else if (end[j] == 2) {
+        end_index = chain[j][clen-1];
+        qe = x[end_index];
+      }
 
       // compute substitute straight (semi-)infinite CNT
 
@@ -255,7 +261,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // semi-infinite CNT case with end at end of chain
 
       else {
-        geometry(r1,r2,p1,p2,qe,p,m,param,basis);
+        geometry(r1,r2,p2,p1,qe,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
 	      fsemi(param,evdwl,fend,flocal);
       }
@@ -272,12 +278,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
       
       sub3(r1,p,delr1);
       sub3(r2,p,delr2);
-      cross3(delr1,f[0],t1);
-      cross3(delr2,f[1],t2);
+      cross3(delr1,fglobal[0],t1);
+      cross3(delr2,fglobal[1],t2);
       add3(t1,t2,torque);
 
       cross3(torque,m,ftorque);
       lp = param[5] - param[4];
+      if (lp < 0.0) printf("lp < 0\n");
       scale3(1.0/lp,ftorque);
 
       add3(ftotal,ftorque,fglobal[2]);
@@ -346,23 +353,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
       
       // force on node at CNT end
       
-      if (end[j] == 1) {
-        j1 = chain[j][0];
-        j1 &= NEIGHMASK;
-        if (j1 < nlocal) {
-          copy3(m,fend_vector);
-          scaleadd3(0.5*fend,fend_vector,f[j1],f[j1]);
-        }
+      if (end[j] != 0) {
+        copy3(m,fend_vector);
+        scaleadd3(0.5*fend,fend_vector,f[end_index],f[end_index]);
       }
-      else if (end[j] == 2) {
-        j1 = chain[j][clen-1];
-        j1 &= NEIGHMASK;
-        if (j1 < nlocal) {
-          copy3(m,fend_vector);
-          scaleadd3(0.5*fend,fend_vector,f[j1],f[j1]);
-        }
-      }
-      
+ 
       // compute energy
 
       if (eflag_either) {

@@ -136,6 +136,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
   // update bond neighbor list when necessary
   if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
+  int output_index = 1;
+
   // iterate over all bonds
 
   for (i = 0; i < nbondlist; i++) {
@@ -156,6 +158,240 @@ void PairMesoCNT::compute(int eflag, int vflag)
       clen = nchain[j];
       if (clen < 2) continue;
 
+      // assign end position
+
+      if (end[j] == 1) {
+        end_index = chain[j][0];
+        qe = x[end_index];
+      }
+      else if (end[j] == 2) {
+        end_index = chain[j][clen-1];
+        qe = x[end_index];
+      }
+
+      // numerical differentiation of substitute chain
+
+      if (tag[i1] == output_index) {
+        double delta = 1.0e-15;
+        double inc[3],lo1[3],lo2[3],hi1[3],hi2[3];
+        double lo,hi;
+        std::ofstream num;
+        std::ofstream num1;
+        std::ofstream num2;
+
+        num.open("nr1.txt",std::ios_base::app);
+        num1.open("np1r1.txt",std::ios_base::app);
+        num2.open("np2r1.txt",std::ios_base::app);
+        num << update->ntimestep;
+        num1 << update->ntimestep;
+        num2 << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++) {
+          zero3(lo1);
+          zero3(lo2);
+          sumw = 0.0;
+          
+          copy3(r1,inc);
+          inc[k1] -= delta;
+          for (k = 0; k < clen-1; k++) {
+            j1 = chain[j][k];
+            j2 = chain[j][k+1];
+            j1 &= NEIGHMASK;
+            j2 &= NEIGHMASK;
+            q1 = x[j1];
+            q2 = x[j2];
+
+            weight(inc,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+            if (w[k] == 0.0) {
+              if (end[j] == 1 && k == 0) end[j] = 0;
+              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              continue;
+            }
+     
+            sumw += w[k];
+
+            scaleadd3(w[k],q1,lo1,lo1);
+            scaleadd3(w[k],q2,lo2,lo2);
+          }
+          sumw_inv = 1.0 / sumw;
+          scale3(sumw_inv,lo1);
+          scale3(sumw_inv,lo2);
+
+          if (end[j] == 0) {
+            geometry(inc,r2,lo1,lo2,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(inc,r2,lo1,lo2,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(inc,r2,lo2,lo1,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+
+          zero3(hi1);
+          zero3(hi2);
+          sumw = 0.0;
+          
+          copy3(r1,inc);
+          inc[k1] += delta;
+          for (k = 0; k < clen-1; k++) {
+            j1 = chain[j][k];
+            j2 = chain[j][k+1];
+            j1 &= NEIGHMASK;
+            j2 &= NEIGHMASK;
+            q1 = x[j1];
+            q2 = x[j2];
+
+            weight(inc,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+            if (w[k] == 0.0) {
+              if (end[j] == 1 && k == 0) end[j] = 0;
+              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              continue;
+            }
+     
+            sumw += w[k];
+
+            scaleadd3(w[k],q1,hi1,hi1);
+            scaleadd3(w[k],q2,hi2,hi2);
+          }
+          sumw_inv = 1.0 / sumw;
+          scale3(sumw_inv,hi1);
+          scale3(sumw_inv,hi2);
+
+          if (end[j] == 0) {
+            geometry(inc,r2,hi1,hi2,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(inc,r2,hi1,hi2,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(inc,r2,hi2,hi1,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          
+          num << " " << 0.25*(lo-hi)/delta;
+          num1 << " " << 0.5*(hi1[0]-lo1[0])/delta << " " << 0.5*(hi1[1]-lo1[1])/delta << " " << 0.5*(hi1[2]-lo1[2])/delta;
+          num2 << " " << 0.5*(hi2[0]-lo2[0])/delta << " " << 0.5*(hi2[1]-lo2[1])/delta << " " << 0.5*(hi2[2]-lo2[2])/delta;
+        }
+        num << std::endl;
+        num1 << std::endl;
+        num2 << std::endl;
+        num.close();
+        num1.close();
+        num2.close();
+        
+        num.open("nr2.txt",std::ios_base::app);
+        num1.open("np1r2.txt",std::ios_base::app);
+        num2.open("np2r2.txt",std::ios_base::app);
+        num << update->ntimestep;
+        num1 << update->ntimestep;
+        num2 << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++) {
+          zero3(lo1);
+          zero3(lo2);
+          sumw = 0.0;
+          
+          copy3(r2,inc);
+          inc[k1] -= delta;
+          for (k = 0; k < clen-1; k++) {
+            j1 = chain[j][k];
+            j2 = chain[j][k+1];
+            j1 &= NEIGHMASK;
+            j2 &= NEIGHMASK;
+            q1 = x[j1];
+            q2 = x[j2];
+
+            weight(r1,inc,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+            if (w[k] == 0.0) {
+              if (end[j] == 1 && k == 0) end[j] = 0;
+              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              continue;
+            }
+     
+            sumw += w[k];
+
+            scaleadd3(w[k],q1,lo1,lo1);
+            scaleadd3(w[k],q2,lo2,lo2);
+          }
+          sumw_inv = 1.0 / sumw;
+          scale3(sumw_inv,lo1);
+          scale3(sumw_inv,lo2);
+
+          if (end[j] == 0) {
+            geometry(r1,inc,lo1,lo2,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,inc,lo1,lo2,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(r1,inc,lo2,lo1,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          
+          zero3(hi1);
+          zero3(hi2);
+          sumw = 0.0;
+          
+          copy3(r2,inc);
+          inc[k1] += delta;
+          for (k = 0; k < clen-1; k++) {
+            j1 = chain[j][k];
+            j2 = chain[j][k+1];
+            j1 &= NEIGHMASK;
+            j2 &= NEIGHMASK;
+            q1 = x[j1];
+            q2 = x[j2];
+
+            weight(r1,inc,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+            if (w[k] == 0.0) {
+              if (end[j] == 1 && k == 0) end[j] = 0;
+              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              continue;
+            }
+     
+            sumw += w[k];
+
+            scaleadd3(w[k],q1,hi1,hi1);
+            scaleadd3(w[k],q2,hi2,hi2);
+          }
+          sumw_inv = 1.0 / sumw;
+          scale3(sumw_inv,hi1);
+          scale3(sumw_inv,hi2);
+
+          if (end[j] == 0) {
+            geometry(r1,inc,hi1,hi2,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,inc,hi1,hi2,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(r1,inc,hi2,hi1,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          
+          num << " " << 0.25*(lo-hi)/delta;
+          num1 << " " << 0.5*(hi1[0]-lo1[0])/delta << " " << 0.5*(hi1[1]-lo1[1])/delta << " " << 0.5*(hi1[2]-lo1[2])/delta;
+          num2 << " " << 0.5*(hi2[0]-lo2[0])/delta << " " << 0.5*(hi2[1]-lo2[1])/delta << " " << 0.5*(hi2[2]-lo2[2])/delta;
+        }
+        num << std::endl;
+        num1 << std::endl;
+        num2 << std::endl;
+        num.close();
+        num1.close();
+        num2.close();
+      }
+
       zero3(p1);
       zero3(p2);
       zero3(dr1_sumw);
@@ -172,17 +408,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
       }
       sumw = 0.0;
 
-      // assign end position
-
-      if (end[j] == 1) {
-        end_index = chain[j][0];
-        qe = x[end_index];
-      }
-      else if (end[j] == 2) {
-        end_index = chain[j][clen-1];
-        qe = x[end_index];
-      }
-
       // compute substitute straight (semi-)infinite CNT
 
       for (k = 0; k < clen-1; k++) {
@@ -195,12 +420,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
 	      weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
-	      if (w[k] == 0.0) {
+        if (w[k] == 0.0) {
           if (end[j] == 1 && k == 0) end[j] = 0;
 	        else if (end[j] == 2 && k == clen-2) end[j] = 0;
 	        continue;
 	      }
-	      sumw += w[k];
+ 
+        sumw += w[k];
         wnode[k] += w[k];
         wnode[k+1] += w[k];
 
@@ -240,6 +466,212 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(sumw_inv,p1);
       scale3(sumw_inv,p2);
 
+      // numerical differentation for forces
+
+      if (tag[i1] == output_index) {
+        double delta = 1.0e-13;
+        double inc[3];
+        double lo,hi,fend;
+        std::ofstream num;
+
+        num.open("fnr1.txt",std::ios_base::app);
+        num << update->ntimestep;
+        for (k = 0; k < 3; k++) {
+          copy3(r1,inc);
+          inc[k] -= delta;
+          if (end[j] == 0) {
+            geometry(inc,r2,p1,p2,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(inc,r2,p1,p2,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(inc,r2,p2,p1,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+
+          copy3(r1,inc);
+          inc[k] += delta;
+          if (end[j] == 0) {
+            geometry(inc,r2,p1,p2,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(inc,r2,p1,p2,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(inc,r2,p2,p1,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+
+          double fn = 0.25 * (lo - hi) / delta;
+          num << " " << fn;
+        }
+        num << std::endl;
+        num.close();
+
+        num.open("fnr2.txt",std::ios_base::app);
+        num << update->ntimestep;
+        for (k = 0; k < 3; k++) {
+          copy3(r2,inc);
+          inc[k] -= delta;
+          if (end[j] == 0) {
+            geometry(r1,inc,p1,p2,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,inc,p1,p2,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(r1,inc,p2,p1,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+
+          copy3(r2,inc);
+          inc[k] += delta;
+          if (end[j] == 0) {
+            geometry(r1,inc,p1,p2,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,inc,p1,p2,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(r1,inc,p2,p1,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+
+          double fn = 0.25 * (lo - hi) / delta;
+          num << " " << fn;
+        }
+        num << std::endl;
+        num.close();
+
+        num.open("fnp1.txt",std::ios_base::app);
+        num << update->ntimestep;
+        for (k = 0; k < 3; k++) {
+          copy3(p1,inc);
+          inc[k] -= delta;
+          if (end[j] == 0) {
+            geometry(r1,r2,inc,p2,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,r2,inc,p2,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(r1,r2,p2,inc,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+
+          copy3(p1,inc);
+          inc[k] += delta;
+          if (end[j] == 0) {
+            geometry(r1,r2,inc,p2,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,r2,inc,p2,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(r1,r2,p2,inc,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+
+          double fn = 0.25 * (lo - hi) / delta;
+          num << " " << fn;
+        }
+        num << std::endl;
+        num.close();
+
+        num.open("fnp2.txt",std::ios_base::app);
+        num << update->ntimestep;
+        for (k = 0; k < 3; k++) {
+          copy3(p2,inc);
+          inc[k] -= delta;
+          if (end[j] == 0) {
+            geometry(r1,r2,p1,inc,NULL,p,m,param,basis);
+            finf(param,lo,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,r2,p1,inc,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+          else {
+            geometry(r1,r2,inc,p1,qe,p,m,param,basis);
+            fsemi(param,lo,fend,flocal);
+          }
+
+          copy3(p2,inc);
+          inc[k] += delta;
+          if (end[j] == 0) {
+            geometry(r1,r2,p1,inc,NULL,p,m,param,basis);
+            finf(param,hi,flocal);
+          }
+          else if (end[j] == 1) {
+            geometry(r1,r2,p1,inc,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+          else {
+            geometry(r1,r2,inc,p1,qe,p,m,param,basis);
+            fsemi(param,hi,fend,flocal);
+          }
+
+          double fn = 0.25 * (lo - hi) / delta;
+          num << " " << fn;
+        }
+        num << std::endl;
+        num.close();
+ 
+        if (end[j] != 0) {
+          num.open("fnqe.txt",std::ios_base::app);
+          num << update->ntimestep;
+          for (k = 0; k < 3; k++) {
+            copy3(qe,inc);
+            inc[k] -= delta;
+            if (end[j] == 0) {
+              geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
+              finf(param,lo,flocal);
+            }
+            else if (end[j] == 1) {
+              geometry(r1,r2,p1,p2,inc,p,m,param,basis);
+              fsemi(param,lo,fend,flocal);
+            }
+            else {
+              geometry(r1,r2,p2,p1,inc,p,m,param,basis);
+              fsemi(param,lo,fend,flocal);
+            }
+
+            copy3(qe,inc);
+            inc[k] += delta;
+            if (end[j] == 0) {
+              geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
+              finf(param,hi,flocal);
+            }
+            else if (end[j] == 1) {
+              geometry(r1,r2,p1,p2,inc,p,m,param,basis);
+              fsemi(param,hi,fend,flocal);
+            }
+            else {
+              geometry(r1,r2,p2,p1,inc,p,m,param,basis);
+              fsemi(param,hi,fend,flocal);
+            }
+
+            double fn = 0.25 * (lo - hi) / delta;
+            num << " " << fn;
+          }
+          num << std::endl;
+          num.close();
+        }
+      }
+
       // compute geometry and forces
 
       // infinite CNT case
@@ -274,6 +706,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // forces acting on approximate chain
  
       add3(fglobal[0],fglobal[1],ftotal);
+      if (end[j] != 0) scaleadd3(fend,m,ftotal,ftotal);
       scale3(-0.5,ftotal);
       
       sub3(r1,p,delr1);
@@ -284,12 +717,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       cross3(torque,m,ftorque);
       lp = param[5] - param[4];
-      if (lp < 0.0) printf("lp < 0\n");
       scale3(1.0/lp,ftorque);
 
       add3(ftotal,ftorque,fglobal[2]);
       sub3(ftotal,ftorque,fglobal[3]);
 
+      scale3(0.5,fglobal[0]);
+      scale3(0.5,fglobal[1]);
       scale3(0.5,fglobal[2]);
       scale3(0.5,fglobal[3]);
 
@@ -303,16 +737,98 @@ void PairMesoCNT::compute(int eflag, int vflag)
       minus3(q1_dr2_w,temp,dr2_p1);
       outer3(p2,dr2_sumw,temp);
       minus3(q2_dr2_w,temp,dr2_p2);
-      
-      transpose_matvec(dr1_p1,fglobal[2],fgrad_r1_p1);
-      transpose_matvec(dr1_p2,fglobal[3],fgrad_r1_p2);
-      transpose_matvec(dr2_p1,fglobal[2],fgrad_r2_p1);
-      transpose_matvec(dr2_p2,fglobal[3],fgrad_r2_p2);
+     
+      if (end[j] == 2) {
+        transpose_matvec(dr1_p1,fglobal[3],fgrad_r1_p1);
+        transpose_matvec(dr1_p2,fglobal[2],fgrad_r1_p2);
+        transpose_matvec(dr2_p1,fglobal[3],fgrad_r2_p1);
+        transpose_matvec(dr2_p2,fglobal[2],fgrad_r2_p2);
+      }
+      else {
+        transpose_matvec(dr1_p1,fglobal[2],fgrad_r1_p1);
+        transpose_matvec(dr1_p2,fglobal[3],fgrad_r1_p2);
+        transpose_matvec(dr2_p1,fglobal[2],fgrad_r2_p1);
+        transpose_matvec(dr2_p2,fglobal[3],fgrad_r2_p2);
+      }
+
+      if (tag[i1] == output_index) {
+        std::ofstream ex;
+        
+        ex.open("r1.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[0][0]+sumw_inv*(fgrad_r1_p1[0]+fgrad_r1_p2[0]) 
+                                << " " << fglobal[0][1]+sumw_inv*(fgrad_r1_p1[1]+fgrad_r1_p2[1]) 
+                                << " " << fglobal[0][2]+sumw_inv*(fgrad_r1_p1[2]+fgrad_r1_p2[2]) 
+                                << std::endl;
+        ex.close();
+
+        ex.open("r2.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[1][0]+sumw_inv*(fgrad_r2_p1[0]+fgrad_r2_p2[0]) 
+                                << " " << fglobal[1][1]+sumw_inv*(fgrad_r2_p1[1]+fgrad_r2_p2[1]) 
+                                << " " << fglobal[1][2]+sumw_inv*(fgrad_r2_p1[2]+fgrad_r2_p2[2]) 
+                                << std::endl;
+        ex.close();
+        
+        ex.open("fr1.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[0][0] << " " << fglobal[0][1] << " " << fglobal[0][2] << std::endl;
+        ex.close();
+
+        ex.open("fr2.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[1][0] << " " << fglobal[1][1] << " " << fglobal[1][2] << std::endl;
+        ex.close();
+        
+        ex.open("fp1.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[2][0] << " " << fglobal[2][1] << " " << fglobal[2][2] << std::endl;
+        ex.close();
+        
+        ex.open("fp2.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << fglobal[3][0] << " " << fglobal[3][1] << " " << fglobal[3][2] << std::endl;
+        ex.close();
+
+        ex.open("param.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << param[0] << " " << param[1] << " " << param[2] << " " << param[3] << " " << param[4] << " " << param[5] << " " << param[6] << std::endl;
+        ex.close();
+
+        ex.open("end.txt",std::ios_base::app);
+        ex << update->ntimestep << " " << end[j] << std::endl;
+        ex.close();
+
+        ex.open("p1r1.txt",std::ios_base::app);
+        ex << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++)
+          for (int k2 = 0; k2 < 3; k2++)
+            ex << " " << dr1_p1[k2][k1]*sumw_inv;
+        ex << std::endl;
+        ex.close();
+        
+        ex.open("p2r1.txt",std::ios_base::app);
+        ex << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++)
+          for (int k2 = 0; k2 < 3; k2++)
+            ex << " " << dr1_p2[k2][k1]*sumw_inv;
+        ex << std::endl;
+        ex.close();
+        
+        ex.open("p1r2.txt",std::ios_base::app);
+        ex << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++)
+          for (int k2 = 0; k2 < 3; k2++)
+            ex << " " << dr2_p1[k2][k1]*sumw_inv;
+        ex << std::endl;
+        ex.close();
+        
+        ex.open("p2r2.txt",std::ios_base::app);
+        ex << update->ntimestep;
+        for (int k1 = 0; k1 < 3; k1++)
+          for (int k2 = 0; k2 < 3; k2++)
+            ex << " " << dr2_p2[k2][k1]*sumw_inv;
+        ex << std::endl;
+        ex.close();
+      }
 
       // add forces to nodes in current segment
       
-      scaleadd3(0.5,fglobal[0],f[i1],f[i1]);
-      scaleadd3(0.5,fglobal[1],f[i2],f[i2]);
+      add3(fglobal[0],f[i1],f[i1]);
+      add3(fglobal[1],f[i2],f[i2]);
       scaleadd3(sumw_inv,fgrad_r1_p1,f[i1],f[i1]);
       scaleadd3(sumw_inv,fgrad_r1_p2,f[i1],f[i1]);
       scaleadd3(sumw_inv,fgrad_r2_p1,f[i2],f[i2]);
@@ -356,6 +872,12 @@ void PairMesoCNT::compute(int eflag, int vflag)
       if (end[j] != 0) {
         copy3(m,fend_vector);
         scaleadd3(0.5*fend,fend_vector,f[end_index],f[end_index]);
+        if (tag[i1] == output_index) {
+          std::ofstream ex;
+          ex.open("fqe.txt",std::ios_base::app);
+          ex << update->ntimestep << " " << 0.5*fend*fend_vector[0] << " " << 0.5*fend*fend_vector[1] << " " << 0.5*fend*fend_vector[2] << std::endl;
+          ex.close();
+        }
       }
  
       // compute energy
@@ -765,12 +1287,12 @@ void PairMesoCNT::chain_split(int *redlist, int numred,
     if (tagstart == 1) end[j] = 1;
     else {
       int idprev = atom->map(tagstart-1);
-      if (idprev == -1 || mol[tagstart] != mol[idprev]) end[j] = 1;
+      if (idprev == -1 || mol[cstart] != mol[idprev]) end[j] = 1;
     }
     if (tagend == atom->natoms) end[j] = 2;
     else {
       int idnext = atom->map(tagend+1);
-      if (idnext == -1 || mol[tagend] != mol[idnext]) end[j] = 2;
+      if (idnext == -1 || mol[cend] != mol[idnext]) end[j] = 2;
     }
   }
 

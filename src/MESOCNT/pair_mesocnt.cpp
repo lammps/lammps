@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <string>
 #include "pair_mesocnt.h"
 #include "atom.h"
 #include "comm.h"
@@ -136,7 +137,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   // update bond neighbor list when necessary
   if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
-  int output_index = 1;
+  int output_index = 248;
 
   // iterate over all bonds
 
@@ -390,6 +391,144 @@ void PairMesoCNT::compute(int eflag, int vflag)
         num.close();
         num1.close();
         num2.close();
+
+        for (int k2 = 0; k2 < clen; k2++) {
+          int index = tag[chain[j][k2]];
+          std::string forcefile = "nq";
+          std::string p1file = "np1q";
+          std::string p2file = "np2q";
+          forcefile += std::to_string(index);
+          forcefile += ".txt";
+          p1file += std::to_string(index);
+          p1file += ".txt";
+          p2file += std::to_string(index); 
+          p2file += ".txt";
+          num.open(forcefile,std::ios_base::app);
+          num1.open(p1file,std::ios_base::app);
+          num2.open(p2file,std::ios_base::app);
+          num << update->ntimestep;
+          num1 << update->ntimestep;
+          num2 << update->ntimestep;
+          for (int k1 = 0; k1 < 3; k1++) {
+            zero3(lo1);
+            zero3(lo2);
+            sumw = 0.0;
+            
+            for (k = 0; k < clen-1; k++) {
+              j1 = chain[j][k];
+              j2 = chain[j][k+1];
+              j1 &= NEIGHMASK;
+              j2 &= NEIGHMASK;
+              q1 = x[j1];
+              q2 = x[j2];
+              
+              if (k == k2) { 
+                copy3(q1,inc);
+                inc[k1] -= delta;
+                weight(r1,r2,inc,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+              }
+              else if (k+1 == k2) {
+                copy3(q2,inc);
+                inc[k1] -= delta;
+                weight(r1,r2,q1,inc,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+              }
+              else weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+              if (w[k] == 0.0) {
+                if (end[j] == 1 && k == 0) end[j] = 0;
+                else if (end[j] == 2 && k == clen-2) end[j] = 0;
+                continue;
+              }
+       
+              sumw += w[k];
+              
+              if (k == k2) scaleadd3(w[k],inc,lo1,lo1);
+              else scaleadd3(w[k],q1,lo1,lo1);
+              if (k+1 == k2) scaleadd3(w[k],inc,lo2,lo2);
+              else scaleadd3(w[k],q2,lo2,lo2);
+            }
+            sumw_inv = 1.0 / sumw;
+            scale3(sumw_inv,lo1);
+            scale3(sumw_inv,lo2);
+
+            if (end[j] == 0) {
+              geometry(r1,r2,lo1,lo2,NULL,p,m,param,basis);
+              finf(param,lo,flocal);
+            }
+            else if (end[j] == 1) {
+              geometry(r1,r2,lo1,lo2,qe,p,m,param,basis);
+              fsemi(param,lo,fend,flocal);
+            }
+            else {
+              geometry(r1,r2,lo2,lo1,qe,p,m,param,basis);
+              fsemi(param,lo,fend,flocal);
+            }
+
+            zero3(hi1);
+            zero3(hi2);
+            sumw = 0.0;
+            
+            for (k = 0; k < clen-1; k++) {
+              j1 = chain[j][k];
+              j2 = chain[j][k+1];
+              j1 &= NEIGHMASK;
+              j2 &= NEIGHMASK;
+              q1 = x[j1];
+              q2 = x[j2];
+
+              if (k == k2) { 
+                copy3(q1,inc);
+                inc[k1] += delta;
+                weight(r1,r2,inc,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+              }
+              else if (k+1 == k2) {
+                copy3(q2,inc);
+                inc[k1] += delta;
+                weight(r1,r2,q1,inc,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+              }
+              else weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
+
+              if (w[k] == 0.0) {
+                if (end[j] == 1 && k == 0) end[j] = 0;
+                else if (end[j] == 2 && k == clen-2) end[j] = 0;
+                continue;
+              }
+       
+              sumw += w[k];
+
+              if (k == k2) scaleadd3(w[k],inc,hi1,hi1);
+              else scaleadd3(w[k],q1,hi1,hi1);
+              if (k+1 == k2) scaleadd3(w[k],inc,hi2,hi2);
+              else scaleadd3(w[k],q2,hi2,hi2);
+            }
+            sumw_inv = 1.0 / sumw;
+            scale3(sumw_inv,hi1);
+            scale3(sumw_inv,hi2);
+
+            if (end[j] == 0) {
+              geometry(r1,r2,hi1,hi2,NULL,p,m,param,basis);
+              finf(param,hi,flocal);
+            }
+            else if (end[j] == 1) {
+              geometry(r1,r2,hi1,hi2,qe,p,m,param,basis);
+              fsemi(param,hi,fend,flocal);
+            }
+            else {
+              geometry(r1,r2,hi2,hi1,qe,p,m,param,basis);
+              fsemi(param,hi,fend,flocal);
+            }
+            
+            num << " " << 0.25*(lo-hi)/delta;
+            num1 << " " << 0.5*(hi1[0]-lo1[0])/delta << " " << 0.5*(hi1[1]-lo1[1])/delta << " " << 0.5*(hi1[2]-lo1[2])/delta;
+            num2 << " " << 0.5*(hi2[0]-lo2[0])/delta << " " << 0.5*(hi2[1]-lo2[1])/delta << " " << 0.5*(hi2[2]-lo2[2])/delta;
+          }
+          num << std::endl;
+          num1 << std::endl;
+          num2 << std::endl;
+          num.close();
+          num1.close();
+          num2.close();
+        }
       }
 
       zero3(p1);
@@ -843,8 +982,12 @@ void PairMesoCNT::compute(int eflag, int vflag)
         j1 &= NEIGHMASK;
         j2 &= NEIGHMASK;
         scale = w[k] * sumw_inv;
-        if (j1 < nlocal) scaleadd3(scale,fglobal[2],f[j1],f[j1]);
-        if (j2 < nlocal) scaleadd3(scale,fglobal[3],f[j2],f[j2]);
+        if (j1 < nlocal) 
+          if (end[j] == 2) scaleadd3(scale,fglobal[3],f[j1],f[j1]);
+          else scaleadd3(scale,fglobal[2],f[j1],f[j1]);
+        if (j2 < nlocal) 
+          if (end[j] == 2)  scaleadd3(scale,fglobal[2],f[j2],f[j2]);
+          else scaleadd3(scale,fglobal[3],f[j2],f[j2]);
       }
 
       // weight gradient terms acting on approximate chain
@@ -860,11 +1003,63 @@ void PairMesoCNT::compute(int eflag, int vflag)
         outer3(p2,dq_w[k],temp);
         minus3(q2_dq_w[k],temp,dq_p2);
 
-        transpose_matvec(dq_p1,fglobal[2],fgrad_q_p1);
-        transpose_matvec(dq_p2,fglobal[3],fgrad_q_p2);
-        
+        if (end[j] == 2) {
+          transpose_matvec(dq_p1,fglobal[3],fgrad_q_p1);
+          transpose_matvec(dq_p2,fglobal[2],fgrad_q_p2);
+        }
+        else {
+          transpose_matvec(dq_p1,fglobal[2],fgrad_q_p1);
+          transpose_matvec(dq_p2,fglobal[3],fgrad_q_p2);
+        }
+
         scaleadd3(sumw_inv,fgrad_q_p1,f[j1],f[j1]);
         scaleadd3(sumw_inv,fgrad_q_p2,f[j1],f[j1]);
+
+        if (tag[i1] == output_index) {
+          int index = tag[chain[j][k]];
+          std::string forcefile = "q";
+          std::string p1file = "p1q";
+          std::string p2file = "p2q";
+          forcefile += std::to_string(index);
+          forcefile += ".txt";
+          p1file += std::to_string(index);
+          p1file += ".txt";
+          p2file += std::to_string(index); 
+          p2file += ".txt";
+          
+          std::ofstream ex;
+          std::ofstream ex1;
+          std::ofstream ex2;
+          ex.open(forcefile,std::ios_base::app);
+          ex1.open(p1file,std::ios_base::app);
+          ex2.open(p2file,std::ios_base::app);
+          ex << update->ntimestep;
+          ex1 << update->ntimestep;
+          ex2 << update->ntimestep;
+
+          for (int k1 = 0; k1 < 3; k1++) {
+            double fex = sumw_inv * (fgrad_q_p1[k1] + fgrad_q_p2[k1]);
+            double f1,f2;
+            if (end[j] == 2) f1 = fglobal[2][k1];
+            else f1 = fglobal[3][k1];
+            if (end[j] == 2) f2 = fglobal[3][k1];
+            else f2 = fglobal[2][k1];
+            if (k != 0) fex += w[k-1]*sumw_inv*f1;
+            if (k != clen-1) fex += w[k]*sumw_inv*f2;
+            ex << " " << fex;
+          }
+
+          for (int k1 = 0; k1 < 3; k1++) {
+            for (int k2 = 0; k2 < 3; k2++) {
+              ex1 << " " << dq_p1[k2][k1];
+              ex2 << " " << dq_p2[k2][k1];
+            }
+          }
+          
+          ex << std::endl;
+          ex1 << std::endl;
+          ex2 << std::endl;
+        }
       }
       
       // force on node at CNT end

@@ -46,6 +46,7 @@ class FixIntel : public Fix {
   inline void min_setup(int in) { setup(in); }
   void setup_pre_reverse(int eflag = 0, int vflag = 0);
 
+  bool pair_hybrid_check();
   void pair_init_check(const bool cdmessage=false);
   void bond_init_check();
   void kspace_init_check();

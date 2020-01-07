@@ -16,6 +16,7 @@
                         Anupama Kurpad (Intel) - Host Affinitization
 ------------------------------------------------------------------------- */
 
+#include "fix_intel.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -27,7 +28,7 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "fix_intel.h"
+#include "utils.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -391,6 +392,20 @@ void FixIntel::setup_pre_reverse(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+bool FixIntel::pair_hybrid_check()
+{
+  PairHybrid *ph = (PairHybrid *)force->pair;
+  bool has_intel = false;
+  int nstyles = ph->nstyles;
+
+  for (int i = 0; i < nstyles; ++i)
+    if (ph->styles[i]->suffix_flag & Suffix::INTEL) has_intel = true;
+
+  return has_intel;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixIntel::pair_init_check(const bool cdmessage)
 {
   #ifdef INTEL_VMASK
@@ -510,9 +525,9 @@ void FixIntel::bond_init_check()
   int intel_pair = 0;
   if (force->pair_match("/intel$", 0) != NULL)
     intel_pair = 1;
-  else if (force->pair_match("^hybrid", 1) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
+    if (pair_hybrid_check()) intel_pair = 1;
   }
 
   if (intel_pair == 0)
@@ -529,8 +544,7 @@ void FixIntel::kspace_init_check()
     intel_pair = 1;
   else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
-    pair_init_check();     // need to run this here explicitly, since pair->init() was not run yet.
-    if (_pair_intel_count) intel_pair = 1;
+    if (pair_hybrid_check()) intel_pair = 1;
   }
 
   if (intel_pair == 0)

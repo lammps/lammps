@@ -37,9 +37,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     double **host_cut_ljsq,
     const double host_cut_coulsq, const double host_cut_coulsqplus,
     double *host_special_coul, const double qqrd2e,
-    const double g_ewald, int* tag,
-    int *map_array, int map_size,
-    int *sametag, int max_same) {
+    const double g_ewald, int map_size,int max_same) {
   LJTIP4PLMF.clear();
   gpu_mode=LJTIP4PLMF.device->gpu_mode();
   double gpu_split=LJTIP4PLMF.device->particle_split();
@@ -67,9 +65,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
         tH, tO, alpha, qdist, nall, 300,
         maxspecial, cell_size, gpu_split, screen,
         host_cut_ljsq, host_cut_coulsq, host_cut_coulsqplus,
-        host_special_coul, qqrd2e, g_ewald, tag,
-        map_array, map_size,
-        sametag, max_same);
+        host_special_coul, qqrd2e, g_ewald, map_size, max_same);
 
   LJTIP4PLMF.device->world_barrier();
   if (message)
@@ -90,9 +86,8 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
           tH, tO, alpha, qdist, nall, 300, maxspecial,
           cell_size, gpu_split, screen, host_cut_ljsq,
           host_cut_coulsq, host_cut_coulsqplus,
-          host_special_coul, qqrd2e, g_ewald,tag,
-          map_array, map_size,
-          sametag, max_same);
+          host_special_coul, qqrd2e,
+          g_ewald, map_size, max_same);
 
     LJTIP4PLMF.device->gpu_barrier();
     if (message)

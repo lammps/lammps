@@ -56,9 +56,7 @@ int LJTIP4PLongT::init(const int ntypes,
     double **host_cut_ljsq,
     const double host_cut_coulsq, const double host_cut_coulsqplus,
     double *host_special_coul, const double qqrd2e,
-    const double g_ewald, int* tag,
-    int *map_array, int map_size,
-    int *sametag, int max_same) {
+    const double g_ewald, int map_size, int max_same) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                             _screen,lj_tip4p_long,"k_lj_tip4p_long");
@@ -119,21 +117,9 @@ int LJTIP4PLongT::init(const int ntypes,
   m.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
   ansO.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
 
-  // Allocate a host write buffer for data initialization
-  UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_READ_WRITE);
   this->tag.alloc(nall,*(this->ucl_device), UCL_READ_ONLY);
-  for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
-  ucl_copy(this->tag, host_tag_write, nall, false);
-
-  //if(max_same>host_tag_write.cols()) host_tag_write.resize(max_same);
-  this->atom_sametag.alloc(nall, *(this->ucl_device), UCL_READ_ONLY);
-  for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
-  ucl_copy(this->atom_sametag, host_tag_write, nall, false);
-
-  host_tag_write.resize_ib(map_size);
+  this->atom_sametag.alloc(max_same, *(this->ucl_device), UCL_READ_ONLY);
   this->map_array.alloc(map_size,*(this->ucl_device), UCL_READ_ONLY);
-  for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
-  ucl_copy(this->map_array, host_tag_write, map_size, false);
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+cutsq.row_bytes()+
@@ -267,8 +253,6 @@ void LJTIP4PLongT::copy_relations_data(int n, int* tag, int *map_array,
   this->map_array.resize_ib(map_size);
   for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
   ucl_copy(this->map_array, host_tag_write, map_size, false);
-
-  host_tag_write.clear();
 }
 
 

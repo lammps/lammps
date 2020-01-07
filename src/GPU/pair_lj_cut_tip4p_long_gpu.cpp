@@ -58,9 +58,8 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     const double cell_size, int &gpu_mode, FILE *screen,
     double **host_cut_ljsq, const double host_cut_coulsq,
     const double host_cut_coulsqplus, double *host_special_coul,
-    const double qqrd2e, const double g_ewald, int* tag,
-    int *map_array, int map_size,
-    int *sametag, int max_same);
+    const double qqrd2e, const double g_ewald,
+    int map_size, int max_same);
 void ljtip4p_long_gpu_clear();
 int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum,
     const int nall, double **host_x, int *host_type,
@@ -227,9 +226,8 @@ void PairLJCutTIP4PLongGPU::init_style()
                              cell_size, gpu_mode, screen, cut_ljsq,
                              cut_coulsq, cut_coulsqplus,
                              force->special_coul, force->qqrd2e,
-                             g_ewald,
-                             atom->tag, atom->get_map_array(), atom->get_map_size(),
-                             atom->sametag, atom->get_max_same());
+                             g_ewald, atom->get_map_size(),
+                             atom->get_max_same());
   GPU_EXTRA::check_flag(success,error,world);
   if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this,instance_me);

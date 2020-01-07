@@ -48,9 +48,7 @@ public:
            double **host_cut_ljsq,
            const double host_cut_coulsq, const double host_cut_coulsqplus,
            double *host_special_coul, const double qqrd2e,
-           const double g_ewald, int* tag,
-           int *map_array, int map_size,
-           int *sametag, int max_same);
+           const double g_ewald, int map_size,int max_same);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

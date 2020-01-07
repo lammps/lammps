@@ -20,7 +20,7 @@ endif (PNETCDF_INCLUDES AND PNETCDF_LIBRARIES)
 find_path (PNETCDF_INCLUDES pnetcdf.h
   HINTS "${PNETCDF_ROOT}/include" "$ENV{PNETCDF_ROOT}/include")
 
-string(REGEX REPLACE "/include/?$" "/lib"
+string(REGEX REPLACE "/include/?$" ""
   PNETCDF_LIB_HINT ${PNETCDF_INCLUDES})
 
 find_library (PNETCDF_LIBRARIES

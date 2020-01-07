@@ -25,7 +25,7 @@ string(REGEX REPLACE "/include/?$" ""
 
 find_library (PNETCDF_LIBRARIES
   NAMES pnetcdf
-  HINTS ${PNETCDF_LIB_HINT})
+  HINTS ${PNETCDF_LIB_HINT} PATH_SUFFIXES lib lib64)
 
 if ((NOT PNETCDF_LIBRARIES) OR (NOT PNETCDF_INCLUDES))
   message(STATUS "Trying to find PNetCDF using LD_LIBRARY_PATH (we're desperate)...")

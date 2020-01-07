@@ -1,0 +1,62 @@
+#Pour composite granular particles on flat wall
+
+newton		on
+atom_style	sphere
+atom_modify	map array sort 0 0
+
+thermo_modify	flush yes
+units 		si  
+
+variable	minrad equal 0.5
+variable	maxrad equal 1.4
+
+variable 	skin equal 0.3*${maxrad}
+
+boundary	p p f
+region		reg block 0 20 0 20 0 200 units box
+create_box	1 reg
+
+fix             prop all property/atom mol ghost yes
+
+variable	dumpfreq equal 1000
+variable	logfreq equal 1000
+
+pair_style	gran/hooke/history 4e5 NULL 1e2 NULL 0.5 0
+pair_coeff	* *
+
+timestep 	0.0001
+
+group		particles type 1
+atom_modify     first particles
+
+neighbor        ${skin} bin
+group		rigid type 1
+neigh_modify	every 1 delay 0 check yes exclude molecule/intra all 
+
+thermo 		${logfreq}
+thermo_style	custom step cpu atoms ke
+thermo_modify	flush yes lost warn
+
+comm_modify	vel yes cutoff 3
+
+molecule	mymol molecule.data
+region		pourreg block 5 15 5 15 80 100 side in units box
+
+#Note: in versions prior to 1/2020, the 'disable' keyword to fix/gravity
+# and the 'gravity' keyword to fix rigid/small were not available.
+# These settings produce undesirable behavior, where gravity can induce
+# torque on rigid bodies.
+#fix		gravfix all gravity 9.8 vector 0 0 -1 #disable
+#fix		rigidfix all rigid/small molecule mol mymol #gravity gravfix
+
+#The correct behavior is recovered with the following settings:
+fix		gravfix all gravity 9.8 vector 0 0 -1 disable
+fix		rigidfix all rigid/small molecule mol mymol gravity gravfix
+fix		pourfix all pour 5 0 1234 region pourreg mol mymol rigid rigidfix
+
+fix		zwall all wall/gran hooke/history 4000.0 NULL 100.0 NULL 0.5 0 zplane 0.1 NULL
+
+dump		1 all custom 1000 molecule_pour.dump id type mass radius x y z fx fy fz
+
+run		100000
+

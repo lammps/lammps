@@ -61,8 +61,8 @@ public:
   double host_memory_usage() const;
 
   /// Copy data from LAMMPS_NS
-  void copy_relations_data(int n,int* tag, int *map_array, int map_size,
-      int *sametag, int max_same, int ago);
+  void copy_relations_data(int n, tagint* tag, int *map_array, int map_size,
+                           int *sametag, int max_same, int ago);
 
   /// Reimplement BaseCharge pair loop with host neighboring
   void compute(const int f_ago, const int inum_full, const int nall,

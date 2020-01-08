@@ -80,8 +80,8 @@ void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall,
     bool &success, double *host_q, const int nlocal,
     double *boxlo, double *prd);
 double ljtip4p_long_gpu_bytes();
-void ljtip4p_long_copy_molecule_data(int, int* , int *,
-		int, int *, int , int);
+void ljtip4p_long_copy_molecule_data(int, tagint *, int *,
+                                     int, int *, int, int);
 
 /* ---------------------------------------------------------------------- */
 

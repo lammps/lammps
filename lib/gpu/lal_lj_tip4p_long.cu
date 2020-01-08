@@ -11,7 +11,7 @@
 //
 //    begin                :
 //    email                : thevsevak@gmail.com
-// ***************************************************************************/
+// ***************************************************************************
 
 #ifdef NV_KERNEL
 
@@ -29,12 +29,12 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-ucl_inline int atom_mapping(const __global int *map, int glob){
-	return map[glob];
+ucl_inline int atom_mapping(const __global int *map, int glob) {
+  return map[glob];
 }
 
 ucl_inline int closest_image(int i, int j, const __global int* sametag,
-		const __global numtyp4 *restrict x_)
+                             const __global numtyp4 *restrict x_)
 {
   if (j < 0) return j;
 
@@ -66,7 +66,7 @@ ucl_inline int closest_image(int i, int j, const __global int* sametag,
 
 ucl_inline void compute_newsite(int iO, int  iH1, int  iH2,
     __global numtyp4 *xM, numtyp q,
-    numtyp alpha, const __global numtyp4 *restrict x_){
+    numtyp alpha, const __global numtyp4 *restrict x_) {
   numtyp4 xO;  fetch4(xO,iO,pos_tex);
   numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
   numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
@@ -238,7 +238,7 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
     iO  = i;
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype = ix.w;
-    if (itype == typeO){
+    if (itype == typeO) {
       int iH1, iH2, iO;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
@@ -404,7 +404,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
             if (itype == typeH) {
-              if (jtype == typeH){
+              if (jtype == typeH) {
                 virial[0] += delx*fd.x;
                 virial[1] += dely*fd.y;
                 virial[2] += delz*fd.z;
@@ -438,7 +438,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
               vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
               vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
               //vdi.w = vdi.w;
-              if (jtype != typeH){
+              if (jtype != typeH) {
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
                 numtyp4 xjO; fetch4(xjO,jO,pos_tex);
@@ -565,4 +565,4 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_lj_tip4p_long_fast(){}
+__kernel void k_lj_tip4p_long_fast() {}

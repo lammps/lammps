@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -364,7 +365,7 @@ void DihedralFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    fread(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -379,9 +380,9 @@ void DihedralFourier::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      fread(k[i],sizeof(double),nterms[i],fp);
-      fread(multiplicity[i],sizeof(int),nterms[i],fp);
-      fread(shift[i],sizeof(double),nterms[i],fp);
+      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,NULL,error);
     }
   }
 

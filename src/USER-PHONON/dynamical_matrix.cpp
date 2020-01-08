@@ -19,6 +19,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
@@ -66,11 +67,6 @@ void DynamicalMatrix::setup()
     domain->image_check();
     domain->box_too_small_check();
     neighbor->build(1);
-    neighbor->ncalls = 0;
-    neighbor->every = 2;                       // build every this many steps
-    neighbor->delay = 1;
-    neighbor->ago = 0;
-    neighbor->ndanger = 0;
 
     // compute all forces
     external_force_clear = 0;
@@ -264,7 +260,7 @@ void DynamicalMatrix::calculateMatrix()
         fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
         fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlen*dynlen) );
     }
-    
+
     // emit dynlen rows of dimalpha*dynlen*dimbeta elements
 
     update->nsteps = 0;
@@ -273,7 +269,7 @@ void DynamicalMatrix::calculateMatrix()
         local_idx = atom->map(i);
         if (gm[i-1] < 0)
             continue;
-        for (bigint alpha=0; alpha<3; alpha++){
+        for (int alpha=0; alpha<3; alpha++){
             displace_atom(local_idx, alpha, 1);
             update_force();
             for (bigint j=1; j<=natoms; j++){
@@ -291,7 +287,7 @@ void DynamicalMatrix::calculateMatrix()
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
                     && gm[j-1] >= 0){
-                    for (bigint beta=0; beta<3; beta++){
+                    for (int beta=0; beta<3; beta++){
                         if (atom->rmass_flag == 1)
                             imass = sqrt(m[local_idx] * m[local_jdx]);
                         else
@@ -390,6 +386,7 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 void DynamicalMatrix::update_force()
 {
     force_clear();
+    int n_post_force = modify->n_post_force;
 
     if (pair_compute_flag) {
         force->pair->compute(eflag,vflag);
@@ -410,6 +407,11 @@ void DynamicalMatrix::update_force()
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
     }
+
+    // force modifications, 
+    if (n_post_force) modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+
     ++ update->nsteps;
 }
 

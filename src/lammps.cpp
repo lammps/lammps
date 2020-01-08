@@ -1013,7 +1013,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
-bool LAMMPS::is_installed_pkg(const char *pkg) 
+bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
     if (strcmp(installed_packages[i],pkg) == 0) return true;
@@ -1271,13 +1271,18 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
-  char *infobuf = Info::get_os_info();
+  const char *infobuf = Info::get_os_info();
   fprintf(fp,"OS: %s\n\n",infobuf);
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
+  fprintf(fp,"Compiler: %s with %s\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
+  fprintf(fp,"C++ standard: %s\n",Info::get_cxx_info());
+
+  int major,minor;
+  infobuf = Info::get_mpi_info(major,minor);
+  fprintf(fp,"MPI v%d.%d: %s\n\n",major,minor,infobuf);
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

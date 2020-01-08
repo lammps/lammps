@@ -72,7 +72,7 @@ void FixNVEAwpmd::init()
    allow for only per-type  mass
 ------------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate(int vflag)
+void FixNVEAwpmd::initial_integrate(int /* vflag */)
 {
 
 
@@ -117,7 +117,7 @@ void FixNVEAwpmd::final_integrate(){}
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int /* iloop */)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -131,7 +131,7 @@ void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate_respa(int ilevel, int iloop)
+void FixNVEAwpmd::final_integrate_respa(int ilevel, int /* iloop */)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

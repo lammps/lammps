@@ -41,8 +41,8 @@ class FieldEulerIntegrator {
   virtual ~FieldEulerIntegrator() {};
 
   /** initialize */
-  virtual void initialize(const double dt, const double time,
-    FIELDS & fields) {};
+  virtual void initialize(const double /* dt */, const double /* time */,
+                          FIELDS & /* fields */) {};
 
   /** update */
   virtual void update(const double dt, const double time,

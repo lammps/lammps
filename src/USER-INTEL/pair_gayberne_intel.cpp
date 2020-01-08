@@ -555,10 +555,10 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           dchi_2 = temp2 * (iota_2 - temp1 * r12hat_2);
 
           temp1 = -eta * u_r;
-          temp2 = eta * chi;
-          fforce_0 = temp1 * dchi_0 - temp2 * dUr_0;
-          fforce_1 = temp1 * dchi_1 - temp2 * dUr_1;
-          fforce_2 = temp1 * dchi_2 - temp2 * dUr_2;
+          temp3 = eta * chi;
+          fforce_0 = temp1 * dchi_0 - temp3 * dUr_0;
+          fforce_1 = temp1 * dchi_1 - temp3 * dUr_1;
+          fforce_2 = temp1 * dchi_2 - temp3 * dUr_2;
 
           // torque for particle 1 and 2
           // compute dUr
@@ -579,18 +579,17 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           ME_vecmat(iota, b1, tempv);
           ME_cross3(tempv, iota, dchi);
-          temp1 = (flt_t)-4.0 / rsq_form[jj];
-          dchi_0 *= temp1;
-          dchi_1 *= temp1;
-          dchi_2 *= temp1;
+          dchi_0 *= temp2;
+          dchi_1 *= temp2;
+          dchi_2 *= temp2;
           flt_t dchi2_0, dchi2_1, dchi2_2;
 
           if (NEWTON_PAIR) {
             ME_vecmat(iota, b2, tempv);
             ME_cross3(tempv, iota, dchi2);
-            dchi2_0 *= temp1;
-            dchi2_1 *= temp1;
-            dchi2_2 *= temp1;
+            dchi2_0 *= temp2;
+            dchi2_1 *= temp2;
+            dchi2_2 *= temp2;
           }
 
           // compute d_eta

@@ -134,7 +134,10 @@ void FixPrint::init()
     if (next_print <= update->ntimestep)
       error->all(FLERR,"Fix print timestep variable returned a bad timestep");
   } else {
-     next_print = (update->ntimestep/nevery)*nevery + nevery;
+    if (update->ntimestep % nevery)
+      next_print = (update->ntimestep/nevery)*nevery + nevery;
+    else
+      next_print = update->ntimestep;
   }
 
   // add next_print to all computes that store invocation times
@@ -142,6 +145,13 @@ void FixPrint::init()
   // once in end_of_step() can set timestep for ones actually invoked
 
   modify->addstep_compute_all(next_print);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrint::setup(int /* vflag */)
+{
+  end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,6 +178,7 @@ void FixPrint::end_of_step()
   } else {
     next_print = (update->ntimestep/nevery)*nevery + nevery;
   }
+
   modify->addstep_compute(next_print);
 
   if (me == 0) {

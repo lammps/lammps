@@ -261,7 +261,7 @@ void FixRigidOMP::compute_forces_and_torques()
 
   if (id_gravity) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
     for (int ibody = 0; ibody < nbody; ibody++) {
       fcm[ibody][0] += gvec[0]*masstotal[ibody];

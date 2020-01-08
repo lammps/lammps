@@ -438,7 +438,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     found[i] = true;
 
     // map lat string to an integer
-    
+
     if (!MEAM::str_to_lat(words[1], true, lat[i]))
       error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
@@ -464,7 +464,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     if (!isone(t0[i]))
       error->all(FLERR,"Unsupported parameter in MEAM potential file: t0!=1");
-    
+
     // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
     if (z[i] != MEAM::get_Zij(lat[i]))
       error->all(FLERR,"Mismatched parameter in MEAM potential file: z!=lat");

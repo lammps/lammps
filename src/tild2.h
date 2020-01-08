@@ -33,7 +33,7 @@ class TILD : public KSpace{
   class Remap *remap;
   class GridComm *cg;
   class GridComm *cg_peratom;
-  double *uG, *uG_hat;
+  FFT_SCALAR *uG, *uG_hat;
   int *groupbits;
   double a_squared;
   void setup_grid();
@@ -45,14 +45,14 @@ class TILD : public KSpace{
   // void get_k_alias(int, double *);
 
  protected:
-  double **grad_uG, **grad_uG_hat, *temp;
-  double *****gradWgroup;
+  FFT_SCALAR **grad_uG, **grad_uG_hat, *temp;
+  FFT_SCALAR *****gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
   int nmax;
-  double **vg_hat;
-  void complex_multiply(double*,double*,double*, int);
+  FFT_SCALAR **vg_hat;
+  void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;

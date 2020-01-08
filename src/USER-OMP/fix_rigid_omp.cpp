@@ -256,6 +256,19 @@ void FixRigidOMP::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
+
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
+#endif
+    for (int ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += gvec[0]*masstotal[ibody];
+      fcm[ibody][1] += gvec[1]*masstotal[ibody];
+      fcm[ibody][2] += gvec[2]*masstotal[ibody];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

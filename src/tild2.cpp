@@ -64,7 +64,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),
   part2grid(NULL), boxlo(NULL)
  {
-  if (me == 0) {
+  if (comm->me == 0) {
     if (screen) fprintf(screen, "TILD construction...\n");
     if (logfile) fprintf(logfile, "TILD construction...\n");
   }
@@ -78,9 +78,9 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   nfactors = 3;
   factors = new int[nfactors];
-  factors[0] = 3;
-  factors[1] = 5;
-  factors[2] = 7;
+  factors[0] = 2;
+  factors[1] = 3;
+  factors[2] = 5;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -2280,7 +2280,8 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
   memory->destroy2d_offset(a,-ord);
 }
 
-void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
+
+void TILD::complex_multiply(FFT_SCALAR *in1,FFT_SCALAR  *in2,FFT_SCALAR  *out, int n){
   out[n] = (in1[n] * in2[n] - in1[n + 1] * in2[n + 1]);
   out[n + 1] = (in1[n + 1] * in2[n] + in1[n] * in2[n + 1]);
 }
@@ -2288,7 +2289,7 @@ void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
 void TILD::ev_calculation(int den_group) {
   int n = 0;
   double rho0;
-  double *dummy, *wk2;
+  FFT_SCALAR *dummy, *wk2;
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
 

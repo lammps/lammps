@@ -287,6 +287,7 @@ class Atom : protected Pointers {
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
+  inline int get_max_same() {return max_same;};
   inline int get_map_maxarray() {return map_maxarray+1;};
 
   bigint memory_usage();

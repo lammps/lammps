@@ -137,9 +137,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
 
   // update bond neighbor list when necessary
-  if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
-  int output_index = 0;
+  if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
   // iterate over all bonds
 
@@ -391,23 +390,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
             eatom[j2] += evdwl_chain;
           }
 	      }
-      }
-
-      // compute virial
-
-      if (vflag_atom) {
-        vatom[i1][0] += f[i1][0]*x[i1][0];
-        vatom[i1][1] += f[i1][1]*x[i1][1];
-        vatom[i1][2] += f[i1][2]*x[i1][2];
-        vatom[i1][3] += f[i1][1]*x[i1][0];
-        vatom[i1][4] += f[i1][2]*x[i1][0];
-        vatom[i1][5] += f[i1][2]*x[i1][1];
-        vatom[i2][0] += f[i2][0]*x[i2][0];
-        vatom[i2][1] += f[i2][1]*x[i2][1];
-        vatom[i2][2] += f[i2][2]*x[i2][2];
-        vatom[i2][3] += f[i2][1]*x[i2][0];
-        vatom[i2][4] += f[i2][2]*x[i2][0];
-        vatom[i2][5] += f[i2][2]*x[i2][1];
       }
     }
   }
@@ -1017,7 +999,7 @@ void PairMesoCNT::spline_coeff(double *data, double **coeff,
     if (i < n-2) b[i][i+1] = dx;
   }
   bprime[1] = b[1][1];
-  for(int i = 2; i < n-1; i++)
+  for (int i = 2; i < n-1; i++)
     bprime[i] = b[i][i] - b[i][i-1]*b[i-1][i]/bprime[i-1];
 
   for (int i = 1; i < n-1; i++) {
@@ -1119,7 +1101,7 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
     if (i < n-2) b[i][i+1] = dx;
   }
   bprime[1] = b[1][1];
-  for(int i = 2; i < n-1; i++)
+  for (int i = 2; i < n-1; i++)
     bprime[i] = b[i][i] - b[i][i-1]*b[i-1][i]/bprime[i-1];
 
   // compute p
@@ -1170,10 +1152,10 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
   for (int i = 0; i < n; i++) {
     for (int j = 1; j < n-1; j++) {
       d = 3 * (u[i][j+1] - u[i][j-1]);
-      if(j == 1) d -= dy * q[i][j-1];
-      if(j == n-2) d -= dy * q[i][j+1];
+      if (j == 1) d -= dy * q[i][j-1];
+      if (j == n-2) d -= dy * q[i][j+1];
       dprime[j] = d;
-      if(j != 1) dprime[j] -= b[j][j-1] * dprime[j-1] / bprime[j-1];
+      if (j != 1) dprime[j] -= b[j][j-1] * dprime[j-1] / bprime[j-1];
     }
 
     q[i][n-2] = dprime[n-2] / bprime[n-2];
@@ -1186,10 +1168,10 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
   for (int i = 0; i < n; i++) {
     for (int j = 1; j < n-1; j++) {
       d = 3 * (p[i][j+1] - p[i][j-1]);
-      if(j == 1) d -= dy * s[i][j-1];
-      if(j == n-2) d -= dy * s[i][j+1];
+      if (j == 1) d -= dy * s[i][j-1];
+      if (j == n-2) d -= dy * s[i][j+1];
       dprime[j] = d;
-      if(j != 1) dprime[j] -= b[j][j-1] * dprime[j-1] / bprime[j-1];
+      if (j != 1) dprime[j] -= b[j][j-1] * dprime[j-1] / bprime[j-1];
     }
 
     s[i][n-2] = dprime[n-2] / bprime[n-2];
@@ -1533,7 +1515,7 @@ void PairMesoCNT::geometry(const double *r1, const double *r2,
   cross3(ez,ex,ey);
 
   double alpha;
-  if(dot3(m,ey) < 0) alpha = acos(psi);
+  if (dot3(m,ey) < 0) alpha = acos(psi);
   else alpha = MY_2PI - acos(psi);
 
   sub3(r1,rbar,delr1);
@@ -1627,7 +1609,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 
   // parallel case 
 
-  if(sin_alphasq < SWITCH) {
+  if (sin_alphasq < SWITCH) {
     double ubar = spline(h,hstart_uinf,delh_uinf,uinf_coeff,uinf_points);
     double delxi = xi2 - xi1;
     f[0][0] = 0.5 * delxi 

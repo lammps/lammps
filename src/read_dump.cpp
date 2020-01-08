@@ -434,8 +434,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
   // all filereader procs close all their files and return
 
   if (ntimestep < 0) {
-    for (int i = 0; i < nreader; i++)
-      readers[i]->close_file();
+    if (filereader)
+      for (int i = 0; i < nreader; i++)
+        readers[i]->close_file();
     return ntimestep;
   }
 

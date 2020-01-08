@@ -408,7 +408,8 @@ void DynamicalMatrix::update_force()
         timer->stamp(Timer::COMM);
     }
 
-    // force modifications, 
+    // force modifications
+
     if (n_post_force) modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
 

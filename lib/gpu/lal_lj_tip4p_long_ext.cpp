@@ -138,9 +138,9 @@ double ljtip4p_long_gpu_bytes() {
   return LJTIP4PLMF.host_memory_usage();
 }
 
-void ljtip4p_long_copy_molecule_data(int n, int* tag,
-    int *map_array, int map_size,
-    int *sametag, int max_same, int ago){
+void ljtip4p_long_copy_molecule_data(int n, tagint* tag,
+                                     int *map_array, int map_size,
+                                     int *sametag, int max_same, int ago) {
   LJTIP4PLMF.copy_relations_data(n, tag, map_array, map_size, sametag, max_same, ago);
 }
 

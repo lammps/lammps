@@ -204,10 +204,10 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
   this->k_pair.set_size(GX,BX);
-  if (vflag){
-	  this->ansO.resize_ib(ainum*3);
+  if (vflag) {
+          this->ansO.resize_ib(ainum*3);
   } else {
-	  this->ansO.resize_ib(ainum);
+          this->ansO.resize_ib(ainum);
   }
   this->ansO.zero();
   this->device->gpu->sync();
@@ -229,8 +229,8 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
 
 
 template <class numtyp, class acctyp>
-void LJTIP4PLongT::copy_relations_data(int n, int* tag, int *map_array,
-                      int map_size, int *sametag, int max_same, int ago){
+void LJTIP4PLongT::copy_relations_data(int n, tagint *tag, int *map_array,
+                      int map_size, int *sametag, int max_same, int ago) {
   int nall = n;
   const int hn_sz = n*4; // matrix size = col size * col number
   hneight.resize_ib(hn_sz);

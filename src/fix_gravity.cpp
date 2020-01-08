@@ -37,7 +37,7 @@ enum{CONSTANT,EQUAL};
 
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL), 
+  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL),
   xstr(NULL), ystr(NULL), zstr(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix gravity command");

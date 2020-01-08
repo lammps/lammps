@@ -133,6 +133,8 @@ action fix_reaxc_bonds_kokkos.cpp fix_reaxc_bonds.cpp
 action fix_reaxc_bonds_kokkos.h fix_reaxc_bonds.h
 action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
 action fix_reaxc_species_kokkos.h fix_reaxc_species.h
+action fix_rigid_kokkos.cpp fix_rigid.cpp
+action fix_rigid_kokkos.h fix_rigid.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp

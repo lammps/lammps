@@ -32,7 +32,7 @@ class FixRigid : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
-  void post_force(int);
+  virtual void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
@@ -40,15 +40,15 @@ class FixRigid : public Fix {
   virtual double compute_scalar();
 
   double memory_usage();
-  void grow_arrays(int);
+  virtual void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
   void setup_pre_neighbor();
-  void pre_neighbor();
-  int dof(int);
+  virtual void pre_neighbor();
+  virtual int dof(int);
   void deform(int);
   void enforce2d();
   void reset_dt();
@@ -56,8 +56,8 @@ class FixRigid : public Fix {
   void zero_rotation();
   virtual int modify_param(int, char **);
   virtual void *extract(const char*, int &);
-  double extract_ke();
-  double extract_erotational();
+  virtual double extract_ke();
+  virtual double extract_erotational();
   double compute_array(int, int);
 
  protected:
@@ -114,6 +114,7 @@ class FixRigid : public Fix {
 
   double tfactor;           // scale factor on temperature of rigid bodies
   int langflag;             // 0/1 = no/yes Langevin thermostat
+  int seed;                 // seed for Langevin random number generator
 
   int tstat_flag;           // NVT settings
   double t_start,t_stop,t_target;

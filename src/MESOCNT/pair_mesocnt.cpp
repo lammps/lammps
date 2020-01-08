@@ -133,11 +133,12 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int *mol = atom->molecule;
   int nlocal = atom->nlocal;
   int nbondlist = neighbor->nbondlist;
+  int newton_pair = force->newton_pair;
 
   // update bond neighbor list when necessary
   if (update->ntimestep == neighbor->lastcall) bond_neigh();
 
-  int output_index = 248;
+  int output_index = 0;
 
   // iterate over all bonds
 
@@ -161,14 +162,9 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // assign end position
 
-      if (end[j] == 1) {
-        end_index = chain[j][0];
-        qe = x[end_index];
-      }
-      else if (end[j] == 2) {
-        end_index = chain[j][clen-1];
-        qe = x[end_index];
-      }
+      end_index = end[j];
+      if (end_index == 1) qe = x[chain[j][0]];
+      else if (end_index == 2) qe = x[chain[j][clen-1]];
 
       // numerical differentiation of substitute chain
 
@@ -204,8 +200,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
             weight(inc,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
             if (w[k] == 0.0) {
-              if (end[j] == 1 && k == 0) end[j] = 0;
-              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              if (end_index == 1 && k == 0) end_index = 0;
+              else if (end_index == 2 && k == clen-2) end_index = 0;
               continue;
             }
      
@@ -218,11 +214,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
           scale3(sumw_inv,lo1);
           scale3(sumw_inv,lo2);
 
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(inc,r2,lo1,lo2,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(inc,r2,lo1,lo2,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -248,8 +244,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
             weight(inc,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
             if (w[k] == 0.0) {
-              if (end[j] == 1 && k == 0) end[j] = 0;
-              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              if (end_index == 1 && k == 0) end_index = 0;
+              else if (end_index == 2 && k == clen-2) end_index = 0;
               continue;
             }
      
@@ -262,11 +258,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
           scale3(sumw_inv,hi1);
           scale3(sumw_inv,hi2);
 
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(inc,r2,hi1,hi2,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(inc,r2,hi1,hi2,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -310,8 +306,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
             weight(r1,inc,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
             if (w[k] == 0.0) {
-              if (end[j] == 1 && k == 0) end[j] = 0;
-              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              if (end_index == 1 && k == 0) end_index = 0;
+              else if (end_index == 2 && k == clen-2) end_index = 0;
               continue;
             }
      
@@ -324,11 +320,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
           scale3(sumw_inv,lo1);
           scale3(sumw_inv,lo2);
 
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,inc,lo1,lo2,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,inc,lo1,lo2,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -354,8 +350,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
             weight(r1,inc,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
             if (w[k] == 0.0) {
-              if (end[j] == 1 && k == 0) end[j] = 0;
-              else if (end[j] == 2 && k == clen-2) end[j] = 0;
+              if (end_index == 1 && k == 0) end_index = 0;
+              else if (end_index == 2 && k == clen-2) end_index = 0;
               continue;
             }
      
@@ -368,11 +364,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
           scale3(sumw_inv,hi1);
           scale3(sumw_inv,hi2);
 
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,inc,hi1,hi2,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,inc,hi1,hi2,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -435,8 +431,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
               else weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
               if (w[k] == 0.0) {
-                if (end[j] == 1 && k == 0) end[j] = 0;
-                else if (end[j] == 2 && k == clen-2) end[j] = 0;
+                if (end_index == 1 && k == 0) end_index = 0;
+                else if (end_index == 2 && k == clen-2) end_index = 0;
                 continue;
               }
        
@@ -451,11 +447,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
             scale3(sumw_inv,lo1);
             scale3(sumw_inv,lo2);
 
-            if (end[j] == 0) {
+            if (end_index == 0) {
               geometry(r1,r2,lo1,lo2,NULL,p,m,param,basis);
               finf(param,lo,flocal);
             }
-            else if (end[j] == 1) {
+            else if (end_index == 1) {
               geometry(r1,r2,lo1,lo2,qe,p,m,param,basis);
               fsemi(param,lo,fend,flocal);
             }
@@ -489,8 +485,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
               else weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
               if (w[k] == 0.0) {
-                if (end[j] == 1 && k == 0) end[j] = 0;
-                else if (end[j] == 2 && k == clen-2) end[j] = 0;
+                if (end_index == 1 && k == 0) end_index = 0;
+                else if (end_index == 2 && k == clen-2) end_index = 0;
                 continue;
               }
        
@@ -505,11 +501,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
             scale3(sumw_inv,hi1);
             scale3(sumw_inv,hi2);
 
-            if (end[j] == 0) {
+            if (end_index == 0) {
               geometry(r1,r2,hi1,hi2,NULL,p,m,param,basis);
               finf(param,hi,flocal);
             }
-            else if (end[j] == 1) {
+            else if (end_index == 1) {
               geometry(r1,r2,hi1,hi2,qe,p,m,param,basis);
               fsemi(param,hi,fend,flocal);
             }
@@ -560,8 +556,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	      weight(r1,r2,q1,q2,w[k],dr1_w,dr2_w,dq1_w,dq2_w);
 
         if (w[k] == 0.0) {
-          if (end[j] == 1 && k == 0) end[j] = 0;
-	        else if (end[j] == 2 && k == clen-2) end[j] = 0;
+          if (end_index == 1 && k == 0) end_index = 0;
+	        else if (end_index == 2 && k == clen-2) end_index = 0;
 	        continue;
 	      }
  
@@ -618,11 +614,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
         for (k = 0; k < 3; k++) {
           copy3(r1,inc);
           inc[k] -= delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(inc,r2,p1,p2,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(inc,r2,p1,p2,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -633,11 +629,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           copy3(r1,inc);
           inc[k] += delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(inc,r2,p1,p2,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(inc,r2,p1,p2,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -657,11 +653,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
         for (k = 0; k < 3; k++) {
           copy3(r2,inc);
           inc[k] -= delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,inc,p1,p2,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,inc,p1,p2,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -672,11 +668,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           copy3(r2,inc);
           inc[k] += delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,inc,p1,p2,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,inc,p1,p2,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -696,11 +692,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
         for (k = 0; k < 3; k++) {
           copy3(p1,inc);
           inc[k] -= delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,r2,inc,p2,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,r2,inc,p2,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -711,11 +707,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           copy3(p1,inc);
           inc[k] += delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,r2,inc,p2,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,r2,inc,p2,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -735,11 +731,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
         for (k = 0; k < 3; k++) {
           copy3(p2,inc);
           inc[k] -= delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,r2,p1,inc,NULL,p,m,param,basis);
             finf(param,lo,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,r2,p1,inc,qe,p,m,param,basis);
             fsemi(param,lo,fend,flocal);
           }
@@ -750,11 +746,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           copy3(p2,inc);
           inc[k] += delta;
-          if (end[j] == 0) {
+          if (end_index == 0) {
             geometry(r1,r2,p1,inc,NULL,p,m,param,basis);
             finf(param,hi,flocal);
           }
-          else if (end[j] == 1) {
+          else if (end_index == 1) {
             geometry(r1,r2,p1,inc,qe,p,m,param,basis);
             fsemi(param,hi,fend,flocal);
           }
@@ -769,17 +765,17 @@ void PairMesoCNT::compute(int eflag, int vflag)
         num << std::endl;
         num.close();
  
-        if (end[j] != 0) {
+        if (end_index != 0) {
           num.open("fnqe.txt",std::ios_base::app);
           num << update->ntimestep;
           for (k = 0; k < 3; k++) {
             copy3(qe,inc);
             inc[k] -= delta;
-            if (end[j] == 0) {
+            if (end_index == 0) {
               geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
               finf(param,lo,flocal);
             }
-            else if (end[j] == 1) {
+            else if (end_index == 1) {
               geometry(r1,r2,p1,p2,inc,p,m,param,basis);
               fsemi(param,lo,fend,flocal);
             }
@@ -790,11 +786,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
             copy3(qe,inc);
             inc[k] += delta;
-            if (end[j] == 0) {
+            if (end_index == 0) {
               geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
               finf(param,hi,flocal);
             }
-            else if (end[j] == 1) {
+            else if (end_index == 1) {
               geometry(r1,r2,p1,p2,inc,p,m,param,basis);
               fsemi(param,hi,fend,flocal);
             }
@@ -815,7 +811,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // infinite CNT case
 
-      if (end[j] == 0) {
+      if (end_index == 0) {
         geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
 	      finf(param,evdwl,flocal);
@@ -823,7 +819,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // semi-infinite CNT case with end at start of chain
 
-      else if (end[j] == 1) {
+      else if (end_index == 1) {
         geometry(r1,r2,p1,p2,qe,p,m,param,basis);
 	      if (param[0] > cutoff) continue;
 	      fsemi(param,evdwl,fend,flocal);
@@ -845,7 +841,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // forces acting on approximate chain
  
       add3(fglobal[0],fglobal[1],ftotal);
-      if (end[j] != 0) scaleadd3(fend,m,ftotal,ftotal);
+      if (end_index != 0) scaleadd3(fend,m,ftotal,ftotal);
       scale3(-0.5,ftotal);
       
       sub3(r1,p,delr1);
@@ -858,8 +854,14 @@ void PairMesoCNT::compute(int eflag, int vflag)
       lp = param[5] - param[4];
       scale3(1.0/lp,ftorque);
 
-      add3(ftotal,ftorque,fglobal[2]);
-      sub3(ftotal,ftorque,fglobal[3]);
+      if (end_index == 2) {
+        add3(ftotal,ftorque,fglobal[3]);
+        sub3(ftotal,ftorque,fglobal[2]);
+      }
+      else {
+        add3(ftotal,ftorque,fglobal[2]);
+        sub3(ftotal,ftorque,fglobal[3]);
+      }
 
       scale3(0.5,fglobal[0]);
       scale3(0.5,fglobal[1]);
@@ -877,18 +879,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
       outer3(p2,dr2_sumw,temp);
       minus3(q2_dr2_w,temp,dr2_p2);
      
-      if (end[j] == 2) {
-        transpose_matvec(dr1_p1,fglobal[3],fgrad_r1_p1);
-        transpose_matvec(dr1_p2,fglobal[2],fgrad_r1_p2);
-        transpose_matvec(dr2_p1,fglobal[3],fgrad_r2_p1);
-        transpose_matvec(dr2_p2,fglobal[2],fgrad_r2_p2);
-      }
-      else {
-        transpose_matvec(dr1_p1,fglobal[2],fgrad_r1_p1);
-        transpose_matvec(dr1_p2,fglobal[3],fgrad_r1_p2);
-        transpose_matvec(dr2_p1,fglobal[2],fgrad_r2_p1);
-        transpose_matvec(dr2_p2,fglobal[3],fgrad_r2_p2);
-      }
+      transpose_matvec(dr1_p1,fglobal[2],fgrad_r1_p1);
+      transpose_matvec(dr1_p2,fglobal[3],fgrad_r1_p2);
+      transpose_matvec(dr2_p1,fglobal[2],fgrad_r2_p1);
+      transpose_matvec(dr2_p2,fglobal[3],fgrad_r2_p2);
 
       if (tag[i1] == output_index) {
         std::ofstream ex;
@@ -928,7 +922,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
         ex.close();
 
         ex.open("end.txt",std::ios_base::app);
-        ex << update->ntimestep << " " << end[j] << std::endl;
+        ex << update->ntimestep << " " << end_index << std::endl;
         ex.close();
 
         ex.open("p1r1.txt",std::ios_base::app);
@@ -966,12 +960,16 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       // add forces to nodes in current segment
       
-      add3(fglobal[0],f[i1],f[i1]);
-      add3(fglobal[1],f[i2],f[i2]);
-      scaleadd3(sumw_inv,fgrad_r1_p1,f[i1],f[i1]);
-      scaleadd3(sumw_inv,fgrad_r1_p2,f[i1],f[i1]);
-      scaleadd3(sumw_inv,fgrad_r2_p1,f[i2],f[i2]);
-      scaleadd3(sumw_inv,fgrad_r2_p2,f[i2],f[i2]);
+      if (i1 < nlocal || newton_pair) add3(fglobal[0],f[i1],f[i1]);
+      if (i2 < nlocal || newton_pair) add3(fglobal[1],f[i2],f[i2]);
+      if (i1 < nlocal || newton_pair) {
+        scaleadd3(sumw_inv,fgrad_r1_p1,f[i1],f[i1]);
+        scaleadd3(sumw_inv,fgrad_r1_p2,f[i1],f[i1]);
+      }
+      if (i2 < nlocal || newton_pair) {
+        scaleadd3(sumw_inv,fgrad_r2_p1,f[i2],f[i2]);
+        scaleadd3(sumw_inv,fgrad_r2_p2,f[i2],f[i2]);
+      }
 
       // add forces in approximate chain
 
@@ -982,12 +980,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
         j1 &= NEIGHMASK;
         j2 &= NEIGHMASK;
         scale = w[k] * sumw_inv;
-        if (j1 < nlocal) 
-          if (end[j] == 2) scaleadd3(scale,fglobal[3],f[j1],f[j1]);
-          else scaleadd3(scale,fglobal[2],f[j1],f[j1]);
-        if (j2 < nlocal) 
-          if (end[j] == 2)  scaleadd3(scale,fglobal[2],f[j2],f[j2]);
-          else scaleadd3(scale,fglobal[3],f[j2],f[j2]);
+        if (j1 < nlocal || newton_pair) scaleadd3(scale,fglobal[2],f[j1],f[j1]);
+        if (j2 < nlocal || newton_pair) scaleadd3(scale,fglobal[3],f[j2],f[j2]);
       }
 
       // weight gradient terms acting on approximate chain
@@ -997,20 +991,14 @@ void PairMesoCNT::compute(int eflag, int vflag)
         if (wnode[k] == 0.0) continue;
         j1 = chain[j][k];
         j1 &= NEIGHMASK;
-        if (j1 >= nlocal) continue;
+        //if (j1 >= nlocal) continue;
         outer3(p1,dq_w[k],temp);
         minus3(q1_dq_w[k],temp,dq_p1);
         outer3(p2,dq_w[k],temp);
         minus3(q2_dq_w[k],temp,dq_p2);
 
-        if (end[j] == 2) {
-          transpose_matvec(dq_p1,fglobal[3],fgrad_q_p1);
-          transpose_matvec(dq_p2,fglobal[2],fgrad_q_p2);
-        }
-        else {
-          transpose_matvec(dq_p1,fglobal[2],fgrad_q_p1);
-          transpose_matvec(dq_p2,fglobal[3],fgrad_q_p2);
-        }
+        transpose_matvec(dq_p1,fglobal[2],fgrad_q_p1);
+        transpose_matvec(dq_p2,fglobal[3],fgrad_q_p2);
 
         scaleadd3(sumw_inv,fgrad_q_p1,f[j1],f[j1]);
         scaleadd3(sumw_inv,fgrad_q_p2,f[j1],f[j1]);
@@ -1039,11 +1027,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           for (int k1 = 0; k1 < 3; k1++) {
             double fex = sumw_inv * (fgrad_q_p1[k1] + fgrad_q_p2[k1]);
-            double f1,f2;
-            if (end[j] == 2) f1 = fglobal[2][k1];
-            else f1 = fglobal[3][k1];
-            if (end[j] == 2) f2 = fglobal[3][k1];
-            else f2 = fglobal[2][k1];
+            double f1 = fglobal[3][k1];
+            double f2 = fglobal[2][k1];
             if (k != 0) fex += w[k-1]*sumw_inv*f1;
             if (k != clen-1) fex += w[k]*sumw_inv*f2;
             ex << " " << fex;
@@ -1064,9 +1049,19 @@ void PairMesoCNT::compute(int eflag, int vflag)
       
       // force on node at CNT end
       
-      if (end[j] != 0) {
+      if (end_index == 1) {
         copy3(m,fend_vector);
-        scaleadd3(0.5*fend,fend_vector,f[end_index],f[end_index]);
+        scaleadd3(0.5*fend,fend_vector,f[chain[j][0]],f[chain[j][0]]);
+        if (tag[i1] == output_index) {
+          std::ofstream ex;
+          ex.open("fqe.txt",std::ios_base::app);
+          ex << update->ntimestep << " " << 0.5*fend*fend_vector[0] << " " << 0.5*fend*fend_vector[1] << " " << 0.5*fend*fend_vector[2] << std::endl;
+          ex.close();
+        }
+      }
+      else if (end_index == 2) {
+        copy3(m,fend_vector);
+        scaleadd3(0.5*fend,fend_vector,f[chain[j][clen-1]],f[chain[j][clen-1]]);
         if (tag[i1] == output_index) {
           std::ofstream ex;
           ex.open("fqe.txt",std::ios_base::app);
@@ -1279,8 +1274,8 @@ void PairMesoCNT::init_style()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style mesoCNT requires atom IDs");
-  if (force->newton_pair == 1)
-    error->all(FLERR,"Pair style mesoCNT requires newton pair off");
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style mesoCNT requires newton pair on");
 
   // need a full neighbor list
 
@@ -1321,9 +1316,9 @@ void PairMesoCNT::bond_neigh()
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
     int numneigh1,numneigh2;
-    if (i1 > nlocal-1) numneigh1 = 0;
+    if (i1 > nlocal-1 && false) numneigh1 = 0;
     else numneigh1 = numneigh[i1];
-    if (i2 > nlocal-1) numneigh2 = 0;
+    if (i2 > nlocal-1 && false) numneigh2 = 0;
     else numneigh2 = numneigh[i2];
 
     int numneigh_max_local = numneigh1 + numneigh1;
@@ -1482,12 +1477,14 @@ void PairMesoCNT::chain_split(int *redlist, int numred,
     if (tagstart == 1) end[j] = 1;
     else {
       int idprev = atom->map(tagstart-1);
-      if (idprev == -1 || mol[cstart] != mol[idprev]) end[j] = 1;
+      //if (idprev == -1 || mol[cstart] != mol[idprev]) end[j] = 1;
+      if (mol[cstart] != mol[idprev]) end[j] = 1;
     }
     if (tagend == atom->natoms) end[j] = 2;
     else {
       int idnext = atom->map(tagend+1);
-      if (idnext == -1 || mol[cend] != mol[idnext]) end[j] = 2;
+      //if (idnext == -1 || mol[cend] != mol[idnext]) end[j] = 2;
+      if (mol[cend] != mol[idnext]) end[j] = 2;
     }
   }
 

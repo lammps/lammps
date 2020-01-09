@@ -48,8 +48,6 @@ namespace MathExtra {
 
   inline void col2mat(const double *ex, const double *ey, const double *ez,
                       double m[3][3]);
-  inline void zeromat3(double m[3][3]);
-  inline void zeromat3(double **m);
   inline double det3(const double mat[3][3]);
   inline void diag_times3(const double *d, const double m[3][3],
                           double ans[3][3]);
@@ -57,13 +55,6 @@ namespace MathExtra {
                           double ans[3][3]);
   inline void plus3(const double m[3][3], const double m2[3][3],
                     double ans[3][3]);
-  inline void plus3(const double m[3][3], double **m2,
-                    double **ans);
-  inline void minus3(const double m[3][3], const double m2[3][3],
-                    double ans[3][3]);
-  inline void minus3(double **m, const double m2[3][3],
-                    double ans[3][3]);
-  inline void outer3(const double *v1, const double *v2, double ans[3][3]);
   inline void times3(const double m[3][3], const double m2[3][3],
                      double ans[3][3]);
   inline void transpose_times3(const double m[3][3], const double m2[3][3],
@@ -326,28 +317,6 @@ void MathExtra::col2mat(const double *ex, const double *ey, const double *ez,
 }
 
 /* ----------------------------------------------------------------------
-   set matrix to zero
-------------------------------------------------------------------------- */
-
-inline void MathExtra::zeromat3(double m[3][3])
-{
-  m[0][0] = m[0][1] = m[0][2] = 0.0;
-  m[1][0] = m[1][1] = m[1][2] = 0.0;
-  m[2][0] = m[2][1] = m[2][2] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   set matrix to zero
-------------------------------------------------------------------------- */
-
-inline void MathExtra::zeromat3(double **m)
-{
-  m[0][0] = m[0][1] = m[0][2] = 0.0;
-  m[1][0] = m[1][1] = m[1][2] = 0.0;
-  m[2][0] = m[2][1] = m[2][2] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
    determinant of a matrix
 ------------------------------------------------------------------------- */
 
@@ -411,72 +380,6 @@ inline void MathExtra::plus3(const double m[3][3], const double m2[3][3],
   ans[2][0] = m[2][0]+m2[2][0];
   ans[2][1] = m[2][1]+m2[2][1];
   ans[2][2] = m[2][2]+m2[2][2];
-}
-
-/* ----------------------------------------------------------------------
-   add two matrices
-------------------------------------------------------------------------- */
-
-inline void MathExtra::plus3(const double m[3][3], double **m2,
-                             double **ans)
-{
-  ans[0][0] = m[0][0]+m2[0][0];
-  ans[0][1] = m[0][1]+m2[0][1];
-  ans[0][2] = m[0][2]+m2[0][2];
-  ans[1][0] = m[1][0]+m2[1][0];
-  ans[1][1] = m[1][1]+m2[1][1];
-  ans[1][2] = m[1][2]+m2[1][2];
-  ans[2][0] = m[2][0]+m2[2][0];
-  ans[2][1] = m[2][1]+m2[2][1];
-  ans[2][2] = m[2][2]+m2[2][2];
-}
-
-/* ----------------------------------------------------------------------
-   subtract two matrices
-------------------------------------------------------------------------- */
-
-inline void MathExtra::minus3(const double m[3][3], const double m2[3][3],
-                             double ans[3][3])
-{
-  ans[0][0] = m[0][0]-m2[0][0];
-  ans[0][1] = m[0][1]-m2[0][1];
-  ans[0][2] = m[0][2]-m2[0][2];
-  ans[1][0] = m[1][0]-m2[1][0];
-  ans[1][1] = m[1][1]-m2[1][1];
-  ans[1][2] = m[1][2]-m2[1][2];
-  ans[2][0] = m[2][0]-m2[2][0];
-  ans[2][1] = m[2][1]-m2[2][1];
-  ans[2][2] = m[2][2]-m2[2][2];
-}
-
-/* ----------------------------------------------------------------------
-   subtract two matrices
-------------------------------------------------------------------------- */
-
-inline void MathExtra::minus3(double **m, const double m2[3][3],
-                             double ans[3][3])
-{
-  ans[0][0] = m[0][0]-m2[0][0];
-  ans[0][1] = m[0][1]-m2[0][1];
-  ans[0][2] = m[0][2]-m2[0][2];
-  ans[1][0] = m[1][0]-m2[1][0];
-  ans[1][1] = m[1][1]-m2[1][1];
-  ans[1][2] = m[1][2]-m2[1][2];
-  ans[2][0] = m[2][0]-m2[2][0];
-  ans[2][1] = m[2][1]-m2[2][1];
-  ans[2][2] = m[2][2]-m2[2][2];
-}
-
-/* ----------------------------------------------------------------------
-   add two matrices
-------------------------------------------------------------------------- */
-
-inline void MathExtra::outer3(const double *v1, const double *v2,
-                              double ans[3][3])
-{
-  ans[0][0] = v1[0]*v2[0]; ans[0][1] = v1[0]*v2[1]; ans[0][2] = v1[0]*v2[2];
-  ans[1][0] = v1[1]*v2[0]; ans[1][1] = v1[1]*v2[1]; ans[1][2] = v1[1]*v2[2];
-  ans[2][0] = v1[2]*v2[0]; ans[2][1] = v1[2]*v2[1]; ans[2][2] = v1[2]*v2[2];
 }
 
 /* ----------------------------------------------------------------------

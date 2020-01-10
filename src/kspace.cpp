@@ -211,9 +211,9 @@ void KSpace::pair_check()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
 
   if (!force->kspace->tildflag) {
-  if (force->pair->dispersionflag && !dispersionflag)
+    if (force->pair->dispersionflag && !dispersionflag)
       error->all(FLERR, "KSpace style is incompatible with Pair style");
-  if (force->pair->tip4pflag && !tip4pflag)
+    if (force->pair->tip4pflag && !tip4pflag)
       error->all(FLERR, "KSpace style is incompatible with Pair style");
   }
 }

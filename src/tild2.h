@@ -46,6 +46,9 @@ class TILD : public KSpace{
 
  protected:
   FFT_SCALAR **grad_uG, **grad_uG_hat, *temp;
+  FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
+  int **potent_map;
+  void generate_potential(FFT_SCALAR*, int, double*);
   FFT_SCALAR *****gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
@@ -53,6 +56,10 @@ class TILD : public KSpace{
   int nmax;
   FFT_SCALAR **vg_hat;
   void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
+  void complex_multiply(double*,double*, int);
+  double **potent_param;
+  int npot, *pot_map;
+  double rho0;
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;
@@ -63,9 +70,14 @@ class TILD : public KSpace{
   double **ek;
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
+  int *assigned_pot, *potent_to_compressed;
+  int **group_with_potential;
   int factorable(int);
   double **param;
   virtual int modify_param(int, char**);
+  int add_potent_param(int, char**);
+  double **potent_coeff;
+  int num_potent;
 
   // group-group interactions
 
@@ -80,6 +92,7 @@ class TILD : public KSpace{
   void deallocate();
   void slabcorr();
   void init_gauss();
+  void init_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
 
@@ -90,7 +103,7 @@ class TILD : public KSpace{
   int nfactors;
   int *factors;
   double cutoff;
-  double kappa;
+  double kappa, w_3body;
   double delxinv,delyinv,delzinv,delvolinv;
   double h_x,h_y,h_z;
   double shift,shiftone;
@@ -103,6 +116,7 @@ class TILD : public KSpace{
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
   int subtract_rho0, normalize_by_rho0, sub_flag, norm_flag;
+  int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
@@ -146,9 +160,9 @@ class TILD : public KSpace{
   virtual void deallocate_peratom();
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
-  virtual double compute_qopt();
-  virtual double compute_qopt_ik();
-  virtual double compute_qopt_ad();
+  // virtual double compute_qopt();
+  // virtual double compute_qopt_ik();
+  // virtual double compute_qopt_ad();
   // virtual void compute_gf_denom();
   // virtual void compute_gf_ik();
   // virtual void compute_gf_ad();

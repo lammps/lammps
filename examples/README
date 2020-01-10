@@ -164,6 +164,9 @@ The MC directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 
+The TIP4P directory has an example for comparing testing forces
+computed on a GPU.
+
 The UNITS directory contains examples of input scripts modeling the
 same Lennard-Jones liquid model, written in 3 different unit systems:
 lj, real, and metal.  So that you can see how to scale/unscale input

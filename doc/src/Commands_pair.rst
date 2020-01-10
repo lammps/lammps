@@ -146,7 +146,7 @@ OPT.
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj>`
-   * :doc:`lj/cut/tip4p/long (ot) <pair_lj>`
+   * :doc:`lj/cut/tip4p/long (got) <pair_lj>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (g) <pair_lj_expand>`

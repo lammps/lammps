@@ -37,6 +37,7 @@
 #include "angle.h"
 #include "bond.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -91,6 +92,7 @@ PairLJCutTIP4PLongGPU::PairLJCutTIP4PLongGPU(LAMMPS *lmp)
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

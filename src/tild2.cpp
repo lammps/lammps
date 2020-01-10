@@ -134,6 +134,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   nmax = 0;
   sub_flag  = 1;
+  subtract_rho0 = 0;
   norm_flag = 1;
   part2grid = NULL;
 

@@ -24,6 +24,7 @@
 #include "remap_wrap.h"
 #include "error.h"
 #include <iostream>
+#include <fstream>
 #include "fft3d_wrap.h"
 #include "pppm.h"
 #include "group.h"
@@ -38,6 +39,8 @@ using namespace MathConst;
 #define OFFSET 16384
 #define PI 3.141592653589793238462643383279
 #define MAXORDER   7
+#define MAXPARAM   3 // Update as new potentials are introduced
+#define MAX_GROUP 32
 
 enum{REVERSE_RHO, REVERSE_RHO_NONE};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM, FORWARD_NONE};
@@ -126,6 +129,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   remap = NULL;
   cg = NULL;
   cg_peratom = NULL;
+  specified_all_group = 0;
+  pot_map = NULL;
 
   nmax = 0;
   sub_flag  = 1;
@@ -137,6 +142,15 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   // higher order coefficients may be computed if needed
 
   memory->create(param,group->ngroup,group->ngroup,"pppm:param");
+  memory->create(potent_param,MAX_GROUP,MAXPARAM,
+  "tild:potent_param");
+  memory->create(group_with_potential,MAX_GROUP,MAX_GROUP,
+  "tild:group_with_potential");
+  for (int i =0; i < MAX_GROUP; i++){
+    for (int j = 0; j < MAX_GROUP; j++) {
+        group_with_potential[i][j] = -1;
+    }
+  }
   memory->create(acons,8,7,"pppm:acons");
   acons[1][0] = 2.0 / 3.0;
   acons[2][0] = 1.0 / 50.0;
@@ -233,6 +247,17 @@ void TILD::init()
 
 void TILD::setup(){
 
+  // ADD A SECTION TO CALCULATE RHO0
+
+  if (specified_all_group == 0){
+    if (comm->me == 0)
+      error->warning(
+          FLERR,
+          "No groups specified for the total density. Using the all group.");
+    start_group_ind = 0;
+  }
+  else start_group_ind = 1;
+
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
   if (slabflag == 1) {
@@ -268,6 +293,35 @@ void TILD::setup(){
 
   delvolinv = delxinv*delyinv*delzinv;
 
+  int ind = 0;
+  memory->create(pot_map, npot, "tild:pot_map");
+  memory->create(potent_to_compressed, MAX_GROUP, "tild:potent_to_compressed");
+
+  for (int i =0; i < MAX_GROUP; i++){
+    if (potent_param[i][0] != 0)
+    pot_map[ind] = i;
+    potent_to_compressed[i] = ind;
+    ind++;
+  }
+
+  for (int j = 0; j < npot; j++) {
+    ind = 0;
+    for (int i = 0; i < MAX_GROUP; i++) {
+      if (assigned_pot[i] == j)
+      group_with_potential[j][ind++] = i;
+    }
+  }
+
+  memory->create(potent_map, npot,npot, "tild:potent_map");
+  int k = 0;
+  for (int i = 0; i < npot; i++) {
+    for (int j = 0; j < npot; j++) {
+      potent_map[i][j] = k++;
+      if (i != j) potent_map[i][j] = potent_map[j][i];
+    }
+  }
+
+  init_potentials();
   init_gauss();
   vir_func_init();
 
@@ -540,6 +594,12 @@ void TILD::allocate()
   memory->create(grad_uG,domain->dimension,nfft,"pppm:grad_uG");
   memory->create(grad_uG_hat,domain->dimension,2*nfft_both,"pppm:grad_uG_hat");
   memory->create(density_fft_types, group->ngroup, nfft_both, "pppm/tild:density_fft_types");
+  memory->create(potent,npot*(npot+1)/2,nfft_both,"pppm:potent");
+  memory->create(potent_hat,npot*(npot+1)/2,2*nfft_both,"pppm:potent_hat");
+  memory->create(grad_potent,npot*(npot+1)/2,domain->dimension,nfft_both,"pppm:grad_potent");
+  memory->create(grad_potent_hat,npot*(npot+1)/2, domain->dimension,2*nfft_both,"pppm:grad_potent_hat");
+  memory->create(assigned_pot,MAX_GROUP,"tild:assigned_pot");
+  for (int ind = 0; ind < MAX_GROUP; ind++) assigned_pot[ind] = -1;
 
   if (triclinic == 0) {
     memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
@@ -689,6 +749,7 @@ void TILD::deallocate()
   fft1 = fft2 = NULL;
   remap = NULL;
   cg = NULL;
+  memory->destroy(assigned_pot);
 }
 
 /* ----------------------------------------------------------------------
@@ -759,14 +820,14 @@ void TILD::set_grid()
       nzlo_fft = me_z*nz_pppm/npez_fft;
       nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-      double qopt = compute_qopt();
+      // double qopt = compute_qopt();
 
-      double dfkspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
+      // double dfkspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
 
       count++;
 
       // break loop if the accuracy has been reached or too many loops have been performed
-      if (dfkspace <= accuracy) break;
+      // if (dfkspace <= accuracy) break;
       if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction");
       h *= 0.95;
       h_x = h_y = h_z = h;
@@ -853,16 +914,16 @@ void TILD::set_grid_global()
         nzlo_fft = me_z*nz_pppm/npez_fft;
         nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-        double qopt = compute_qopt();
+        // double qopt = compute_qopt();
 
-        double df_kspace = compute_df_kspace();
+        // double df_kspace = compute_df_kspace();
 
         count++;
 
         // break loop if the accuracy has been reached or
         // too many loops have been performed
 
-        if (df_kspace <= accuracy) break;
+        // if (df_kspace <= accuracy) break;
         if (count > 500) error->all(FLERR, "Could not compute grid size");
         h *= 0.95;
         h_x = h_y = h_z = h;
@@ -1017,6 +1078,249 @@ void TILD::deallocate_peratom()
   cg_peratom = NULL;
 }
 
+void TILD::init_potentials(){
+  
+  // Represents the 0 to N-1 points that are captured on this grid.
+  int Dim = domain->dimension;
+  int l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  double mdr2;
+
+  // decomposition of FFT mesh
+  // global indices range from 0 to N-1
+  // proc owns entire x-dimension, clumps of columns in y,z dimensions
+  // npey_fft,npez_fft = # of procs in y,z dims
+  // if nprocs is small enough, proc can own 1 or more entire xy planes,
+  //   else proc owns 2d sub-blocks of yz plane
+  // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
+  // nlo_fft,nhi_fft = lower/upper limit of the section
+  //   of the global FFT mesh that I own
+
+  int npey_fft,npez_fft;
+  if (nz_pppm >= nprocs) {
+    npey_fft = 1;
+    npez_fft = nprocs;
+  } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+
+  int me_y = me % npey_fft;
+  int me_z = me / npey_fft;
+
+  nxlo_fft = 0;
+  nxhi_fft = nx_pppm - 1;
+  nylo_fft = me_y*ny_pppm/npey_fft;
+  nyhi_fft = (me_y+1)*ny_pppm/npey_fft - 1;
+  nzlo_fft = me_z*nz_pppm/npez_fft;
+  nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
+
+  // PPPM grid pts owned by this proc, including ghosts
+
+  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
+
+  // FFT grids owned by this proc, without ghosts
+  // nfft = FFT points in FFT decomposition on this proc
+  // nfft_brick = FFT points in 3d brick-decomposition on this proc
+  // nfft_both = greater of 2 values
+
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+
+  double xloca, zloca, yloca;
+  // double mdr2;
+
+  double yper, xper, zper;
+  int k;
+  double xprd=domain->xprd;
+  double yprd=domain->yprd;
+  double zprd=domain->zprd;
+  n = 0;
+
+  double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
+
+  double vole; // Note: the factor of V comes from the FFT
+  output->thermo->evaluate_keyword("vol",&vole);
+  for (int ind1 = 0; ind1 < npot; ind1++){
+    for (int ind2 = ind1; ind2 < npot; ind1++){
+      // If both parameters are Gaussian, just do analytical convolution
+      if (potent_param[pot_map[ind1]][0] == 1 && 
+          potent_param[pot_map[ind2]][0] == 1){
+            double a1_sq = potent_param[pot_map[ind1]][1];
+              a1_sq *= a1_sq;
+            double a2_sq = potent_param[pot_map[ind2]][1];
+              a2_sq *= a2_sq;
+            double a12_sq = a1_sq + a2_sq;
+        double pref = vole / (pow( sqrt(2.0 *PI * (a12_sq) ), Dim));
+        generate_potential(potent[potent_map[ind1][ind2]], 1, &a12_sq);
+
+      } 
+      else {
+        // Computational Convolution
+        double *param1, *param2;
+        param1 = &potent_coeff[pot_map[ind1]][1];
+        param2 = &potent_coeff[pot_map[ind2]][1];
+        int loc = potent_map[ind1][ind2];
+
+        // 1st Potential to be convolved
+        generate_potential(tmp,potent_coeff[pot_map[ind1]][0], param1 );
+
+        int j = 0;
+        for (int i = 0; i < nfft; i++) {
+          work1[j++] = tmp[i];
+          work1[j++] = ZEROF;
+        }
+
+        fft1->compute(work1, work1, 1);
+
+        for (int i = 0; i < 2 * nfft; i++) {
+          work1[i] *= scale_inv;
+        }
+
+        // 2nd Potential to be convolved
+        generate_potential(tmp,potent_coeff[pot_map[ind2]][0], param2 );
+
+        j = 0;
+        for (int i = 0; i < nfft; i++) {
+          work2[j++] = tmp[i];
+          work2[j++] = ZEROF;
+        }
+
+        fft1->compute(work2, work2, 1);
+
+        for (int i = 0; i < 2 * nfft; i++) {
+          work2[i] *= scale_inv;
+        }
+
+        // Convolution of potentials
+        for (int i = 0; i < nfft; i++) {
+          complex_multiply(work1, work2, ktmp, j);
+          potent_hat[loc][j]   = ktmp[j];
+          potent_hat[loc][j+1] = ktmp[j+1];
+          j += 2;
+        }
+        
+        get_k_alias(ktmp, grad_potent_hat[loc]);
+
+        fft1->compute(ktmp, work1, -1);
+
+        j = 0;
+        for (int i = 0; i < nfft; i++) {
+          potent[loc][i] = work1[j];
+          j += 2;
+        }
+
+        // grad_* goes k_th interaction, direction, values
+        for (int i = 0; i < Dim; i++) {
+          for (int j = 0; j < 2 * nfft; j++) {
+            work1[j] = grad_potent_hat[loc][i][j];
+          }
+          fft1->compute(work1, work2, -1);
+          n = 0;
+          for (int j = 0; j < nfft; j++) {
+            grad_potent[loc][i][j] = work2[n];
+            n += 2;
+          }
+        }
+
+      }
+    }
+  }
+
+}
+
+void TILD::generate_potential(FFT_SCALAR *wk1, int type, double* parameters){
+
+  int m,l,k;
+  int n=0;
+  double xprd=domain->xprd;
+  double yprd=domain->yprd;
+  double zprd=domain->zprd;
+  double zper,yper,xper;
+  double mdr2;
+  double *param1, *param2;
+
+  double vole; // Note: the factor of V comes from the FFT
+  output->thermo->evaluate_keyword("vol",&vole);
+  int Dim = domain->dimension;
+
+  if (type == 1) {
+    double pref = vole / (pow( sqrt(2.0 *PI * (parameters[0]) ), Dim));
+    for (m = nzlo_fft; m <= nzhi_fft; m++) {
+      zper = zprd * (static_cast<double>(m) / nz_pppm);
+      if (zper >= zprd / 2.0) {
+        zper = zprd - zper;
+      }
+
+      for (l = nylo_fft; l <= nyhi_fft; l++) {
+        yper = yprd * (static_cast<double>(l) / ny_pppm);
+        if (yper >= yprd / 2.0) {
+          yper = yprd - yper;
+        }
+
+        for (k = nxlo_fft; k <= nxhi_fft; k++) {
+          xper = xprd * (static_cast<double>(k) / nx_pppm);
+          if (xper >= xprd / 2.0) {
+            xper = xprd - xper;
+          }
+
+          mdr2 = xper * xper + yper * yper + zper * zper;
+          wk1[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
+        }
+      }
+    }
+  }
+  else if (type == 2) {
+    for (m = nzlo_fft; m <= nzhi_fft; m++) {
+      zper = zprd * (static_cast<double>(m) / nz_pppm);
+      if (zper >= zprd / 2.0) {
+        zper = zprd - zper;
+      }
+
+      for (l = nylo_fft; l <= nyhi_fft; l++) {
+        yper = yprd * (static_cast<double>(l) / ny_pppm);
+        if (yper >= yprd / 2.0) {
+          yper = yprd - yper;
+        }
+
+        for (k = nxlo_fft; k <= nxhi_fft; k++) {
+          xper = xprd * (static_cast<double>(k) / nx_pppm);
+          if (xper >= xprd / 2.0) {
+            xper = xprd - xper;
+          }
+
+          mdr2 = xper * xper + yper * yper + zper * zper;
+          wk1[n++] = rho0 * 0.5 * (1 - erf(sqrt(mdr2) - parameters[1])/parameters[2]) * vole;
+        }
+      }
+    }
+  }
+  // Nanorod calculation
+  // else if (type == 3) {
+  //   for (m = nzlo_fft; m <= nzhi_fft; m++) {
+  //     zper = zprd * (static_cast<double>(m) / nz_pppm);
+  //     if (zper >= zprd / 2.0) {
+  //       zper = zprd - zper;
+  //     }
+
+  //     for (l = nylo_fft; l <= nyhi_fft; l++) {
+  //       yper = yprd * (static_cast<double>(l) / ny_pppm);
+  //       if (yper >= yprd / 2.0) {
+  //         yper = yprd - yper;
+  //       }
+
+  //       for (k = nxlo_fft; k <= nxhi_fft; k++) {
+  //         xper = xprd * (static_cast<double>(k) / nx_pppm);
+  //         if (xper >= xprd / 2.0) {
+  //           xper = xprd - xper;
+  //         }
+
+  //         mdr2 = xper * xper + yper * yper + zper * zper;
+  //         wk1[n++] = rho0 * 0.5 * (1 - erf(sqrt(mdr2) - parameters[1])/parameters[2]) * vole;
+  //       }
+  //     }
+  //   }
+  // }
+}
+
 // Need to create functionality that would loop over all places owned by 
 // this processor and use that to generate the position for the gaussian. and assign them as well.
 void TILD::init_gauss(){
@@ -1082,9 +1386,16 @@ void TILD::init_gauss(){
   double zprd=domain->zprd;
   n = 0;
 
+  double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
+
   double vole; // Note: the factor of V comes from the FFT
   output->thermo->evaluate_keyword("vol",&vole);
   double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ;
+
+  std::ofstream rhoA("ug_analytic.txt");
+  std::ofstream rhob("uG_convolved.txt");
+
+  double sum = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     zper = zprd * (static_cast<double>(m) / nz_pppm);
     if (zper >= zprd / 2.0) {
@@ -1104,12 +1415,49 @@ void TILD::init_gauss(){
         }
 
         mdr2 = xper * xper + yper * yper + zper * zper;
-        uG[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
+        uG[n] = V*exp(-mdr2 * 0.5/(a_squared)) / pow(sqrt(2.0*PI * (a_squared)),  3);
+        tmp[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
+        sum += uG[n-1];
+
+        // rhoA<<n-1 << '\t' << work1[n-1] <<std::endl;
+        rhoA<<n-1 << '\t' << tmp[n-1] <<std::endl;
+
       }
     }
   }
 
-  // Do the field gradient of the uG
+  std::cout << sum * scale_inv * V << std::endl;
+  int j = 0;
+  for (int i = 0; i < nfft; i++){
+    work1[j++] = uG[i];
+    work1[j++] = ZEROF;
+  }
+
+  fft1->compute(work1, work2, 1); 
+
+  for (int i = 0; i < 2*nfft; i++){
+    work2[i] *= scale_inv;
+    
+  }
+
+  j = 0;
+  for (int i = 0; i < nfft; i++){
+    complex_multiply(work2, work2, ktmp, j);
+    j += 2;
+  }
+
+  fft1->compute(ktmp, work1, -1); 
+
+  j = 0;
+  sum = 0;
+  for (int i = 0; i < nfft; i ++){
+    rhob << i << '\t' << work1[j] << std::endl;
+    sum += work1[j] ;
+    j += 2;
+  }
+  std::cout << sum * scale_inv * vole << std::endl;
+
+// error->all(FLERR, "Die uG");
   field_gradient(uG, grad_uG_hat, 0);
 
   for (int i=0; i < Dim; i ++){
@@ -1310,6 +1658,66 @@ int TILD::modify_param(int narg, char** arg)
 
       param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
     }
+  } else if (strcmp(arg[0], "tild/total") == 0) {
+    if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
+    specified_all_group = 1 ;
+    int mm=0;
+    memory->create(total_counter, group->ngroup, "tild:total_counter");
+    // memset(&total_counter, 0, group->ngroup * sizeof(int));
+    for (int i = 1; i < narg; i++) {
+      igroup1 = group->find(arg[i]);
+      if (igroup1 == -1)
+        error->all(FLERR, "group1 not found in kspace_modify tild command");
+
+      else if (igroup1 == 0)
+        error->all(FLERR,
+                   "all group specified in 'total calculation' format");
+      else total_counter[mm++] = igroup1;
+      }
+      total_groups = mm;
+   } else if (strcmp(arg[0], "tild/kappa") == 0) {
+    if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
+      kappa = atof(arg[1]);
+      param[0][0] = atof(arg[1]);
+  } else if (strcmp(arg[0], "tild/w_0") == 0) {
+      if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
+        w_3body = atof(arg[1]);
+  } else if (strcmp(arg[0], "tild/create_potential") == 0) {
+      int loc = atoi(arg[1]);
+      if (strcmp(arg[2], "CLEAR") == 0){
+        if (potent_param[loc][0] != 0) {
+          npot--;
+          for (int i = 0; i < MAXPARAM; i++) potent_param[loc][i] = ZEROF;
+        }
+        return narg;
+      }
+      if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
+      if (potent_param[loc][0] != 0) {
+        npot--;
+        char mess[30];
+        sprintf(mess,"Overwriting potential %d", loc);
+        error->warning(FLERR,mess); 
+      }
+      if (strcmp(arg[2], "Gaussian") == 0) {
+        potent_param[loc][0] = 1;
+        potent_param[loc][1] = atof(arg[3]);
+        for (int i = 2; i < MAXPARAM; i++) potent_param[loc][i] = ZEROF;
+        npot++;
+      }
+      else if (strcmp(arg[2], "Sphere") == 0) {
+        potent_param[loc][0] = 2;
+        potent_param[loc][1] = atof(arg[3]);
+        potent_param[loc][2] = atof(arg[4]);
+        for (int i = 3; i < MAXPARAM; i++) potent_param[loc][i] = ZEROF;
+        npot++;
+      }
+   } else if (strcmp(arg[0], "tild/assign_potential") == 0) {
+     // This refers to which value in potent_param the particle belongs
+    if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
+      int potent_num = atof(arg[1]);
+      for (int i = 2; i < narg; i++){
+        assigned_pot[atoi(arg[i])] = i;
+      }
   } else if (strcmp(arg[0], "tild/gauss_a2") == 0) {
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
     a_squared = atof(arg[1]);
@@ -1330,6 +1738,15 @@ int TILD::modify_param(int narg, char** arg)
     error->all(FLERR, "Illegal kspace_modify tild command");
 
   return narg;
+}
+
+int TILD::add_potent_param(int narg, char** arg){
+    // for (int i = 0; i < MAX_GROUP; i++){
+    //   for (int j =0 ; j<narg; j++){
+    //   // potent_coeff[i]
+    //   ;
+    //   }
+    // }
 }
 
 /* ----------------------------------------------------------------------
@@ -1804,7 +2221,10 @@ void TILD::make_rho_none()
   // for (k = 0; k < nsplit_alloc; k++)
   //   memset(&(density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6]),0,
   //          ngrid_6*sizeof(FFT_SCALAR));
-  for (k = 0; k < ngroups; k++)
+
+  int start_group_ind = 0;
+  if (specified_all_group == 1) start_group_ind = 1;
+  for (k = specified_all_group; k < ngroups; k++)
     memset(&(density_brick_types[k][nzlo_out][nylo_out][nxlo_out]),0,
            ngrid*sizeof(FFT_SCALAR));
 
@@ -1816,7 +2236,8 @@ void TILD::make_rho_none()
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for (k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
+  for (k = start_group_ind; k < ngroups; k++) groupbits[k] = group->bitmask[k];
+
 
   for (int i = 0; i < nlocal; i++) {
 
@@ -1838,7 +2259,7 @@ void TILD::make_rho_none()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           w = x0*rho1d[0][l];
-          for (k = 0; k < group->ngroup; k++)
+          for (k = start_group_ind; k < group->ngroup; k++)
             if (mask[i] & groupbits[k])
             density_brick_types[k][mz][my][mx] += w;
         }
@@ -1855,203 +2276,31 @@ void TILD::brick2fft_none()
   // remap could be done as pre-stage of FFT,
   //   but this works optimally on only double values, not complex values
 
-  for (k = 0; k<group->ngroup; k++) {
+  //  std::ofstream rhoA("rhot_lammps.txt");
+  for (k = start_group_ind; k<group->ngroup; k++) {
     n = 0;
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
-        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++){
           density_fft_types[k][n++] = density_brick_types[k][iz][iy][ix];
+          // rhoA<<ix<<'\t'<<iy<<'\t'<<iz<<'\t'<<density_brick_types[k][iz][iy][ix] <<std::endl;;
+        }
+  }
+
+  if (specified_all_group) {
+    int max_n = n;
+      memset(&(density_fft_types[0][0]), 0,
+             max_n * sizeof(FFT_SCALAR));
+    for (k = 0; k < total_groups; k++) {
+      for (n = 0; n < max_n; n++)
+        density_fft_types[0][n] += density_fft_types[total_counter[k]][n];
+    }
   }
 
   for (k=0; k<group->ngroup; k++)
     remap->perform(density_fft_types[k],density_fft_types[k],work1);
 }
 
-/* ----------------------------------------------------------------------
-   Compute qopt for Coulomb interactions
-------------------------------------------------------------------------- */
-double TILD::compute_qopt()
-{
-  double qopt;
-  if (differentiation_flag == 1) {
-    qopt = compute_qopt_ad();
-  } else {
-    qopt = compute_qopt_ik();
-  }
-  double qopt_all;
-  MPI_Allreduce(&qopt,&qopt_all,1,MPI_DOUBLE,MPI_SUM,world);
-  return qopt_all;
-}
-
-/* ----------------------------------------------------------------------
-   Compute qopt for the ik differentiation scheme and Coulomb interaction
-------------------------------------------------------------------------- */
-double TILD::compute_qopt_ik()
-{
-  double qopt = 0.0;
-  int k,l,m;
-  double *prd;
-
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
-
-  int nx,ny,nz,kper,lper,mper;
-  double sqk, u2;
-  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-  double sum1,sum2, sum3,dot1,dot2;
-
-  int nbx = 2;
-  int nby = 2;
-  int nbz = 2;
-
-  for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    mper = m - nz_pppm*(2*m/nz_pppm);
-
-    for (l = nylo_fft; l <= nyhi_fft; l++) {
-      lper = l - ny_pppm*(2*l/ny_pppm);
-
-      for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        kper = k - nx_pppm*(2*k/nx_pppm);
-
-        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
-          pow(unitkz*mper,2.0);
-
-        if (sqk != 0.0) {
-          sum1 = 0.0;
-          sum2 = 0.0;
-          sum3 = 0.0;
-          for (nx = -nbx; nx <= nbx; nx++) {
-            qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*pow(qx/g_ewald,2.0));
-            wx = 1.0;
-            argx = 0.5*qx*xprd/nx_pppm;
-            if (argx != 0.0) wx = pow(sin(argx)/argx,order);
-            for (ny = -nby; ny <= nby; ny++) {
-              qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*pow(qy/g_ewald,2.0));
-              wy = 1.0;
-              argy = 0.5*qy*yprd/ny_pppm;
-              if (argy != 0.0) wy = pow(sin(argy)/argy,order);
-              for (nz = -nbz; nz <= nbz; nz++) {
-                qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*pow(qz/g_ewald,2.0));
-                wz = 1.0;
-                argz = 0.5*qz*zprd_slab/nz_pppm;
-                if (argz != 0.0) wz = pow(sin(argz)/argz,order);
-
-                dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
-                dot2 = qx*qx+qy*qy+qz*qz;
-                u2 =  pow(wx*wy*wz,2.0);
-                sum1 += sx*sy*sz*sx*sy*sz/dot2*4.0*4.0*MY_PI*MY_PI;
-                sum2 += u2*sx*sy*sz*4.0*MY_PI/dot2*dot1;
-                sum3 += u2;
-              }
-            }
-          }
-          sum2 *= sum2;
-          sum3 *= sum3*sqk;
-          qopt += sum1 -sum2/sum3;
-        }
-      }
-    }
-  }
-  return qopt;
-}
-
-/* ----------------------------------------------------------------------
-   Compute qopt for the ad differentiation scheme and Coulomb interaction
-------------------------------------------------------------------------- */
-double TILD::compute_qopt_ad()
-{
-  double qopt = 0.0;
-  int k,l,m;
-  double *prd;
-
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-
-
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
-
-  int nx,ny,nz,kper,lper,mper;
-  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-  double u2, sqk;
-  double sum1,sum2,sum3,sum4,dot2;
-
-  int nbx = 2;
-  int nby = 2;
-  int nbz = 2;
-
-  for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    mper = m - nz_pppm*(2*m/nz_pppm);
-
-    for (l = nylo_fft; l <= nyhi_fft; l++) {
-      lper = l - ny_pppm*(2*l/ny_pppm);
-
-      for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        kper = k - nx_pppm*(2*k/nx_pppm);
-
-        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
-          pow(unitkz*mper,2.0);
-
-        if (sqk != 0.0) {
-
-          sum1 = 0.0;
-          sum2 = 0.0;
-          sum3 = 0.0;
-          sum4 = 0.0;
-          for (nx = -nbx; nx <= nbx; nx++) {
-            qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*pow(qx/g_ewald,2.0));
-            wx = 1.0;
-            argx = 0.5*qx*xprd/nx_pppm;
-            if (argx != 0.0) wx = pow(sin(argx)/argx,order);
-            for (ny = -nby; ny <= nby; ny++) {
-              qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*pow(qy/g_ewald,2.0));
-              wy = 1.0;
-              argy = 0.5*qy*yprd/ny_pppm;
-              if (argy != 0.0) wy = pow(sin(argy)/argy,order);
-              for (nz = -nbz; nz <= nbz; nz++) {
-                qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*pow(qz/g_ewald,2.0));
-                wz = 1.0;
-                argz = 0.5*qz*zprd_slab/nz_pppm;
-                if (argz != 0.0) wz = pow(sin(argz)/argz,order);
-
-                dot2 = qx*qx+qy*qy+qz*qz;
-                u2 =  pow(wx*wy*wz,2.0);
-                sum1 += sx*sy*sz*sx*sy*sz/dot2*4.0*4.0*MY_PI*MY_PI;
-                sum2 += sx*sy*sz * u2*4.0*MY_PI;
-                sum3 += u2;
-                sum4 += dot2*u2;
-              }
-            }
-          }
-          sum2 *= sum2;
-          qopt += sum1 - sum2/(sum3*sum4);
-        }
-      }
-    }
-  }
-  return qopt;
-}
 
 /* ----------------------------------------------------------------------
    charge assignment into rho1d
@@ -2281,9 +2530,15 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
 }
 
 
-void TILD::complex_multiply(FFT_SCALAR *in1,FFT_SCALAR  *in2,FFT_SCALAR  *out, int n){
+inline void TILD::complex_multiply(FFT_SCALAR *in1,FFT_SCALAR  *in2,FFT_SCALAR  *out, int n){
   out[n] = (in1[n] * in2[n] - in1[n + 1] * in2[n + 1]);
   out[n + 1] = (in1[n + 1] * in2[n] + in1[n] * in2[n + 1]);
+}
+
+inline void TILD::complex_multiply(double *in1,double  *in2, int n){
+  double temp = (in1[n] * in2[n] - in1[n + 1] * in2[n + 1]);
+  in2[n + 1] = (in1[n + 1] * in2[n] + in1[n] * in2[n + 1]);
+  in2[n] = temp;
 }
 
 void TILD::ev_calculation(int den_group) {

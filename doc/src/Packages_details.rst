@@ -38,21 +38,21 @@ page gives those details.
 | :ref:`SRD <PKG-SRD>`         | :ref:`VORONOI <PKG-VORONOI>`   |                                |                              |                                |                                  |
 +------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
 
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-ADIOS <PKG-USER-ADIOS>`     | :ref:`USER-ATC <PKG-USER-ATC>`                 | :ref:`USER-AWPMD <PKG-USER-AWPMD>` | :ref:`USER-BOCS <PKG-USER-BOCS>`         | :ref:`USER-CGDNA <PKG-USER-CGDNA>`   | :ref:`USER-CGSDK <PKG-USER-CGSDK>` |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-COLVARS <PKG-USER-COLVARS>` | :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>` | :ref:`USER-DPD <PKG-USER-DPD>`     | :ref:`USER-DRUDE <PKG-USER-DRUDE>`       | :ref:`USER-EFF <PKG-USER-EFF>`       | :ref:`USER-FEP <PKG-USER-FEP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-H5MD <PKG-USER-H5MD>`       | :ref:`USER-INTEL <PKG-USER-INTEL>`             | :ref:`USER-LB <PKG-USER-LB>`       | :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>` | :ref:`USER-MEAMC <PKG-USER-MEAMC>`   | :ref:`USER-MESO <PKG-USER-MESO>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-MGPT <PKG-USER-MGPT>`       | :ref:`USER-MISC <PKG-USER-MISC>`               | :ref:`USER-MOFFF <PKG-USER-MOFFF>` | :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`   | :ref:`USER-NETCDF <PKG-USER-NETCDF>` | :ref:`USER-OMP <PKG-USER-OMP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-PHONON <PKG-USER-PHONON>`   | :ref:`USER-PLUMED <PKG-USER-PLUMED>`           | :ref:`USER-PTM <PKG-USER-PTM>`     | :ref:`USER-QMMM <PKG-USER-QMMM>`         | :ref:`USER-QTB <PKG-USER-QTB>`       | :ref:`USER-QUIP <PKG-USER-QUIP>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-REAXC <PKG-USER-REAXC>`     | :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`       | :ref:`USER-SDPD <PKG-USER-SDPD>`   | :ref:`USER-SMD <PKG-USER-SMD>`           | :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`   | :ref:`USER-SPH <PKG-USER-SPH>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-TALLY <PKG-USER-TALLY>`     | :ref:`USER-UEF <PKG-USER-UEF>`                 | :ref:`USER-VTK <PKG-USER-VTK>`     | :ref:`USER-YAFF <PKG-USER-YAFF>`         |                                      |                                    |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-ADIOS <PKG-USER-ADIOS>`       | :ref:`USER-ATC <PKG-USER-ATC>`                 | :ref:`USER-AWPMD <PKG-USER-AWPMD>`       | :ref:`USER-BOCS <PKG-USER-BOCS>`         | :ref:`USER-CGDNA <PKG-USER-CGDNA>`   | :ref:`USER-CGSDK <PKG-USER-CGSDK>` |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-COLVARS <PKG-USER-COLVARS>`   | :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>` | :ref:`USER-DPD <PKG-USER-DPD>`           | :ref:`USER-DRUDE <PKG-USER-DRUDE>`       | :ref:`USER-EFF <PKG-USER-EFF>`       | :ref:`USER-FEP <PKG-USER-FEP>`     |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-H5MD <PKG-USER-H5MD>`         | :ref:`USER-INTEL <PKG-USER-INTEL>`             | :ref:`USER-LB <PKG-USER-LB>`             | :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>` | :ref:`USER-MEAMC <PKG-USER-MEAMC>`   | :ref:`USER-MESO <PKG-USER-MESO>`   |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-MGPT <PKG-USER-MGPT>`         | :ref:`USER-MISC <PKG-USER-MISC>`               | :ref:`USER-MOFFF <PKG-USER-MOFFF>`       | :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`   | :ref:`USER-NETCDF <PKG-USER-NETCDF>` | :ref:`USER-OMP <PKG-USER-OMP>`     |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-PHONON <PKG-USER-PHONON>`     | :ref:`USER-PLUMED <PKG-USER-PLUMED>`           | :ref:`USER-PTM <PKG-USER-PTM>`           | :ref:`USER-QMMM <PKG-USER-QMMM>`         | :ref:`USER-QTB <PKG-USER-QTB>`       | :ref:`USER-QUIP <PKG-USER-QUIP>`   |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-REACTION <PKG-USER-REACTION>` | :ref:`USER-REAXC <PKG-USER-REAXC>`             | :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>` | :ref:`USER-SDPD <PKG-USER-SDPD>`         | :ref:`USER-SMD <PKG-USER-SMD>`       | :ref:`USER-SMTBQ <PKG-USER-SMTBQ>` |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+| :ref:`USER-SPH <PKG-USER-SPH>`           | :ref:`USER-TALLY <PKG-USER-TALLY>`             | :ref:`USER-UEF <PKG-USER-UEF>`           | :ref:`USER-VTK <PKG-USER-VTK>`           | :ref:`USER-YAFF <PKG-USER-YAFF>`     |                                    |
++------------------------------------------+------------------------------------------------+------------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
 
 
 ----------
@@ -2106,6 +2106,39 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * src/USER-QUIP/README
 * :doc:`pair\_style quip <pair_quip>`
 * examples/USER/quip
+
+
+----------
+
+
+.. _PKG-USER-REACTION:
+
+USER-REACTION package
+------------------
+
+**Contents:**
+
+This package allows for complex bond topology changes (reactions)
+during a running MD simulation, when using classical force fields.
+Topology changes are defined in pre- and post-reaction molecule
+templates and can include creation and deletion of bonds, angles,
+dihedrals, impropers, atom types, bond types, angle types, dihedral
+types, improper types, and/or atomic charges. Other options currently
+available include reaction constraints (e.g. angle and Arrhenius
+constraints), deletion of reaction byproducts or other small
+molecules, and chiral-sensitive reactions.
+
+**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+
+**Supporting info:**
+
+* src/USER-REACTION: filenames -> commands
+* src/USER-REACTION/README
+* :doc:`fix bond/react <fix_bond_react>`
+* examples/USER/reaction
+* `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
+* `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
+* disarmmd.org
 
 
 ----------

@@ -76,7 +76,7 @@ quaternion.
 Eur. Phys. J. B 15, 105-113, 2000.
 
 :link(Henkes)
-[(Henkes)] Henkes, S, Fily, Y., and Marchetti, M. C. Phys. Rev. E, 84, 040301(R), 2011
+[(Henkes)] Henkes, S, Fily, Y., and Marchetti, M. C. Phys. Rev. E, 84, 040301(R), 2011.
 
 :link(Bialke)
 [(Bialke)] J. Bialké, T. Speck, and H Löwen, Phys. Rev. Lett. 108, 168301, 2012.

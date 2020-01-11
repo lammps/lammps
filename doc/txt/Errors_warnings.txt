@@ -239,6 +239,13 @@ will be truncated to attempt to prevent the bond from blowing up. :dd
 
 You likely want to set this in your input script. :dd
 
+{ Fix bond/create is used multiple times or with fix bond/break - may not work as expected} :dt
+
+When using fix bond/create multiple times or in combination with
+fix bond/break, the individual fix instances do not share information
+about changes they made at the same time step and thus it may result
+in unexpected behavior. :dd
+
 {Fix bond/swap will ignore defined angles} :dt
 
 See the doc page for fix bond/swap for more info on this

@@ -29,7 +29,7 @@ class PairMesoCNT : public Pair {
   int **reduced_neighlist,**nchainlist,**endlist;
   int ***chainlist;
 
-  double ang,ang_inv,e,e_inv,funit;
+  double ang,ang_inv,eunit,funit;
   double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
   double r_ang,rsq_ang,d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
   double sig,comega,ctheta;

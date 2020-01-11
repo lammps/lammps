@@ -486,12 +486,19 @@ void PairMesoCNT::coeff(int narg, char **arg)
   phi_file = arg[6];
   usemi_file = arg[7];
 
-  // units
+  // units, eV to energy unit conversion
   ang = force->angstrom;
   ang_inv = 1.0 / ang;
-  e = force->qelectron;
-  e_inv = 1.0 / e;
-  funit = e * ang_inv;
+  if (strcmp(update->unit_style,"lj") == 0) 
+    error->all(FLERR,"mesoCNT does not support lj units");
+  else if (strcmp(update->unit_style,"real") == 0) eunit = 23.06054966;
+  else if (strcmp(update->unit_style,"metal") == 0) eunit = 1.0;
+  else if (strcmp(update->unit_style,"si") == 0) eunit = 1.6021765e-19;
+  else if (strcmp(update->unit_style,"cgs") == 0) eunit = 1.6021765e-12;
+  else if (strcmp(update->unit_style,"electron") == 0) eunit = 3.674932248e-2;
+  else if (strcmp(update->unit_style,"micro") == 0) eunit = 1.6021765e-4;
+  else if (strcmp(update->unit_style,"nano") == 0) eunit = 1.6021765e2;
+  funit = eunit * ang_inv;
 
   // potential variables
   r = 1.421 * 3 * n / MY_2PI * ang;
@@ -1558,7 +1565,7 @@ void PairMesoCNT::weight(const double *r1, const double *r2,
   dr = sqrt(0.25*distsq3(r1,r2) + rsq);
   dp = sqrt(0.25*distsq3(p1,p2) + rsq);
   rhoc = dr + dp + rc;
-  rhomin = 2.0e-9;
+  rhomin = 20.0 * ang;
   rho = sqrt(distsq3(r,p));
 
   frac = 1.0 / (rhoc - rhomin);
@@ -1620,7 +1627,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     f[1][1] = 0;
     f[0][2] = ubar * funit;
     f[1][2] = -f[0][2];
-    evdwl = ubar * delxi * e;
+    evdwl = ubar * delxi * eunit;
   }
  
   // non-parallel case
@@ -1725,7 +1732,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     f[1][1] = lr_inv * (-dalpha_u + xi1*cy) * funit;
     f[0][2] = gamma * dzeta_phi1 * funit;
     f[1][2] = -gamma * dzeta_phi2 * funit;
-    evdwl = u * e;
+    evdwl = u * eunit;
   }
 }
 
@@ -1828,7 +1835,7 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl,
   f[1][1] = l_inv * (xi1*cy - dalpha_ubar) * funit;
   f[0][2] = l_inv * (cz2 + ubar - xi2*cz1) * funit;
   f[1][2] = l_inv * (xi1*cz1 - cz2 - ubar) * funit;
-  evdwl = ubar * e;
+  evdwl = ubar * eunit;
 
   fend = theta * jxi * funit;
 }

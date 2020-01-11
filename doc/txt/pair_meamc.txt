@@ -139,6 +139,8 @@ potential parameters:
 
 lat      = lattice structure of reference configuration
 z        = number of nearest neighbors in the reference structure
+             This field is only read for compatibility, the correct
+             value is inferred from the lattice structure
 ielement = atomic number
 atwt     = atomic weight
 alat     = lattice constant of reference structure

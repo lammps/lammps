@@ -525,8 +525,10 @@ void PairLJCutCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
       double cut;
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i, j);
-      else
+      else { // need to set cutsq and cut_ljsq for hybrid pair_style
         cut = 0.0;
+        cut_ljsq[i][j] = cut_ljsq[j][i] = 0.0;
+      }
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }

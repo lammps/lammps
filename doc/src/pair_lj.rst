@@ -102,6 +102,9 @@ pair\_style lj/cut/tip4p/long/omp command
 pair\_style lj/cut/tip4p/long/opt command
 =========================================
 
+pair\_style lj/cut/tip4p/long/gpu command
+=====================================
+
 Syntax
 """"""
 

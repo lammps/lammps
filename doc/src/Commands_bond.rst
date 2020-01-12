@@ -13,7 +13,7 @@
 
 .. _bond:
 
-bond_style potentials
+Bond_style potentials
 =====================
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
@@ -51,7 +51,7 @@ OPT.
 
 .. _angle:
 
-angle_style potentials
+Angle_style potentials
 ======================
 
 All LAMMPS :doc:`angle_style <angle_style>` commands.  Some styles have
@@ -93,7 +93,7 @@ OPT.
 
 .. _dihedral:
 
-dihedral_style potentials
+Dihedral_style potentials
 =========================
 
 All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
@@ -132,7 +132,7 @@ OPT.
 
 .. _improper:
 
-improper_style potentials
+Improper_style potentials
 =========================
 
 All LAMMPS :doc:`improper\_style <improper_style>` commands.  Some styles

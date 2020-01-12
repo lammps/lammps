@@ -198,10 +198,17 @@ OPT.
    * :doc:`oxdna2/hbond <pair_oxdna2>`
    * :doc:`oxdna2/stk <pair_oxdna2>`
    * :doc:`oxdna2/xstk <pair_oxdna2>`
+   * :doc:`oxrna2/excv <pair_oxrna2>`
+   * :doc:`oxrna2/hbond <pair_oxrna2>`
+   * :doc:`oxrna2/dh <pair_oxrna2>`
+   * :doc:`oxrna2/stk <pair_oxrna2>`
+   * :doc:`oxrna2/xstk <pair_oxrna2>`
+   * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
    * :doc:`peri/ves <pair_peri>`
+   * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
    * :doc:`reax/c (ko) <pair_reaxc>`
@@ -249,4 +256,5 @@ OPT.
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`
+   *
    *

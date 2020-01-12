@@ -31,7 +31,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
 OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check style_check
 
 # ------------------------------------------
 
@@ -46,6 +46,7 @@ help:
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
@@ -69,6 +70,7 @@ html: $(OBJECTS) $(ANCHORCHECK)
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -126,6 +128,8 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
                 sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
                 echo "############################################" ;\
                 rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
                 echo "############################################" ;\
                 deactivate ;\
 	)
@@ -163,6 +167,13 @@ anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		rst_anchor_check src/*.txt ;\
+		deactivate ;\
+	)
+
+style_check :
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-styles.py -s ../src -d src ;\
 		deactivate ;\
 	)
 

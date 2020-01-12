@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 from glob import glob
@@ -170,31 +170,22 @@ for h in headers:
             print("Skipping over: ",m)
 
 
-if verbose:
-    print("""
-Parsed styles from %s:
-  Angle styles:     %3d
-  Atom styles:      %3d
-  Body styles:      %3d
-  Bond styles:      %3d
-  Command styles:   %3d
-  Compute styles:   %3d
-  Dihedral styles:  %3d
-  Dump styles:      %3d
-  Fix styles:       %3d
-  Improper styles:  %3d
-  Integrate styles: %3d
-  Kspace styles:    %3d
-  Minimize styles:  %3d
-  Pair styles:      %3d
-  Reader styles:    %3d
-  Region styles:    %3d
-""" % (src, len(angle), len(atom), len(body), len(bond),     \
+print("""Parsed styles from C++ tree in %s:
+   Angle styles:     %3d    Atom styles:      %3d
+   Body styles:      %3d    Bond styles:      %3d
+   Command styles:   %3d    Compute styles:   %3d
+   Dihedral styles:  %3d    Dump styles:      %3d
+   Fix styles:       %3d    Improper styles:  %3d
+   Integrate styles: %3d    Kspace styles:    %3d
+   Minimize styles:  %3d    Pair styles:      %3d
+   Reader styles:    %3d    Region styles:    %3d""" \
+      % (src, len(angle), len(atom), len(body), len(bond),   \
        len(command), len(compute), len(dihedral), len(dump), \
        len(fix), len(improper), len(integrate), len(kspace), \
        len(minimize), len(pair), len(reader), len(region)))
 
 
+counter = 0
 # check main commands lists
 f = os.path.join(doc, 'Commands_all.rst')
 fp = open(f)
@@ -205,6 +196,7 @@ for c in command.keys():
     if not c in matches:
         if not command[c]['removed']:
             print("Command %s is missing in Commands_all.rst" % c)
+            counter += 1
 
 f = os.path.join(doc, 'Commands_compute.rst')
 fp = open(f)
@@ -216,6 +208,7 @@ for c in compute.keys():
         if not compute[c]['removed']:
             print("Compute style entry %s is missing or" % c,
                   "incomplete in Commands_compute.rst")
+            counter += 1
 
 f = os.path.join(doc, 'Commands_fix.rst')
 fp = open(f)
@@ -229,6 +222,7 @@ for c in fix.keys():
         if not fix[c]['removed']:
             print("Fix style entry %s is missing or" % c,
                   "incomplete in Commands_fix.rst")
+            counter += 1
 
 f = os.path.join(doc, 'Commands_pair.rst')
 fp = open(f)
@@ -242,6 +236,7 @@ for c in pair.keys():
         if not pair[c]['removed']:
             print("Pair style entry %s is missing or" % c,
                   "incomplete in Commands_pair.rst")
+            counter += 1
 
 f = os.path.join(doc, 'Commands_bond.rst')
 fp = open(f)
@@ -253,6 +248,7 @@ for c in bond.keys():
         if not bond[c]['removed']:
             print("Bond style entry %s is missing or" % c,
                   "incomplete in Commands_bond.rst")
+            counter += 1
 
 matches = re.findall(":doc:`(.+) <angle.+>`",text,re.MULTILINE)
 for c in angle.keys():
@@ -260,6 +256,7 @@ for c in angle.keys():
         if not angle[c]['removed']:
             print("Angle style entry %s is missing or" % c,
                   "incomplete in Commands_bond.rst")
+            counter += 1
 
 matches = re.findall(":doc:`(.+) <dihedral.+>`",text,re.MULTILINE)
 for c in dihedral.keys():
@@ -267,6 +264,7 @@ for c in dihedral.keys():
         if not dihedral[c]['removed']:
             print("Dihedral style entry %s is missing or" % c,
                   "incomplete in Commands_bond.rst")
+            counter += 1
 
 matches = re.findall(":doc:`(.+) <improper.+>`",text,re.MULTILINE)
 for c in improper.keys():
@@ -274,6 +272,7 @@ for c in improper.keys():
         if not improper[c]['removed']:
             print("Improper style entry %s is missing or" % c,
                   "incomplete in Commands_bond.rst")
+            counter += 1
 
 f = os.path.join(doc, 'Commands_kspace.rst')
 fp = open(f)
@@ -286,3 +285,8 @@ for c in kspace.keys():
             print("KSpace style entry %s is missing or" % c,
                   "incomplete in Commands_kspace.rst")
             print(kspace[c])
+            counter += 1
+
+if counter:
+    print("Found %d issue(s) with style lists" % counter)
+

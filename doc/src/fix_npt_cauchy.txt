@@ -15,7 +15,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {npt/cauchy} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update} :l
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -48,7 +48,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     alpha = strength of Cauchystat control parameter
     continue = {yes} or {no} = whether of not to continue from a previous run
   {fixedpoint} values = x y z
-    x,y,z = perform barostat dilation/contraction around this point (distance units)
+    x,y,z = perform barostat dilation/contraction around this point (distance units) :pre
 :ule
 
 [Examples:]
@@ -594,19 +594,19 @@ not coupled to barostat, otherwise no.
 
 :line
 
-:link(nh-Martyna)
+:link(nc-Martyna)
 [(Martyna)] Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
-:link(nh-Parrinello)
+:link(nc-Parrinello)
 [(Parrinello)] Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
-:link(nh-Tuckerman)
+:link(nc-Tuckerman)
 [(Tuckerman)] Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
-:link(nh-Shinoda)
+:link(nc-Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
-:link(nh-Miller)
+:link(nc-Miller)
 [(Miller)] Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).

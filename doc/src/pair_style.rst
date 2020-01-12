@@ -231,7 +231,7 @@ accelerated styles exist.
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
-* `lj/switch3/coulgauss <pair_lj_switch3_coulgauss>`_ - smoothed LJ vdW potential with Gaussian electrostatics
+* :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed LJ vdW potential with Gaussian electrostatics
 * :doc:`lj96/cut <pair_lj96>` - Lennard-Jones 9/6 potential
 * :doc:`local/density <pair_local_density>` - generalized basic local density potential
 * :doc:`lubricate <pair_lubricate>` - hydrodynamic lubrication forces

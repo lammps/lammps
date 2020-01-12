@@ -89,7 +89,26 @@ def add_suffix(list,style):
         return style + ' (' + suffix + ')'
     else:
         return style
-        
+
+def check_style(file,dir,pattern,list,name,suffix=False,skip=()):
+    f = os.path.join(dir, file)
+    fp = open(f)
+    text = fp.read()
+    fp.close()
+    matches = re.findall(pattern,text,re.MULTILINE)
+    counter = 0
+    for c in list.keys():
+        # known undocumented aliases we need to skip
+        if c in skip: continue
+        s = c
+        if suffix: s = add_suffix(list,c)
+        if not s in matches:
+            if not list[c]['removed']:
+                print("%s style entry %s" % (name,s),
+                      "is missing or incomplete in %s" % file)
+                counter += 1
+    return counter
+
 for h in headers:
     if verbose: print("Checking ", h)
     fp = open(h)
@@ -170,7 +189,7 @@ for h in headers:
             print("Skipping over: ",m)
 
 
-print("""Parsed styles from C++ tree in %s:
+print("""Parsed style names w/o suffixes from C++ tree in %s:
    Angle styles:     %3d    Atom styles:      %3d
    Body styles:      %3d    Bond styles:      %3d
    Command styles:   %3d    Compute styles:   %3d
@@ -186,106 +205,39 @@ print("""Parsed styles from C++ tree in %s:
 
 
 counter = 0
-# check main commands lists
-f = os.path.join(doc, 'Commands_all.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <.+>`",text,re.MULTILINE)
-for c in command.keys():
-    if not c in matches:
-        if not command[c]['removed']:
-            print("Command %s is missing in Commands_all.rst" % c)
-            counter += 1
 
-f = os.path.join(doc, 'Commands_compute.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <compute.+>`",text,re.MULTILINE)
-for c in compute.keys():
-    if not add_suffix(compute,c) in matches:
-        if not compute[c]['removed']:
-            print("Compute style entry %s is missing or" % c,
-                  "incomplete in Commands_compute.rst")
-            counter += 1
-
-f = os.path.join(doc, 'Commands_fix.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <fix.+>`",text,re.MULTILINE)
-for c in fix.keys():
-    # known undocumented aliases we need to skip
-    if c in ('python'): continue
-    if not add_suffix(fix,c) in matches:
-        if not fix[c]['removed']:
-            print("Fix style entry %s is missing or" % c,
-                  "incomplete in Commands_fix.rst")
-            counter += 1
-
-f = os.path.join(doc, 'Commands_pair.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <pair.+>`",text,re.MULTILINE)
-for c in pair.keys():
-    # known undocumented aliases we need to skip
-    if c in ('meam','lj/sf'): continue
-    if not add_suffix(pair,c) in matches:
-        if not pair[c]['removed']:
-            print("Pair style entry %s is missing or" % c,
-                  "incomplete in Commands_pair.rst")
-            counter += 1
-
-f = os.path.join(doc, 'Commands_bond.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <bond.+>`",text,re.MULTILINE)
-for c in bond.keys():
-    if not add_suffix(bond,c) in matches:
-        if not bond[c]['removed']:
-            print("Bond style entry %s is missing or" % c,
-                  "incomplete in Commands_bond.rst")
-            counter += 1
-
-matches = re.findall(":doc:`(.+) <angle.+>`",text,re.MULTILINE)
-for c in angle.keys():
-    if not add_suffix(angle,c) in matches:
-        if not angle[c]['removed']:
-            print("Angle style entry %s is missing or" % c,
-                  "incomplete in Commands_bond.rst")
-            counter += 1
-
-matches = re.findall(":doc:`(.+) <dihedral.+>`",text,re.MULTILINE)
-for c in dihedral.keys():
-    if not add_suffix(dihedral,c) in matches:
-        if not dihedral[c]['removed']:
-            print("Dihedral style entry %s is missing or" % c,
-                  "incomplete in Commands_bond.rst")
-            counter += 1
-
-matches = re.findall(":doc:`(.+) <improper.+>`",text,re.MULTILINE)
-for c in improper.keys():
-    if not add_suffix(improper,c) in matches:
-        if not improper[c]['removed']:
-            print("Improper style entry %s is missing or" % c,
-                  "incomplete in Commands_bond.rst")
-            counter += 1
-
-f = os.path.join(doc, 'Commands_kspace.rst')
-fp = open(f)
-text = fp.read()
-fp.close()
-matches = re.findall(":doc:`(.+) <kspace_style>`",text,re.MULTILINE)
-for c in kspace.keys():
-    if not add_suffix(kspace,c) in matches:
-        if not kspace[c]['removed']:
-            print("KSpace style entry %s is missing or" % c,
-                  "incomplete in Commands_kspace.rst")
-            print(kspace[c])
-            counter += 1
+counter += check_style('Commands_all.rst',doc,":doc:`(.+) <.+>`",
+                       command,'Command',suffix=False)
+counter += check_style('Commands_compute.rst',doc,":doc:`(.+) <compute.+>`",
+                       compute,'Compute',suffix=True)
+counter += check_style('compute.rst',doc,":doc:`(.+) <compute.+>` -",
+                       compute,'Compute',suffix=False)
+counter += check_style('Commands_fix.rst',doc,":doc:`(.+) <fix.+>`",
+                       fix,'Fix',skip=('python'),suffix=True)
+counter += check_style('fix.rst',doc,":doc:`(.+) <fix.+>` -",
+                       fix,'Fix',skip=('python'),suffix=False)
+counter += check_style('Commands_pair.rst',doc,":doc:`(.+) <pair.+>`",
+                       pair,'Pair',skip=('meam','lj/sf'),suffix=True)
+counter += check_style('pair_style.rst',doc,":doc:`(.+) <pair.+>` -",
+                       pair,'Pair',skip=('meam','lj/sf'),suffix=False)
+counter += check_style('Commands_bond.rst',doc,":doc:`(.+) <bond.+>`",
+                       bond,'Bond',suffix=True)
+counter += check_style('bond_style.rst',doc,":doc:`(.+) <bond.+>` -",
+                       bond,'Bond',suffix=False)
+counter += check_style('Commands_bond.rst',doc,":doc:`(.+) <angle.+>`",
+                       angle,'Angle',suffix=True)
+counter += check_style('angle_style.rst',doc,":doc:`(.+) <angle.+>` -",
+                       angle,'Angle',suffix=False)
+counter += check_style('Commands_bond.rst',doc,":doc:`(.+) <dihedral.+>`",
+                       dihedral,'Dihedral',suffix=True)
+counter += check_style('dihedral_style.rst',doc,":doc:`(.+) <dihedral.+>` -",
+                       dihedral,'Dihedral',suffix=False)
+counter += check_style('Commands_bond.rst',doc,":doc:`(.+) <improper.+>`",
+                       improper,'Improper',suffix=True)
+counter += check_style('improper_style.rst',doc,":doc:`(.+) <improper.+>` -",
+                       improper,'Improper',suffix=False)
+counter += check_style('Commands_kspace.rst',doc,":doc:`(.+) <kspace_style>`",
+                       kspace,'KSpace',suffix=True)
 
 if counter:
     print("Found %d issue(s) with style lists" % counter)

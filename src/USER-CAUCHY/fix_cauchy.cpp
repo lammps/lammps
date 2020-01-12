@@ -18,7 +18,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_cauchy.h"
+#include "fix_npt_cauchy.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -51,14 +51,14 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
+FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
   eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
   etap_mass(NULL), id_store(NULL),init_store(NULL)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+  if (narg < 4) error->all(FLERR,"Illegal fix npt/cauchy command");
 
   dynamic_group_allow = 1;
   time_integrate = 1;
@@ -132,7 +132,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       tstat_flag = 1;
       t_start = force->numeric(FLERR,arg[iarg+1]);
       t_target = t_start;
@@ -140,11 +140,11 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       t_period = force->numeric(FLERR,arg[iarg+3]);
       if (t_start <= 0.0 || t_stop <= 0.0)
         error->all(FLERR,
-                   "Target temperature for fix nvt/npt/nph cannot be 0.0");
+                   "Target temperature for fix npt/cauchy cannot be 0.0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -157,7 +157,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -170,7 +170,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       pcouple = NONE;
       scalexy = scalexz = scaleyz = 0;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
@@ -193,7 +193,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[0] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
       p_period[0] = force->numeric(FLERR,arg[iarg+3]);
@@ -201,7 +201,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[1] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
       p_period[1] = force->numeric(FLERR,arg[iarg+3]);
@@ -209,7 +209,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
       p_period[2] = force->numeric(FLERR,arg[iarg+3]);
@@ -217,10 +217,10 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       deviatoric_flag = 1;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[3] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[3] = force->numeric(FLERR,arg[iarg+2]);
       p_period[3] = force->numeric(FLERR,arg[iarg+3]);
@@ -229,9 +229,9 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       scaleyz = 0;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[4] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[4] = force->numeric(FLERR,arg[iarg+2]);
       p_period[4] = force->numeric(FLERR,arg[iarg+3]);
@@ -240,9 +240,9 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       scalexz = 0;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       p_start[5] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[5] = force->numeric(FLERR,arg[iarg+2]);
       p_period[5] = force->numeric(FLERR,arg[iarg+3]);
@@ -252,22 +252,22 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
       else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
       else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"drag") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       drag = force->numeric(FLERR,arg[iarg+1]);
-      if (drag < 0.0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (drag < 0.0) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else {
         allremap = 0;
@@ -277,74 +277,74 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
         strcpy(id_dilate,arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
-          error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
+          error->all(FLERR,"Fix npt/cauchy dilate group ID does not exist");
       }
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"tchain") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       mtchain = force->inumeric(FLERR,arg[iarg+1]);
       // used by FixNVTSllod to preserve non-default value
       mtchain_default_flag = 0;
-      if (mtchain < 1) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (mtchain < 1) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       mpchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (mpchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (mpchain < 0) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (nc_tchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (nc_tchain < 0) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (nc_pchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (nc_pchain < 0) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
-      if (nreset_h0 < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (nreset_h0 < 0) error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
       else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
         dipole_flag = 1;
         dlm_flag = 1;
-      } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      } else error->all(FLERR,"Illegal fix npt/cauchy command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"alpha") == 0) {
       alpha = force->numeric(FLERR,arg[iarg+1]);
@@ -356,7 +356,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       restartPK = !strcmp(arg[iarg+1],"yes");
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
       fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
       fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
@@ -376,95 +376,95 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"ext") == 0) {
       iarg += 2;
 
-    } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+    } else error->all(FLERR,"Illegal fix npt/cauchy command");
   }
 
   // error checks
 
   if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
   if (dimension == 2 && (scalexz == 1 || scaleyz == 1 ))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix npt/cauchy command for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy command pressure settings");
   if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy command pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy command pressure settings");
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy command pressure settings");
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy command pressure settings");
 
   // require periodicity in tensile dimension
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix npt/cauchy on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix npt/cauchy on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix npt/cauchy on a non-periodic dimension");
 
   // require periodicity in 2nd dim of off-diagonal tilt component
 
   if (p_flag[3] && domain->zperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+               "Cannot use fix npt/cauchy on a 2nd non-periodic dimension");
   if (p_flag[4] && domain->zperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+               "Cannot use fix npt/cauchy on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+               "Cannot use fix npt/cauchy on a 2nd non-periodic dimension");
 
   if (scaleyz == 1 && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph "
+    error->all(FLERR,"Cannot use fix npt/cauchy "
                "with yz scaling when z is non-periodic dimension");
   if (scalexz == 1 && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph "
+    error->all(FLERR,"Cannot use fix npt/cauchy "
                "with xz scaling when z is non-periodic dimension");
   if (scalexy == 1 && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph "
+    error->all(FLERR,"Cannot use fix npt/cauchy "
                "with xy scaling when y is non-periodic dimension");
 
   if (p_flag[3] && scaleyz == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
+    error->all(FLERR,"Cannot use fix npt/cauchy with "
                "both yz dynamics and yz scaling");
   if (p_flag[4] && scalexz == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
+    error->all(FLERR,"Cannot use fix npt/cauchy with "
                "both xz dynamics and xz scaling");
   if (p_flag[5] && scalexy == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
+    error->all(FLERR,"Cannot use fix npt/cauchy with "
                "both xy dynamics and xy scaling");
 
   if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
     error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
-               "fix nvt/npt/nph with non-triclinic box");
+               "fix npt/cauchy with non-triclinic box");
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
   if (pcouple == XYZ && dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
   if (pcouple == XY &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
   if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
   if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
 
   if (dipole_flag) {
     if (!atom->sphere_flag)
@@ -480,7 +480,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[3] && p_period[3] <= 0.0) ||
       (p_flag[4] && p_period[4] <= 0.0) ||
       (p_flag[5] && p_period[5] <= 0.0))
-    error->all(FLERR,"Fix nvt/npt/nph damping parameters must be > 0.0");
+    error->all(FLERR,"Fix npt/cauchy damping parameters must be > 0.0");
 
   // set pstat_flag and box change and restart_pbc variables
 
@@ -588,18 +588,60 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
   // values then assigned in init(), if necessary
 
   vol0 = t0 = 0.0;
+
+  if (!tstat_flag)
+    error->all(FLERR,"Temperature control must be used with fix npt/cauchy");
+  if (!pstat_flag)
+    error->all(FLERR,"Pressure control must be used with fix npt/cauchy");
+
+  // create a new compute temp style
+  // id = fix-ID + temp
+  // compute group = all since pressure is always global (group all)
+  // and thus its KE/temperature contribution should use group all
+
+  int n = strlen(id) + 6;
+  id_temp = new char[n];
+  strcpy(id_temp,id);
+  strcat(id_temp,"_temp");
+
+  char **newarg = new char*[3];
+  newarg[0] = id_temp;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "temp";
+
+  modify->add_compute(3,newarg);
+  delete [] newarg;
+  tcomputeflag = 1;
+
+  // create a new compute pressure style
+  // id = fix-ID + press, compute group = all
+  // pass id_temp as 4th arg to pressure constructor
+
+  n = strlen(id) + 7;
+  id_press = new char[n];
+  strcpy(id_press,id);
+  strcat(id_press,"_press");
+
+  newarg = new char*[4];
+  newarg[0] = id_press;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
+  newarg[3] = id_temp;
+  modify->add_compute(4,newarg);
+  delete [] newarg;
+  pcomputeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::post_constructor()
+void FixNPTCauchy::post_constructor()
 {
   CauchyStat_init();
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixCauchy::~FixCauchy()
+FixNPTCauchy::~FixNPTCauchy()
 {
   if (copymode) return;
 
@@ -635,7 +677,7 @@ FixCauchy::~FixCauchy()
 
 /* ---------------------------------------------------------------------- */
 
-int FixCauchy::setmask()
+int FixNPTCauchy::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -649,14 +691,14 @@ int FixCauchy::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::init()
+void FixNPTCauchy::init()
 {
   // recheck that dilate group has not been deleted
 
   if (allremap == 0) {
     int idilate = group->find(id_dilate);
     if (idilate == -1)
-      error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
+      error->all(FLERR,"Fix npt/cauchy dilate group ID does not exist");
     dilate_group_bit = group->bitmask[idilate];
   }
 
@@ -669,15 +711,15 @@ void FixCauchy::init()
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-          error->all(FLERR,"Cannot use fix npt and fix deform on "
-                     "same component of stress tensor");
+          error->all(FLERR,"Cannot use fix npt/cauchy and fix deform "
+                     "on same component of stress tensor");
       }
 
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix nvt/npt does not exist");
+    error->all(FLERR,"Temperature ID for fix npt/cauchy does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;
@@ -686,7 +728,7 @@ void FixCauchy::init()
   if (pstat_flag) {
     icompute = modify->find_compute(id_press);
     if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix npt/nph does not exist");
+      error->all(FLERR,"Pressure ID for fix npt/cauchy does not exist");
     pressure = modify->compute[icompute];
   }
 
@@ -764,7 +806,7 @@ void FixCauchy::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixCauchy::setup(int /*vflag*/)
+void FixNPTCauchy::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -849,7 +891,7 @@ void FixCauchy::setup(int /*vflag*/)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixCauchy::initial_integrate(int /*vflag*/)
+void FixNPTCauchy::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -905,7 +947,7 @@ void FixCauchy::initial_integrate(int /*vflag*/)
    2nd half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixCauchy::final_integrate()
+void FixNPTCauchy::final_integrate()
 {
   nve_v();
 
@@ -944,7 +986,7 @@ void FixCauchy::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
+void FixNPTCauchy::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1013,7 +1055,7 @@ void FixCauchy::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::final_integrate_respa(int ilevel, int /*iloop*/)
+void FixNPTCauchy::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1029,7 +1071,7 @@ void FixCauchy::final_integrate_respa(int ilevel, int /*iloop*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::couple()
+void FixNPTCauchy::couple()
 {
   double *tensor = pressure->vector;
 
@@ -1077,7 +1119,7 @@ void FixCauchy::couple()
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
-void FixCauchy::remap()
+void FixNPTCauchy::remap()
 {
   int i;
   double oldlo,oldhi;
@@ -1233,7 +1275,7 @@ void FixCauchy::remap()
       domain->xz > TILTMAX*domain->xprd ||
       domain->xy < -TILTMAX*domain->xprd ||
       domain->xy > TILTMAX*domain->xprd)
-    error->all(FLERR,"Fix npt/nph has tilted box too far in one step - "
+    error->all(FLERR,"Fix npt/cauchy has tilted box too far in one step - "
                "periodic cell is too far from equilibrium state");
 
   domain->set_global_box();
@@ -1257,7 +1299,7 @@ void FixCauchy::remap()
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
-void FixCauchy::write_restart(FILE *fp)
+void FixNPTCauchy::write_restart(FILE *fp)
 {
   int nsize = size_restart_global();
 
@@ -1279,7 +1321,7 @@ void FixCauchy::write_restart(FILE *fp)
     calculate the number of data to be packed
 ------------------------------------------------------------------------- */
 
-int FixCauchy::size_restart_global()
+int FixNPTCauchy::size_restart_global()
 {
   int nsize = 2;
   if (tstat_flag) nsize += 1 + 2*mtchain;
@@ -1295,7 +1337,7 @@ int FixCauchy::size_restart_global()
    pack restart data
 ------------------------------------------------------------------------- */
 
-int FixCauchy::pack_restart_data(double *list)
+int FixNPTCauchy::pack_restart_data(double *list)
 {
   int n = 0;
 
@@ -1350,7 +1392,7 @@ int FixCauchy::pack_restart_data(double *list)
    use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixCauchy::restart(char *buf)
+void FixNPTCauchy::restart(char *buf)
 {
   int n = 0;
   double *list = (double *) buf;
@@ -1401,7 +1443,7 @@ void FixCauchy::restart(char *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixCauchy::modify_param(int narg, char **arg)
+int FixNPTCauchy::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
@@ -1462,7 +1504,7 @@ int FixCauchy::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double FixCauchy::compute_scalar()
+double FixNPTCauchy::compute_scalar()
 {
   int i;
   double volume;
@@ -1544,7 +1586,7 @@ double FixCauchy::compute_scalar()
   ndof = 1,3,6 degrees of freedom for pstyle = ISO,ANISO,TRI
 ------------------------------------------------------------------------- */
 
-double FixCauchy::compute_vector(int n)
+double FixNPTCauchy::compute_vector(int n)
 {
   int ilen;
 
@@ -1706,14 +1748,14 @@ double FixCauchy::compute_vector(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::reset_target(double t_new)
+void FixNPTCauchy::reset_target(double t_new)
 {
   t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixCauchy::reset_dt()
+void FixNPTCauchy::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -1738,7 +1780,7 @@ void FixCauchy::reset_dt()
    extract thermostat properties
 ------------------------------------------------------------------------- */
 
-void *FixCauchy::extract(const char *str, int &dim)
+void *FixNPTCauchy::extract(const char *str, int &dim)
 {
   dim=0;
   if (tstat_flag && strcmp(str,"t_target") == 0) {
@@ -1773,7 +1815,7 @@ void *FixCauchy::extract(const char *str, int &dim)
    perform half-step update of chain thermostat variables
 ------------------------------------------------------------------------- */
 
-void FixCauchy::nhc_temp_integrate()
+void FixNPTCauchy::nhc_temp_integrate()
 {
   int ich;
   double expfac;
@@ -1844,7 +1886,7 @@ void FixCauchy::nhc_temp_integrate()
    scale barostat velocities
 ------------------------------------------------------------------------- */
 
-void FixCauchy::nhc_press_integrate()
+void FixNPTCauchy::nhc_press_integrate()
 {
   int ich,i,pdof;
   double expfac,factor_etap,kecurrent;
@@ -1956,7 +1998,7 @@ void FixCauchy::nhc_press_integrate()
    perform half-step barostat scaling of velocities
 -----------------------------------------------------------------------*/
 
-void FixCauchy::nh_v_press()
+void FixNPTCauchy::nh_v_press()
 {
   double factor[3];
   double **v = atom->v;
@@ -2007,7 +2049,7 @@ void FixCauchy::nh_v_press()
    perform half-step update of velocities
 -----------------------------------------------------------------------*/
 
-void FixCauchy::nve_v()
+void FixNPTCauchy::nve_v()
 {
   double dtfm;
   double **v = atom->v;
@@ -2044,7 +2086,7 @@ void FixCauchy::nve_v()
    perform full-step update of positions
 -----------------------------------------------------------------------*/
 
-void FixCauchy::nve_x()
+void FixNPTCauchy::nve_x()
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -2067,7 +2109,7 @@ void FixCauchy::nve_x()
    perform half-step thermostat scaling of velocities
 -----------------------------------------------------------------------*/
 
-void FixCauchy::nh_v_temp()
+void FixNPTCauchy::nh_v_temp()
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -2100,7 +2142,7 @@ void FixCauchy::nh_v_temp()
    needed whenever p_target or h0_inv changes
 -----------------------------------------------------------------------*/
 
-void FixCauchy::compute_sigma()
+void FixNPTCauchy::compute_sigma()
 {
   // if nreset_h0 > 0, reset vol0 and h0_inv
   // every nreset_h0 timesteps
@@ -2158,7 +2200,7 @@ void FixCauchy::compute_sigma()
    compute strain energy
 -----------------------------------------------------------------------*/
 
-double FixCauchy::compute_strain_energy()
+double FixNPTCauchy::compute_strain_energy()
 {
   // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units
 
@@ -2186,7 +2228,7 @@ double FixCauchy::compute_strain_energy()
    compute deviatoric barostat force = h*sigma*h^t
 -----------------------------------------------------------------------*/
 
-void FixCauchy::compute_deviatoric()
+void FixNPTCauchy::compute_deviatoric()
 {
   // generate upper-triangular part of h*sigma*h^t
   // units of fdev are are PV, e.g. atm*A^3
@@ -2222,7 +2264,7 @@ void FixCauchy::compute_deviatoric()
    compute target temperature and kinetic energy
 -----------------------------------------------------------------------*/
 
-void FixCauchy::compute_temp_target()
+void FixNPTCauchy::compute_temp_target()
 {
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -2235,7 +2277,7 @@ void FixCauchy::compute_temp_target()
    compute hydrostatic target pressure
 -----------------------------------------------------------------------*/
 
-void FixCauchy::compute_press_target()
+void FixNPTCauchy::compute_press_target()
 {
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -2275,7 +2317,7 @@ void FixCauchy::compute_press_target()
    update omega_dot, omega
 -----------------------------------------------------------------------*/
 
-void FixCauchy::nh_omega_dot()
+void FixNPTCauchy::nh_omega_dot()
 {
   double f_omega,volume;
 
@@ -2344,7 +2386,7 @@ void FixCauchy::nh_omega_dot()
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
 ------------------------------------------------------------------------- */
 
-void FixCauchy::pre_exchange()
+void FixNPTCauchy::pre_exchange()
 {
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -2411,7 +2453,7 @@ void FixCauchy::pre_exchange()
    memory usage of Irregular
 ------------------------------------------------------------------------- */
 
-double FixCauchy::memory_usage()
+double FixNPTCauchy::memory_usage()
 {
   double bytes = 0.0;
   if (irregular) bytes += irregular->memory_usage();
@@ -2422,7 +2464,7 @@ double FixCauchy::memory_usage()
    initialize Cauchystat
 ------------------------------------------------------------------------- */
 
-void FixCauchy::CauchyStat_init()
+void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
     if (screen) {
@@ -2452,11 +2494,11 @@ void FixCauchy::CauchyStat_init()
   restart_stored = modify->find_fix(id_store);
 
   if (restartPK==1 && restart_stored < 0)
-    error->all(FLERR,"Illegal cauchystat command.  Continuation run"
-               " must follow a previously equilibrated Cauchystat run");
+    error->all(FLERR,"Illegal npt/cauchy command.  Continuation run"
+               " must follow a previously equilibrated npt/cauchy run");
 
   if (alpha<=0.0)
-    error->all(FLERR,"Illegal cauchystat command: "
+    error->all(FLERR,"Illegal fix npt/cauchy command: "
                " Alpha cannot be zero or negative.");
 
   if (restart_stored < 0) {
@@ -2502,7 +2544,7 @@ void FixCauchy::CauchyStat_init()
    Cauchystat
 ------------------------------------------------------------------------- */
 
-void FixCauchy::CauchyStat()
+void FixNPTCauchy::CauchyStat()
 {
   double* h = domain->h;           // shape matrix in Voigt notation
   double* h_rate = domain->h_rate; // rate of box size/shape change in Voigt notation
@@ -2662,7 +2704,7 @@ void FixCauchy::CauchyStat()
    setPK(3,3)       :  PK stress tensor at the next time step
    ------------------------------------------------------------------------- */
 
-void FixCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
+void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
                             double (&cauchy)[3][3], double (&setcauchy)[3][3],
                             double (&setPK)[3][3], double volume,
                             double volume0, double deltat, double alpha)

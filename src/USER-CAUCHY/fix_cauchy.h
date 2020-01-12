@@ -11,18 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_FIX_CAUCHY_H
-#define LMP_FIX_CAUCHY_H
+#ifdef FIX_CLASS
+
+FixStyle(npt/cauchy,FixNPTCauchy)
+
+#else
+
+#ifndef LMP_FIX_NPT_CAUCHY_H
+#define LMP_FIX_NPT_CAUCHY_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixCauchy : public Fix {
+class FixNPTCauchy : public Fix {
  public:
-  FixCauchy(class LAMMPS *, int, char **);
+  FixNPTCauchy(class LAMMPS *, int, char **);
   virtual void post_constructor();
-  virtual ~FixCauchy();
+  virtual ~FixNPTCauchy();
   int setmask();
   virtual void init();
   virtual void setup(int);
@@ -183,64 +189,64 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Target temperature for fix nvt/npt/nph cannot be 0.0
+E: Target temperature for fix npt/cauchy cannot be 0.0
 
 Self-explanatory.
 
-E: Invalid fix nvt/npt/nph command for a 2d simulation
+E: Invalid fix npt/cauchy command for a 2d simulation
 
 Cannot control z dimension in a 2d model.
 
-E: Fix nvt/npt/nph dilate group ID does not exist
+E: Fix npt/cauchy dilate group ID does not exist
 
 Self-explanatory.
 
-E: Invalid fix nvt/npt/nph command pressure settings
+E: Invalid fix npt/cauchy command pressure settings
 
 If multiple dimensions are coupled, those dimensions must be
 specified.
 
-E: Cannot use fix nvt/npt/nph on a non-periodic dimension
+E: Cannot use fix npt/cauchy on a non-periodic dimension
 
 When specifying a diagonal pressure component, the dimension must be
 periodic.
 
-E: Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension
+E: Cannot use fix npt/cauchy on a 2nd non-periodic dimension
 
 When specifying an off-diagonal pressure component, the 2nd of the two
 dimensions must be periodic.  E.g. if the xy component is specified,
 then the y dimension must be periodic.
 
-E: Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension
+E: Cannot use fix npt/cauchy with yz scaling when z is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension
+E: Cannot use fix npt/cauchy with xz scaling when z is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension
+E: Cannot use fix npt/cauchy with xy scaling when y is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph with both yz dynamics and yz scaling
+E: Cannot use fix npt/cauchy with both yz dynamics and yz scaling
 
 Self-explanatory.
 
-E: Cannot use fix nvt/npt/nph with both xz dynamics and xz scaling
+E: Cannot use fix npt/cauchy with both xz dynamics and xz scaling
 
 Self-explanatory.
 
-E: Cannot use fix nvt/npt/nph with both xy dynamics and xy scaling
+E: Cannot use fix npt/cauchy with both xy dynamics and xy scaling
 
 Self-explanatory.
 
-E: Can not specify Pxy/Pxz/Pyz in fix nvt/npt/nph with non-triclinic box
+E: Can not specify Pxy/Pxz/Pyz in fix npt/cauchy with non-triclinic box
 
 Only triclinic boxes can be used with off-diagonal pressure components.
 See the region prism command for details.
 
-E: Invalid fix nvt/npt/nph pressure settings
+E: Invalid fix npt/cauchy pressure settings
 
 Settings for coupled dimensions must be the same.
 
@@ -252,19 +258,19 @@ E: Using update dipole flag requires atom attribute mu
 
 Self-explanatory.
 
-E: Fix nvt/npt/nph damping parameters must be > 0.0
+E: Fix npt/cauchy damping parameters must be > 0.0
 
 Self-explanatory.
 
-E: Cannot use fix npt and fix deform on same component of stress tensor
+E: Cannot use fix npt/cauchy and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
 
-E: Temperature ID for fix nvt/npt does not exist
+E: Temperature ID for fix npt/cauchy does not exist
 
 Self-explanatory.
 
-E: Pressure ID for fix npt/nph does not exist
+E: Pressure ID for fix npt/cauchy does not exist
 
 Self-explanatory.
 
@@ -272,7 +278,7 @@ E: Non-numeric pressure - simulation unstable
 
 UNDOCUMENTED
 
-E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
+E: Fix npt/cauchy has tilted box too far in one step - periodic cell is too far from equilibrium state
 
 Self-explanatory.  The change in the box tilt is too extreme
 on a short timescale.

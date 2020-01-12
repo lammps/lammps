@@ -226,20 +226,28 @@ fp.close()
 matches = re.findall(":doc:`(.+) <bond.+>`",text,re.MULTILINE)
 for c in bond.keys():
     if not add_suffix(bond,c) in matches:
-        print("Bond style entry %s is missing or incomplete in Commands_bond.rst" % c)
+        if not bond[c]['removed']:
+            print("Bond style entry %s is missing or" % c,
+                  "incomplete in Commands_bond.rst")
 
 matches = re.findall(":doc:`(.+) <angle.+>`",text,re.MULTILINE)
 for c in angle.keys():
     if not add_suffix(angle,c) in matches:
-        print("Angle style entry %s is missing or incomplete in Commands_bond.rst" % c)
+        if not angle[c]['removed']:
+            print("Angle style entry %s is missing or" % c,
+                  "incomplete in Commands_bond.rst")
 
 matches = re.findall(":doc:`(.+) <dihedral.+>`",text,re.MULTILINE)
 for c in dihedral.keys():
     if not add_suffix(dihedral,c) in matches:
-        print("Dihedral style entry %s is missing or incomplete in Commands_bond.rst" % c)
+        if not dihedral[c]['removed']:
+            print("Dihedral style entry %s is missing or" % c,
+                  "incomplete in Commands_bond.rst")
 
 matches = re.findall(":doc:`(.+) <improper.+>`",text,re.MULTILINE)
 for c in improper.keys():
     if not add_suffix(improper,c) in matches:
-        print("Improper style entry %s is missing or incomplete in Commands_bond.rst" % c)
+        if not improper[c]['removed']:
+            print("Improper style entry %s is missing or" % c,
+                  "incomplete in Commands_bond.rst")
 

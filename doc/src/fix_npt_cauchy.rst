@@ -47,7 +47,7 @@ Syntax
        *scalexz* value = *yes* or *no* = scale xz with lz
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
        *cauchystat* cauchystat values = alpha continue
-         alpha = strength of Cauchystat control parameter
+         alpha = strength of Cauchy stress control parameter
          continue = *yes* or *no* = whether of not to continue from a previous run
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
@@ -292,7 +292,7 @@ negligible.
 
 The keyword *tloop* can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
-thermostat variables are broken up into *tloop* substeps, each of
+thermostat variables are broken up into *tloop* sub-steps, each of
 length *dt*\ /\ *tloop*\ . This corresponds to using a first-order
 Suzuki-Yoshida scheme :ref:`(Tuckerman) <nc-Tuckerman>`.  The keyword *ploop*
 does the same thing for the barostat thermostat.
@@ -358,7 +358,7 @@ The flip operation is described in more detail in the doc page for
 :doc:`fix deform <fix_deform>`.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
-a single timestep, LAMMPS can not accomodate this event and will
+a single timestep, LAMMPS can not accommodate this event and will
 terminate the simulation with an error. This error typically indicates
 that there is something badly wrong with how the simulation was
 constructed, such as specifying values of *Pstart* that are too far
@@ -583,7 +583,7 @@ and if the tilt factor is not coupled to the barostat via keywords
 
 Without the *cauchystat* keyword, the barostat algorithm
 controls the Second-Piola Kirchhoff stress, which is a stress measure
-referred to the undeformed (initial) simulation box.  If the box
+referred to the unmodified (initial) simulation box.  If the box
 deforms substantially during the equilibration, the difference between
 the set values and the final true (Cauchy) stresses can be
 considerable.
@@ -591,7 +591,7 @@ considerable.
 The *cauchystat* keyword modifies the barostat as per Miller et
 al. (Miller)\_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
-0.01 that determines how aggresively the algorithm drives the system
+0.01 that determines how aggressively the algorithm drives the system
 towards the set Cauchy stresses.  Larger values of *alpha* will modify
 the system more quickly, but can lead to instabilities.  Smaller
 values will lead to longer convergence time.  Since *alpha* also
@@ -599,20 +599,20 @@ influences how much the stress fluctuations deviate from the
 equilibrium fluctuations, it should be set as small as possible.
 
 A *continue* value of *yes* indicates that the fix is subsequent to a
-previous run with the Cauchystat fix, and the intention is to continue
+previous run with the npt/cauchy fix, and the intention is to continue
 from the converged stress state at the end of the previous run.  This
 may be required, for example, when implementing a multi-step loading/unloading
 sequence over several fixes.
 
 Setting *alpha* to zero is not permitted.  To "turn off" the
-Cauchystat control and thus restore the equilibrium stress
+cauchystat control and thus restore the equilibrium stress
 fluctuations, two subsequent fixes should be used.  In the first, the
-Cauchystat is used and the simulation box equilibrates to the correct
-shape for the desired stresses.  In the second, the *fix* statement is
-identical except that the *cauchystat* keyword is removed (along with
-related *alpha* and *continue* values). This restores the original
-Parrinello-Rahman algorithm, but now with the correct simulation box
-shape from the first fix.
+cauchystat flag is used and the simulation box equilibrates to the
+correct shape for the desired stresses.  In the second, the *fix*
+statement is identical except that the *cauchystat* keyword is removed
+(along with related *alpha* and *continue* values). This restores the
+original Parrinello-Rahman algorithm, but now with the correct simulation
+box shape from the first fix.
 
 This fix can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to

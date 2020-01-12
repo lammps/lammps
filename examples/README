@@ -101,6 +101,7 @@ prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
 reax:     RDX and TATB and several other models using ReaxFF
+rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     examples for using several bundled SNAP potentials

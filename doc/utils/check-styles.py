@@ -206,6 +206,30 @@ for c in command.keys():
         if not command[c]['removed']:
             print("Command %s is missing in Commands_all.rst" % c)
 
+f = os.path.join(doc, 'Commands_compute.rst')
+fp = open(f)
+text = fp.read()
+fp.close()
+matches = re.findall(":doc:`(.+) <compute.+>`",text,re.MULTILINE)
+for c in compute.keys():
+    if not add_suffix(compute,c) in matches:
+        if not compute[c]['removed']:
+            print("Compute style entry %s is missing or" % c,
+                  "incomplete in Commands_compute.rst")
+
+f = os.path.join(doc, 'Commands_fix.rst')
+fp = open(f)
+text = fp.read()
+fp.close()
+matches = re.findall(":doc:`(.+) <fix.+>`",text,re.MULTILINE)
+for c in fix.keys():
+    # known undocumented aliases we need to skip
+    if c in ('python'): continue
+    if not add_suffix(fix,c) in matches:
+        if not fix[c]['removed']:
+            print("Fix style entry %s is missing or" % c,
+                  "incomplete in Commands_fix.rst")
+
 f = os.path.join(doc, 'Commands_pair.rst')
 fp = open(f)
 text = fp.read()

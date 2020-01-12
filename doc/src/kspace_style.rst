@@ -11,26 +11,30 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
   
   .. parsed-literal::
   
        *none* value = none
        *ewald* value = accuracy
          accuracy = desired relative error in forces
-       *ewald/disp* value = accuracy
-         accuracy = desired relative error in forces
-       *ewald/omp* value = accuracy
-         accuracy = desired relative error in forces
        *ewald/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/dipole/spin* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/disp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
        *pppm* value = accuracy
          accuracy = desired relative error in forces
        *pppm/cg* values = accuracy (smallq)
          accuracy = desired relative error in forces
          smallq = cutoff for charges to be considered (optional) (charge units)
+       *pppm/dipole* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/dipole/spin* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/disp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p* value = accuracy
@@ -41,21 +45,22 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/intel* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/intel* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/kk* value = accuracy
          accuracy = desired relative error in forces
        *pppm/omp* value = accuracy
          accuracy = desired relative error in forces
-       *pppm/cg/omp* value = accuracy
+       *pppm/cg/omp* values = accuracy (smallq)
          accuracy = desired relative error in forces
-       *pppm/disp/intel* value = accuracy
+         smallq = cutoff for charges to be considered (optional) (charge units)
+       *pppm/disp/omp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p/omp* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/tip4p/omp* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/stagger* value = accuracy
-         accuracy = desired relative error in forces
-       *pppm/dipole* value = accuracy
-         accuracy = desired relative error in forces
-       *pppm/dipole/spin* value = accuracy
          accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces

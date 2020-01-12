@@ -124,26 +124,27 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-                . $(VENV)/bin/activate ;\
-                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
-                echo "############################################" ;\
-                rst_anchor_check src/*.rst ;\
+		. $(VENV)/bin/activate ;\
+		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		echo "############################################" ;\
+		rst_anchor_check src/*.rst ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
-                echo "############################################" ;\
-                deactivate ;\
+		echo "############################################" ;\
+		deactivate ;\
 	)
 	@cd latex && \
-          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-	  mv temp Makefile && \
-	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  make && \
-	  make && \
-	  mv LAMMPS.pdf ../Manual.pdf && \
-	  cd ../;
+		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+		mv temp Makefile && \
+		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		make && \
+		make && \
+		make && \
+		mv LAMMPS.pdf ../Manual.pdf && \
+		cd ../;
 	@rm -rf latex/_sources
 	@rm -rf latex/PDF
 	@rm -rf latex/USER

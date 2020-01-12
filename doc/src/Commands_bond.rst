@@ -13,7 +13,7 @@
 
 .. _bond:
 
-bond_style potentials
+Bond_style potentials
 =====================
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
@@ -44,16 +44,14 @@ OPT.
    * :doc:`nonlinear (o) <bond_nonlinear>`
    * :doc:`oxdna/fene <bond_oxdna>`
    * :doc:`oxdna2/fene <bond_oxdna>`
+   * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
    * :doc:`table (o) <bond_table>`
    *
-   *
-
----
 
 .. _angle:
 
-angle_style potentials
+Angle_style potentials
 ======================
 
 All LAMMPS :doc:`angle_style <angle_style>` commands.  Some styles have
@@ -93,11 +91,9 @@ OPT.
    * :doc:`table (o) <angle_table>`
    *
 
----
-
 .. _dihedral:
 
-dihedral_style potentials
+Dihedral_style potentials
 =========================
 
 All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
@@ -136,7 +132,7 @@ OPT.
 
 .. _improper:
 
-improper_style potentials
+Improper_style potentials
 =========================
 
 All LAMMPS :doc:`improper\_style <improper_style>` commands.  Some styles

@@ -203,8 +203,8 @@ fp.close()
 matches = re.findall(":doc:`(.+) <.+>`",text,re.MULTILINE)
 for c in command.keys():
     if not c in matches:
-        print("Command %s is missing in Commands_all.rst" % c)
-
+        if not command[c]['removed']:
+            print("Command %s is missing in Commands_all.rst" % c)
 
 f = os.path.join(doc, 'Commands_pair.rst')
 fp = open(f)
@@ -251,3 +251,14 @@ for c in improper.keys():
             print("Improper style entry %s is missing or" % c,
                   "incomplete in Commands_bond.rst")
 
+f = os.path.join(doc, 'Commands_kspace.rst')
+fp = open(f)
+text = fp.read()
+fp.close()
+matches = re.findall(":doc:`(.+) <kspace_style>`",text,re.MULTILINE)
+for c in kspace.keys():
+    if not add_suffix(kspace,c) in matches:
+        if not kspace[c]['removed']:
+            print("KSpace style entry %s is missing or" % c,
+                  "incomplete in Commands_kspace.rst")
+            print(kspace[c])

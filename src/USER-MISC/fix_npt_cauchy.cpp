@@ -2468,7 +2468,7 @@ void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
     if (screen) {
-      fprintf(screen,"Using the Cauchystat fix with alpha=%f\n",alpha);
+      fprintf(screen,"Using fix npt/cauchy with alpha=%f\n",alpha);
       if (restartPK==1) {
         fprintf(screen,"   (this is a continuation run)\n");
       } else {
@@ -2476,7 +2476,7 @@ void FixNPTCauchy::CauchyStat_init()
       }
     }
     if (logfile) {
-      fprintf(logfile,"Using the Cauchystat with alpha=%f\n",alpha);
+      fprintf(logfile,"Using fix npt/cauchy with alpha=%f\n",alpha);
       if (restartPK==1) {
         fprintf(logfile,"   this is a continuation run\n");
       } else {

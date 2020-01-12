@@ -2729,11 +2729,18 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   int i,j,m,n;
 
   double deltastress[6],fdotvec[6];
-  double dsdf[6][6]={0.0}; //zeroed, used in incremental form
-  double dsds[6][6]={0.0}; //zeroed, used in incremental form
+  double dsdf[6][6];
+  double dsds[6][6];
   double jac;
-  double deltaF[6]={0.0}; //zeroed, used in incremental form
-  double deltaPK[6]={0.0}; //zeroed, used in incremental form
+  double deltaF[6];
+  double deltaPK[6];
+
+  // zero arrays
+  for (i = 0; i < 6; ++i) {
+    deltaF[i] = deltaPK[i] = deltastress[i] = fdotvec[i] = 0.0;
+    for (j = 0; j < 6; ++j)
+      dsdf[i][j] = dsds[i][j] = 0.0;
+  }
 
   int uv[6][2];
   uv(1,1)=1; uv(1,2)=1;

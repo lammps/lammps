@@ -180,6 +180,7 @@ class FixNPTCauchy : public Fix {
 }
 
 #endif
+#endif
 
 /* ERROR/WARNING messages:
 

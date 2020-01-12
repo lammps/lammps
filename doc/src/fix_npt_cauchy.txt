@@ -49,9 +49,6 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     continue = {yes} or {no} = whether of not to continue from a previous run
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units)
-  {update} value = {dipole} or {dipole/dlm}
-    dipole = update dipole orientation (only for sphere variants)
-    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants) :pre
 :ule
 
 [Examples:]
@@ -60,17 +57,16 @@ fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
 
 [Description:]
 
-These commands perform time integration on Nose-Hoover style
+This command performs time integration on Nose-Hoover style
 non-Hamiltonian equations of motion which are designed to generate
-positions and velocities sampled from the canonical (nvt),
-isothermal-isobaric (npt), and isenthalpic (nph) ensembles.  This
-updates the position and velocity for atoms in the group each
-timestep.
+positions and velocities sampled from the isothermal-isobaric (npt)
+ensembles.  This updates the position and velocity for atoms in the
+group each timestep and the box dimensions.
 
 The thermostatting and barostatting is achieved by adding some dynamic
 variables which are coupled to the particle velocities
 (thermostatting) and simulation domain dimensions (barostatting).  In
-addition to basic thermostatting and barostatting, these fixes can
+addition to basic thermostatting and barostatting, this fix can
 also create a chain of thermostats coupled to the particle thermostat,
 and another chain of thermostats coupled to the barostat
 variables. The barostat can be coupled to the overall box volume, or
@@ -83,18 +79,18 @@ particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.
 
 The equations of motion used are those of Shinoda et al in
-"(Shinoda)"_#nh-Shinoda, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in "(Martyna)"_#nh-Martyna with the strain
+"(Shinoda)"_#nc-Shinoda, which combine the hydrostatic equations of
+Martyna, Tobias and Klein in "(Martyna)"_#nc-Martyna with the strain
 energy proposed by Parrinello and Rahman in
-"(Parrinello)"_#nh-Parrinello.  The time integration schemes closely
+"(Parrinello)"_#nc-Parrinello.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al in "(Tuckerman)"_#nh-Tuckerman.
+integrators derived by Tuckerman et al in "(Tuckerman)"_#nc-Tuckerman.
 
 :line
 
-The thermostat parameters for fix styles {nvt} and {npt} is specified
-using the {temp} keyword.  Other thermostat-related keywords are
-{tchain}, {tloop} and {drag}, which are discussed below.
+The thermostat parameters are specified using the {temp} keyword.
+Other thermostat-related keywords are {tchain}, {tloop} and {drag},
+which are discussed below.
 
 The thermostat is applied to only the translational degrees of freedom
 for the particles.  The translational degrees of freedom can also have
@@ -117,13 +113,12 @@ most "units"_units.html settings.
 
 :line
 
-The barostat parameters for fix styles {npt} and {nph} is specified
-using one or more of the {iso}, {aniso}, {tri}, {x}, {y}, {z}, {xy},
-{xz}, {yz}, and {couple} keywords.  These keywords give you the
-ability to specify all 6 components of an external stress tensor, and
-to couple various of these components together so that the dimensions
-they represent are varied together during a constant-pressure
-simulation.
+The barostat parameters are specified using one or more of the {iso},
+{aniso}, {tri}, {x}, {y}, {z}, {xy}, {xz}, {yz}, and {couple} keywords.
+These keywords give you the ability to specify all 6 components of an
+external stress tensor, and to couple various of these components
+together so that the dimensions they represent are varied together
+during a constant-pressure simulation.
 
 Other barostat-related keywords are {pchain}, {mtk}, {ploop},
 {nreset}, {drag}, and {dilate}, which are discussed below.
@@ -263,7 +258,7 @@ barostat variables.
 
 The {mtk} keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-"(Martyna)"_#nh-Martyna.  Specifying {no} reproduces the original
+"(Martyna)"_#nc-Martyna.  Specifying {no} reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using {yes} is more correct, but in many cases the difference is
@@ -273,7 +268,7 @@ The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into {tloop} substeps, each of
 length {dt}/{tloop}. This corresponds to using a first-order
-Suzuki-Yoshida scheme "(Tuckerman)"_#nh-Tuckerman.  The keyword {ploop}
+Suzuki-Yoshida scheme "(Tuckerman)"_#nc-Tuckerman.  The keyword {ploop}
 does the same thing for the barostat thermostat.
 
 The keyword {nreset} controls how often the reference dimensions used
@@ -319,20 +314,6 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
 
-If the {update} keyword is used with the {dipole} value, then the
-orientation of the dipole moment of each particle is also updated
-during the time integration.  This option should be used for models
-where a dipole moment is assigned to finite-size particles,
-e.g. spheroids via use of the "atom_style hybrid sphere
-dipole"_atom_style.html command.
-
-The default dipole orientation integrator can be changed to the
-Dullweber-Leimkuhler-McLachlan integration scheme
-"(Dullweber)"_#nh-Dullweber when using {update} with the value
-{dipole/dlm}. This integrator is symplectic and time-reversible,
-giving better energy conservation and allows slightly longer timesteps
-at only a small additional computational cost.
-
 :line
 
 NOTE: Using a barostat coupled to tilt dimensions {xy}, {xz}, {yz} can
@@ -367,11 +348,11 @@ if you tilt the system to extreme angles, the simulation will simply
 become inefficient due to the highly skewed simulation box.
 
 NOTE: Unlike the "fix temp/berendsen"_fix_temp_berendsen.html command
-which performs thermostatting but NO time integration, these fixes
-perform thermostatting/barostatting AND time integration.  Thus you
+which performs thermostatting but NO time integration, this fix
+performs thermostatting/barostatting AND time integration.  Thus you
 should not use any other time integration fix, such as "fix
 nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
-fix nvt and fix npt should not normally be used on atoms that also
+fix npt/cauchy should not normally be used on atoms that also
 have their temperature controlled by another fix - e.g. by "fix
 langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
 commands.
@@ -383,24 +364,15 @@ barostatting.
 
 :line
 
-These fixes compute a temperature and pressure each timestep.  To do
-this, the thermostat and barostat fixes create their own computes of
-style "temp" and "pressure", as if one of these sets of commands had
-been issued:
+This fix compute a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if one of these sets of commands had been issued:
 
-For fix nvt:
-compute fix-ID_temp group-ID temp
-
-For fix npt and fix nph:
 compute fix-ID_temp all temp
 compute fix-ID_press all pressure fix-ID_temp :pre
 
-For fix nvt, the group for the new temperature compute is the same as
-the fix group.  For fix npt and fix nph, the group for both the new
-temperature and pressure compute is "all" since pressure is computed
-for the entire system.  In the case of fix nph, the temperature
-compute is not used for thermostatting, but just for a kinetic-energy
-contribution to the pressure.  See the "compute
+The group for both the new temperature and pressure compute is "all"
+since pressure is computed for the entire system.  See the "compute
 temp"_compute_temp.html and "compute pressure"_compute_pressure.html
 commands for details.  Note that the IDs of the new computes are the
 fix-ID + underscore + "temp" or fix_ID + underscore + "press".
@@ -415,7 +387,7 @@ temperature or pressure during thermodynamic output via the
 compute-ID.  It also means that changing attributes of {thermo_temp}
 or {thermo_press} will have no effect on this fix.
 
-Like other fixes that perform thermostatting, fix nvt and fix npt can
+Like other fixes that perform thermostatting, fix npt/cauchy can
 be used with "compute commands"_compute.html that calculate a
 temperature after removing a "bias" from the atom velocities.
 E.g. removing the center-of-mass velocity from a group of atoms or
@@ -432,8 +404,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 :line
 
-These fixes can be used with either the {verlet} or {respa}
-"integrators"_run_style.html. When using one of the barostat fixes
+This fix can be used with either the {verlet} or {respa}
+"integrators"_run_style.html. When using this fix
 with {respa}, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
@@ -451,59 +423,26 @@ limiting factor for numerical stability. Both factorizations are
 time-reversible and can be shown to preserve the phase space measure
 of the underlying non-Hamiltonian equations of motion.
 
-NOTE: This implementation has been shown to conserve linear momentum
-up to machine precision under NVT dynamics. Under NPT dynamics,
-for a system with zero initial total linear momentum, the total
-momentum fluctuates close to zero. It may occasionally undergo brief
-excursions to non-negligible values, before returning close to zero.
-Over long simulations, this has the effect of causing the center-of-mass
-to undergo a slow random walk. This can be mitigated by resetting
-the momentum at infrequent intervals using the
+NOTE: Under NPT dynamics, for a system with zero initial total linear
+momentum, the total momentum fluctuates close to zero.  It may occasionally
+undergo brief excursions to non-negligible values, before returning close
+to zero.  Over long simulations, this has the effect of causing the
+center-of-mass to undergo a slow random walk. This can be mitigated by
+resetting the momentum at infrequent intervals using the
 "fix momentum"_fix_momentum.html command.
-
-:line
-
-The fix npt and fix nph commands can be used with rigid bodies or
-mixtures of rigid bodies and non-rigid particles (e.g. solvent).  But
-there are also "fix rigid/npt"_fix_rigid.html and "fix
-rigid/nph"_fix_rigid.html commands, which are typically a more natural
-choice.  See the doc page for those commands for more discussion of
-the various ways to do this.
-
-:line
-
-Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the "Speed packages"_Speed_packages.html doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Build
-package"_Build_package.html doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
-switch"_Run_options.html when you invoke LAMMPS, or you can use the
-"suffix"_suffix.html command in your input script.
-
-See the "Speed packages"_Speed_packages.html doc page for more
-instructions on how to use the accelerated styles effectively.
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-These fixes writes the state of all the thermostat and barostat
+This fix writes the state of all the thermostat and barostat
 variables to "binary restart files"_restart.html.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 The "fix_modify"_fix_modify.html {temp} and {press} options are
-supported by these fixes.  You can use them to assign a
+supported by this fix.  You can use them to assign a
 "compute"_compute.html you have defined to this fix which will be used
 in its thermostatting or barostatting procedure, as described above.
 If you do this, note that the kinetic energy derived from the compute
@@ -522,14 +461,14 @@ comes before the {press} keyword, then the new pressure compute
 specified by the {press} keyword will be unaffected by the {temp}
 setting.
 
-The "fix_modify"_fix_modify.html {energy} option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy change induced by Nose/Hoover thermostatting
 and barostatting to the system's potential energy as part of
 "thermodynamic output"_thermo_style.html.
 
-These fixes compute a global scalar and a global vector of quantities,
+This fix computes a global scalar and a global vector of quantities,
 which can be accessed by various "output commands"_Howto_output.html.
-The scalar value calculated by these fixes is "extensive"; the vector
+The scalar value calculated by this fix is "extensive"; the vector
 values are "intensive".
 
 The scalar is the cumulative energy change due to the fix.
@@ -564,17 +503,20 @@ PE_etap\[pchain\] = potential energy of each barostat thermostat displacement (e
 KE_etap_dot\[pchain\] = kinetic energy of each barostat thermostat velocity (energy units)
 PE_strain\[1\] = scalar strain energy (energy units) :ul
 
-These fixes can ramp their external temperature and pressure over
+This fix can ramp its external temperature and pressure over
 multiple runs, using the {start} and {stop} keywords of the
 "run"_run.html command.  See the "run"_run.html command for details of
 how to do this.
 
-These fixes are not invoked during "energy
-minimization"_minimize.html.
+This fix is not invoked during "energy minimization"_minimize.html.
 
 :line
 
 [Restrictions:]
+
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 {X}, {y}, {z} cannot be barostatted if the associated dimension is not
 periodic.  {Xy}, {xz}, and {yz} can only be barostatted if the
@@ -604,7 +546,7 @@ the set values and the final true (Cauchy) stresses can be
 considerable.
 
 The {cauchystat} keyword modifies the barostat as per Miller et
-al. (Miller)_"#nh-Miller" so that the Cauchy stress is controlled.
+al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 {alpha} is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggresively the algorithm drives the system
 towards the set Cauchy stresses.  Larger values of {alpha} will modify
@@ -629,8 +571,8 @@ related {alpha} and {continue} values). This restores the original
 Parrinello-Rahman algorithm, but now with the correct simulation box
 shape from the first fix.
 
-These fixes can be used with dynamic groups as defined by the
-"group"_group.html command.  Likewise they can be used with groups to
+This fix can be used with dynamic groups as defined by the
+"group"_group.html command.  Likewise it can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
 simulation.  However, the conservation properties of the thermostat
 and barostat are defined for systems with a static set of atoms.  You
@@ -664,10 +606,6 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 :link(nh-Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-:link(nh-Dullweber)
-[(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
-5840 (1997).
 
 :link(nh-Miller)
 [(Miller)] Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,

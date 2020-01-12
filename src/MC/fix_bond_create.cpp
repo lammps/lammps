@@ -226,7 +226,7 @@ void FixBondCreate::init()
     if (strcmp(modify->fix[i]->style,"bond/create") == 0) count++;
     if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
   }
-  if (count > 1 && me == 0) 
+  if (count > 1 && me == 0)
     error->warning(FLERR,"Fix bond/create is used multiple times "
                    " or with fix bond/break - may not work as expected");
 

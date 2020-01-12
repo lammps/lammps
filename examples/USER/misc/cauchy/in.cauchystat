@@ -18,7 +18,7 @@ mass 2 26.98154
 
 # Potential, Al fcc crystal
 pair_style eam/alloy
-pair_coeff * * Mishin-Ni-Al-2009.eam.alloy Ni Al
+pair_coeff * * NiAlH_jea.eam.alloy Ni Al
 neigh_modify delay 5
 
 thermo 100
@@ -32,8 +32,6 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      couple none alpha 0.001 continue no
 
 # dump 1 all cfg 1000 test*.cfg mass type xs ys zs type c_cna
-
-info fixes
 
 timestep 0.002
 
@@ -58,9 +56,7 @@ fix box all ave/time 1 100 100 v_lx v_ly v_lz v_xy v_xz v_yz file box.txt
 
 velocity all create 1200 4928459 rot yes dist gaussian
 
-run 10000
-
-info fixes
+run 1000
 
 fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      x 0.0 0.0 0.1 &
@@ -69,6 +65,4 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      xy -10000.0 -10000.0 0.1 &
                      couple none alpha 0.001 continue yes
 
-info fixes
-
-run 10000
+run 1000

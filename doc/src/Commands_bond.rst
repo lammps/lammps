@@ -44,12 +44,10 @@ OPT.
    * :doc:`nonlinear (o) <bond_nonlinear>`
    * :doc:`oxdna/fene <bond_oxdna>`
    * :doc:`oxdna2/fene <bond_oxdna>`
+   * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
    * :doc:`table (o) <bond_table>`
    *
-   *
-
----
 
 .. _angle:
 
@@ -92,8 +90,6 @@ OPT.
    * :doc:`sdk (o) <angle_sdk>`
    * :doc:`table (o) <angle_table>`
    *
-
----
 
 .. _dihedral:
 

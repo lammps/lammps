@@ -11,7 +11,6 @@ fix nvt/intel command :h3
 fix nvt/kk command :h3
 fix nvt/omp command :h3
 fix npt command :h3
-fix npt/cauchy command :h3
 fix npt/intel command :h3
 fix npt/kk command :h3
 fix npt/omp command :h3
@@ -26,7 +25,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update} or {alpha} or {continue}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -59,12 +58,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     x,y,z = perform barostat dilation/contraction around this point (distance units)
   {update} value = {dipole} or {dipole/dlm}
     dipole = update dipole orientation (only for sphere variants)
-    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
-   {alpha} value = alpha
-    alpha = strength of Cauchystat control parameter.  This keyword is only recognized by npt/cauchy and requires the USER-CAUCHY package.
-   {continue} value = {yes} or {no} = continue Cauchystat run using previously converged parameters.  This keyword is only recognized by npt/cauchy and requires the USER-CAUCHY package.
-
-:pre
+    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants) :pre
 :ule
 
 [Examples:]
@@ -142,7 +136,7 @@ they represent are varied together during a constant-pressure
 simulation.
 
 Other barostat-related keywords are {pchain}, {mtk}, {ploop},
-{nreset}, {drag}, {dilate}, {alpha} and {continue}, which are discussed below.
+{nreset}, {drag}, and {dilate}, which are discussed below.
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
@@ -294,14 +288,6 @@ does the same thing for the barostat thermostat.
 
 :line
 
-By default, the barostat algorithm controls the Second-Piola Kirchhoff
-stress, which is a stress measure referred to the undeformed (initial)
-simulation box.  If the box deforms substantially during the
-equilibration, the difference between the set values and the final
-true (Cauchy) stresses can be considerable.  There are two ways to
-deal with this: the {nreset} keyword and the {npt/cauchy} fix style
-provided by the USER-CAUCHY package.
-
 The keyword {nreset} controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
 or is given a value of zero, then the reference dimensions are set to
@@ -311,33 +297,6 @@ the final average pressure tensor will differ significantly from the
 specified values of the external stress tensor.  A value of {nstep}
 means that every {nstep} timesteps, the reference dimensions are set
 to those of the current simulation domain.
-
-Installing the USER-CAUCHY package enables the {npt/cauchy} fix, which
-implements the Cauchystat as per Miller et al. (Miller)_"#nh-Miller"
-to directly control the Cauchy stress.  For this fix style, {alpha} is a
-non-dimensional parameter, typically set to 0.001 or 0.01, that
-determines how aggresively the algorithm drives the system towards the
-set Cauchy stresses.  Larger values of {alpha} will modify the system
-more quickly, but can lead to instabilities.  Smaller values will lead
-to longer convergence time.  Since {alpha} also influences how much
-the stress fluctuations deviate from the equilibrium fluctuations, it
-should be set as small as possible.
-
-Setting {alpha} to zero is not permitted.  To "turn off" the
-Cauchystat control and thus restore the equilibrium stress
-fluctuations, two subsequent fixes should be used.  In the first, the
-{npt/cauchy} fix is used and the simulation box equilibrates to the correct
-shape for the desired stresses.  In the second, the regular {npt} fix is
-used, and it will restore the original
-Parrinello-Rahman algorithm, but now with the correct simulation box
-shape determined in the first fix.
-
-A {continue} value of {yes} is used for the {npt/cauchy} fix to signal that
-the fix is subsequent to a previous Cauchystat run, and
-the intention is to continue from the converged stress state at the
-end of the previous run.  This may be required, for example, when
-implementing a multi-step loading/unloading sequence over several
-fixes.
 
 The {scaleyz}, {scalexz}, and {scalexy} keywords control whether or
 not the corresponding tilt factors are scaled with the associated box
@@ -371,8 +330,6 @@ to {fixedpoint}, then the lower periodic boundaries will remain at
 far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
-
-:line
 
 If the {update} keyword is used with the {dipole} value, then the
 orientation of the dipole moment of each particle is also updated
@@ -668,7 +625,6 @@ over time or the atom count becomes very small.
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-alpha = 0.001, continue = no,
 scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
@@ -690,7 +646,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 :link(nh-Dullweber)
 [(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-:link(nh-Miller)
-[(Miller)] Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
-144, 184107 (2016).

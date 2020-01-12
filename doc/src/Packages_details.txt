@@ -1125,9 +1125,9 @@ USER-CAUCHY package :link(PKG-USER-CAUCHY),h4
 
 [Contents:]
 
-This package provides a modified version of
-"fix npt"_fix_nh.html which directly controls the Cauchy (true) stress
-instead of the second Piola-Kirchhoff stress, as presented in:
+This package provides a modified version of "fix npt"_fix_nh.html
+which directly controls the Cauchy (true) stress instead of the
+second Piola-Kirchhoff stress, as presented in:
 
 R. E. Miller, E. B. Tadmor, J. S. Gibson, N. Bernstein, and F. Pavia,
 “Molecular Dynamics at Constant Cauchy Stress,”  J. Chem. Phys. 144, 184107 (2016).
@@ -1136,8 +1136,8 @@ R. E. Miller, E. B. Tadmor, J. S. Gibson, N. Bernstein, and F. Pavia,
 
 [Supporting info:]
 
-Example input is in the examples/USER/cauchy folder.  Usage instructions are part of
-the "fix npt"_fix_nh.html description.
+Example input is in the examples/USER/cauchy folder.  Usage instructions are
+in the "fix npt/cauchy"_fix_cauchy.html documentation.
 
 :line
 

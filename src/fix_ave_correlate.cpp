@@ -17,10 +17,11 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_correlate.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -534,7 +535,8 @@ void FixAveCorrelate::end_of_step()
 
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 

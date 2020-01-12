@@ -1,7 +1,6 @@
-#include <cstdlib>
-#include <climits>
-#include <cstring>
 #include "xdr_compat.h"
+#include <cstdlib>
+#include <cstring>
 
 /* This file is needed for systems, that do not provide XDR support
  * in their system libraries. It was written for windows, but will
@@ -70,7 +69,7 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
 static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -82,7 +81,7 @@ static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 static xdr_uint32_t xdr_ntohl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {

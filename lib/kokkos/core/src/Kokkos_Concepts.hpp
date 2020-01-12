@@ -79,6 +79,45 @@ struct IndexType
   using type = T;
 };
 
+namespace Experimental {
+  struct WorkItemProperty {
+    template<unsigned long Property>
+    struct ImplWorkItemProperty {
+      static const unsigned value = Property;
+      using work_item_property = ImplWorkItemProperty<Property>;
+    };
+
+    constexpr static const ImplWorkItemProperty<0> None = ImplWorkItemProperty<0>();
+    constexpr static const ImplWorkItemProperty<1> HintLightWeight = ImplWorkItemProperty<1>();
+    constexpr static const ImplWorkItemProperty<2> HintHeavyWeight = ImplWorkItemProperty<2>();
+    constexpr static const ImplWorkItemProperty<4> HintRegular = ImplWorkItemProperty<4>();
+    constexpr static const ImplWorkItemProperty<8> HintIrregular = ImplWorkItemProperty<8>();
+    typedef ImplWorkItemProperty<0> None_t;
+    typedef ImplWorkItemProperty<1> HintLightWeight_t;
+    typedef ImplWorkItemProperty<2> HintHeavyWeight_t;
+    typedef ImplWorkItemProperty<4> HintRegular_t;
+    typedef ImplWorkItemProperty<8> HintIrregular_t;
+  };
+
+template<unsigned long pv1, unsigned long pv2>
+inline constexpr WorkItemProperty::ImplWorkItemProperty<pv1|pv2> operator |
+  (WorkItemProperty::ImplWorkItemProperty<pv1>, WorkItemProperty::ImplWorkItemProperty<pv2>) {
+  return WorkItemProperty::ImplWorkItemProperty<pv1|pv2>();
+}
+
+template<unsigned long pv1, unsigned long pv2>
+inline constexpr WorkItemProperty::ImplWorkItemProperty<pv1&pv2> operator &
+  (WorkItemProperty::ImplWorkItemProperty<pv1>, WorkItemProperty::ImplWorkItemProperty<pv2>) {
+  return WorkItemProperty::ImplWorkItemProperty<pv1&pv2>();
+}
+
+template<unsigned long pv1, unsigned long pv2>
+inline constexpr bool operator == (WorkItemProperty::ImplWorkItemProperty<pv1>, WorkItemProperty::ImplWorkItemProperty<pv2>) {
+  return pv1 ==  pv2;
+}
+
+}
+
 /**\brief Specify Launch Bounds for CUDA execution.
  *
  *  If no launch bounds specified then do not set launch bounds.
@@ -105,7 +144,14 @@ namespace Kokkos {
   template< typename T > struct is_ ## CONCEPT { \
   private: \
     template< typename , typename = std::true_type > struct have : std::false_type {}; \
-    template< typename U > struct have<U,typename std::is_same<U,typename U:: CONCEPT >::type> : std::true_type {}; \
+    template< typename U > struct have<U,typename std::is_base_of< \
+     typename std::remove_cv<typename U:: CONCEPT>::type, \
+     typename std::remove_cv<U>::type \
+   >::type> : std::true_type {}; \
+    template< typename U > struct have<U,typename std::is_base_of< \
+     typename std::remove_cv<typename U:: CONCEPT ## _type>::type, \
+     typename std::remove_cv<U>::type \
+   >::type> : std::true_type {}; \
   public: \
     enum { value = is_ ## CONCEPT::template have<T>::value }; \
   };
@@ -118,6 +164,9 @@ KOKKOS_IMPL_IS_CONCEPT( execution_space )
 KOKKOS_IMPL_IS_CONCEPT( execution_policy )
 KOKKOS_IMPL_IS_CONCEPT( array_layout )
 KOKKOS_IMPL_IS_CONCEPT( reducer )
+namespace Experimental {
+KOKKOS_IMPL_IS_CONCEPT( work_item_property )
+}
 
 namespace Impl {
 
@@ -135,6 +184,8 @@ KOKKOS_IMPL_IS_CONCEPT( iteration_pattern )
 KOKKOS_IMPL_IS_CONCEPT( schedule_type )
 KOKKOS_IMPL_IS_CONCEPT( index_type )
 KOKKOS_IMPL_IS_CONCEPT( launch_bounds )
+KOKKOS_IMPL_IS_CONCEPT( thread_team_member )
+KOKKOS_IMPL_IS_CONCEPT( host_thread_team_member )
 
 }
 

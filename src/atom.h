@@ -34,6 +34,10 @@ class Atom : protected Pointers {
   int tag_enable;               // 0/1 if atom ID tags are defined
   int molecular;                // 0 = atomic, 1 = standard molecular system,
                                 // 2 = molecule template system
+  bigint nellipsoids;           // number of ellipsoids
+  bigint nlines;                // number of lines
+  bigint ntris;                 // number of triangles
+  bigint nbodies;               // number of bodies
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
@@ -65,6 +69,7 @@ class Atom : protected Pointers {
 
   double **sp;
   double **fm;
+  double **fm_long;
 
   // PERI package
 
@@ -233,6 +238,8 @@ class Atom : protected Pointers {
   void tag_extend();
   int tag_consecutive();
 
+  void bonus_check();
+
   int parse_data(const char *);
   int count_words(const char *);
   int count_words(const char *, char *);
@@ -280,6 +287,8 @@ class Atom : protected Pointers {
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
+  inline int get_max_same() {return max_same;};
+  inline int get_map_maxarray() {return map_maxarray+1;};
 
   bigint memory_usage();
   int memcheck(const char *);
@@ -355,7 +364,7 @@ E: Atom IDs must be used for molecular systems
 
 Atom IDs are used to identify and find partner atoms in bonds.
 
-E: Unknown atom style
+E: Unrecognized atom style
 
 The choice of atom style is unknown.
 
@@ -417,6 +426,11 @@ E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with
 the atom style.
+
+E: Incorrect format of ... section in data file
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section.
 
 E: Invalid atom type in Atoms section of data file
 
@@ -495,12 +509,6 @@ E: Atom sort did not operate correctly
 
 This is an internal LAMMPS error.  Please report it to the
 developers.
-
-E: Atom sorting has bin size = 0.0
-
-The neighbor cutoff is being used as the bin size, but it is zero.
-Thus you must explicitly list a bin size in the atom_modify sort
-command or turn off sorting.
 
 E: Too many atom sorting bins
 

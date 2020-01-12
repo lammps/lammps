@@ -15,17 +15,14 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_lb_pc.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "memory.h"
-#include "comm.h"
 #include "domain.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"
@@ -164,7 +161,7 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
           v[i][0] += f[i][0]*dtfm;
           v[i][1] += f[i][1]*dtfm;
           v[i][2] += f[i][2]*dtfm;
-        }else{
+        } else {
           v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
             f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
           v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
@@ -195,7 +192,7 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
           v[i][0] += f[i][0]*dtfm;
           v[i][1] += f[i][1]*dtfm;
           v[i][2] += f[i][2]*dtfm;
-        }else{
+        } else {
           v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
             f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
           v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
@@ -234,7 +231,7 @@ void FixLbPC::final_integrate()
           v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
           v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
           v[i][2] += 0.5*(f[i][2] - force_old[i][2])*dtfm;
-        }else{
+        } else {
           v[i][0] += DMDcoeff*((f[i][0] - force_old[i][0])*force->ftm2v/Gamma_MD[type[i]] + up[i][0] - up_old[i][0])/dtv;
           v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
           v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
@@ -255,7 +252,7 @@ void FixLbPC::final_integrate()
           v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
           v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
           v[i][2] += 0.5*(f[i][2] - force_old[i][2])*dtfm;
-        }else{
+        } else {
           v[i][0] += DMDcoeff*((f[i][0] - force_old[i][0])*force->ftm2v/Gamma_MD[type[i]] + up[i][0] - up_old[i][0])/dtv;
           v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
           v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
@@ -387,37 +384,37 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
         for(ii=-1; ii<3; ii++){
           rsq=(-dx1+ii)*(-dx1+ii);
 
-          if(rsq>=4)
+          if(rsq>=4) {
             weightx=0.0;
-          else{
+          } else {
             r=sqrt(rsq);
             if(rsq>1){
               weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-            } else{
+            } else {
               weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
             }
           }
           for(jj=-1; jj<3; jj++){
             rsq=(-dy1+jj)*(-dy1+jj);
-            if(rsq>=4)
+            if(rsq>=4) {
               weighty=0.0;
-            else{
+            } else {
               r=sqrt(rsq);
               if(rsq>1){
                 weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-              } else{
+              } else {
                 weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
               }
             }
             for(kk=-1; kk<3; kk++){
               rsq=(-dz1+kk)*(-dz1+kk);
-              if(rsq>=4)
+              if(rsq>=4) {
                 weightz=0.0;
-              else{
+              } else {
                 r=sqrt(rsq);
                 if(rsq>1){
                   weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-                } else{
+                } else {
                   weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
                 }
               }
@@ -438,7 +435,7 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
             }
           }
         }
-      }else{
+      } else {
         FfP[0] = (1.-dx1)*(1.-dy1)*(1.-dz1);
         FfP[1] = (1.-dx1)*(1.-dy1)*dz1;
         FfP[2] = (1.-dx1)*dy1*(1.-dz1);

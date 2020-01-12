@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "message.h"
+#include <cstring>
 #include "error.h"
 
 // CSlib interface
@@ -22,28 +22,22 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
-// customize by adding a new server protocol enum
-
-enum{MD,MC};
-
 /* ---------------------------------------------------------------------- */
 
 void Message::command(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal message command");
 
-  int clientserver;
+  int clientserver=0;
   if (strcmp(arg[0],"client") == 0) clientserver = 1;
   else if (strcmp(arg[0],"server") == 0) clientserver = 2;
   else error->all(FLERR,"Illegal message command");
   lmp->clientserver = clientserver;
 
-  // customize by adding a new server protocol
+  // validate supported protocols
 
-  int protocol;
-  if (strcmp(arg[1],"md") == 0) protocol = MD;
-  else if (strcmp(arg[1],"mc") == 0) protocol = MC;
-  else error->all(FLERR,"Unknown message protocol");
+  if ((strcmp(arg[1],"md") != 0) && (strcmp(arg[1],"mc") != 0))
+    error->all(FLERR,"Unknown message protocol");
 
   // instantiate CSlib with chosen communication mode
 
@@ -51,13 +45,13 @@ void Message::command(int narg, char **arg)
       strcmp(arg[2],"mpi/two") == 0) {
     if (narg != 4) error->all(FLERR,"Illegal message command");
     lmp->cslib = new CSlib(clientserver-1,arg[2],arg[3],&world);
-  
+
   } else if (strcmp(arg[2],"mpi/one") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal message command");
-    if (!lmp->cscomm) 
+    if (!lmp->cscomm)
       error->all(FLERR,"Message mpi/one mode, but -mpi cmdline arg not used");
     lmp->cslib = new CSlib(clientserver-1,arg[2],&lmp->cscomm,&world);
-  
+
   } else error->all(FLERR,"Illegal message command");
 
   // perform initial handshake between client and server
@@ -75,16 +69,16 @@ void Message::command(int narg, char **arg)
     int *fieldID,*fieldtype,*fieldlen;
     int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
     if (msgID != 0) error->one(FLERR,"Bad initial client/server handshake");
-    
+
   } else {
     int nfield;
     int *fieldID,*fieldtype,*fieldlen;
     int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
     if (msgID != 0) error->one(FLERR,"Bad initial client/server handshake");
     char *pstr = cs->unpack_string(1);
-    if (strcmp(pstr,arg[1]) != 0) 
+    if (strcmp(pstr,arg[1]) != 0)
       error->one(FLERR,"Mismatch in client/server protocol");
-    
+
     cs->send(0,0);
   }
 }

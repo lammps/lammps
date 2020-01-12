@@ -13,6 +13,6 @@ setup(name='LAMMPS Documentation Utilities',
       entry_points = {
           "console_scripts": ['txt2html = lammpsdoc.txt2html:main',
                               'txt2rst  = lammpsdoc.txt2rst:main',
-                              'doc_anchor_check = lammpsdoc.doc_anchor_check:main ']
+                              'rst_anchor_check = lammpsdoc.rst_anchor_check:main ']
       },
 )

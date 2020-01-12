@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
@@ -43,10 +43,7 @@ ImproperFourierOMP::ImproperFourierOMP(class LAMMPS *lmp)
 
 void ImproperFourierOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -61,7 +58,7 @@ void ImproperFourierOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -239,17 +236,17 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
   dahy = ary-c*hry;
   dahz = arz-c*hrz;
 
-  f2[0] = (dhay*vb1z - dhaz*vb1y)*rar;
-  f2[1] = (dhaz*vb1x - dhax*vb1z)*rar;
-  f2[2] = (dhax*vb1y - dhay*vb1x)*rar;
+  f2[0] = (dhay*vb1z - dhaz*vb1y)*rar*a;
+  f2[1] = (dhaz*vb1x - dhax*vb1z)*rar*a;
+  f2[2] = (dhax*vb1y - dhay*vb1x)*rar*a;
 
-  f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar;
-  f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar;
-  f3[2] = (-dhax*vb2y + dhay*vb2x)*rar;
+  f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar*a;
+  f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar*a;
+  f3[2] = (-dhax*vb2y + dhay*vb2x)*rar*a;
 
-  f4[0] = dahx*rhr;
-  f4[1] = dahy*rhr;
-  f4[2] = dahz*rhr;
+  f4[0] = dahx*rhr*a;
+  f4[1] = dahy*rhr*a;
+  f4[2] = dahz*rhr*a;
 
   f1[0] = -(f2[0] + f3[0] + f4[0]);
   f1[1] = -(f2[1] + f3[1] + f4[1]);
@@ -258,30 +255,31 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
   // apply force to each of 4 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    f[i1][0] += f1[0]*a;
-    f[i1][1] += f1[1]*a;
-    f[i1][2] += f1[2]*a;
+    f[i1][0] += f1[0];
+    f[i1][1] += f1[1];
+    f[i1][2] += f1[2];
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    f[i2][0] += f3[0]*a;
-    f[i2][1] += f3[1]*a;
-    f[i2][2] += f3[2]*a;
+    f[i2][0] += f3[0];
+    f[i2][1] += f3[1];
+    f[i2][2] += f3[2];
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    f[i3][0] += f2[0]*a;
-    f[i3][1] += f2[1]*a;
-    f[i3][2] += f2[2]*a;
+    f[i3][0] += f2[0];
+    f[i3][1] += f2[1];
+    f[i3][2] += f2[2];
   }
 
   if (NEWTON_BOND || i4 < nlocal) {
-    f[i4][0] += f4[0]*a;
-    f[i4][1] += f4[1]*a;
-    f[i4][2] += f4[2]*a;
+    f[i4][0] += f4[0];
+    f[i4][1] += f4[1];
+    f[i4][2] += f4[2];
   }
 
   if (EVFLAG)
-    ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
-                 vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+    ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f2,f4,
+                 -vb1x,-vb1y,-vb1z,vb2x-vb1x,vb2y-vb1y,vb2z-vb1z,vb3x-vb2x,vb3y-vb2y,vb3z-vb2z,thr);
+
 }

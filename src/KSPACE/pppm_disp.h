@@ -20,18 +20,25 @@ KSpaceStyle(pppm/disp,PPPMDisp)
 #ifndef LMP_PPPM_DISP_H
 #define LMP_PPPM_DISP_H
 
-#include "lmptype.h"
-#include <mpi.h>
+#include "kspace.h"
+
+#if defined(FFT_FFTW3)
+#define LMP_FFT_LIB "FFTW3"
+#elif defined(FFT_MKL)
+#define LMP_FFT_LIB "MKL FFT"
+#else
+#define LMP_FFT_LIB "KISS FFT"
+#endif
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
+#define LMP_FFT_PREC "single"
 #define MPI_FFT_SCALAR MPI_FLOAT
 #else
 typedef double FFT_SCALAR;
+#define LMP_FFT_PREC "double"
 #define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
-
-#include "kspace.h"
 
 namespace LAMMPS_NS {
 
@@ -390,7 +397,7 @@ E: PPPMDisp can only currently be used with comm_style brick
 
 This is a current restriction in LAMMPS.
 
-E: Cannot use nonperiodic boundaries with PPPMDisp
+E: Cannot use non-periodic boundaries with PPPMDisp
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
@@ -489,7 +496,7 @@ Self-explanatory.
 
 E: KSpace accuracy too large to estimate G vector
 
-Reduce the accuracy request or specify gwald explicitly
+Reduce the accuracy request or specify gewald explicitly
 via the kspace_modify command.
 
 E: Could not compute grid size for Coulomb interaction

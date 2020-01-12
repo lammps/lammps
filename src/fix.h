@@ -14,7 +14,7 @@
 #ifndef LMP_FIX_H
 #define LMP_FIX_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -56,6 +56,8 @@ class Fix : protected Pointers {
   int enforce2d_flag;            // 1 if has enforce2d method
   int respa_level_support;       // 1 if fix supports fix_modify respa
   int respa_level;               // which respa level to apply fix (1-Nrespa)
+  int maxexchange;               // max # of per-atom values for Comm::exchange()
+  int maxexchange_dynamic;       // 1 if fix sets maxexchange dynamically
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
@@ -223,6 +225,10 @@ class Fix : protected Pointers {
 
   int dynamic;    // recount atoms for temperature computes
 
+  void ev_init(int eflag, int vflag) {
+    if (eflag||vflag) ev_setup(eflag, vflag);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
   void v_setup(int);

@@ -1,0 +1,67 @@
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Installing LAMMPS in Python :h3
+
+For Python to invoke LAMMPS, there are 2 files it needs to know about:
+
+python/lammps.py
+liblammps.so or liblammps.dylib :ul
+
+The python source code in lammps.py is the Python wrapper on the
+LAMMPS library interface. The liblammps.so or liblammps.dylib file
+is the shared LAMMPS library that Python loads dynamically.
+
+You can achieve that Python can find these files in one of two ways:
+
+set two environment variables pointing to the location in the source tree
+run "make install-python" or run the python/install.py script explicitly :ul
+
+When calling "make install-python" LAMMPS will try to install the
+python module and the shared library into the python site-packages folders;
+either the system-wide ones, or the local users ones (in case of insufficient
+permissions for the global install). Python will then find the module
+and shared library file automatically. The exact location of these folders
+depends on your python version and your operating system.
+
+If you set the paths to these files as environment variables, you only
+have to do it once.  For the csh or tcsh shells, add something like
+this to your ~/.cshrc file, one line for each of the two files:
+
+setenv PYTHONPATH $\{PYTHONPATH\}:/home/sjplimp/lammps/python
+setenv LD_LIBRARY_PATH $\{LD_LIBRARY_PATH\}:/home/sjplimp/lammps/src :pre
+
+On MacOSX you may also need to set DYLD_LIBRARY_PATH accordingly.
+For Bourne/Korn shells accordingly into the corresponding files using
+the "export" shell builtin.
+
+If you use "make install-python" or the python/install.py script, you need
+to invoke it every time you rebuild LAMMPS (as a shared library) or
+make changes to the python/lammps.py file, so that the site-packages
+files are updated with the new version.
+
+If the default settings of "make install-python" are not what you want,
+you can invoke install.py from the python directory manually as
+
+% python install.py -m \<python module\> -l <shared library> -v <version.h file> \[-d \<pydir\>\] :pre
+
+The -m flag points to the lammps.py python module file to be installed,
+the -l flag points to the LAMMPS shared library file to be installed,
+the -v flag points to the version.h file in the LAMMPS source
+and the optional -d flag to a custom (legacy) installation folder :ul
+
+If you use a legacy installation folder, you will need to set your
+PYTHONPATH and LD_LIBRARY_PATH (and/or DYLD_LIBRARY_PATH) environment
+variables accordingly, as described above.
+
+Note that if you want Python to be able to load different versions of
+the LAMMPS shared library (see "this section"_Python_shlib.html), you will
+need to manually copy files like liblammps_g++.so into the appropriate
+system directory.  This is not needed if you set the LD_LIBRARY_PATH
+environment variable as described above.

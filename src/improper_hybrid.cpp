@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "improper_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "improper_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -104,8 +104,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
   // set neighbor->improperlist to sub-style improperlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nimproperlist = nimproperlist[m];
@@ -129,6 +128,14 @@ void ImproperHybrid::compute(int eflag, int vflag)
       for (i = 0; i < n; i++)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
+    }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (i = 0; i < n; i++)
+        for (j = 0; j < 9; j++)
+          cvatom[i][j] += cvatom_substyle[i][j];
     }
   }
 
@@ -307,6 +314,7 @@ void ImproperHybrid::write_restart(FILE *fp)
     n = strlen(keywords[m]) + 1;
     fwrite(&n,sizeof(int),1,fp);
     fwrite(keywords[m],sizeof(char),n,fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -317,7 +325,7 @@ void ImproperHybrid::write_restart(FILE *fp)
 void ImproperHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Improper*[nstyles];
   keywords = new char*[nstyles];
@@ -326,12 +334,13 @@ void ImproperHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_improper(keywords[m],0,dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 
@@ -343,6 +352,7 @@ double ImproperHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maximproper[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

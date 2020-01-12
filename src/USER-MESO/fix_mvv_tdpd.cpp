@@ -25,13 +25,11 @@
    -reaction problems". The Journal of Chemical Physics, 2015, 143: 014101.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_mvv_tdpd.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

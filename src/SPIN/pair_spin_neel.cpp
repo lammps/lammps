@@ -21,39 +21,22 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_neel.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_neel.h"
 #include "update.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
-/* ---------------------------------------------------------------------- */
-
-PairSpinNeel::PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp),
-lockfixnvespin(NULL)
-{
-  single_enable = 0;
-  no_virial_fdotr_compute = 1;
-  lattice_flag = 0;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,11 +63,7 @@ PairSpinNeel::~PairSpinNeel()
 
 void PairSpinNeel::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
+  PairSpin::settings(narg,arg);
 
   cut_spin_neel_global = force->numeric(FLERR,arg[0]);
 
@@ -152,42 +131,6 @@ void PairSpinNeel::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinNeel::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  // checking if nve/spin is a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    ifix++;
-  }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
-}
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -232,8 +175,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -318,7 +260,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -330,7 +272,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 {
@@ -342,57 +286,81 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  spi[0] = sp[i][0];
-  spi[1] = sp[i][1];
-  spi[2] = sp[i][2];
-
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  eij[0] = eij[1] = eij[2] = 0.0;
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-
-    local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = inorm*rij[0];
-    eij[1] = inorm*rij[1];
-    eij[2] = inorm*rij[2];
-
-    if (rsq <= local_cut2) {
-      compute_neel(i,j,rsq,eij,fmi,spi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+
+    spi[0] = sp[ii][0];
+    spi[1] = sp[ii][1];
+    spi[2] = sp[ii][2];
+
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+
+    eij[0] = eij[1] = eij[2] = 0.0;
+
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+
+      local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
+
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = inorm*rij[0];
+      eij[1] = inorm*rij[1];
+      eij[2] = inorm*rij[2];
+
+      if (rsq <= local_cut2) {
+        compute_neel(ii,j,rsq,eij,fmi,spi,spj);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -622,9 +590,7 @@ void PairSpinNeel::allocate()
   memory->create(q3,n+1,n+1,"pair/spin/soc/neel:q3");
 
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");
-
 }
-
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
@@ -666,19 +632,19 @@ void PairSpinNeel::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&g1[i][j],sizeof(double),1,fp);
-          fread(&g1_mech[i][j],sizeof(double),1,fp);
-          fread(&g2[i][j],sizeof(double),1,fp);
-          fread(&g2[i][j],sizeof(double),1,fp);
-          fread(&q1[i][j],sizeof(double),1,fp);
-          fread(&q1_mech[i][j],sizeof(double),1,fp);
-          fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_neel[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&g1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&g1_mech[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&g2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&g3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&q1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&q1_mech[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&q2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&q3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_neel[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&g1_mech[i][j],1,MPI_DOUBLE,0,world);
@@ -712,9 +678,9 @@ void PairSpinNeel::write_restart_settings(FILE *fp)
 void PairSpinNeel::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_neel_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_spin_neel_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_spin_neel_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

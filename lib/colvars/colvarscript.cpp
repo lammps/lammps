@@ -82,6 +82,14 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   int error_code = COLVARS_OK;
 
+  // If command is found in map, execute it
+  std::string const cmd_key("cv_"+cmd);
+  if (comm_str_map.count(cmd_key) > 0) {
+    error_code |= (*(comm_fns[comm_str_map[cmd_key]]))(
+                      reinterpret_cast<void *>(this), objc, objv);
+    return error_code;
+  }
+
   if (cmd == "colvar") {
     if (objc < 3) {
       result = "Missing parameters\n" + help_string();
@@ -129,6 +137,10 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   if (cmd == "update") {
     error_code |= proxy->update_input();
+    if (error_code) {
+      result += "Error updating the Colvars module.\n";
+      return error_code;
+    }
     error_code |= colvars->calc();
     error_code |= proxy->update_output();
     if (error_code) {
@@ -265,6 +277,10 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
 int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[]) {
 
+  if (objc < 3) {
+    result = "Missing arguments";
+    return COLVARSCRIPT_ERROR;
+  }
   std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "value") {
@@ -295,11 +311,12 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
   }
 
   if (subcmd == "delete") {
-    size_t i;
-    for (i = 0; i < cv->biases.size(); i++) {
+    while (cv->biases.size() > 0) {
+      size_t i = cv->biases.size()-1;
+      cvm::log("Warning: before deleting colvar " + cv->name
+        + ", deleting parent bias " + cv->biases[i]->name);
       delete cv->biases[i];
     }
-    cv->biases.clear();
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
@@ -311,6 +328,47 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
   if (subcmd == "getconfig") {
     result = cv->get_config();
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getatomgroups") {
+    std::vector<std::vector<int> > lists = cv->get_atom_lists();
+    std::vector<std::vector<int> >::iterator li = lists.begin();
+
+    for ( ; li != lists.end(); ++li) {
+      result += "{";
+      std::vector<int>::iterator lj = (*li).begin();
+      for ( ; lj != (*li).end(); ++lj) {
+        result += cvm::to_str(*lj);
+        result += " ";
+      }
+      result += "} ";
+    }
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getatomids") {
+    std::vector<int>::iterator li = cv->atom_ids.begin();
+
+    for ( ; li != cv->atom_ids.end(); ++li) {
+      result += cvm::to_str(*li);
+      result += " ";
+    }
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getgradients") {
+    std::vector<cvm::rvector>::iterator li = cv->atomic_gradients.begin();
+
+    for ( ; li != cv->atomic_gradients.end(); ++li) {
+      result += "{";
+      int j;
+      for (j = 0; j < 3; ++j) {
+        result += cvm::to_str((*li)[j]);
+        result += " ";
+      }
+      result += "} ";
+    }
     return COLVARS_OK;
   }
 
@@ -373,6 +431,23 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
     return COLVARS_OK;
   }
 
+  if (subcmd == "modifycvcs") {
+    if (objc < 4) {
+      result = "cvcflags: missing parameter: vector of strings";
+      return COLVARSCRIPT_ERROR;
+    }
+    std::vector<std::string> const confs(proxy->script_obj_to_str_vector(objv[3]));
+    cvm::increase_depth();
+    int res = cv->update_cvc_config(confs);
+    cvm::decrease_depth();
+    if (res != COLVARS_OK) {
+      result = "Error setting CVC flags";
+      return COLVARSCRIPT_ERROR;
+    }
+    result = "0";
+    return COLVARS_OK;
+  }
+
   if ((subcmd == "get") || (subcmd == "set") || (subcmd == "state")) {
     return proc_features(cv, objc, objv);
   }
@@ -384,6 +459,10 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
 int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]) {
 
+  if (objc < 3) {
+    result = "Missing arguments";
+    return COLVARSCRIPT_ERROR;
+  }
   std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "energy") {
@@ -547,6 +626,8 @@ std::string colvarscript::help_string() const
 Managing the Colvars module:\n\
   configfile <file name>      -- read configuration from a file\n\
   config <string>             -- read configuration from the given string\n\
+  getconfig                   -- get the module's configuration string\n\
+  resetindexgroups            -- clear the index groups loaded so far\n\
   reset                       -- delete all internal configuration\n\
   delete                      -- delete this Colvars module instance\n\
   version                     -- return version of Colvars code\n\
@@ -579,6 +660,7 @@ Accessing collective variables:\n\
   colvar <name> gettotalforce -- return total force of colvar <name>\n\
   colvar <name> getconfig     -- return config string of colvar <name>\n\
   colvar <name> cvcflags <fl> -- enable or disable cvcs according to 0/1 flags\n\
+  colvar <name> modifycvcs <str> -- pass new config strings to each CVC\n\
   colvar <name> get <f>       -- get the value of the colvar feature <f>\n\
   colvar <name> set <f> <val> -- set the value of the colvar feature <f>\n\
 \n\

@@ -15,10 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_deform.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -802,7 +801,7 @@ void FixDeform::end_of_step()
       // tilt_target can be large positive or large negative value
       // add/subtract box lengths until tilt_target is closest to current value
 
-      int idenom;
+      int idenom = 0;
       if (i == 5) idenom = 0;
       else if (i == 4) idenom = 0;
       else if (i == 3) idenom = 1;

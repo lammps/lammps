@@ -74,6 +74,9 @@ dry_run=0
 host_only=0
 host_only_args=""
 
+# Just run version on host compiler
+get_host_version=0
+
 # Enable workaround for CUDA 6.5 for pragma ident 
 replace_pragma_ident=0
 
@@ -93,6 +96,9 @@ depfile_separate=0
 depfile_output_arg=""
 depfile_target_arg=""
 
+# Option to remove duplicate libraries and object files
+remove_duplicate_link_files=0
+
 #echo "Arguments: $# $@"
 
 while [ $# -gt 0 ]
@@ -106,9 +112,17 @@ do
   --host-only)
     host_only=1
     ;;
+  #get the host version only
+  --host-version)
+    get_host_version=1
+    ;;
   #replace '#pragma ident' with '#ident' this is needed to compile OpenMPI due to a configure script bug and a non standardized behaviour of pragma with macros
   --replace-pragma-ident)
     replace_pragma_ident=1
+    ;;
+  #remove duplicate link files
+  --remove-duplicate-link-files)
+    remove_duplicate_link_files=1
     ;;
   #handle source files to be compiled as cuda files
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
@@ -124,7 +138,12 @@ do
     fi
     ;;
   #Handle shared args (valid for both nvcc and the host compiler)
-  -D*|-I*|-L*|-l*|-g|--help|--version|-E|-M|-shared)
+  -D*)
+    unescape_commas=`echo "$1" | sed -e 's/\\\,/,/g'`
+    arg=`printf "%q" $unescape_commas`
+    shared_args="$shared_args $arg"
+    ;;
+  -I*|-L*|-l*|-g|--help|--version|-E|-M|-shared|-w)
     shared_args="$shared_args $1"
     ;;
   #Handle compilation argument
@@ -152,7 +171,7 @@ do
     shift
     ;;
   #Handle known nvcc args
-  -gencode*|--dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage|-Xptxas*)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage|-Xptxas*)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
@@ -164,8 +183,11 @@ do
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
+  -rdc=*|-maxrregcount*|--maxrregcount*)
+    cuda_args="$cuda_args $1"
+    ;;
   #Handle c++11
-  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++1z|-std=c++1z)
+  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++1y|-std=c++1y|--std=c++17|-std=c++17|--std=c++1z|-std=c++1z)
     if [ $stdcxx_applied -eq 1 ]; then
        echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-std=c++1* or --std=c++1*), only the first is used because nvcc can only accept a single std setting"
     else
@@ -205,6 +227,15 @@ do
     fi
     shift
     ;;
+  #Handle -+ (same as -x c++, specifically used for xl compilers, but mutually exclusive with -x. So replace it with -x c++)
+  -+)
+    if [ $first_xcompiler_arg -eq 1 ]; then
+      xcompiler_args="-x,c++"
+      first_xcompiler_arg=0
+    else
+      xcompiler_args="$xcompiler_args,-x,c++"
+    fi
+    ;;
   #Handle -ccbin (if its not set we can set it to a default value)
   -ccbin)
     cuda_args="$cuda_args $1 $2"
@@ -212,18 +243,39 @@ do
     host_compiler=$2
     shift
     ;;
-  #Handle -arch argument (if its not set use a default
-  -arch*)
+
+  #Handle -arch argument (if its not set use a default) this is the version with = sign
+  -arch*|-gencode*)
     cuda_args="$cuda_args $1"
     arch_set=1
+    ;;
+  #Handle -code argument (if its not set use a default) this is the version with = sign
+  -code*)
+    cuda_args="$cuda_args $1"
+    ;;
+  #Handle -arch argument (if its not set use a default) this is the version without = sign
+  -arch|-gencode)
+    cuda_args="$cuda_args $1 $2"
+    arch_set=1
+    shift
+    ;;
+  #Handle -code argument (if its not set use a default) this is the version without = sign
+  -code)
+    cuda_args="$cuda_args $1 $2"
+    shift
     ;;
   #Handle -Xcudafe argument
   -Xcudafe)
     cuda_args="$cuda_args -Xcudafe $2"
     shift
     ;;
+  #Handle -Xlinker argument
+  -Xlinker)
+    xlinker_args="$xlinker_args -Xlinker $2"
+    shift
+    ;;
   #Handle args that should be sent to the linker
-  -Wl*)
+  -Wl,*)
     xlinker_args="$xlinker_args -Xlinker ${1:4:${#1}}"
     host_linker_args="$host_linker_args ${1:4:${#1}}"
     ;;
@@ -255,6 +307,54 @@ do
 
   shift
 done
+
+#Check if nvcc exists
+if [ $host_only -ne 1 ]; then
+  var=$(which nvcc )
+  if [ $? -gt 0 ]; then
+    echo "Could not find nvcc in PATH"
+    exit $?
+  fi
+fi
+
+
+# Only print host compiler version
+if [ $get_host_version -eq 1 ]; then
+  $host_compiler --version
+  exit
+fi
+
+#Remove duplicate object files
+if [ $remove_duplicate_link_files -eq 1 ]; then
+for obj in $object_files
+do
+  object_files_reverse="$obj $object_files_reverse"
+done
+
+object_files_reverse_clean=""
+for obj in $object_files_reverse
+do
+  exists=false
+  for obj2 in $object_files_reverse_clean
+  do
+    if [ "$obj" == "$obj2" ]
+    then
+      exists=true
+      echo "Exists: $obj"
+    fi
+  done
+  if [ "$exists" == "false" ]
+  then
+    object_files_reverse_clean="$object_files_reverse_clean $obj"
+  fi
+done
+
+object_files=""
+for obj in $object_files_reverse_clean
+do
+  object_files="$obj $object_files"
+done
+fi
 
 #Add default host compiler if necessary
 if [ $ccbin_set -ne 1 ]; then
@@ -328,10 +428,19 @@ fi
 
 #Run compilation command
 if [ $host_only -eq 1 ]; then
+  if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
+    echo "$host_command"
+  fi
   $host_command
 elif [ -n "$nvcc_depfile_command" ]; then
+  if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
+    echo "$nvcc_command && $nvcc_depfile_command"
+  fi
   $nvcc_command && $nvcc_depfile_command
 else
+  if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
+    echo "$nvcc_command"
+  fi
   $nvcc_command
 fi
 error_code=$?

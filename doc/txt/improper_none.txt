@@ -1,0 +1,34 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+improper_style none command :h3
+
+[Syntax:]
+
+improper_style none :pre
+
+[Examples:]
+
+improper_style none :pre
+
+[Description:]
+
+Using an improper style of none means improper forces and energies are
+not computed, even if quadruplets of improper atoms were listed in the
+data file read by the "read_data"_read_data.html command.
+
+See the "improper_style zero"_improper_zero.html command for a way to
+calculate improper statistics, but compute no improper interactions.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"improper_style zero"_improper_zero.html
+
+[Default:] none

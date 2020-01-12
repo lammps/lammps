@@ -15,9 +15,9 @@
    Contributing author: Christian Negre (LANL)
 ------------------------------------------------------------------------- */
 
+#include "fix_latte.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_latte.h"
 #include "atom.h"
 #include "comm.h"
 #include "update.h"
@@ -239,8 +239,7 @@ void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 void FixLatte::post_force(int vflag)
 {
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute Coulombic potential = pe[i]/q[i]
   // invoke compute pe/atom
@@ -299,7 +298,7 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;
-  
+
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
         &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);

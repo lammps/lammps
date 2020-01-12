@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -11,11 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+#include "pair_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "pair_hybrid.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,13 +40,17 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   outerflag = 0;
   respaflag = 0;
+
+  // assume pair hybrid always supports centroid atomic stress,
+  // so that cflag_atom gets set when needed
+  centroidstressflag = 2;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::~PairHybrid()
 {
-  if (nstyles) {
+  if (nstyles > 0) {
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete [] keywords[m];
@@ -95,9 +100,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // check if global component of incoming vflag = 2
   // if so, reset vflag passed to substyle as if it were 0
@@ -160,6 +163,27 @@ void PairHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_pair) n += atom->nghost;
+      if (styles[m]->centroidstressflag & 2) {
+        double **cvatom_substyle = styles[m]->cvatom;
+        for (i = 0; i < n; i++)
+          for (j = 0; j < 9; j++)
+            cvatom[i][j] += cvatom_substyle[i][j];
+      } else {
+        double **vatom_substyle = styles[m]->vatom;
+        for (i = 0; i < n; i++) {
+          for (j = 0; j < 6; j++) {
+            cvatom[i][j] += vatom_substyle[i][j];
+          }
+          for (j = 6; j < 9; j++) {
+            cvatom[i][j] += vatom_substyle[i][j-3];
+          }
+        }
+      }
+    }
+
   }
 
   delete [] saved_special;
@@ -243,11 +267,19 @@ void PairHybrid::settings(int narg, char **arg)
 
   // delete old lists, since cannot just change settings
 
-  if (nstyles) {
-    for (int m = 0; m < nstyles; m++) delete styles[m];
-    delete [] styles;
-    for (int m = 0; m < nstyles; m++) delete [] keywords[m];
-    delete [] keywords;
+  if (nstyles > 0) {
+    for (int m = 0; m < nstyles; m++) {
+      delete styles[m];
+      delete [] keywords[m];
+      if (special_lj[m])   delete [] special_lj[m];
+      if (special_coul[m]) delete [] special_coul[m];
+    }
+    delete[] styles;
+    delete[] keywords;
+    delete[] multiple;
+    delete[] special_lj;
+    delete[] special_coul;
+    delete[] compute_tally;
   }
 
   if (allocated) {
@@ -267,7 +299,6 @@ void PairHybrid::settings(int narg, char **arg)
 
   special_lj = new double*[narg];
   special_coul = new double*[narg];
-
   compute_tally = new int[narg];
 
   // allocate each sub-style
@@ -352,17 +383,27 @@ void PairHybrid::flags()
     if (styles[m]->pppmflag) pppmflag = 1;
     if (styles[m]->msmflag) msmflag = 1;
     if (styles[m]->dipoleflag) dipoleflag = 1;
+    if (styles[m]->spinflag) spinflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
+    if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  init_svector();
+}
 
-  // single_extra = min of all sub-style single_extra
+/* ----------------------------------------------------------------------
+   initialize Pair::svector array
+------------------------------------------------------------------------- */
+
+void PairHybrid::init_svector()
+{
+  // single_extra = list all sub-style single_extra
   // allocate svector
 
-  single_extra = styles[0]->single_extra;
-  for (m = 1; m < nstyles; m++)
-    single_extra = MIN(single_extra,styles[m]->single_extra);
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra = MAX(single_extra,styles[m]->single_extra);
 
   if (single_extra) {
     delete [] svector;
@@ -642,6 +683,8 @@ void PairHybrid::write_restart(FILE *fp)
 
   // each sub-style writes its settings, but no coeff info
 
+  fwrite(compute_tally,sizeof(int),nstyles,fp);
+
   int n;
   for (int m = 0; m < nstyles; m++) {
     n = strlen(keywords[m]) + 1;
@@ -665,10 +708,17 @@ void PairHybrid::write_restart(FILE *fp)
 void PairHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
+
+  delete[] styles;
+  delete[] keywords;
+  delete[] multiple;
+  delete[] special_lj;
+  delete[] special_coul;
+  delete[] compute_tally;
 
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];
@@ -676,33 +726,37 @@ void PairHybrid::read_restart(FILE *fp)
 
   special_lj = new double*[nstyles];
   special_coul = new double*[nstyles];
+  compute_tally = new int[nstyles];
 
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
+  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,NULL,error);
+  MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
+
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_lj[m] = new double[4];
-      if (me == 0) fread(special_lj[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_coul[m] = new double[4];
-      if (me == 0) fread(special_coul[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);
     }
   }
@@ -753,16 +807,27 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       esum += styles[map[itype][jtype][m]]->
         single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
-
-      // copy substyle extra values into hybrid's svector
-
-      if (single_extra && styles[map[itype][jtype][m]]->single_extra)
-        for (m = 0; m < single_extra; m++)
-          svector[m] = styles[map[itype][jtype][m]]->svector[m];
     }
   }
 
+  if (single_extra) copy_svector(itype,jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   copy Pair::svector data
+------------------------------------------------------------------------- */
+
+void PairHybrid::copy_svector(int itype, int jtype)
+{
+  memset(svector,0,single_extra*sizeof(double));
+
+  // there is only one style in pair style hybrid for a pair of atom types
+  Pair *this_style = styles[map[itype][jtype][0]];
+
+  for (int l = 0; this_style->single_extra; ++l) {
+    svector[l] = this_style->svector[l];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -925,17 +990,24 @@ void *PairHybrid::extract(const char *str, int &dim)
   void *cutptr = NULL;
   void *ptr;
   double cutvalue = 0.0;
+  int couldim = -1;
 
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
+      if (cutptr && dim != couldim)
+        error->all(FLERR,
+                   "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
-      if (cutptr && newvalue != cutvalue)
+      if (cutptr && (newvalue != cutvalue))
         error->all(FLERR,
                    "Coulomb cutoffs of pair hybrid sub-styles do not match");
-      cutptr = ptr;
-      cutvalue = newvalue;
+      if (dim == 0) {
+        cutptr = ptr;
+        cutvalue = newvalue;
+      }
+      couldim = dim;
     } else if (ptr) return ptr;
   }
 
@@ -969,6 +1041,7 @@ double PairHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }

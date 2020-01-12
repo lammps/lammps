@@ -15,15 +15,12 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_hbond_dreiding_morse.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -61,8 +58,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   tagint *klist;
 
   evdwl = ehbond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

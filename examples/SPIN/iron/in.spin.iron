@@ -20,6 +20,7 @@ create_atoms 	1 box
 mass		1 55.845
 
 set 		group all spin/random 31 2.2
+# set 		group all spin 2.2 0.0 0.0 1.0
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
@@ -32,7 +33,7 @@ neigh_modify 	every 10 check yes delay 20
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice moving
 timestep	0.0001
 
 # compute and output options
@@ -47,10 +48,10 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe etotal
+thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe press etotal
 thermo          50
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		1 all custom 100 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		50000
+run 		1000

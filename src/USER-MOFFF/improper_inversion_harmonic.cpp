@@ -19,20 +19,17 @@
    [ abbreviated from and verified via DLPOLY2.0 ]
 ------------------------------------------------------------------------- */
 
+#include "improper_inversion_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "improper_inversion_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -66,8 +63,7 @@ void ImproperInversionHarmonic::compute(int eflag, int vflag)
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
   double rrvb1,rrvb2,rrvb3,rr2vb1,rr2vb2,rr2vb3;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   int **improperlist = neighbor->improperlist;
@@ -241,8 +237,8 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
     f[i4][2] += f4[2];
   }
 
-  double rb3x, rb3y, rb3z;
-  if (evflag)
+  if (evflag) {
+    double rb3x, rb3y, rb3z;
 
     rb3x = vb1x - vb2x;
     rb3y = vb1y - vb2y;
@@ -252,6 +248,7 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
              vb3x,vb3y,vb3z,
              vb2x,vb2y,vb2z,
              rb3x,rb3y,rb3z);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -316,8 +313,8 @@ void ImproperInversionHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&kw[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&w0[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&kw[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&w0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&kw[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&w0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

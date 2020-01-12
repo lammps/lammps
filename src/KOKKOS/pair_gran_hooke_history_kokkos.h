@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 
 template <class DeviceType>
 class FixNeighHistoryKokkos;
-  
+
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
 struct TagPairGranHookeHistoryCompute {};
 
@@ -61,14 +61,14 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   template<int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-		    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-		    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-			 F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-			 X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
-    
+                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+
  protected:
   typename AT::t_x_array_randomread x;
   typename AT::t_x_array c_x;
@@ -96,7 +96,7 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
 
   typename AT::t_neighbors_2d d_neighbors_touch;
   typename AT::t_int_1d d_numneigh_touch;
-  
+
   int newton_pair;
   double special_lj[4];
 

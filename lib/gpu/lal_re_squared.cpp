@@ -26,7 +26,7 @@ const char *re_squared_lj=0;
 
 #include "lal_re_squared.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #define RESquaredT RESquared<numtyp, acctyp>
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -315,4 +315,4 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class RESquared<PRECISION,ACC_PRECISION>;
-
+}

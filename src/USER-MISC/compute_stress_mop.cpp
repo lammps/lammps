@@ -15,18 +15,14 @@
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
   --------------------------------------------------------------------------*/
 
+#include "compute_stress_mop.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 
-#include "compute_stress_mop.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -70,7 +66,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"center")==0) {
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
   } else pos = force->numeric(FLERR,arg[4]);
-  
+
   if ( pos < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
     pos1 = pos + domain->prd[dir];
   } else {
@@ -118,7 +114,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
     error->all(FLERR, "Plane for compute stress/mop is out of bounds");
 
-    
+
   // Initialize some variables
 
   values_local = values_global = vector = NULL;
@@ -168,13 +164,13 @@ void ComputeStressMop::init()
   // Timestep Value
 
   dt = update->dt;
-  
+
   // Error check
-   
+
   // Compute stress/mop requires fixed simulation box
   if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
     error->all(FLERR, "Compute stress/mop requires a fixed simulation box");
-    
+
   // This compute requires a pair style with pair_single method implemented
 
   if (force->pair == NULL)
@@ -210,7 +206,7 @@ void ComputeStressMop::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressMop::init_list(int id, NeighList *ptr)
+void ComputeStressMop::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -246,12 +242,13 @@ void ComputeStressMop::compute_vector()
 void ComputeStressMop::compute_pairs()
 
 {
-  int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype;
   double delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -363,8 +360,7 @@ void ComputeStressMop::compute_pairs()
     // counts local particles transfers across the plane
 
     if (which[m] == KIN || which[m] == TOTAL){
-      double vcm[3];
-      double masstotal,sgn;
+      double sgn;
 
       for (int i = 0; i < nlocal; i++){
 
@@ -389,9 +385,15 @@ void ComputeStressMop::compute_pairs()
           fi[2] = atom->f[i][2];
 
           //coordinates at t-dt (based on Velocity-Verlet alg.)
-          xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
-          xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
-          xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          if (rmass) {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/rmass[i]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/rmass[i]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/rmass[i]*dt*dt*ftm2v;
+          } else {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          }
 
           // because LAMMPS does not put atoms back in the box
           // at each timestep, must check atoms going through the
@@ -407,9 +409,15 @@ void ComputeStressMop::compute_pairs()
 
             //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
             double vcross[3];
-            vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
-            vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
-            vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+            if (rmass) {
+              vcross[0] = vi[0]-fi[0]/rmass[i]/2*ftm2v*dt;
+              vcross[1] = vi[1]-fi[1]/rmass[i]/2*ftm2v*dt;
+              vcross[2] = vi[2]-fi[2]/rmass[i]/2*ftm2v*dt;
+            } else {
+              vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
+              vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
+              vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+            }
 
             values_local[m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
             values_local[m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;

@@ -16,17 +16,14 @@
    Incorporating SAED: Shawn Coleman (Arkansas)
 ------------------------------------------------------------------------- */
 
+#include "fix_saed_vtk.h"
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "fix_saed_vtk.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "compute_saed.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
@@ -287,6 +284,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 FixSAEDVTK::~FixSAEDVTK()
 {
   delete [] extlist;
+  delete [] filename;
+  delete [] ids;
   memory->destroy(vector);
   memory->destroy(vector_total);
   if (fp && me == 0) fclose(fp);

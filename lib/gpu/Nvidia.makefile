@@ -82,7 +82,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_lj_expand_coul_long.o $(OBJ_DIR)/lal_lj_expand_coul_long_ext.o \
        $(OBJ_DIR)/lal_coul_long_cs.o $(OBJ_DIR)/lal_coul_long_cs_ext.o \
        $(OBJ_DIR)/lal_born_coul_long_cs.o $(OBJ_DIR)/lal_born_coul_long_cs_ext.o \
-       $(OBJ_DIR)/lal_born_coul_wolf_cs.o $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o
+       $(OBJ_DIR)/lal_born_coul_wolf_cs.o $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o \
+       $(OBJ_DIR)/lal_lj_tip4p_long.o $(OBJ_DIR)/lal_lj_tip4p_long_ext.o
 
 CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/atom.cubin $(OBJ_DIR)/atom_cubin.h \
@@ -143,7 +144,8 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/lj_expand_coul_long.cubin $(OBJ_DIR)/lj_expand_coul_long_cubin.h \
        $(OBJ_DIR)/coul_long_cs.cubin $(OBJ_DIR)/coul_long_cs_cubin.h \
        $(OBJ_DIR)/born_coul_long_cs.cubin $(OBJ_DIR)/born_coul_long_cs_cubin.h \
-       $(OBJ_DIR)/born_coul_wolf_cs.cubin $(OBJ_DIR)/born_coul_wolf_cs_cubin.h
+       $(OBJ_DIR)/born_coul_wolf_cs.cubin $(OBJ_DIR)/born_coul_wolf_cs_cubin.h \
+       $(OBJ_DIR)/lj_tip4p_long.cubin $(OBJ_DIR)/lj_tip4p_long_cubin.h
 
 all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
 
@@ -296,6 +298,18 @@ $(OBJ_DIR)/lal_lj.o: $(ALL_H) lal_lj.h lal_lj.cpp $(OBJ_DIR)/lj_cubin.h $(OBJ_DI
 
 $(OBJ_DIR)/lal_lj_ext.o: $(ALL_H) lal_lj.h lal_lj_ext.cpp lal_base_atomic.h
 	$(CUDR) -o $@ -c lal_lj_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_tip4p_long.cubin: lal_lj_tip4p_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_lj_tip4p_long.cu
+
+$(OBJ_DIR)/lj_tip4p_long_cubin.h: $(OBJ_DIR)/lj_tip4p_long.cubin $(OBJ_DIR)/lj_tip4p_long.cubin
+	$(BIN2C)  -c -n lj_tip4p_long $(OBJ_DIR)/lj_tip4p_long.cubin > $(OBJ_DIR)/lj_tip4p_long_cubin.h
+
+$(OBJ_DIR)/lal_lj_tip4p_long.o: $(ALL_H) lal_lj_tip4p_long.h lal_lj_tip4p_long.cpp  $(OBJ_DIR)/lj_tip4p_long_cubin.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj_tip4p_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_tip4p_long_ext.o: $(ALL_H) lal_lj_tip4p_long.h lal_lj_tip4p_long_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_tip4p_long_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_coul.cubin: lal_lj_coul.cu lal_precision.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_lj_coul.cu
@@ -880,7 +894,7 @@ $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o: $(ALL_H) lal_born_coul_wolf_cs.h lal_bor
 	$(CUDR) -o $@ -c lal_born_coul_wolf_cs_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
-	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda
 
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)

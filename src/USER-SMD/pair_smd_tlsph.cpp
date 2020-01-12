@@ -22,15 +22,13 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <map>
-#include <Eigen/Eigen>
 #include "pair_smd_tlsph.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <Eigen/Eigen>
 #include "fix_smd_tlsph_reference_configuration.h"
 #include "atom.h"
 #include "domain.h"
@@ -41,12 +39,9 @@
 #include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "math_special.h"
-#include "update.h"
 #include "smd_material_models.h"
 #include "smd_kernels.h"
 #include "smd_math.h"
@@ -308,7 +303,7 @@ void PairTlsph::PreCompute() {
                          */
 
                         if ((detF[i] < DETF_MIN) || (detF[i] > DETF_MAX) || (numNeighsRefConfig[i] == 0)) {
-                                printf("deleting particle [%d] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
+                                printf("deleting particle [" TAGINT_FORMAT "] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
                                                 Fincr[i].determinant(),
                                                 DETF_MIN, DETF_MAX);
                                 printf("nn = %d, damage=%f\n", numNeighsRefConfig[i], damage[i]);
@@ -448,10 +443,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         Matrix3d eye;
         eye.setIdentity();
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         /*
          * iterate over pairs of particles i, j and assign forces using PK1 stress tensor
@@ -1784,9 +1776,8 @@ void PairTlsph::init_style() {
  optional granular history list
  ------------------------------------------------------------------------- */
 
-void PairTlsph::init_list(int id, NeighList *ptr) {
-        if (id == 0)
-                list = ptr;
+void PairTlsph::init_list(int id, class NeighList *ptr) {
+  if (id == 0) list = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1794,8 +1785,7 @@ void PairTlsph::init_list(int id, NeighList *ptr) {
  ------------------------------------------------------------------------- */
 
 double PairTlsph::memory_usage() {
-
-        return 118 * nmax * sizeof(double);
+  return 118.0 * nmax * sizeof(double);
 }
 
 /* ----------------------------------------------------------------------

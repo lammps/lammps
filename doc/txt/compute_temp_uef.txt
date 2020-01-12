@@ -1,0 +1,52 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+compute temp/uef command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/uef :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/uef = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all temp/uef
+compute 2 sel temp/uef :pre
+
+[Description:]
+
+This command is used to compute the kinetic energy tensor in
+the reference frame of the applied flow field when
+"fix nvt/uef"_fix_nh_uef.html or
+"fix npt/uef"_fix_nh_uef.html is used.
+It is not necessary to use this command to compute the scalar
+value of the temperature. A "compute temp"_compute_temp.html
+may be used for that purpose.
+
+Output information for this command can be found in the
+documentation for "compute temp"_compute_temp.html.
+
+[Restrictions:]
+
+This fix is part of the USER-UEF package. It is only enabled if LAMMPS
+was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+This command can only be used when "fix nvt/uef"_fix_nh_uef.html
+or "fix npt/uef"_fix_nh_uef.html is active.
+
+[Related commands:]
+
+"compute temp"_compute_temp.html,
+"fix nvt/uef"_fix_nh_uef.html,
+"compute pressure/uef"_compute_pressure_uef.html
+
+
+[Default:] none

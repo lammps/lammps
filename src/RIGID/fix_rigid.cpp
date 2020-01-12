@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -31,43 +31,29 @@
 #include "force.h"
 #include "input.h"
 #include "variable.h"
-#include "output.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-#define MAXLINE 1024
-#define CHUNK 1024
-#define ATTRIBUTE_PERBODY 20
-
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
-
-#define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
-#define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), step_respa(NULL),
-  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
+  inpfile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
   body(NULL), displace(NULL), masstotal(NULL), xcm(NULL),
   vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
   ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
   torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
   tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
   remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
-  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL),
-  avec_line(NULL), avec_tri(NULL)
+  dorient(NULL), id_dilate(NULL), id_gravity(NULL), random(NULL),
+  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
 
@@ -138,14 +124,17 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (custom_flag) {
       if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
 
-      // determine whether atom-style variable or atom property is used.
+      // determine whether atom-style variable or atom property is used
+
       if (strstr(arg[4],"i_") == arg[4]) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
-          error->all(FLERR,"Fix rigid custom requires previously defined property/atom");
+          error->all(FLERR,"Fix rigid custom requires "
+                     "previously defined property/atom");
         else if (is_double)
-          error->all(FLERR,"Fix rigid custom requires integer-valued property/atom");
+          error->all(FLERR,"Fix rigid custom requires "
+                     "integer-valued property/atom");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -174,15 +163,18 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) 
+          if (mask[i] & groupbit)
             molecule[i] = (tagint)((tagint)value[i] - minval + 1);
         delete[] value;
+
       } else error->all(FLERR,"Unsupported fix rigid custom property");
+
     } else {
       if (atom->molecule_flag == 0)
         error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
       molecule = atom->molecule;
     }
+
     iarg = 4 + custom_flag;
 
     tagint maxmol_tag = -1;
@@ -311,6 +303,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // number of linear rigid bodies is counted later
+
   nlinear = 0;
 
   // parse optional args
@@ -322,12 +315,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   tstat_flag = 0;
   pstat_flag = 0;
   allremap = 1;
-  id_dilate = NULL;
   t_chain = 10;
   t_iter = 1;
   t_order = 3;
   p_chain = 10;
-  infile = NULL;
+
+  inpfile = NULL;
+  id_gravity = NULL;
+  id_dilate = NULL;
 
   pcouple = NONE;
   pstyle = ANISO;
@@ -546,21 +541,29 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"infile") == 0) {
+    } else if (strcmp(arg[iarg],"inpfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      delete [] infile;
+      delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;
-      infile = new char[n];
-      strcpy(infile,arg[iarg+1]);
+      inpfile = new char[n];
+      strcpy(inpfile,arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
       else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
       else error->all(FLERR,"Illegal fix rigid command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"gravity") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+      delete [] id_gravity;
+      int n = strlen(arg[iarg+1]) + 1;
+      id_gravity = new char[n];
+      strcpy(id_gravity,arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -606,21 +609,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++)
     if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
 
-  // bitmasks for properties of extended particles
-
-  POINT = 1;
-  SPHERE = 2;
-  ELLIPSOID = 4;
-  LINE = 8;
-  TRIANGLE = 16;
-  DIPOLE = 32;
-  OMEGA = 64;
-  ANGMOM = 128;
-  TORQUE = 256;
-
-  MINUSPI = -MY_PI;
-  TWOPI = 2.0*MY_PI;
-
   // wait to setup bodies until first init() using current atom properties
 
   setupflag = 0;
@@ -649,7 +637,10 @@ FixRigid::~FixRigid()
   atom->delete_callback(id,0);
 
   delete random;
-  delete [] infile;
+  delete [] inpfile;
+  delete [] id_dilate;
+  delete [] id_gravity;
+
   memory->destroy(mol2body);
   memory->destroy(body2mol);
 
@@ -716,7 +707,7 @@ void FixRigid::init()
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   // warn if more than one rigid fix
-  // if earlyflag, warn if any post-force fixes come after POEMS fix
+  // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
@@ -727,11 +718,29 @@ void FixRigid::init()
     int rflag = 0;
     for (i = 0; i < modify->nfix; i++) {
       if (modify->fix[i]->rigid_flag) rflag = 1;
-      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+      if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix rigid",
+                 modify->fix[i]->id);
         error->warning(FLERR,str);
+      }
+    }
+  }
+
+  // warn if body properties are read from inpfile
+  //   and the gravity keyword is not set and a gravity fix exists
+  // this could mean body particles are overlapped
+  //   and gravity is not applied correctly
+
+  if (inpfile && !id_gravity) {
+    for (i = 0; i < modify->nfix; i++) {
+      if (strcmp(modify->fix[i]->style,"gravity") == 0) {
+        if (comm->me == 0)
+          error->warning(FLERR,"Gravity may not be correctly applied "
+                         "to rigid bodies if they consist of "
+                         "overlapped particles");
+        break;
       }
     }
   }
@@ -742,10 +751,22 @@ void FixRigid::init()
     if (strcmp(modify->fix[i]->style,"npt") == 0) break;
     if (strcmp(modify->fix[i]->style,"nph") == 0) break;
   }
+
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
+  }
+
+  // add gravity forces based on gravity vector from fix
+
+  if (id_gravity) {
+    int ifix = modify->find_fix(id_gravity);
+    if (ifix < 0) error->all(FLERR,"Fix rigid cannot find fix gravity ID");
+    if (strcmp(modify->fix[ifix]->style,"gravity") != 0)
+      error->all(FLERR,"Fix rigid gravity fix is invalid");
+    int tmp;
+    gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
   }
 
   // timestep info
@@ -760,14 +781,14 @@ void FixRigid::init()
   // setup rigid bodies, using current atom info. if reinitflag is not set,
   // do the initialization only once, b/c properties may not be re-computable
   // especially if overlapping particles.
-  //   do not do dynamic init if read body properties from infile.
-  // this is b/c the infile defines the static and dynamic properties and may
+  //   do not do dynamic init if read body properties from inpfile.
+  // this is b/c the inpfile defines the static and dynamic properties and may
   // not be computable if contain overlapping particles.
-  //   setup_bodies_static() reads infile itself
+  //   setup_bodies_static() reads inpfile itself
 
   if (reinitflag || !setupflag) {
     setup_bodies_static();
-    if (!infile) setup_bodies_dynamic();
+    if (!inpfile) setup_bodies_dynamic();
     setupflag = 1;
   }
 
@@ -1090,8 +1111,17 @@ void FixRigid::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
-}
 
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+    for (ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += gvec[0]*masstotal[ibody];
+      fcm[ibody][1] += gvec[1]*masstotal[ibody];
+      fcm[ibody][2] += gvec[2]*masstotal[ibody];
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1473,8 +1503,8 @@ void FixRigid::set_xv()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];
@@ -1640,7 +1670,7 @@ void FixRigid::set_v()
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
    sets body image flags
-   may read some properties from infile
+   may read some properties from inpfile
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_static()
@@ -1791,7 +1821,7 @@ void FixRigid::setup_bodies_static()
     xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
   }
 
-  // set vcm, angmom = 0.0 in case infile is used
+  // set vcm, angmom = 0.0 in case inpfile is used
   // and doesn't overwrite all body's values
   // since setup_bodies_dynamic() will not be called
 
@@ -1810,7 +1840,7 @@ void FixRigid::setup_bodies_static()
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
-  if (infile) {
+  if (inpfile) {
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
     readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);
@@ -1918,7 +1948,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
+  if (inpfile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2019,8 +2049,8 @@ void FixRigid::setup_bodies_static()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
+        while (orient[i][0] <= -MY_PI) orient[i][0] += MY_2PI;
+        while (orient[i][0] > MY_PI) orient[i][0] -= MY_2PI;
         if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
       } else if (eflags[i] & TRIANGLE) {
         quatatom = tbonus[tri[i]].quat;
@@ -2116,11 +2146,11 @@ void FixRigid::setup_bodies_static()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   // error check that re-computed moments of inertia match diagonalized ones
-  // do not do test for bodies with params read from infile
+  // do not do test for bodies with params read from inpfile
 
   double norm;
   for (ibody = 0; ibody < nbody; ibody++) {
-    if (infile && inbody[ibody]) continue;
+    if (inpfile && inbody[ibody]) continue;
     if (inertia[ibody][0] == 0.0) {
       if (fabs(all[ibody][0]) > TOLERANCE)
         error->all(FLERR,"Fix rigid: Bad principal moments");
@@ -2149,7 +2179,7 @@ void FixRigid::setup_bodies_static()
       error->all(FLERR,"Fix rigid: Bad principal moments");
   }
 
-  if (infile) memory->destroy(inbody);
+  if (inpfile) memory->destroy(inbody);
 }
 
 /* ----------------------------------------------------------------------
@@ -2268,10 +2298,10 @@ void FixRigid::readfile(int which, double *vec,
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(infile,"r");
+    fp = fopen(inpfile,"r");
     if (fp == NULL) {
       char str[128];
-      snprintf(str,128,"Cannot open fix rigid infile %s",infile);
+      snprintf(str,128,"Cannot open fix rigid inpfile %s",inpfile);
       error->one(FLERR,str);
     }
 
@@ -2371,7 +2401,7 @@ void FixRigid::readfile(int which, double *vec,
 
 /* ----------------------------------------------------------------------
    write out restart info for mass, COM, inertia tensor, image flags to file
-   identical format to infile option, so info can be read in when restarting
+   identical format to inpfile option, so info can be read in when restarting
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
 
@@ -2639,7 +2669,7 @@ int FixRigid::modify_param(int narg, char **arg)
     else error->all(FLERR,"Illegal fix_modify command");
 
     // reset fix mask
-    // must do here and not in init, 
+    // must do here and not in init,
     // since modify.cpp::init() uses fix masks before calling fix::init()
 
     for (int i = 0; i < modify->nfix; i++)

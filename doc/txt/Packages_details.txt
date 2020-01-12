@@ -1,0 +1,2157 @@
+"Higher level section"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Package details :h3
+
+Here is a brief description of all the standard and user packages in
+LAMMPS.  It lists authors (if applicable) and summarizes the package
+contents.  It has specific instructions on how to install the package,
+including, if necessary, info on how to download or build any extra
+library it requires.  It also gives links to documentation, example
+scripts, and pictures/movies (if available) that illustrate use of the
+package.
+
+The majority of packages can be included in a LAMMPS build with a
+single setting (-D PGK_NAME for CMake) or command ("make yes-name" for
+make).  See the "Build package"_Build_package.html doc page for more
+info.  A few packages may require additional steps; this is indicated
+in the descriptions below.  The "Build extras"_Build_extras.html doc
+page gives those details.
+
+NOTE: To see the complete list of commands a package adds to LAMMPS,
+you can examine the files in its src directory, e.g. "ls
+src/GRANULAR".  Files with names that start with fix, compute, atom,
+pair, bond, angle, etc correspond to commands with the same style name
+as contained in the file name.
+
+"ASPHERE"_#PKG-ASPHERE,
+"BODY"_#PKG-BODY,
+"CLASS2"_#PKG-CLASS2,
+"COLLOID"_#PKG-COLLOID,
+"COMPRESS"_#PKG-COMPRESS,
+"CORESHELL"_#PKG-CORESHELL,
+"DIPOLE"_#PKG-DIPOLE,
+"GPU"_#PKG-GPU,
+"GRANULAR"_#PKG-GRANULAR,
+"KIM"_#PKG-KIM,
+"KOKKOS"_#PKG-KOKKOS,
+"KSPACE"_#PKG-KSPACE,
+"LATTE"_#PKG-LATTE,
+"MANYBODY"_#PKG-MANYBODY,
+"MC"_#PKG-MC,
+"MESSAGE"_#PKG-MESSAGE,
+"MISC"_#PKG-MISC,
+"MOLECULE"_#PKG-MOLECULE,
+"MPIIO"_#PKG-MPIIO,
+"MSCG"_#PKG-MSCG,
+"OPT"_#PKG-OPT,
+"PERI"_#PKG-PERI,
+"POEMS"_#PKG-POEMS,
+"PYTHON"_#PKG-PYTHON,
+"QEQ"_#PKG-QEQ,
+"REPLICA"_#PKG-REPLICA2,
+"RIGID"_#PKG-RIGID,
+"SHOCK"_#PKG-SHOCK,
+"SNAP"_#PKG-SNAP,
+"SPIN"_#PKG-SPIN,
+"SRD"_#PKG-SRD,
+"VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
+
+"USER-ADIOS"_#PKG-USER-ADIOS,
+"USER-ATC"_#PKG-USER-ATC,
+"USER-AWPMD"_#PKG-USER-AWPMD,
+"USER-BOCS"_#PKG-USER-BOCS,
+"USER-CGDNA"_#PKG-USER-CGDNA,
+"USER-CGSDK"_#PKG-USER-CGSDK,
+"USER-COLVARS"_#PKG-USER-COLVARS,
+"USER-DIFFRACTION"_#PKG-USER-DIFFRACTION,
+"USER-DPD"_#PKG-USER-DPD,
+"USER-DRUDE"_#PKG-USER-DRUDE,
+"USER-EFF"_#PKG-USER-EFF,
+"USER-FEP"_#PKG-USER-FEP,
+"USER-H5MD"_#PKG-USER-H5MD,
+"USER-INTEL"_#PKG-USER-INTEL,
+"USER-LB"_#PKG-USER-LB,
+"USER-MANIFOLD"_#PKG-USER-MANIFOLD,
+"USER-MEAMC"_#PKG-USER-MEAMC,
+"USER-MESO"_#PKG-USER-MESO,
+"USER-MGPT"_#PKG-USER-MGPT,
+"USER-MISC"_#PKG-USER-MISC,
+"USER-MOFFF"_#PKG-USER-MOFFF,
+"USER-MOLFILE"_#PKG-USER-MOLFILE,
+"USER-NETCDF"_#PKG-USER-NETCDF,
+"USER-OMP"_#PKG-USER-OMP,
+"USER-PHONON"_#PKG-USER-PHONON,
+"USER-PLUMED"_#PKG-USER-PLUMED,
+"USER-PTM"_#PKG-USER-PTM,
+"USER-QMMM"_#PKG-USER-QMMM,
+"USER-QTB"_#PKG-USER-QTB,
+"USER-QUIP"_#PKG-USER-QUIP,
+"USER-REAXC"_#PKG-USER-REAXC,
+"USER-SCAFACOS"_#PKG-USER-SCAFACOS,
+"USER-SDPD"_#PKG-USER-SDPD,
+"USER-SMD"_#PKG-USER-SMD,
+"USER-SMTBQ"_#PKG-USER-SMTBQ,
+"USER-SPH"_#PKG-USER-SPH,
+"USER-TALLY"_#PKG-USER-TALLY,
+"USER-UEF"_#PKG-USER-UEF,
+"USER-VTK"_#PKG-USER-VTK,
+"USER-YAFF"_#PKG-USER-YAFF, :tb(c=6,ea=c)
+
+:line
+
+ASPHERE package :link(PKG-ASPHERE),h4
+
+[Contents:]
+
+Computes, time-integration fixes, and pair styles for aspherical
+particle models including ellipsoids, 2d lines, and 3d triangles.
+
+[Supporting info:]
+
+src/ASPHERE: filenames -> commands
+"Howto spherical"_Howto_spherical.html
+"pair_style gayberne"_pair_gayberne.html
+"pair_style resquared"_pair_resquared.html
+"doc/PDF/pair_gayberne_extra.pdf"_PDF/pair_gayberne_extra.pdf
+"doc/PDF/pair_resquared_extra.pdf"_PDF/pair_resquared_extra.pdf
+examples/ASPHERE
+examples/ellipse
+http://lammps.sandia.gov/movies.html#line
+http://lammps.sandia.gov/movies.html#tri :ul
+
+:line
+
+BODY package :link(PKG-BODY),h4
+
+[Contents:]
+
+Body-style particles with internal structure.  Computes,
+time-integration fixes, pair styles, as well as the body styles
+themselves.  See the "Howto body"_Howto_body.html doc page for an
+overview.
+
+[Supporting info:]
+
+src/BODY filenames -> commands
+"Howto_body"_Howto_body.html
+"atom_style body"_atom_style.html
+"fix nve/body"_fix_nve_body.html
+"pair_style body/nparticle"_pair_body_nparticle.html
+examples/body :ul
+
+:line
+
+CLASS2 package :link(PKG-CLASS2),h4
+
+[Contents:]
+
+Bond, angle, dihedral, improper, and pair styles for the COMPASS
+CLASS2 molecular force field.
+
+[Supporting info:]
+
+src/CLASS2: filenames -> commands
+"bond_style class2"_bond_class2.html
+"angle_style class2"_angle_class2.html
+"dihedral_style class2"_dihedral_class2.html
+"improper_style class2"_improper_class2.html
+"pair_style lj/class2"_pair_class2.html :ul
+
+:line
+
+COLLOID package :link(PKG-COLLOID),h4
+
+[Contents:]
+
+Coarse-grained finite-size colloidal particles.  Pair styles and fix
+wall styles for colloidal interactions.  Includes the Fast Lubrication
+Dynamics (FLD) method for hydrodynamic interactions, which is a
+simplified approximation to Stokesian dynamics.
+
+[Authors:] This package includes Fast Lubrication Dynamics pair styles
+which were created by Amit Kumar and Michael Bybee from Jonathan
+Higdon's group at UIUC.
+
+[Supporting info:]
+
+src/COLLOID: filenames -> commands
+"fix wall/colloid"_fix_wall.html
+"pair_style colloid"_pair_colloid.html
+"pair_style yukawa/colloid"_pair_yukawa_colloid.html
+"pair_style brownian"_pair_brownian.html
+"pair_style lubricate"_pair_lubricate.html
+"pair_style lubricateU"_pair_lubricateU.html
+examples/colloid
+examples/srd :ul
+
+:line
+
+COMPRESS package :link(PKG-COMPRESS),h4
+
+[Contents:]
+
+Compressed output of dump files via the zlib compression library,
+using dump styles with a "gz" in their style name.
+
+To use this package you must have the zlib compression library
+available on your system.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#compress on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/COMPRESS: filenames -> commands
+src/COMPRESS/README
+lib/compress/README
+"dump atom/gz"_dump.html
+"dump cfg/gz"_dump.html
+"dump custom/gz"_dump.html
+"dump xyz/gz"_dump.html :ul
+
+:line
+
+CORESHELL package :link(PKG-CORESHELL),h4
+
+[Contents:]
+
+Compute and pair styles that implement the adiabatic core/shell model
+for polarizability.  The pair styles augment Born, Buckingham, and
+Lennard-Jones styles with core/shell capabilities.  The "compute
+temp/cs"_compute_temp_cs.html command calculates the temperature of a
+system with core/shell particles.  See the "Howto
+coreshell"_Howto_coreshell.html doc page for an overview of how to use
+this package.
+
+[Author:] Hendrik Heenen (Technical U of Munich).
+
+[Supporting info:]
+
+src/CORESHELL: filenames -> commands
+"Howto coreshell"_Howto_coreshell.html
+"Howto polarizable"_Howto_polarizable.html
+"compute temp/cs"_compute_temp_cs.html
+"pair_style born/coul/long/cs"_pair_cs.html
+"pair_style buck/coul/long/cs"_pair_cs.html
+"pair_style lj/cut/coul/long/cs"_pair_lj.html
+examples/coreshell :ul
+
+:line
+
+DIPOLE package :link(PKG-DIPOLE),h4
+
+[Contents:]
+
+An atom style and several pair styles for point dipole models with
+short-range or long-range interactions.
+
+[Supporting info:]
+
+src/DIPOLE: filenames -> commands
+"atom_style dipole"_atom_style.html
+"pair_style lj/cut/dipole/cut"_pair_dipole.html
+"pair_style lj/cut/dipole/long"_pair_dipole.html
+"pair_style lj/long/dipole/long"_pair_dipole.html
+examples/dipole :ul
+
+:line
+
+GPU package :link(PKG-GPU),h4
+
+[Contents:]
+
+Dozens of pair styles and a version of the PPPM long-range Coulombic
+solver optimized for GPUs.  All such styles have a "gpu" as a suffix
+in their style name. The GPU code can be compiled with either CUDA or
+OpenCL, however the OpenCL variants are no longer actively maintained
+and only the CUDA versions are regularly tested.  The "Speed
+gpu"_Speed_gpu.html doc page gives details of what hardware and GPU
+software is required on your system, and details on how to build and
+use this package.  Its styles can be invoked at run time via the "-sf
+gpu" or "-suffix gpu" "command-line switches"_Run_options.html.  See
+also the "KOKKOS"_#PKG-KOKKOS package, which has GPU-enabled styles.
+
+[Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
+(Northwestern U) while at ORNL.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#gpu on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/GPU: filenames -> commands
+src/GPU/README
+lib/gpu/README
+"Speed packages"_Speed_packages.html
+"Speed gpu"_Speed_gpu.html
+"Section 2.6 -sf gpu"_Run_options.html
+"Section 2.6 -pk gpu"_Run_options.html
+"package gpu"_package.html
+"Commands all"_lc pages (pair,kspace) for styles followed by (g)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
+
+:line
+
+GRANULAR package :link(PKG-GRANULAR),h4
+
+[Contents:]
+
+Pair styles and fixes for finite-size granular particles, which
+interact with each other and boundaries via frictional and dissipative
+potentials.
+
+[Supporting info:]
+
+src/GRANULAR: filenames -> commands
+"Howto granular"_Howto_granular.html
+"fix pour"_fix_pour.html
+"fix wall/gran"_fix_wall_gran.html
+"pair_style gran/hooke"_pair_gran.html
+"pair_style gran/hertz/history"_pair_gran.html
+examples/granregion
+examples/pour
+bench/in.chute
+http://lammps.sandia.gov/pictures.html#jamming
+http://lammps.sandia.gov/movies.html#hopper
+http://lammps.sandia.gov/movies.html#dem
+http://lammps.sandia.gov/movies.html#brazil
+http://lammps.sandia.gov/movies.html#granregion :ul
+
+:line
+
+KIM package :link(PKG-KIM),h4
+
+[Contents:]
+
+This package contains a set of commands that serve as a wrapper on the
+"Open Knowledgebase of Interatomic Models (OpenKIM)"_https://openkim.org
+repository of interatomic models (IMs)
+enabling compatible ones to be used in LAMMPS simulations.
+This includes "kim_init and kim_interactions"_kim_commands.html
+commands to select, initialize and instantiate the IM, and a
+"kim_query"_kim_commands.html command to perform web queries
+for material property predictions of OpenKIM IMs.
+Support for KIM IMs that conform to the
+"KIM Application Programming Interface (API)"_https://openkim.org/kim-api/
+is provided by the "pair_style kim"_pair_kim.html command.
+
+NOTE: The command {pair_style kim} is called by {kim_interactions} and
+is not recommended to be directly used in input scripts.
+
+To use this package you must have the KIM API library available on your
+system. The KIM API is available for download on the
+"OpenKIM website"_https://openkim.org/kim-api/.
+When installing LAMMPS from binary, the kim-api package
+is a dependency that is automatically downloaded and installed.
+
+Information about the KIM project can be found at its website:
+"https://openkim.org"_https://openkim.org.
+The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
+and is funded by the "National Science Foundation"_https://www.nsf.gov/.
+
+[Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
+API and the {pair_style kim} command. Axel Kohlmeyer (Temple U) and
+Ellad Tadmor (U Minnesota) contributed to the "kim_commands"_kim_commands.html
+interface in close collaboration with Ryan Elliott.
+
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#kim on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+"kim_commands"_kim_commands.html
+"pair_style kim"_pair_kim.html
+src/KIM: filenames -> commands
+src/KIM/README
+lib/kim/README
+examples/kim :ul
+
+:line
+
+KOKKOS package :link(PKG-KOKKOS),h4
+
+[Contents:]
+
+Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
+styles adapted to compile using the Kokkos library which can convert
+them to OpenMP or CUDA code so that they run efficiently on multicore
+CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
+style name.  The "Speed kokkos"_Speed_kokkos.html doc page gives
+details of what hardware and software is required on your system, and
+how to build and use this package.  Its styles can be invoked at run
+time via the "-sf kk" or "-suffix kk" "command-line
+switches"_Run_options.html.  Also see the "GPU"_#PKG-GPU, "OPT"_#PKG-OPT,
+"USER-INTEL"_#PKG-USER-INTEL, and "USER-OMP"_#PKG-USER-OMP packages, which
+have styles optimized for CPUs, KNLs, and GPUs.
+
+You must have a C++11 compatible compiler to use this package.
+KOKKOS makes extensive use of advanced C++ features, which can
+expose compiler bugs, especially when compiling for maximum
+performance at high optimization levels. Please see the file
+lib/kokkos/README for a list of compilers and their respective
+platforms, that are known to work.
+
+[Authors:] The KOKKOS package was created primarily by Christian Trott
+and Stan Moore (Sandia), with contributions from other folks as well.
+It uses the open-source "Kokkos library"_https://github.com/kokkos
+which was developed by Carter Edwards, Christian Trott, and others at
+Sandia, and which is included in the LAMMPS distribution in
+lib/kokkos.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#kokkos on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/KOKKOS: filenames -> commands
+src/KOKKOS/README
+lib/kokkos/README
+"Speed packages"_Speed_packages.html
+"Speed kokkos"_Speed_kokkos.html
+"Section 2.6 -k on ..."_Run_options.html
+"Section 2.6 -sf kk"_Run_options.html
+"Section 2.6 -pk kokkos"_Run_options.html
+"package kokkos"_package.html
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (k)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
+
+:line
+
+KSPACE package :link(PKG-KSPACE),h4
+
+[Contents:]
+
+A variety of long-range Coulombic solvers, as well as pair styles
+which compute the corresponding short-range pairwise Coulombic
+interactions.  These include Ewald, particle-particle particle-mesh
+(PPPM), and multilevel summation method (MSM) solvers.
+
+[Install:]
+
+Building with this package requires a 1d FFT library be present on
+your system for use by the PPPM solvers.  This can be the KISS FFT
+library provided with LAMMPS, 3rd party libraries like FFTW, or a
+vendor-supplied FFT library.  See the "Build
+settings"_Build_settings.html doc page for details on how to select
+different FFT options for your LAMPMS build.
+
+[Supporting info:]
+
+src/KSPACE: filenames -> commands
+"kspace_style"_kspace_style.html
+"doc/PDF/kspace.pdf"_PDF/kspace.pdf
+"Howto tip3p"_Howto_tip3p.html
+"Howto tip4p"_Howto_tip4p.html
+"Howto spc"_Howto_spc.html
+"pair_style coul"_pair_coul.html
+"Commands pair"_Commands_pair.html page for styles with "long" or "msm" in name
+examples/peptide
+bench/in.rhodo :ul
+
+:line
+
+LATTE package :link(PKG-LATTE),h4
+
+[Contents:]
+
+A fix command which wraps the LATTE DFTB code, so that molecular
+dynamics can be run with LAMMPS using density-functional tight-binding
+quantum forces calculated by LATTE.
+
+More information on LATTE can be found at this web site:
+"https://github.com/lanl/LATTE"_latte-home.  A brief technical
+description is given with the "fix latte"_fix_latte.html command.
+
+:link(latte-home,https://github.com/lanl/LATTE)
+
+[Authors:] Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
+itself is developed at Los Alamos National Laboratory by Marc
+Cawkwell, Anders Niklasson, and Christian Negre.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#latte on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/LATTE: filenames -> commands
+src/LATTE/README
+lib/latte/README
+"fix latte"_fix_latte.html
+examples/latte
+"LAMMPS-LATTE tutorial"_https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS :ul
+
+:line
+
+MANYBODY package :link(PKG-MANYBODY),h4
+
+[Contents:]
+
+A variety of many-body and bond-order potentials.  These include
+(AI)REBO, BOP, EAM, EIM, Stillinger-Weber, and Tersoff potentials.
+
+[Supporting info:]
+
+src/MANYBODY: filenames -> commands
+"Commands pair"_Commands_pair.html page
+examples/comb
+examples/eim
+examples/nb3d
+examples/shear
+examples/streitz
+examples/vashishta
+bench/in.eam :ul
+
+:line
+
+MC package :link(PKG-MC),h4
+
+[Contents:]
+
+Several fixes and a pair style that have Monte Carlo (MC) or MC-like
+attributes.  These include fixes for creating, breaking, and swapping
+bonds, for performing atomic swaps, and performing grand-canonical MC
+(GCMC) in conjunction with dynamics.
+
+[Supporting info:]
+
+src/MC: filenames -> commands
+"fix atom/swap"_fix_atom_swap.html
+"fix bond/break"_fix_bond_break.html
+"fix bond/create"_fix_bond_create.html
+"fix bond/swap"_fix_bond_swap.html
+"fix gcmc"_fix_gcmc.html
+"pair_style dsmc"_pair_dsmc.html
+http://lammps.sandia.gov/movies.html#gcmc :ul
+
+:line
+
+MESSAGE package :link(PKG-MESSAGE),h4
+
+[Contents:]
+
+Commands to use LAMMPS as either a client or server and couple it to
+another application.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#message on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/MESSAGE: filenames -> commands
+lib/message/README
+"message"_message.html
+"fix client/md"_fix_client_md.html
+"server md"_server_md.html
+"server mc"_server_mc.html
+examples/message :ul
+
+:line
+
+MISC package :link(PKG-MISC),h4
+
+[Contents:]
+
+A variety of compute, fix, pair, dump styles with specialized
+capabilities that don't align with other packages.  Do a directory
+listing, "ls src/MISC", to see the list of commands.
+
+NOTE: the MISC package contains styles that require using the
+-restrict flag, when compiling with Intel compilers.
+
+[Supporting info:]
+
+src/MISC: filenames -> commands
+"compute ti"_compute_ti.html
+"fix evaporate"_fix_evaporate.html
+"fix orient/fcc"_fix_orient.html
+"fix ttm"_fix_ttm.html
+"fix thermal/conductivity"_fix_thermal_conductivity.html
+"fix viscosity"_fix_viscosity.html
+examples/KAPPA
+examples/VISCOSITY
+http://lammps.sandia.gov/pictures.html#ttm
+http://lammps.sandia.gov/movies.html#evaporation :ul
+
+:line
+
+MOLECULE package :link(PKG-MOLECULE),h4
+
+[Contents:]
+
+A large number of atom, pair, bond, angle, dihedral, improper styles
+that are used to model molecular systems with fixed covalent bonds.
+The pair styles include the Dreiding (hydrogen-bonding) and CHARMM
+force fields, and a TIP4P water model.
+
+[Supporting info:]
+
+src/MOLECULE: filenames -> commands
+"atom_style"_atom_style.html
+"bond_style"_bond_style.html
+"angle_style"_angle_style.html
+"dihedral_style"_dihedral_style.html
+"improper_style"_improper_style.html
+"pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html
+"pair_style lj/charmm/coul/charmm"_pair_charmm.html
+"Howto bioFF"_Howto_bioFF.html
+examples/cmap
+examples/dreiding
+examples/micelle,
+examples/peptide
+bench/in.chain
+bench/in.rhodo :ul
+
+:line
+
+MPIIO package :link(PKG-MPIIO),h4
+
+[Contents:]
+
+Support for parallel output/input of dump and restart files via the
+MPIIO library.  It adds "dump styles"_dump.html with a "mpiio" in
+their style name.  Restart files with an ".mpiio" suffix are also
+written and read in parallel.
+
+[Supporting info:]
+
+src/MPIIO: filenames -> commands
+"dump"_dump.html
+"restart"_restart.html
+"write_restart"_write_restart.html
+"read_restart"_read_restart.html :ul
+
+:line
+
+MSCG package :link(PKG-mscg),h4
+
+[Contents:]
+
+A "fix mscg"_fix_mscg.html command which can parameterize a
+Multi-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
+library"_mscg-home.
+
+:link(mscg-home,https://github.com/uchicago-voth/MSCG-release)
+
+To use this package you must have the MS-CG library available on your
+system.
+
+[Authors:] The fix was written by Lauren Abbott (Sandia).  The MS-CG
+library was developed by Jacob Wagner in Greg Voth's group at the
+University of Chicago.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#mscg on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/MSCG: filenames -> commands
+src/MSCG/README
+lib/mscg/README
+examples/mscg :ul
+
+:line
+
+OPT package :link(PKG-OPT),h4
+
+[Contents:]
+
+A handful of pair styles which are optimized for improved CPU
+performance on single or multiple cores.  These include EAM, LJ,
+CHARMM, and Morse potentials.  The styles have an "opt" suffix in
+their style name.  The "Speed opt"_Speed_opt.html doc page gives
+details of how to build and use this package.  Its styles can be
+invoked at run time via the "-sf opt" or "-suffix opt" "command-line
+switches"_Run_options.html.  See also the "KOKKOS"_#PKG-KOKKOS,
+"USER-INTEL"_#PKG-USER-INTEL, and "USER-OMP"_#PKG-USER-OMP packages, which
+have styles optimized for CPU performance.
+
+[Authors:] James Fischer (High Performance Technologies), David Richie,
+and Vincent Natoli (Stone Ridge Technolgy).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#opt on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/OPT: filenames -> commands
+"Speed packages"_Speed_packages.html
+"Speed opt"_Speed_opt.html
+"Section 2.6 -sf opt"_Run_options.html
+"Commands pair"_Commands_pair.html for styles followed by (t)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
+
+:line
+
+PERI package :link(PKG-PERI),h4
+
+[Contents:]
+
+An atom style, several pair styles which implement different
+Peridynamics materials models, and several computes which calculate
+diagnostics.  Peridynamics is a particle-based meshless continuum
+model.
+
+[Authors:] The original package was created by Mike Parks (Sandia).
+Additional Peridynamics models were added by Rezwanur Rahman and John
+Foster (UTSA).
+
+[Supporting info:]
+
+src/PERI: filenames -> commands
+"doc/PDF/PDLammps_overview.pdf"_PDF/PDLammps_overview.pdf
+"doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf
+"doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf
+"atom_style peri"_atom_style.html
+"pair_style peri/*"_pair_peri.html
+"compute damage/atom"_compute_damage_atom.html
+"compute plasticity/atom"_compute_plasticity_atom.html
+examples/peri
+http://lammps.sandia.gov/movies.html#peri :ul
+
+:line
+
+POEMS package :link(PKG-POEMS),h4
+
+[Contents:]
+
+A fix that wraps the Parallelizable Open source Efficient Multibody
+Software (POEMS) library, which is able to simulate the dynamics of
+articulated body systems.  These are systems with multiple rigid
+bodies (collections of particles) whose motion is coupled by
+connections at hinge points.
+
+[Author:] Rudra Mukherjee (JPL) while at RPI.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#poems on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/POEMS: filenames -> commands
+src/POEMS/README
+lib/poems/README
+"fix poems"_fix_poems.html
+examples/rigid :ul
+
+:line
+
+PYTHON package :link(PKG-PYTHON),h4
+
+[Contents:]
+
+A "python"_python.html command which allow you to execute Python code
+from a LAMMPS input script.  The code can be in a separate file or
+embedded in the input script itself.  See the "Python
+call"_Python_call.html doc page for an overview of using Python from
+LAMMPS in this manner and all the "Python"_Python_head.html doc pages
+for other ways to use LAMMPS and Python together.
+
+NOTE: Building with the PYTHON package assumes you have a Python
+shared library available on your system, which needs to be a Python 2
+version, 2.6 or later.  Python 3 is not yet supported.  See the
+lib/python/README for more details.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#python on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/PYTHON: filenames -> commands
+"Python call"_Python_head.html
+lib/python/README
+examples/python :ul
+
+:line
+
+QEQ package :link(PKG-QEQ),h4
+
+[Contents:]
+
+Several fixes for performing charge equilibration (QEq) via different
+algorithms.  These can be used with pair styles that perform QEq as
+part of their formulation.
+
+[Supporting info:]
+
+src/QEQ: filenames -> commands
+"fix qeq/*"_fix_qeq.html
+examples/qeq
+examples/streitz :ul
+
+:line
+
+REPLICA package :link(PKG-REPLICA2),h4
+
+[Contents:]
+
+A collection of multi-replica methods which can be used when running
+multiple LAMMPS simulations (replicas).  See the "Howto
+replica"_Howto_replica.html doc page for an overview of how to run
+multi-replica simulations in LAMMPS.  Methods in the package include
+nudged elastic band (NEB), parallel replica dynamics (PRD),
+temperature accelerated dynamics (TAD), parallel tempering, and a
+verlet/split algorithm for performing long-range Coulombics on one set
+of processors, and the remainder of the force field calculation on
+another set.
+
+[Supporting info:]
+
+src/REPLICA: filenames -> commands
+"Howto replica"_Howto_replica.html
+"neb"_neb.html
+"prd"_prd.html
+"tad"_tad.html
+"temper"_temper.html,
+"run_style verlet/split"_run_style.html
+examples/neb
+examples/prd
+examples/tad :ul
+
+:line
+
+RIGID package :link(PKG-RIGID),h4
+
+[Contents:]
+
+Fixes which enforce rigid constraints on collections of atoms or
+particles.  This includes SHAKE and RATTLE, as well as various
+rigid-body integrators for a few large bodies or many small bodies.
+Also several computes which calculate properties of rigid bodies.
+
+[Supporting info:]
+
+src/RIGID: filenames -> commands
+"compute erotate/rigid"_compute_erotate_rigid.html
+fix shake"_fix_shake.html
+"fix rattle"_fix_shake.html
+"fix rigid/*"_fix_rigid.html
+examples/ASPHERE
+examples/rigid
+bench/in.rhodo
+http://lammps.sandia.gov/movies.html#box
+http://lammps.sandia.gov/movies.html#star :ul
+
+:line
+
+SHOCK package :link(PKG-SHOCK),h4
+
+[Contents:]
+
+Fixes for running impact simulations where a shock-wave passes through
+a material.
+
+[Supporting info:]
+
+src/SHOCK: filenames -> commands
+"fix append/atoms"_fix_append_atoms.html
+"fix msst"_fix_msst.html
+"fix nphug"_fix_nphug.html
+"fix wall/piston"_fix_wall_piston.html
+examples/hugoniostat
+examples/msst :ul
+
+:line
+
+SNAP package :link(PKG-SNAP),h4
+
+[Contents:]
+
+A pair style for the spectral neighbor analysis potential (SNAP).
+SNAP is methodology for deriving a highly accurate classical potential
+fit to a large archive of quantum mechanical (DFT) data. Also several
+computes which analyze attributes of the potential.
+
+[Author:] Aidan Thompson (Sandia).
+
+[Supporting info:]
+
+src/SNAP: filenames -> commands
+"pair_style snap"_pair_snap.html
+"compute sna/atom"_compute_sna_atom.html
+"compute snad/atom"_compute_sna_atom.html
+"compute snav/atom"_compute_sna_atom.html
+examples/snap :ul
+
+:line
+
+SPIN package :link(PKG-SPIN),h4
+
+[Contents:]
+
+Model atomic magnetic spins classically, coupled to atoms moving in
+the usual manner via MD.  Various pair, fix, and compute styles.
+
+[Author:] Julien Tranchida (Sandia).
+
+[Supporting info:]
+
+src/SPIN: filenames -> commands
+"Howto spins"_Howto_spins.html
+"pair_style spin/dipole/cut"_pair_spin_dipole.html
+"pair_style spin/dipole/long"_pair_spin_dipole.html
+"pair_style spin/dmi"_pair_spin_dmi.html
+"pair_style spin/exchange"_pair_spin_exchange.html
+"pair_style spin/magelec"_pair_spin_magelec.html
+"pair_style spin/neel"_pair_spin_neel.html
+"fix nve/spin"_fix_nve_spin.html
+"fix precession/spin"_fix_precession_spin.html
+"compute spin"_compute_spin.html
+"neb/spin"_neb_spin.html
+examples/SPIN :ul
+
+:line
+
+SRD package :link(PKG-SRD),h4
+
+[Contents:]
+
+A pair of fixes which implement the Stochastic Rotation Dynamics (SRD)
+method for coarse-graining of a solvent, typically around large
+colloidal particles.
+
+[Supporting info:]
+
+src/SRD: filenames -> commands
+"fix srd"_fix_srd.html
+"fix wall/srd"_fix_wall_srd.html
+examples/srd
+examples/ASPHERE
+http://lammps.sandia.gov/movies.html#tri
+http://lammps.sandia.gov/movies.html#line
+http://lammps.sandia.gov/movies.html#poly :ul
+
+:line
+
+VORONOI package :link(PKG-VORONOI),h4
+
+[Contents:]
+
+A compute command which calculates the Voronoi tesselation of a
+collection of atoms by wrapping the "Voro++ library"_voro-home.  This
+can be used to calculate the local volume or each atoms or its near
+neighbors.
+
+:link(voro-home,http://math.lbl.gov/voro++)
+
+To use this package you must have the Voro++ library available on your
+system.
+
+[Author:] Daniel Schwen (INL) while at LANL.  The open-source Voro++
+library was written by Chris Rycroft (Harvard U) while at UC Berkeley
+and LBNL.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#voronoi on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/VORONOI: filenames -> commands
+src/VORONOI/README
+lib/voronoi/README
+"compute voronoi/atom"_compute_voronoi_atom.html
+examples/voronoi :ul
+
+:line
+
+USER-ADIOS package :link(PKG-USER-ADIOS),h4
+
+[Contents:]
+
+ADIOS is a high-performance I/O library. This package implements the
+dump "atom/adios" and dump "custom/adios" commands to write data using
+the ADIOS library.
+
+[Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-adios on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ADIOS: filenames -> commands
+src/USER-ADIOS/README
+examples/USER/adios
+https://github.com/ornladios/ADIOS2 :ul
+
+:line
+
+USER-ATC package :link(PKG-USER-ATC),h4
+
+[Contents:]
+
+ATC stands for atoms-to-continuum.  This package implements a "fix
+atc"_fix_atc.html command to either couple molecular dynamics with
+continuum finite element equations or perform on-the-fly conversion of
+atomic information to continuum fields.
+
+[Authors:] Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-atc on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ATC: filenames -> commands
+src/USER-ATC/README
+"fix atc"_fix_atc.html
+examples/USER/atc
+http://lammps.sandia.gov/pictures.html#atc :ul
+
+:line
+
+USER-AWPMD package :link(PKG-USER-AWPMD),h4
+
+[Contents:]
+
+AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics.  This
+package implements an atom, pair, and fix style which allows electrons
+to be treated as explicit particles in a classical molecular dynamics
+model.
+
+[Author:] Ilya Valuev (JIHT, Russia).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-awpmd on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-AWPMD: filenames -> commands
+src/USER-AWPMD/README
+"pair_style awpmd/cut"_pair_awpmd.html
+examples/USER/awpmd :ul
+
+:line
+
+USER-BOCS package :link(PKG-USER-BOCS),h4
+
+[Contents:]
+
+This package provides "fix bocs"_fix_bocs.html, a modified version
+of "fix npt"_fix_nh.html which includes the pressure correction to
+the barostat as outlined in:
+
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
+accurately describe the structure, pressure, and compressibility of
+molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+
+[Authors:] Nicholas J. H. Dunn and Michael R. DeLyser (The
+Pennsylvania State University)
+
+[Supporting info:]
+
+The USER-BOCS user package for LAMMPS is part of the BOCS software package:
+"https://github.com/noid-group/BOCS"_https://github.com/noid-group/BOCS
+
+See the following reference for information about the entire package:
+
+Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
+"BOCS: Bottom-Up Open-Source Coarse-Graining Software."
+J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
+
+Example inputs are in the examples/USER/bocs folder.
+
+:line
+
+USER-CGDNA package :link(PKG-USER-CGDNA),h4
+
+[Contents:]
+
+Several pair styles, a bond style, and integration fixes for
+coarse-grained models of single- and double-stranded DNA based on the
+oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
+This includes Langevin-type rigid-body integrators with improved
+stability.
+
+[Author:] Oliver Henrich (University of Strathclyde, Glasgow).
+
+[Supporting info:]
+
+src/USER-CGDNA: filenames -> commands
+/src/USER-CGDNA/README
+"pair_style oxdna/*"_pair_oxdna.html
+"pair_style oxdna2/*"_pair_oxdna2.html
+"bond_style oxdna/*"_bond_oxdna.html
+"bond_style oxdna2/*"_bond_oxdna.html
+"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
+
+:line
+
+USER-CGSDK package :link(PKG-USER-CGSDK),h4
+
+[Contents:]
+
+Several pair styles and an angle style which implement the
+coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
+simulation of ionic liquids, electrolytes, lipids and charged amino
+acids.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Supporting info:]
+
+src/USER-CGSDK: filenames -> commands
+src/USER-CGSDK/README
+"pair_style lj/sdk/*"_pair_sdk.html
+"angle_style sdk"_angle_sdk.html
+examples/USER/cgsdk
+http://lammps.sandia.gov/pictures.html#cg :ul
+
+:line
+
+USER-COLVARS package :link(PKG-USER-COLVARS),h4
+
+[Contents:]
+
+COLVARS stands for collective variables, which can be used to
+implement various enhanced sampling methods, including Adaptive
+Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
+Restraints.  A "fix colvars"_fix_colvars.html command is implemented
+which wraps a COLVARS library, which implements these methods.
+simulations.
+
+[Authors:] The COLVARS library is written and maintained by
+Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA)
+and Jerome Henin (LISM, CNRS, Marseille, France), originally for
+the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
+(Temple U) provided the interface to LAMMPS.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-colvars on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-COLVARS: filenames -> commands
+"doc/PDF/colvars-refman-lammps.pdf"_PDF/colvars-refman-lammps.pdf
+src/USER-COLVARS/README
+lib/colvars/README
+"fix colvars"_fix_colvars.html
+examples/USER/colvars :ul
+
+:line
+
+USER-PLUMED package :link(PKG-USER-PLUMED),h4
+
+[Contents:]
+
+The fix plumed command allows you to use the PLUMED free energy plugin
+for molecular dynamics to analyze and bias your LAMMPS trajectory on
+the fly.  The PLUMED library is called from within the LAMMPS input
+script by using the "fix plumed"_fix_plumed.html command.
+
+[Authors:] The "PLUMED library"_#PLUMED is written and maintained by
+Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
+Tribello.
+
+:link(PLUMED,http://www.plumed.org)
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-plumed on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-PLUMED/README
+lib/plumed/README
+"fix plumed"_fix_plumed.html
+examples/USER/plumed :ul
+
+:line
+
+USER-DIFFRACTION package :link(PKG-USER-DIFFRACTION),h4
+
+[Contents:]
+
+Two computes and a fix for calculating x-ray and electron diffraction
+intensities based on kinematic diffraction theory.
+
+[Author:] Shawn Coleman while at the U Arkansas.
+
+[Supporting info:]
+
+src/USER-DIFFRACTION: filenames -> commands
+"compute saed"_compute_saed.html
+"compute xrd"_compute_xrd.html
+"fix saed/vtk"_fix_saed_vtk.html
+examples/USER/diffraction :ul
+
+:line
+
+USER-DPD package :link(PKG-USER-DPD),h4
+
+[Contents:]
+
+DPD stands for dissipative particle dynamics.  This package implements
+coarse-grained DPD-based models for energetic, reactive molecular
+crystalline materials.  It includes many pair styles specific to these
+systems, including for reactive DPD, where each particle has internal
+state for multiple species and a coupled set of chemical reaction ODEs
+are integrated each timestep.  Highly accurate time integrators for
+isothermal, isoenergetic, isobaric and isenthalpic conditions are
+included.  These enable long timesteps via the Shardlow splitting
+algorithm.
+
+[Authors:] Jim Larentzos (ARL), Tim Mattox (Engility Corp), and John
+Brennan (ARL).
+
+[Supporting info:]
+
+src/USER-DPD: filenames -> commands
+/src/USER-DPD/README
+"compute dpd"_compute_dpd.html
+"compute dpd/atom"_compute_dpd_atom.html
+"fix eos/cv"_fix_eos_table.html
+"fix eos/table"_fix_eos_table.html
+"fix eos/table/rx"_fix_eos_table_rx.html
+"fix shardlow"_fix_shardlow.html
+"fix rx"_fix_rx.html
+"pair_style table/rx"_pair_table_rx.html
+"pair_style dpd/fdt"_pair_dpd_fdt.html
+"pair_style dpd/fdt/energy"_pair_dpd_fdt.html
+"pair_style exp6/rx"_pair_exp6_rx.html
+"pair_style multi/lucy"_pair_multi_lucy.html
+"pair_style multi/lucy/rx"_pair_multi_lucy_rx.html
+examples/USER/dpd :ul
+
+:line
+
+USER-DRUDE package :link(PKG-USER-DRUDE),h4
+
+[Contents:]
+
+Fixes, pair styles, and a compute to simulate thermalized Drude
+oscillators as a model of polarization.  See the "Howto
+drude"_Howto_drude.html and "Howto drude2"_Howto_drude2.html doc pages
+for an overview of how to use the package.  There are auxiliary tools
+for using this package in tools/drude.
+
+[Authors:] Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
+Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+
+[Supporting info:]
+
+src/USER-DRUDE: filenames -> commands
+"Howto drude"_Howto_drude.html
+"Howto drude2"_Howto_drude2.html
+"Howto polarizable"_Howto_polarizable.html
+src/USER-DRUDE/README
+"fix drude"_fix_drude.html
+"fix drude/transform/*"_fix_drude_transform.html
+"compute temp/drude"_compute_temp_drude.html
+"pair_style thole"_pair_thole.html
+"pair_style lj/cut/thole/long"_pair_thole.html
+examples/USER/drude
+tools/drude :ul
+
+:line
+
+USER-EFF package :link(PKG-USER-EFF),h4
+
+[Contents:]
+
+EFF stands for electron force field which allows a classical MD code
+to model electrons as particles of variable radius.  This package
+contains atom, pair, fix and compute styles which implement the eFF as
+described in A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III,
+JCC, 2010.  The eFF potential was first introduced by Su and Goddard,
+in 2007.  There are auxiliary tools for using this package in
+tools/eff; see its README file.
+
+[Author:] Andres Jaramillo-Botero (CalTech).
+
+[Supporting info:]
+
+src/USER-EFF: filenames -> commands
+src/USER-EFF/README
+"atom_style electron"_atom_style.html
+"fix nve/eff"_fix_nve_eff.html
+"fix nvt/eff"_fix_nh_eff.html
+"fix npt/eff"_fix_nh_eff.html
+"fix langevin/eff"_fix_langevin_eff.html
+"compute temp/eff"_compute_temp_eff.html
+"pair_style eff/cut"_pair_eff.html
+"pair_style eff/inline"_pair_eff.html
+examples/USER/eff
+tools/eff/README
+tools/eff
+http://lammps.sandia.gov/movies.html#eff :ul
+
+:line
+
+USER-FEP package :link(PKG-USER-FEP),h4
+
+[Contents:]
+
+FEP stands for free energy perturbation.  This package provides
+methods for performing FEP simulations by using a "fix
+adapt/fep"_fix_adapt_fep.html command with soft-core pair potentials,
+which have a "soft" in their style name.  There are auxiliary tools
+for using this package in tools/fep; see its README file.
+
+[Author:] Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+
+[Supporting info:]
+
+src/USER-FEP: filenames -> commands
+src/USER-FEP/README
+"fix adapt/fep"_fix_adapt_fep.html
+"compute fep"_compute_fep.html
+"pair_style */soft"_pair_fep_soft.html
+examples/USER/fep
+tools/fep/README
+tools/fep :ul
+
+:line
+
+USER-H5MD package :link(PKG-USER-H5MD),h4
+
+[Contents:]
+
+H5MD stands for HDF5 for MD.  "HDF5"_HDF5 is a portable, binary,
+self-describing file format, used by many scientific simulations.
+H5MD is a format for molecular simulations, built on top of HDF5.
+This package implements a "dump h5md"_dump_h5md.html command to output
+LAMMPS snapshots in this format.
+
+:link(HDF5,http://www.hdfgroup.org/HDF5)
+
+To use this package you must have the HDF5 library available on your
+system.
+
+[Author:] Pierre de Buyl (KU Leuven) created both the package and the
+H5MD format.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-h5md on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-H5MD: filenames -> commands
+src/USER-H5MD/README
+lib/h5md/README
+"dump h5md"_dump_h5md.html :ul
+
+:line
+
+USER-INTEL package :link(PKG-USER-INTEL),h4
+
+[Contents:]
+
+Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
+styles which are optimized for Intel CPUs and KNLs (Knights Landing).
+All of them have an "intel" in their style name.  The "Speed
+intel"_Speed_intel.html doc page gives details of what hardware and
+compilers are required on your system, and how to build and use this
+package.  Its styles can be invoked at run time via the "-sf intel" or
+"-suffix intel" "command-line switches"_Run_options.html.  Also see
+the "KOKKOS"_#PKG-KOKKOS, "OPT"_#PKG-OPT, and "USER-OMP"_#PKG-USER-OMP packages,
+which have styles optimized for CPUs and KNLs.
+
+You need to have an Intel compiler, version 14 or higher to take full
+advantage of this package. While compilation with GNU compilers is
+supported, performance will be sub-optimal.
+
+NOTE: the USER-INTEL package contains styles that require using the
+-restrict flag, when compiling with Intel compilers.
+
+[Author:] Mike Brown (Intel).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-intel on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-INTEL: filenames -> commands
+src/USER-INTEL/README
+"Speed packages"_Speed_packages.html
+"Speed intel"_Speed_intel.html
+"Section 2.6 -sf intel"_Run_options.html
+"Section 2.6 -pk intel"_Run_options.html
+"package intel"_package.html
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (i)
+src/USER-INTEL/TEST
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
+
+:line
+
+USER-LB package :link(PKG-USER-LB),h4
+
+[Contents:]
+
+Fixes which implement a background Lattice-Boltzmann (LB) fluid, which
+can be used to model MD particles influenced by hydrodynamic forces.
+
+[Authors:] Frances Mackay and Colin Denniston (University of Western
+Ontario).
+
+[Supporting info:]
+
+src/USER-LB: filenames -> commands
+src/USER-LB/README
+"fix lb/fluid"_fix_lb_fluid.html
+"fix lb/momentum"_fix_lb_momentum.html
+"fix lb/viscous"_fix_lb_viscous.html
+examples/USER/lb :ul
+
+:line
+
+USER-MGPT package :link(PKG-USER-MGPT),h4
+
+[Contents:]
+
+A pair style which provides a fast implementation of the quantum-based
+MGPT multi-ion potentials.  The MGPT or model GPT method derives from
+first-principles DFT-based generalized pseudopotential theory (GPT)
+through a series of systematic approximations valid for mid-period
+transition metals with nearly half-filled d bands.  The MGPT method
+was originally developed by John Moriarty at LLNL.  The pair style in
+this package calculates forces and energies using an optimized
+matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
+
+[Authors:] Tomas Oppelstrup and John Moriarty (LLNL).
+
+[Supporting info:]
+
+src/USER-MGPT: filenames -> commands
+src/USER-MGPT/README
+"pair_style mgpt"_pair_mgpt.html
+examples/USER/mgpt :ul
+
+:line
+
+USER-MISC package :link(PKG-USER-MISC),h4
+
+[Contents:]
+
+A potpourri of (mostly) unrelated features contributed to LAMMPS by
+users.  Each feature is a single fix, compute, pair, bond, angle,
+dihedral, improper, or command style.
+
+[Authors:] The author for each style in the package is listed in the
+src/USER-MISC/README file.
+
+[Supporting info:]
+
+src/USER-MISC: filenames -> commands
+src/USER-MISC/README
+one doc page per individual command listed in src/USER-MISC/README
+examples/USER/misc :ul
+
+:line
+
+USER-MANIFOLD package :link(PKG-USER-MANIFOLD),h4
+
+[Contents:]
+
+Several fixes and a "manifold" class which enable simulations of
+particles constrained to a manifold (a 2D surface within the 3D
+simulation box).  This is done by applying the RATTLE constraint
+algorithm to formulate single-particle constraint functions
+g(xi,yi,zi) = 0 and their derivative (i.e. the normal of the manifold)
+n = grad(g).
+
+[Author:] Stefan Paquay (until 2017: Eindhoven University of
+Technology (TU/e), The Netherlands; since 2017: Brandeis University,
+Waltham, MA, USA)
+
+[Supporting info:]
+
+src/USER-MANIFOLD: filenames -> commands
+src/USER-MANIFOLD/README
+"Howto manifold"_Howto_manifold.html
+"fix manifoldforce"_fix_manifoldforce.html
+"fix nve/manifold/rattle"_fix_nve_manifold_rattle.html
+"fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
+examples/USER/manifold
+http://lammps.sandia.gov/movies.html#manifold :ul
+
+:line
+
+USER-MEAMC package :link(PKG-USER-MEAMC),h4
+
+[Contents:]
+
+A pair style for the modified embedded atom (MEAM) potential
+translated from the Fortran version in the (obsolete) "MEAM" package
+to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+has been removed from LAMMPS after the 12 December 2018 version.
+
+[Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
+based on the Fortran version of Greg Wagner (Northwestern U) while at
+Sandia.
+
+[Supporting info:]
+
+src/USER-MEAMC: filenames -> commands
+src/USER-MEAMC/README
+"pair_style meam/c"_pair_meamc.html
+examples/meamc :ul
+
+:line
+
+USER-MESO package :link(PKG-USER-MESO),h4
+
+[Contents:]
+
+Several extensions of the dissipative particle dynamics (DPD)
+method.  Specifically, energy-conserving DPD (eDPD) that can model
+non-isothermal processes, many-body DPD (mDPD) for simulating
+vapor-liquid coexistence, and transport DPD (tDPD) for modeling
+advection-diffusion-reaction systems. The equations of motion of these
+DPD extensions are integrated through a modified velocity-Verlet (MVV)
+algorithm.
+
+[Author:] Zhen Li (Division of Applied Mathematics, Brown University)
+
+[Supporting info:]
+
+src/USER-MESO: filenames -> commands
+src/USER-MESO/README
+"atom_style edpd"_atom_style.html
+"pair_style edpd"_pair_meso.html
+"pair_style mdpd"_pair_meso.html
+"pair_style tdpd"_pair_meso.html
+"fix mvv/dpd"_fix_mvv_dpd.html
+examples/USER/meso
+http://lammps.sandia.gov/movies.html#mesodpd :ul
+
+:line
+
+USER-MOFFF package :link(PKG-USER-MOFFF),h4
+
+[Contents:]
+
+Pair, angle and improper styles needed to employ the MOF-FF
+force field by Schmid and coworkers with LAMMPS.
+MOF-FF is a first principles derived force field with the primary aim
+to simulate MOFs and related porous framework materials, using spherical
+Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
+2013, 250, 1128-1141.
+For the usage of MOF-FF see the example in the example directory as
+well as the "MOF+"_MOFplus website.
+
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
+
+[Author:] Hendrik Heenen (Technical U of Munich),
+Rochus Schmid (Ruhr-University Bochum).
+
+[Supporting info:]
+
+src/USER-MOFFF: filenames -> commands
+src/USER-MOFFF/README
+"pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html
+"angle_style class2"_angle_class2.html
+"angle_style cosine/buck6d"_angle_cosine_buck6d.html
+"improper_style inversion/harmonic"_improper_inversion_harmonic.html
+examples/USER/mofff :ul
+
+:line
+
+USER-MOLFILE package :link(PKG-USER-MOLFILE),h4
+
+[Contents:]
+
+A "dump molfile"_dump_molfile.html command which uses molfile plugins
+that are bundled with the "VMD"_vmd-home
+molecular visualization and analysis program, to enable LAMMPS to dump
+snapshots in formats compatible with various molecular simulation
+tools.
+
+To use this package you must have the desired VMD plugins available on
+your system.
+
+Note that this package only provides the interface code, not the
+plugins themselves, which will be accessed when requesting a specific
+plugin via the "dump molfile"_dump_molfile.html command.  Plugins can
+be obtained from a VMD installation which has to match the platform
+that you are using to compile LAMMPS for. By adding plugins to VMD,
+support for new file formats can be added to LAMMPS (or VMD or other
+programs that use them) without having to re-compile the application
+itself.  More information about the VMD molfile plugins can be found
+at
+"http://www.ks.uiuc.edu/Research/vmd/plugins/molfile"_http://www.ks.uiuc.edu/Research/vmd/plugins/molfile.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-molfile on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-MOLFILE: filenames -> commands
+src/USER-MOLFILE/README
+lib/molfile/README
+"dump molfile"_dump_molfile.html :ul
+
+:line
+
+USER-NETCDF package :link(PKG-USER-NETCDF),h4
+
+[Contents:]
+
+Dump styles for writing NetCDF formatted dump files.  NetCDF is a
+portable, binary, self-describing file format developed on top of
+HDF5. The file contents follow the AMBER NetCDF trajectory conventions
+(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+
+To use this package you must have the NetCDF library available on your
+system.
+
+Note that NetCDF files can be directly visualized with the following
+tools:
+
+"Ovito"_ovito (Ovito supports the AMBER convention and the extensions mentioned above)
+"VMD"_vmd-home
+"AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
+
+:link(ovito,http://www.ovito.org)
+:link(vmd-home,https://www.ks.uiuc.edu/Research/vmd/)
+:link(atomeye,http://www.libatoms.org)
+
+[Author:] Lars Pastewka (Karlsruhe Institute of Technology).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-netcdf on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-NETCDF: filenames -> commands
+src/USER-NETCDF/README
+lib/netcdf/README
+"dump netcdf"_dump_netcdf.html :ul
+
+:line
+
+USER-OMP package :link(PKG-USER-OMP),h4
+
+[Contents:]
+
+Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and
+kspace styles which are altered to enable threading on many-core CPUs
+via OpenMP directives.  All of them have an "omp" in their style name.
+The "Speed omp"_Speed_omp.html doc page gives details of what hardware
+and compilers are required on your system, and how to build and use
+this package.  Its styles can be invoked at run time via the "-sf omp"
+or "-suffix omp" "command-line switches"_Run_options.html.  Also see
+the "KOKKOS"_#PKG-KOKKOS, "OPT"_#PKG-OPT, and "USER-INTEL"_#PKG-USER-INTEL
+packages, which have styles optimized for CPUs.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+NOTE: To enable multi-threading support the compile flag "-fopenmp"
+and the link flag "-fopenmp" (for GNU compilers, you have to look up
+the equivalent flags for other compilers) must be used to build LAMMPS.
+When using Intel compilers, also the "-restrict" flag is required.
+The USER-OMP package can be compiled without enabling OpenMP; then
+all code will be compiled as serial and the only improvement over the
+regular styles are some data access optimization. These flags should
+be added to the CCFLAGS and LINKFLAGS lines of your Makefile.machine.
+See src/MAKE/OPTIONS/Makefile.omp for an example.
+
+Once you have an appropriate Makefile.machine, you can
+install/un-install the package and build LAMMPS in the usual manner:
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-omp on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-OMP: filenames -> commands
+src/USER-OMP/README
+"Speed packages"_Speed_packages.html
+"Speed omp"_Speed_omp.html
+"Section 2.6 -sf omp"_Run_options.html
+"Section 2.6 -pk omp"_Run_options.html
+"package omp"_package.html
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (o)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
+
+:line
+
+USER-PHONON package :link(PKG-USER-PHONON),h4
+
+[Contents:]
+
+A "fix phonon"_fix_phonon.html command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.
+And a "dynamical_matrix"_dynamical_matrix.html as well as a
+"third_order"_third_order.html command to compute the dynamical matrix
+and third order tensor from finite differences.
+
+[Authors:] Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
+and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
+
+
+[Supporting info:]
+
+src/USER-PHONON: filenames -> commands
+src/USER-PHONON/README
+"fix phonon"_fix_phonon.html
+"dynamical_matrix"_dynamical_matrix.html
+"third_order"_third_order.html
+examples/USER/phonon :ul
+
+:line
+
+USER-PTM package :link(PKG-USER-PTM),h4
+
+[Contents:]
+
+A "compute ptm/atom"_compute_ptm_atom.html command that calculates
+local structure characterization using the Polyhedral Template
+Matching methodology.
+
+[Author:] Peter Mahler Larsen (MIT).
+
+[Supporting info:]
+
+src/USER-PTM: filenames not starting with ptm_ -> commands
+src/USER-PTM: filenames starting with ptm_ -> supporting code
+src/USER-PTM/LICENSE
+"compute ptm/atom"_compute_ptm_atom.html :ul
+
+:line
+
+USER-QMMM package :link(PKG-USER-QMMM),h4
+
+[Contents:]
+
+A "fix qmmm"_fix_qmmm.html command which allows LAMMPS to be used in a
+QM/MM simulation, currently only in combination with the "Quantum
+ESPRESSO"_espresso package.
+
+:link(espresso,http://www.quantum-espresso.org)
+
+To use this package you must have Quantum ESPRESSO available on your
+system.
+
+The current implementation only supports an ONIOM style mechanical
+coupling to the Quantum ESPRESSO plane wave DFT package.
+Electrostatic coupling is in preparation and the interface has been
+written in a manner that coupling to other QM codes should be possible
+without changes to LAMMPS itself.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-qmmm on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-QMMM: filenames -> commands
+src/USER-QMMM/README
+lib/qmmm/README
+"fix phonon"_fix_phonon.html
+lib/qmmm/example-ec/README
+lib/qmmm/example-mc/README :ul
+
+:line
+
+USER-QTB package :link(PKG-USER-QTB),h4
+
+[Contents:]
+
+Two fixes which provide a self-consistent quantum treatment of
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, altering the energy power spectrum and
+the heat capacity to account for their quantum nature. This is useful
+when modeling systems at temperatures lower than their classical
+limits or when temperatures ramp across the classical limits in a
+simulation.
+
+[Author:] Yuan Shen (Stanford U).
+
+[Supporting info:]
+
+src/USER-QTB: filenames -> commands
+src/USER-QTB/README
+"fix qtb"_fix_qtb.html
+"fix qbmsst"_fix_qbmsst.html
+examples/USER/qtb :ul
+
+:line
+
+USER-QUIP package :link(PKG-USER-QUIP),h4
+
+[Contents:]
+
+A "pair_style quip"_pair_quip.html command which wraps the "QUIP
+libAtoms library"_quip, which includes a variety of interatomic
+potentials, including Gaussian Approximation Potential (GAP) models
+developed by the Cambridge University group.
+
+:link(quip,https://github.com/libAtoms/QUIP)
+
+To use this package you must have the QUIP libAtoms library available
+on your system.
+
+[Author:] Albert Bartok (Cambridge University)
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-quip on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-QUIP: filenames -> commands
+src/USER-QUIP/README
+"pair_style quip"_pair_quip.html
+examples/USER/quip :ul
+
+:line
+
+USER-REAXC package :link(PKG-USER-REAXC),h4
+
+[Contents:]
+
+A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
+is a universal reactive force field.  See the src/USER-REAXC/README file
+for more info on differences between the two packages.  Also two fixes
+for monitoring molecules as bonds are created and destroyed.
+
+[Author:] Hasan Metin Aktulga (MSU) while at Purdue University.
+
+[Supporting info:]
+
+src/USER-REAXC: filenames -> commands
+src/USER-REAXC/README
+"pair_style reax/c"_pair_reaxc.html
+"fix reax/c/bonds"_fix_reaxc_bonds.html
+"fix reax/c/species"_fix_reaxc_species.html
+examples/reax :ul
+
+:line
+
+USER-SCAFACOS package :link(PKG-USER-SCAFACOS),h4
+
+[Contents:]
+
+A KSpace style which wraps the "ScaFaCoS Coulomb solver
+library"_http://www.scafacos.de to compute long-range Coulombic
+interactions.
+
+To use this package you must have the ScaFaCoS library available on
+your system.
+
+[Author:] Rene Halver (JSC) wrote the scafacos LAMMPS command.
+
+ScaFaCoS itself was developed by a consortium of German research
+facilities with a BMBF (German Ministry of Science and Education)
+funded project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
+the Forschungszentrum Juelich.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-scafacos on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-SCAFACOS: filenames -> commands
+src/USER-SCAFACOS/README
+"kspace_style scafacos"_kspace_style.html
+"kspace_modify"_kspace_modify.html
+examples/USER/scafacos :ul
+
+:line
+
+USER-SDPD package :link(PKG-USER-SDPD),h4
+
+[Contents:]
+
+A pair style for smoothed dissipative particle dynamics (SDPD), which
+is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
+where thermal fluctuations are important (see the
+"USER-SPH package"_#PKG-USER-SPH).
+Also two fixes for moving and rigid body integration of SPH/SDPD particles
+(particles of atom_style meso).
+
+[Author:] Morteza Jalalvand (Institute for Advanced Studies in Basic
+Sciences, Iran).
+
+[Supporting info:]
+
+src/USER-SDPD: filenames -> commands
+src/USER-SDPD/README
+"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html
+"fix meso/move"_fix_meso_move.html
+"fix rigid/meso"_fix_rigid_meso.html
+examples/USER/sdpd :ul
+
+:line
+
+USER-SMD package :link(PKG-USER-SMD),h4
+
+[Contents:]
+
+An atom style, fixes, computes, and several pair styles which
+implements smoothed Mach dynamics (SMD) for solids, which is a model
+related to smoothed particle hydrodynamics (SPH) for liquids (see the
+"USER-SPH package"_#PKG-USER-SPH).
+
+This package solves solids mechanics problems via a state of the art
+stabilized meshless method with hourglass control.  It can specify
+hydrostatic interactions independently from material strength models,
+i.e. pressure and deviatoric stresses are separated.  It provides many
+material models (Johnson-Cook, plasticity with hardening,
+Mie-Grueneisen, Polynomial EOS) and allows new material models to be
+added.  It implements rigid boundary conditions (walls) which can be
+specified as surface geometries from *.STL files.
+
+[Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
+Dynamics, Ernst Mach Institute, Germany).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-smd on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-SMD: filenames -> commands
+src/USER-SMD/README
+doc/PDF/SMD_LAMMPS_userguide.pdf
+examples/USER/smd
+http://lammps.sandia.gov/movies.html#smd :ul
+
+:line
+
+USER-SMTBQ package :link(PKG-USER-SMTBQ),h4
+
+[Contents:]
+
+A pair style which implements a Second Moment Tight Binding model with
+QEq charge equilibration (SMTBQ) potential for the description of
+ionocovalent bonds in oxides.
+
+[Authors:] Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France).
+
+[Supporting info:]
+
+src/USER-SMTBQ: filenames -> commands
+src/USER-SMTBQ/README
+"pair_style smtbq"_pair_smtbq.html
+examples/USER/smtbq :ul
+
+:line
+
+USER-SPH package :link(PKG-USER-SPH),h4
+
+[Contents:]
+
+An atom style, fixes, computes, and several pair styles which
+implements smoothed particle hydrodynamics (SPH) for liquids.  See the
+related "USER-SMD package"_#PKG-USER-SMD package for smooth Mach dynamics
+(SMD) for solids.
+
+This package contains ideal gas, Lennard-Jones equation of states,
+Tait, and full support for complete (i.e. internal-energy dependent)
+equations of state.  It allows for plain or Monaghans XSPH integration
+of the equations of motion.  It has options for density continuity or
+density summation to propagate the density field.  It has
+"set"_set.html command options to set the internal energy and density
+of particles from the input script and allows the same quantities to
+be output with thermodynamic output or to dump files via the "compute
+property/atom"_compute_property_atom.html command.
+
+[Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
+Dynamics, Ernst Mach Institute, Germany).
+
+[Supporting info:]
+
+src/USER-SPH: filenames -> commands
+src/USER-SPH/README
+doc/PDF/SPH_LAMMPS_userguide.pdf
+examples/USER/sph
+http://lammps.sandia.gov/movies.html#sph :ul
+
+:line
+
+USER-TALLY package :link(PKG-USER-TALLY),h4
+
+[Contents:]
+
+Several compute styles that can be called when pairwise interactions
+are calculated to tally information (forces, heat flux, energy,
+stress, etc) about individual interactions.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Supporting info:]
+
+src/USER-TALLY: filenames -> commands
+src/USER-TALLY/README
+"compute */tally"_compute_tally.html
+examples/USER/tally :ul
+
+:line
+
+USER-UEF package :link(PKG-USER-UEF),h4
+
+[Contents:]
+
+A fix style for the integration of the equations of motion under
+extensional flow with proper boundary conditions, as well as several
+supporting compute styles and an output option.
+
+[Author:] David Nicholson (MIT).
+
+[Supporting info:]
+
+src/USER-UEF: filenames -> commands
+src/USER-UEF/README
+"fix nvt/uef"_fix_nh_uef.html
+"fix npt/uef"_fix_nh_uef.html
+"compute pressure/uef"_compute_pressure_uef.html
+"compute temp/uef"_compute_temp_uef.html
+"dump cfg/uef"_dump_cfg_uef.html
+examples/uef :ul
+
+:line
+
+USER-VTK package :link(PKG-USER-VTK),h4
+
+[Contents:]
+
+A "dump vtk"_dump_vtk.html command which outputs snapshot info in the
+"VTK format"_vtk, enabling visualization by "Paraview"_paraview or
+other visualization packages.
+
+:link(vtk,http://www.vtk.org)
+:link(paraview,http://www.paraview.org)
+
+To use this package you must have VTK library available on your
+system.
+
+[Authors:] Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-vtk on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-VTK: filenames -> commands
+src/USER-VTK/README
+lib/vtk/README
+"dump vtk"_dump_vtk.html :ul
+
+
+:line
+
+USER-YAFF package :link(PKG-USER-YAFF),h4
+
+[Contents:]
+
+Some potentials that are also implemented in the Yet Another Force Field ("YAFF"_yaff) code.
+The expressions and their use are discussed in the following papers
+
+Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015) "link"_vanduyfhuys2015
+Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018) "link"_vanduyfhuys2018 :ul
+
+which discuss the "QuickFF"_quickff methodology.
+
+
+:link(vanduyfhuys2015,http://dx.doi.org/10.1002/jcc.23877)
+:link(vanduyfhuys2018,http://dx.doi.org/10.1002/jcc.25173)
+:link(quickff,http://molmod.github.io/QuickFF)
+:link(yaff,https://github.com/molmod/yaff)
+
+
+[Author:] Steven Vandenbrande.
+
+[Supporting info:]
+
+src/USER-YAFF/README
+"angle_style cross"_angle_cross.html
+"angle_style mm3"_angle_mm3.html
+"bond_style mm3"_bond_mm3.html
+"improper_style distharm"_improper_distharm.html
+"improper_style sqdistharm"_improper_sqdistharm.html
+"pair_style mm3/switch3/coulgauss/long"_pair_mm3_switch3_coulgauss.html
+"pair_style lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html
+examples/USER/yaff :ul

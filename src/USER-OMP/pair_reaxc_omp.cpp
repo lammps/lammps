@@ -34,6 +34,8 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -42,32 +44,27 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_reaxc.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
 #include "timer.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
-#include "reaxc_control.h"
-#include "reaxc_ffield.h"
 #include "reaxc_forces_omp.h"
 #include "reaxc_init_md_omp.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"
-#include "reaxc_lookup.h"
 #include "reaxc_reset_tools.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_traj.h"
-#include "reaxc_vector.h"
-#include "fix_reaxc_bonds.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #ifdef OMP_TIMING
@@ -113,7 +110,7 @@ PairReaxCOMP::~PairReaxCOMP()
   if (setup_flag) {
     reax_list * bonds = lists+BONDS;
     for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+      sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
 
@@ -191,11 +188,14 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   int *num_hbonds = fix_reax->num_hbonds;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
+
+  if (vflag_atom)
+     error->all(FLERR,"Pair style reax/c/omp does not support "
+                "computing per-atom stress");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -205,12 +205,12 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
   // setup data structures
 
   setup();
 
-  Reset( system, control, data, workspace, &lists, world );
+  Reset( system, control, data, workspace, &lists );
 
   // Why not update workspace like in MPI-only code?
   // Using the MPI-only way messes up the hb energy
@@ -218,7 +218,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   write_reax_lists();
 
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }
@@ -285,14 +285,13 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-// Set internal timestep counter to that of LAMMPS
+  // Set internal timestep counter to that of LAMMPS
 
   data->step = update->ntimestep;
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
-  int i, j;
 
   if(fixspecies_flag) {
     if (system->N > nmax) {
@@ -306,8 +305,8 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 #if defined(_OPENMP)
 #pragma omp parallel for collapse(2) schedule(static) default(shared)
 #endif
-    for (i = 0; i < system->N; i ++)
-      for (j = 0; j < MAXSPECBOND; j ++) {
+    for (int i = 0; i < system->N; i++)
+      for (int j = 0; j < MAXSPECBOND; j++) {
         tmpbo[i][j] = 0.0;
         tmpid[i][j] = 0;
       }
@@ -325,9 +324,10 @@ void PairReaxCOMP::init_style( )
 
   // firstwarn = 1;
 
-  int iqeq = modify->find_fix_by_style("qeq/reax/omp");
-  if (iqeq < 0 && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c/omp requires use of fix qeq/reax/omp");
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -343,6 +343,15 @@ void PairReaxCOMP::init_style( )
     error->all(FLERR,"Pair style reax/c/omp requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
+
+ if ((atom->map_tag_max > 99999999) && (comm->me == 0))
+    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c/omp "
+                   "native output files may get misformatted or corrupted");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c/omp");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -361,7 +370,7 @@ void PairReaxCOMP::init_style( )
 
   if (fix_reax == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "REAXC";
+    fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "REAXC";
     modify->add_fix(3,fixarg);
@@ -411,12 +420,12 @@ void PairReaxCOMP::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( system, control, workspace, world );
+    PreAllocate_Space( system, control, workspace );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
-                  lists+FAR_NBRS, world))
+                  lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
 
     write_reax_lists();
@@ -446,7 +455,7 @@ void PairReaxCOMP::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( system, control, data, workspace, &lists );
   }
 }
 
@@ -582,7 +591,7 @@ int PairReaxCOMP::write_reax_lists()
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxCOMP::read_reax_forces(int vflag)
+void PairReaxCOMP::read_reax_forces(int /* vflag */)
 {
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)
@@ -603,13 +612,11 @@ void PairReaxCOMP::read_reax_forces(int vflag)
 void PairReaxCOMP::FindBond()
 {
   const double bo_cut = 0.10;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)   \
-  private(i)
+#pragma omp parallel for schedule(static) default(shared)
 #endif
-  for (i = 0; i < system->n; i++) {
+  for (int i = 0; i < system->n; i++) {
     int j, pj, nj;
     double bo_tmp;
     bond_data *bo_ij;
@@ -631,4 +638,3 @@ void PairReaxCOMP::FindBond()
     }
   }
 }
-

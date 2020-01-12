@@ -15,13 +15,12 @@
    Contributing authors: Shawn Coleman & Douglas Spearot (Arkansas)
 ------------------------------------------------------------------------- */
 
+#include "compute_saed.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include "math_const.h"
-#include "compute_saed.h"
 #include "compute_saed_consts.h"
 #include "atom.h"
 #include "comm.h"
@@ -281,7 +280,7 @@ ComputeSAED::~ComputeSAED()
 {
   memory->destroy(vector);
   memory->destroy(store_tmp);
-  delete ztype;
+  delete[] ztype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -511,7 +510,7 @@ void ComputeSAED::compute_vector()
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
   }
 
   delete [] xlocal;

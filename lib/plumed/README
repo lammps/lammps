@@ -1,0 +1,56 @@
+This directory contains links to the PLUMED library which is required
+to use the PLUMED package and its fix plumed command in a
+LAMMPS input script.  PLUMED should only be downloaded into this directory if
+you wish to statically link the library.  If you wish to link PLUMED as
+a dynamic library (as we recommend) then you can compile and build PLUMED
+separately to LAMMPS.  To use PLUMED in conjuction with LAMMPS you then simply
+need to ensure that the PLUMED library is in your path at runtime.
+
+More info about the PLUMED library can be found at http://www.plumed.org.
+
+You can type "make lib-plumed" from the src directory to see help on
+how to download, build and statically link PLUMED via make commands, or you can
+do the same thing by typing "python Install.py" from within this
+directory.   Alternatively you can download and build PLUMED manually by following the instructions
+below.
+
+-----------------
+
+Instructions:
+
+1.  Download PLUMED either as a tarball from
+    http://www.plumed.org/get-it
+    or clone it using git clone https://github.com/plumed/plumed2.git.
+    If you download the tarball
+    unpack it in unpack it in this /lib/plumed directory.
+    Similarly if you clone it clone it to the /lib/plumed
+    directory.
+
+2.  Compile PLUMED from within its home directory.  In the
+    simplest cases this be done by issuing the commands
+    % ./configure
+    % make
+    More detailed instructions can be found at
+    http://plumed.github.io/doc-master/user-doc/html/_installation.html
+
+3.  There is no need to install PLUMED if you only wish
+    to use it from LAMMPS.  You should thus only run
+    make install if you want to use PLUMED as a stand-alone
+    code or from some other code.  To install it you can
+    run the following commands:
+    a) install under the default /usr/local
+       % sudo make install
+    b) install under a user-writeable location by first
+         changing the PREFIX variable when running the
+         configure command file, then
+       % make install
+
+-----------------
+
+When these steps are complete you can build LAMMPS
+with the PLUMED package installed:
+
+% cd lammps/src
+% make yes-user-plumed
+% make mpi (or whatever target you wish)
+

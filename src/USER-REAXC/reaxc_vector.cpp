@@ -24,9 +24,9 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_vector.h"
-
+#include <cmath>
+#include "reaxc_defs.h"
 
 void rvec_Copy( rvec dest, rvec src )
 {
@@ -105,7 +105,7 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
   int i;
   rvec temp;
 
-  if( ret == v )
+  if (ret == v)
     {
       for( i = 0; i < 3; ++i )
         temp[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];

@@ -15,17 +15,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_gromos.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -55,8 +54,7 @@ void BondGromos::compute(int eflag, int vflag)
   double delx,dely,delz,ebond,fbond;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -169,8 +167,8 @@ void BondGromos::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -204,7 +202,7 @@ double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
 void *BondGromos::extract( char *str, int &dim )
 {
   dim = 1;
-  if( strcmp(str,"kappa")==0) return (void*) k;
-  if( strcmp(str,"r0")==0) return (void*) r0;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
   return NULL;
 }

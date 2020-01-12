@@ -28,7 +28,7 @@
 #define __TOOL_BOX_H_
 
 #include "reaxc_types.h"
-#include "reaxc_defs.h"
+namespace LAMMPS_NS { class Error; }
 
 /* from system_props.h */
 double Get_Time( );
@@ -37,7 +37,7 @@ double Get_Time( );
 int   Tokenize( char*, char*** );
 
 /* from lammps */
-void *smalloc( rc_bigint, const char*, MPI_Comm );
-void *scalloc( rc_bigint, rc_bigint, const char*, MPI_Comm );
-void sfree( void*, const char* );
+void *smalloc( LAMMPS_NS::Error*, rc_bigint, const char* );
+void *scalloc( LAMMPS_NS::Error*, rc_bigint, rc_bigint, const char* );
+void sfree( LAMMPS_NS::Error*, void*, const char* );
 #endif

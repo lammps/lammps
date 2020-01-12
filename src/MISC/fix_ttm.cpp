@@ -16,16 +16,14 @@
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
 
+#include "fix_ttm.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ttm.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"
@@ -199,7 +197,7 @@ void FixTTM::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix ttm with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm");
+    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm with triclinic box");
 

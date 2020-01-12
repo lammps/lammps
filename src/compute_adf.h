@@ -20,7 +20,6 @@ ComputeStyle(adf,ComputeADF)
 #ifndef LMP_COMPUTE_ADF_H
 #define LMP_COMPUTE_ADF_H
 
-#include <cstdio>
 #include "compute.h"
 
 namespace LAMMPS_NS {
@@ -45,7 +44,7 @@ class ComputeADF : public Compute {
   double *rcutouterj, *rcutouterk; // list of outer cutoffs
 
   class NeighList *list;   // full neighbor list
- 
+
   int *iatomcount;               // local number of central atoms
   int *iatomcountall;            // total number of central atoms
   int **iatomflag;               // 1 if type is central atom in ADF

@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_move.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
-#include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"
@@ -68,7 +66,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  int iarg;
+  int iarg = 0;
 
   if (strcmp(arg[3],"linear") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix move command");

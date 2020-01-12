@@ -12,6 +12,7 @@
 
 #include <cstring>
 #include <string>
+#include <map>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -24,35 +25,9 @@
 /// need to parse input inherit from this
 class colvarparse {
 
-private:
-
-  /// \brief List of legal keywords for this object: this is updated
-  /// by each call to colvarparse::get_keyval() or
-  /// colvarparse::key_lookup()
-  std::list<std::string> allowed_keywords;
-
-  /// \brief List of delimiters for the values of each keyword in the
-  /// configuration string; all keywords will be stripped of their
-  /// values before the keyword check is performed
-  std::list<size_t>      data_begin_pos;
-
-  /// \brief List of delimiters for the values of each keyword in the
-  /// configuration string; all keywords will be stripped of their
-  /// values before the keyword check is performed
-  std::list<size_t>      data_end_pos;
-
-  /// \brief Add a new valid keyword to the list
-  void add_keyword(char const *key);
-
-  /// \brief Remove all the values from the config string
-  void strip_values(std::string &conf);
-
-  /// \brief Configuration string of the object
-  std::string config_string;
-
 public:
 
-
+  /// Default constructor
   inline colvarparse()
   {
     init();
@@ -72,7 +47,7 @@ public:
   }
 
   /// Set a new config string for this object
-  inline void init(const std::string& conf)
+  inline void init(std::string const &conf)
   {
     if (! config_string.size()) {
       init();
@@ -80,21 +55,31 @@ public:
     }
   }
 
-  inline const std::string& get_config()
+  /// Get the configuration string (includes comments)
+  inline std::string const & get_config() const
   {
     return config_string;
   }
 
   /// How a keyword is parsed in a string
   enum Parse_Mode {
-    /// \brief(default) Read the first instance of a keyword (if
-    /// any), report its value, and print a warning when there is more
-    /// than one
-    parse_normal,
-    /// \brief Like parse_normal, but don't send any message to the log
-    /// (useful e.g. in restart files when such messages are very
-    /// numerous and redundant)
-    parse_silent
+    /// Zero for all flags
+    parse_null = 0,
+    /// Print the value of a keyword if it is given
+    parse_echo = (1<<1),
+    /// Print the default value of a keyword, if it is NOT given
+    parse_echo_default = (1<<2),
+    /// Do not print the keyword
+    parse_silent = 0,
+    /// Raise error if the keyword is not provided
+    parse_required = (1<<16),
+    /// Successive calls to get_keyval() will override the previous values
+    /// when the keyword is not given any more
+    parse_override = (1<<17),
+    /// The call is being executed from a read_restart() function
+    parse_restart = (1<<18),
+    /// Alias for old default behavior (should be phased out)
+    parse_normal = (1<<2) | (1<<1) | (1<<17)
   };
 
   /// \brief Check that all the keywords within "conf" are in the list
@@ -144,6 +129,11 @@ public:
                   char const *key,
                   long &value,
                   long const &def_value = 0,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  cvm::step_number &value,
+                  cvm::step_number const &def_value = 0,
                   Parse_Mode const parse_mode = parse_normal);
   bool get_keyval(std::string const &conf,
                   char const *key,
@@ -218,23 +208,61 @@ public:
 
 protected:
 
-  // Templates
-  template<typename TYPE> bool _get_keyval_scalar_(std::string const &conf,
-                                                   char const *key,
-                                                   TYPE &value,
-                                                   TYPE const &def_value,
-                                                   Parse_Mode const parse_mode);
-  bool _get_keyval_scalar_string_(std::string const &conf,
-                                  char const *key,
-                                  std::string &value,
-                                  std::string const &def_value,
-                                  Parse_Mode const parse_mode);
+  /// Get the string value of a keyword, and save it for later parsing
+  bool get_key_string_value(std::string const &conf,
+                            char const *key, std::string &data);
 
-  template<typename TYPE> bool _get_keyval_vector_(std::string const &conf,
-                                                   char const *key,
-                                                   std::vector<TYPE> &values,
-                                                   std::vector<TYPE> const &def_values,
-                                                   Parse_Mode const parse_mode);
+  /// Get multiple strings from repeated instances of a same keyword
+  bool get_key_string_multi_value(std::string const &conf,
+                                  char const *key, std::vector<std::string>& data);
+
+  /// Template for single-value keyword parsers
+  template<typename TYPE>
+  bool _get_keyval_scalar_(std::string const &conf,
+                           char const *key,
+                           TYPE &value,
+                           TYPE const &def_value,
+                           Parse_Mode const &parse_mode);
+
+  /// Template for multiple-value keyword parsers
+  template<typename TYPE>
+  bool _get_keyval_vector_(std::string const &conf,
+                           char const *key,
+                           std::vector<TYPE> &values,
+                           std::vector<TYPE> const &def_values,
+                           Parse_Mode const &parse_mode);
+
+  /// Extract the value of a variable from a string
+  template<typename TYPE>
+  int _get_keyval_scalar_value_(std::string const &key_str,
+                                std::string const &data,
+                                TYPE &value,
+                                TYPE const &def_value);
+
+  /// Handle the case where the user provides a keyword without value
+  template<typename TYPE>
+  int _get_keyval_scalar_novalue_(std::string const &key_str,
+                                  TYPE &value,
+                                  Parse_Mode const &parse_mode);
+
+  /// Record that the keyword has just been user-defined
+  template<typename TYPE>
+  void mark_key_set_user(std::string const &key_str,
+                         TYPE const &value,
+                         Parse_Mode const &parse_mode);
+
+  /// Record that the keyword has just been set to its default value
+  template<typename TYPE>
+  void mark_key_set_default(std::string const &key_str,
+                            TYPE const &def_value,
+                            Parse_Mode const &parse_mode);
+
+  /// Raise error condition due to the keyword being required!
+  void error_key_required(std::string const &key_str,
+                          Parse_Mode const &parse_mode);
+
+  /// True if the keyword has been set already
+  bool key_already_set(std::string const &key_str);
 
 public:
 
@@ -284,16 +312,71 @@ public:
                   std::string *data = NULL,
                   size_t *save_pos = NULL);
 
+  /// \brief Reads a configuration line, adds it to config_string, and returns
+  /// the stream \param is Input stream \param line String that will hold the
+  /// configuration line, with comments stripped
+  std::istream & read_config_line(std::istream &is, std::string &line);
+
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline
-  static std::istream & getline_nocomments(std::istream &is,
-                                           std::string &s);
+  static std::istream & getline_nocomments(std::istream &is, std::string &s);
 
-  /// Check if the content of the file has matching braces
-  bool brace_check(std::string const &conf,
-                   size_t const start_pos = 0);
+  /// \brief Check if the content of a config string has matching braces
+  /// \param conf The configuration string \param start_pos Start the count
+  /// from this position
+  static int check_braces(std::string const &conf, size_t const start_pos);
+
+  /// \brief Split a string with a specified delimiter into a vector
+  /// \param data The string to be splitted
+  /// \param delim A delimiter
+  /// \param dest A destination vector to store the splitted results
+  static void split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest);
+
+protected:
+
+  /// \brief List of legal keywords for this object: this is updated
+  /// by each call to colvarparse::get_keyval() or
+  /// colvarparse::key_lookup()
+  std::list<std::string> allowed_keywords;
+
+  /// How a keyword has been set
+  enum key_set_mode {
+    key_not_set = 0,
+    key_set_user = 1,
+    key_set_default = 2
+  };
+
+  /// Track which keywords have been already set, and how
+  std::map<std::string, key_set_mode> key_set_modes;
+
+  /// \brief List of delimiters for the values of each keyword in the
+  /// configuration string; all keywords will be stripped of their
+  /// values before the keyword check is performed
+  std::list<size_t>      data_begin_pos;
+
+  /// \brief List of delimiters for the values of each keyword in the
+  /// configuration string; all keywords will be stripped of their
+  /// values before the keyword check is performed
+  std::list<size_t>      data_end_pos;
+
+  /// \brief Add a new valid keyword to the list
+  void add_keyword(char const *key);
+
+  /// \brief Remove all the values from the config string
+  void strip_values(std::string &conf);
+
+  /// \brief Configuration string of the object (includes comments)
+  std::string config_string;
 
 };
 
+
+/// Bitwise OR between two Parse_mode flags
+inline colvarparse::Parse_Mode operator | (colvarparse::Parse_Mode const &mode1,
+                                           colvarparse::Parse_Mode const &mode2)
+{
+  return static_cast<colvarparse::Parse_Mode>(static_cast<int>(mode1) |
+                                              static_cast<int>(mode2));
+}
 
 #endif

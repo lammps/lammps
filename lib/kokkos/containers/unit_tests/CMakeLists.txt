@@ -23,6 +23,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     threads/TestThreads_DynRankViewAPI_rank12345.cpp
     threads/TestThreads_DynRankViewAPI_rank67.cpp
     threads/TestThreads_ErrorReporter.cpp
+    threads/TestThreads_OffsetView.cpp
     threads/TestThreads_ScatterView.cpp
     threads/TestThreads_StaticCrsGraph.cpp
     threads/TestThreads_UnorderedMap.cpp
@@ -47,6 +48,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     serial/TestSerial_DynRankViewAPI_rank12345.cpp
     serial/TestSerial_DynRankViewAPI_rank67.cpp
     serial/TestSerial_ErrorReporter.cpp
+    serial/TestSerial_OffsetView.cpp
     serial/TestSerial_ScatterView.cpp
     serial/TestSerial_StaticCrsGraph.cpp
     serial/TestSerial_UnorderedMap.cpp
@@ -71,11 +73,37 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     openmp/TestOpenMP_DynRankViewAPI_rank12345.cpp
     openmp/TestOpenMP_DynRankViewAPI_rank67.cpp
     openmp/TestOpenMP_ErrorReporter.cpp
+    openmp/TestOpenMP_OffsetView.cpp
     openmp/TestOpenMP_ScatterView.cpp
     openmp/TestOpenMP_StaticCrsGraph.cpp
     openmp/TestOpenMP_UnorderedMap.cpp
     openmp/TestOpenMP_Vector.cpp
     openmp/TestOpenMP_ViewCtorPropEmbeddedDim.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_HPX)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_HPX
+  SOURCES
+    UnitTestMain.cpp
+    hpx/TestHPX_BitSet.cpp
+    hpx/TestHPX_DualView.cpp
+    hpx/TestHPX_DynamicView.cpp
+    hpx/TestHPX_DynRankViewAPI_generic.cpp
+    hpx/TestHPX_DynRankViewAPI_rank12345.cpp
+    hpx/TestHPX_DynRankViewAPI_rank67.cpp
+    hpx/TestHPX_ErrorReporter.cpp
+    hpx/TestHPX_OffsetView.cpp
+    hpx/TestHPX_ScatterView.cpp
+    hpx/TestHPX_StaticCrsGraph.cpp
+    hpx/TestHPX_UnorderedMap.cpp
+    hpx/TestHPX_Vector.cpp
+    hpx/TestHPX_ViewCtorPropEmbeddedDim.cpp
   COMM serial mpi
   NUM_MPI_PROCS 1
   FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -95,6 +123,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     cuda/TestCuda_DynRankViewAPI_rank12345.cpp
     cuda/TestCuda_DynRankViewAPI_rank67.cpp
     cuda/TestCuda_ErrorReporter.cpp
+    cuda/TestCuda_OffsetView.cpp
     cuda/TestCuda_ScatterView.cpp
     cuda/TestCuda_StaticCrsGraph.cpp
     cuda/TestCuda_UnorderedMap.cpp

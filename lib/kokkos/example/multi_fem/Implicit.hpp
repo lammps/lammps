@@ -161,7 +161,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   graph_factory::create( mesh , linsys_matrix.graph , element_map );
 
-  execution_space::fence();
+  execution_space().fence();
   perf_data.graph_time = comm::max( machine , wall_clock.seconds() );
 
   //------------------------------------
@@ -196,7 +196,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
                            elem_matrices , elem_vectors ,
                            elem_coeff_K , elem_load_Q );
 
-    execution_space::fence();
+    execution_space().fence();
     perf_data.elem_time = comm::max( machine , wall_clock.seconds() );
 
     //------------------------------------
@@ -207,7 +207,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
     GatherFillFunctor::apply( linsys_matrix , linsys_rhs ,
                mesh , element_map , elem_matrices , elem_vectors );
 
-    execution_space::fence();
+    execution_space().fence();
     perf_data.matrix_gather_fill_time = comm::max( machine , wall_clock.seconds() );
 
     // Apply boundary conditions:
@@ -217,7 +217,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
     BoundaryFunctor::apply( linsys_matrix , linsys_rhs , mesh ,
                             0 , global_max_z , 0 , global_max_z );
 
-    execution_space::fence();
+    execution_space().fence();
     perf_data.matrix_boundary_condition_time = comm::max( machine , wall_clock.seconds() );
   }
 

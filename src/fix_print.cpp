@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_print.h"
+#include <mpi.h>
+#include <cstring>
 #include "update.h"
 #include "input.h"
 #include "modify.h"
@@ -29,11 +29,18 @@ using namespace FixConst;
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fp(NULL), string(NULL), copy(NULL), work(NULL)
+  fp(NULL), string(NULL), copy(NULL), work(NULL), var_print(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
-  nevery = force->inumeric(FLERR,arg[3]);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
+  if (strstr(arg[3],"v_") == arg[3]) {
+    int n = strlen(&arg[3][2]) + 1;
+    var_print = new char[n];
+    strcpy(var_print,&arg[3][2]);
+    nevery = 1;
+  } else {
+    nevery = force->inumeric(FLERR,arg[3]);
+    if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
+  }
 
   MPI_Comm_rank(world,&me);
 
@@ -89,13 +96,6 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   }
 
   delete [] title;
-
-  // add nfirst to all computes that store invocation times
-  // since don't know a priori which are invoked via variables by this fix
-  // once in end_of_step() can set timestep for ones actually invoked
-
-  const bigint nfirst = (update->ntimestep/nevery)*nevery + nevery;
-  modify->addstep_compute_all(nfirst);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,6 +103,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 FixPrint::~FixPrint()
 {
   delete [] string;
+  delete [] var_print;
   memory->sfree(copy);
   memory->sfree(work);
 
@@ -120,8 +121,45 @@ int FixPrint::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPrint::init()
+{
+  if (var_print) {
+    ivar_print = input->variable->find(var_print);
+    if (ivar_print < 0)
+      error->all(FLERR,"Variable name for fix print timestep does not exist");
+    if (!input->variable->equalstyle(ivar_print))
+      error->all(FLERR,"Variable for fix print timestep is invalid style");
+    next_print = static_cast<bigint>
+      (input->variable->compute_equal(ivar_print));
+    if (next_print <= update->ntimestep)
+      error->all(FLERR,"Fix print timestep variable returned a bad timestep");
+  } else {
+    if (update->ntimestep % nevery)
+      next_print = (update->ntimestep/nevery)*nevery + nevery;
+    else
+      next_print = update->ntimestep;
+  }
+
+  // add next_print to all computes that store invocation times
+  // since don't know a priori which are invoked via variables by this fix
+  // once in end_of_step() can set timestep for ones actually invoked
+
+  modify->addstep_compute_all(next_print);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrint::setup(int /* vflag */)
+{
+  end_of_step();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPrint::end_of_step()
 {
+  if (update->ntimestep != next_print) return;
+
   // make a copy of string to work on
   // substitute for $ variables (no printing)
   // append a newline and print final copy
@@ -132,7 +170,16 @@ void FixPrint::end_of_step()
   strcpy(copy,string);
   input->substitute(copy,work,maxcopy,maxwork,0);
 
-  modify->addstep_compute(update->ntimestep + nevery);
+  if (var_print) {
+    next_print = static_cast<bigint>
+      (input->variable->compute_equal(ivar_print));
+    if (next_print <= update->ntimestep)
+      error->all(FLERR,"Fix print timestep variable returned a bad timestep");
+  } else {
+    next_print = (update->ntimestep/nevery)*nevery + nevery;
+  }
+
+  modify->addstep_compute(next_print);
 
   if (me == 0) {
     if (screenflag && screen) fprintf(screen,"%s\n",copy);

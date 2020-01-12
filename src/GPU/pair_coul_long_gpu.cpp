@@ -15,11 +15,11 @@
    Contributing author: Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_long_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -94,8 +94,7 @@ PairCoulLongGPU::~PairCoulLongGPU()
 
 void PairCoulLongGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -148,7 +147,7 @@ void PairCoulLongGPU::init_style()
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        double cut = init_one(i,j);
+        init_one(i,j);
       }
     }
   }
@@ -203,8 +202,8 @@ double PairCoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
-                                  int vflag, int *ilist, int *numneigh,
-                                  int **firstneigh)
+                                  int /* vflag */, int *ilist,
+                                  int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;

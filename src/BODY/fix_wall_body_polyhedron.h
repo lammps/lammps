@@ -90,7 +90,7 @@ class FixWallBodyPolyhedron : public Fix {
                                double rounded_radius_i, double wall_pos, int side,
                                double* vwall, int &contact);
   double contact_separation(const Contact& c1, const Contact& c2);
-  void contact_forces(int ibody, double j_a, double *xi, double *xj, 
+  void contact_forces(int ibody, double j_a, double *xi, double *xj,
                       double delx, double dely, double delz,
                       double fx, double fy, double fz, double** x, double** v,
                       double** angmom, double** f, double** torque, double* vwall);

@@ -109,7 +109,7 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
 
     int my_inum = ifrom;
     _inum_starts[tid] = ifrom;
-    
+
     // loop over parent full list
     for (int ii = ifrom; ii < ito; ii++) {
       const int i = ilist_skip[ii];
@@ -131,7 +131,7 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
           const int j = joriginal & NEIGHMASK;
           if (!ijskip[itype][type[j]]) neighptr[n++] = joriginal;
         }
-        numhalf[my_inum] = n; 
+        numhalf[my_inum] = n;
 
         for (int jj = jnumhalf; jj < jnum; jj++) {
           const int joriginal = jlist[jj];

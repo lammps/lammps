@@ -16,11 +16,10 @@
      new options for inter-replica forces, first/last replica treatment
 ------------------------------------------------------------------------- */
 
+#include "fix_neb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_neb.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -302,7 +301,7 @@ void FixNEB::min_post_force(int /*vflag*/)
       int procFirst;
       procFirst=universe->root_proc[0];
       MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);
-    }else {
+    } else {
       if (me == 0)
         MPI_Bcast(&vIni,1,MPI_DOUBLE,0,rootworld);
 

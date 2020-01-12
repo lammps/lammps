@@ -11,12 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_idealgas.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -53,10 +51,7 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc, h, ih, ihsq;
   double rsq, wfd, delVdotDelR, mu, deltaE, ci, cj;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;
@@ -200,7 +195,7 @@ void PairSPHIdealGas::allocate() {
 void PairSPHIdealGas::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/idealgas");
+        "Illegal number of arguments for pair_style sph/idealgas");
 }
 
 /* ----------------------------------------------------------------------

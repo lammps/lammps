@@ -43,6 +43,10 @@ public variables:
 #ifndef LAMMPS_MY_POOL_CHUNK_H
 #define LAMMPS_MY_POOL_CHUNK_H
 
+#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
+#define LAMMPS_MEMALIGN 64
+#endif
+
 #include <cstdlib>
 
 namespace LAMMPS_NS {
@@ -190,9 +194,17 @@ class MyPoolChunk {
 
     for (int i = oldpage; i < npage; i++) {
       whichbin[i] = ibin;
+#if defined(LAMMPS_MEMALIGN)
+      void *ptr;
+      if (posix_memalign(&ptr, LAMMPS_MEMALIGN,
+                         chunkperpage*chunksize[ibin]*sizeof(T)))
+        errorflag = 2;
+      pages[i] = (T *) ptr;
+#else
       pages[i] = (T *) malloc(chunkperpage*chunksize[ibin]*sizeof(T));
       size += chunkperpage*chunksize[ibin];
       if (!pages[i]) errorflag = 2;
+#endif
     }
 
     // reset free list for unused chunks on new pages

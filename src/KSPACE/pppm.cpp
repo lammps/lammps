@@ -18,12 +18,10 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
@@ -214,7 +212,7 @@ void PPPM::init()
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -350,12 +348,6 @@ void PPPM::init()
 
   if (me == 0) {
 
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -364,7 +356,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -376,7 +368,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -411,7 +403,7 @@ void PPPM::setup()
   // perform some checks to avoid illegal boundaries with read_data
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -630,9 +622,7 @@ void PPPM::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
@@ -1432,12 +1422,13 @@ void PPPM::set_grid_local()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3];
+  double dist[3] = {0.0,0.0,0.0};
   double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
   else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
+  nlo = nhi = 0;
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
                             nx_pppm/xprd + shift) - OFFSET;

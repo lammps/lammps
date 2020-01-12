@@ -15,19 +15,12 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_gravity_omp.h"
 #include "atom.h"
 #include "update.h"
-#include "domain.h"
 #include "input.h"
 #include "modify.h"
-#include "respa.h"
 #include "variable.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,7 +35,7 @@ FixGravityOMP::FixGravityOMP(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravityOMP::post_force(int vflag)
+void FixGravityOMP::post_force(int /* vflag */)
 {
   // update gravity due to variables
 
@@ -70,19 +63,17 @@ void FixGravityOMP::post_force(int vflag)
   const double xacc_thr = xacc;
   const double yacc_thr = yacc;
   const double zacc_thr = zacc;
-  double massone;
 
-  int i;
   eflag = 0;
   double grav = 0.0;
 
   if (rmass) {
 #if defined(_OPENMP)
-#pragma omp parallel for private(i,massone) default(none) reduction(-:grav)
+#pragma omp parallel for default(none) reduction(-:grav)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        massone = rmass[i];
+        const double massone = rmass[i];
         f[i][0] += massone*xacc_thr;
         f[i][1] += massone*yacc_thr;
         f[i][2] += massone*zacc_thr;
@@ -90,11 +81,11 @@ void FixGravityOMP::post_force(int vflag)
       }
   } else {
 #if defined(_OPENMP)
-#pragma omp parallel for private(i,massone) default(none) reduction(-:grav)
+#pragma omp parallel for default(none) reduction(-:grav)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        massone = mass[type[i]];
+        const double massone = mass[type[i]];
         f[i][0] += massone*xacc_thr;
         f[i][1] += massone*yacc_thr;
         f[i][2] += massone*zacc_thr;
@@ -106,7 +97,7 @@ void FixGravityOMP::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravityOMP::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGravityOMP::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

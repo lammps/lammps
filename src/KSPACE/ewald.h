@@ -99,7 +99,7 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use nonperiodic boundaries with Ewald
+E: Cannot use non-periodic boundaries with Ewald
 
 For kspace style ewald, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a

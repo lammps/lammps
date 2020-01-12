@@ -39,6 +39,7 @@
 #    20161001   Added instructions in CMAP section to fix problem if 'ter'
 #                 is not designated in the .pdb file to identify last amino acid
 #    20161005   Added tweak to embed command line in generated LAMMPS input
+#    20181120   Fix topology parsing bug
 #
 #    General    Many thanks to Paul S. Crozier for checking script validity
 #               against his projects.
@@ -86,8 +87,8 @@
     my $notes;
 
     $program            = "charmm2lammps";
-    $version            = "1.9.1";
-    $year               = "2016";
+    $version            = "1.9.2";
+    $year               = "2018";
     $add                = 1;
     $water_dens         = 0;
     $ions               = 0;
@@ -794,9 +795,10 @@
         $ids{$tmp[1]}           = $tmp[2];
         $masses{$tmp[1]}        = $tmp[3];
         $max_id                 = $tmp[1] if ($max_id<$tmp[1]);
+      } elsif ($read&&($tmp[0] eq "ATOM")) {
+        # quit reading when hitting the "ATOM" section
+        last;
       }
-      # $names{$tmp[1]} = $tmp[4] if ($read&&($tmp[0] eq "MASS"));
-      last if ($read&&!scalar(@tmp));                   # quit reading
     }
     AddMass(HT, 1.00800);
     AddMass(OT, 15.99940);

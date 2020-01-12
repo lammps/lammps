@@ -23,7 +23,7 @@ const char *eam=0;
 
 #include "lal_eam.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define EAMT EAM<numtyp, acctyp>
 
 
@@ -531,3 +531,4 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
 }
 
 template class EAM<PRECISION,ACC_PRECISION>;
+}

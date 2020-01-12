@@ -40,6 +40,9 @@ protected:
 	// used by the copy constructor and assignment operator
 	TreeNode *CopyTree(TreeNode *t);
 
+    // callback function to delete aux data
+    void (*DeleteAuxData)(void *);
+
 	// used by insert and delete method to re-establish
 	// the avl conditions after a node is added or deleted
 	// from a subtree
@@ -72,7 +75,13 @@ public:
 
 	// standard list handling methods
 	void * Find(int& item);
-	void * GetAuxData(int item) { return (void *)(FindNode(item, root)->GetAuxData());}
+	void * GetAuxData(int item) {
+      return (void *)(FindNode(item, root)->GetAuxData());
+    }
+    void SetDeleteAuxData(void (*callback)(void *)) {
+      DeleteAuxData = callback;
+    }
+
 	void Insert(const int& item, const int& data, void * AuxData = NULL);
 	void Delete(const int& item);
 	void AVLInsert(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);	
@@ -90,6 +99,7 @@ Tree::Tree(void)
 	root = 0; 
 	current = 0; 
 	size = 0;
+    DeleteAuxData = NULL;
 }
 
 
@@ -569,14 +579,19 @@ TreeNode *Tree::CopyTree(TreeNode *t)
 // the tree and delete each node as the vist operation
 void Tree::DeleteTree(TreeNode *t)
 {
-	if (t != NULL)
-	{
-		DeleteTree(t->Left());
-		DeleteTree(t->Right());
-		if (t->GetAuxData() != NULL)
-                    delete (TreeNode *) t->GetAuxData();
-		FreeTreeNode(t);
-	}
+  if (t != NULL) {
+    DeleteTree(t->Left());
+    DeleteTree(t->Right());
+    void *aux = t->GetAuxData();
+    if (aux != NULL) {
+      if (DeleteAuxData != NULL) {
+        (*DeleteAuxData)(aux);
+      } else {
+        delete (TreeNode *) aux;
+      }
+    }
+    FreeTreeNode(t);
+  }
 }
 
 // call the function DeleteTree to deallocate the nodes. then

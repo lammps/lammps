@@ -318,6 +318,24 @@ struct TestMDRange_2D {
 
       ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) );
     }
+    // Test with reducers - scalar + label
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<2>, Kokkos::IndexType<int> > range_type;
+      int s0 = 1;
+      int s1 = 1;
+      range_type range( {{ s0, s1 }}, {{ N0, N1 }}, {{ 3, 3 }} );
+
+      TestMDRange_2D functor( N0, N1 );
+
+      parallel_for( "rank2-parfor-label", range, functor );
+
+      value_type sum = 0.0;
+      Kokkos::Sum< value_type > reducer_scalar( sum );
+
+      parallel_reduce( "rank2-reducer-label", range, functor, reducer_scalar );
+
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) );
+    }
     // Test with reducers - scalar view
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<2>, Kokkos::IndexType<int> > range_type;
@@ -333,11 +351,36 @@ struct TestMDRange_2D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 );
     }
+    // Test Min reducer with lambda
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<2>, Kokkos::IndexType<int> > range_type;
+      range_type range( {{ 1, 1 }}, {{ N0, N1 }}, {{ 3, 3 }} );
 
+      Kokkos::View< double**, ExecSpace > v_in("v_in", N0, N1 );
+
+      parallel_for( "rank2-init-lambda", range, KOKKOS_LAMBDA ( const int i, const int j ) {
+          v_in( i , j ) = (i+1) * (j+1) ;
+        });
+
+      double min;
+      Kokkos::Min< double > reducer_scalar( min );
+
+      parallel_reduce( "rank2-min-reducer", range, KOKKOS_LAMBDA ( const int i, const int j, double& min_val ) {
+            min_val = fmin( v_in(i,j), min_val );
+          }
+        , reducer_scalar);
+
+      ASSERT_EQ( min, 4.0 );
+    }
+#endif
+#endif
     // Tagged operator test
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<2, Iterate::Default, Iterate::Default >, Kokkos::IndexType<int>, InitTag > range_type;
@@ -858,6 +901,22 @@ struct TestMDRange_3D {
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 );
     }
+    // Test with reducers - scalar + label
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<3>, Kokkos::IndexType<int> > range_type;
+      range_type range( {{ 0, 0, 0 }}, {{ N0, N1, N2 }}, {{ 3, 3, 3 }} );
+
+      TestMDRange_3D functor( N0, N1, N2 );
+
+      parallel_for( "rank3-parfor-label", range, functor );
+
+      value_type sum = 0.0;
+      Kokkos::Sum< value_type > reducer_scalar( sum );
+
+      parallel_reduce( "rank3-reducer-label", range, functor, reducer_scalar );
+
+      ASSERT_EQ( sum, 2 * N0 * N1 * N2 );
+    }
     // Test with reducers - scalar view
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<3>, Kokkos::IndexType<int> > range_type;
@@ -873,10 +932,41 @@ struct TestMDRange_3D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 );
     }
+    // Test Min reducer with lambda
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<3>, Kokkos::IndexType<int> > range_type;
+
+      range_type range( {{ 1, 1, 1 }}, {{ N0, N1, N2 }}, {{ 3, 3, 3 }} );
+
+      Kokkos::View< double***, ExecSpace > v_in("v_in", N0, N1, N2 );
+
+      parallel_for( "rank3-init-lambda", range, KOKKOS_LAMBDA ( const int i, const int j, const int k ) {
+          v_in( i, j, k ) = (i+1) * (j+1) * (k+1) ;
+        });
+
+      double min;
+
+      parallel_reduce("rank3-min-reducer", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, double& min_val ) {
+            min_val = (v_in(i,j,k) < min_val) ? v_in(i,j,k) : min_val;
+          }
+        , Kokkos::Min<double>(min) );
+
+      if((N0-1)*(N1-1)*(N2-1)>0)
+        ASSERT_EQ( min, 8.0 );
+      else {
+        double min_identity = Kokkos::reduction_identity<double>::min();
+        ASSERT_EQ( min, min_identity );
+      }
+    }
+#endif
+#endif
 
     // Tagged operator test
     {
@@ -1382,6 +1472,23 @@ struct TestMDRange_4D {
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 );
     }
 
+    // Test with reducers - scalar + label
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<4>, Kokkos::IndexType<int> > range_type;
+      range_type range( {{ 0, 0, 0, 0 }}, {{ N0, N1, N2, N3 }}, {{ 3, 3, 3, 3 }} );
+
+      TestMDRange_4D functor( N0, N1, N2, N3 );
+
+      parallel_for( "rank4-parfor-label", range, functor );
+
+      value_type sum = 0.0;
+      Kokkos::Sum< value_type > reducer_scalar( sum );
+
+      parallel_reduce( "rank4-reducer-label", range, functor, reducer_scalar );
+
+      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 );
+    }
+
     // Test with reducers - scalar view
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<4>, Kokkos::IndexType<int> > range_type;
@@ -1397,10 +1504,37 @@ struct TestMDRange_4D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 );
     }
+
+    // Test Min reducer with lambda
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<4>, Kokkos::IndexType<int> > range_type;
+
+      range_type range( {{ 1, 1, 1, 1 }}, {{ N0, N1, N2, N3 }}, {{ 3, 3, 3, 3 }} );
+
+      Kokkos::View< double****, ExecSpace > v_in("v_in", N0, N1, N2, N3 );
+
+      parallel_for( "rank4-init-lambda", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l ) {
+          v_in( i, j, k, l ) = (i+1) * (j+1) * (k+1) * (l+1) ;
+        });
+
+      double min;
+
+      parallel_reduce("rank4-min-reducer", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l, double& min_val ) {
+            min_val = (v_in(i,j,k,l) < min_val) ? v_in(i,j,k,l) : min_val;
+          }
+        , Kokkos::Min<double>(min) );
+
+      ASSERT_EQ( min, 16.0 );
+    }
+#endif
+#endif
 
     // Tagged operator test
     {
@@ -1926,6 +2060,23 @@ struct TestMDRange_5D {
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 );
     }
 
+    // Test with reducers - scalar + label
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<5>, Kokkos::IndexType<int> > range_type;
+      range_type range( {{ 0, 0, 0, 0, 0 }}, {{ N0, N1, N2, N3, N4 }}, {{ 3, 3, 3, 3, 3 }} );
+
+      TestMDRange_5D functor( N0, N1, N2, N3, N4 );
+
+      parallel_for( "rank5-parfor-label", range, functor );
+
+      value_type sum = 0.0;
+      Kokkos::Sum< value_type > reducer_scalar( sum );
+
+      parallel_reduce( "rank5-reducer-label", range, functor, reducer_scalar );
+
+      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 );
+    }
+
     // Test with reducers - scalar view
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<5>, Kokkos::IndexType<int> > range_type;
@@ -1941,10 +2092,37 @@ struct TestMDRange_5D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 );
     }
+
+    // Test Min reducer with lambda
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<5>, Kokkos::IndexType<int> > range_type;
+
+      range_type range( {{ 1, 1, 1, 1, 1 }}, {{ N0, N1, N2, N3, N4 }}, {{ 3, 3, 3, 2, 2 }} );
+
+      Kokkos::View< double*****, ExecSpace > v_in("v_in", N0, N1, N2, N3, N4 );
+
+      parallel_for( "rank5-init-lambda", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l, const int m ) {
+          v_in( i, j, k, l, m ) = (i+1) * (j+1) * (k+1) * (l+1) * (m+1) ;
+        });
+
+      double min;
+
+      parallel_reduce("rank5-min-reducer", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l, const int m, double& min_val ) {
+            min_val = (v_in(i,j,k,l,m) < min_val) ? v_in(i,j,k,l,m) : min_val;
+          }
+        , Kokkos::Min<double>(min) );
+
+      ASSERT_EQ( min, 32.0 );
+    }
+#endif
+#endif
 
     // Tagged operator test
     {
@@ -2401,6 +2579,23 @@ struct TestMDRange_6D {
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 * N5 );
     }
 
+    // Test with reducers - scalar + label
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<6>, Kokkos::IndexType<int> > range_type;
+      range_type range( {{ 0, 0, 0, 0, 0, 0 }}, {{ N0, N1, N2, N3, N4, N5 }}, {{ 3, 3, 3, 3, 3, 2 }} );
+
+      TestMDRange_6D functor( N0, N1, N2, N3, N4, N5 );
+
+      parallel_for( "rank6-parfor-label", range, functor );
+
+      value_type sum = 0.0;
+      Kokkos::Sum< value_type > reducer_scalar( sum );
+
+      parallel_reduce( "rank6-reducer-label", range, functor, reducer_scalar );
+
+      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 * N5 );
+    }
+
     // Test with reducers - scalar view
     {
       typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<6>, Kokkos::IndexType<int> > range_type;
@@ -2416,10 +2611,37 @@ struct TestMDRange_6D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 * N5 );
     }
+
+    // Test Min reducer with lambda
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+    {
+      typedef typename Kokkos::MDRangePolicy< ExecSpace, Kokkos::Rank<6>, Kokkos::IndexType<int> > range_type;
+
+      range_type range( {{ 1, 1, 1, 1, 1, 1 }}, {{ N0, N1, N2, N3, N4, N5 }}, {{ 3, 3, 3, 2, 2, 1 }} );
+
+      Kokkos::View< double******, ExecSpace > v_in("v_in", N0, N1, N2, N3, N4, N5 );
+
+      parallel_for( "rank6-init-lambda", range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l, const int m, const int n ) {
+          v_in( i, j, k, l, m, n ) = (i+1) * (j+1) * (k+1) * (l+1) * (m+1) * (n+1) ;
+        });
+
+      double min;
+
+      parallel_reduce("rank6-min-reducer",  range, KOKKOS_LAMBDA ( const int i, const int j, const int k, const int l, const int m, const int n, double& min_val ) {
+            min_val = (v_in(i,j,k,l,m,n) < min_val) ? v_in(i,j,k,l,m,n) : min_val;
+          }
+        , Kokkos::Min<double>(min) );
+
+      ASSERT_EQ( min, 64.0 );
+    }
+#endif
+#endif
 
     // Tagged operator test
     {

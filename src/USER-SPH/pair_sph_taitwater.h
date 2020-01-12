@@ -32,7 +32,6 @@ class PairSPHTaitwater : public Pair {
   void settings(int, char **);
   void coeff(int, char **);
   virtual double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
   double *rho0, *soundspeed, *B;

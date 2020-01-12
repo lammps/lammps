@@ -20,18 +20,26 @@ KSpaceStyle(pppm,PPPM)
 #ifndef LMP_PPPM_H
 #define LMP_PPPM_H
 
-#include "lmptype.h"
-#include <mpi.h>
+#include "kspace.h"
+
+#if defined(FFT_FFTW3)
+#define LMP_FFT_LIB "FFTW3"
+#elif defined(FFT_MKL)
+#define LMP_FFT_LIB "MKL FFT"
+#else
+#define LMP_FFT_LIB "KISS FFT"
+#endif
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
+#define LMP_FFT_PREC "single"
 #define MPI_FFT_SCALAR MPI_FLOAT
 #else
+
 typedef double FFT_SCALAR;
+#define LMP_FFT_PREC "double"
 #define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
-
-#include "kspace.h"
 
 namespace LAMMPS_NS {
 
@@ -42,7 +50,7 @@ class PPPM : public KSpace {
   virtual void settings(int, char **);
   virtual void init();
   virtual void setup();
-  void setup_grid();
+  virtual void setup_grid();
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);
@@ -106,10 +114,10 @@ class PPPM : public KSpace {
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric factor
 
-  void set_grid_global();
+  virtual void set_grid_global();
   void set_grid_local();
   void adjust_gewald();
-  double newton_raphson_f();
+  virtual double newton_raphson_f();
   double derivf();
   double final_accuracy();
 
@@ -146,7 +154,7 @@ class PPPM : public KSpace {
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
   void compute_rho_coeff();
-  void slabcorr();
+  virtual void slabcorr();
 
   // grid communication
 
@@ -235,7 +243,7 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use nonperiodic boundaries with PPPM
+E: Cannot use non-periodic boundaries with PPPM
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a

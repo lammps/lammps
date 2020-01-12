@@ -18,15 +18,13 @@
      with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
+#include "dihedral_charmmfsw.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "dihedral_charmmfsw.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "pair.h"
 #include "update.h"
@@ -34,6 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,8 +78,7 @@ void DihedralCharmmfsw::compute(int eflag, int vflag)
   double forcecoul,forcelj,fpair,ecoul,evdwl;
 
   edihedral = evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
@@ -469,11 +467,11 @@ void DihedralCharmmfsw::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
-    fread(&shift[1],sizeof(int),atom->ndihedraltypes,fp);
-    fread(&weight[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&weightflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&shift[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&weight[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&weightflag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&multiplicity[1],atom->ndihedraltypes,MPI_INT,0,world);

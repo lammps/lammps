@@ -1,0 +1,152 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+create_box command :h3
+
+[Syntax:]
+
+create_box N region-ID keyword value ... :pre
+
+N = # of atom types to use in this simulation :ulb,l
+region-ID = ID of region to use as simulation domain :l
+zero or more keyword/value pairs may be appended :l
+keyword = {bond/types} or {angle/types} or {dihedral/types} or {improper/types} or {extra/bond/per/atom} or {extra/angle/per/atom} or {extra/dihedral/per/atom} or {extra/improper/per/atom} :l
+  {bond/types} value = # of bond types
+  {angle/types} value = # of angle types
+  {dihedral/types} value = # of dihedral types
+  {improper/types} value = # of improper types
+  {extra/bond/per/atom} value = # of bonds per atom
+  {extra/angle/per/atom} value = # of angles per atom
+  {extra/dihedral/per/atom} value = # of dihedrals per atom
+  {extra/improper/per/atom} value = # of impropers per atom
+  {extra/special/per/atom} value = # of special neighbors per atom :pre
+:ule
+
+[Examples:]
+
+create_box 2 mybox
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1 :pre
+
+[Description:]
+
+This command creates a simulation box based on the specified region.
+Thus a "region"_region.html command must first be used to define a
+geometric domain.  It also partitions the simulation box into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors being used and the settings of the
+"processors"_processors.html command.  The partitioning can later be
+changed by the "balance"_balance.html or "fix
+balance"_fix_balance.html commands.
+
+The argument N is the number of atom types that will be used in the
+simulation.
+
+If the region is not of style {prism}, then LAMMPS encloses the region
+(block, sphere, etc) with an axis-aligned orthogonal bounding box
+which becomes the simulation domain.
+
+If the region is of style {prism}, LAMMPS creates a non-orthogonal
+simulation domain shaped as a parallelepiped with triclinic symmetry.
+As defined by the "region prism"_region.html command, the
+parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by 3
+edge vectors starting from the origin given by A = (xhi-xlo,0,0); B =
+(xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
+positive or negative values and are called "tilt factors" because they
+are the amount of displacement applied to faces of an originally
+orthogonal box to transform it into the parallelepiped.
+
+By default, a {prism} region used with the create_box command must
+have tilt factors (xy,xz,yz) that do not skew the box more than half
+the distance of the parallel box length.  For example, if xlo = 2 and
+xhi = 12, then the x box length is 10 and the xy tilt factor must be
+between -5 and 5.  Similarly, both xz and yz must be between
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+geometrically equivalent.  If you wish to define a box with tilt
+factors that exceed these limits, you can use the "box tilt"_box.html
+command, with a setting of {large}; a setting of {small} is the
+default.
+
+See the "Howto triclinic"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
+triclinic representations.
+
+When a prism region is used, the simulation domain should normally be
+periodic in the dimension that the tilt is applied to, which is given
+by the second dimension of the tilt factor (e.g. y for xy tilt).  This
+is so that pairs of atoms interacting across that boundary will have
+one of them shifted by the tilt factor.  Periodicity is set by the
+"boundary"_boundary.html command.  For example, if the xy tilt factor
+is non-zero, then the y dimension should be periodic.  Similarly, the
+z dimension should be periodic if xz or yz is non-zero.  LAMMPS does
+not require this periodicity, but you may lose atoms if this is not
+the case.
+
+Also note that if your simulation will tilt the box, e.g. via the "fix
+deform"_fix_deform.html command, the simulation box must be setup to
+be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by
+using the "change box"_change_box.html command with its {ortho} and
+{triclinic} options.
+
+NOTE: If the system is non-periodic (in a dimension), then you should
+not make the lo/hi box dimensions (as defined in your
+"region"_region.html command) radically smaller/larger than the extent
+of the atoms you eventually plan to create, e.g. via the
+"create_atoms"_create_atoms.html command.  For example, if your atoms
+extend from 0 to 50, you should not specify the box bounds as -10000
+and 10000. This is because as described above, LAMMPS uses the
+specified box size to layout the 3d grid of processors.  A huge
+(mostly empty) box will be sub-optimal for performance when using
+"fixed" boundary conditions (see the "boundary"_boundary.html
+command).  When using "shrink-wrap" boundary conditions (see the
+"boundary"_boundary.html command), a huge (mostly empty) box may cause
+a parallel simulation to lose atoms the first time that LAMMPS
+shrink-wraps the box around the atoms.
+
+:line
+
+The optional keywords can be used to create a system that allows for
+bond (angle, dihedral, improper) interactions, or for molecules with
+special 1-2,1-3,1-4 neighbors to be added later.  These optional
+keywords serve the same purpose as the analogous keywords that can be
+used in a data file which are recognized by the
+"read_data"_read_data.html command when it sets up a system.
+
+Note that if these keywords are not used, then the create_box command
+creates an atomic (non-molecular) simulation that does not allow bonds
+between pairs of atoms to be defined, or a "bond
+potential"_bond_style.html to be specified, or for molecules with
+special neighbors to be added to the system by commands such as
+"create_atoms mol"_create_atoms.html, "fix deposit"_fix_deposit.html
+or "fix pour"_fix_pour.html.
+
+As an example, see the examples/deposit/in.deposit.molecule script,
+which deposits molecules onto a substrate.  Initially there are no
+molecules in the system, but they are added later by the "fix
+deposit"_fix_deposit.html command.  The create_box command in the
+script uses the bond/types and extra/bond/per/atom keywords to allow
+this.  If the added molecule contained more than 1 special bond
+(allowed by default), an extra/special/per/atom keyword would also
+need to be specified.
+
+:line
+
+[Restrictions:]
+
+An "atom_style"_atom_style.html and "region"_region.html must have
+been previously defined to use this command.
+
+[Related commands:]
+
+"read_data"_read_data.html, "create_atoms"_create_atoms.html,
+"region"_region.html
+
+[Default:] none

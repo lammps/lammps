@@ -35,7 +35,7 @@ class ComputePTMAtom : public Compute {
 
  private:
   int nmax;
-  int32_t input_flags;
+  smallint input_flags;
   double rmsd_threshold;
   class NeighList *list;
   double **output;

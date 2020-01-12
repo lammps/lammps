@@ -4,6 +4,7 @@ GTEST_PATH = ../../TPL/gtest
 
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/openmp
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/hpx
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/serial
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/threads
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/rocm
@@ -39,6 +40,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA += TestCuda_DynRankViewAPI_rank12345.o
 	OBJ_CUDA += TestCuda_DynRankViewAPI_rank67.o
 	OBJ_CUDA += TestCuda_ErrorReporter.o
+	OBJ_CUDA += TestCuda_OffsetView.o
 	OBJ_CUDA += TestCuda_ScatterView.o
 	OBJ_CUDA += TestCuda_StaticCrsGraph.o
 	OBJ_CUDA += TestCuda_UnorderedMap.o
@@ -57,6 +59,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
 	OBJ_ROCM += TestROCm_DynRankViewAPI_rank12345.o
 	OBJ_ROCM += TestROCm_DynRankViewAPI_rank67.o
 	OBJ_ROCM += TestROCm_ErrorReporter.o
+	OBJ_ROCM += TestROCm_OffsetView.o
 	OBJ_ROCM += TestROCm_ScatterView.o
 	OBJ_ROCM += TestROCm_StaticCrsGraph.o
 	OBJ_ROCM += TestROCm_UnorderedMap.o
@@ -75,6 +78,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 	OBJ_THREADS += TestThreads_DynRankViewAPI_rank12345.o
 	OBJ_THREADS += TestThreads_DynRankViewAPI_rank67.o
 	OBJ_THREADS += TestThreads_ErrorReporter.o
+	OBJ_THREADS += TestThreads_OffsetView.o
 	OBJ_THREADS += TestThreads_ScatterView.o
 	OBJ_THREADS += TestThreads_StaticCrsGraph.o
 	OBJ_THREADS += TestThreads_UnorderedMap.o
@@ -93,6 +97,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank12345.o
 	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank67.o
 	OBJ_OPENMP += TestOpenMP_ErrorReporter.o
+	OBJ_OPENMP += TestOpenMP_OffsetView.o
 	OBJ_OPENMP += TestOpenMP_ScatterView.o
 	OBJ_OPENMP += TestOpenMP_StaticCrsGraph.o
 	OBJ_OPENMP += TestOpenMP_UnorderedMap.o
@@ -100,6 +105,25 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	OBJ_OPENMP += TestOpenMP_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+	OBJ_HPX = UnitTestMain.o gtest-all.o
+	OBJ_HPX += TestHPX_BitSet.o
+	OBJ_HPX += TestHPX_DualView.o
+	OBJ_HPX += TestHPX_DynamicView.o
+	OBJ_HPX += TestHPX_DynRankViewAPI_generic.o
+	OBJ_HPX += TestHPX_DynRankViewAPI_rank12345.o
+	OBJ_HPX += TestHPX_DynRankViewAPI_rank67.o
+	OBJ_HPX += TestHPX_ErrorReporter.o
+	OBJ_HPX += TestHPX_OffsetView.o
+	OBJ_HPX += TestHPX_ScatterView.o
+	OBJ_HPX += TestHPX_StaticCrsGraph.o
+	OBJ_HPX += TestHPX_UnorderedMap.o
+	OBJ_HPX += TestHPX_Vector.o
+	OBJ_HPX += TestHPX_ViewCtorPropEmbeddedDim.o
+	TARGETS += KokkosContainers_UnitTest_HPX
+	TEST_TARGETS += test-hpx
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
@@ -111,6 +135,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank12345.o
 	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank67.o
 	OBJ_SERIAL += TestSerial_ErrorReporter.o
+	OBJ_SERIAL += TestSerial_OffsetView.o
 	OBJ_SERIAL += TestSerial_ScatterView.o
 	OBJ_SERIAL += TestSerial_StaticCrsGraph.o
 	OBJ_SERIAL += TestSerial_UnorderedMap.o
@@ -132,6 +157,9 @@ KokkosContainers_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 KokkosContainers_UnitTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_OpenMP
 
+KokkosContainers_UnitTest_HPX: $(OBJ_HPX) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_HPX) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_HPX
+
 KokkosContainers_UnitTest_Serial: $(OBJ_SERIAL) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_SERIAL) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Serial
 
@@ -146,6 +174,9 @@ test-threads: KokkosContainers_UnitTest_Threads
 
 test-openmp: KokkosContainers_UnitTest_OpenMP
 	./KokkosContainers_UnitTest_OpenMP
+
+test-hpx: KokkosContainers_UnitTest_HPX
+	./KokkosContainers_UnitTest_HPX
 
 test-serial: KokkosContainers_UnitTest_Serial
 	./KokkosContainers_UnitTest_Serial

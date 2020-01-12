@@ -246,8 +246,8 @@ public:
   {
     bin_count_atomic = Kokkos::View<int*, Space >("Kokkos::SortImpl::BinSortFunctor::bin_count",bin_op.max_bins());
     bin_count_const =  bin_count_atomic;
-    bin_offsets =      offset_type("Kokkos::SortImpl::BinSortFunctor::bin_offsets",bin_op.max_bins());
-    sort_order =       offset_type("PermutationVector",range_end-range_begin);
+    bin_offsets =      offset_type(ViewAllocateWithoutInitializing("Kokkos::SortImpl::BinSortFunctor::bin_offsets"),bin_op.max_bins());
+    sort_order =       offset_type(ViewAllocateWithoutInitializing("Kokkos::SortImpl::BinSortFunctor::sort_order"),range_end-range_begin);
   }
 
   BinSort( const_key_view_type  keys_
@@ -290,7 +290,7 @@ public:
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     scratch_view_type
-      sorted_values("Scratch",
+      sorted_values(ViewAllocateWithoutInitializing("Kokkos::SortImpl::BinSortFunctor::sorted_values"),
                     len,
                     values.extent(1),
                     values.extent(2),
@@ -301,7 +301,7 @@ public:
                     values.extent(7));
 #else
     scratch_view_type
-      sorted_values("Scratch",
+      sorted_values(ViewAllocateWithoutInitializing("Kokkos::SortImpl::BinSortFunctor::sorted_values"),
                   values.rank_dynamic > 0 ? len : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                   values.rank_dynamic > 1 ? values.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
                   values.rank_dynamic > 2 ? values.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -328,6 +328,8 @@ public:
 
       parallel_for("Kokkos::Sort::Copy", Kokkos::RangePolicy<execution_space>(0,len),functor);
     }
+
+    Kokkos::fence();
   }
 
   template<class ValuesViewType>
@@ -483,7 +485,7 @@ struct BinOp3D {
     if (keys(i1,0)>keys(i2,0)) return true;
     else if (keys(i1,0)==keys(i2,0)) {
       if (keys(i1,1)>keys(i2,1)) return true;
-      else if (keys(i1,1)==keys(i2,2)) {
+      else if (keys(i1,1)==keys(i2,1)) {
         if (keys(i1,2)>keys(i2,2)) return true;
       }
     }

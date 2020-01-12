@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "universe.h"
 #include <mpi.h>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "universe.h"
 #include "version.h"
 #include "error.h"
 #include "force.h"
@@ -114,19 +113,19 @@ void Universe::reorder(char *style, char *arg)
       // read nprocs lines
       // uni2orig = inverse mapping
 
-      int me_orig,me_new;
-      sscanf(line,"%d %d",&me_orig,&me_new);
+      int me_orig,me_new,rv;
+      rv = sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
-          me_new < 0 || me_new >= nprocs)
+          me_new < 0 || me_new >= nprocs || rv != 2)
         error->one(FLERR,"Invalid entry in -reorder file");
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
         if (!fgets(line,MAXLINE,fp))
           error->one(FLERR,"Unexpected end of -reorder file");
-        sscanf(line,"%d %d",&me_orig,&me_new);
+        rv = sscanf(line,"%d %d",&me_orig,&me_new);
         if (me_orig < 0 || me_orig >= nprocs ||
-            me_new < 0 || me_new >= nprocs)
+            me_new < 0 || me_new >= nprocs || rv != 2)
           error->one(FLERR,"Invalid entry in -reorder file");
         uni2orig[me_new] = me_orig;
       }
@@ -174,9 +173,9 @@ void Universe::add_world(char *str)
 
     // str may not be empty and may only consist of digits or 'x'
 
-    int len = strlen(str);
+    size_t len = strlen(str);
     if (len < 1) valid = false;
-    for (int i=0; i < len; ++i)
+    for (size_t i=0; i < len; ++i)
       if (isdigit(str[i]) || str[i] == 'x') continue;
       else valid = false;
 

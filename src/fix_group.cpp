@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_group.h"
+#include <cstring>
 #include "group.h"
 #include "update.h"
 #include "atom.h"
@@ -205,7 +205,7 @@ void FixGroup::set_group()
 
   // invoke atom-style variable if defined
   // set post_integrate flag to 1, then unset after
-  // this is for any compute to check if it needs to 
+  // this is for any compute to check if it needs to
   //   operate differently due to invocation this early in timestep
   // e.g. perform ghost comm update due to atoms having just moved
 

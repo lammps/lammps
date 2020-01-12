@@ -15,10 +15,9 @@
    Contributing author: Jonathan Zimmerman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_beck.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -26,13 +25,16 @@
 #include "memory.h"
 #include "error.h"
 #include "math_special.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
+PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {
+  centroidstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,8 +65,7 @@ void PairBeck::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -279,16 +280,16 @@ void PairBeck::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&AA[i][j],sizeof(double),1,fp);
-          fread(&BB[i][j],sizeof(double),1,fp);
-          fread(&aa[i][j],sizeof(double),1,fp);
-          fread(&alpha[i][j],sizeof(double),1,fp);
-          fread(&beta[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&AA[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&BB[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&aa[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&beta[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&AA[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&BB[i][j],1,MPI_DOUBLE,0,world);
@@ -318,8 +319,8 @@ void PairBeck::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

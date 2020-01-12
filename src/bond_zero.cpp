@@ -15,15 +15,15 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_zero.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,8 +45,7 @@ BondZero::~BondZero()
 
 void BondZero::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +127,7 @@ void BondZero::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 

@@ -186,8 +186,8 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
 {
   #ifdef _LMP_INTEL_OFFLOAD
   if (_off_map_nmax > 0) {
-    const int * tag = _off_map_tag;
-    const int * special = _off_map_special;
+    const tagint * tag = _off_map_tag;
+    const tagint * special = _off_map_special;
     const int * nspecial = _off_map_nspecial;
     #pragma offload_transfer target(mic:_cop) \
       nocopy(tag:alloc_if(0) free_if(1)) \
@@ -209,7 +209,8 @@ void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int offload_end)
   _host_nmax = size;
 
   if (!offload_end) return;
-  int *special, *nspecial;
+  tagint *special;
+  int *nspecial;
   int tag_length, special_length, nspecial_length;
   if (lmp->atom->molecular) {
     special = lmp->atom->special[0];
@@ -226,7 +227,7 @@ void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int offload_end)
     tag_length = size;
   else
     tag_length = 1;
-  int *tag = lmp->atom->tag;
+  tagint *tag = lmp->atom->tag;
   #pragma offload_transfer target(mic:_cop) \
     nocopy(tag:length(tag_length) alloc_if(1) free_if(0)) \
     nocopy(special:length(special_length) alloc_if(1) free_if(0)) \
@@ -255,7 +256,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
       #endif
       lmp->memory->destroy(cnumneigh);
     }
-      
+
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_map_ilist != NULL) {
       const int * ilist = _off_map_ilist;
@@ -295,7 +296,7 @@ void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
 {
   const int size = list->get_maxlocal();
   int list_num;
-  for (list_num = 0; list_num < _n_list_ptrs; list_num++) 
+  for (list_num = 0; list_num < _n_list_ptrs; list_num++)
     if (_neigh_list_ptrs[list_num].list_ptr == (void*)list) break;
   if (list_num == _n_list_ptrs) {
     if (_n_list_ptrs == _max_list_ptrs) {
@@ -523,7 +524,7 @@ void IntelBuffers<flt_t, acc_t>::free_ncache()
     flt_t *ncachez = _ncachez;
     int *ncachej = _ncachej;
     int *ncachejtype = _ncachejtype;
-    int *ncachetag = _ncachetag;
+    tagint *ncachetag = _ncachetag;
 
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_ncache) {
@@ -603,7 +604,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
       tsize = 16;
       lmp->memory->create(_ncachetag, tsize, "_ncachetag");
     }
-    int *ncachetag = _ncachetag;
+    tagint *ncachetag = _ncachetag;
     #pragma offload_transfer target(mic:_cop)                   \
       nocopy(ncachetag:length(tsize) alloc_if(1) free_if(0))
     _off_ncache = 1;

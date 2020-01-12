@@ -1,0 +1,33 @@
+"Higher level section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Calculate diffusion coefficients :h3
+
+The diffusion coefficient D of a material can be measured in at least
+2 ways using various options in LAMMPS.  See the examples/DIFFUSE
+directory for scripts that implement the 2 methods discussed here for
+a simple Lennard-Jones fluid model.
+
+The first method is to measure the mean-squared displacement (MSD) of
+the system, via the "compute msd"_compute_msd.html command.  The slope
+of the MSD versus time is proportional to the diffusion coefficient.
+The instantaneous MSD values can be accumulated in a vector via the
+"fix vector"_fix_vector.html command, and a line fit to the vector to
+compute its slope via the "variable slope"_variable.html function, and
+thus extract D.
+
+The second method is to measure the velocity auto-correlation function
+(VACF) of the system, via the "compute vacf"_compute_vacf.html
+command.  The time-integral of the VACF is proportional to the
+diffusion coefficient.  The instantaneous VACF values can be
+accumulated in a vector via the "fix vector"_fix_vector.html command,
+and time integrated via the "variable trap"_variable.html function,
+and thus extract D.
+
+:line

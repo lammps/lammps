@@ -216,7 +216,7 @@ template< class DeviceType, bool PWRTest >
 double ReduceTestFunctor() {
   typedef Kokkos::TeamPolicy< DeviceType > policy_type;
   typedef Kokkos::View< double**, DeviceType > view_type;
-  typedef Kokkos::View< double, typename view_type::host_mirror_space, Kokkos::MemoryUnmanaged > unmanaged_result;
+  typedef Kokkos::View< double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged > unmanaged_result;
 
   view_type a( "A", 100, 5 );
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view( a );
@@ -235,6 +235,7 @@ double ReduceTestFunctor() {
   else {
     Kokkos::parallel_reduce( policy_type( 25, Kokkos::AUTO ), FunctorReduceTest< DeviceType >( a ), unmanaged_result( & result ) );
   }
+  Kokkos::fence();
 
   return result;
 }
@@ -244,7 +245,7 @@ template< class DeviceType, bool PWRTest >
 double ReduceTestLambda() {
   typedef Kokkos::TeamPolicy< DeviceType > policy_type;
   typedef Kokkos::View< double**, DeviceType > view_type;
-  typedef Kokkos::View< double, typename view_type::host_mirror_space, Kokkos::MemoryUnmanaged > unmanaged_result;
+  typedef Kokkos::View< double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged > unmanaged_result;
 
   view_type a( "A", 100, 5 );
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view( a );
@@ -281,6 +282,7 @@ double ReduceTestLambda() {
       }
     }, unmanaged_result( & result ) );
   }
+  Kokkos::fence();
 
   return result;
 }
@@ -327,12 +329,18 @@ bool Test( int test ) {
                            };
   bool passed = true;
 
-  if ( res_functor != res_lambda ) {
+  auto a = res_functor;
+  auto b = res_lambda;
+  // use a tolerant comparison because functors and lambdas vectorize differently
+  // https://github.com/trilinos/Trilinos/issues/3233
+  auto rel_err = (std::abs(b - a) / std::max(std::abs(a), std::abs(b)));
+  auto tol = 1e-14;
+  if (rel_err > tol) {
     passed = false;
 
     std::cout << "CXX11 ( test = '"
-              << testnames[test] << "' FAILED : "
-              << res_functor << " != " << res_lambda
+              << testnames[test] << "' FAILED : relative error "
+              << rel_err << " > tolerance " << tol
               << std::endl;
   }
 

@@ -15,20 +15,18 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_shielded.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
+#include "pair.h"
 #include "kspace.h"
 #include "respa.h"
 #include "memory.h"
@@ -39,7 +37,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {}
+  FixQEq(lmp, narg, arg) {
+  if (reax_flag) extract_reax();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,6 +72,22 @@ void FixQEqShielded::init()
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEqShielded::extract_reax()
+{
+  Pair *pair = force->pair_match("^reax/c",0);
+  if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
+  int tmp;
+  chi = (double *) pair->extract("chi",tmp);
+  eta = (double *) pair->extract("eta",tmp);
+  gamma = (double *) pair->extract("gamma",tmp);
+  if (chi == NULL || eta == NULL || gamma == NULL)
+    error->all(FLERR,
+        "Fix qeq/slater could not extract params from pair reax/c");
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,9 +133,9 @@ void FixQEqShielded::pre_force(int /*vflag*/)
 
   nlocal = atom->nlocal;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
-  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();

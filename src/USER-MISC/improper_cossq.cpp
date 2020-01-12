@@ -16,18 +16,17 @@
      gvog@chemeng.ntua.gr
 ------------------------------------------------------------------------- */
 
+#include "improper_cossq.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_cossq.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -63,8 +62,7 @@ void ImproperCossq::compute(int eflag, int vflag)
 
 
    eimproper = 0.0;
-   if (eflag || vflag) ev_setup(eflag,vflag);
-   else evflag = 0;
+   ev_init(eflag,vflag);
 
    double **x = atom->x;
    double **f = atom->f;
@@ -304,8 +302,8 @@ void ImproperCossq::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&chi[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&chi[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

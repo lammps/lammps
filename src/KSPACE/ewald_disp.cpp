@@ -15,12 +15,10 @@
    Contributing authors: Pieter in 't Veld (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -100,7 +98,7 @@ void EwaldDisp::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with EwaldDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -133,6 +131,7 @@ void EwaldDisp::init()
           else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
           error->all(FLERR,
                      "Unsupported mixing rule in kspace_style ewald/disp");
+          break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }
@@ -688,8 +687,7 @@ void EwaldDisp::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
       allocate_peratom();

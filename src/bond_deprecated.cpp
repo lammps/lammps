@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "bond_deprecated.h"
+#include <cstring>
 #include "bond_hybrid.h"
 #include "comm.h"
 #include "force.h"
@@ -52,6 +52,6 @@ void BondDeprecated::settings(int, char **)
     writemsg(lmp,"\nBond style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

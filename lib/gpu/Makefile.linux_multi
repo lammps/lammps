@@ -19,8 +19,13 @@ NVCC = nvcc
 #CUDA_ARCH = -arch=sm_13
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+CUDA_ARCH = -arch=sm_30
 
-CUDA_ARCH = -gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=sm_61
+CUDA_CODE = -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \
+	    -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_35,code=[sm_35,compute_35] \
+	    -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]
+
+CUDA_ARCH += $(CUDA_CODE)
 
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
@@ -35,8 +40,8 @@ LMP_INC = -DLAMMPS_SMALLBIG
 CUDA_PRECISION = -D_SINGLE_DOUBLE
 
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
-CUDA_LIB = -L$(CUDA_HOME)/lib64
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC) -Xcompiler "-fPIC -std=c++98"
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler "-fPIC -std=c++98"
 
 CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias

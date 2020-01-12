@@ -93,10 +93,10 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if VTK_MAJOR_VERSION >= 7
-#define InsertNextTupleValue InsertNextTypedTuple
-#elif VTK_MAJOR_VERSION > 8
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
 #error This code has only been tested with VTK 5, 6, 7, and 8
+#elif VTK_MAJOR_VERSION > 6
+#define InsertNextTupleValue InsertNextTypedTuple
 #endif
 
 /* ---------------------------------------------------------------------- */
@@ -166,13 +166,6 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   header_choice = NULL;
   write_choice = NULL;
   boxcorners = NULL;
-
-  // unsupported feature by dump vtk
-  delete [] vformat;
-  vformat = NULL;
-
-  delete [] format_column_user;
-  format_column_user = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

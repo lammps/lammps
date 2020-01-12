@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(meam/c,PairMEAMC)
+PairStyle(meam,PairMEAMC)
 
 #else
 
@@ -23,7 +24,6 @@ PairStyle(meam/c,PairMEAMC)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-class MEAM;
 
 class PairMEAMC : public Pair {
  public:
@@ -35,6 +35,7 @@ class PairMEAMC : public Pair {
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
+  virtual void *extract(const char *, int &);
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -50,6 +51,7 @@ class PairMEAMC : public Pair {
   double *mass;                 // mass of each element
 
   int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
+  double **scale;               // scaling factor for adapt
 
   void allocate();
   void read_files(char *, char *);

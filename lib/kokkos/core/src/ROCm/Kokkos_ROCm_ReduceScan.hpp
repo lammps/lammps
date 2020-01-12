@@ -62,6 +62,76 @@
 namespace Kokkos {
 namespace Impl {
 
+//#if __KALMAR_ACCELERATOR__ == 1
+KOKKOS_INLINE_FUNCTION
+void __syncthreads() [[hc]]
+{
+   amp_barrier(CLK_LOCAL_MEM_FENCE);
+}
+
+#define LT0 ((threadIdx_x+threadIdx_y+threadIdx_z)?0:1)
+
+
+// returns non-zero if and only if predicate is non-zero for all threads
+// note that syncthreads_or uses the first 64 bits of dynamic group memory.
+// this reserved memory must be accounted for everwhere 
+// that get_dynamic_group_segment_base_pointer is called.
+KOKKOS_INLINE_FUNCTION
+uint64_t __syncthreads_or(uint64_t  pred) 
+{
+  uint64_t *shared_var = (uint64_t *)hc::get_dynamic_group_segment_base_pointer();
+  if(LT0) *shared_var = 0;
+  amp_barrier(CLK_LOCAL_MEM_FENCE);
+#if __KALMAR_ACCELERATOR__ == 1
+  if (pred) hc::atomic_or_uint64(shared_var,1);
+#endif
+  amp_barrier(CLK_LOCAL_MEM_FENCE);
+  return (*shared_var);
+}
+
+KOKKOS_INLINE_FUNCTION
+void __threadfence() 
+{
+   amp_barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
+}
+
+KOKKOS_INLINE_FUNCTION
+void __threadfence_block() 
+{
+   amp_barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
+}
+//#endif
+struct ROCm_atomic_CAS {
+    template<class OP>
+    KOKKOS_INLINE_FUNCTION
+    unsigned long operator () (volatile unsigned long * dest, OP &&op){
+       unsigned long read,compare,val;
+       compare = *dest;
+       read = compare;
+       do {
+         compare = read;
+         val = op(compare);
+#if __KALMAR_ACCELERATOR__ == 1
+         hc::atomic_compare_exchange((uint64_t *)dest,&read,val);
+#endif
+       } while (read != compare);
+       return val;
+    }
+};
+
+  template<class OP>
+  KOKKOS_INLINE_FUNCTION
+  unsigned long atomic_cas_op (volatile unsigned long * dest, OP &&op) {
+    ROCm_atomic_CAS cas_op;
+    return cas_op(dest, std::forward<OP>(op));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  unsigned long atomicInc (volatile unsigned long * dest, const unsigned long& val) {
+    return atomic_cas_op(dest, [=](unsigned long old){return ((old>=val)?0:(old+1));});
+  }
+
+
 //----------------------------------------------------------------------------
 
 template< typename T >
@@ -375,18 +445,7 @@ bool rocm_inter_block_reduction( ROCmTeamMember& team,
 #endif
 }
 #endif
-#if 0
 
-//----------------------------------------------------------------------------
-// See section B.17 of ROCm C Programming Guide Version 3.2
-// for discussion of
-//   __launch_bounds__(maxThreadsPerBlock,minBlocksPerMultiprocessor)
-// function qualifier which could be used to improve performance.
-//----------------------------------------------------------------------------
-// Maximize shared memory and minimize L1 cache:
-//   rocmFuncSetCacheConfig(MyKernel, rocmFuncCachePreferShared );
-// For 2.0 capability: 48 KB shared and 16 KB L1
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:
@@ -406,87 +465,105 @@ void rocm_intra_block_reduce_scan( const FunctorType & functor ,
   typedef typename ValueTraits::pointer_type  pointer_type ;
 
   const unsigned value_count   = ValueTraits::value_count( functor );
-  const unsigned BlockSizeMask = team.team_size() - 1 ;
+  const unsigned BlockSizeMask = blockDim_y  - 1 ;
 
   // Must have power of two thread count
 
-  if ( BlockSizeMask & team.team_size() ) { Kokkos::abort("ROCm::rocm_intra_block_scan requires power-of-two blockDim"); }
+  if ( BlockSizeMask & blockDim_y ) { Kokkos::abort("ROCm::rocm_intra_block_scan requires power-of-two blockDim"); }
 
 #define BLOCK_REDUCE_STEP( R , TD , S )  \
-  if ( ! ( R & ((1<<(S+1))-1) ) ) { ValueJoin::join( functor , TD , (TD - (value_count<<S)) ); }
+  if ( ! (( R & ((1<<(S+1))-1) )|(blockDim_y<(1<<(S+1)))) ) { ValueJoin::join( functor , TD , (TD - (value_count<<S)) ); }
 
 #define BLOCK_SCAN_STEP( TD , N , S )  \
   if ( N == (1<<S) ) { ValueJoin::join( functor , TD , (TD - (value_count<<S))); }
+#define KOKKOS_IMPL_ROCM_SYNCWF __threadfence_block()
 
-  const unsigned     rtid_intra = team.team_rank() ^ BlockSizeMask ;
-  const pointer_type tdata_intra = base_data + value_count * team.team_rank() ;
+  const unsigned     rtid_intra = threadIdx_y ^ BlockSizeMask ;
+  const pointer_type tdata_intra = base_data + value_count * threadIdx_y ;
 
-  { // Intra-workgroup reduction:
+  { // Intra-workgroup reduction: min blocksize of 64
+    KOKKOS_IMPL_ROCM_SYNCWF;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,0)
+    KOKKOS_IMPL_ROCM_SYNCWF;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,1)
+    KOKKOS_IMPL_ROCM_SYNCWF;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,2)
+    KOKKOS_IMPL_ROCM_SYNCWF;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,3)
+    KOKKOS_IMPL_ROCM_SYNCWF;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,4)
+    KOKKOS_IMPL_ROCM_SYNCWF;
+    BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,5)
+    KOKKOS_IMPL_ROCM_SYNCWF;
   }
 
-  team.team_barrier(); // Wait for all workgroups to reduce
+  __syncthreads(); // Wait for all workgroups to reduce
 
   { // Inter-workgroup reduce-scan by a single workgroup to avoid extra synchronizations
-    const unsigned rtid_inter = ( team.team_rank() ^ BlockSizeMask ) << ROCmTraits::WarpIndexShift ;
+    if(threadIdx_y < value_count) {
+      for(int i=blockDim_y-65; i>0; i-= 64)
+        ValueJoin::join( functor , base_data + (blockDim_y-1)*value_count + threadIdx_y ,  base_data + i*value_count + threadIdx_y );
+    }
+    __syncthreads();
+#if 0
+    const unsigned rtid_inter = ( threadIdx_y ^ BlockSizeMask ) << ROCmTraits::WavefrontIndexShift ;
 
-    if ( rtid_inter < team.team_size() ) {
+    if ( rtid_inter < blockDim_y ) {
+
 
       const pointer_type tdata_inter = base_data + value_count * ( rtid_inter ^ BlockSizeMask );
+//
+// remove these comments
+// for rocm, we start with a block size of 64, so the 5 step is already done.
+// The remaining steps are only done if block size is > 64, so we leave them
+// in place until we tune blocksize for performance, then remove the ones 
+// that will never be used.
+//      if ( (1<<6) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,6) }
+//      if ( (1<<7) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,7) }
+//      if ( (1<<8) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,8) }
+//      if ( (1<<9) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,9) }
 
-      if ( (1<<5) < BlockSizeMask ) {                        BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,5) }
-      if ( (1<<6) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,6) }
-      if ( (1<<7) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,7) }
-      if ( (1<<8) < BlockSizeMask ) { __threadfence_block(); BLOCK_REDUCE_STEP(rtid_inter,tdata_inter,8) }
 
       if ( DoScan ) {
 
-        int n = ( rtid_inter &  32 ) ?  32 : (
-                ( rtid_inter &  64 ) ?  64 : (
+        int n = ( rtid_inter &  64 ) ?  64 : (
                 ( rtid_inter & 128 ) ? 128 : (
-                ( rtid_inter & 256 ) ? 256 : 0 )));
+                ( rtid_inter & 256 ) ? 256 : 0 ));
 
-        if ( ! ( rtid_inter + n < team.team_size() ) ) n = 0 ;
+        if ( ! ( rtid_inter + n < blockDim_y ) ) n = 0 ;
 
         __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,8)
         __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,7)
         __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,6)
-        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,5)
+//        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,5)
       }
     }
+#endif
   }
 
-  team.team_barrier(); // Wait for inter-workgroup reduce-scan to complete
+  __syncthreads(); // Wait for inter-workgroup reduce-scan to complete
 
   if ( DoScan ) {
     int n = ( rtid_intra &  1 ) ?  1 : (
             ( rtid_intra &  2 ) ?  2 : (
             ( rtid_intra &  4 ) ?  4 : (
             ( rtid_intra &  8 ) ?  8 : (
-            ( rtid_intra & 16 ) ? 16 : 0 ))));
+            ( rtid_intra & 16 ) ? 16 : (
+            ( rtid_intra & 32 ) ? 32 : 0 )))));
 
-    if ( ! ( rtid_intra + n < team.team_size() ) ) n = 0 ;
-    #ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
-    BLOCK_SCAN_STEP(tdata_intra,n,4) team.team_barrier();//__threadfence_block();
-    BLOCK_SCAN_STEP(tdata_intra,n,3) team.team_barrier();//__threadfence_block();
-    BLOCK_SCAN_STEP(tdata_intra,n,2) team.team_barrier();//__threadfence_block();
-    BLOCK_SCAN_STEP(tdata_intra,n,1) team.team_barrier();//__threadfence_block();
-    BLOCK_SCAN_STEP(tdata_intra,n,0) team.team_barrier();
-    #else
-    BLOCK_SCAN_STEP(tdata_intra,n,4) __threadfence_block();
+    if ( ! ( rtid_intra + n < blockDim_y ) ) n = 0 ;
+
+//    BLOCK_SCAN_STEP(tdata_intra,n,5) __threadfence_block();
+//    BLOCK_SCAN_STEP(tdata_intra,n,4) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,3) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,2) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,1) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,0) __threadfence_block();
-    #endif
   }
 
 #undef BLOCK_SCAN_STEP
 #undef BLOCK_REDUCE_STEP
+#undef KOKKOS_IMPL_ROCM_SYNCWF
 }
 
 //----------------------------------------------------------------------------
@@ -497,16 +574,18 @@ void rocm_intra_block_reduce_scan( const FunctorType & functor ,
  *
  *  Global reduce result is in the last threads' 'shared_data' location.
  */
+using ROCM  = Kokkos::Experimental::ROCm ;
+
 template< bool DoScan , class FunctorType , class ArgTag >
 KOKKOS_INLINE_FUNCTION
 bool rocm_single_inter_block_reduce_scan( const FunctorType     & functor ,
-                                          const ROCm::size_type   block_id ,
-                                          const ROCm::size_type   block_count ,
-                                          ROCm::size_type * const shared_data ,
-                                          ROCm::size_type * const global_data ,
-                                          ROCm::size_type * const global_flags )
+                                          const ROCM::size_type   block_id ,
+                                          const ROCM::size_type   block_count ,
+                                          typename FunctorValueTraits<FunctorType, ArgTag>::value_type * const shared_data ,
+                                          typename FunctorValueTraits<FunctorType, ArgTag>::value_type * const global_data ,
+                                          ROCM::size_type * const global_flags )
 {
-  typedef ROCm::size_type                  size_type ;
+  typedef ROCM::size_type                  size_type ;
   typedef FunctorValueTraits< FunctorType , ArgTag >  ValueTraits ;
   typedef FunctorValueJoin<   FunctorType , ArgTag >  ValueJoin ;
   typedef FunctorValueInit<   FunctorType , ArgTag >  ValueInit ;
@@ -517,16 +596,17 @@ bool rocm_single_inter_block_reduce_scan( const FunctorType     & functor ,
   typedef typename ValueTraits::value_type      value_type ;
 
   // '__ffs' = position of the least significant bit set to 1.
-  // 'team.team_size()' is guaranteed to be a power of two so this
+  // blockDim_y is guaranteed to be a power of two so this
   // is the integral shift value that can replace an integral divide.
-  const unsigned BlockSizeShift = __ffs( team.team_size() ) - 1 ;
-  const unsigned BlockSizeMask  = team.team_size() - 1 ;
+  //  const unsigned long BlockSizeShift = __ffs( blockDim_y ) - 1 ;
+  const unsigned long BlockSizeShift = __lastbit_u32_u32( blockDim_y )  ;
+  const unsigned long BlockSizeMask  = blockDim_y - 1 ;
 
   // Must have power of two thread count
-  if ( BlockSizeMask & team.team_size() ) { Kokkos::abort("ROCm::rocm_single_inter_block_reduce_scan requires power-of-two blockDim"); }
+  if ( BlockSizeMask & blockDim_y ) { Kokkos::abort("ROCm::rocm_single_inter_block_reduce_scan requires power-of-two blockDim"); }
 
-  const integral_nonzero_constant< size_type , ValueTraits::StaticValueSize / sizeof(size_type) >
-    word_count( ValueTraits::value_size( functor ) / sizeof(size_type) );
+  const integral_nonzero_constant< size_type , ValueTraits::StaticValueSize / sizeof(value_type) >
+    word_count( ValueTraits::value_size( functor )/ sizeof(value_type) );
 
   // Reduce the accumulation for the entire block.
   rocm_intra_block_reduce_scan<false,FunctorType,ArgTag>( functor , pointer_type(shared_data) );
@@ -534,54 +614,47 @@ bool rocm_single_inter_block_reduce_scan( const FunctorType     & functor ,
   {
     // Write accumulation total to global scratch space.
     // Accumulation total is the last thread's data.
-    size_type * const shared = shared_data + word_count.value * BlockSizeMask ;
-    size_type * const global = global_data + word_count.value * block_id ;
+    value_type * const shared = shared_data +  
+                                   word_count.value * BlockSizeMask ;
+    value_type * const global = global_data + word_count.value * block_id ;
 
-#if (__ROCM_ARCH__ < 500)
-    for ( size_type i = team.team_rank() ; i < word_count.value ; i += team.team_size() ) { global[i] = shared[i] ; }
-#else
-    for ( size_type i = 0 ; i < word_count.value ; i += 1 ) { global[i] = shared[i] ; }
-#endif
-
+    for ( int i = int(threadIdx_y) ; i < word_count.value ; i += blockDim_y ) { global[i] = shared[i] ; }
   }
 
   // Contributing blocks note that their contribution has been completed via an atomic-increment flag
   // If this block is not the last block to contribute to this group then the block is done.
-    team.team_barrier();
+    
   const bool is_last_block =
-    ! team.team_reduce( team.team_rank() ? 0 : ( 1 + atomicInc( global_flags , block_count - 1 ) < block_count ) ,Impl::JoinAdd<ValueType>());
-
+    !  __syncthreads_or( threadIdx_y ? 0 : ( 1 + atomicInc( global_flags , block_count - 1 ) < block_count ) );
   if ( is_last_block ) {
 
-    const size_type b = ( long(block_count) * long(team.team_rank()) ) >> BlockSizeShift ;
-    const size_type e = ( long(block_count) * long( team.team_rank() + 1 ) ) >> BlockSizeShift ;
+    const size_type b = ( long(block_count) * long(threadIdx_y )) >> BlockSizeShift ;
+    const size_type e = ( long(block_count) * long(threadIdx_y + 1 ) ) >> BlockSizeShift ;
 
     {
-      void * const shared_ptr = shared_data + word_count.value * team.team_rank() ;
-      reference_type shared_value = ValueInit::init( functor , shared_ptr );
+      value_type * const shared_ptr = shared_data + word_count.value * threadIdx_y ;
+      ValueInit::init( functor , shared_ptr );
+
 
       for ( size_type i = b ; i < e ; ++i ) {
         ValueJoin::join( functor , shared_ptr , global_data + word_count.value * i );
       }
     }
-
     rocm_intra_block_reduce_scan<DoScan,FunctorType,ArgTag>( functor , pointer_type(shared_data) );
 
     if ( DoScan ) {
+      value_type * const shared_value = shared_data + word_count.value * ( threadIdx_y ? threadIdx_y - 1 : blockDim_y );
 
-      size_type * const shared_value = shared_data + word_count.value * ( team.team_rank() ? team.team_rank() - 1 : team.team_size() );
-
-      if ( ! team.team_rank() ) { ValueInit::init( functor , shared_value ); }
+      if ( ! threadIdx_y ) { ValueInit::init( functor , shared_value ); }
 
       // Join previous inclusive scan value to each member
       for ( size_type i = b ; i < e ; ++i ) {
-        size_type * const global_value = global_data + word_count.value * i ;
+        value_type * const global_value = global_data + word_count.value * i ;
         ValueJoin::join( functor , shared_value , global_value );
         ValueOps ::copy( functor , global_value , shared_value );
       }
     }
   }
-
   return is_last_block ;
 }
 
@@ -592,7 +665,6 @@ unsigned rocm_single_inter_block_reduce_scan_shmem( const FunctorType & functor 
 {
   return ( BlockSize + 2 ) * Impl::FunctorValueTraits< FunctorType , ArgTag >::value_size( functor );
 }
-#endif 
 
 } // namespace Impl
 } // namespace Kokkos

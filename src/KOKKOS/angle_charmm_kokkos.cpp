@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "angle_charmm_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_charmm_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"
@@ -64,8 +64,7 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -447,7 +446,7 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 namespace LAMMPS_NS {
 template class AngleCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class AngleCharmmKokkos<LMPHostType>;
 #endif
 }

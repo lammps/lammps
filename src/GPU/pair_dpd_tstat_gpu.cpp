@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd_tstat_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_dpd_tstat_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -228,8 +228,7 @@ PairDPDTstatGPU::~PairDPDTstatGPU()
 
 void PairDPDTstatGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // adjust sigma if target T is changing
 
@@ -336,8 +335,9 @@ double PairDPDTstatGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPDTstatGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                               int *ilist, int *numneigh, int **firstneigh) {
+void PairDPDTstatGPU::cpu_compute(int start, int inum, int /* eflag */,
+                                  int /* vflag */, int *ilist,
+                                  int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;

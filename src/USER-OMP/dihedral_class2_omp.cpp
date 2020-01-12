@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
@@ -43,10 +43,7 @@ DihedralClass2OMP::DihedralClass2OMP(class LAMMPS *lmp)
 
 void DihedralClass2OMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -61,7 +58,7 @@ void DihedralClass2OMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -161,6 +158,11 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
     costh13 = c0;
     costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
+
+    costh12 = MAX(MIN(costh12, 1.0), -1.0);
+    costh13 = MAX(MIN(costh13, 1.0), -1.0);
+    costh23 = MAX(MIN(costh23, 1.0), -1.0);
+    c0 = costh13;
 
     // cos and sin of 2 angles and final c
 

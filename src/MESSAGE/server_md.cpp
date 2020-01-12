@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "server_md.h"
 #include <mpi.h>
 #include <cstring>
-#include "server_md.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -78,7 +78,7 @@ ServerMD::~ServerMD()
 
 void ServerMD::loop()
 {
-  int i,j,m;
+  int j,m;
 
   // cs = instance of CSlib
 
@@ -100,7 +100,7 @@ void ServerMD::loop()
     if (msgID < 0) break;
 
     // SETUP receive at beginning of each run
-    // required fields: DIM, PERIODICTY, ORIGIN, BOX, 
+    // required fields: DIM, PERIODICTY, ORIGIN, BOX,
     //                  NATOMS, NTYPES, TYPES, COORDS
     // optional fields: others in enum above
 
@@ -152,7 +152,7 @@ void ServerMD::loop()
         } else error->all(FLERR,"Server md setup field unknown");
       }
 
-      if (dim == 0 || !periodicity || !origin || !box || 
+      if (dim == 0 || !periodicity || !origin || !box ||
           natoms < 0 || ntypes < 0 || !types || !coords)
         error->all(FLERR,"Required server md setup field not received");
 
@@ -164,8 +164,8 @@ void ServerMD::loop()
 
       // reset box, global and local
       // reset proc decomposition
- 
-      if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) && 
+
+      if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) &&
           domain->triclinic == 0)
         error->all(FLERR,"Server md is not initialized for a triclinic box");
 
@@ -194,7 +194,7 @@ void ServerMD::loop()
 
       int ntotal;
       MPI_Allreduce(&atom->nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
-      if (ntotal != natoms) 
+      if (ntotal != natoms)
         error->all(FLERR,"Server md atom count does not match client");
 
       atom->map_init();
@@ -247,7 +247,7 @@ void ServerMD::loop()
       // reset global/local box like FixDeform at end_of_step()
 
       if (origin && box) {
-        if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) && 
+        if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) &&
             domain->triclinic == 0)
           error->all(FLERR,"Server md is not initialized for a triclinic box");
         box_change(origin,box);
@@ -348,7 +348,7 @@ void ServerMD::send_fev(int msgID)
   CSlib *cs = (CSlib *) lmp->cslib;
 
   cs->send(msgID,3);
-  
+
   double *forces = NULL;
   if (atom->nlocal) {
     if (units != REAL) forces = &atom->f[0][0];
@@ -370,7 +370,7 @@ void ServerMD::send_fev(int msgID)
   MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
   engall *= econvert;
   cs->pack_double(ENERGY,engall);
-  
+
   double v[6],vall[6];
   for (int i = 0; i < 6; i++)
     v[i] = force->pair->virial[i];

@@ -27,20 +27,16 @@
    - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
 ------------------------------------------------------------------------- */
 
+#include "fix_cmap.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "fix_cmap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "math_const.h"
 #include "memory.h"
@@ -341,8 +337,7 @@ void FixCMAP::post_force(int vflag)
 
   ecmap = 0.0;
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (n = 0; n < ncrosstermlist; n++) {
     i1 = crosstermlist[n][0];
@@ -943,7 +938,7 @@ double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
 {
   // calculate the dihedral angle
 
-  double angle, arg1, arg2;
+  double angle = 0.0, arg1, arg2;
 
   arg1 = absg*(fx*bx+fy*by+fz*bz);
   arg2 = ax*bx+ay*by+az*bz;

@@ -15,11 +15,10 @@
    Contributing authors: Paul Crozier (SNL), Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_rdf.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "compute_rdf.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -77,7 +76,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   // pairwise args
 
   if (nargpair == 0) npairs = 1;
-  else { 
+  else {
     if (nargpair % 2) error->all(FLERR,"Illegal compute rdf command");
     npairs = nargpair/2;
   }

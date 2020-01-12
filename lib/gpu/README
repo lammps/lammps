@@ -3,7 +3,7 @@
                   --------------------------------
                      
                        W. Michael Brown (ORNL)
-                        Trung Dac Nguyen (ORNL)
+                        Trung Dac Nguyen (ORNL/Northwestern)
                           Peng Wang (NVIDIA)
                        Axel Kohlmeyer (Temple)
                          Steve Plimpton (SNL)
@@ -91,51 +91,14 @@ Performance Computers - Three-Body Potentials. Computer Physics Communications.
 
 ----
 
-NOTE: Installation of the CUDA SDK is not required.
+NOTE: Installation of the CUDA SDK is not required, only the CUDA
+toolkit itself or an OpenCL 1.2 compatible header and library.
 
-Current styles supporting GPU acceleration:
+Pair styles supporting GPU acceleration this this library
+are marked in the list of Pair style potentials with a "g".
+See the online version at: https://lammps.sandia.gov/doc/Commands_pair.html
 
-     1  beck
-     2  born/coul/long
-     3  born/coul/wolf
-     4  born
-     5  buck/coul/cut
-     6  buck/coul/long
-     7  buck
-     8  colloid
-     9  coul/dsf
-    10  coul/long
-    11  eam/alloy
-    12  eam/fs
-    13  eam
-    14  gauss
-    15  gayberne
-    16  lj96/cut
-    17  lj/charmm/coul/long
-    18  lj/class2/coul/long
-    19  lj/class2
-    20  lj/cut/coul/cut
-    21  lj/cut/coul/debye
-    22  lj/cut/coul/dsf
-    23  lj/cut/coul/long
-    24  lj/cut/coul/msm
-    25  lj/cut/dipole/cut
-    26  lj/cut
-    27  lj/expand
-    28  lj/gromacs
-    29  lj/sdk/coul/long
-    30  lj/sdk
-    31  lj/sf/dipole/sf
-    32  mie/cut
-    33  morse
-    34  resquared
-    35  soft
-    36  sw
-    37  table
-    38  yukawa/colloid
-    39  yukawa
-    40  pppm
-    41  ufm
+In addition the (plain) pppm kspace style is supported as well.
 
 
                      MULTIPLE LAMMPS PROCESSES
@@ -165,7 +128,9 @@ that ships with the CUDA toolkit, but also with the CUDA driver library
 (libcuda.so) that ships with the Nvidia driver. If you are compiling LAMMPS
 on the head node of a GPU cluster, this library may not be installed,
 so you may need to copy it over from one of the compute nodes (best into
-this directory).
+this directory). Recent CUDA toolkits starting from CUDA 9 provide a dummy
+libcuda.so library (typically under $(CUDA_HOME)/lib64/stubs), that can be used for
+linking.
 
 The gpu library supports 3 precision modes as determined by 
 the CUDA_PRECISION variable:
@@ -174,40 +139,37 @@ the CUDA_PRECISION variable:
   CUDA_PRECISION = -D_DOUBLE_DOUBLE  # Double precision for all calculations
   CUDA_PRECISION = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
 
-NOTE: PPPM acceleration can only be run on GPUs with compute capability>=1.1.
-      You will get the error "GPU library not compiled for this accelerator."
-      when attempting to run PPPM on a GPU with compute capability 1.0.
+As of CUDA 7.5 only GPUs with compute capability 2.0 (Fermi) or newer are
+supported and as of CUDA 9.0 only compute capability 3.0 (Kepler) or newer
+are supported. There are some limitations of this library for GPUs older
+than that, which require additional preprocessor flag, and limit features,
+but they are kept for historical reasons. There is no value in trying to
+use those GPUs for production calculations.
 
-NOTE: Double precision is only supported on certain GPUs (with
-      compute capability>=1.3). If you compile the GPU library for
-      a GPU with compute capability 1.1 and 1.2, then only single
-      precision FFTs are supported, i.e. LAMMPS has to be compiled
-      with -DFFT_SINGLE. For details on configuring FFT support in 
-      LAMMPS, see http://lammps.sandia.gov/doc/Section_start.html#2_2_4
-      
-NOTE: For graphics cards with compute capability>=1.3 (e.g. Tesla C1060),
-      make sure that -arch=sm_13 is set on the CUDA_ARCH line.
+You have to make sure that you set a CUDA_ARCH line suitable for your
+hardware and CUDA toolkit version: e.g. -arch=sm_35 for Tesla K20 or K40
+or -arch=sm_52 GeForce GTX Titan X. A detailed list of GPU architectures
+and CUDA compatible GPUs can be found e.g. here: 
+https://en.wikipedia.org/wiki/CUDA#GPUs_supported
 
-NOTE: For newer graphics card (a.k.a. "Fermi", e.g. Tesla C2050), make 
-      sure that either -arch=sm_20 or -arch=sm_21 is set on the 
-      CUDA_ARCH line, depending on hardware and CUDA toolkit version.
+NOTE: when compiling with CMake, all of the considerations listed below
+are considered within the CMake configuration process, so no separate 
+compilation of the gpu library is required. Also this will build in support
+for all compute architecture that are supported by the CUDA toolkit version
+used to build the gpu library.
 
-NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
-      package has been installed.
-
-NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
-      installed if the USER-CG-CMM package has been installed.
-
-NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu,
-      lj/charmm/coul/long/gpu and pppm/gpu styles will only be installed
-      if the KSPACE package has been installed.
+Please note the CUDA_CODE settings in Makefile.linux_multi, which allows
+to compile this library with support for multiple GPUs. This list can be
+extended for newer GPUs with newer CUDA toolkits and should allow to build
+a single GPU library compatible with all GPUs that are worth using for
+GPU acceleration and supported by the current CUDA toolkits and drivers.
 
 NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG, 
       or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in 
       src/MAKE/Makefile.foo) should be consistent with that specified 
       when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
 
-                      EXAMPLE BUILD PROCESS
+                      EXAMPLE CONVENTIONAL BUILD PROCESS
                   --------------------------------
                     
 cd ~/lammps/lib/gpu

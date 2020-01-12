@@ -11,37 +11,50 @@ KOKKOS_DEVICES ?= "OpenMP"
 #KOKKOS_DEVICES ?= "Pthreads"
 # Options: 
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKX
-# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72
+# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Kaveri,Carrizo,Fiji,Vega
-# AMD-CPUS: AMDAVX,Ryzen,Epyc
+# AMD-CPUS: AMDAVX,Ryzen,EPYC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
 # Options: hwloc,librt,experimental_memkind
 KOKKOS_USE_TPLS ?= ""
-# Options: c++11,c++1z
+# Options: c++11,c++14,c++1y,c++17,c++1z,c++2a
 KOKKOS_CXX_STANDARD ?= "c++11"
-# Options: aggressive_vectorization,disable_profiling,disable_deprecated_code,enable_large_mem_tests
+# Options: aggressive_vectorization,disable_profiling,enable_deprecated_code,disable_deprecated_code,enable_large_mem_tests
 KOKKOS_OPTIONS ?= ""
 # Option for setting ETI path
 KOKKOS_ETI_PATH ?= ${KOKKOS_PATH}/core/src/eti
+KOKKOS_CMAKE ?= "no"
 
 # Default settings specific options.
 # Options: force_uvm,use_ldg,rdc,enable_lambda
 KOKKOS_CUDA_OPTIONS ?= "enable_lambda"
+
+# Default settings specific options.
+# Options: enable_async_dispatch
+KOKKOS_HPX_OPTIONS ?= ""
 
 # Return a 1 if a string contains a substring and 0 if not
 # Note the search string should be without '"'
 # Example: $(call kokkos_has_string,"hwloc,librt",hwloc)
 #   Will return a 1
 kokkos_has_string=$(if $(findstring $2,$1),1,0)
+# Returns 1 if the path exists, 0 otherwise
+# Example: $(call kokkos_path_exists,/path/to/file)
+#   Will return a 1 if /path/to/file exists
+kokkos_path_exists=$(if $(wildcard $1),1,0)
 
 # Check for general settings.
 KOKKOS_INTERNAL_ENABLE_DEBUG := $(call kokkos_has_string,$(KOKKOS_DEBUG),yes)
 KOKKOS_INTERNAL_ENABLE_CXX11 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++11)
+KOKKOS_INTERNAL_ENABLE_CXX14 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++14)
+KOKKOS_INTERNAL_ENABLE_CXX1Y := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++1y)
+KOKKOS_INTERNAL_ENABLE_CXX17 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++17)
 KOKKOS_INTERNAL_ENABLE_CXX1Z := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++1z)
+KOKKOS_INTERNAL_ENABLE_CXX2A := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++2a)
 
 # Check for external libraries.
 KOKKOS_INTERNAL_USE_HWLOC := $(call kokkos_has_string,$(KOKKOS_USE_TPLS),hwloc)
@@ -53,6 +66,7 @@ KOKKOS_INTERNAL_ENABLE_COMPILER_WARNINGS := $(call kokkos_has_string,$(KOKKOS_OP
 KOKKOS_INTERNAL_OPT_RANGE_AGGRESSIVE_VECTORIZATION := $(call kokkos_has_string,$(KOKKOS_OPTIONS),aggressive_vectorization)
 KOKKOS_INTERNAL_DISABLE_PROFILING := $(call kokkos_has_string,$(KOKKOS_OPTIONS),disable_profiling)
 KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE := $(call kokkos_has_string,$(KOKKOS_OPTIONS),disable_deprecated_code)
+KOKKOS_INTERNAL_ENABLE_DEPRECATED_CODE := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_deprecated_code)
 KOKKOS_INTERNAL_DISABLE_DUALVIEW_MODIFY_CHECK := $(call kokkos_has_string,$(KOKKOS_OPTIONS),disable_dualview_modify_check)
 KOKKOS_INTERNAL_ENABLE_PROFILING_LOAD_PRINT := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_profile_load_print)
 KOKKOS_INTERNAL_ENABLE_LARGE_MEM_TESTS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_large_mem_tests)
@@ -60,6 +74,7 @@ KOKKOS_INTERNAL_CUDA_USE_LDG := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),
 KOKKOS_INTERNAL_CUDA_USE_UVM := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),force_uvm)
 KOKKOS_INTERNAL_CUDA_USE_RELOC := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),rdc)
 KOKKOS_INTERNAL_CUDA_USE_LAMBDA := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),enable_lambda)
+KOKKOS_INTERNAL_HPX_ENABLE_ASYNC_DISPATCH := $(call kokkos_has_string,$(KOKKOS_HPX_OPTIONS),enable_async_dispatch)
 KOKKOS_INTERNAL_ENABLE_ETI := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_eti)
 
 
@@ -67,12 +82,15 @@ KOKKOS_INTERNAL_ENABLE_ETI := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_
 KOKKOS_INTERNAL_USE_OPENMP := $(call kokkos_has_string,$(subst OpenMPTarget,,$(KOKKOS_DEVICES)),OpenMP)
 KOKKOS_INTERNAL_USE_PTHREADS := $(call kokkos_has_string,$(KOKKOS_DEVICES),Pthread)
 KOKKOS_INTERNAL_USE_QTHREADS := $(call kokkos_has_string,$(KOKKOS_DEVICES),Qthreads)
+KOKKOS_INTERNAL_USE_HPX := $(call kokkos_has_string,$(KOKKOS_DEVICES),HPX)
 KOKKOS_INTERNAL_USE_SERIAL := $(call kokkos_has_string,$(KOKKOS_DEVICES),Serial)
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 0)
   ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 0)
     ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 0)
-      KOKKOS_INTERNAL_USE_SERIAL := 1
+      ifeq ($(KOKKOS_INTERNAL_USE_HPX), 0)
+        KOKKOS_INTERNAL_USE_SERIAL := 1
+      endif
     endif
   endif
 endif
@@ -107,8 +125,20 @@ KOKKOS_INTERNAL_COMPILER_XL          := $(strip $(shell $(CXX) -qversion       2
 KOKKOS_INTERNAL_COMPILER_CRAY        := $(strip $(shell $(CXX) -craype-verbose 2>&1 | grep "CC-"               | wc -l))
 KOKKOS_INTERNAL_COMPILER_NVCC        := $(strip $(shell export OMPI_CXX=$(OMPI_CXX); export MPICH_CXX=$(MPICH_CXX); $(CXX) --version 2>&1 | grep nvcc | wc -l))
 KOKKOS_INTERNAL_COMPILER_CLANG       := $(call kokkos_has_string,$(KOKKOS_CXX_VERSION),clang)
-KOKKOS_INTERNAL_COMPILER_APPLE_CLANG := $(call kokkos_has_string,$(KOKKOS_CXX_VERSION),apple-darwin)
+KOKKOS_INTERNAL_COMPILER_APPLE_CLANG := $(call kokkos_has_string,$(KOKKOS_CXX_VERSION),Apple LLVM)
 KOKKOS_INTERNAL_COMPILER_HCC         := $(call kokkos_has_string,$(KOKKOS_CXX_VERSION),HCC)
+
+# Check Host Compiler if using NVCC through nvcc_wrapper
+ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
+  KOKKOS_INTERNAL_COMPILER_NVCC_WRAPPER := $(strip $(shell echo $(CXX) | grep nvcc_wrapper | wc -l))
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC_WRAPPER), 1)
+
+    KOKKOS_CXX_HOST_VERSION             := $(strip $(shell $(CXX) $(CXXFLAGS) --host-version       2>&1))
+    KOKKOS_INTERNAL_COMPILER_PGI    := $(call kokkos_has_string,$(KOKKOS_CXX_HOST_VERSION),PGI)
+    KOKKOS_INTERNAL_COMPILER_INTEL  := $(call kokkos_has_string,$(KOKKOS_CXX_HOST_VERSION),Intel Corporation)
+    KOKKOS_INTERNAL_COMPILER_CLANG  := $(call kokkos_has_string,$(KOKKOS_CXX_HOST_VERSION),clang)
+  endif
+endif
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 2)
   KOKKOS_INTERNAL_COMPILER_CLANG = 1
@@ -202,18 +232,34 @@ endif
 # Set C++11 flags.
 ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
   KOKKOS_INTERNAL_CXX11_FLAG := --c++11
+  KOKKOS_INTERNAL_CXX14_FLAG := --c++14
+  #KOKKOS_INTERNAL_CXX17_FLAG := --c++17
 else
   ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
      KOKKOS_INTERNAL_CXX11_FLAG := -std=c++11
+     KOKKOS_INTERNAL_CXX14_FLAG := -std=c++14
+     KOKKOS_INTERNAL_CXX1Y_FLAG := -std=c++1y
+     #KOKKOS_INTERNAL_CXX17_FLAG := -std=c++17
+     #KOKKOS_INTERNAL_CXX1Z_FLAG := -std=c++1Z
+     #KOKKOS_INTERNAL_CXX2A_FLAG := -std=c++2a
   else
     ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
       KOKKOS_INTERNAL_CXX11_FLAG := -hstd=c++11
+      KOKKOS_INTERNAL_CXX14_FLAG := -hstd=c++14
+      #KOKKOS_INTERNAL_CXX1Y_FLAG := -hstd=c++1y
+      #KOKKOS_INTERNAL_CXX17_FLAG := -hstd=c++17
+      #KOKKOS_INTERNAL_CXX1Z_FLAG := -hstd=c++1z
+      #KOKKOS_INTERNAL_CXX2A_FLAG := -hstd=c++2a
     else
       ifeq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
         KOKKOS_INTERNAL_CXX11_FLAG := 
       else
         KOKKOS_INTERNAL_CXX11_FLAG := --std=c++11
+        KOKKOS_INTERNAL_CXX14_FLAG := --std=c++14
+        KOKKOS_INTERNAL_CXX1Y_FLAG := --std=c++1y
+        KOKKOS_INTERNAL_CXX17_FLAG := --std=c++17
         KOKKOS_INTERNAL_CXX1Z_FLAG := --std=c++1z
+        KOKKOS_INTERNAL_CXX2A_FLAG := --std=c++2a
       endif
     endif
   endif
@@ -243,14 +289,16 @@ KOKKOS_INTERNAL_USE_ARCH_PASCAL61 := $(call kokkos_has_string,$(KOKKOS_ARCH),Pas
 KOKKOS_INTERNAL_USE_ARCH_PASCAL60 := $(call kokkos_has_string,$(KOKKOS_ARCH),Pascal60)
 KOKKOS_INTERNAL_USE_ARCH_VOLTA70 := $(call kokkos_has_string,$(KOKKOS_ARCH),Volta70)
 KOKKOS_INTERNAL_USE_ARCH_VOLTA72 := $(call kokkos_has_string,$(KOKKOS_ARCH),Volta72)
+KOKKOS_INTERNAL_USE_ARCH_TURING75 := $(call kokkos_has_string,$(KOKKOS_ARCH),Turing75)
 KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLER30)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER32)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER35)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
-					      + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
-					      + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+											  + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
+											  + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+											  + $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
@@ -265,18 +313,19 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)  \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)  \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
-						+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
-						+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+												+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
+												+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+												+ $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 1)
-  ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
-    ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
-      KOKKOS_INTERNAL_NVCC_PATH := $(shell which nvcc)
-      CUDA_PATH ?= $(KOKKOS_INTERNAL_NVCC_PATH:/bin/nvcc=)
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
+    KOKKOS_INTERNAL_NVCC_PATH := $(shell which nvcc)
+    CUDA_PATH ?= $(KOKKOS_INTERNAL_NVCC_PATH:/bin/nvcc=)
+    ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
       KOKKOS_INTERNAL_OPENMPTARGET_FLAG := $(KOKKOS_INTERNAL_OPENMPTARGET_FLAG) --cuda-path=$(CUDA_PATH)
     endif
   endif
@@ -298,7 +347,7 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
 KOKKOS_INTERNAL_USE_ARCH_RYZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Ryzen)
-KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),Epyc)
+KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),EPYC)
 KOKKOS_INTERNAL_USE_ARCH_KAVERI := $(call kokkos_has_string,$(KOKKOS_ARCH),Kaveri)
 KOKKOS_INTERNAL_USE_ARCH_CARRIZO := $(call kokkos_has_string,$(KOKKOS_ARCH),Carrizo)
 KOKKOS_INTERNAL_USE_ARCH_FIJI := $(call kokkos_has_string,$(KOKKOS_ARCH),Fiji)
@@ -308,12 +357,12 @@ KOKKOS_INTERNAL_USE_ARCH_GFX901 := $(call kokkos_has_string,$(KOKKOS_ARCH),gfx90
 # Any AVX?
 KOKKOS_INTERNAL_USE_ARCH_SSE42      := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM))
 KOKKOS_INTERNAL_USE_ARCH_AVX        := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_AMDAVX))
-KOKKOS_INTERNAL_USE_ARCH_AVX2       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW))
+KOKKOS_INTERNAL_USE_ARCH_AVX2       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_EPYC))
 KOKKOS_INTERNAL_USE_ARCH_AVX512MIC  := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KNL))
 KOKKOS_INTERNAL_USE_ARCH_AVX512XEON := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SKX))
 
 # Decide what ISA level we are able to support.
-KOKKOS_INTERNAL_USE_ISA_X86_64    := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM) + $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_KNL) + $(KOKKOS_INTERNAL_USE_ARCH_SKX))
+KOKKOS_INTERNAL_USE_ISA_X86_64    := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM) + $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_KNL) + $(KOKKOS_INTERNAL_USE_ARCH_SKX) + $(KOKKOS_INTERNAL_USE_ARCH_EPYC))
 KOKKOS_INTERNAL_USE_ISA_KNC       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KNC))
 KOKKOS_INTERNAL_USE_ISA_POWERPCLE := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_POWER8) + $(KOKKOS_INTERNAL_USE_ARCH_POWER9))
 KOKKOS_INTERNAL_USE_ISA_POWERPCBE := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_POWER7))
@@ -336,7 +385,9 @@ endif
 
 #CPPFLAGS is now unused
 KOKKOS_CPPFLAGS =
-KOKKOS_CXXFLAGS = -I./ -I$(KOKKOS_PATH)/core/src -I$(KOKKOS_PATH)/containers/src -I$(KOKKOS_PATH)/algorithms/src -I$(KOKKOS_ETI_PATH)
+ifneq ($(KOKKOS_CMAKE), yes)
+  KOKKOS_CXXFLAGS = -I./ -I$(KOKKOS_PATH)/core/src -I$(KOKKOS_PATH)/containers/src -I$(KOKKOS_PATH)/algorithms/src -I$(KOKKOS_ETI_PATH)
+endif
 KOKKOS_TPL_INCLUDE_DIRS =
 KOKKOS_TPL_LIBRARY_DIRS =
 KOKKOS_TPL_LIBRARY_NAMES =
@@ -347,9 +398,11 @@ endif
 
 KOKKOS_LIBS = -ldl
 KOKKOS_TPL_LIBRARY_NAMES += dl
-KOKKOS_LDFLAGS = -L$(shell pwd)
-# CXXLDFLAGS is used together with CXXFLAGS in a combined compile/link command
-KOKKOS_CXXLDFLAGS = -L$(shell pwd)
+ifneq ($(KOKKOS_CMAKE), yes)
+  KOKKOS_LDFLAGS = -L$(shell pwd)
+  # CXXLDFLAGS is used together with CXXFLAGS in a combined compile/link command
+  KOKKOS_CXXLDFLAGS = -L$(shell pwd)
+endif
 KOKKOS_LINK_FLAGS = 
 KOKKOS_SRC =
 KOKKOS_HEADERS =
@@ -377,10 +430,12 @@ tmp := $(call kokkos_append_header,"/* Execution Spaces */")
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CUDA")
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_COMPILER_CUDA_VERSION $(KOKKOS_INTERNAL_COMPILER_NVCC_VERSION)")
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
   tmp := $(call kokkos_append_header,'\#define KOKKOS_ENABLE_ROCM')
+  tmp := $(call kokkos_append_header,'\#define KOKKOS_IMPL_ROCM_CLANG_WORKAROUND 1')
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
@@ -397,6 +452,10 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 1)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_QTHREADS")
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_HPX")
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
@@ -438,11 +497,25 @@ ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX11), 1)
   KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX11_FLAG)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX11")
 endif
-
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX14), 1)
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX14_FLAG)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX14")
+endif
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX1Y), 1)
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX1Y_FLAG)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX14")
+endif
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX17), 1)
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX17_FLAG)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX17")
+endif
 ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX1Z), 1)
   KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX1Z_FLAG)
-  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX11")
-  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX1Z")
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX17")
+endif
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX2A), 1)
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX2A_FLAG)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CXX20")
 endif
 
 ifeq ($(KOKKOS_INTERNAL_ENABLE_DEBUG), 1)
@@ -465,7 +538,9 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HWLOC), 1)
   ifneq ($(HWLOC_PATH),)
-    KOKKOS_CXXFLAGS += -I$(HWLOC_PATH)/include
+    ifneq ($(KOKKOS_CMAKE), yes)
+      KOKKOS_CXXFLAGS += -I$(HWLOC_PATH)/include
+    endif
     KOKKOS_LDFLAGS += -L$(HWLOC_PATH)/lib
     KOKKOS_CXXLDFLAGS += -L$(HWLOC_PATH)/lib
     KOKKOS_TPL_INCLUDE_DIRS += $(HWLOC_PATH)/include
@@ -484,7 +559,9 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_MEMKIND), 1)
   ifneq ($(MEMKIND_PATH),)
-    KOKKOS_CXXFLAGS += -I$(MEMKIND_PATH)/include
+    ifneq ($(KOKKOS_CMAKE), yes)
+      KOKKOS_CXXFLAGS += -I$(MEMKIND_PATH)/include
+    endif
     KOKKOS_LDFLAGS += -L$(MEMKIND_PATH)/lib
     KOKKOS_CXXLDFLAGS += -L$(MEMKIND_PATH)/lib
     KOKKOS_TPL_INCLUDE_DIRS += $(MEMKIND_PATH)/include
@@ -499,9 +576,15 @@ ifeq ($(KOKKOS_INTERNAL_DISABLE_PROFILING), 0)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_PROFILING")
 endif
 
-ifeq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 0)
-  tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_DEPRECATED_CODE")
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 0)
+  ifeq ($(KOKKOS_INTERNAL_ENABLE_DEPRECATED_CODE), 1)
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_DEPRECATED_CODE")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 0)
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_DEPRECATED_CODE")
+  endif
 endif
+
 ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_ETI")
 endif
@@ -533,8 +616,13 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 
   ifeq ($(KOKKOS_INTERNAL_CUDA_USE_RELOC), 1)
     tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE")
-    KOKKOS_CXXFLAGS += --relocatable-device-code=true
-    KOKKOS_LDFLAGS += --relocatable-device-code=true
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
+      KOKKOS_CXXFLAGS += -fcuda-rdc
+      KOKKOS_LDFLAGS += -fcuda-rdc
+    else
+      KOKKOS_CXXFLAGS += --relocatable-device-code=true
+      KOKKOS_LDFLAGS += --relocatable-device-code=true
+    endif
   endif
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
@@ -562,6 +650,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
     tmp := $(call kokkos_append_header,"\#define KOKKOS_IMPL_CUDA_CLANG_WORKAROUND")
+  endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  ifeq ($(KOKKOS_INTERNAL_HPX_ENABLE_ASYNC_DISPATCH), 1)
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ENABLE_HPX_ASYNC_DISPATCH")
   endif
 endif
 
@@ -598,6 +692,19 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV81), 1)
       KOKKOS_CXXFLAGS += -march=armv8.1-a
       KOKKOS_LDFLAGS += -march=armv8.1-a
     endif
+  endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_EPYC), 1)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_AMD_EPYC")
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_AMD_AVX2")
+
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
+    KOKKOS_CXXFLAGS += -mavx2
+    KOKKOS_LDFLAGS += -mavx2
+  else
+    KOKKOS_CXXFLAGS += -march=znver1 -mtune=znver1
+    KOKKOS_LDFLAGS += -march=znver1 -mtune=znver1
   endif
 endif
 
@@ -835,7 +942,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 		KOKKOS_INTERNAL_CUDA_ARCH_FLAG=--cuda-gpu-arch
 		KOKKOS_CXXFLAGS += -x cuda
   else
-    $(error Makefile.kokkos: CUDA is enabled but the compiler is neither NVCC nor Clang)
+    $(error Makefile.kokkos: CUDA is enabled but the compiler is neither NVCC nor Clang (got version string $(KOKKOS_CXX_VERSION)) )
   endif
 
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_KEPLER30), 1)
@@ -892,6 +999,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_VOLTA")
     tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_VOLTA72")
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_72
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_TURING75), 1)
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_TURING")
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_TURING75")
+    KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_75
   endif
 
   ifneq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
@@ -977,11 +1089,21 @@ ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
 endif
   KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.hpp)
   ifneq ($(CUDA_PATH),)
-    KOKKOS_CXXFLAGS += -I$(CUDA_PATH)/include
-    KOKKOS_LDFLAGS += -L$(CUDA_PATH)/lib64
-    KOKKOS_CXXLDFLAGS += -L$(CUDA_PATH)/lib64
+    ifneq ($(KOKKOS_CMAKE), yes)
+      KOKKOS_CXXFLAGS += -I$(CUDA_PATH)/include
+    endif
+    ifeq ($(call kokkos_path_exists,$(CUDA_PATH)/lib64), 1)
+      KOKKOS_LDFLAGS += -L$(CUDA_PATH)/lib64
+      KOKKOS_CXXLDFLAGS += -L$(CUDA_PATH)/lib64
+      KOKKOS_TPL_LIBRARY_DIRS += $(CUDA_PATH)/lib64
+    else ifeq ($(call kokkos_path_exists,$(CUDA_PATH)/lib), 1)
+      KOKKOS_LDFLAGS += -L$(CUDA_PATH)/lib
+      KOKKOS_CXXLDFLAGS += -L$(CUDA_PATH)/lib
+      KOKKOS_TPL_LIBRARY_DIRS += $(CUDA_PATH)/lib
+    else
+      $(error Can't find CUDA library directory: no lib64 or lib directory in $(CUDA_PATH))
+    endif
     KOKKOS_TPL_INCLUDE_DIRS += $(CUDA_PATH)/include
-    KOKKOS_TPL_LIBRARY_DIRS += $(CUDA_PATH)/lib64
     ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
       KOKKOS_CXXFLAGS += --cuda-path=$(CUDA_PATH)
     endif
@@ -1032,7 +1154,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 1)
   KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/Qthreads/*.cpp)
   KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Qthreads/*.hpp)
   ifneq ($(QTHREADS_PATH),)
-    KOKKOS_CXXFLAGS += -I$(QTHREADS_PATH)/include
+    ifneq ($(KOKKOS_CMAKE), yes)
+      KOKKOS_CXXFLAGS += -I$(QTHREADS_PATH)/include
+    endif
     KOKKOS_LDFLAGS += -L$(QTHREADS_PATH)/lib
     KOKKOS_CXXLDFLAGS += -L$(QTHREADS_PATH)/lib
     KOKKOS_TPL_INCLUDE_DIRS += $(QTHREADS_PATH)/include
@@ -1040,6 +1164,33 @@ ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 1)
   endif
   KOKKOS_LIBS += -lqthread
   KOKKOS_TPL_LIBRARY_NAMES += qthread
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/HPX/*.cpp)
+  KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/HPX/*.hpp)
+  ifneq ($(HPX_PATH),)
+    ifeq ($(KOKKOS_INTERNAL_ENABLE_DEBUG), 1)
+      KOKKOS_CXXFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --cflags hpx_application_debug)
+      KOKKOS_CXXLDFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --libs hpx_application_debug)
+      KOKKOS_LDFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --libs hpx_application_debug)
+    else
+      KOKKOS_CXXFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --cflags hpx_application)
+      KOKKOS_CXXLDFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --libs hpx_application)
+      KOKKOS_LDFLAGS += $(shell PKG_CONFIG_PATH=$(HPX_PATH)/lib64/pkgconfig pkg-config --libs hpx_application)
+    endif
+  else
+    ifeq ($(KOKKOS_INTERNAL_ENABLE_DEBUG), 1)
+      KOKKOS_CXXFLAGS += $(shell pkg-config --cflags hpx_application_debug)
+      KOKKOS_CXXLDFLAGS += $(shell pkg-config --libs hpx_application_debug)
+      KOKKOS_LDFLAGS += $(shell pkg-config --libs hpx_application_debug)
+    else
+      KOKKOS_CXXFLAGS += $(shell pkg-config --cflags hpx_application)
+      KOKKOS_CXXLDFLAGS += $(shell pkg-config --libs hpx_application)
+      KOKKOS_LDFLAGS += $(shell pkg-config --libs hpx_application)
+    endif
+  endif
+  KOKKOS_TPL_LIBRARY_NAMES += hpx
 endif
 
 # Explicitly set the GCC Toolchain for Clang.

@@ -98,7 +98,7 @@ void scan_enqueue(
             {
                auto j = i + d - 1;
                auto k = i + d2 - 1;
-//               join(k, j);  // no longer needed with ROCm 1.6
+
                ValueJoin::join(f, &buffer[k], &buffer[j]);
             }
         }
@@ -116,7 +116,7 @@ void scan_enqueue(
                auto j = i + d - 1;
                auto k = i + d2 - 1;
                auto t = buffer[k];
-//               join(k, j);  // no longer needed with ROCm 1.6
+
                ValueJoin::join(f, &buffer[k], &buffer[j]);
                buffer[j] = t;
             }
@@ -127,17 +127,13 @@ void scan_enqueue(
     }).wait();
     copy(result,result_cpu.data());
 
-//  The std::partial_sum was segfaulting, despite that this is cpu code.
-//   if(td.num_tiles>1)
-//      std::partial_sum(result_cpu.data(), result_cpu.data()+(td.num_tiles-1)*sizeof(value_type), result_cpu.data(), make_join_operator<ValueJoin>(f));
-// use this implementation instead.
    for(int i=1; i<td.num_tiles; i++)
       ValueJoin::join(f, &result_cpu[i], &result_cpu[i-1]);
 
     copy(result_cpu.data(),result);
-    hc::parallel_for_each(hc::extent<1>(len).tile(td.tile_size), [&,f,len,td](hc::tiled_index<1> t_idx) [[hc]] 
+    size_t launch_len = (((len - 1) / td.tile_size) + 1) * td.tile_size;
+    hc::parallel_for_each(hc::extent<1>(launch_len).tile(td.tile_size), [&,f,len,td](hc::tiled_index<1> t_idx) [[hc]] 
     {
-//        const auto local = t_idx.local[0];
         const auto global = t_idx.global[0];
         const auto tile = t_idx.tile[0];
 
@@ -145,12 +141,114 @@ void scan_enqueue(
         {
             auto final_state = scratch[global];
 
-// the join is locking up, at least with 1.6
-            if (tile != 0) final_state += result[tile-1];
-//            if (tile != 0) ValueJoin::join(f, &final_state, &result[tile-1]);
+            if (tile != 0) ValueJoin::join(f, &final_state, &result[tile-1]);
             rocm_invoke<Tag>(f, transform_index(t_idx, td.tile_size, td.num_tiles), final_state, true);
         }
     }).wait();
+}
+
+template< class Tag, class ReturnType, class F, class TransformIndex>
+void scan_enqueue(
+  const int len,
+  const F & f,
+  ReturnType & return_val,
+  TransformIndex transform_index)
+{
+    typedef Kokkos::Impl::FunctorValueTraits< F, Tag>  ValueTraits;
+    typedef Kokkos::Impl::FunctorValueInit<   F, Tag>  ValueInit;
+    typedef Kokkos::Impl::FunctorValueJoin<   F, Tag>  ValueJoin;
+    typedef Kokkos::Impl::FunctorValueOps<    F, Tag>  ValueOps;
+
+    typedef typename ValueTraits::value_type    value_type;
+    typedef typename ValueTraits::pointer_type    pointer_type;
+    typedef typename ValueTraits::reference_type  reference_type;
+
+    const auto td = get_tile_desc<value_type>(len);
+    std::vector<value_type> result_cpu(td.num_tiles);
+    hc::array<value_type> result(td.num_tiles);
+    hc::array<value_type> scratch(len);
+    std::vector<ReturnType> total_cpu(1);
+    hc::array<ReturnType> total(1);
+
+    tile_for<value_type>(td, [&,f,len,td](hc::tiled_index<1> t_idx, tile_buffer<value_type> buffer) [[hc]] 
+    {
+        const auto local = t_idx.local[0];
+        const auto global = t_idx.global[0];
+        const auto tile = t_idx.tile[0];
+
+        // Join tile buffer elements
+        const auto join = [&](std::size_t i, std::size_t j)
+        {
+            buffer.action_at(i, j, [&](value_type& x, const value_type& y)
+            {
+                ValueJoin::join(f, &x, &y);
+            });
+        };
+
+        // Copy into tile
+        buffer.action_at(local, [&](value_type& state)
+        {
+            ValueInit::init(f, &state);
+            if (global < len) rocm_invoke<Tag>(f, transform_index(t_idx, td.tile_size, td.num_tiles), state, false);
+        });
+        t_idx.barrier.wait();
+        // Up sweep phase
+        for(std::size_t d=1;d<buffer.size();d*=2)
+        {
+            auto d2 = 2*d;
+            auto i = local*d2;
+            if(i<len)
+            {
+               auto j = i + d - 1;
+               auto k = i + d2 - 1;
+               ValueJoin::join(f, &buffer[k], &buffer[j]);
+            }
+        }
+        t_idx.barrier.wait();
+
+        result[tile] = buffer[buffer.size()-1];
+        buffer[buffer.size()-1] = 0;
+        // Down sweep phase
+        for(std::size_t d=buffer.size()/2;d>0;d/=2)
+        {
+            auto d2 = 2*d;
+            auto i = local*d2;
+            if(i<len)
+            {
+               auto j = i + d - 1;
+               auto k = i + d2 - 1;
+               auto t = buffer[k];
+               ValueJoin::join(f, &buffer[k], &buffer[j]);
+               buffer[j] = t;
+            }
+            t_idx.barrier.wait();
+        }
+        // Copy tiles into global memory
+        if (global < len) scratch[global] = buffer[local];
+    }).wait();
+    copy(result,result_cpu.data());
+
+   for(int i=1; i<td.num_tiles; i++)
+      ValueJoin::join(f, &result_cpu[i], &result_cpu[i-1]);
+
+    copy(result_cpu.data(),result);
+    size_t launch_len = (((len - 1) / td.tile_size) + 1) * td.tile_size;
+    hc::parallel_for_each(hc::extent<1>(launch_len).tile(td.tile_size), [&,f,len,td](hc::tiled_index<1> t_idx) [[hc]] 
+    {
+        const auto global = t_idx.global[0];
+        const auto tile = t_idx.tile[0];
+
+        if (global < len) 
+        {
+            auto final_state = scratch[global];
+
+            if (tile != 0) ValueJoin::join(f, &final_state, &result[tile-1]);
+            rocm_invoke<Tag>(f, transform_index(t_idx, td.tile_size, td.num_tiles), final_state, true);
+            if(global==(len-1))  total[0] = final_state;
+        }
+    }).wait();
+    copy(total,total_cpu.data());
+    return_val = total_cpu[0];
 }
 
 } // namespace Impl

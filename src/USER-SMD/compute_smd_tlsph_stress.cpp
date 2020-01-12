@@ -22,9 +22,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
+#include "compute_smd_tlsph_stress.h"
+#include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "compute_smd_tlsph_stress.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

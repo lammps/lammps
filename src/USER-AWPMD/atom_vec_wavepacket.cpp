@@ -15,18 +15,16 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_wavepacket.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -915,20 +913,20 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
 
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
-  spin[nlocal] = atoi(values[3]);
-  eradius[nlocal] = atof(values[4]);
+  q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+  spin[nlocal] = utils::inumeric(FLERR,values[3],true,lmp);
+  eradius[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
-  etag[nlocal] = atoi(values[5]);
-  cs[2*nlocal] = atoi(values[6]);
-  cs[2*nlocal+1] = atof(values[7]);
+  etag[nlocal] = utils::inumeric(FLERR,values[5],true,lmp);
+  cs[2*nlocal] = utils::numeric(FLERR,values[6],true,lmp);
+  cs[2*nlocal+1] = utils::numeric(FLERR,values[7],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -952,15 +950,15 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecWavepacket::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
-  spin[nlocal] = atoi(values[1]);
-  eradius[nlocal] = atof(values[2]);
+  q[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
+  spin[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  eradius[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
-  etag[nlocal] = atoi(values[3]);
-  cs[2*nlocal] = atoi(values[4]);
-  cs[2*nlocal+1] = atof(values[5]);
+  etag[nlocal] = utils::inumeric(FLERR,values[3],true,lmp);
+  cs[2*nlocal] = utils::inumeric(FLERR,values[4],true,lmp);
+  cs[2*nlocal+1] = utils::numeric(FLERR,values[5],true,lmp);
 
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
@@ -976,10 +974,10 @@ int AtomVecWavepacket::data_atom_hybrid(int nlocal, char **values)
 
 void AtomVecWavepacket::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  ervel[m] = atof(values[3]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  ervel[m] = utils::numeric(FLERR,values[3],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -988,7 +986,7 @@ void AtomVecWavepacket::data_vel(int m, char **values)
 
 int AtomVecWavepacket::data_vel_hybrid(int m, char **values)
 {
-  ervel[m] = atof(values[0]);
+  ervel[m] = utils::numeric(FLERR,values[0],true,lmp);
   return 1;
 }
 

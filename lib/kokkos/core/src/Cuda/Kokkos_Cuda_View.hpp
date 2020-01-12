@@ -241,7 +241,7 @@ class ViewDataHandle< Traits ,
       sizeof(typename Traits::const_value_type) == 16 )
     &&
     // Random access trait
-    ( Traits::memory_traits::RandomAccess != 0 )
+    ( Traits::memory_traits::is_random_access != 0 )
   )>::type >
 {
 public:
@@ -279,6 +279,8 @@ public:
   KOKKOS_INLINE_FUNCTION
   static handle_type assign( value_type * arg_data_ptr, track_type const & arg_tracker )
     {
+      if(arg_data_ptr == NULL) return handle_type();
+
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
       // Assignment of texture = non-texture requires creation of a texture object
       // which can only occur on the host.  In addition, 'get_record' is only valid
@@ -292,8 +294,7 @@ public:
 
 #if ! defined( KOKKOS_ENABLE_CUDA_LDG_INTRINSIC )
       if ( 0 == r ) {
-        //Kokkos::abort("Cuda const random access View using Cuda texture memory requires Kokkos to allocate the View's memory");
-        return handle_type();
+        Kokkos::abort("Cuda const random access View using Cuda texture memory requires Kokkos to allocate the View's memory");
       }
 #endif
 

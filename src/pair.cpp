@@ -15,24 +15,18 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cctype>
-#include <cfloat>
-#include <climits>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair.h"
+#include <mpi.h>
+#include <cfloat>    // IWYU pragma: keep
+#include <climits>   // IWYU pragma: keep
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "suffix.h"
 #include "atom_masks.h"
@@ -60,6 +54,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
@@ -72,8 +67,12 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   single_extra = 0;
   svector = NULL;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  setflag = NULL;
+  cutsq = NULL;
+
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
+  centroidstressflag = 4;
 
   // pair_modify settings
 
@@ -93,12 +92,16 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
-  maxeatom = maxvatom = 0;
+  maxeatom = maxvatom = maxcvatom = 0;
   eatom = NULL;
   vatom = NULL;
+  cvatom = NULL;
 
   num_tally_compute = 0;
   list_tally_compute = NULL;
+
+  nondefault_history_transfer = 0;
+  beyond_contact = 0;
 
   // KOKKOS per-fix data masks
 
@@ -121,6 +124,7 @@ Pair::~Pair()
 
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -151,13 +155,13 @@ void Pair::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (ncoultablebits > sizeof(float)*CHAR_BIT)
+      if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (ndisptablebits > sizeof(float)*CHAR_BIT)
+      if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
@@ -180,6 +184,10 @@ void Pair::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
       else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"nofdotr") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      no_virial_fdotr_compute = 1;
+      ++iarg;
     } else error->all(FLERR,"Illegal pair_modify command");
   }
 }
@@ -195,7 +203,7 @@ void Pair::init()
   if (tail_flag && domain->dimension == 2)
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
-    error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
+    error->warning(FLERR,"Using pair tail corrections with non-periodic system");
   if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");
@@ -688,8 +696,7 @@ double Pair::mix_distance(double sig1, double sig2)
 
 void Pair::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -775,9 +782,21 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   eflag_global = eflag % 2;
   eflag_atom = eflag / 2;
 
-  vflag_either = vflag;
   vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_atom = vflag & 4;
+  cvflag_atom = 0;
+
+  if (vflag & 8) {
+    if (centroidstressflag & 2) {
+      cvflag_atom = 1;
+    } else {
+      vflag_atom = 1;
+    }
+    // extra check, because both bits might be set
+    if (centroidstressflag & 1) vflag_atom = 1;
+  }
+
+  vflag_either = vflag_global || vflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -793,6 +812,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     if (alloc) {
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
+    }
+  }
+  if (cvflag_atom && atom->nmax > maxcvatom) {
+    maxcvatom = atom->nmax;
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,comm->nthreads*maxcvatom,9,"pair:cvatom");
     }
   }
 
@@ -819,6 +845,22 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][5] = 0.0;
     }
   }
+  if (cvflag_atom && alloc) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+      cvatom[i][9] = 0.0;
+    }
+  }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
@@ -827,7 +869,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
-    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
 
@@ -859,6 +901,7 @@ void Pair::ev_unset()
   vflag_either = 0;
   vflag_global = 0;
   vflag_atom = 0;
+  cvflag_atom = 0;
   vflag_fdotr = 0;
 }
 
@@ -1619,7 +1662,7 @@ void Pair::write_file(int narg, char **arg)
   eamfp[0] = eamfp[1] = 0.0;
   double *eamfp_hold;
 
-  Pair *epair = force->pair_match("eam",0);
+  Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
 
   // if atom style defines charge, swap in dummy q vec
@@ -1695,7 +1738,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   if (sizeof(int) != sizeof(float))
     error->all(FLERR,"Bitmapped lookup tables require int/float be same size");
 
-  if (ntablebits > sizeof(float)*CHAR_BIT)
+  if (ntablebits > (int)sizeof(float)*CHAR_BIT)
     error->all(FLERR,"Too many total bits for bitmapped lookup table");
 
   if (inner >= outer)
@@ -1719,7 +1762,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
   int nmantbits = ntablebits - nexpbits;
 
-  if (nexpbits > sizeof(float)*CHAR_BIT - FLT_MANT_DIG)
+  if (nexpbits > (int)sizeof(float)*CHAR_BIT - FLT_MANT_DIG)
     error->all(FLERR,"Too many exponent bits for lookup table");
   if (nmantbits+1 > FLT_MANT_DIG)
     error->all(FLERR,"Too many mantissa bits for lookup table");
@@ -1740,10 +1783,23 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
 /* ---------------------------------------------------------------------- */
 
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
+/* ---------------------------------------------------------------------- */
+
 double Pair::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
 

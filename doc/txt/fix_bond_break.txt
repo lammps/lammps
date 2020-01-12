@@ -1,0 +1,145 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix bond/break command :h3
+
+[Syntax:]
+
+fix ID group-ID bond/break Nevery bondtype Rmax keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+bond/break = style name of this fix command :l
+Nevery = attempt bond breaking every this many steps :l
+bondtype = type of bonds to break :l
+Rmax = bond longer than Rmax can break (distance units) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {prob} :l
+  {prob} values = fraction seed
+    fraction = break a bond with this probability if otherwise eligible
+    seed = random number seed (positive integer) :pre
+:ule
+
+[Examples:]
+
+fix 5 all bond/break 10 2 1.2
+fix 5 polymer bond/break 1 1 2.0 prob 0.5 49829 :pre
+
+[Description:]
+
+Break bonds between pairs of atoms as a simulation runs according to
+specified criteria.  This can be used to model the dissolution of a
+polymer network due to stretching of the simulation box or other
+deformations.  In this context, a bond means an interaction between a
+pair of atoms computed by the "bond_style"_bond_style.html command.
+Once the bond is broken it will be permanently deleted, as will all
+angle, dihedral, and improper interactions that bond is part of.
+
+This is different than a "pairwise"_pair_style.html bond-order
+potential such as Tersoff or AIREBO which infers bonds and many-body
+interactions based on the current geometry of a small cluster of atoms
+and effectively creates and destroys bonds and higher-order many-body
+interactions from timestep to timestep as atoms move.
+
+A check for possible bond breakage is performed every {Nevery}
+timesteps.  If two bonded atoms I,J are further than a distance {Rmax}
+of each other, if the bond is of type {bondtype}, and if both I and J
+are in the specified fix group, then I,J is labeled as a "possible"
+bond to break.
+
+If several bonds involving an atom are stretched, it may have multiple
+possible bonds to break.  Every atom checks its list of possible bonds
+to break and labels the longest such bond as its "sole" bond to break.
+After this is done, if atom I is bonded to atom J in its sole bond,
+and atom J is bonded to atom I in its sole bond, then the I,J bond is
+"eligible" to be broken.
+
+Note that these rules mean an atom will only be part of at most one
+broken bond on a given timestep.  It also means that if atom I chooses
+atom J as its sole partner, but atom J chooses atom K is its sole
+partner (due to Rjk > Rij), then this means atom I will not be part of
+a broken bond on this timestep, even if it has other possible bond
+partners.
+
+The {prob} keyword can effect whether an eligible bond is actually
+broken.  The {fraction} setting must be a value between 0.0 and 1.0.
+A uniform random number between 0.0 and 1.0 is generated and the
+eligible bond is only broken if the random number < fraction.
+
+When a bond is broken, data structures within LAMMPS that store bond
+topology are updated to reflect the breakage.  Likewise, if the bond
+is part of a 3-body (angle) or 4-body (dihedral, improper)
+interaction, that interaction is removed as well.  These changes
+typically affect pairwise interactions between atoms that used to be
+part of bonds, angles, etc.
+
+NOTE: One data structure that is not updated when a bond breaks are
+the molecule IDs stored by each atom.  Even though one molecule
+becomes two molecules due to the broken bond, all atoms in both new
+molecules retain their original molecule IDs.
+
+Computationally, each timestep this fix operates, it loops over all
+the bonds in the system and computes distances between pairs of bonded
+atoms.  It also communicates between neighboring processors to
+coordinate which bonds are broken.  Moreover, if any bonds are broken,
+neighbor lists must be immediately updated on the same timestep.  This
+is to insure that any pairwise interactions that should be turned "on"
+due to a bond breaking, because they are no longer excluded by the
+presence of the bond and the settings of the
+"special_bonds"_special_bonds.html command, will be immediately
+recognized.  All of these operations increase the cost of a timestep.
+Thus you should be cautious about invoking this fix too frequently.
+
+You can dump out snapshots of the current bond topology via the "dump
+local"_dump.html command.
+
+NOTE: Breaking a bond typically alters the energy of a system.  You
+should be careful not to choose bond breaking criteria that induce a
+dramatic change in energy.  For example, if you define a very stiff
+harmonic bond and break it when 2 atoms are separated by a distance
+far from the equilibrium bond length, then the 2 atoms will be
+dramatically released when the bond is broken.  More generally, you
+may need to thermostat your system to compensate for energy changes
+resulting from broken bonds (and angles, dihedrals, impropers).
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+This fix computes two statistics which it stores in a global vector of
+length 2, which can be accessed by various "output
+commands"_Howto_output.html.  The vector values calculated by this fix
+are "intensive".
+
+These are the 2 quantities:
+
+(1) # of bonds broken on the most recent breakage timestep
+(2) cumulative # of bonds broken :ul
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
+
+[Related commands:]
+
+"fix bond/create"_fix_bond_create.html, "fix
+bond/react"_fix_bond_react.html, "fix bond/swap"_fix_bond_swap.html,
+"dump local"_dump.html, "special_bonds"_special_bonds.html
+
+[Default:]
+
+The option defaults are prob = 1.0.

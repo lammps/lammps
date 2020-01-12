@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "change_box.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "change_box.h"
 #include "atom.h"
 #include "modify.h"
 #include "fix.h"
@@ -272,7 +271,7 @@ void ChangeBox::command(int narg, char **arg)
       if (domain->dimension == 2 && domain->zperiodic == 0)
         error->all(FLERR,
                    "Cannot change box z boundary to "
-                   "nonperiodic for a 2d simulation");
+                   "non-periodic for a 2d simulation");
       domain->set_initial_box();
       domain->set_global_box();
       domain->set_local_box();

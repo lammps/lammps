@@ -21,21 +21,17 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include "atom.h"
 #include "compute_spin.h"
-#include "domain.h"
+#include <mpi.h>
+#include <cmath>
+#include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "math_special.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathSpecial;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
@@ -84,7 +80,7 @@ void ComputeSpin::compute_vector()
 
   invoked_vector = update->ntimestep;
 
-  countsp = countsptot = 0.0;	
+  countsp = countsptot = 0.0;
   mag[0] = mag[1] = mag[2] = mag[3] = 0.0;
   magtot[0] = magtot[1] = magtot[2] = magtot[3] = 0.0;
   magenergy = magenergytot = 0.0;
@@ -96,7 +92,7 @@ void ComputeSpin::compute_vector()
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tx,ty,tz;
-	
+
   int nlocal = atom->nlocal;
 
   // compute total magnetization and magnetic energy
@@ -105,16 +101,16 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
-	mag[0] += sp[i][0];
-	mag[1] += sp[i][1];
-	mag[2] += sp[i][2];
-	magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+        mag[0] += sp[i][0];
+        mag[1] += sp[i][1];
+        mag[2] += sp[i][2];
+        magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
         tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
         ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
         tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
         tempnum += tx*tx+ty*ty+tz*tz;
-        tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];  	
-	countsp++;
+        tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];
+        countsp++;
       }
     }
     else error->all(FLERR,"Compute compute/spin requires atom/spin style");
@@ -132,7 +128,7 @@ void ComputeSpin::compute_vector()
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
   spintemperature = hbar*tempnumtot;
-  spintemperature /= (kb*tempdenomtot);
+  spintemperature /= (2.0*kb*tempdenomtot);
 
   vector[0] = magtot[0];
   vector[1] = magtot[1];
@@ -149,6 +145,6 @@ void ComputeSpin::compute_vector()
 
 void ComputeSpin::allocate()
 {
-  memory->create(vector,6,"compute/spin:vector");
+  memory->create(vector,size_vector,"compute/spin:vector");
 }
 

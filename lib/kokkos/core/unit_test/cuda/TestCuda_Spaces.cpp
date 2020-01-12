@@ -218,9 +218,9 @@ TEST_F( cuda, uvm )
 
     *uvm_ptr = 42;
 
-    Kokkos::Cuda::fence();
+    Kokkos::Cuda().fence();
     test_cuda_spaces_int_value<<< 1, 1 >>>( uvm_ptr );
-    Kokkos::Cuda::fence();
+    Kokkos::Cuda().fence();
 
     EXPECT_EQ( *uvm_ptr, int( 2 * 42 ) );
 
@@ -228,6 +228,10 @@ TEST_F( cuda, uvm )
   }
 }
 
+/* Removing UVM Allocs Test due to added time to complete overall unit test
+ * The issue verified with this unit test appears to no longer be an 
+ * problem.  Refer to github issue 1880 for more details
+ *
 TEST_F( cuda, uvm_num_allocs )
 {
   // The max number of UVM allocations allowed is 65536.
@@ -288,6 +292,7 @@ TEST_F( cuda, uvm_num_allocs )
 
   #undef MAX_NUM_ALLOCS
 }
+*/
 
 template< class MemSpace, class ExecSpace >
 struct TestViewCudaAccessible {
@@ -315,7 +320,7 @@ struct TestViewCudaAccessible {
   {
     TestViewCudaAccessible self;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename MemSpace::execution_space, TagInit >( 0, N ), self );
-    MemSpace::execution_space::fence();
+    typename MemSpace::execution_space().fence();
 
     // Next access is a different execution space, must complete prior kernel.
     long error_count = -1;

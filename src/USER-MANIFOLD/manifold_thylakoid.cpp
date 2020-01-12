@@ -1,6 +1,6 @@
 #include "manifold_thylakoid.h"
 #include <cmath>
-
+#include "manifold_thylakoid_shared.h"
 #include "comm.h"
 #include "domain.h" // For some checks regarding the simulation box.
 #include "error.h"
@@ -46,7 +46,7 @@ void manifold_thylakoid::post_param_init()
   LB = params[1];
   lB = params[2];
 
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"My params are now: lT = %f, LT = %f, pad = %f, "
             "wB = %f, LB = %f, lB = %f\n", lT, LT, pad, wB, LB, lB );
     fprintf(screen,"Calling init_domains() from post_param_init().\n");
@@ -57,7 +57,7 @@ void manifold_thylakoid::post_param_init()
 
 void manifold_thylakoid::checkup()
 {
-  if( comm->me == 0  ){
+  if (comm->me == 0 ) {
     fprintf(screen,"This is checkup of thylakoid %p\n", this);
     fprintf(screen,"I have %ld parts. They are:\n", parts.size());
     for( int i = 0; i < parts.size(); ++i ){
@@ -85,9 +85,9 @@ double manifold_thylakoid::g( const double *x )
     error->one(FLERR,msg);
   }
   double con_val = p->g(x);
-  if( std::isfinite(con_val) ){
+  if (std::isfinite(con_val)) {
     return con_val;
-  }else{
+  } else {
     char msg[2048];
     sprintf(msg,"Error, thyla_part of type %d returned %f as constraint val!",
             p->type, con_val);
@@ -107,9 +107,9 @@ void   manifold_thylakoid::n( const double *x, double *n )
     error->one(FLERR,msg);
   }
   p->n(x,n);
-  if( std::isfinite(n[0]) && std::isfinite(n[1]) && std::isfinite(n[2]) ){
+  if (std::isfinite(n[0]) && std::isfinite(n[1]) && std::isfinite(n[2])) {
     return;
-  }else{
+  } else {
     char msg[2048];
     sprintf(msg,"Error, thyla_part of type %d returned (%f,%f,%f) as gradient!",
             p->type, n[0], n[1], n[2]);
@@ -122,8 +122,8 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
 
   for( std::size_t i = 0; i < parts.size(); ++i ){
     thyla_part *p = parts[i];
-    if( is_in_domain(p,x) ){
-      if( idx != NULL ) *idx = i;
+    if (is_in_domain(p,x)) {
+      if (idx != NULL) *idx = i;
       return p;
     }
   }
@@ -140,7 +140,7 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
 
 void manifold_thylakoid::init_domains()
 {
-  if( wB + 2*lB > LT ){
+  if (wB + 2*lB > LT) {
     char msg[2048];
     sprintf(msg,"LT = %f not large enough to accomodate bridge with "
             "wB = %f and lB = %f! %f > %f\n", LT, wB, lB, wB + 2*lB, LT);
@@ -152,19 +152,19 @@ void manifold_thylakoid::init_domains()
   y0 = -( 0.5*LT + lT + pad );
   z0 = -15;
 #ifdef  MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"x0, y0, z0 = %f, %f, %f\n",x0,y0,z0);
   }
 #endif // MANIFOLD_THYLAKOID_DEBUG
 
 #ifndef USE_PHONY_LAMMPS
-  if( x0 < domain->boxlo[0] ){
+  if (x0 < domain->boxlo[0]) {
     char msg[2048];
     sprintf(msg,"Thylakoid expects xlo of at most %f, but found %f",
             x0, domain->boxlo[0]);
     error->one(FLERR,msg);
   }
-  if( y0 < domain->boxlo[1] ){
+  if (y0 < domain->boxlo[1]) {
     char msg[2048];
     sprintf(msg,"Thylakoid expects ylo of at most %f, but found %f",
             y0, domain->boxlo[1]);
@@ -243,7 +243,7 @@ void manifold_thylakoid::init_domains()
 
   // double X0, double R0, double R, double s,
 #ifdef MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"x0, r0, R = %f, %f, %f\n", bl.pt[0], rB, lB);
   }
 #endif // MANIFOLD_THYLAKOID_DEBUG
@@ -266,7 +266,7 @@ void manifold_thylakoid::init_domains()
 
   // double X0, double R0, double R, double s,
 #ifdef MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"x0, r0, R = %f, %f, %f\n", br.pt[0], rB, lB);
   }
 #endif // MANIFOLD_THYLAKOID_DEBUG
@@ -293,7 +293,7 @@ void manifold_thylakoid::init_domains()
   p = make_cyl_part( 0, 1, 1, bc.pt, rB );
   set_domain( p, bc.lo, bc.hi );
 #ifdef MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"Cylinder lives on [ %f x %f ] x [ %f x %f ] x [ %f x %f]\n",
             bc.lo[0], bc.hi[0], bc.lo[1], bc.hi[1], bc.lo[2], bc.hi[2]);
   }
@@ -405,7 +405,7 @@ void manifold_thylakoid::init_domains()
   parts.push_back(p);
 
   // Check if this plane lines up with bl:
-  if( fabs(plr.pt[0] - bl.pt[0] + lB) > 1e-8 ){
+  if (fabs(plr.pt[0] - bl.pt[0] + lB) > 1e-8) {
     char msg[2048];
     sprintf(msg,"Origins of plane left right and bridge left misaligned! %f != %f!\n",
             plr.pt[0], bl.pt[0] - lB );
@@ -458,7 +458,7 @@ void manifold_thylakoid::init_domains()
   set_domain(p, prr.lo, prr.hi);
   parts.push_back(p);
 
-  if( fabs(prr.pt[0] - br.pt[0] - lB) > 1e-8 ){
+  if (fabs(prr.pt[0] - br.pt[0] - lB) > 1e-8) {
     char msg[2048];
     sprintf(msg,"Origins of plane left right and bridge left misaligned! %f != %f!\n",
             prr.pt[0], br.pt[0] + lB);
@@ -467,7 +467,7 @@ void manifold_thylakoid::init_domains()
 
   // For debugging, print the domains and coms:
 #ifdef MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     FILE *fp_doms = fopen("test_doms.dat","w");
     FILE *fp_coms = fopen("test_coms.dat","w");
     print_part_data(fp_doms, fp_coms);
@@ -482,20 +482,20 @@ void manifold_thylakoid::set_domain( thyla_part *p, const std::vector<double> &l
                                      const std::vector<double> &hi )
 {
 #ifdef MANIFOLD_THYLAKOID_DEBUG
-  if( comm->me == 0 ){
+  if (comm->me == 0) {
     fprintf(screen,"Adding part with domain [%f, %f] x [%f, %f] x [%f, %f]\n",
             lo[0],hi[0],lo[1],hi[1],lo[2],hi[2] );
   }
 #endif // MANIFOLD_THYLAKOID_DEBUG
-  if( lo[0] >= hi[0] ){
+  if (lo[0] >= hi[0]) {
     char msg[2048];
     sprintf(msg,"xlo >= xhi (%f >= %f)",lo[0],hi[0]);
     error->one(FLERR,msg);
-  }else if( lo[1] >= hi[1] ){
+  } else if (lo[1] >= hi[1]) {
     char msg[2048];
     sprintf(msg,"ylo >= yhi (%f >= %f)",lo[1],hi[1]);
     error->one(FLERR,msg);
-  }else if( lo[2] >= hi[2] ){
+  } else if (lo[2] >= hi[2]) {
     char msg[2048];
     sprintf(msg,"zlo >= zhi (%f >= %f)",lo[2],hi[2]);
     error->one(FLERR,msg);
@@ -515,11 +515,11 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
           (x[1] >= part->ylo) && (x[1] <= part->yhi) &&
           (x[2] >= part->zlo) && (x[2] <= part->zhi);
 
-  if( !domain_ok ) return false;
+  if (!domain_ok) return false;
 
   // From here on out, domain is ok.
 
-  if( part->type == thyla_part::THYLA_TYPE_CYL_TO_PLANE ){
+  if (part->type == thyla_part::THYLA_TYPE_CYL_TO_PLANE) {
 
     double R0 = part->params[1];
     double R  = part->params[2];
@@ -530,13 +530,13 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
     double RR2 = RR*RR;
 
 
-    if( dist2 < RR2 ){
+    if (dist2 < RR2) {
       return true;
-    }else{
+    } else {
       // Domain was ok, but radius not.
       return false;
     }
-  }else{
+  } else {
     return true;
   }
 }

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "set.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "set.h"
+#include <climits>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -26,9 +26,7 @@
 #include "region.h"
 #include "group.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "force.h"
-#include "pair.h"
 #include "input.h"
 #include "variable.h"
 #include "random_park.h"
@@ -890,7 +888,7 @@ void Set::set(int keyword)
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
-      double *quat;
+      double *quat = NULL;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)
@@ -962,6 +960,21 @@ void Set::set(int keyword)
     }
 
     count++;
+  }
+
+  // update bonus data numbers
+  if (keyword == SHAPE) {
+    bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,
+                  MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == LENGTH) {
+    bigint nlocal_bonus = avec_line->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nlines,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == TRI) {
+    bigint nlocal_bonus = avec_tri->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->ntris,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   // clear up per-atom memory if allocated

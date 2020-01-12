@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cubic_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cubic_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -86,8 +86,7 @@ PairLJCubicGPU::~PairLJCubicGPU()
 
 void PairLJCubicGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -174,8 +173,9 @@ double PairLJCubicGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCubicGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                               int *ilist, int *numneigh, int **firstneigh) {
+void PairLJCubicGPU::cpu_compute(int start, int inum, int eflag,
+                                 int /* vflag */, int *ilist,
+                                 int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;

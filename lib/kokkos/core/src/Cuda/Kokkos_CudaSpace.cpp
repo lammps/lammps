@@ -55,7 +55,7 @@
 #include <Kokkos_Cuda.hpp>
 #include <Kokkos_CudaSpace.hpp>
 
-#include <Cuda/Kokkos_Cuda_Internal.hpp>
+//#include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <impl/Kokkos_Error.hpp>
 
 #if defined(KOKKOS_ENABLE_PROFILING)
@@ -183,7 +183,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
   enum { max_uvm_allocations = 65536 };
 
-  Cuda::fence();
+  Cuda::impl_static_fence();
   if ( arg_alloc_size > 0 )
   {
     Kokkos::Impl::num_uvm_allocations++;
@@ -194,7 +194,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
     CUDA_SAFE_CALL( cudaMallocManaged( &ptr, arg_alloc_size , cudaMemAttachGlobal ) );
   }
-  Cuda::fence();
+  Cuda::impl_static_fence();
 
   return ptr ;
 }
@@ -217,14 +217,14 @@ void CudaSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_all
 
 void CudaUVMSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
 {
-  Cuda::fence();
+  Cuda::impl_static_fence();
   try {
     if ( arg_alloc_ptr != nullptr ) {
       Kokkos::Impl::num_uvm_allocations--;
       CUDA_SAFE_CALL( cudaFree( arg_alloc_ptr ) );
     }
   } catch(...) {}
-  Cuda::fence();
+  Cuda::impl_static_fence();
 }
 
 void CudaHostPinnedSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
@@ -390,7 +390,7 @@ SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 {
   #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
-    Cuda::fence(); //Make sure I can access the label ...
+    Cuda::impl_static_fence(); //Make sure I can access the label ...
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaUVMSpace::name()),RecordBase::m_alloc_ptr->m_label,
       data(),size());
@@ -453,6 +453,8 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  header.m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 
   // Copy to device memory
   Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
@@ -491,6 +493,9 @@ SharedAllocationRecord( const Kokkos::CudaUVMSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+
+  // Set last element zero, in case c_str is too long
+  RecordBase::m_alloc_ptr->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 }
 
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
@@ -525,6 +530,8 @@ SharedAllocationRecord( const Kokkos::CudaHostPinnedSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  RecordBase::m_alloc_ptr->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 }
 
 //----------------------------------------------------------------------------
@@ -822,7 +829,8 @@ void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   }
   if(bytes > current_size) {
     current_size = bytes;
-    ptr = Kokkos::kokkos_realloc<Kokkos::CudaSpace>(ptr,current_size);
+    Kokkos::kokkos_free<Kokkos::CudaSpace>(ptr);
+    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",current_size);
   }
   if((bytes < current_size) && (force_shrink)) {
     current_size = bytes;

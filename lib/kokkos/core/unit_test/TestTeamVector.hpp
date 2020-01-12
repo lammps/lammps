@@ -227,14 +227,13 @@ struct functor_team_for {
 
   functor_team_for( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
+  unsigned team_shmem_size( int team_size ) const { return shared_int::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
-    typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-    typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
-    typedef typename shared_int::size_type size_type;
-
+    typedef typename shmem_space::size_type size_type;
     const size_type shmemSize = team.team_size() * 13;
     shared_int values = shared_int( team.team_shmem(), shmemSize );
 
@@ -290,16 +289,24 @@ struct functor_team_reduce {
 
   functor_team_reduce( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_scalar_t;
+  unsigned team_shmem_size( int team_size ) const { return shared_scalar_t::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
     Scalar value = Scalar();
+    shared_scalar_t shared_value(team.team_scratch(0),1);
 
     Kokkos::parallel_reduce( Kokkos::TeamThreadRange( team, 131 ), [&] ( int i, Scalar & val )
     {
       val += i - team.league_rank() + team.league_size() + team.team_size();
     }, value );
+    
+    Kokkos::parallel_reduce( Kokkos::TeamThreadRange( team, 131 ), [&] ( int i, Scalar & val )
+    {
+      val += i - team.league_rank() + team.league_size() + team.team_size();
+    }, shared_value(0) );
 
     team.team_barrier();
 
@@ -313,9 +320,18 @@ struct functor_team_reduce {
 
       if ( test != value ) {
         if ( team.league_rank() == 0 ) {
-          printf( "FAILED team_parallel_reduce %i %i %f %f %lu\n",
+          printf( "FAILED team_parallel_reduce %i %i %lf %lf %lu\n",
                   team.league_rank(), team.team_rank(),
                   static_cast<double>( test ), static_cast<double>( value ), sizeof( Scalar ) );
+        }
+
+        flag() = 1;
+      }
+      if ( test != shared_value(0) ) {
+        if ( team.league_rank() == 0 ) {
+          printf( "FAILED team_parallel_reduce with shared result %i %i %lf %lf %lu\n",
+                  team.league_rank(), team.team_rank(),
+                  static_cast<double>( test ), static_cast<double>( shared_value(0) ), sizeof( Scalar ) );
         }
 
         flag() = 1;
@@ -333,17 +349,27 @@ struct functor_team_reduce_reducer {
 
   functor_team_reduce_reducer( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_scalar_t;
+  unsigned team_shmem_size( int team_size ) const { return shared_scalar_t::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
     Scalar value = 0;
+    shared_scalar_t shared_value(team.team_scratch(0),1);
 
     Kokkos::parallel_reduce( Kokkos::TeamThreadRange( team, 131 ), [&] ( int i, Scalar & val )
     {
       val += i - team.league_rank() + team.league_size() + team.team_size();
     },
       Kokkos::Sum<Scalar>(value)
+    );
+    
+    Kokkos::parallel_reduce( Kokkos::TeamThreadRange( team, 131 ), [&] ( int i, Scalar & val )
+    {
+      val += i - team.league_rank() + team.league_size() + team.team_size();
+    },
+      Kokkos::Sum<Scalar>(shared_value(0))
     );
 
     team.team_barrier();
@@ -357,9 +383,16 @@ struct functor_team_reduce_reducer {
       }
 
       if ( test != value ) {
-        printf( "FAILED team_vector_parallel_reduce_reducer %i %i %f %f\n",
+        printf( "FAILED team_vector_parallel_reduce_reducer %i %i %lf %lf\n",
                 team.league_rank(), team.team_rank(),
                 static_cast<double>( test ), static_cast<double>( value ) );
+
+        flag() = 1;
+      }
+      if ( test != shared_value(0) ) {
+        printf( "FAILED team_vector_parallel_reduce_reducer shared value %i %i %lf %lf\n",
+                team.league_rank(), team.team_rank(),
+                static_cast<double>( test ), static_cast<double>( shared_value(0) ) );
 
         flag() = 1;
       }
@@ -376,12 +409,12 @@ struct functor_team_vector_for {
 
   functor_team_vector_for( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
+  unsigned team_shmem_size( int team_size ) const { return shared_int::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
-    typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-    typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
     typedef typename shared_int::size_type size_type;
 
     const size_type shmemSize = team.team_size() * 13;
@@ -442,7 +475,9 @@ struct functor_team_vector_reduce {
   Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag;
   functor_team_vector_reduce( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
+  unsigned team_shmem_size( int team_size ) const { return shared_int::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
@@ -485,7 +520,9 @@ struct functor_team_vector_reduce_reducer {
 
   functor_team_vector_reduce_reducer( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
+  unsigned team_shmem_size( int team_size ) const { return shared_int::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
@@ -525,7 +562,11 @@ struct functor_vec_single {
   typedef ExecutionSpace execution_space;
 
   Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag;
-  functor_vec_single( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
+  int nStart;
+  int nEnd;
+
+  functor_vec_single( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_, const int start_, const int end_ ) : 
+                           flag( flag_ ), nStart(start_), nEnd(end_) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
@@ -534,7 +575,7 @@ struct functor_vec_single {
     // inside a parallel_for and write to it.
     Scalar value = 0;
 
-    Kokkos::parallel_for( Kokkos::ThreadVectorRange( team, 0, 13 ), [&] ( int i )
+    Kokkos::parallel_for( Kokkos::ThreadVectorRange( team, nStart, nEnd ), [&] ( int i )
     {
       value = i; // This write is violating Kokkos semantics for nested parallelism.
     });
@@ -545,12 +586,12 @@ struct functor_vec_single {
     }, value );
 
     Scalar value2 = 0;
-    Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( team, 0, 13 ), [&] ( int i, Scalar & val )
+    Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( team, nStart, nEnd ), [&] ( int i, Scalar & val )
     {
       val += value;
     }, value2 );
 
-    if ( value2 != ( value * 13 ) ) {
+    if ( value2 != ( value * (nEnd-nStart) ) ) {
       printf( "FAILED vector_single broadcast %i %i %f %f\n",
               team.league_rank(), team.team_rank(), (double) value2, (double) value );
 
@@ -568,12 +609,12 @@ struct functor_vec_for {
 
   functor_vec_for( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
 
-  unsigned team_shmem_size( int team_size ) const { return team_size * 13 * sizeof( Scalar ) + 8; }
+  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
+  typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
+  unsigned team_shmem_size( int team_size ) const { return shared_int::shmem_size(team_size*13); }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
-    typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-    typedef Kokkos::View< Scalar*, shmem_space, Kokkos::MemoryUnmanaged > shared_int;
 
     shared_int values = shared_int( team.team_shmem(), team.team_size() * 13 );
 
@@ -739,23 +780,10 @@ bool test_scalar( int nteams, int team_size, int test ) {
                           functor_vec_red< Scalar, ExecutionSpace >( d_flag ) );
   }
   else if ( test == 1 ) {
-    // WORKAROUND ROCM/CUDA
-    #if defined(KOKKOS_ENABLE_CUDA)
-    #if defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND) || defined(KOKKOS_ARCH_PASCAL)
-    if(!std::is_same<ExecutionSpace,Kokkos::Cuda>::value)
-    #endif
-    #endif
-    #if defined(KOKKOS_ENABLE_ROCM)
-    if(!std::is_same<ExecutionSpace,Kokkos::Experimental::ROCm>::value)
-    #endif
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
                           functor_vec_red_reducer< Scalar, ExecutionSpace >( d_flag ) );
   }
   else if ( test == 2 ) {
-    // WORKAROUND ROCM
-    #if defined(KOKKOS_ENABLE_ROCM)
-    if(!std::is_same<ExecutionSpace,Kokkos::Experimental::ROCm>::value)
-    #endif
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
                           functor_vec_scan< Scalar, ExecutionSpace >( d_flag ) );
   }
@@ -765,7 +793,7 @@ bool test_scalar( int nteams, int team_size, int test ) {
   }
   else if ( test == 4 ) {
     Kokkos::parallel_for( "B", Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
-                          functor_vec_single< Scalar, ExecutionSpace >( d_flag ) );
+                          functor_vec_single< Scalar, ExecutionSpace >( d_flag, 0, 13 ) );
   }
   else if ( test == 5 ) {
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size ),
@@ -776,10 +804,6 @@ bool test_scalar( int nteams, int team_size, int test ) {
                           functor_team_reduce< Scalar, ExecutionSpace >( d_flag ) );
   }
   else if ( test == 7 ) {
-    // WORKAROUND ROCM
-    #if defined(KOKKOS_ENABLE_ROCM)
-    if(!std::is_same<ExecutionSpace,Kokkos::Experimental::ROCm>::value)
-    #endif
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size ),
                           functor_team_reduce_reducer< Scalar, ExecutionSpace >( d_flag ) );
   }
@@ -792,12 +816,12 @@ bool test_scalar( int nteams, int team_size, int test ) {
                           functor_team_vector_reduce< Scalar, ExecutionSpace >( d_flag ) );
   }
   else if ( test == 10 ) {
-    // WORKAROUND ROCM
-    #if defined(KOKKOS_ENABLE_ROCM)
-    if(!std::is_same<ExecutionSpace,Kokkos::Experimental::ROCm>::value)
-    #endif
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
                           functor_team_vector_reduce_reducer< Scalar, ExecutionSpace >( d_flag ) );
+  }
+  else if ( test == 11 ) {
+    Kokkos::parallel_for( "B", Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
+                          functor_vec_single< Scalar, ExecutionSpace >( d_flag, 4, 13 ) );
   }
 
   Kokkos::deep_copy( h_flag, d_flag );
@@ -829,7 +853,6 @@ namespace Test {
 // ( modified from kokkos-tutorials/GTC2016/Exercises/ThreeLevelPar )
 
 #if ( ! defined( KOKKOS_ENABLE_CUDA ) ) || (defined( KOKKOS_ENABLE_CUDA_LAMBDA ) && (8000 <= CUDA_VERSION))
-
 template< typename ScalarType, class DeviceType >
 class TestTripleNestedReduce
 {
@@ -848,6 +871,14 @@ public:
   {
     if( team_size > size_type(DeviceType::execution_space::concurrency()))
       team_size = size_type(DeviceType::execution_space::concurrency());
+
+#ifdef KOKKOS_ENABLE_HPX
+    team_size = 1;
+    if (!std::is_same<execution_space, Kokkos::Experimental::HPX>::value)
+    {
+        team_size = 1;
+    }
+#endif
 
     //typedef Kokkos::LayoutLeft Layout;
     typedef Kokkos::LayoutRight Layout;
@@ -946,6 +977,7 @@ TEST_F( TEST_CATEGORY, team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 8 ) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 9 ) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 10 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 11 ) ) );
 }
 #endif
 
@@ -955,28 +987,24 @@ TEST_F( TEST_CATEGORY, triple_nested_parallelism )
 // With KOKKOS_DEBUG enabled, the functor uses too many registers to run
 // with a team size of 32 on GPUs, 16 is the max possible (at least on a K80 GPU)
 // See https://github.com/kokkos/kokkos/issues/1513
-#if defined(KOKKOS_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value) {
 #endif
 #ifdef KOKKOS_ENABLE_ROCM // ROCm doesn't support TeamSize 32x32
-  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value) {
+  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
 #endif
   TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 32, 32 );
-#ifdef KOKKOS_ENABLE_ROCM
-  }
-#endif
   TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 32, 16 );
-#if defined(KOKKOS_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   }
 #endif
   TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 16, 16 );
+  TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 16, 33 );
+  TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 16, 19 );
 #ifdef KOKKOS_ENABLE_ROCM // ROCm doesn't support team sizes not powers of two
-  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value) {
+  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
 #endif
   TestTripleNestedReduce< double, TEST_EXECSPACE >( 8192, 2048, 7, 16 );
-#ifdef KOKKOS_ENABLE_ROCM
-  }
-#endif
 }
 #endif
 

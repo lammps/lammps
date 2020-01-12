@@ -15,14 +15,12 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_slater.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_qeq_slater.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,7 +31,6 @@
 #include "kspace.h"
 #include "respa.h"
 #include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -114,9 +111,9 @@ void FixQEqSlater::pre_force(int /*vflag*/)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
-  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();

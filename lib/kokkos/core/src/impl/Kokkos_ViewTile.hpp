@@ -50,6 +50,9 @@
 namespace Kokkos {
 namespace Impl {
 
+// ===========================================================================
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+
 // View mapping for rank two tiled array
 
 template< class L >
@@ -202,16 +205,22 @@ struct ViewMapping
       typedef typename src_map_type::offset_type  src_offset_type ;
 
       dst = dst_map_type(
-         dst_handle_type( src.m_handle +
-                        ( ( i_tile0 + src.m_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
+         dst_handle_type( src.m_impl_handle +
+                        ( ( i_tile0 + src.m_impl_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
          dst_offset_type() );
     }
 };
+
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
+// ===============================================================================
 
 } /* namespace Impl */
 } /* namespace Kokkos */
 
 namespace Kokkos {
+
+// ==============================================================================
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 template< typename T , unsigned N0 , unsigned N1 , class ... P >
 KOKKOS_INLINE_FUNCTION
@@ -228,6 +237,9 @@ tile_subview( const Kokkos::View<T**,Kokkos::LayoutTileLeft<N0,N1,true>,P...> & 
   return Kokkos::View< T[N0][N1] , LayoutLeft , P... >
     ( src , SrcLayout() , i_tile0 , i_tile1 );
 }
+
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
+// ===============================================================================
 
 } /* namespace Kokkos */
 

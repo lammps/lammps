@@ -18,9 +18,9 @@
    lj/sdk potential for coarse grained MD simulations.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_sdk.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -30,6 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include "lj_sdk_common.h"
 
@@ -68,8 +69,7 @@ void AngleSDK::compute(int eflag, int vflag)
   double rsq1,rsq2,rsq3,r1,r2,c,s,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -333,9 +333,9 @@ void AngleSDK::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
-    fread(&repscale[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&repscale[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

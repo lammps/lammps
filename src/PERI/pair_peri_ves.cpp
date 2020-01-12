@@ -15,15 +15,14 @@
    Contributing authors: Rezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_peri_ves.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_peri_neigh.h"
@@ -32,6 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -98,8 +98,7 @@ void PairPeriVES::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -429,13 +428,13 @@ void PairPeriVES::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double bulkmodulus_one = atof(arg[2]);
-  double shearmodulus_one = atof(arg[3]);
-  double cut_one = atof(arg[4]);
-  double s00_one = atof(arg[5]);
-  double alpha_one = atof(arg[6]);
-  double mlambdai_one = atof(arg[7]);
-  double mtaui_one = atof(arg[8]);
+  double bulkmodulus_one = force->numeric(FLERR,arg[2]);
+  double shearmodulus_one = force->numeric(FLERR,arg[3]);
+  double cut_one = force->numeric(FLERR,arg[4]);
+  double s00_one = force->numeric(FLERR,arg[5]);
+  double alpha_one = force->numeric(FLERR,arg[6]);
+  double mlambdai_one = force->numeric(FLERR,arg[7]);
+  double mtaui_one = force->numeric(FLERR,arg[8]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -508,9 +507,9 @@ void PairPeriVES::init_style()
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
+  ifix_peri = modify->find_fix_by_style("^PERI_NEIGH");
+  if (ifix_peri == -1)
+    error->all(FLERR,"Fix peri neigh does not exist");
 
   neighbor->request(this,instance_me);
 }
@@ -549,17 +548,17 @@ void PairPeriVES::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&bulkmodulus[i][j],sizeof(double),1,fp);
-          fread(&shearmodulus[i][j],sizeof(double),1,fp);
-          fread(&s00[i][j],sizeof(double),1,fp);
-          fread(&alpha[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
-          fread(&m_lambdai[i][j],sizeof(double),1,fp);
-          fread(&m_taubi[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&bulkmodulus[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&shearmodulus[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&m_lambdai[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&m_taubi[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&bulkmodulus[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&shearmodulus[i][j],1,MPI_DOUBLE,0,world);

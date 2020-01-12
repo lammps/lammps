@@ -15,25 +15,24 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_peri_pmb.h"
+#include <mpi.h>
 #include <cmath>
 #include <cfloat>
-#include <cstdlib>
 #include <cstring>
-#include "pair_peri_pmb.h"
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_peri_neigh.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -84,8 +83,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -383,9 +381,9 @@ void PairPeriPMB::init_style()
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
+  ifix_peri = modify->find_fix_by_style("^PERI_NEIGH");
+  if (ifix_peri == -1)
+    error->all(FLERR,"Fix peri neigh does not exist");
 
   neighbor->request(this,instance_me);
 }
@@ -421,14 +419,14 @@ void PairPeriPMB::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&kspring[i][j],sizeof(double),1,fp);
-          fread(&s00[i][j],sizeof(double),1,fp);
-          fread(&alpha[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&kspring[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&kspring[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&s00[i][j],1,MPI_DOUBLE,0,world);

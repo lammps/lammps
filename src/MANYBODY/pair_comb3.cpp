@@ -17,22 +17,23 @@
                       Dundar Yilmaz (dundar.yilmaz@zirve.edu.tr)
 ------------------------------------------------------------------------- */
 
+#include "pair_comb3.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb3.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -208,7 +209,7 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if( comm->me == 0 && screen) fprintf(screen,
+      if (comm->me == 0 && screen) fprintf(screen,
       " PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;
@@ -319,12 +320,13 @@ void PairComb3::read_lib()
   // open libraray file on proc 0
 
   if (comm->me == 0) {
-    FILE *fp = force->open_potential("lib.comb3");
+    const char filename[] = "lib.comb3";
+    FILE *fp = force->open_potential(filename);
     if (fp == NULL) error->one(FLERR,"Cannot open COMB3 lib.comb3 file");
 
     // read and store at the same time
-    fgets(s,MAXLIB,fp);
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -335,7 +337,7 @@ void PairComb3::read_lib()
     ccutoff[4] = atof(words[4]);
     ccutoff[5] = atof(words[5]);
 
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -347,7 +349,7 @@ void PairComb3::read_lib()
     ch_a[5] = atof(words[5]);
     ch_a[6] = atof(words[6]);
 
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -355,7 +357,7 @@ void PairComb3::read_lib()
     nsplrad = atoi(words[1]);
     nspltor = atoi(words[2]);
 
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -363,7 +365,7 @@ void PairComb3::read_lib()
     maxy = atoi(words[1]);
     maxz = atoi(words[2]);
 
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -372,7 +374,7 @@ void PairComb3::read_lib()
     maxconj = atoi(words[2]);
 
     for (l=0; l<nsplpcn; l++) {
-      fgets(s,MAXLIB,fp);
+      utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
       nwords = 0;
       words[nwords++] = strtok(s," \t\n\r\f");
       while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -381,14 +383,14 @@ void PairComb3::read_lib()
       dvmaxxcn[l] = atof(words[3]);
     }
 
-    fgets(s,MAXLIB,fp);
+    utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
     ntab = atoi(words[0]);
 
     for (i=0; i<ntab+1; i++){
-      fgets(s,MAXLIB,fp);
+      utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
       nwords = 0;
       words[nwords++] = strtok(s," \t\n\r\f");
       while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -401,7 +403,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxx+1; i++)
         for (j=0; j<maxy+1; j++)
           for (k=0; k<maxz+1; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -419,7 +421,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxx; i++)
         for (j=0; j<maxy; j++)
           for (k=0; k<maxz; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -428,7 +430,7 @@ void PairComb3::read_lib()
            jj = atoi(words[2]);
            kk = atoi(words[3]);
            for(iii=0; iii<2; iii++) {
-             fgets(s,MAXLIB,fp);
+             utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
              nwords = 0;
              words[nwords++] = strtok(s," \t\n\r\f");
              while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -443,7 +445,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxxc+1; i++)
         for (j=0; j<maxyc+1; j++)
           for (k=0; k<maxconj; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -461,7 +463,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxxc; i++)
         for (j=0; j<maxyc; j++)
           for (k=0; k<maxconj-1; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -470,7 +472,7 @@ void PairComb3::read_lib()
             jj = atoi(words[2]);
             kk = atoi(words[3])-1;
             for (iii=0; iii<2; iii++) {
-              fgets(s,MAXLIB,fp);
+              utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
               nwords = 0;
               words[nwords++] = strtok(s," \t\n\r\f");
               while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -485,7 +487,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxxc+1; i++)
         for (j=0; j<maxyc+1; j++)
           for (k=0; k<maxconj; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -503,7 +505,7 @@ void PairComb3::read_lib()
       for (i=0; i<maxxc; i++)
         for (j=0; j<maxyc; j++)
           for (k=0; k<maxconj-1; k++) {
-            fgets(s,MAXLIB,fp);
+            utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
             nwords = 0;
             words[nwords++] = strtok(s," \t\n\r\f");
             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -512,7 +514,7 @@ void PairComb3::read_lib()
             jj = atoi(words[2]);
             kk = atoi(words[3])-1;
             for(iii=0; iii<2; iii++) {
-              fgets(s,MAXLIB,fp);
+              utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
               nwords = 0;
               words[nwords++] = strtok(s," \t\n\r\f");
               while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
@@ -922,7 +924,7 @@ void PairComb3::Short_neigh()
 
       icontrol = params[iparam_ij].jelementgp;
 
-      if( icontrol == 1)
+      if (icontrol == 1)
           xcctmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
       if (icontrol == 2)
           xchtmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
@@ -987,8 +989,7 @@ void PairComb3::compute(int eflag, int vflag)
 
   evdwl = eng_tmp = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Build short range neighbor list
   Short_neigh();
@@ -1250,7 +1251,7 @@ void PairComb3::compute(int eflag, int vflag)
 
         // torsion: i-j-k-l: apply to all C-C bonds
 
-        if( params[iparam_ij].tor_flag != 0 ) {
+        if (params[iparam_ij].tor_flag != 0) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
@@ -1382,7 +1383,7 @@ void PairComb3::compute(int eflag, int vflag)
         }
 
         // torsion and radical: apply to all C-C bonds
-        if( params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
+        if (params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
@@ -2578,7 +2579,7 @@ void PairComb3::tables()
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
         // radius check: outer radius vs. sigma
-        if( rvdw[0][inty] > rvdw[1][inty] )
+        if (rvdw[0][inty] > rvdw[1][inty])
           error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
 
         rrc[0] = rvdw[1][inty];

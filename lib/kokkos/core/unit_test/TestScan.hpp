@@ -69,9 +69,9 @@ struct TestScan {
       const value_type answer = n & 1 ? ( n * ( ( n + 1 ) / 2 ) ) : ( ( n / 2 ) * ( n + 1 ) );
 
       if ( answer != update ) {
-        errors()++;
+        int fail = errors()++;
 
-        if ( errors() < 20 ) {
+        if ( fail < 20 ) {
           printf( "TestScan(%d,%ld) != %ld\n", iwork, update, answer );
         }
       }
@@ -96,7 +96,9 @@ struct TestScan {
 
     long long int total = 0;
     Kokkos::parallel_scan( N, *this, total );
+
     run_check( size_t( ( N+1 )*N/2 ), size_t( total ) );
+    check_error();
   }
 
   TestScan( const WorkSpec & Start , const WorkSpec & N )
@@ -108,6 +110,15 @@ struct TestScan {
     errors = errors_a;
     
     Kokkos::parallel_scan( exec_policy( Start , N ) , *this );
+    Kokkos::fence();
+
+    check_error();
+  }
+
+  void check_error() {
+    int total_errors;
+    Kokkos::deep_copy(total_errors, errors);
+    ASSERT_EQ(total_errors,0);
   }
 
   static void test_range( const WorkSpec & begin, const WorkSpec & end )
@@ -130,7 +141,7 @@ TEST_F( TEST_CATEGORY, scan )
   TestScan< TEST_EXECSPACE >( 0 );
   TestScan< TEST_EXECSPACE >( 100000 );
   TestScan< TEST_EXECSPACE >( 10000000 );
-  TEST_EXECSPACE::fence();
+  TEST_EXECSPACE().fence();
 }
 
 
@@ -145,7 +156,7 @@ TEST_F( TEST_CATEGORY, scan )
   TestScanFunctor( 1000000 );
   TestScanFunctor( 10000000 );
 
-  TEST_EXECSPACE::fence();
+  TEST_EXECSPACE().fence();
 }*/
 
 

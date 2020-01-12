@@ -24,13 +24,10 @@
 #include "neigh_request.h"
 #include "universe.h"
 #include "update.h"
-#include "integrate.h"
-#include "min.h"
 #include "timer.h"
 
 #include "fix_omp.h"
 #include "thr_data.h"
-#include "thr_omp.h"
 
 #include "pair_hybrid.h"
 #include "bond_hybrid.h"
@@ -40,8 +37,11 @@
 #include "kspace.h"
 
 #include <cstring>
-#include <cstdlib>
-#include <cstdio>
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 
 #include "suffix.h"
 
@@ -80,7 +80,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of OpenMP threads requested");
 
+#if defined(_OPENMP)
   int reset_thr = 0;
+#endif
   if (nthreads != comm->nthreads) {
 #if defined(_OPENMP)
     reset_thr = 1;

@@ -53,6 +53,13 @@
 #include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
 #endif
 
+#include <impl/Kokkos_Atomic_Memory_Order.hpp>
+#include <impl/Kokkos_Memory_Fence.hpp>
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <Cuda/Kokkos_Cuda_Atomic_Intrinsics.hpp>
+#endif
+
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -107,7 +114,12 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
+#else
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+#endif
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -119,7 +131,11 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
         done = 1;
       }
     }
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
+#else
     done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+#endif
   }
   return return_val;
 }
@@ -299,6 +315,16 @@ T atomic_compare_exchange( volatile T * const dest_v, const T compare, const T v
 #endif
 #endif // !defined ROCM_ATOMICS
 
+// dummy for non-CUDA Kokkos headers being processed by NVCC
+#if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
+template <typename T>
+__inline__ __device__
+T atomic_compare_exchange(volatile T * const, const Kokkos::Impl::identity_t<T>, const Kokkos::Impl::identity_t<T>)
+{
+  return T();
+}
+#endif
+
 template <typename T>
 KOKKOS_INLINE_FUNCTION
 bool atomic_compare_exchange_strong(volatile T* const dest, const T compare, const T val)
@@ -307,7 +333,165 @@ bool atomic_compare_exchange_strong(volatile T* const dest, const T compare, con
 }
 //----------------------------------------------------------------------------
 
+namespace Impl {
+// memory-ordered versions are in the Impl namespace
+
+template <class T, class MemoryOrderFailure>
+KOKKOS_INLINE_FUNCTION
+bool _atomic_compare_exchange_strong_fallback(
+  T* dest, T compare, T val, memory_order_seq_cst_t, MemoryOrderFailure
+)
+{
+  Kokkos::memory_fence();
+  auto rv = Kokkos::atomic_compare_exchange_strong(
+    dest, compare, val
+  );
+  Kokkos::memory_fence();
+  return rv;
+}
+
+template <class T, class MemoryOrderFailure>
+KOKKOS_INLINE_FUNCTION
+bool _atomic_compare_exchange_strong_fallback(
+  T* dest, T compare, T val, memory_order_acquire_t, MemoryOrderFailure
+)
+{
+  auto rv = Kokkos::atomic_compare_exchange_strong(
+    dest, compare, val
+  );
+  Kokkos::memory_fence();
+  return rv;
+}
+
+template <class T, class MemoryOrderFailure>
+KOKKOS_INLINE_FUNCTION
+bool _atomic_compare_exchange_strong_fallback(
+  T* dest, T compare, T val, memory_order_release_t, MemoryOrderFailure
+)
+{
+  Kokkos::memory_fence();
+  return Kokkos::atomic_compare_exchange_strong(
+    dest, compare, val
+  );
+}
+
+template <class T, class MemoryOrderFailure>
+KOKKOS_INLINE_FUNCTION
+bool _atomic_compare_exchange_strong_fallback(
+  T* dest, T compare, T val, memory_order_relaxed_t, MemoryOrderFailure
+)
+{
+  return Kokkos::atomic_compare_exchange_strong(
+    dest, compare, val
+  );
+}
+
+#if (defined(KOKKOS_ENABLE_GNU_ATOMICS) && !defined(__CUDA_ARCH__)) \
+    || (defined(KOKKOS_ENABLE_INTEL_ATOMICS) && !defined(__CUDA_ARCH__)) \
+    || defined(KOKKOS_ENABLE_CUDA_ASM_ATOMICS)
+
+#if defined(__CUDA_ARCH__)
+  #define KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH __inline__ __device__
+#else
+  #define KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH inline
+#endif
+
+template <class T, class MemoryOrderSuccess, class MemoryOrderFailure>
+KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH
+bool _atomic_compare_exchange_strong(
+  T* dest, T compare, T val,
+  MemoryOrderSuccess,
+  MemoryOrderFailure,
+  typename std::enable_if<
+    (
+      sizeof(T) == 1
+      || sizeof(T) == 2
+      || sizeof(T) == 4
+      || sizeof(T) == 8
+    )
+    && std::is_same<
+      typename MemoryOrderSuccess::memory_order,
+      typename std::remove_cv<MemoryOrderSuccess>::type
+    >::value
+    && std::is_same<
+      typename MemoryOrderFailure::memory_order,
+      typename std::remove_cv<MemoryOrderFailure>::type
+    >::value,
+    void const**
+  >::type = nullptr
+) {
+  return __atomic_compare_exchange_n(
+    dest, &compare, val, /* weak = */ false,
+    MemoryOrderSuccess::gnu_constant,
+    MemoryOrderFailure::gnu_constant
+  );
+}
+
+template <class T, class MemoryOrderSuccess, class MemoryOrderFailure>
+KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH
+bool _atomic_compare_exchange_strong(
+  T* dest, T compare, T val,
+  MemoryOrderSuccess order_success,
+  MemoryOrderFailure order_failure,
+  typename std::enable_if<
+    !(
+      sizeof(T) == 1
+      || sizeof(T) == 2
+      || sizeof(T) == 4
+      || sizeof(T) == 8
+    )
+    && std::is_same<
+      typename MemoryOrderSuccess::memory_order,
+      typename std::remove_cv<MemoryOrderSuccess>::type
+    >::value
+    && std::is_same<
+      typename MemoryOrderFailure::memory_order,
+      typename std::remove_cv<MemoryOrderFailure>::type
+    >::value,
+    void const**
+  >::type = nullptr
+) {
+  return _atomic_compare_exchange_fallback(
+    dest, compare, val,
+    order_success, order_failure
+  );
+}
+
+#else
+
+template <class T, class MemoryOrderSuccess, class MemoryOrderFailure>
+KOKKOS_INLINE_FUNCTION
+bool _atomic_compare_exchange_strong(
+  T* dest, T compare, T val,
+  MemoryOrderSuccess order_success,
+  MemoryOrderFailure order_failure
+) {
+  return _atomic_compare_exchange_strong_fallback(
+    dest, compare, val, order_success, order_failure
+  );
+}
+
+#endif
+
+// TODO static asserts in overloads that don't make sense (as listed in https://gcc.gnu.org/onlinedocs/gcc-5.2.0/gcc/_005f_005fatomic-Builtins.html)
+template <class T, class MemoryOrderSuccess, class MemoryOrderFailure>
+KOKKOS_FORCEINLINE_FUNCTION
+bool atomic_compare_exchange_strong(
+  T* dest, T compare, T val,
+  MemoryOrderSuccess order_success,
+  MemoryOrderFailure order_failure
+) {
+  return _atomic_compare_exchange_strong(dest, compare, val, order_success, order_failure);
+}
+
+
+} // end namespace Impl
+
 } // namespace Kokkos
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <Cuda/Kokkos_Cuda_Atomic_Intrinsics_Restore_Builtins.hpp>
+#endif
 
 #endif
 

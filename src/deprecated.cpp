@@ -15,10 +15,9 @@
    Contributing authors:  Axel Kohlmeyer (Temple U),
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "deprecated.h"
+#include <cstring>
 #include "comm.h"
-#include "force.h"
 #include "error.h"
 #include "input.h"
 
@@ -36,7 +35,7 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
 
 /* ---------------------------------------------------------------------- */
 
-void Deprecated::command(int narg, char **arg)
+void Deprecated::command(int /* narg */, char ** /* arg */)
 {
   if (strcmp(input->command,"DEPRECATED") == 0) {
     writemsg(lmp,"\nCommand 'DEPRECATED' is a dummy command\n\n",0);

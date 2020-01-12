@@ -89,10 +89,10 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
       if (rsq<coeff[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
         numtyp rinv = ucl_recip(r);
-              numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
-              numtyp force = coeff[mtype].x * screening;
+        numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
+        numtyp force = coeff[mtype].x * screening;
 
-              force = factor_lj*force * rinv;
+        force = factor_lj*force * rinv;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -181,10 +181,10 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
       if (rsq<coeff[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
         numtyp rinv = ucl_recip(r);
-              numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
-              numtyp force = coeff[mtype].x * screening;
+        numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
+        numtyp force = coeff[mtype].x * screening;
 
-              force = factor_lj*force * rinv;
+        force = factor_lj*force * rinv;
 
         f.x+=delx*force;
         f.y+=dely*force;

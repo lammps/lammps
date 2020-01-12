@@ -22,8 +22,50 @@ style_nbin.h
 style_npair.h
 style_nstencil.h
 style_ntopo.h
+# auto-generated packages files
+packages_angle.h
+packages_atom.h
+packages_body.h
+packages_bond.h
+packages_command.h
+packages_compute.h
+packages_dihedral.h
+packages_dump.h
+packages_fix.h
+packages_improper.h
+packages_integrate.h
+packages_kspace.h
+packages_minimize.h
+packages_pair.h
+packages_reader.h
+packages_region.h
+packages_neigh_bin.h
+packages_neigh_pair.h
+packages_neigh_stencil.h
+packages_nbin.h
+packages_npair.h
+packages_nstencil.h
+packages_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
+lmpgitversion.h
+# removed on 15 March 2019
+fix_wall_gran_omp.h
+fix_wall_gran_omp.cpp
+# renamed on 7 January 2019
+pair_lebedeva.cpp
+pair_lebedeva.h
+# removed on 12 December 2018
+pair_reax.cpp
+pair_reax.h
+pair_reax_fortran.h
+fix_reax_bonds.cpp
+fix_reax_bonds.h
+pair_meam.cpp
+pair_meam.h
+# removed on 27 September 2018
+pair_nb3b_harmonic_omp.h
+pair_nb3b_harmonic_omp.cpp
 # renamed on 25 September 2018
 compute_smd_triangle_mesh_vertices.h
 compute_smd_triangle_mesh_vertices.cpp

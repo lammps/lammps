@@ -37,8 +37,8 @@ ServerMC::ServerMC(LAMMPS *lmp) : Pointers(lmp) {}
 
 void ServerMC::loop()
 {
-  int i,j,m;
-  double xold[3],xnew[3];
+  int m;
+  double xold[3];
   tagint atomid;
 
   CSlib *cs = (CSlib *) lmp->cslib;
@@ -128,7 +128,7 @@ void ServerMC::loop()
       update->nsteps = nsteps;
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
-      
+
       update->integrate->setup(1);
       update->integrate->run(nsteps);
 

@@ -155,13 +155,13 @@ class PairBodyRoundedPolyhedron : public Pair {
                           int& inside_a, int& inside_b);
   // helper functions
   int opposite_sides(double* n, double* x0, double* a, double* b);
-  void project_pt_plane(const double* q, const double* p, 
+  void project_pt_plane(const double* q, const double* p,
                         const double* n, double* q_proj, double &d);
-  void project_pt_plane(const double* q, const double* x1, const double* x2, 
+  void project_pt_plane(const double* q, const double* x1, const double* x2,
                         const double* x3, double* q_proj, double &d, int& inside);
   void project_pt_line(const double* q, const double* xi1, const double* xi2,
                           double* h, double& d, double& t);
-  void inside_polygon(int ibody, int face_index, double* xmi, 
+  void inside_polygon(int ibody, int face_index, double* xmi,
                      const double* q1, const double* q2, int& inside1, int& inside2);
 
   void distance_bt_edges(const double* x1, const double* x2,

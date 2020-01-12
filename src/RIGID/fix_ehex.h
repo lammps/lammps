@@ -22,8 +22,6 @@ FixStyle(ehex,FixEHEX)
 #define LMP_FIX_EHEX_H
 
 #include "fix.h"
-#include "fix_shake.h"
-#include "region.h"
 #define EHEX_DEBUG 0
 
 namespace LAMMPS_NS {
@@ -41,9 +39,9 @@ class FixEHEX : public Fix {
   double memory_usage();
   void update_scalingmask();
   void com_properties(double *, double *, double *, double*, double *, double*);
-  bool rescale_atom(int i, Region*region);
+  bool rescale_atom(int i, class Region *region);
   virtual void grow_arrays(int nmax);
-  bool check_cluster(tagint *shake_atom, int n, Region * region);
+  bool check_cluster(tagint *shake_atom, int n, class Region *region);
 
  private:
   int iregion;
@@ -53,14 +51,14 @@ class FixEHEX : public Fix {
   char *idregion;
   int me;
 
-  double **x;              // coordinates
-  double **f;              // forces
-  double **v;              // velocities
-  double *mass;           // masses
-  double *rmass;          // reduced masses
-  int    *type;           // atom types
+  double **x;               // coordinates
+  double **f;               // forces
+  double **v;               // velocities
+  double *mass;             // masses
+  double *rmass;            // reduced masses
+  int    *type;             // atom types
   int   nlocal;             // number of local atoms
-  FixShake * fshake;        // pointer to fix_shake/fix_rattle
+  class FixShake * fshake;  // pointer to fix_shake/fix_rattle
   int constraints;          // constraints (0/1)
   int cluster;              // rescaling entire clusters (0/1)
   int hex;                  // HEX mode (0/1)
@@ -75,7 +73,7 @@ class FixEHEX : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix ehex command: wrong number of parameters 
+E: Illegal fix ehex command: wrong number of parameters
 
 UNDOCUMENTED
 
@@ -87,11 +85,11 @@ E: Region ID for fix ehex does not exist
 
 Self-explanatory.
 
-E: Illegal fix ehex keyword 
+E: Illegal fix ehex keyword
 
 UNDOCUMENTED
 
-E: You can only use the keyword 'com' together with the keyword 'constrain' 
+E: You can only use the keyword 'com' together with the keyword 'constrain'
 
 UNDOCUMENTED
 

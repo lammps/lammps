@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+compute tdpd/cc/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID tdpd/cc/atom index :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+tdpd/cc/atom = style name of this compute command
+index = index of chemical species (1 to Nspecies) :ul
+
+[Examples:]
+
+compute 1 all tdpd/cc/atom 2 :pre
+
+[Description:]
+
+Define a computation that calculates the per-atom chemical
+concentration of a specified species for each tDPD particle in a
+group.
+
+The chemical concentration of each species is defined as the number of
+molecules carried by a tDPD particle for dilute solution.  For more
+details see "(Li2015)"_#Li2015a.
+
+[Output info:]
+
+This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input. See the
+"Howto output"_Howto_output.html doc page for an overview of LAMMPS
+output options.
+
+The per-atom vector values will be in the units of chemical species
+per unit mass.
+
+[Restrictions:]
+
+This compute is part of the USER-MESO package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+[Related commands:]
+
+"pair_style tdpd"_pair_meso.html
+
+[Default:] none
+
+:line
+
+:link(Li2015a)
+[(Li2015)] Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143:
+014101 (2015).  DOI: 10.1063/1.4923254
+

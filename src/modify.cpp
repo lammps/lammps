@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "modify.h"
+#include <cstring>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -28,6 +27,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -80,6 +80,11 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   ncompute = maxcompute = 0;
   compute = NULL;
 
+  create_factories();
+}
+
+void _noopt Modify::create_factories()
+{
   // fill map with fixes listed in style_fix.h
 
   fix_map = new FixCreatorMap();
@@ -165,7 +170,40 @@ void Modify::init()
 
   restart_deallocate(1);
 
+  // init each compute
+  // set invoked_scalar,vector,etc to -1 to force new run to re-compute them
+  // add initial timestep to all computes that store invocation times
+  //   since any of them may be invoked by initial thermo
+  // do not clear out invocation times stored within a compute,
+  //   b/c some may be holdovers from previous run, like for ave fixes
+
+  for (i = 0; i < ncompute; i++) {
+    compute[i]->init();
+    compute[i]->invoked_scalar = -1;
+    compute[i]->invoked_vector = -1;
+    compute[i]->invoked_array = -1;
+    compute[i]->invoked_peratom = -1;
+    compute[i]->invoked_local = -1;
+  }
+  addstep_compute_all(update->ntimestep);
+
+  // init each fix
+  // should not need to come before compute init
+  //   used to b/c temperature computes called fix->dof() in their init,
+  //   and fix rigid required its own init before its dof() could be called,
+  //   but computes now do their DOF in setup()
+
+  for (i = 0; i < nfix; i++) fix[i]->init();
+
+  // set global flag if any fix has its restart_pbc flag set
+
+  restart_pbc_any = 0;
+  for (i = 0; i < nfix; i++)
+    if (fix[i]->restart_pbc) restart_pbc_any = 1;
+
   // create lists of fixes to call at each stage of run
+  // needs to happen after init() of computes
+  //   b/c a compute::init() can delete a fix, e.g. compute chunk/atom
 
   list_init(INITIAL_INTEGRATE,n_initial_integrate,list_initial_integrate);
   list_init(POST_INTEGRATE,n_post_integrate,list_post_integrate);
@@ -199,40 +237,9 @@ void Modify::init()
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
-  // init each fix
-  // not sure if now needs to come before compute init
-  // used to b/c temperature computes called fix->dof() in their init,
-  // and fix rigid required its own init before its dof() could be called,
-  // but computes now do their DOF in setup()
-
-  for (i = 0; i < nfix; i++) fix[i]->init();
-
-  // set global flag if any fix has its restart_pbc flag set
-
-  restart_pbc_any = 0;
-  for (i = 0; i < nfix; i++)
-    if (fix[i]->restart_pbc) restart_pbc_any = 1;
-
   // create list of computes that store invocation times
 
   list_init_compute();
-
-  // init each compute
-  // set invoked_scalar,vector,etc to -1 to force new run to re-compute them
-  // add initial timestep to all computes that store invocation times
-  //   since any of them may be invoked by initial thermo
-  // do not clear out invocation times stored within a compute,
-  //   b/c some may be holdovers from previous run, like for ave fixes
-
-  for (i = 0; i < ncompute; i++) {
-    compute[i]->init();
-    compute[i]->invoked_scalar = -1;
-    compute[i]->invoked_vector = -1;
-    compute[i]->invoked_array = -1;
-    compute[i]->invoked_peratom = -1;
-    compute[i]->invoked_local = -1;
-  }
-  addstep_compute_all(update->ntimestep);
 
   // error if any fix or compute is using a dynamic group when not allowed
 
@@ -248,7 +255,8 @@ void Modify::init()
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup]) {
       char str[128];
-      snprintf(str,128,"Compute %s does not allow use of dynamic group",fix[i]->id);
+      snprintf(str,128,"Compute %s does not allow use of dynamic group",
+               fix[i]->id);
       error->all(FLERR,str);
     }
 
@@ -789,7 +797,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", NULL};
+     "deprecated", "STORE/KIM", NULL};
 
   if (domain->box_exist == 0) {
     int m;
@@ -889,11 +897,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown fix style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (fix[ifix] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -1024,7 +1029,7 @@ int Modify::find_fix_by_style(const char *style)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(style,fix[ifix]->style) == 0) break;
+    if (utils::strmatch(fix[ifix]->style,style)) break;
   if (ifix == nfix) return -1;
   return ifix;
 }
@@ -1055,7 +1060,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1191,11 +1196,8 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown compute style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (compute[ncompute] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
 
   ncompute++;
 }
@@ -1362,7 +1364,7 @@ int Modify::read_restart(FILE *fp)
   // nfix_restart_global = # of restart entries with global state info
 
   int me = comm->me;
-  if (me == 0) fread(&nfix_restart_global,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_global,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nfix_restart_global,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1379,22 +1381,22 @@ int Modify::read_restart(FILE *fp)
 
   int n;
   for (int i = 0; i < nfix_restart_global; i++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_global[i] = new char[n];
-    if (me == 0) fread(id_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,id_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(id_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_global[i] = new char[n];
-    if (me == 0) fread(style_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,style_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(style_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     state_restart_global[i] = new char[n];
-    if (me == 0) fread(state_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,state_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(state_restart_global[i],n,MPI_CHAR,0,world);
 
     used_restart_global[i] = 0;
@@ -1404,7 +1406,7 @@ int Modify::read_restart(FILE *fp)
 
   int maxsize = 0;
 
-  if (me == 0) fread(&nfix_restart_peratom,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_peratom,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nfix_restart_peratom,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1421,19 +1423,19 @@ int Modify::read_restart(FILE *fp)
   // set index = which set of extra data this fix represents
 
   for (int i = 0; i < nfix_restart_peratom; i++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_peratom[i] = new char[n];
-    if (me == 0) fread(id_restart_peratom[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,id_restart_peratom[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(id_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_peratom[i] = new char[n];
-    if (me == 0) fread(style_restart_peratom[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,style_restart_peratom[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(style_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     maxsize += n;
 

@@ -18,31 +18,21 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Lionel Constantin (EPFL), David M. Wilkins (EPFL),
-			 Michele Ceriotti (EPFL)
+                         Michele Ceriotti (EPFL)
 ------------------------------------------------------------------------- */
 
+#include "fix_ffl.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ffl.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -108,8 +98,6 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   }
 
   t_target=t_start;
-  const double kT = t_target * force->boltz / force->mvv2e;
-
 
   // initialize Marsaglia RNG with processor-unique seed
   // NB: this means runs will not be the same with different numbers of processors
@@ -137,6 +125,9 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 
 FixFFL::~FixFFL() {
   delete random;
+
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);
@@ -298,7 +289,7 @@ void FixFFL::ffl_integrate() {
 
 }
 
-void FixFFL::initial_integrate(int vflag) {
+void FixFFL::initial_integrate(int /* vflag */) {
   double dtfm;
 
   // update v and x of atoms in group
@@ -391,7 +382,7 @@ void FixFFL::final_integrate() {
 }
 /* ---------------------------------------------------------------------- */
 
-void FixFFL::initial_integrate_respa(int vflag, int ilevel, int iloop) {
+void FixFFL::initial_integrate_respa(int vflag, int ilevel, int /* iloop */) {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
@@ -406,7 +397,7 @@ void FixFFL::initial_integrate_respa(int vflag, int ilevel, int iloop) {
   }
 }
 
-void FixFFL::final_integrate_respa(int ilevel, int iloop) {
+void FixFFL::final_integrate_respa(int ilevel, int /* iloop */) {
 
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;

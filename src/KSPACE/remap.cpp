@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "remap.h"
+#include <mpi.h>
 #include <cstdio>
 #include <cstdlib>
-#include "remap.h"
 
 #define PACK_DATA FFT_SCALAR
 

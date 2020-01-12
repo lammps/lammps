@@ -15,17 +15,18 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "bond_table.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "bond_table.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -67,8 +68,7 @@ void BondTable::compute(int eflag, int vflag)
   double u,mdu;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -222,8 +222,7 @@ double BondTable::equilibrium_distance(int i)
 
 void BondTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -232,14 +231,32 @@ void BondTable::write_restart(FILE *fp)
 
 void BondTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void BondTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void BondTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -310,17 +327,18 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    for (int i = 0; i < tb->ninput; i++)
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"bond:rfile");
   memory->create(tb->efile,tb->ninput,"bond:efile");
@@ -328,16 +346,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   // read r,e,f table values from file
 
-  int itmp;
   int cerror = 0;
   int r0idx = -1;
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
     if (NULL == fgets(line,MAXLINE,fp))
       error->one(FLERR,"Premature end of file in bond table");
-    if (4 != sscanf(line,"%d %lg %lg %lg",
-                    &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
+    if (3 != sscanf(line,"%*d %lg %lg %lg",
+                    &tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
     if (tb->efile[i] < emin) {
       emin = tb->efile[i];
       r0idx = i;
@@ -369,8 +386,6 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     fright = - (enext-e) / (rnext-r);
     if (f < fleft && f < fright) ferror++;
     if (f > fleft && f > fright) ferror++;
-    //printf("Values %d: %g %g %g\n",i,r,e,f);
-    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
   }
 
   if (ferror) {
@@ -505,7 +520,7 @@ void BondTable::param_extract(Table *tb, char *line)
 void BondTable::bcast_table(Table *tb)
 {
   MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
+  MPI_Bcast(&tb->r0,1,MPI_DOUBLE,0,world);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -524,7 +539,6 @@ void BondTable::bcast_table(Table *tb)
     MPI_Bcast(&tb->fplo,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&tb->fphi,1,MPI_DOUBLE,0,world);
   }
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

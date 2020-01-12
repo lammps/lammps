@@ -92,7 +92,7 @@ public:
   static std::vector<feature *> cv_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual const std::vector<feature *> &features()
+  virtual const std::vector<feature *> &features() const
   {
     return cv_features;
   }
@@ -133,7 +133,7 @@ protected:
 
     Here:
     S(x(t)) = x
-    s(t)    = xr
+    s(t)    = x_ext
     DS = Ds = delta
   */
 
@@ -170,9 +170,13 @@ protected:
 
   // Options for extended_lagrangian
   /// Restraint center
-  colvarvalue xr;
+  colvarvalue x_ext;
+  /// Previous value of the restraint center;
+  colvarvalue prev_x_ext;
   /// Velocity of the restraint center
-  colvarvalue vr;
+  colvarvalue v_ext;
+  /// Previous velocity of the restraint center
+  colvarvalue prev_v_ext;
   /// Mass of the restraint center
   cvm::real ext_mass;
   /// Restraint force constant
@@ -269,6 +273,9 @@ public:
   /// Init output flags
   int init_output_flags(std::string const &conf);
 
+  /// \brief Initialize dependency tree
+  virtual int init_dependencies();
+
 private:
   /// Parse the CVC configuration for all components of a certain type
   template<typename def_class_name> int init_components_type(std::string const &conf,
@@ -286,6 +293,9 @@ public:
 
   /// \brief Calculate the colvar's value and related quantities
   int calc();
+
+  /// Carry out operations needed before next step is run
+  int end_of_step();
 
   /// \brief Calculate a subset of the colvar components (CVCs) currently active
   /// (default: all active CVCs)
@@ -352,6 +362,9 @@ public:
   /// \brief Updates the flags in the CVC objects, and their number
   int update_cvc_flags();
 
+  /// \brief Modify the configuration of CVCs (currently, only base class data)
+  int update_cvc_config(std::vector<std::string> const &confs);
+
 protected:
   /// \brief Number of CVC objects with an active flag
   size_t n_active_cvcs;
@@ -359,45 +372,53 @@ protected:
   /// Sum of square coefficients for active cvcs
   cvm::real active_cvc_square_norm;
 
+  /// Update the sum of square coefficients for active cvcs
+  void update_active_cvc_square_norm();
+
   /// \brief Absolute timestep number when this colvar was last updated
-  int prev_timestep;
+  cvm::step_number prev_timestep;
 
 public:
+
+  /// \brief Return the number of CVC objects defined
+  inline size_t num_cvcs() const { return cvcs.size(); }
+
   /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
   inline size_t num_active_cvcs() const { return n_active_cvcs; }
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   cvm::real dist2(colvarvalue const &x1,
-                   colvarvalue const &x2) const;
+                  colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_lgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_rgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to wrap a value into a standard interval
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  void wrap(colvarvalue &x) const;
+  void wrap(colvarvalue &x_unwrapped) const;
 
 
   /// Read the analysis tasks
   int parse_analysis(std::string const &conf);
+
   /// Perform analysis tasks
-  void analyze();
+  int analyze();
 
 
   /// Read the value from a collective variable trajectory file
@@ -475,23 +496,23 @@ protected:
   acf_type_e             acf_type;
 
   /// \brief Velocity ACF, scalar product between v(0) and v(t)
-  int calc_vel_acf(std::list<colvarvalue> &v_history,
-                     colvarvalue const      &v);
+  void calc_vel_acf(std::list<colvarvalue> &v_history,
+                    colvarvalue const      &v);
 
   /// \brief Coordinate ACF, scalar product between x(0) and x(t)
   /// (does not work with scalar numbers)
   void calc_coor_acf(std::list<colvarvalue> &x_history,
-                      colvarvalue const      &x);
+                     colvarvalue const      &x);
 
   /// \brief Coordinate ACF, second order Legendre polynomial between
   /// x(0) and x(t) (does not work with scalar numbers)
   void calc_p2coor_acf(std::list<colvarvalue> &x_history,
-                        colvarvalue const      &x);
+                       colvarvalue const      &x);
 
   /// Calculate the auto-correlation function (ACF)
   int calc_acf();
   /// Save the ACF to a file
-  void write_acf(std::ostream &os);
+  int write_acf(std::ostream &os);
 
   /// Length of running average series
   size_t         runave_length;
@@ -507,7 +528,7 @@ protected:
   cvm::real      runave_variance;
 
   /// Calculate the running average and its standard deviation
-  void calc_runave();
+  int calc_runave();
 
   /// If extended Lagrangian active: colvar energies (kinetic and harmonic potential)
   cvm::real kinetic_energy;
@@ -528,6 +549,7 @@ public:
   class polar_phi;
   class distance_inv;
   class distance_pairs;
+  class dipole_magnitude;
   class angle;
   class dipole_angle;
   class dihedral;
@@ -547,6 +569,14 @@ public:
   class alpha_dihedrals;
   class alpha_angles;
   class dihedPC;
+  class componentDisabled;
+  class CartesianBasedPath;
+  class gspath;
+  class gzpath;
+  class linearCombination;
+  class CVBasedPath;
+  class gspathCV;
+  class gzpathCV;
 
   // non-scalar components
   class distance_vec;
@@ -556,7 +586,7 @@ public:
 
 protected:
 
-  /// \brief Array of \link cvc \endlink objects
+  /// \brief Array of \link colvar::cvc \endlink objects
   std::vector<cvc *> cvcs;
 
   /// \brief Flags to enable or disable cvcs at next colvar evaluation
@@ -601,6 +631,9 @@ public:
   inline size_t n_components() const {
     return cvcs.size();
   }
+
+  /// \brief Get vector of vectors of atom IDs for all atom groups
+  virtual std::vector<std::vector<int> > get_atom_lists();
 };
 
 inline cvm::real const & colvar::force_constant() const
@@ -637,6 +670,8 @@ inline colvarvalue const & colvar::total_force() const
 
 inline void colvar::add_bias_force(colvarvalue const &force)
 {
+  check_enabled(f_cv_gradient,
+                std::string("applying a force to the variable \""+name+"\""));
   if (cvm::debug()) {
     cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
   }

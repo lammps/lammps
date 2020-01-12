@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_kokkos.h"
+#include <cstring>
 #include "group.h"
 #include "modify.h"
 #include "error.h"
@@ -52,7 +52,7 @@ FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 namespace LAMMPS_NS {
 template class FixNVTKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNVTKokkos<LMPHostType>;
 #endif
 }

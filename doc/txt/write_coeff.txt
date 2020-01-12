@@ -1,0 +1,44 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+write_coeff command :h3
+
+[Syntax:]
+
+write_coeff file :pre
+
+file = name of data file to write out :pre
+
+[Examples:]
+
+write_coeff polymer.coeff :pre
+
+[Description:]
+
+Write a text format file with the currently defined force field
+coefficients in a way, that it can be read by LAMMPS with the
+"include"_include.html command. In combination with the nocoeff
+option of "write_data"_write_data.html this can be used to move
+the Coeffs sections from a data file into a separate file.
+
+NOTE: The write_coeff command is not yet fully implemented as
+some pair styles do not output their coefficient information.
+This means you will need to add/copy this information manually.
+
+:line
+
+[Restrictions:]
+
+none
+
+[Related commands:]
+
+"read_data"_read_data.html, "write_restart"_write_restart.html,
+"write_data"_write_data.html
+
+

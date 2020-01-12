@@ -1,0 +1,128 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix heat command :h3
+
+[Syntax:]
+
+fix ID group-ID heat N eflux :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+heat = style name of this fix command :l
+N = add/subtract heat every this many timesteps :l
+eflux = rate of heat addition or subtraction (energy/time units) :l
+eflux can be a variable (see below) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {region}  :l
+  {region} value = region-ID
+    region-ID = ID of region atoms must be in to have added force :pre
+:ule
+
+[Examples:]
+
+fix 3 qin heat 1 1.0
+fix 3 qin heat 10 v_flux
+fix 4 qout heat 1 -1.0 region top :pre
+
+[Description:]
+
+Add non-translational kinetic energy (heat) to a group of atoms in a
+manner that conserves their aggregate momentum.  Two of these fixes
+can be used to establish a temperature gradient across a simulation
+domain by adding heat (energy) to one group of atoms (hot reservoir)
+and subtracting heat from another (cold reservoir).  E.g. a simulation
+sampling from the McDLT ensemble.
+
+If the {region} keyword is used, the atom must be in both the group
+and the specified geometric "region"_region.html in order to have
+energy added or subtracted to it.  If not specified, then the atoms in
+the group are affected wherever they may move to.
+
+Heat addition/subtraction is performed every N timesteps.  The {eflux}
+parameter can be specified as a numeric constant or as a variable (see
+below).  If it is a numeric constant or equal-style variable which
+evaluates to a scalar value, then the {eflux} determines the change in
+aggregate energy of the entire group of atoms per unit time, e.g. in
+eV/psec for "metal units"_units.html.  In this case it is an
+"extensive" quantity, meaning its magnitude should be scaled with the
+number of atoms in the group.  Note that since {eflux} has per-time
+units (i.e. it is a flux), this means that a larger value of N will
+add/subtract a larger amount of energy each time the fix is invoked.
+
+NOTE: The heat-exchange (HEX) algorithm implemented by this fix is
+known to exhibit a pronounced energy drift. An improved algorithm
+(eHEX) is available as a "fix ehex"_fix_ehex.html command and might be
+preferable if energy conservation is important.
+
+If {eflux} is specified as an atom-style variable (see below), then
+the variable computes one value per atom.  In this case, each value is
+the energy flux for a single atom, again in units of energy per unit
+time.  In this case, each value is an "intensive" quantity, which need
+not be scaled with the number of atoms in the group.
+
+As mentioned above, the {eflux} parameter can be specified as an
+equal-style or atom_style "variable"_variable.html.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value(s) used to determine the flux.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent flux.
+
+Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent flux
+with optional time-dependence as well.
+
+NOTE: If heat is subtracted from the system too aggressively so that
+the group's kinetic energy would go to zero, or any individual atom's
+kinetic energy would go to zero for the case where {eflux} is an
+atom-style variable, then LAMMPS will halt with an error message.
+
+Fix heat is different from a thermostat such as "fix nvt"_fix_nh.html
+or "fix temp/rescale"_fix_temp_rescale.html in that energy is
+added/subtracted continually.  Thus if there isn't another mechanism
+in place to counterbalance this effect, the entire system will heat or
+cool continuously.  You can use multiple heat fixes so that the net
+energy change is 0.0 or use "fix viscous"_fix_viscous.html to drain
+energy from the system.
+
+This fix does not change the coordinates of its atoms; it only scales
+their velocities.  Thus you must still use an integration fix
+(e.g. "fix nve"_fix_nve.html) on the affected atoms.  This fix should
+not normally be used on atoms that have their temperature controlled
+by another fix - e.g. "fix nvt"_fix_nh.html or "fix
+langevin"_fix_langevin.html fix.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Howto_output.html.  This scalar is the most recent
+value by which velocities were scaled.  The scalar value calculated by
+this fix is "intensive".  If {eflux} is specified as an atom-style
+variable, this fix computes the average value by which the velocities
+were scaled for all of the atoms that had their velocities scaled.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix ehex"_fix_ehex.html, "compute temp"_compute_temp.html, "compute
+temp/region"_compute_temp_region.html
+
+[Default:] none

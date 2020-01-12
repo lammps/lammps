@@ -122,12 +122,7 @@ bool colvardeps::get_keyval_feature(colvarparse *cvp,
 
 int colvardeps::enable(int feature_id,
                        bool dry_run /* default: false */,
-                       // dry_run: fail silently, do not enable if available
-                       // flag is passed recursively to deps of this feature
                        bool toplevel /* default: true */)
-// toplevel: false if this is called as part of a chain of dependency resolution
-// this is used to diagnose failed dependencies by displaying the full stack
-// only the toplevel dependency will throw a fatal error
 {
   int res;
   size_t i, j;
@@ -143,8 +138,7 @@ int colvardeps::enable(int feature_id,
 
   if (fs->enabled) {
     if (!(dry_run || toplevel)) {
-      // This is a dependency
-      // Prevent disabling this feature as long
+      // This is a dependency: prevent disabling this feature as long
       // as requirement is enabled
       fs->ref_count++;
       if (cvm::debug())
@@ -173,7 +167,10 @@ int colvardeps::enable(int feature_id,
   if (!toplevel && !is_dynamic(feature_id)) {
     if (!dry_run) {
       cvm::log(feature_type_descr + " feature \"" + f->description
-        + "\" may not be enabled as a dependency in " + description + ".\n");
+        + "\" cannot be enabled automatically in " + description + ".");
+      if (is_user(feature_id)) {
+        cvm::log("Try setting it manually.\n");
+      }
     }
     return COLVARS_ERROR;
   }
@@ -354,6 +351,7 @@ int colvardeps::disable(int feature_id) {
   return COLVARS_OK;
 }
 
+
 int colvardeps::decr_ref_count(int feature_id) {
   int &rc = feature_states[feature_id].ref_count;
   feature *f = features()[feature_id];
@@ -379,321 +377,52 @@ int colvardeps::decr_ref_count(int feature_id) {
   return COLVARS_OK;
 }
 
-void colvardeps::init_feature(int feature_id, const char *description, feature_type type) {
-  modify_features()[feature_id]->description = description;
+
+void colvardeps::init_feature(int feature_id, const char *description_in, feature_type type) {
+  modify_features()[feature_id]->description = description_in;
   modify_features()[feature_id]->type = type;
 }
 
-// Shorthand macros for describing dependencies
-#define f_req_self(f, g) features()[f]->requires_self.push_back(g)
-// This macro ensures that exclusions are symmetric
-#define f_req_exclude(f, g) features()[f]->requires_exclude.push_back(g); \
-                            features()[g]->requires_exclude.push_back(f)
-#define f_req_children(f, g) features()[f]->requires_children.push_back(g)
-#define f_req_alt2(f, g, h) features()[f]->requires_alt.push_back(std::vector<int>(2));\
-  features()[f]->requires_alt.back()[0] = g;                                           \
-  features()[f]->requires_alt.back()[1] = h
-#define f_req_alt3(f, g, h, i) features()[f]->requires_alt.push_back(std::vector<int>(3));\
-  features()[f]->requires_alt.back()[0] = g;                                           \
-  features()[f]->requires_alt.back()[1] = h;                                           \
-  features()[f]->requires_alt.back()[2] = i
-#define f_req_alt4(f, g, h, i, j) features()[f]->requires_alt.push_back(std::vector<int>(4));\
-  features()[f]->requires_alt.back()[0] = g;                                           \
-  features()[f]->requires_alt.back()[1] = h;                                           \
-  features()[f]->requires_alt.back()[2] = i;                                           \
-  features()[f]->requires_alt.back()[3] = j
 
-void colvardeps::init_cvb_requires() {
-  int i;
-  if (features().size() == 0) {
-    for (i = 0; i < f_cvb_ntot; i++) {
-      modify_features().push_back(new feature);
-    }
-
-    init_feature(f_cvb_active, "active", f_type_dynamic);
-    f_req_children(f_cvb_active, f_cv_active);
-
-    init_feature(f_cvb_awake, "awake", f_type_static);
-    f_req_self(f_cvb_awake, f_cvb_active);
-
-    init_feature(f_cvb_apply_force, "apply force", f_type_user);
-    f_req_children(f_cvb_apply_force, f_cv_gradient);
-
-    init_feature(f_cvb_get_total_force, "obtain total force", f_type_dynamic);
-    f_req_children(f_cvb_get_total_force, f_cv_total_force);
-
-    init_feature(f_cvb_output_acc_work, "output accumulated work", f_type_user);
-    f_req_self(f_cvb_output_acc_work, f_cvb_apply_force);
-
-    init_feature(f_cvb_history_dependent, "history-dependent", f_type_static);
-
-    init_feature(f_cvb_time_dependent, "time-dependent", f_type_static);
-
-    init_feature(f_cvb_scalar_variables, "require scalar variables", f_type_static);
-    f_req_children(f_cvb_scalar_variables, f_cv_scalar);
-
-    init_feature(f_cvb_calc_pmf, "calculate a PMF", f_type_static);
-
-    init_feature(f_cvb_calc_ti_samples, "calculate TI samples", f_type_dynamic);
-    f_req_self(f_cvb_calc_ti_samples, f_cvb_get_total_force);
-    f_req_children(f_cvb_calc_ti_samples, f_cv_grid);
-
-    init_feature(f_cvb_write_ti_samples, "write TI samples ", f_type_user);
-    f_req_self(f_cvb_write_ti_samples, f_cvb_calc_ti_samples);
-
-    init_feature(f_cvb_write_ti_pmf, "write TI PMF", f_type_user);
-    f_req_self(f_cvb_write_ti_pmf, f_cvb_calc_ti_samples);
-  }
-
-  // Initialize feature_states for each instance
-  feature_states.reserve(f_cvb_ntot);
-  for (i = 0; i < f_cvb_ntot; i++) {
-    feature_states.push_back(feature_state(true, false));
-    // Most features are available, so we set them so
-    // and list exceptions below
-  }
-
-  // only compute TI samples when deriving from colvarbias_ti
-  feature_states[f_cvb_calc_ti_samples].available = false;
+// Shorthand functions for describing dependencies
+void colvardeps::require_feature_self(int f, int g) {
+  features()[f]->requires_self.push_back(g);
 }
 
 
-void colvardeps::init_cv_requires() {
-  size_t i;
-  if (features().size() == 0) {
-    for (i = 0; i < f_cv_ntot; i++) {
-      modify_features().push_back(new feature);
-    }
-
-    init_feature(f_cv_active, "active", f_type_dynamic);
-    // Do not require f_cvc_active in children, as some components may be disabled
-    // Colvars must be either a linear combination, or scalar (and polynomial) or scripted/custom
-    f_req_alt4(f_cv_active, f_cv_scalar, f_cv_linear, f_cv_scripted, f_cv_custom_function);
-
-    init_feature(f_cv_awake, "awake", f_type_static);
-    f_req_self(f_cv_awake, f_cv_active);
-
-    init_feature(f_cv_gradient, "gradient", f_type_dynamic);
-    f_req_children(f_cv_gradient, f_cvc_gradient);
-
-    init_feature(f_cv_collect_gradient, "collect gradient", f_type_dynamic);
-    f_req_self(f_cv_collect_gradient, f_cv_gradient);
-    f_req_self(f_cv_collect_gradient, f_cv_scalar);
-    // The following exlusion could be lifted by implementing the feature
-    f_req_exclude(f_cv_collect_gradient, f_cv_scripted);
-
-    init_feature(f_cv_fdiff_velocity, "velocity from finite differences", f_type_dynamic);
-
-    // System force: either trivial (spring force); through extended Lagrangian, or calculated explicitly
-    init_feature(f_cv_total_force, "total force", f_type_dynamic);
-    f_req_alt2(f_cv_total_force, f_cv_extended_Lagrangian, f_cv_total_force_calc);
-
-    // Deps for explicit total force calculation
-    init_feature(f_cv_total_force_calc, "total force calculation", f_type_dynamic);
-    f_req_self(f_cv_total_force_calc, f_cv_scalar);
-    f_req_self(f_cv_total_force_calc, f_cv_linear);
-    f_req_children(f_cv_total_force_calc, f_cvc_inv_gradient);
-    f_req_self(f_cv_total_force_calc, f_cv_Jacobian);
-
-    init_feature(f_cv_Jacobian, "Jacobian derivative", f_type_dynamic);
-    f_req_self(f_cv_Jacobian, f_cv_scalar);
-    f_req_self(f_cv_Jacobian, f_cv_linear);
-    f_req_children(f_cv_Jacobian, f_cvc_Jacobian);
-
-    init_feature(f_cv_hide_Jacobian, "hide Jacobian force", f_type_user);
-    f_req_self(f_cv_hide_Jacobian, f_cv_Jacobian); // can only hide if calculated
-
-    init_feature(f_cv_extended_Lagrangian, "extended Lagrangian", f_type_user);
-    f_req_self(f_cv_extended_Lagrangian, f_cv_scalar);
-    f_req_self(f_cv_extended_Lagrangian, f_cv_gradient);
-
-    init_feature(f_cv_Langevin, "Langevin dynamics", f_type_user);
-    f_req_self(f_cv_Langevin, f_cv_extended_Lagrangian);
-
-    init_feature(f_cv_linear, "linear", f_type_static);
-
-    init_feature(f_cv_scalar, "scalar", f_type_static);
-
-    init_feature(f_cv_output_energy, "output energy", f_type_user);
-
-    init_feature(f_cv_output_value, "output value", f_type_user);
-
-    init_feature(f_cv_output_velocity, "output velocity", f_type_user);
-    f_req_self(f_cv_output_velocity, f_cv_fdiff_velocity);
-
-    init_feature(f_cv_output_applied_force, "output applied force", f_type_user);
-
-    init_feature(f_cv_output_total_force, "output total force", f_type_user);
-    f_req_self(f_cv_output_total_force, f_cv_total_force);
-
-    init_feature(f_cv_subtract_applied_force, "subtract applied force from total force", f_type_user);
-    f_req_self(f_cv_subtract_applied_force, f_cv_total_force);
-
-    init_feature(f_cv_lower_boundary, "lower boundary", f_type_user);
-    f_req_self(f_cv_lower_boundary, f_cv_scalar);
-
-    init_feature(f_cv_upper_boundary, "upper boundary", f_type_user);
-    f_req_self(f_cv_upper_boundary, f_cv_scalar);
-
-    init_feature(f_cv_grid, "grid", f_type_dynamic);
-    f_req_self(f_cv_grid, f_cv_lower_boundary);
-    f_req_self(f_cv_grid, f_cv_upper_boundary);
-
-    init_feature(f_cv_runave, "running average", f_type_user);
-
-    init_feature(f_cv_corrfunc, "correlation function", f_type_user);
-
-    init_feature(f_cv_scripted, "scripted", f_type_user);
-
-    init_feature(f_cv_custom_function, "custom function", f_type_user);
-    f_req_exclude(f_cv_custom_function, f_cv_scripted);
-
-    init_feature(f_cv_periodic, "periodic", f_type_static);
-    f_req_self(f_cv_periodic, f_cv_scalar);
-    init_feature(f_cv_scalar, "scalar", f_type_static);
-    init_feature(f_cv_linear, "linear", f_type_static);
-    init_feature(f_cv_homogeneous, "homogeneous", f_type_static);
-
-    // because total forces are obtained from the previous time step,
-    // we cannot (currently) have colvar values and total forces for the same timestep
-    init_feature(f_cv_multiple_ts, "multiple timestep colvar");
-    f_req_exclude(f_cv_multiple_ts, f_cv_total_force_calc);
-  }
-
-  // Initialize feature_states for each instance
-  feature_states.reserve(f_cv_ntot);
-  for (i = 0; i < f_cv_ntot; i++) {
-    feature_states.push_back(feature_state(true, false));
-    // Most features are available, so we set them so
-    // and list exceptions below
-   }
+// Ensure that exclusions are symmetric
+void colvardeps::exclude_feature_self(int f, int g) {
+  features()[f]->requires_exclude.push_back(g);
+  features()[g]->requires_exclude.push_back(f);
 }
 
 
-void colvardeps::init_cvc_requires() {
-  size_t i;
-  // Initialize static array once and for all
-  if (features().size() == 0) {
-    for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
-      modify_features().push_back(new feature);
-    }
-
-    init_feature(f_cvc_active, "active", f_type_dynamic);
-//     The dependency below may become useful if we use dynamic atom groups
-//     f_req_children(f_cvc_active, f_ag_active);
-
-    init_feature(f_cvc_scalar, "scalar", f_type_static);
-
-    init_feature(f_cvc_gradient, "gradient", f_type_dynamic);
-
-    init_feature(f_cvc_implicit_gradient, "implicit gradient", f_type_static);
-    f_req_children(f_cvc_implicit_gradient, f_ag_implicit_gradient);
-
-    init_feature(f_cvc_inv_gradient, "inverse gradient", f_type_dynamic);
-    f_req_self(f_cvc_inv_gradient, f_cvc_gradient);
-
-    init_feature(f_cvc_debug_gradient, "debug gradient", f_type_user);
-    f_req_self(f_cvc_debug_gradient, f_cvc_gradient);
-    f_req_exclude(f_cvc_debug_gradient, f_cvc_implicit_gradient);
-
-    init_feature(f_cvc_Jacobian, "Jacobian derivative", f_type_dynamic);
-    f_req_self(f_cvc_Jacobian, f_cvc_inv_gradient);
-
-    init_feature(f_cvc_com_based, "depends on group centers of mass", f_type_static);
-
-    // init_feature(f_cvc_pbc_minimum_image, "use minimum-image distances with PBCs", f_type_user);
-
-    // Compute total force on first site only to avoid unwanted
-    // coupling to other colvars (see e.g. Ciccotti et al., 2005)
-    init_feature(f_cvc_one_site_total_force, "compute total force from one group", f_type_user);
-    f_req_self(f_cvc_one_site_total_force, f_cvc_com_based);
-
-    init_feature(f_cvc_scalable, "scalable calculation", f_type_static);
-    f_req_self(f_cvc_scalable, f_cvc_scalable_com);
-
-    init_feature(f_cvc_scalable_com, "scalable calculation of centers of mass", f_type_static);
-    f_req_self(f_cvc_scalable_com, f_cvc_com_based);
-
-
-    // TODO only enable this when f_ag_scalable can be turned on for a pre-initialized group
-    // f_req_children(f_cvc_scalable, f_ag_scalable);
-    // f_req_children(f_cvc_scalable_com, f_ag_scalable_com);
-  }
-
-  // Initialize feature_states for each instance
-  // default as available, not enabled
-  // except dynamic features which default as unavailable
-  feature_states.reserve(f_cvc_ntot);
-  for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
-    bool avail = is_dynamic(i) ? false : true;
-    feature_states.push_back(feature_state(avail, false));
-  }
-
-  // CVCs are enabled from the start - get disabled based on flags
-  feature_states[f_cvc_active].enabled = true;
-
-  // Features that are implemented by all cvcs by default
-  // Each cvc specifies what other features are available
-  feature_states[f_cvc_active].available = true;
-  feature_states[f_cvc_gradient].available = true;
-
-  // Use minimum-image distances by default
-  feature_states[f_cvc_pbc_minimum_image].enabled = true;
-
-  // Features that are implemented by default if their requirements are
-  feature_states[f_cvc_one_site_total_force].available = true;
-
-  // Features That are implemented only for certain simulation engine configurations
-  feature_states[f_cvc_scalable_com].available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
-  feature_states[f_cvc_scalable].available = feature_states[f_cvc_scalable_com].available;
+void colvardeps::require_feature_children(int f, int g) {
+  features()[f]->requires_children.push_back(g);
 }
 
 
-void colvardeps::init_ag_requires() {
-  size_t i;
-  // Initialize static array once and for all
-  if (features().size() == 0) {
-    for (i = 0; i < f_ag_ntot; i++) {
-      modify_features().push_back(new feature);
-    }
+void colvardeps::require_feature_alt(int f, int g, int h) {
+  features()[f]->requires_alt.push_back(std::vector<int>(2));
+  features()[f]->requires_alt.back()[0] = g;
+  features()[f]->requires_alt.back()[1] = h;
+}
 
-    init_feature(f_ag_active, "active", f_type_dynamic);
-    init_feature(f_ag_center, "translational fit", f_type_static);
-    init_feature(f_ag_rotate, "rotational fit", f_type_static);
-    init_feature(f_ag_fitting_group, "reference positions group", f_type_static);
-    init_feature(f_ag_implicit_gradient, "implicit atom gradient", f_type_dynamic);
-    init_feature(f_ag_fit_gradients, "fit gradients", f_type_user);
-    f_req_exclude(f_ag_fit_gradients, f_ag_implicit_gradient);
 
-    init_feature(f_ag_atom_forces, "atomic forces", f_type_dynamic);
+void colvardeps::require_feature_alt(int f, int g, int h, int i) {
+  features()[f]->requires_alt.push_back(std::vector<int>(3));
+  features()[f]->requires_alt.back()[0] = g;
+  features()[f]->requires_alt.back()[1] = h;
+  features()[f]->requires_alt.back()[2] = i;
+}
 
-    // parallel calculation implies that we have at least a scalable center of mass,
-    // but f_ag_scalable is kept as a separate feature to deal with future dependencies
-    init_feature(f_ag_scalable, "scalable group calculation", f_type_static);
-    init_feature(f_ag_scalable_com, "scalable group center of mass calculation", f_type_static);
-    f_req_self(f_ag_scalable, f_ag_scalable_com);
 
-//     init_feature(f_ag_min_msd_fit, "minimum MSD fit")
-//     f_req_self(f_ag_min_msd_fit, f_ag_center)
-//     f_req_self(f_ag_min_msd_fit, f_ag_rotate)
-//     f_req_exclude(f_ag_min_msd_fit, f_ag_fitting_group)
-  }
-
-  // Initialize feature_states for each instance
-  // default as unavailable, not enabled
-  feature_states.reserve(f_ag_ntot);
-  for (i = 0; i < colvardeps::f_ag_ntot; i++) {
-    feature_states.push_back(feature_state(false, false));
-  }
-
-  // Features that are implemented (or not) by all atom groups
-  feature_states[f_ag_active].available = true;
-  // f_ag_scalable_com is provided by the CVC iff it is COM-based
-  feature_states[f_ag_scalable_com].available = false;
-  // TODO make f_ag_scalable depend on f_ag_scalable_com (or something else)
-  feature_states[f_ag_scalable].available = true;
-  feature_states[f_ag_fit_gradients].available = true;
-  feature_states[f_ag_implicit_gradient].available = true;
+void colvardeps::require_feature_alt(int f, int g, int h, int i, int j) {
+  features()[f]->requires_alt.push_back(std::vector<int>(4));
+  features()[f]->requires_alt.back()[0] = g;
+  features()[f]->requires_alt.back()[1] = h;
+  features()[f]->requires_alt.back()[2] = i;
+  features()[f]->requires_alt.back()[3] = j;
 }
 
 
@@ -717,7 +446,7 @@ void colvardeps::print_state() {
 void colvardeps::add_child(colvardeps *child) {
 
   children.push_back(child);
-  child->parents.push_back((colvardeps *)this);
+  child->parents.push_back(this);
 
   // Solve dependencies of already enabled parent features
   // in the new child

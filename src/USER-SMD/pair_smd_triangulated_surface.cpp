@@ -26,20 +26,15 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_smd_triangulated_surface.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include <iostream>
 #include <Eigen/Eigen>
-#include "pair_smd_triangulated_surface.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -96,10 +91,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
         Vector2d w2d, rhs;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         tagint *mol = atom->molecule;
         double **f = atom->f;

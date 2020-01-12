@@ -25,9 +25,11 @@ There is an example script for this package in examples/USER/srp.
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
+#include "pair_srp.h"
+#include <mpi.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_srp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -42,6 +44,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "thermo.h"
 #include "output.h"
 #include "citeme.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -68,6 +71,7 @@ static int srp_instance = 0;
 PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  single_enable = 0;
 
   if (lmp->citeme) lmp->citeme->add(cite_srp);
 
@@ -142,10 +146,7 @@ void PairSRP::compute(int eflag, int vflag)
 
 {
     // setup energy and virial
-    if (eflag || vflag)
-        ev_setup(eflag, vflag);
-    else
-        evflag = vflag_fdotr = 0;
+    ev_init(eflag, vflag);
 
     double **x = atom->x;
     double **f = atom->f;
@@ -196,7 +197,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -257,8 +258,7 @@ void PairSRP::compute(int eflag, int vflag)
         }
       }
    }
- }
-  else{
+ } else {
   // using min distance option
 
     for (ii = 0; ii < inum; ii++) {
@@ -274,7 +274,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -360,9 +360,9 @@ void PairSRP::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
   // wildcard
-  if (strcmp(arg[1],"*") == 0)
+  if (strcmp(arg[1],"*") == 0) {
     btype = 0;
-  else {
+  } else {
     btype = force->inumeric(FLERR,arg[1]);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");
@@ -699,13 +699,12 @@ void PairSRP::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          printf(" i %d j %d \n",i,j);
-          fread(&a0[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -733,12 +732,12 @@ void PairSRP::write_restart_settings(FILE *fp)
 void PairSRP::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&bptype,sizeof(int),1,fp);
-    fread(&btype,sizeof(int),1,fp);
-    fread(&min,sizeof(int),1,fp);
-    fread(&midpoint,sizeof(int),1,fp);
-    fread(&exclude,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&bptype,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&btype,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&min,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&midpoint,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&exclude,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }

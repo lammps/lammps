@@ -26,13 +26,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-
 #include "reaxc_bonds_omp.h"
-#include "reaxc_bond_orders_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
+#include "reaxc_defs.h"
+#include "pair_reaxc_omp.h"
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
 #if defined(_OPENMP)
 #include  <omp.h>
@@ -42,9 +42,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-void BondsOMP( reax_system *system, control_params *control,
+void BondsOMP( reax_system *system, control_params * /* control */,
             simulation_data *data, storage *workspace, reax_list **lists,
-            output_controls *out_control )
+            output_controls * /* out_control */)
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;
@@ -87,7 +87,8 @@ void BondsOMP( reax_system *system, control_params *control,
 
   pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
                                     system->pair_ptr->vflag_either, system->N,
-                                    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
+                                    system->pair_ptr->eatom,
+                                    system->pair_ptr->vatom, NULL, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
@@ -99,9 +100,9 @@ void BondsOMP( reax_system *system, control_params *control,
     for (pj = start_i; pj < end_i; ++pj) {
       j = bonds->select.bond_list[pj].nbr;
 
-      if( system->my_atoms[i].orig_id > system->my_atoms[j].orig_id ) continue;
+      if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id) continue;
 
-      if( system->my_atoms[i].orig_id == system->my_atoms[j].orig_id ) {
+      if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
         if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
         if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
             system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;

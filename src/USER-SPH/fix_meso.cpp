@@ -11,23 +11,11 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#include <cstdlib>
 #include "fix_meso.h"
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
-#include "pair.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

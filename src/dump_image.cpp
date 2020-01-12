@@ -11,20 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dump_image.h"
+#include <mpi.h>
 #include <cmath>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
-#include "dump_image.h"
 #include "image.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "atom_vec_body.h"
 #include "body.h"
 #include "molecule.h"
 #include "domain.h"
-#include "group.h"
 #include "force.h"
 #include "comm.h"
 #include "modify.h"
@@ -1290,7 +1290,7 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"amap") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal dump_modify command");
     if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
-    int factor;
+    int factor = 0;
     if (arg[3][0] == 's') factor = 1;
     else if (arg[3][0] == 'c') factor = 2;
     else if (arg[3][0] == 'd') factor = 3;

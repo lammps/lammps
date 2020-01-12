@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_property_atom.h"
 #include <cmath>
 #include <cstring>
-#include "compute_property_atom.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -141,7 +141,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
-    } else if (strcmp(arg[iarg],"spx") == 0) { 		// pack magnetic variables
+    } else if (strcmp(arg[iarg],"spx") == 0) {          // pack magnetic variables
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");

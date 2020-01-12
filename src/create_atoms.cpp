@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "create_atoms.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -23,8 +22,6 @@
 #include "modify.h"
 #include "force.h"
 #include "special.h"
-#include "fix.h"
-#include "compute.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
@@ -68,6 +65,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (strcmp(arg[1],"box") == 0) {
     style = BOX;
     iarg = 2;
+    nregion = -1;
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
     if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
@@ -175,8 +173,6 @@ void CreateAtoms::command(int narg, char **arg)
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (style != SINGLE)
-        error->all(FLERR,"Cannot use create_atoms rotate unless single style");
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
@@ -513,9 +509,6 @@ void CreateAtoms::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
-  MPI_Barrier(world);
-  double time2 = MPI_Wtime();
-
   // clean up
 
   delete ranmol;
@@ -524,21 +517,6 @@ void CreateAtoms::command(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-
-  // print status
-
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
-    }
-    if (logfile) {
-      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
-    }
-  }
 
   // for MOLECULE mode:
   // create special bond lists for molecular systems,
@@ -549,6 +527,25 @@ void CreateAtoms::command(int narg, char **arg)
     if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
+
+    }
+  }
+
+  // print status
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen) {
+      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(screen,"  create_atoms CPU = %g secs\n",time2-time1);
+    }
+    if (logfile) {
+      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(logfile,"  create_atoms CPU = %g secs\n",time2-time1);
     }
   }
 }
@@ -576,11 +573,11 @@ void CreateAtoms::add_single()
   if (triclinic) {
     domain->x2lamda(xone,lamda);
     if (remapflag) {
-      if (domain->xperiodic && (lamda[0] < 0.0 || lamda[0] >= 1.0)) 
+      if (domain->xperiodic && (lamda[0] < 0.0 || lamda[0] >= 1.0))
         lamda[0] = 0.0;
-      if (domain->yperiodic && (lamda[1] < 0.0 || lamda[1] >= 1.0)) 
+      if (domain->yperiodic && (lamda[1] < 0.0 || lamda[1] >= 1.0))
         lamda[1] = 0.0;
-      if (domain->zperiodic && (lamda[2] < 0.0 || lamda[2] >= 1.0)) 
+      if (domain->zperiodic && (lamda[2] < 0.0 || lamda[2] >= 1.0))
         lamda[2] = 0.0;
     }
     coord = lamda;
@@ -609,8 +606,11 @@ void CreateAtoms::add_random()
   double *boxlo,*boxhi;
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   RanPark *random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
   // in real units, even if triclinic
@@ -676,7 +676,9 @@ void CreateAtoms::add_random()
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       if (mode == ATOM) atom->avec->create_atom(ntype,xone);
-      else add_molecule(xone);
+      else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+        add_molecule(xone);
+      else add_molecule(xone, quatone);
     }
   }
 
@@ -704,10 +706,31 @@ void CreateAtoms::add_lattice()
     bboxlo[2] = domain->sublo[2]; bboxhi[2] = domain->subhi[2];
   } else domain->bbox(domain->sublo_lamda,domain->subhi_lamda,bboxlo,bboxhi);
 
+  // narrow down the subbox by the bounding box of the given region, if available.
+  // for small regions in large boxes, this can result in a significant speedup
+
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
+
+    const double rxmin = domain->regions[nregion]->extent_xlo;
+    const double rxmax = domain->regions[nregion]->extent_xhi;
+    const double rymin = domain->regions[nregion]->extent_ylo;
+    const double rymax = domain->regions[nregion]->extent_yhi;
+    const double rzmin = domain->regions[nregion]->extent_zlo;
+    const double rzmax = domain->regions[nregion]->extent_zhi;
+
+    if (rxmin > bboxlo[0]) bboxlo[0] = (rxmin > bboxhi[0]) ? bboxhi[0] : rxmin;
+    if (rxmax < bboxhi[0]) bboxhi[0] = (rxmax < bboxlo[0]) ? bboxlo[0] : rxmax;
+    if (rymin > bboxlo[1]) bboxlo[1] = (rymin > bboxhi[1]) ? bboxhi[1] : rymin;
+    if (rymax < bboxhi[1]) bboxhi[1] = (rymax < bboxlo[1]) ? bboxlo[1] : rymax;
+    if (rzmin > bboxlo[2]) bboxlo[2] = (rzmin > bboxhi[2]) ? bboxhi[2] : rzmin;
+    if (rzmax < bboxhi[2]) bboxhi[2] = (rzmax < bboxlo[2]) ? bboxlo[2] : rzmax;
+  }
+
   double xmin,ymin,zmin,xmax,ymax,zmax;
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
 
+  // convert to lattice coordinates and set bounding box
   domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
   domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],
@@ -751,15 +774,32 @@ void CreateAtoms::add_lattice()
   // convert lattice coords to box coords
   // add atom or molecule (on each basis point) if it meets all criteria
 
-  double **basis = domain->lattice->basis;
-  double x[3],lamda[3];
-  double *coord;
+  const double * const * const basis = domain->lattice->basis;
+
+  // rough estimate of total time used for create atoms.
+  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
+  double testimate = 2.5e-8/3600.0; // convert seconds to hours
+  testimate *= static_cast<double>(khi-klo+1);
+  testimate *= static_cast<double>(jhi-jlo+1);
+  testimate *= static_cast<double>(ihi-ilo+1);
+  testimate *= static_cast<double>(nbasis);
+  double maxestimate = 0.0;
+  MPI_Reduce(&testimate,&maxestimate,1,MPI_DOUBLE,MPI_MAX,0,world);
+
+  if ((comm->me == 0) && (maxestimate > 0.01)) {
+    if (screen) fprintf(screen,"WARNING: create_atoms will take "
+                        "approx. %.2f hours to complete\n",maxestimate);
+    if (logfile) fprintf(logfile,"WARNING: create_atoms will take "
+                         "approx. %.2f hours to complete\n",maxestimate);
+  }
 
   int i,j,k,m;
-  for (k = klo; k <= khi; k++)
-    for (j = jlo; j <= jhi; j++)
-      for (i = ilo; i <= ihi; i++)
+  for (k = klo; k <= khi; k++) {
+    for (j = jlo; j <= jhi; j++) {
+      for (i = ilo; i <= ihi; i++) {
         for (m = 0; m < nbasis; m++) {
+          double *coord;
+          double x[3],lamda[3];
 
           x[0] = i + basis[m][0];
           x[1] = j + basis[m][1];
@@ -792,9 +832,15 @@ void CreateAtoms::add_lattice()
           // add the atom or entire molecule to my list of atoms
 
           if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
-          else add_molecule(x);
+          else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            add_molecule(x);
+          else add_molecule(x,quatone);
         }
+      }
+    }
+  }
 }
+
 
 /* ----------------------------------------------------------------------
    add a randomly rotated molecule with its center at center

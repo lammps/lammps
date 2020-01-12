@@ -15,9 +15,8 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_nvt_sllod.h"
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "domain.h"
@@ -80,7 +79,7 @@ void FixNVTSllod::init()
 
   int i;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
                    "remap option");

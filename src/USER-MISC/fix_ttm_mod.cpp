@@ -17,17 +17,14 @@
    Vasily Pisarev (Joint Institute for High Temperatures of RAS)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
+#include "fix_ttm_mod.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ttm_mod.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"
@@ -35,6 +32,7 @@
 #include "error.h"
 #include "citeme.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -96,10 +94,11 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
 
-  FILE *fpr = force->open_potential(arg[8]);
+  const char *filename = arg[8];
+  FILE *fpr = force->open_potential(filename);
   if (fpr == NULL) {
     char str[128];
-    snprintf(str,128,"Cannot open file %s",arg[8]);
+    snprintf(str,128,"Cannot open file %s",filename);
     error->all(FLERR,str);
   }
 
@@ -120,113 +119,113 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   double tresh_d;
   int tresh_i;
   // C0 (metal)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   esheat_0 = tresh_d;
   // C1 (metal*10^3)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   esheat_1 = tresh_d;
   // C2 (metal*10^6)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   esheat_2 = tresh_d;
   // C3 (metal*10^9)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   esheat_3 = tresh_d;
   // C4 (metal*10^12)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   esheat_4 = tresh_d;
   // C_limit
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   C_limit = tresh_d;
   //Temperature damping factor
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   T_damp = tresh_d;
   // rho_e
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   electronic_density = tresh_d;
   //thermal_diffusion
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   el_th_diff = tresh_d;
   // gamma_p
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   gamma_p = tresh_d;
   // gamma_s
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   gamma_s = tresh_d;
   // v0
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   v_0 = tresh_d;
   // average intensity of pulse (source of energy) (metal units)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   intensity = tresh_d;
   // coordinate of 1st surface in x-direction (in box units) - constant
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%d",&tresh_i);
   surface_l = tresh_i;
   // coordinate of 2nd surface in x-direction (in box units) - constant
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%d",&tresh_i);
   surface_r = tresh_i;
   // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%d",&tresh_i);
   skin_layer = tresh_i;
   // width of pulse (picoseconds)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   width = tresh_d;
   // factor of electronic pressure (PF) Pe = PF*Ce*Te
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   pres_factor = tresh_d;
   // effective free path of electrons (angstrom)
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   free_path = tresh_d;
   // ionic density (ions*angstrom^{-3})
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   ionic_density = tresh_d;
   // if movsur = 0: surface is freezed
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%d",&tresh_i);
   movsur = tresh_i;
   // electron_temperature_min
-  fgets(linee,MAXLINE,fpr_2);
-  fgets(linee,MAXLINE,fpr_2);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
+  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
   sscanf(linee,"%lg",&tresh_d);
   electron_temperature_min = tresh_d;
   fclose(fpr_2);
@@ -325,7 +324,7 @@ void FixTTMMod::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix ttm/mod with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm/mod");
+    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm/mod");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
   // set force prefactors
@@ -346,9 +345,9 @@ void FixTTMMod::init()
 
 void FixTTMMod::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (strstr(update->integrate_style,"verlet")) {
     post_force_setup(vflag);
-  else {
+  } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
@@ -428,8 +427,7 @@ void FixTTMMod::post_force(int /*vflag*/)
               flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
               flangevin[i][2] -= pres_factor/ionic_density/dz*(C_if*T_if-C_i*T_i);
             }
-          }
-          else{
+          } else {
             flangevin[i][0] -= pres_factor/ionic_density/dx*(C_ir*T_ir-C_i*T_i);
             flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
             flangevin[i][2] -= pres_factor/ionic_density/dz*(C_if*T_if-C_i*T_i);

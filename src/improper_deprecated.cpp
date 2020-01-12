@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "improper_deprecated.h"
+#include <cstring>
 #include "improper_hybrid.h"
 #include "comm.h"
 #include "force.h"
@@ -52,6 +52,6 @@ void ImproperDeprecated::settings(int, char **)
     writemsg(lmp,"\nImproper style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

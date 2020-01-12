@@ -248,7 +248,7 @@ DenseMatrix<T> operator-(const Matrix<T> &A, const Matrix<T> &B)
 //* performs a matrix-matrix multiply with general type implementation
 template<typename T>
 void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C, 
-            const bool At, const bool Bt, T a, T b)
+            const bool At, const bool Bt, T /* a */, T b)
 {
   const INDEX sA[2] = {A.nRows(), A.nCols()};  // m is sA[At] k is sA[!At]
   const INDEX sB[2] = {B.nRows(), B.nCols()};  // k is sB[Bt] n is sB[!Bt]

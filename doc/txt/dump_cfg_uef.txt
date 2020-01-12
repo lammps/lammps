@@ -1,0 +1,53 @@
+ "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+dump cfg/uef command :h3
+
+[Syntax:]
+
+dump ID group-ID cfg/uef N file mass type xs ys zs args :pre
+
+ID = user-assigned name for the dump :ulb,l
+group-ID = ID of the group of atoms to be dumped :l
+N = dump every this many timesteps :l
+file = name of file to write dump info to :l
+args = same as args for "dump custom"_dump.html :pre
+
+:ule
+
+[Examples:]
+
+dump 1 all cfg/uef 10 dump.*.cfg mass type xs ys zs
+dump 2 all cfg/uef 100 dump.*.cfg mass type xs ys zs id c_stress :pre
+
+[Description:]
+
+This command is used to dump atomic coordinates in the
+reference frame of the applied flow field when
+"fix nvt/uef"_fix_nh_uef.html or
+"fix npt/uef"_fix_nh_uef.html or is used. Only the atomic
+coordinates and frame-invariant scalar quantities
+will be in the flow frame. If velocities are selected
+as output, for example, they will not be in the same
+reference frame as the atomic positions.
+
+[Restrictions:]
+
+This fix is part of the USER-UEF package. It is only enabled if LAMMPS
+was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+This command can only be used when "fix nvt/uef"_fix_nh_uef.html
+or "fix npt/uef"_fix_nh_uef.html is active.
+
+[Related commands:]
+
+"dump"_dump.html,
+"fix nvt/uef"_fix_nh_uef.html
+
+[Default:] none

@@ -15,10 +15,10 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
+#include "fix_srd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +27,6 @@
 #include "group.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -1348,7 +1347,7 @@ void FixSRD::collisions_single()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
@@ -1507,7 +1506,7 @@ void FixSRD::collisions_multi()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",

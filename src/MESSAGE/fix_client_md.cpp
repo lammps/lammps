@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_client_md.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_client_md.h"
 #include "update.h"
 #include "atom.h"
 #include "comm.h"
@@ -40,11 +40,11 @@ enum{FORCES=1,ENERGY,PRESSURE,ERROR};
 FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->clientserver != 1) 
+  if (lmp->clientserver != 1)
     error->all(FLERR,"Fix client/md requires LAMMPS be running as a client");
   if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
 
-  if (sizeof(tagint) != 4) 
+  if (sizeof(tagint) != 4)
     error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
@@ -89,7 +89,7 @@ FixClientMD::~FixClientMD()
 
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   // clean-up
 
@@ -173,8 +173,6 @@ void FixClientMD::min_setup(int vflag)
 
 void FixClientMD::post_force(int vflag)
 {
-  int i,j,m;
-
   // energy and virial setup
 
   if (vflag) v_setup(vflag);
@@ -286,7 +284,7 @@ void FixClientMD::receive_fev(int vflag)
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
 
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   double *forces = (double *) cs->unpack(FORCES);
   double **f = atom->f;
@@ -306,7 +304,7 @@ void FixClientMD::receive_fev(int vflag)
   }
 
   eng = econvert * cs->unpack_double(ENERGY);
-  
+
   if (vflag) {
     double *v = (double *) cs->unpack(PRESSURE);
 

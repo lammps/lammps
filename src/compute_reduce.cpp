@@ -11,17 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_reduce.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "compute_reduce.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
-#include "force.h"
-#include "comm.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
@@ -30,8 +28,8 @@
 
 using namespace LAMMPS_NS;
 
-enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ReduceRegion
-enum{X,V,F,COMPUTE,FIX,VARIABLE};
+enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduceRegion
+enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
 #define INVOKED_VECTOR 2
@@ -92,6 +90,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   flavor = new int[nargnew];
   ids = new char*[nargnew];
   value2index = new int[nargnew];
+  for (int i=0; i < nargnew; ++i) {
+    which[i] = argindex[i] = flavor[i] = value2index[i] = UNKNOWN;
+    ids[i] = NULL;
+  }
   nvalues = 0;
 
   iarg = 0;
@@ -345,7 +347,7 @@ void ComputeReduce::init()
         error->all(FLERR,"Variable name for compute reduce does not exist");
       value2index[m] = ivariable;
 
-    } else value2index[m] = -1;
+    } else value2index[m] = UNKNOWN;
   }
 
   // set index and check validity of region
@@ -468,8 +470,16 @@ double ComputeReduce::compute_one(int m, int flag)
 
   index = -1;
   int vidx = value2index[m];
-  int aidx = argindex[m];
 
+  // initialization in case it has not yet been run, e.g. when
+  // the compute was invoked right after it has been created
+
+  if (vidx == UNKNOWN) {
+    init();
+    vidx = value2index[m];
+  }
+
+  int aidx = argindex[m];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

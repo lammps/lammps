@@ -176,6 +176,7 @@ OPT.
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
+   * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (o) <pair_morse>`
@@ -248,5 +249,4 @@ OPT.
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`
-   *
    *

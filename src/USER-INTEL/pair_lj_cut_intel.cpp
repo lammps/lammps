@@ -459,11 +459,8 @@ void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                    const int cop) {
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
-      fc_packed1 *oljc12o = ljc12o[0];
-      fc_packed2 *olj34 = lj34[0];
-
-      _memory->destroy(oljc12o);
-      _memory->destroy(olj34);
+      _memory->destroy(ljc12o);
+      _memory->destroy(lj34);
     }
     if (ntypes > 0) {
       _cop = cop;

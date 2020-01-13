@@ -203,7 +203,7 @@ inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG\_CONFIG\_PATH
 environment variable so that libkim-api can be found.
 
-For using KIM web queries.
+For using OpenKIM web queries in LAMMPS.
 
 If LMP\_DEBUG\_CURL is set, the libcurl verbose mode will be on, and any
 libcurl calls within the KIM web query display a lot of information about

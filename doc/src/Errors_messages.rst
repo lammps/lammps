@@ -518,6 +518,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
    Self-explanatory.
 
+*Bond/react: First neighbors of chiral atoms must be of mutually different types*
+   Self-explanatory.
+
+*Bond/react: Chiral atoms must have exactly four first neighbors*
+   Self-explanatory.
+
+*Bond/react: Molecule template 'Coords' section required for chiralIDs keyword*
+   The coordinates of atoms in the pre-reacted template are used to determine
+   chirality.
+
 *Bond/react special bond generation overflow*
    The number of special bonds per-atom created by a reaction exceeds the
    system setting. See the read\_data or create\_box command for how to

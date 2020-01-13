@@ -26,17 +26,14 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_smd_hertz.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include "pair_smd_hertz.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -87,10 +84,7 @@ void PairHertz::compute(int eflag, int vflag) {
         double *rmass = atom->rmass;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         double **f = atom->f;
         double **x = atom->x;

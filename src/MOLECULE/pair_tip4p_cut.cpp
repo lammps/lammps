@@ -15,9 +15,9 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_tip4p_cut.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "neighbor.h"
@@ -26,12 +26,10 @@
 #include "angle.h"
 #include "bond.h"
 #include "comm.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -79,8 +77,7 @@ void PairTIP4PCut::compute(int eflag, int vflag)
   double *x1,*x2,*xH1,*xH2;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred

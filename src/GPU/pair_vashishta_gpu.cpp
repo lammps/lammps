@@ -14,12 +14,12 @@
 /* ----------------------------------------------------------------------
    Contributing author: Anders Hafreager (UiO)
 ------------------------------------------------------------------------- */
-#include <limits>
+
+#include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -94,8 +94,7 @@ PairVashishtaGPU::~PairVashishtaGPU()
 
 void PairVashishtaGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -151,7 +150,7 @@ void PairVashishtaGPU::init_style()
   if (force->newton_pair != 0)
     error->all(FLERR,"Pair style vashishta/gpu requires newton pair off");
 
-  double *cutsq, *r0, *r0eps, *gamma, *eta;
+  double *cutsq, *r0, *gamma, *eta;
   double *lam1inv, *lam4inv, *zizj, *mbigd;
   double *dvrc, *big6w, *heta, *bigh;
   double *bigw, *c0, *costheta, *bigb;

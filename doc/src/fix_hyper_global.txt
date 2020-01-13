@@ -102,7 +102,7 @@ Bi = exp(beta * Vij(max)) :pre
 where beta = 1/kTequil, and {Tequil} is the temperature of the system
 and an argument to this fix.  Note that Bi >= 1 at every step.
 
-NOTE: To run GHD, the input script must also use the "fix
+NOTE: To run a GHD simulation, the input script must also use the "fix
 langevin"_fix_langevin.html command to thermostat the atoms at the
 same {Tequil} as specified by this fix, so that the system is running
 constant-temperature (NVT) dynamics.  LAMMPS does not check that this
@@ -166,9 +166,9 @@ correctly.  There will just be fewer events because the hyper time
 
 NOTE: If you have no physical intuition as to the smallest barrier
 height in your system, a reasonable strategy to determine the largest
-{Vmax} you can use for an LHD model, is to run a sequence of
+{Vmax} you can use for a GHD model, is to run a sequence of
 simulations with smaller and smaller {Vmax} values, until the event
-rate does not change.
+rate does not change (as a function of hyper time).
 
 The {Tequil} argument is the temperature at which the system is
 simulated; see the comment above about the "fix
@@ -177,7 +177,8 @@ beta term in the exponential factor that determines how much boost is
 achieved as a function of the bias potential.
 
 In general, the lower the value of {Tequil} and the higher the value
-of {Vmax}, the more boost will be achievable by the GHD algorithm.
+of {Vmax}, the more time boost will be achievable by the GHD
+algorithm.
 
 :line
 
@@ -187,44 +188,46 @@ No information about this fix is written to "binary restart
 files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy of the bias potential to the the system's
+fix to add the energy of the bias potential to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
-This fix computes a global scalar and global vector of length 11, which
+This fix computes a global scalar and global vector of length 12, which
 can be accessed by various "output commands"_Howto_output.html.  The
 scalar is the magnitude of the bias potential (energy units) applied on
 the current timestep.  The vector stores the following quantities:
 
 1 = boost factor on this step (unitless)
-2 = max strain Eij of any bond on this step (unitless)
+2 = max strain Eij of any bond on this step (absolute value, unitless)
 3 = ID of first atom in the max-strain bond
 4 = ID of second atom in the max-strain bond
 5 = average # of bonds/atom on this step :ul
 
-6 = fraction of timesteps with bias = 0.0 during this run
-7 = max drift distance of any atom during this run (distance units)
-8 = max bond length during this run (distance units) :ul
+6 = fraction of timesteps where the biased bond has bias = 0.0 during this run
+7 = fraction of timesteps where the biased bond has negative strain during this run
+8 = max drift distance of any atom during this run (distance units)
+9 = max bond length during this run (distance units) :ul
 
-9 = cumulative hyper time since fix was defined (time units)
-10 = cumulative count of event timesteps since fix was defined
-11 = cumulative count of atoms in events since fix was defined :ul
+10 = cumulative hyper time since fix was defined (time units)
+11 = cumulative count of event timesteps since fix was defined
+12 = cumulative count of atoms in events since fix was defined :ul
 
-The first 5 quantities are for the current timestep.  Quantities 6-8
-are for the current hyper run.  Quantities 9-11 are cumulative across
-multiple runs (since the fix was defined in the input script).
+The first 5 quantities are for the current timestep.  Quantities 6-9
+are for the current hyper run.  They are reset each time a new hyper
+run is performed.  Quantities 19-12 are cumulative across multiple
+runs (since the point in the input script the fix was defined).
 
-For value 7, drift is the distance an atom moves between timesteps
-when the bond list is reset, i.e. between events.  Atoms involved in
-an event will typically move the greatest distance since others are
-typically oscillating around their lattice site.
+For value 8, drift is the distance an atom moves between two quenched
+states when the second quench determines an event has occurred.  Atoms
+involved in an event will typically move the greatest distance since
+others typically remain near their original quenched position.
 
-For value 10, events are checked for by the "hyper"_hyper.html command
+For value 11, events are checked for by the "hyper"_hyper.html command
 once every {Nevent} timesteps.  This value is the count of those
 timesteps on which one (or more) events was detected.  It is NOT the
 number of distinct events, since more than one event may occur in the
 same {Nevent} time window.
 
-For value 11, each time the "hyper"_hyper.html command checks for an
+For value 12, each time the "hyper"_hyper.html command checks for an
 event, it invokes a compute to flag zero or more atoms as
 participating in one or more events.  E.g. atoms that have displaced
 more than some distance from the previous quench state.  Value 11 is

@@ -15,18 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_nvt_sllod_omp.h"
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
-#include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"
 #include "compute.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -82,7 +81,7 @@ void FixNVTSllodOMP::init()
 
   int i;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix "
                    "deform remap option");

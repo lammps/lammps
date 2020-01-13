@@ -22,7 +22,7 @@ compute 1 molecule gyration :pre
 [Description:]
 
 Define a computation that calculates the radius of gyration Rg of the
-group of atoms, including all effects due to atoms passing thru
+group of atoms, including all effects due to atoms passing through
 periodic boundaries.
 
 Rg is a measure of the size of the group of atoms, and is computed as
@@ -67,6 +67,7 @@ distance^2 "units"_units.html respectively.
 
 [Related commands:]
 
-"compute gyration/chunk"_compute_gyration_chunk.html
+"compute gyration/chunk"_compute_gyration_chunk.html,
+"compute gyration/shape"_compute_gyration_shape.html
 
 [Default:] none

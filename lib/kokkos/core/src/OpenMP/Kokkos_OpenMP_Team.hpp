@@ -74,6 +74,21 @@ public:
     return *this;
   }
 
+  template<class ExecSpace, class ... OtherProperties >
+  friend class TeamPolicyInternal;
+
+  template< class ... OtherProperties >
+  TeamPolicyInternal(const TeamPolicyInternal<Kokkos::OpenMP,OtherProperties...>& p) {
+    m_league_size = p.m_league_size;
+    m_team_size = p.m_team_size;
+    m_team_alloc = p.m_team_alloc;
+    m_team_iter = p.m_team_iter;
+    m_team_scratch_size[0] = p.m_team_scratch_size[0];
+    m_thread_scratch_size[0] = p.m_thread_scratch_size[0];
+    m_team_scratch_size[1] = p.m_team_scratch_size[1];
+    m_thread_scratch_size[1] = p.m_thread_scratch_size[1];
+    m_chunk_size = p.m_chunk_size;
+  }
   //----------------------------------------
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
@@ -208,7 +223,7 @@ public:
   }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal( typename traits::execution_space &
+  TeamPolicyInternal( const typename traits::execution_space &
             , int league_size_request
             , int team_size_request
             , int /* vector_length_request */ = 1 )
@@ -217,14 +232,18 @@ public:
             , m_chunk_size(0)
     { init( league_size_request , team_size_request ); }
 
-  TeamPolicyInternal( typename traits::execution_space &
+  TeamPolicyInternal( const typename traits::execution_space &
             , int league_size_request
             , const Kokkos::AUTO_t & /* team_size_request */
             , int /* vector_length_request */ = 1)
             : m_team_scratch_size { 0 , 0 }
             , m_thread_scratch_size { 0 , 0 }
             , m_chunk_size(0)
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     { init( league_size_request , traits::execution_space::thread_pool_size(2) ); }
+#else
+    { init( league_size_request , traits::execution_space::impl_thread_pool_size(2) ); }
+#endif
 
   TeamPolicyInternal( int league_size_request
             , int team_size_request

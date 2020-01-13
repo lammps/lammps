@@ -16,14 +16,11 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_brownian_poly.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -32,14 +29,12 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_deform.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -66,8 +61,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   double rsq,r,h_sep,beta0,beta1,radi,radj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

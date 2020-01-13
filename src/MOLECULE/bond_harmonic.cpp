@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_harmonic.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -52,8 +51,7 @@ void BondHarmonic::compute(int eflag, int vflag)
   double rsq,r,dr,rk;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -207,8 +205,8 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
 void *BondHarmonic::extract( char *str, int &dim )
 {
   dim = 1;
-  if( strcmp(str,"kappa")==0) return (void*) k;
-  if( strcmp(str,"r0")==0) return (void*) r0;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
   return NULL;
 }
 

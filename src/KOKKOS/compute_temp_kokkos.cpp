@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_kokkos.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_kokkos.h"
 #include "atom_kokkos.h"
 #include "update.h"
 #include "force.h"
@@ -153,7 +153,7 @@ void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, cons
 
 namespace LAMMPS_NS {
 template class ComputeTempKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class ComputeTempKokkos<LMPHostType>;
 #endif
 }

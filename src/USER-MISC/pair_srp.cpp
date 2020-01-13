@@ -25,9 +25,11 @@ There is an example script for this package in examples/USER/srp.
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
+#include "pair_srp.h"
+#include <mpi.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_srp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -143,10 +145,7 @@ void PairSRP::compute(int eflag, int vflag)
 
 {
     // setup energy and virial
-    if (eflag || vflag)
-        ev_setup(eflag, vflag);
-    else
-        evflag = vflag_fdotr = 0;
+    ev_init(eflag, vflag);
 
     double **x = atom->x;
     double **f = atom->f;
@@ -197,7 +196,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -258,8 +257,7 @@ void PairSRP::compute(int eflag, int vflag)
         }
       }
    }
- }
-  else{
+ } else {
   // using min distance option
 
     for (ii = 0; ii < inum; ii++) {
@@ -275,7 +273,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -361,9 +359,9 @@ void PairSRP::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
   // wildcard
-  if (strcmp(arg[1],"*") == 0)
+  if (strcmp(arg[1],"*") == 0) {
     btype = 0;
-  else {
+  } else {
     btype = force->inumeric(FLERR,arg[1]);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");

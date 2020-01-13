@@ -1,0 +1,47 @@
+# LAMMPS Input File for Grain Boundaries
+# Mark Tschopp, Dec2009
+# Modified by PM Larsen to demonstrate the use of PTM in LAMMPS
+# This file will generate a single Sigma5(310) STGB and run PTM
+
+# ---------- Initialize Simulation ---------------------
+clear
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+# ---------- Create Sigma5(310) Structure ---------
+lattice fcc 4.05
+region whole block 0.000000 12.807225 -64.0361225 64.0361225 0.000000 4.050000 units box
+create_box 2 whole
+region upper block INF INF 0.000000 64.0361225 INF INF units box
+lattice fcc 4.05 orient x  0  3  1 orient y  0 -1  3 orient z  1  0  0
+create_atoms 1 region upper
+region lower block INF INF -64.0361225 0.000000 INF INF units box
+lattice fcc 4.05 orient x  0  3 -1 orient y  0  1  3 orient z  1  0  0
+create_atoms 2 region lower
+group upper type 1
+group lower type 2
+
+mass 1 1.0
+mass 2 1.0
+
+# ---------- Define Interatomic Potential ---------------------
+pair_style	lj/cut 2.5
+pair_coeff	* * 1 1
+pair_coeff	1 1 1 1.1 2.8
+
+# ---------- Displace atoms and delete overlapping atoms ---------------------
+displace_atoms upper move 0 0 0 units lattice
+delete_atoms overlap 0.35 lower upper
+
+# ---------- Define PTM settings (default structures, RMSD threshold of 0.1) -------------------
+compute ptm all ptm/atom default 0.1
+
+# ---------- Dump data into Data file -------------
+reset_timestep 0
+dump 		1 all cfg 10000 dump.ptm_example_*.cfg mass type xs ys zs c_ptm[1] c_ptm[2] c_ptm[3] c_ptm[4] c_ptm[5] c_ptm[6] c_ptm[7]
+dump_modify     1 element Al Al
+run 1
+
+print "All done"

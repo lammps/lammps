@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_charmm_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_charmm_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
@@ -69,8 +69,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
@@ -786,7 +785,7 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
 namespace LAMMPS_NS {
 template class DihedralCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class DihedralCharmmKokkos<LMPHostType>;
 #endif
 }

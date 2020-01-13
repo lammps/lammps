@@ -18,31 +18,21 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Lionel Constantin (EPFL), David M. Wilkins (EPFL),
-			 Michele Ceriotti (EPFL)
+                         Michele Ceriotti (EPFL)
 ------------------------------------------------------------------------- */
 
+#include "fix_ffl.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ffl.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -135,6 +125,9 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 
 FixFFL::~FixFFL() {
   delete random;
+
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);

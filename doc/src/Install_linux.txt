@@ -15,7 +15,8 @@ Binaries are available for different versions of Linux:
 "Pre-built Fedora Linux executables"_#fedora
 "Pre-built EPEL Linux executables (RHEL, CentOS)"_#epel
 "Pre-built OpenSuse Linux executables"_#opensuse
-"Pre-built Gentoo Linux executable"_#gentoo :all(b)
+"Gentoo Linux executable"_#gentoo
+"Arch Linux build-script"_#arch :all(b)
 
 :line
 
@@ -87,11 +88,11 @@ linking to the C library interface (lammps-devel, lammps-mpich-devel,
 lammps-openmpi-devel), the header for compiling programs using
 the C library interface (lammps-headers), and the LAMMPS python
 module for Python 3. All packages can be installed at the same
-time and the name of the LAMMPS executable is {lmp} in all 3 cases.
-By default, {lmp} will refer to the serial executable, unless
-one of the MPI environment modules is loaded
+time and the name of the LAMMPS executable is {lmp} and {lmp_openmpi}
+or {lmp_mpich} respectively.  By default, {lmp} will refer to the
+serial executable, unless one of the MPI environment modules is loaded
 ("module load mpi/mpich-x86_64" or "module load mpi/openmpi-x86_64").
-Then the corresponding parallel LAMMPS executable is used.
+Then the corresponding parallel LAMMPS executable can be used.
 The same mechanism applies when loading the LAMMPS python module.
 
 To install LAMMPS with OpenMPI and run an input in.lj with 2 CPUs do:
@@ -150,7 +151,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
 
 :line
 
-Pre-built Gentoo Linux executable :h4,link(gentoo)
+Gentoo Linux executable :h4,link(gentoo)
 
 LAMMPS is part of Gentoo's main package tree and can be installed by
 typing:
@@ -168,3 +169,31 @@ for details.
 
 Thanks to Nicolas Bock and Christoph Junghans (LANL) for setting up
 this Gentoo capability.
+
+:line
+
+Archlinux build-script :h4,link(arch)
+
+LAMMPS is available via Arch's unofficial Arch User repository (AUR).
+
+There are three scripts available, named lammps, lammps-beta and lammps-git.
+They respectively package the stable, patch and git releases.
+
+To install, you will need to have the git package installed. You may use
+any of the above names in-place of lammps.
+
+$ git clone https://aur.archlinux.org/lammps.git :pre
+$ cd lammps :pre
+$ makepkg -s :pre
+# makepkg -i :pre
+
+To update, you may repeat the above, or change into the cloned directory,
+and execute the following, after which, if there are any changes, you may
+use makepkg as above.
+
+$ git pull :pre
+
+Alternatively, you may use an AUR helper to install these packages.
+
+Note that the AUR provides build-scripts that download the source and
+the build the package on your machine.

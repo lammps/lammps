@@ -15,18 +15,16 @@
      Contributing author: Efrem Braun (UC Berkeley)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nvk.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include "compute.h"
 #include "math_extra.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -63,9 +63,7 @@ PairLJLongTIP4PLongOMP::~PairLJLongTIP4PLongOMP()
 
 void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh_thr & newsite_thr if necessary
   // initialize hneigh_thr[0] to -1 on steps when reneighboring occured

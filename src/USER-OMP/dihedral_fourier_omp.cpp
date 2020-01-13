@@ -15,20 +15,18 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "dihedral_fourier_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
 
-#include "math_const.h"
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 
@@ -44,10 +42,7 @@ DihedralFourierOMP::DihedralFourierOMP(class LAMMPS *lmp)
 
 void DihedralFourierOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

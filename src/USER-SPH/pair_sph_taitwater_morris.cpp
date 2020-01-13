@@ -11,9 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_taitwater_morris.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -58,10 +57,7 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc, h, ih, ihsq, velx, vely, velz;
   double rsq, tmp, wfd, delVdotDelR, deltaE;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;

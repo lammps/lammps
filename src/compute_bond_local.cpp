@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_bond_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_bond_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -105,9 +105,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for copute bond/local does not exist");
+        error->all(FLERR,"Variable name for copute bond/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute bond/local is invalid style");
+        error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
 
     if (dstr) {
@@ -168,7 +168,7 @@ void ComputeBondLocal::init()
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for compute bond/local does not exist");
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
     }
 
     if (dstr) {
@@ -377,10 +377,10 @@ int ComputeBondLocal::compute_bonds(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
-	if (nvar) {
-	  ivar = 0;
-	  if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
-	}
+        if (nvar) {
+          ivar = 0;
+          if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
+        }
 
         for (n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
@@ -408,10 +408,10 @@ int ComputeBondLocal::compute_bonds(int flag)
           case VELVIB:
             ptr[n] = vvib;
             break;
-	  case VARIABLE:
-	    ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	    ivar++;
-	    break;
+          case VARIABLE:
+            ptr[n] = input->variable->compute_equal(vvar[ivar]);
+            ivar++;
+            break;
           }
         }
       }

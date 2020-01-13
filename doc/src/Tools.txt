@@ -77,6 +77,7 @@ Post-processing tools :h3
 "python"_#pythontools,
 "reax"_#reax_tool,
 "smd"_#smd,
+"spin"_#spin,
 "xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
 
 Miscellaneous tools :h3
@@ -391,15 +392,16 @@ definition file.  This tool was used to create the system for the
 
 moltemplate tool :h4,link(moltemplate)
 
-The moltemplate sub-directory contains a Python-based tool for
-building molecular systems based on a text-file description, and
-creating LAMMPS data files that encode their molecular topology as
-lists of bonds, angles, dihedrals, etc.  See the README.TXT file for
-more information.
+The moltemplate sub-directory contains instructions for installing
+moltemplate, a Python-based tool for building molecular systems based
+on a text-file description, and creating LAMMPS data files that encode
+their molecular topology as lists of bonds, angles, dihedrals, etc.
+See the README.txt file for more information.
 
 This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
 "http://moltemplate.org"_http://moltemplate.org.
+The latest sources can be found "on its GitHub page"_https://github.com/jewettaij/moltemplate/releases
 
 :line
 
@@ -486,8 +488,8 @@ README for more info on Pizza.py and how to use these scripts.
 reax tool :h4,link(reax_tool)
 
 The reax sub-directory contains stand-alone codes that can
-post-process the output of the "fix reax/bonds"_fix_reax_bonds.html
-command from a LAMMPS simulation using "ReaxFF"_pair_reax.html.  See
+post-process the output of the "fix reax/c/bonds"_fix_reaxc_bonds.html
+command from a LAMMPS simulation using "ReaxFF"_pair_reaxc.html.  See
 the README.txt file for more info.
 
 These tools were written by Aidan Thompson at Sandia.
@@ -507,6 +509,20 @@ See the header of dump2vtk.cpp for more details.
 This tool was written by the USER-SMD package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
+
+:line
+
+spin tool :h4,link(spin)
+
+The spin sub-directory contains a C file interpolate.c which can
+be compiled and used to perform a cubic polynomial interpolation of 
+the MEP following a GNEB calculation.
+
+See the README file in tools/spin/interpolate_gneb for more details.
+
+This tool was written by the SPIN package author, Julien
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei 
+Ivanov, at University of Iceland (ali5 at hi.is).
 
 :line
 

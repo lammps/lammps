@@ -11,14 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "velocity.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
 #include "lattice.h"
 #include "input.h"
@@ -33,6 +29,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -111,7 +108,7 @@ void Velocity::command(int narg, char **arg)
 
   int initcomm = 0;
   if (style == ZERO && rfix >= 0 &&
-      strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
+      utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 
@@ -709,19 +706,19 @@ void Velocity::zero(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_momentum();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_momentum();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_rotation();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_rotation();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 

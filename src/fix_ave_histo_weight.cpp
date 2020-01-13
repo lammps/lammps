@@ -14,21 +14,18 @@
 /* ----------------------------------------------------------------------
    Contributing author: Shawn Coleman (ARL)
 ------------------------------------------------------------------------- */
-
-#include <cstdlib>
-#include <cstring>
-#include <unistd.h>
 #include "fix_ave_histo_weight.h"
+#include <mpi.h>
+#include <unistd.h>
+#include "fix.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -36,7 +33,7 @@ using namespace FixConst;
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 enum{SINGLE,VALUE};
 

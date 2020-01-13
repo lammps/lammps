@@ -235,6 +235,7 @@ double ReduceTestFunctor() {
   else {
     Kokkos::parallel_reduce( policy_type( 25, Kokkos::AUTO ), FunctorReduceTest< DeviceType >( a ), unmanaged_result( & result ) );
   }
+  Kokkos::fence();
 
   return result;
 }
@@ -281,6 +282,7 @@ double ReduceTestLambda() {
       }
     }, unmanaged_result( & result ) );
   }
+  Kokkos::fence();
 
   return result;
 }

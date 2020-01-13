@@ -392,7 +392,8 @@ boundaries can be set using "boundary"_boundary.html (the slab
 approximation in not needed).  The {slab} keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
-"(Klapp)"_#Klapp in "kspace_style"_kspace_style.html {ewald/disp}.
+"(Klapp)"_#Klapp in "kspace_style"_kspace_style.html {ewald/disp},
+{ewald/dipole}, and {pppm/dipole}.
 
 NOTE: If you wish to apply an electric field in the Z-direction, in
 conjunction with the {slab} keyword, you should do it by adding

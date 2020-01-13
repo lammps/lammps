@@ -22,7 +22,6 @@ PairStyle(reax/c/omp,PairReaxCOMP)
 
 #include "pair_reaxc.h"
 #include "thr_omp.h"
-#include "suffix.h"
 
 namespace LAMMPS_NS {
 

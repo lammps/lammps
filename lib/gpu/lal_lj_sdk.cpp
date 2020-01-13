@@ -23,7 +23,7 @@ const char *lj_sdk=0;
 
 #include "lal_lj_sdk.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CGCMMT CGCMM<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -152,3 +152,4 @@ void CGCMMT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class CGCMM<PRECISION,ACC_PRECISION>;
+}

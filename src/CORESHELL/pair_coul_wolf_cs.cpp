@@ -11,25 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_wolf_cs.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "math_special.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define EPSILON 1.0e-20
 
@@ -53,8 +44,7 @@ void PairCoulWolfCS::compute(int eflag, int vflag)
   double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

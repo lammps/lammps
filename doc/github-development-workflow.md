@@ -6,7 +6,7 @@ choices the LAMMPS developers have agreed on. Git and GitHub provide the
 tools, but do not set policies, so it is up to the developers to come to
 an agreement as to how to define and interpret policies. This document
 is likely to change as our experiences and needs change and we try to
-adapt accordingly. Last change 2018-11-15.
+adapt accordingly. Last change 2018-12-19.
 
 ## Table of Contents
 
@@ -50,8 +50,8 @@ This is indicated by who the pull request is assigned to. LAMMPS core
 developers can self-assign or they can decide to assign a pull request
 to a different LAMMPS developer. Being assigned to a pull request means,
 that this pull request may need some work and the assignee is tasked to
-determine what this might be needed or not, and may either implement the
-required changes or ask the submitter of the pull request to implement
+determine whether this might be needed or not, and may either implement
+the required changes or ask the submitter of the pull request to implement
 them.  Even though, all LAMMPS developers may have write access to pull
 requests (if enabled by the submitter, which is the default), only the
 submitter or the assignee of a pull request may do so.  During this
@@ -76,12 +76,15 @@ People can be assigned to review a pull request in two ways:
 Reviewers are requested to state their appraisal of the proposed changes
 and either approve or request changes. People may unassign themselves
 from review, if they feel not competent about the changes proposed. At
-least one review from a LAMMPS developer with write access is required
-before merging in addition to the automated compilation tests.  The
-feature, that reviews from code owners are "hard" reviews (i.e. they
-must all be approved before merging is allowed), is currently disabled
-and it is in the discretion of the merge maintainer to assess when
-a sufficient degree of approval has been reached.  Reviews may be
+least two approvals from LAMMPS developers with write access are required
+before merging in addition to the automated compilation tests.
+Merging counts as implicit approval, so does submission of a pull request
+(by a LAMMPS developer). So the person doing the merge may not also submit
+an approving review. The feature, that reviews from code owners are "hard"
+reviews (i.e. they must all be approved before merging is allowed), is
+currently disabled and it is in the discretion of the merge maintainer to
+assess when a sufficient degree of approval, especially from external
+contributors, has been reached in these cases.  Reviews may be
 (automatically) dismissed, when the reviewed code has been changed,
 and then approval is required a second time.
 
@@ -120,7 +123,7 @@ Here are some items to check:
     * float.h -> cfloat
     * limits.h -> climits
     * math.h -> cmath
-    * omplex.h -> complex
+    * complex.h -> complex
     * setjmp.h -> csetjmp
     * signal.h -> csignal
     * stddef.h -> cstddef
@@ -129,16 +132,17 @@ Here are some items to check:
     * stdlib.h -> cstdlib
     * string.h -> cstring
     * time.h -> ctime
-  Do not replace (as they are C++-11): `inttypes.h` and `stdint.h`.
+    * Do NOT replace (as they are C++-11): `inttypes.h` and `stdint.h`.
   * Code should follow the C++-98 standard. C++-11 is only accepted
   in individual special purpose packages
-  * indentation is two spaces per level
-  * there should be no tabs and no trailing whitespace
+  * indentation is 2 spaces per level
+  * there should be NO tabs and no trailing whitespace
   * header files, especially of new styles, should not include any
   other headers, except the header with the base class or cstdio.
   Forward declarations should be used instead when possible.
   * iostreams should be avoided. LAMMPS uses stdio from the C-library.
   * use of STL in headers and class definitions should be avoided.
+  * there MUST NOT be any "using namespace XXX;" statements in headers.
   * static class members should be avoided at all cost.
   * anything storing atom IDs should be using `tagint` and not `int`.
   This can be flagged by the compiler only for pointers and only when

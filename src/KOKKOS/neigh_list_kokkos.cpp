@@ -35,8 +35,9 @@ template<class Device>
 void NeighListKokkos<Device>::grow(int nmax)
 {
   // skip if this list is already long enough to store nmax atoms
+  //  and maxneighs neighbors
 
-  if (nmax <= maxatoms) return;
+  if (nmax <= maxatoms && d_neighbors.extent(1) >= maxneighs) return;
   maxatoms = nmax;
 
   k_ilist =
@@ -53,7 +54,7 @@ void NeighListKokkos<Device>::grow(int nmax)
 
 namespace LAMMPS_NS {
 template class NeighListKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NeighListKokkos<LMPHostType>;
 #endif
 }

@@ -15,15 +15,14 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ewald_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
-
-#include <cmath>
-
+#include "timer.h"
 #include "math_const.h"
 
 #include "suffix.h"
@@ -61,9 +60,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 {
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // extend size of per-atom arrays if necessary
 

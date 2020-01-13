@@ -14,9 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
 
 namespace LAMMPS_NS {
 
@@ -88,17 +86,15 @@ class Variable : protected Pointers {
     int nvector;           // length of array for vector-style variable
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
+    int ivalue1,ivalue2;   // extra values needed for gmask,rmask,grmask
     int nextra;            // # of additional args beyond first 2
     Tree *first,*second;   // ptrs further down tree for first 2 args
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
       array(NULL), iarray(NULL), barray(NULL),
-      selfalloc(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL)
-    {
-    }
+      selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
+      first(NULL), second(NULL), extra(NULL) {}
   };
 
   int compute_python(int);
@@ -127,7 +123,7 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int);
+  void print_var_error(const char *, int, const char *, int, int global=1);
   void print_tree(Tree *, int);
 };
 
@@ -211,6 +207,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

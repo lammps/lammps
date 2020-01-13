@@ -28,7 +28,7 @@ action () {
 
 # force rebuild of files using python header
 
-touch ../python.h
+touch ../lmppython.h
 
 # all package files with no dependencies
 

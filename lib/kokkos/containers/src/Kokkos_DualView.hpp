@@ -484,8 +484,8 @@ public:
       }
     }
     if(std::is_same<typename t_host::memory_space,typename t_dev::memory_space>::value) {
-      t_dev::execution_space::fence();
-      t_host::execution_space::fence();
+      typename t_dev::execution_space().fence();
+      typename t_host::execution_space().fence();
     }
   }
 
@@ -832,16 +832,14 @@ void
 deep_copy (DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
            const DualView<ST,SL,SD,SM>& src )
 {
-  if(src.modified_flags.data()==NULL || dst.modified_flags.data()==NULL) {
-    return deep_copy(dst.d_view, src.d_view);
-  }
-  if (src.modified_flags(1) >= src.modified_flags(0)) {
-    deep_copy (dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
-  } else {
+  if ( src.need_sync_device() ) {
     deep_copy (dst.h_view, src.h_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
+    dst.modify_host();
   }
+  else {
+    deep_copy (dst.d_view, src.d_view);
+    dst.modify_device();
+  } 
 }
 
 template< class ExecutionSpace ,
@@ -852,15 +850,12 @@ deep_copy (const ExecutionSpace& exec ,
            DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
            const DualView<ST,SL,SD,SM>& src )
 {
-  if(src.modified_flags.data()==NULL || dst.modified_flags.data()==NULL) {
-    return deep_copy(exec, dst.d_view, src.d_view);
-  }
-  if (src.modified_flags(1) >= src.modified_flags(0)) {
-    deep_copy (exec, dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
-  } else {
+  if ( src.need_sync_device() ) {
     deep_copy (exec, dst.h_view, src.h_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
+    dst.modify_host();
+  } else {
+    deep_copy (exec, dst.d_view, src.d_view);
+    dst.modify_device();
   }
 }
 

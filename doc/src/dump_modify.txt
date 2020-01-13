@@ -310,7 +310,7 @@ NOTE: Atom and molecule IDs are stored internally as 4-byte or 8-byte
 signed integers, depending on how LAMMPS was compiled.  When
 specifying the {format int} option you can use a "%d"-style format
 identifier in the format string and LAMMPS will convert this to the
-corresponding 8-byte form it it is needed when outputting those
+corresponding 8-byte form if it is needed when outputting those
 values.  However, when specifying the {line} option or {format M
 string} option for those values, you should specify a format string
 appropriate for an 8-byte signed integer, e.g. one with "%ld", if
@@ -344,7 +344,7 @@ The {image} keyword applies only to the dump {atom} style.  If the
 image value is {yes}, 3 flags are appended to each atom's coords which
 are the absolute box image of the atom in each dimension.  For
 example, an x image flag of -2 with a normalized coord of 0.5 means
-the atom is in the center of the box, but has passed thru the box
+the atom is in the center of the box, but has passed through the box
 boundary 2 times and is really 2 box lengths to the left of its
 current coordinate.  Note that for dump style {custom} these various
 values can be printed in the dump file by using the appropriate atom
@@ -622,7 +622,7 @@ threshold criterion is met.  Otherwise it is not met.
 
 The {unwrap} keyword only applies to the dump {dcd} and {xtc} styles.
 If set to {yes}, coordinates will be written "unwrapped" by the image
-flags for each atom.  Unwrapped means that if the atom has passed thru
+flags for each atom.  Unwrapped means that if the atom has passed through
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
+#include <cstring>
 #include <cstdlib>
 #include "fix_nvt_sllod_eff.h"
 #include "math_extra.h"
@@ -75,7 +76,7 @@ void FixNVTSllodEff::init()
 
   int i;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/eff with inconsistent fix deform "
                    "remap option");

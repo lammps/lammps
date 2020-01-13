@@ -20,7 +20,6 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -31,11 +30,13 @@ class ReadRestart : protected Pointers {
   void command(int, char **);
 
  private:
-  int me,nprocs,nprocs_file,multiproc_file;
+  int me,nprocs;
   FILE *fp;
 
-  int multiproc;             // 0 = proc 0 writes for all
-                             // else # of procs writing files
+  int multiproc;             // 0 = restart file is a single file
+                             // 1 = restart file is parallel (multiple files)
+  int multiproc_file;        // # of parallel files in restart
+  int nprocs_file;           // total # of procs that wrote restart file
 
   // MPI-IO values
 

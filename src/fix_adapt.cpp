@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "fix_adapt.h"
+#include <cstring>
 #include "atom.h"
 #include "bond.h"
 #include "update.h"
@@ -31,6 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -375,8 +374,7 @@ void FixAdapt::init()
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if (strcmp(force->pair_style,"hybrid") == 0 ||
-          strcmp(force->pair_style,"hybrid/overlay") == 0) {
+      if (utils::strmatch(force->pair_style,"^hybrid")) {
         PairHybrid *pair = (PairHybrid *) force->pair;
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
@@ -416,8 +414,7 @@ void FixAdapt::init()
 
       if (ad->bdim == 1) ad->vector = (double *) ptr;
 
-      if (strcmp(force->bond_style,"hybrid") == 0 ||
-          strcmp(force->bond_style,"hybrid_overlay") == 0)
+      if (utils::strmatch(force->bond_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support bond_style hybrid");
 
       delete [] bstyle;

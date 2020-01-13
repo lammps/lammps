@@ -15,15 +15,14 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_plasticity_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
-#include "pair_peri_pmb.h"
 #include "fix_peri_neigh.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 

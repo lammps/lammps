@@ -16,9 +16,9 @@
    [ based on angle_cosine_squared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_fourier_simple.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -65,8 +65,7 @@ void AngleFourierSimple::compute(int eflag, int vflag)
   double rsq1,rsq2,r1,r2,c,cn,th,nth,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -15,16 +15,13 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_comb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "fix_qeq_comb.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,6 +30,8 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -121,12 +120,12 @@ void FixQEQComb::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
+  comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
   if (comb == NULL && comb3 == NULL)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }

@@ -91,7 +91,7 @@ is to enable LAMMPS to "find" the 2 H atoms associated with each O
 atom.  For example, if the atom ID of an O atom in a TIP4P water
 molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the the "Howto tip4p"_Howto_tip4p.html doc page for more
+See the "Howto tip4p"_Howto_tip4p.html doc page for more
 information on how to use the TIP4P pair style.  Note that the
 neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
@@ -154,6 +154,14 @@ specified in the pair_style command.
 
 :line
 
+A version of these styles with a soft core, {lj/cut/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is
+only available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+:line
+
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
@@ -211,8 +219,7 @@ different levels of the rRESPA hierarchy.  See the
 
 These styles are part of the KSPACE package.  They are only enabled if
 LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.  Note that the
-KSPACE package is installed by default.
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

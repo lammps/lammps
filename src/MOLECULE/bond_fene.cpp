@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_fene.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -54,8 +53,7 @@ void BondFENE::compute(int eflag, int vflag)
   double rsq,r0sq,rlogarg,sr2,sr6;
 
   ebond = sr6 = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

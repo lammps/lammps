@@ -76,11 +76,10 @@ public:
   void execute()
   {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = OpenMP::thread_pool_size();
+    #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-    const int pool_size = OpenMP::impl_thread_pool_size();
+    #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-    #pragma omp parallel num_threads(pool_size)
     {
       // Spin until COMPLETED_TOKEN.
       // END_TOKEN indicates no work is currently available.

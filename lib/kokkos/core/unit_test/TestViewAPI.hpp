@@ -827,6 +827,48 @@ struct TestViewMirror
     ASSERT_EQ( a_org(5), a_h3(5) );
   }
 
+  template< class MemoryTraits, class Space >
+  struct CopyUnInit {
+    typedef typename Kokkos::Impl::MirrorViewType<Space, double*, Layout, Kokkos::HostSpace, MemoryTraits>::view_type mirror_view_type;
+
+    mirror_view_type a_d;
+
+    KOKKOS_INLINE_FUNCTION
+    CopyUnInit( mirror_view_type & a_d_ ) : a_d(a_d_) {
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const typename Space::size_type i) const {
+       a_d(i) = (double)(10-i);
+    }
+    
+  };
+
+  template< class MemoryTraits >
+  void static test_mirror_no_initialize() {
+    Kokkos::View< double*, Layout, Kokkos::HostSpace > a_org( "A", 10 );
+    Kokkos::View< double*, Layout, Kokkos::HostSpace, MemoryTraits > a_h = a_org;
+
+    for (int i = 0; i < 10; i++)
+    {
+       a_h(i) = (double)i;   
+    }
+    auto a_d = Kokkos::create_mirror_view( DeviceType(), a_h, Kokkos::WithoutInitializing );
+    
+    int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
+    constexpr int is_same_memspace = std::is_same< Kokkos::HostSpace, typename DeviceType::memory_space >::value ? 1 : 0;
+    
+    ASSERT_EQ( equal_ptr_h_d, is_same_memspace);
+
+    Kokkos::parallel_for( Kokkos::RangePolicy< typename DeviceType::execution_space >( 0, int(10)), CopyUnInit< MemoryTraits, DeviceType >(a_d));
+
+    Kokkos::deep_copy( a_h, a_d );
+
+    for (int i = 0; i < 10; i++)
+    {
+       ASSERT_EQ(a_h(i), (double)(10-i));
+    }
+  }
 
   void static testit() {
     test_mirror< Kokkos::MemoryTraits<0> >();
@@ -835,6 +877,8 @@ struct TestViewMirror
     test_mirror_view< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
     test_mirror_copy< Kokkos::MemoryTraits<0> >();
     test_mirror_copy< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
+    test_mirror_no_initialize< Kokkos::MemoryTraits<0> >();
+    test_mirror_no_initialize< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
   }
 };
 
@@ -865,7 +909,7 @@ public:
   }
 
   static void run_test_view_operator_a() {
-    {TestViewOperator< T, device > f; Kokkos::parallel_for(int(N0),f);}
+    {TestViewOperator< T, device > f; Kokkos::parallel_for(int(N0),f); Kokkos::fence();}
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight< int[2][3][4][2][3][4], device >f6; f6.testit();
     TestViewOperator_LeftAndRight< int[2][3][4][2][3], device >f5; f5.testit();

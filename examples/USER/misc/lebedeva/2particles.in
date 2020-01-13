@@ -1,0 +1,63 @@
+# After running LAMMPS with this input script a number of dump files is created.
+# To extract the data from there I used grep script:
+# grep '^2 ' *cfg > LammpsResult.dat
+# After that after removing some text from LammpsResult.dat,
+# the data can be viewed by lebedeva00.plot
+#
+# Author: Zbigniew Koziol, National Center for Nuclear Research, Poland
+# Email: softquake@gmail.com
+
+
+# ---------- Start simulation ---------------------
+clear
+units metal
+dimension 3
+boundary f f f
+atom_style atomic
+
+# ========================== Create Atomistic Structure ===========================
+
+region whole block 0 20 0 20 0 10
+create_box 2 whole
+
+read_data 2particles.dat add append
+
+region graphite block INF INF INF INF 0 10 units box
+group graphite type 1 2
+group graphene1 type 1
+group graphene2 type 2
+
+pair_style hybrid/overlay lebedeva/z 20
+pair_coeff * * none
+pair_coeff 1 2 lebedeva/z CC.Lebedeva C C
+
+mass 1 12.01 # Carbon
+mass 2 12.01 # Carbon
+
+neighbor 0.3 bin
+neigh_modify delay 1 check yes
+
+compute              peratom all pe/atom
+
+dump 1 all custom 1 dump_lebedeva_*.cfg id x y z c_peratom fx fy fz
+dump_modify 1 pad 3
+
+thermo 10
+thermo_style custom step pe press temp
+thermo_modify lost ignore
+
+label STEP_LOOP
+
+variable MYSTEP loop 0 400 pad # in degrees
+variable DELTA_STEP equal 0.05
+
+displace_atoms graphene2 move ${DELTA_STEP} ${DELTA_STEP} 0
+
+run 1
+
+next MYSTEP
+jump SELF STEP_LOOP
+
+print "all done"
+
+

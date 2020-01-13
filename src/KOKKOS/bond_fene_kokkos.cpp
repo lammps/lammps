@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "bond_fene_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_fene_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"
@@ -69,8 +69,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -401,7 +400,7 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 
 namespace LAMMPS_NS {
 template class BondFENEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class BondFENEKokkos<LMPHostType>;
 #endif
 }

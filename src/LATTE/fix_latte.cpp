@@ -15,9 +15,9 @@
    Contributing author: Christian Negre (LANL)
 ------------------------------------------------------------------------- */
 
+#include "fix_latte.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_latte.h"
 #include "atom.h"
 #include "comm.h"
 #include "update.h"
@@ -239,8 +239,7 @@ void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 void FixLatte::post_force(int vflag)
 {
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute Coulombic potential = pe[i]/q[i]
   // invoke compute pe/atom

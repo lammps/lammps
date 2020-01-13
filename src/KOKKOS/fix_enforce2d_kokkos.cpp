@@ -15,11 +15,11 @@
    Contributing authors: Stefan Paquay & Matthew Peterson (Brandeis University)
 ------------------------------------------------------------------------- */
 
+#include "fix_enforce2d_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_enforce2d_kokkos.h"
 
 
 using namespace LAMMPS_NS;
@@ -56,13 +56,13 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
 
-  if( atomKK->omega_flag )
+  if (atomKK->omega_flag)
     omega  = atomKK->k_omega.view<DeviceType>();
 
-  if( atomKK->angmom_flag )
+  if (atomKK->angmom_flag)
     angmom = atomKK->k_angmom.view<DeviceType>();
 
-  if( atomKK->torque_flag )
+  if (atomKK->torque_flag)
     torque = atomKK->k_torque.view<DeviceType>();
 
 
@@ -72,9 +72,9 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   int flag_mask = 0;
-  if( atomKK->omega_flag ) flag_mask  |= 1;
-  if( atomKK->angmom_flag ) flag_mask |= 2;
-  if( atomKK->torque_flag ) flag_mask |= 4;
+  if (atomKK->omega_flag) flag_mask  |= 1;
+  if (atomKK->angmom_flag) flag_mask |= 2;
+  if (atomKK->torque_flag) flag_mask |= 4;
 
   copymode = 1;
   switch( flag_mask ){
@@ -162,7 +162,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 
 namespace LAMMPS_NS {
 template class FixEnforce2DKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixEnforce2DKokkos<LMPHostType>;
 #endif
 }

@@ -40,7 +40,7 @@ General features :h4,link(general)
   syntax for defining and using variables and formulas
   syntax for looping over runs and breaking out of loops
   run one or multiple simulations simultaneously (in parallel) from one script
-  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+  build as library, invoke LAMMPS through library interface or provided Python wrapper
   couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
 
 Particle and model types :h4,link(particle)
@@ -92,8 +92,8 @@ commands)
   implicit solvent potentials: hydrodynamic lubrication, Debye
   force-field compatibility with common CHARMM, AMBER, DREIDING, \
     OPLS, GROMACS, COMPASS options
-  access to "KIM archive"_http://openkim.org of potentials via \
-    "pair kim"_pair_kim.html
+  access to the "OpenKIM Repository"_http://openkim.org of potentials via \
+    "kim_init, kim_interactions, and kim_query"_kim_commands.html commands
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation
   overlaid potentials: superposition of multiple pair potentials :ul

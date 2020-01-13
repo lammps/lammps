@@ -34,6 +34,7 @@ COLVARS_SRCS = \
         colvarcomp_coordnums.cpp \
         colvarcomp.cpp \
         colvarcomp_distances.cpp \
+        colvarcomp_gpath.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \
         colvar.cpp \

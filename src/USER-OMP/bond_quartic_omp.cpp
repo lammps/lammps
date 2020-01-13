@@ -20,7 +20,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "pair.h"
 
 #include <cmath>
@@ -40,10 +40,7 @@ BondQuarticOMP::BondQuarticOMP(class LAMMPS *lmp)
 
 void BondQuarticOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 

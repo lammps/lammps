@@ -11,16 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_improper_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_improper_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
-#include "improper.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -46,9 +45,6 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   local_flag = 1;
   nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
-
   cflag = -1;
   nvalues = 0;
 
@@ -56,6 +52,9 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"chi") == 0) cflag = nvalues++;
     else error->all(FLERR,"Invalid keyword in compute improper/local command");
   }
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   vlocal = NULL;

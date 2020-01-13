@@ -18,16 +18,15 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
+#include "fix_lb_momentum.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "fix_lb_momentum.h"
 #include "atom.h"
-#include "domain.h"
 #include "group.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -201,7 +200,7 @@ void FixLbMomentum::end_of_step()
                             ucmx*u_lb[i][j][k][1]*ucmz-ucmx*ucmy*u_lb[i][j][k][2]+
                             ucmx*ucmy*ucmz);
             etacov[14]=0.0;
-          }else{
+          } else {
             etacov[0] = 0.0;
             etacov[1] = rho*ucmx;
             etacov[2] = rho*ucmy;
@@ -263,7 +262,7 @@ void FixLbMomentum::end_of_step()
                                       ucmx*u_old[1]*ucmz-ucmx*ucmy*u_old[2]+
                                       ucmx*ucmy*ucmz);
               etacov[14]=0.0;
-            }else{
+            } else {
               etacov[0] = 0.0;
               etacov[1] = density_old*ucmx;
               etacov[2] = density_old*ucmy;

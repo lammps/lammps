@@ -17,19 +17,13 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstring>
 #include <cstdlib>
 #include "fix_langevin_eff.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "comm.h"
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"

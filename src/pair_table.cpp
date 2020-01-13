@@ -15,17 +15,19 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_table.h"
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -73,8 +75,7 @@ void PairTable::compute(int eflag, int vflag)
   int tlm1 = tablength - 1;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -361,9 +362,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
+    std::string str("Cannot open file ");
+    str += file;
+    error->one(FLERR,str.c_str());
   }
 
   // loop until section found with matching keyword
@@ -374,17 +375,18 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    for (int i = 0; i < tb->ninput; i++)
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
@@ -412,7 +414,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   int rerror = 0;
   int cerror = 0;
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
     if (NULL == fgets(line,MAXLINE,fp))
       error->one(FLERR,"Premature end of file in pair table");

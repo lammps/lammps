@@ -17,19 +17,19 @@
                       Dundar Yilmaz (dundar.yilmaz@zirve.edu.tr)
 ------------------------------------------------------------------------- */
 
+#include "pair_comb3.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb3.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -208,7 +208,7 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if( comm->me == 0 && screen) fprintf(screen,
+      if (comm->me == 0 && screen) fprintf(screen,
       " PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;
@@ -922,7 +922,7 @@ void PairComb3::Short_neigh()
 
       icontrol = params[iparam_ij].jelementgp;
 
-      if( icontrol == 1)
+      if (icontrol == 1)
           xcctmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
       if (icontrol == 2)
           xchtmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
@@ -987,8 +987,7 @@ void PairComb3::compute(int eflag, int vflag)
 
   evdwl = eng_tmp = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Build short range neighbor list
   Short_neigh();
@@ -1250,7 +1249,7 @@ void PairComb3::compute(int eflag, int vflag)
 
         // torsion: i-j-k-l: apply to all C-C bonds
 
-        if( params[iparam_ij].tor_flag != 0 ) {
+        if (params[iparam_ij].tor_flag != 0) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
@@ -1382,7 +1381,7 @@ void PairComb3::compute(int eflag, int vflag)
         }
 
         // torsion and radical: apply to all C-C bonds
-        if( params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
+        if (params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
@@ -2578,7 +2577,7 @@ void PairComb3::tables()
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
         // radius check: outer radius vs. sigma
-        if( rvdw[0][inty] > rvdw[1][inty] )
+        if (rvdw[0][inty] > rvdw[1][inty])
           error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
 
         rrc[0] = rvdw[1][inty];

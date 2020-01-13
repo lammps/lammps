@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "pair_deprecated.h"
+#include <cstring>
 #include "pair_hybrid.h"
 #include "comm.h"
 #include "force.h"
@@ -48,10 +48,13 @@ void PairDeprecated::settings(int, char **)
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
+  if (strcmp(my_style,"reax") == 0) {
+    writemsg(lmp,"\nPair style 'reax' has been removed from LAMMPS "
+                    "after the 12 December 2018 version\n\n",1);
+  }
+
   if (strcmp(my_style,"DEPRECATED") == 0) {
     writemsg(lmp,"\nPair style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
 }
-
-

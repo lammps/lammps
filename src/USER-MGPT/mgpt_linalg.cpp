@@ -20,8 +20,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cmath>
-#include <cassert>
 
 #define restrict __restrict__
 

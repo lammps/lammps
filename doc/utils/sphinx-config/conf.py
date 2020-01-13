@@ -211,7 +211,9 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': r'''
+\setcounter{tocdepth}{2}
+'''
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -219,7 +221,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('Manual', 'LAMMPS.tex', 'LAMMPS Documentation',
-   'Steve Plimpton', 'manual'),
+   'The LAMMPS Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -229,7 +231,7 @@ latex_documents = [
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 #latex_use_parts = False
-
+latex_toplevel_sectioning = 'part'
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
 

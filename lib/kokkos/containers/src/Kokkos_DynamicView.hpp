@@ -288,8 +288,8 @@ public:
     >::type
   resize_serial( IntType const & n )
     {
-      typedef typename traits::value_type value_type ;
-      typedef value_type * value_pointer_type ;
+      typedef typename traits::value_type local_value_type ;
+      typedef local_value_type * value_pointer_type ;
 
       const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ; // New total number of chunks needed for resize
 
@@ -304,8 +304,8 @@ public:
       if ( *pc < NC ) {
         while ( *pc < NC ) {
           m_chunks[*pc] = reinterpret_cast<value_pointer_type>
-            ( 
-             typename traits::memory_space().allocate( sizeof(value_type) << m_chunk_shift ) 
+            (
+             typename traits::memory_space().allocate( sizeof(local_value_type) << m_chunk_shift )
             );
           ++*pc ;
         }
@@ -314,7 +314,7 @@ public:
         while ( NC + 1 <= *pc ) {
           --*pc ;
           typename traits::memory_space().deallocate( m_chunks[*pc]
-                                         , sizeof(value_type) << m_chunk_shift );
+                                         , sizeof(local_value_type) << m_chunk_shift );
           m_chunks[*pc] = 0 ;
         }
       }
@@ -376,8 +376,8 @@ public:
 
         closure.execute();
 
-        traits::execution_space::fence();
-        //Impl::ChunkArraySpace< typename traits::memory_space >::memory_space::execution_space::fence(); 
+        typename traits::execution_space().fence();
+        //Impl::ChunkArraySpace< typename traits::memory_space >::memory_space::execution_space().fence(); 
       }
 
     void construct_shared_allocation()

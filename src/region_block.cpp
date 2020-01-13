@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "region_block.h"
+#include <cstring>
 #include "force.h"
 #include "domain.h"
 #include "math_extra.h"
@@ -308,7 +307,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
   //            could be edge or corner pt of block
   // do not add contact point if r >= cutoff
 
-  if (!openflag){
+  if (!openflag) {
     if (x[0] < xlo) xp = xlo;
     else if (x[0] > xhi) xp = xhi;
     else xp = x[0];
@@ -318,13 +317,12 @@ int RegBlock::surface_exterior(double *x, double cutoff)
     if (x[2] < zlo) zp = zlo;
     else if (x[2] > zhi) zp = zhi;
     else zp = x[2];
-  }
-  else{
+  } else {
     mindist = BIG;
     for (int i = 0; i < 6; i++){
       if (open_faces[i]) continue;
       dist = find_closest_point(i,x,xc,yc,zc);
-      if (dist < mindist){
+      if (dist < mindist) {
         xp = xc;
         yp = yc;
         zp = zc;

@@ -5,7 +5,9 @@
 /lmp_*
 
 /style_*.h
+/packages_*.h
 /lmpinstalledpkgs.h
+/lmpgitversion.h
 
 /*_gpu.h
 /*_gpu.cpp
@@ -24,6 +26,11 @@
 /*_rx.cpp
 /*_ssa.h
 /*_ssa.cpp
+
+/kim_query.cpp
+/kim_query.h
+/pair_kim.cpp
+/pair_kim.h
 
 /kokkos.cpp
 /kokkos.h
@@ -144,14 +151,26 @@
 /compute_spin.h
 /fix_langevin_spin.cpp
 /fix_langevin_spin.h
+/fix_neb_spin.cpp
+/fix_neb_spin.h
 /fix_nve_spin.cpp
 /fix_nve_spin.h
 /fix_precession_spin.cpp
 /fix_precession_spin.h
+/fix_setforce_spin.cpp
+/fix_setforce_spin.h
+/min_spin.cpp
+/min_spin.h
+/neb_spin.cpp
+/neb_spin.h
 /pair_spin.cpp
 /pair_spin.h
 /pair_spin_dmi.cpp
 /pair_spin_dmi.h
+/pair_spin_dipole_cut.cpp
+/pair_spin_dipole_cut.h
+/pair_spin_dipole_long.cpp
+/pair_spin_dipole_long.h
 /pair_spin_exchange.cpp
 /pair_spin_exchange.h
 /pair_spin_magelec.cpp
@@ -181,6 +200,8 @@
 /angle_cosine_shift_exp.h
 /angle_cosine_squared.cpp
 /angle_cosine_squared.h
+/angle_cross.cpp
+/angle_cross.h
 /angle_dipole.cpp
 /angle_dipole.h
 /angle_fourier.cpp
@@ -189,6 +210,8 @@
 /angle_fourier_simple.h
 /angle_harmonic.cpp
 /angle_harmonic.h
+/angle_mm3.cpp
+/angle_mm3.h
 /angle_quartic.cpp
 /angle_quartic.h
 /angle_sdk.cpp
@@ -243,6 +266,8 @@
 /bond_harmonic_shift.h
 /bond_harmonic_shift_cut.cpp
 /bond_harmonic_shift_cut.h
+/bond_mm3.cpp
+/bond_mm3.h
 /bond_morse.cpp
 /bond_morse.h
 /bond_nonlinear.cpp
@@ -371,6 +396,8 @@
 /dihedral_table.h
 /dihedral_table_cut.cpp
 /dihedral_table_cut.h
+/dump_atom_adios.cpp
+/dump_atom_adios.h
 /dump_atom_gz.cpp
 /dump_atom_gz.h
 /dump_xyz_gz.cpp
@@ -381,6 +408,8 @@
 /dump_cfg_gz.h
 /dump_cfg_mpiio.cpp
 /dump_cfg_mpiio.h
+/dump_custom_adios.cpp
+/dump_custom_adios.h
 /dump_custom_gz.cpp
 /dump_custom_gz.h
 /dump_custom_mpiio.cpp
@@ -397,10 +426,16 @@
 /dump_xtc.h
 /dump_xyz_mpiio.cpp
 /dump_xyz_mpiio.h
+/dynamical_matrix.cpp
+/dynamical_matrix.h
 /ewald.cpp
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_dipole.cpp
+/ewald_dipole.h
+/ewald_dipole_spin.cpp
+/ewald_dipole_spin.h
 /ewald_disp.cpp
 /ewald_disp.h
 /ewald_n.cpp
@@ -439,6 +474,8 @@
 /fix_dpd_energy.h
 /fix_efield.cpp
 /fix_efield.h
+/fix_electron_stopping.cpp
+/fix_electron_stopping.h
 /fix_eos_cv.cpp
 /fix_eos_cv.h
 /fix_eos_table.cpp
@@ -583,8 +620,6 @@
 /fix_qeq_reax.h
 /fix_qmmm.cpp
 /fix_qmmm.h
-/fix_reax_bonds.cpp
-/fix_reax_bonds.h
 /fix_reaxc.cpp
 /fix_reaxc.h
 /fix_reaxc_bonds.cpp
@@ -679,6 +714,10 @@
 /improper_cvff.h
 /improper_distance.cpp
 /improper_distance.h
+/improper_distharm.cpp
+/improper_distharm.h
+/improper_sqdistharm.cpp
+/improper_sqdistharm.h
 /improper_fourier.cpp
 /improper_fourier.h
 /improper_harmonic.cpp
@@ -778,6 +817,10 @@
 /pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
+/pair_e3b.cpp
+/pair_e3b.h
+/pair_drip.cpp
+/pair_drip.h
 /pair_eam.cpp
 /pair_eam.h
 /pair_eam_alloy.cpp
@@ -786,6 +829,10 @@
 /pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
+/fix_electron_stopping.cpp
+/fix_electron_stopping.h
+/pair_lebedeva_z.cpp
+/pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
 /pair_lj_expand_coul_long.h
 /pair_edip.cpp
@@ -801,6 +848,8 @@
 /pair_gauss_cut.h
 /pair_gayberne.cpp
 /pair_gayberne.h
+/pair_granular.cpp
+/pair_granular.h
 /pair_gran_easy.cpp
 /pair_gran_easy.h
 /pair_gran_hertz_history.cpp
@@ -819,14 +868,14 @@
 /pair_hbond_dreiding_morse.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
-/pair_kim.cpp
-/pair_kim.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
 /pair_kolmogorov_crespi_z.h
 /pair_lcbop.cpp
 /pair_lcbop.h
+/pair_lebedeva_z.cpp
+/pair_lebedeva_z.h
 /pair_line_lj.cpp
 /pair_line_lj.h
 /pair_list.cpp
@@ -845,8 +894,14 @@
 /pair_lj_class2.h
 /pair_lj_class2_coul_cut.cpp
 /pair_lj_class2_coul_cut.h
+/pair_lj_class2_coul_cut_soft.cpp
+/pair_lj_class2_coul_cut_soft.h
 /pair_lj_class2_coul_long.cpp
 /pair_lj_class2_coul_long.h
+/pair_lj_class2_coul_long_soft.cpp
+/pair_lj_class2_coul_long_soft.h
+/pair_lj_class2_soft.cpp
+/pair_lj_class2_soft.h
 /pair_lj_coul.cpp
 /pair_lj_coul.h
 /pair_coul_cut_soft.cpp
@@ -891,6 +946,8 @@
 /pair_lj_sdk_coul_msm.h
 /pair_lj_sf_dipole_sf.cpp
 /pair_lj_sf_dipole_sf.h
+/pair_lj_switch3_coulgauss_long.cpp
+/pair_lj_switch3_coulgauss_long.h
 /pair_lubricateU.cpp
 /pair_lubricateU.h
 /pair_lubricateU_poly.cpp
@@ -899,14 +956,12 @@
 /pair_lubricate_poly.h
 /pair_lubricate.cpp
 /pair_lubricate.h
-/pair_meam.cpp
-/pair_meam.h
 /pair_meam_spline.cpp
 /pair_meam_spline.h
 /pair_meam_sw_spline.cpp
 /pair_meam_sw_spline.h
-/pair_mesocnt.cpp
-/pair_mesocnt.h
+/pair_mm3_switch3_coulgauss_long.cpp
+/pair_mm3_switch3_coulgauss_long.h
 /pair_morse_soft.cpp
 /pair_morse_soft.h
 /pair_nb3b_harmonic.cpp
@@ -932,9 +987,6 @@
 /pair_peri_ves.h
 /pair_quip.cpp
 /pair_quip.h
-/pair_reax.cpp
-/pair_reax.h
-/pair_reax_fortran.h
 /pair_reaxc.cpp
 /pair_reaxc.h
 /pair_rebo.cpp
@@ -983,6 +1035,10 @@
 /pppm.h
 /pppm_cg.cpp
 /pppm_cg.h
+/pppm_dipole.cpp
+/pppm_dipole.h
+/pppm_dipole_spin.cpp
+/pppm_dipole_spin.h
 /pppm_disp.cpp
 /pppm_disp.h
 /pppm_disp_tip4p.cpp
@@ -1241,4 +1297,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-

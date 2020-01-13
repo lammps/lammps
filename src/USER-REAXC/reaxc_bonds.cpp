@@ -24,12 +24,11 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_bonds.h"
-#include "reaxc_bond_orders.h"
+#include <cmath>
+#include "pair.h"
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
 void Bonds( reax_system *system, control_params * /*control*/,
             simulation_data *data, storage *workspace, reax_list **lists,
@@ -62,9 +61,9 @@ void Bonds( reax_system *system, control_params * /*control*/,
     for( pj = start_i; pj < end_i; ++pj ) {
       j = bonds->select.bond_list[pj].nbr;
 
-      if( system->my_atoms[i].orig_id > system->my_atoms[j].orig_id )
+      if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id)
         continue;
-      if( system->my_atoms[i].orig_id == system->my_atoms[j].orig_id ) {
+      if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
         if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
         if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
             system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;
@@ -95,7 +94,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
         -twbp->De_pp * bo_ij->BO_pi2;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag)
+      if (system->pair_ptr->evflag)
         system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
 
       /* calculate derivatives of Bond Orders */
@@ -104,7 +103,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
       bo_ij->Cdbopi2 -= (CEbo + twbp->De_pp);
 
       /* Stabilisation terminal triple bond */
-      if( bo_ij->BO >= 1.00 ) {
+      if (bo_ij->BO >= 1.00) {
         if( gp37 == 2 ||
             (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
             (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990) ) {
@@ -125,7 +124,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
             (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 
           /* tally into per-atom energy */
-          if( system->pair_ptr->evflag)
+          if (system->pair_ptr->evflag)
             system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
 
           bo_ij->Cdbo += decobdbo;

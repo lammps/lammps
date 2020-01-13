@@ -1,9 +1,0 @@
-# dependencies. needed for parallel make
-$(DIR)meam_data.o: meam_data.F
-$(DIR)meam_cleanup.o: meam_cleanup.F $(DIR)meam_data.o
-$(DIR)meam_dens_final.o: meam_dens_final.F $(DIR)meam_data.o
-$(DIR)meam_dens_init.o: meam_dens_init.F $(DIR)meam_data.o
-$(DIR)meam_force.o: meam_force.F $(DIR)meam_data.o
-$(DIR)meam_setup_done.o: meam_setup_done.F $(DIR)meam_data.o
-$(DIR)meam_setup_global.o: meam_setup_global.F $(DIR)meam_data.o
-$(DIR)meam_setup_param.o: meam_setup_param.F $(DIR)meam_data.o

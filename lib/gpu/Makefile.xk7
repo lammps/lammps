@@ -15,7 +15,7 @@ CUDA_ARCH = -arch=sm_35
 CUDA_PRECISION = -D_SINGLE_DOUBLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
+CUDA_OPTS = -DUNIX -O3 --use_fast_math
 
 CUDR_CPP = CC -DCUDA_PROXY -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
 CUDR_OPTS = -O2 -march=bdver1 -ftree-vectorize 

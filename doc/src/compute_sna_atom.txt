@@ -24,12 +24,7 @@ twojmax = band limit for bispectrum components (non-negative integer) :l
 R_1, R_2,... = list of cutoff radii, one for each type (distance units) :l
 w_1, w_2,... = list of neighbor weights, one for each type  :l
 zero or more keyword/value pairs may be appended :l
-keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag}:l
-  {diagonal} value = {0} or {1} or {2} or {3}
-     {0} = all j1, j2, j <= twojmax, j2 <= j1
-     {1} = subset satisfying j1 == j2
-     {2} = subset satisfying j1 == j2 == j3
-     {3} = subset satisfying j2 <= j1 <= j
+keyword = {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag} :l
   {rmin0} value = parameter in distance to angle conversion (distance units)
   {switchflag} value = {0} or {1}
      {0} = do not use switching function
@@ -44,7 +39,7 @@ keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag
 
 [Examples:]
 
-compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 diagonal 3 rmin0 0.0
+compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 rmin0 0.0
 compute db all sna/atom 1.4 0.95 6 2.0 1.0
 compute vb all sna/atom 1.4 0.95 6 2.0 1.0 :pre
 
@@ -151,7 +146,7 @@ The argument {rfac0} and the optional keyword {rmin0} define the
 linear mapping from radial distance to polar angle {theta0} on the
 3-sphere.
 
-The argument {twojmax} and the keyword {diagonal} define which
+The argument {twojmax} defines which
 bispectrum components are generated. See section below on output for a
 detailed explanation of the number of bispectrum components and the
 ordered in which they are listed.
@@ -192,23 +187,18 @@ command that includes all pairs in the neighbor list.
 Compute {sna/atom} calculates a per-atom array, each column
 corresponding to a particular bispectrum component.  The total number
 of columns and the identity of the bispectrum component contained in
-each column depend on the values of {twojmax} and {diagonal}, as
+each column depend of the value of {twojmax}, as
 described by the following piece of python code:
 
 for j1 in range(0,twojmax+1):
-    if(diagonal==2):
-        print j1/2.,j1/2.,j1/2.
-    elif(diagonal==1):
-        for j in range(0,min(twojmax,2*j1)+1,2):
-            print j1/2.,j1/2.,j/2.
-    elif(diagonal==0):
-        for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
-                print j1/2.,j2/2.,j/2.
-    elif(diagonal==3):
-        for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
-                if (j>=j1): print j1/2.,j2/2.,j/2. :pre
+    for j2 in range(0,j1+1):
+        for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
+            if (j>=j1): print j1/2.,j2/2.,j/2. :pre
+
+NOTE: the {diagonal} keyword allowing other possible choices
+for the number of bispectrum components was removed in 2019, 
+since all potentials use the value of 3, corresponding to the
+above set of bispectrum components.
 
 Compute {snad/atom} evaluates a per-atom array. The columns are
 arranged into {ntypes} blocks, listed in order of atom type {I}.  Each
@@ -259,7 +249,7 @@ package"_Build_package.html doc page for more info.
 
 [Default:]
 
-The optional keyword defaults are {diagonal} = 0, {rmin0} = 0,
+The optional keyword defaults are {rmin0} = 0,
 {switchflag} = 1, {bzeroflag} = 1, {quadraticflag} = 0,
 
 :line

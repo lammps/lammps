@@ -99,6 +99,14 @@ cutoff distance.
 
 :line
 
+A version of these styles with a soft core, {lj/cut/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is
+only available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+:line
+
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
@@ -147,9 +155,12 @@ All of the lj/class2 pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
-All of the lj/class2 pair styles can only be used via the {pair}
-keyword of the "run_style respa"_run_style.html command.  They do not
-support the {inner}, {middle}, {outer} keywords.
+Only the {lj/class2} and {lj/class2/coul/long} pair styles support the use of the
+{inner}, {middle}, and {outer} keywords of the "run_style
+respa"_run_style.html command, meaning the pairwise forces can be
+partitioned by distance at different levels of the rRESPA hierarchy.
+The other styles only support the {pair} keyword of run_style respa.
+See the "run_style"_run_style.html command for details.
 
 [Restrictions:]
 
@@ -159,7 +170,7 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_fep_soft"_pair_fep_soft.html
 
 [Default:] none
 

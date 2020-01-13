@@ -11,14 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "delete_bonds.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "delete_bonds.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
-#include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "group.h"

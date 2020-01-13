@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "gridcomm_kokkos.h"
+#include <mpi.h>
 #include "comm.h"
 #include "kspace.h"
 #include "memory_kokkos.h"
@@ -529,7 +529,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
     if (swap[m].sendproc != me) {
       FFT_SCALAR* buf1;
       FFT_SCALAR* buf2;
-      if (lmp->kokkos->gpu_direct_flag) {
+      if (lmp->kokkos->cuda_aware_flag) {
         buf1 = k_buf1.view<DeviceType>().data();
         buf2 = k_buf2.view<DeviceType>().data();
       } else {
@@ -545,7 +545,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
                swap[m].sendproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-      if (!lmp->kokkos->gpu_direct_flag) {
+      if (!lmp->kokkos->cuda_aware_flag) {
         k_buf2.modify<LMPHostType>();
         k_buf2.sync<DeviceType>();
       }
@@ -579,7 +579,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
     if (swap[m].recvproc != me) {
       FFT_SCALAR* buf1;
       FFT_SCALAR* buf2;
-      if (lmp->kokkos->gpu_direct_flag) {
+      if (lmp->kokkos->cuda_aware_flag) {
         buf1 = k_buf1.view<DeviceType>().data();
         buf2 = k_buf2.view<DeviceType>().data();
       } else {
@@ -595,7 +595,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
                swap[m].recvproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-      if (!lmp->kokkos->gpu_direct_flag) {
+      if (!lmp->kokkos->cuda_aware_flag) {
         k_buf2.modify<LMPHostType>();
         k_buf2.sync<DeviceType>();
       }
@@ -652,7 +652,7 @@ double GridCommKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class GridCommKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class GridCommKokkos<LMPHostType>;
 #endif
 }

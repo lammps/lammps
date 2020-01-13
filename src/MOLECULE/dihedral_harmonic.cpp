@@ -15,14 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -67,8 +65,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
   double c,s,p,sx2,sy2,sz2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

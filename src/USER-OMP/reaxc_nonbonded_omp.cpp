@@ -29,6 +29,7 @@
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 
 #include "reaxc_nonbonded.h"
@@ -162,7 +163,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
             CEvd = dTap * e_vdW -
               Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
           }
-        else{ // no shielding
+        else { // no shielding
           exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
           exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -208,22 +209,21 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
           ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 
         /* tally into per-atom energy */
-        if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+        if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           pe_vdw = Tap * (e_vdW + e_core + e_lg);
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                           -1., system->my_atoms[j].x );
           f_tmp = -(CEvd + CEclmb);
-          pair_reax_ptr->ev_tally_thr_proxy( system->pair_ptr, i, j, natoms,
-                                             1, pe_vdw, e_ele, f_tmp,
-                                             delij[0], delij[1], delij[2], thr);
+          pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms,
+                                            1, pe_vdw, e_ele, f_tmp,
+                                            delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
-        }
-        else { /* NPT, iNPT or sNPT */
+        } else { /* NPT, iNPT or sNPT */
           /* for pressure coupling, terms not related to bond order
              derivatives are added directly into pressure vector/tensor */
 
@@ -282,6 +282,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   int tid = 0;
 #endif
   long froffset = (system->N * tid);
+  LR_lookup_table ** & LR = system->LR;
 
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
@@ -328,7 +329,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 
         /* Cubic Spline Interpolation */
         r = (int)(r_ij * t->inv_dx);
-        if( r == 0 )  ++r;
+        if (r == 0)  ++r;
         base = (double)(r+1) * t->dx;
         dif = r_ij - base;
 
@@ -350,7 +351,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
         CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
         /* tally into per-atom energy */
-        if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+        if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                           -1., system->my_atoms[j].x );
           f_tmp = -(CEvd + CEclmb);
@@ -358,12 +359,11 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
                                             f_tmp, delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[froffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
-        }
-        else { // NPT, iNPT or sNPT
+        } else { // NPT, iNPT or sNPT
           /* for pressure coupling, terms not related to bond order derivatives
              are added directly into pressure vector/tensor */
           rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_deposit.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -798,11 +798,12 @@ void FixDeposit::options(int narg, char **arg)
 void FixDeposit::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[4];
+  double list[5];
   list[n++] = random->state();
   list[n++] = ninserted;
   list[n++] = nfirst;
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -823,7 +824,11 @@ void FixDeposit::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   ninserted = static_cast<int> (list[n++]);
   nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting this fix");
 
   random->reset(seed);
 }

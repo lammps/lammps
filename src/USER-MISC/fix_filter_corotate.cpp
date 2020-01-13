@@ -16,30 +16,25 @@
      some subroutines are from fix_shake.cpp
    ------------------------------------------------------------------------- */
 
+#include "fix_filter_corotate.h"
 #include <mpi.h>
+#include <cctype>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_filter_corotate.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "bond.h"
+#include "comm.h"
+#include "domain.h"
 #include "angle.h"
+#include "bond.h"
 #include "math_const.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
-#include "region.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
-#include "error.h"
-#include "memory.h"
-#include "domain.h"
-#include "integrate.h"
 #include "respa.h"
-#include "neighbor.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -217,7 +212,6 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,2);
   atom->delete_callback(id,0);
 
   // delete locally stored arrays

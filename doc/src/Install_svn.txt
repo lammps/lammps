@@ -36,18 +36,11 @@ where "mylammps" is the name of the directory you wish to create on
 your machine.
 
 Once the command completes, your directory will contain the same files
-as if you unpacked a current LAMMPS tarball, with two exceptions:
-
-1) No LAMMPS packages are initially installed in the src dir (a few
-packages are installed by default in the tarball src dir).  You can
-install whichever packages you wish before building LAMMPS; type "make
-package" from the src dir to see the options, and the
-"Packages"_Packages.html doc page for a discussion of packages.
-
-2) The HTML documentation files are not included.  They can be fetched
+as if you unpacked a current LAMMPS tarball, with the exception, that
+the HTML documentation files are not included.  They can be fetched
 from the LAMMPS website by typing "make fetch" in the doc directory.
 Or they can be generated from the content provided in doc/src by
-typing "make html" from the the doc directory.
+typing "make html" from the doc directory.
 
 After initial checkout, as bug fixes and new features are added to
 LAMMPS, as listed on "this page"_Errors_bugs.html, you can stay

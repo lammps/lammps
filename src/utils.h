@@ -1,0 +1,140 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef LMP_UTILS_H
+#define LMP_UTILS_H
+
+/*! \file utils.h */
+
+#include "lmptype.h"
+#include <string>
+#include <cstdio>
+
+namespace LAMMPS_NS {
+
+  // forward declarations
+  class Error;
+  class LAMMPS;
+
+  namespace utils {
+
+    /** \brief Match text against a simplified regex pattern
+     *
+     *  \param text the text to be matched against the pattern
+     *  \param pattern the search pattern, which may contain regexp markers
+     *  \return true if the pattern matches, false if not
+     */
+    bool strmatch(std::string text, std::string pattern);
+
+    /** Categories of special arguments for cfvarg() function
+     *
+     * Enum starts from 100 to avoid conflicts with other local define flags
+     */
+    enum {NONE=100,              /// does not match any category
+          COMPUTE,               /// processed a compute
+          FIX,                   /// processed a fix
+          VARIABLE               /// processed a variable
+    };
+
+    /** \brief Convenience function to process 'c_', 'f_', and 'v_' arguments
+     *
+     *  \param mode types to search for. 1-3 char string from 'c', 'f', or 'v'
+     *  \param arg  argument string to test against the prefixes
+     *  \param cfv_id name or ID of the compute, fix, or variable
+     *  \return utils::COMPUTE, utils::FIX, utils::VARIABLE or utils::NONE
+     */
+    int cfvarg(std::string mode, const char *arg, char *&cfv_id);
+
+    /** \brief safe wrapper around fgets() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging
+     *
+     *  \param srcname  name of the calling source file (from FLERR macro)
+     *  \param srcline  line in the calling source file (from FLERR macro)
+     *  \param s        buffer for storing the result of fgets()
+     *  \param size     size of buffer s (max number of bytes read by fgets())
+     *  \param fp       file pointer used by fgets()
+     *  \param filename file name associated with fp (for error message)
+     *  \param error    pointer to Error class instance (for abort)
+     */
+    void sfgets(const char *srcname, int srcline, char *s, int size,
+                FILE *fp, const char *filename, Error *error);
+
+    /** \brief Report if a requested style is in a package or may have a typo
+     *
+     *  \param style type of style that is to be checked for
+     *  \param name  name of style that was not found
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return string usable for error messages
+     */
+    std::string check_packages_for_style(std::string style,
+                                         std::string name, LAMMPS *lmp);
+
+    /** \brief Convert a string to a floating point number while checking
+        if it is a valid floating point or integer number
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return double precision floating point number
+     */
+    double numeric(const char *file, int line, const char *str,
+                   bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (regular int)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (regular int)
+     */
+    int inumeric(const char *file, int line, const char *str,
+                 bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (bigint)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (bigint)
+     */
+    bigint bnumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (tagint)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (tagint)
+     */
+    tagint tnumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp);
+  }
+}
+
+#endif
+
+/* ERROR/WARNING messages:
+
+*/

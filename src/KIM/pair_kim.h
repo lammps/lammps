@@ -12,14 +12,45 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ryan S. Elliott,
-                         Valeriu Smirichinski,
-                         Ellad Tadmor (U Minn)
+   Contributing authors: Ryan S. Elliott (UMinn), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.5.0 package and for use with
-   the kim-api-v1.6.0 (and newer) package
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 2 of the License, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+   FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+   more details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program; if not, see <https://www.gnu.org/licenses>.
+
+   Linking LAMMPS statically or dynamically with other modules is making a
+   combined work based on LAMMPS. Thus, the terms and conditions of the GNU
+   General Public License cover the whole combination.
+
+   In addition, as a special exception, the copyright holders of LAMMPS give
+   you permission to combine LAMMPS with free software programs or libraries
+   that are released under the GNU LGPL and with code included in the standard
+   release of the "kim-api" under the CDDL (or modified versions of such code,
+   with unchanged license). You may copy and distribute such a system following
+   the terms of the GNU GPL for LAMMPS and the licenses of the other code
+   concerned, provided that you include the source code of that other code
+   when and as the GNU GPL requires distribution of source code.
+
+   Note that people who make modified versions of LAMMPS are not obligated to
+   grant this special exception for their modified versions; it is their choice
+   whether to do so. The GNU General Public License gives permission to release
+   a modified version without this exception; this exception also makes it
+   possible to release a modified version which carries forward this exception.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -35,120 +66,106 @@ PairStyle(kim,PairKIM)
 class KIM_API_model;
 #include "pair.h"
 
+extern "C" {
+#include "KIM_SimulatorHeaders.h"
+}
 
 namespace LAMMPS_NS {
 
-   class PairKIM : public Pair {
-   public:
-      PairKIM(class LAMMPS*);
-      ~PairKIM();
+class PairKIM : public Pair {
+ public:
+  PairKIM(class LAMMPS*);
+  ~PairKIM();
 
-      // LAMMPS Pair class virtual function prototypes
-      virtual void compute(int, int);
-      virtual void settings(int, char**);
-      virtual void coeff(int, char**);
-      virtual void init_style();
-      virtual double init_one(int, int);
-      virtual void reinit();
-      virtual int pack_reverse_comm(int, int, double*);
-      virtual void unpack_reverse_comm(int, int*, double*);
-      virtual double memory_usage();
-      void *extract(const char *, int &);
+  // LAMMPS Pair class virtual function prototypes
+  virtual void compute(int, int);
+  virtual void settings(int, char**);
+  virtual void coeff(int, char**);
+  virtual void init_style();
+  virtual void init_list(int id, NeighList *ptr);
+  virtual double init_one(int, int);
+  virtual int pack_reverse_comm(int, int, double*);
+  virtual void unpack_reverse_comm(int, int*, double*);
+  virtual double memory_usage();
 
-   private:
-      // (nearly) all bool flags are not initialized in constructor, but set
-      // explicitly in the indicated function.  All other data members are
-      // initialized in constructor
-      int settings_call_count;
-      int init_style_call_count;
+ protected:
+  // (nearly) all bool flags are not initialized in constructor, but set
+  // explicitly in the indicated function.  All other data members are
+  // initialized in constructor
+  int settings_call_count;
+  int init_style_call_count;
 
-      // values set in settings()
-      char* kim_modelname;
-      bool print_kim_file;
+  // values set in settings()
+  char* kim_modelname;
 
-      // values set in coeff()
+  // values set in coeff()
 
-      // values set in allocate(), called by coeff()
-      void allocate();
-      int* lmps_map_species_to_unique;
+  // values set in allocate(), called by coeff()
+  virtual void allocate();
+  int* lmps_map_species_to_unique;
 
-      // values set in coeff(), after calling allocate()
-      char** lmps_unique_elements;  // names of unique elements given
-                                    // in pair_coeff command
-      int lmps_num_unique_elements;
+  // values set in coeff(), after calling allocate()
+  char** lmps_unique_elements;  // names of unique elements given
+                                // in pair_coeff command
+  int lmps_num_unique_elements;
 
-      // values set in set_lmps_flags(), called from init_style()
-      bool lmps_using_newton;
-      bool lmps_using_molecular;
-      bool lmps_hybrid;             // true if running with pair hybrid
-      bool lmps_support_cluster;    // true if running in mode compat.
-                                    // with CLUSTER
-      enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
-      unit_sys lmps_units;
+  // values set in set_lmps_flags(), called from init_style()
+  bool lmps_using_newton;
+  bool lmps_using_molecular;
+  enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
+  unit_sys lmps_units;
+  KIM_LengthUnit lengthUnit;
+  KIM_EnergyUnit energyUnit;
+  KIM_ChargeUnit chargeUnit;
+  KIM_TemperatureUnit temperatureUnit;
+  KIM_TimeUnit timeUnit;
 
-      // values set in set_kim_model_has_flags(), called by kim_init()
-      KIM_API_model* pkim;
-      bool kim_model_has_energy;
-      bool kim_model_has_forces;
-      bool kim_model_has_particleEnergy;
-      bool kim_model_has_particleVirial;
+  KIM_Model * pkim;
+  KIM_ComputeArguments * pargs;
 
-      // values set in kim_init(), after call to string_init(_)
-      bool kim_init_ok;
-      bool kim_model_using_half;
-      bool kim_model_using_cluster;
-      bool kim_model_using_Rij;
-      int kim_ind_coordinates;
-      int kim_ind_numberOfParticles;
-      int kim_ind_numberContributingParticles;
-      int kim_ind_numberOfSpecies;
-      int kim_ind_particleSpecies;
-      int kim_ind_get_neigh;
-      int kim_ind_neighObject;
-      int kim_ind_cutoff;
-      int kim_ind_energy;
-      int kim_ind_particleEnergy;
-      int kim_ind_forces;
-      int kim_ind_virial;
-      int kim_ind_particleVirial;
+  // values set in set_kim_model_has_flags(), called by kim_init()
+  KIM_SupportStatus kim_model_support_for_energy;
+  KIM_SupportStatus kim_model_support_for_forces;
+  KIM_SupportStatus kim_model_support_for_particleEnergy;
+  KIM_SupportStatus kim_model_support_for_particleVirial;
 
-      // values set in init_style(), after calling pkim->model_init()
-      bool kim_model_init_ok;
-      bool kim_particle_codes_ok;
-      int *kim_particle_codes;
+  // values set in kim_init()
+  bool kim_init_ok;
+  int lmps_local_tot_num_atoms;
+  double kim_global_influence_distance;  // KIM Model cutoff value
+  int kim_number_of_neighbor_lists;
+  double const * kim_cutoff_values;
+  int const * modelWillNotRequestNeighborsOfNoncontributingParticles;
+  class NeighList ** neighborLists;
 
-      // values set in set_statics(), called at end of kim_init(),
-      //   then again in set_volatiles(), called in compute()
-      int lmps_local_tot_num_atoms;
-      double kim_global_cutoff;       // KIM Model cutoff value
+  // values set in init_style()
+  bool kim_particle_codes_ok;
+  int *kim_particle_codes;
 
-      // values set in compute()
-      int lmps_maxalloc;              // max allocated memory value
-      int* kim_particleSpecies;       // array of KIM particle species
-      double** lmps_force_tmp;        // temp storage for f, when running in
-                                      // hybrid mode needed to avoid resetting
-                                      // f to zero in each object
-      int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
-                                      // is in molecular mode
+  // values set in compute()
+  int lmps_maxalloc;              // max allocated memory value
+  int* kim_particleSpecies;       // array of KIM particle species
+  int* kim_particleContributing;  // array of KIM particle contributing
+  int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
+                                  // is in molecular mode
+  int** lmps_stripped_neigh_ptr;  // pointer into lists
 
-      // values used in get_neigh()
-      int kim_iterator_position;      //get_neigh iterator current position
-      double *Rij;
-
-      // KIM specific helper functions
-      void kim_error(int, const char *, int);
-      void kim_init();
-      void kim_free();
-      void set_statics();
-      void set_volatiles();
-      void set_lmps_flags();
-      void set_kim_model_has_flags();
-      void write_descriptor(char** test_descriptor_string);
-      // static methods used as callbacks from KIM
-      static int get_neigh(void** kimmdl, int* mode, int* request,
-                           int* atom, int* numnei, int** nei1atom,
-                           double** pRij);
-   };
+  // KIM specific helper functions
+  virtual void set_contributing();
+  virtual void kim_init();
+  virtual void kim_free();
+  virtual void set_argument_pointers();
+  virtual void set_lmps_flags();
+  virtual void set_kim_model_has_flags();
+  virtual int check_for_routine_compatibility();
+  // static methods used as callbacks from KIM
+  static int get_neigh(
+    void const * const dataObject,
+    int const numberOfCutoffs, double const * const cutoffs,
+    int const neighborListIndex, int const particleNumber,
+    int * const numberOfNeighbors,
+    int const ** const neighborsOfParticle);
+};
 }
 
 #endif
@@ -156,81 +173,95 @@ namespace LAMMPS_NS {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Unable to set KIM particle species codes and/or contributing
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+A low-level kim-api error has occurred.
 
-E: Unrecognized virial argument in pair_style command
+E: KIM Compute returned error
 
-Only two options are supported: LAMMPSvirial and KIMvirial
+The KIM model was unable, for some reason, to complete the computation.
+
+E: 'KIMvirial' or 'LAMMPSvirial' not supported with kim-api.
+
+"KIMvirial or "LAMMPSvirial" found on the pair_style line.  These keys
+are not supported kim-api.  (The virial computation is always performed
+by LAMMPS.) Please remove these keys, make sure the KIM model you are
+using supports kim-api, and rerun.
+
+E: Illegal pair_style command
+
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 
-Self-explanatory.  Check the input script or data file.
+Self-explanatory.
 
-E: Invalid args for non-hybrid pair coefficients
+E: create_kim_particle_codes: symbol not found: XX
 
-"NULL" is only supported in pair_coeff calls when using pair hybrid
+The KIM model specified does not support the atomic species symbol
 
 E: PairKIM only works with 3D problems
 
-This is a current limitation.
+Self-explanatory.
 
 E: All pair coeffs are not set
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+Self-explanatory.
 
-E: KIM neighbor iterator exceeded range
+E: Unable to destroy Compute Arguments Object
 
-This should not happen.  It likely indicates a bug
-in the KIM implementation of the interatomic potential
-where it is requesting neighbors incorrectly.
+A low-level kim-api error has occurred.
 
-E: LAMMPS unit_style lj not supported by KIM models
+E: KIM ModelCreate failed
 
-Self-explanatory. Check the input script or data file.
+The kim-api was not able to create a model object for the specified model.
 
-E: Unknown unit_style
+E: KIM Model did not accept the requested unit system
 
-Self-explanatory. Check the input script or data file.
+The KIM Model does not support the specified LAMMPS unit system
 
-W: KIM Model does not provide `energy'; Potential energy will be zero
+E: KIM ComputeArgumentsCreate failed
 
-UNDOCUMENTED
+A low-level kim-api error has occurred.
 
-W: KIM Model does not provide `forces'; Forces will be zero
+E: Unable to register KIM pointers
 
-UNDOCUMENTED
+A low-level kim-api error has occurred.
 
-W: KIM Model does not provide `particleEnergy'; energy per atom will be zero
+E: Unable to set KIM argument pointers
 
-UNDOCUMENTED
+A low-level kim-api error has occurred.
 
-W: KIM Model does not provide `particleVirial'; virial per atom will be zero
-
-UNDOCUMENTED
-
-E: Test_descriptor_string already allocated
-
-This is an internal error.  Contact the developers.
-
-U: KIM Model does not provide 'energy'; Potential energy will be zero
+E: pair_kim does not support hybrid
 
 Self-explanatory.
 
-U: KIM Model does not provide 'forces'; Forces will be zero
+E: LAMMPS unit_style lj not suppored by KIM models
 
 Self-explanatory.
 
-U: KIM Model does not provide 'particleEnergy'; energy per atom will be zero
+E: KIM Model requires unsupported compute argument: XXX
+
+A low-level kim-api error has occurred.
+
+W: KIM Model does not provide `partialEnergy'; Potential energy will be zero
 
 Self-explanatory.
 
-U: KIM Model does not provide 'particleVirial'; virial per atom will be zero
+W: KIM Model does not provide `partialForce'; Forces will be zero
 
 Self-explanatory.
+
+W: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero
+
+Self-explanatory.
+
+W: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero
+
+Self-explanatory.
+
+E: KIM Model requires unsupported compute callback
+
+A low-level kim-api error has occurred.
 
 */

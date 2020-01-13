@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(meam/c,PairMEAMC)
+PairStyle(meam,PairMEAMC)
 
 #else
 
@@ -23,7 +24,6 @@ PairStyle(meam/c,PairMEAMC)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-class MEAM;
 
 class PairMEAMC : public Pair {
  public:

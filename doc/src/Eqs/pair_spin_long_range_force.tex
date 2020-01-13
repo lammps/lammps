@@ -1,0 +1,23 @@
+\documentclass[preview]{standalone}
+\usepackage{varwidth}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath,amssymb,graphics,bm,setspace}
+
+\begin{document}
+\begin{varwidth}{50in}
+  \begin{equation}
+    \bm{F}_i =
+    \frac{\mu_0 (\mu_B)^2}{4\pi} \sum_j
+    \frac{g_i g_j}{r_{ij}^4}
+    \Big[\big( (\bm{s}_i\cdot\bm{s}_j) 
+    -5(\bm{e}_{ij}\cdot\bm{s}_i)
+    (\bm{e}_{ij}\cdot\bm{s}_j)\big) \bm{e}_{ij}+
+    \big(
+    (\bm{e}_{ij}\cdot\bm{s}_i)\bm{s}_j+
+    (\bm{e}_{ij}\cdot\bm{s}_j)\bm{s}_i
+    \big)
+    \Big]
+    \nonumber
+  \end{equation}
+\end{varwidth}
+\end{document}

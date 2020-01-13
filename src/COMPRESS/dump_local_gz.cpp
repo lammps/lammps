@@ -112,6 +112,8 @@ void DumpLocalGZ::write_header(bigint ndump)
       ++unit_count;
       gzprintf(gzFp,"ITEM: UNITS\n%s\n",update->unit_style);
     }
+    if (time_flag) gzprintf(gzFp,"ITEM: TIME\n%.16g\n",compute_time());
+
     gzprintf(gzFp,"ITEM: TIMESTEP\n");
     gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
     gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");

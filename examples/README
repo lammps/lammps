@@ -76,6 +76,7 @@ ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
 gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
+gjf:      use of fix langevin Gronbech-Jensen/Farago option
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 hyper:    global and local hyperdynamics of diffusion on Pt surface
@@ -100,6 +101,7 @@ prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
 reax:     RDX and TATB and several other models using ReaxFF
+rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     examples for using several bundled SNAP potentials
@@ -162,6 +164,15 @@ the KAPPA/README file for more info.
 The MC directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
+
+The TIP4P directory has an example for testing forces computed on a
+GPU.
+
+The UNITS directory contains examples of input scripts modeling the
+same Lennard-Jones liquid model, written in 3 different unit systems:
+lj, real, and metal.  So that you can see how to scale/unscale input
+and output values read/written by LAMMPS to verify you are performing
+the same simulation in different unit systems.
 
 The USER directory contains subdirectories of user-provided example
 scripts for ser packages.  See the README files in those directories

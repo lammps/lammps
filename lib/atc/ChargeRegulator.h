@@ -65,7 +65,7 @@ namespace ATC {
     virtual void apply_pre_force(double dt);
     virtual void apply_post_force(double dt);
     virtual void output(OUTPUT_LIST & outputData) const;
-    virtual double compute_vector(int n) const {return 0;} // TODO
+    virtual double compute_vector(int /* n */) const {return 0;} // TODO
 
     void assign_poisson_solver(PoissonSolver * solver) { poissonSolver_ = solver;}  
     PoissonSolver * poisson_solver(void) { return poissonSolver_;} 
@@ -97,8 +97,8 @@ namespace ATC {
     ~ChargeRegulatorMethod(){};
     virtual void initialize(void); 
     void set_greens_functions();
-    virtual void apply_pre_force(double dt){}; 
-    virtual void apply_post_force(double dt){}; 
+    virtual void apply_pre_force(double /* dt */){}; 
+    virtual void apply_post_force(double /* dt */){}; 
     virtual void set_weights() {};
     const DENS_VEC & total_influence() const { return sum_;}
     virtual void output(OUTPUT_LIST & outputData);

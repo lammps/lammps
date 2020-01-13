@@ -35,6 +35,8 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "molecule.h"
 #include "group.h"
 #include "citeme.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
@@ -42,6 +44,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
   "fix bond/react:\n\n"
@@ -57,7 +60,7 @@ static const char cite_fix_bond_react[] =
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 5 // max # of arguments for any type of constraint
+#define MAXCONARGS 7 // max # of arguments for any type of constraint + rxnID
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -67,6 +70,9 @@ static const char cite_fix_bond_react[] =
 // GUESSFAIL: a guess has failed (if no more restore points, status = 'REJECT')
 // RESTORE: restore mode, load most recent restore point
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
+
+// types of available reaction constraints
+enum{DISTANCE,ANGLE,ARRHENIUS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -94,6 +100,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
+  nconstraints = 0;
+  narrhenius = 0;
   status = PROCEED;
 
   nxspecial = NULL;
@@ -107,7 +115,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = (char *) "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->find_fix_by_style("bond/react") != -1)
+  if (modify->find_fix_by_style("^bond/react") != -1)
     error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -169,8 +177,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
-  memory->create(nconstraints,nreacts,"bond/react:nconstraints");
-  memory->create(constraints,nreacts,MAXCONARGS,"bond/react:constraints");
+  memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
@@ -188,7 +195,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
-    nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -254,12 +260,12 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                        "probability seed must be positive");
         iarg += 3;
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
-	      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-	      			                        "'max_rxn' has too few arguments");
-	      max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
-	      if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
-	      				                         "'max_rxn' cannot be negative");
-	      iarg += 2;
+              if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                                        "'max_rxn' has too few arguments");
+              max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+              if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
+                                                                 "'max_rxn' cannot be negative");
+              iarg += 2;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -292,6 +298,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
   memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
+  memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
   for (int j = 0; j < nreacts; j++)
     for (int i = 0; i < max_natoms; i++) {
@@ -299,6 +306,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
       else custom_edges[i][j] = 0;
       delete_atoms[i][j] = 0;
+      for (int k = 0; k < 6; k++) {
+        chiral_atoms[i][k][j] = 0;
+      }
     }
 
   // read all map files afterward
@@ -316,6 +326,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iatomtype[i] = onemol->type[ibonding[i]-1];
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
+  }
+
+  // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
+
+  rrhandom = new class RanMars*[narrhenius];
+  int tmp = 0;
+  for (int i = 0; i < nconstraints; i++) {
+    if (constraints[i][1] == ARRHENIUS) {
+      rrhandom[tmp++] = new RanMars(lmp,(int) constraints[i][6] + me);
+    }
   }
 
   for (int i = 0; i < nreacts; i++) {
@@ -344,7 +364,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // initialize Marsaglia RNG with processor-unique seed
+  // initialize Marsaglia RNG with processor-unique seed ('prob' keyword)
 
   random = new class RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
@@ -415,6 +435,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(landlocked_atoms);
   memory->destroy(custom_edges);
   memory->destroy(delete_atoms);
+  memory->destroy(chiral_atoms);
 
   memory->destroy(nevery);
   memory->destroy(cutsq);
@@ -1138,6 +1159,22 @@ void FixBondReact::superimpose_algorithm()
       glove[myjbonding-1][1] = created[lcl_inst][1][rxnID];
       glove_counter++;
 
+      // special case, only two atoms in reaction templates
+      // then: bonding onemol_nxspecials guaranteed to be equal, and either 0 or 1
+      if (glove_counter == onemol->natoms) {
+        tagint local_atom1 = atom->map(glove[myibonding-1][1]);
+        tagint local_atom2 = atom->map(glove[myjbonding-1][1]);
+        if ( (nxspecial[local_atom1][0] == onemol_nxspecial[myibonding-1][0] &&
+              nxspecial[local_atom2][0] == nxspecial[local_atom1][0]) &&
+             (nxspecial[local_atom1][0] == 0 ||
+              xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
+             check_constraints() ) {
+          status = ACCEPT;
+          glove_ghostcheck();
+        } else
+          status = REJECT;
+      }
+
       avail_guesses = 0;
 
       for (int i = 0; i < max_natoms; i++)
@@ -1617,24 +1654,148 @@ evaluate constraints: return 0 if any aren't satisfied
 
 int FixBondReact::check_constraints()
 {
-  tagint atom1,atom2;
+  tagint atom1,atom2,atom3;
   double delx,dely,delz,rsq;
+  double delx1,dely1,delz1,delx2,dely2,delz2;
+  double rsq1,rsq2,r1,r2,c,t,prrhob;
 
   double **x = atom->x;
 
-  for (int i = 0; i < nconstraints[rxnID]; i++) {
-    if (constraints[rxnID][0] == 0) { // 'distance' type
-      atom1 = atom->map(glove[(int) constraints[rxnID][1]-1][1]);
-      atom2 = atom->map(glove[(int) constraints[rxnID][2]-1][1]);
-      delx = x[atom1][0] - x[atom2][0];
-      dely = x[atom1][1] - x[atom2][1];
-      delz = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(delx,dely,delz); // ghost location fix
-      rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < constraints[rxnID][3] || rsq > constraints[rxnID][4]) return 0;
+  for (int i = 0; i < nconstraints; i++) {
+    if (constraints[i][0] == rxnID) {
+      if (constraints[i][1] == DISTANCE) {
+        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
+        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
+        delx = x[atom1][0] - x[atom2][0];
+        dely = x[atom1][1] - x[atom2][1];
+        delz = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx,dely,delz); // ghost location fix
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < constraints[i][4] || rsq > constraints[i][5]) return 0;
+      } else if (constraints[i][1] == ANGLE) {
+        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
+        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
+        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
+
+        // 1st bond
+        delx1 = x[atom1][0] - x[atom2][0];
+        dely1 = x[atom1][1] - x[atom2][1];
+        delz1 = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx1,dely1,delz1); // ghost location fix
+        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+        r1 = sqrt(rsq1);
+
+        // 2nd bond
+        delx2 = x[atom3][0] - x[atom2][0];
+        dely2 = x[atom3][1] - x[atom2][1];
+        delz2 = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(delx2,dely2,delz2); // ghost location fix
+        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+        r2 = sqrt(rsq2);
+
+        // angle (cos and sin)
+        c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+        c /= r1*r2;
+        if (c > 1.0) c = 1.0;
+        if (c < -1.0) c = -1.0;
+        if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+      } else if (constraints[i][1] == ARRHENIUS) {
+        t = get_temperature();
+        prrhob = constraints[i][3]*pow(t,constraints[i][4])*
+               exp(-constraints[i][5]/(force->boltz*t));
+        if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
+      }
     }
   }
+
+  // let's also check chirality within 'check_constraint'
+  for (int i = 0; i < onemol->natoms; i++) {
+    if (chiral_atoms[i][0][rxnID] == 1) {
+      double my4coords[12];
+      // already ensured, by transitive property, that chiral simulation atom has four neighs
+      for (int j = 0; j < 4; j++) {
+        atom1 = atom->map(glove[i][1]);
+        // loop over known types involved in chiral center
+        for (int jj = 0; jj < 4; jj++) {
+          if (atom->type[atom->map(xspecial[atom1][j])] == chiral_atoms[i][jj+2][rxnID]) {
+            atom2 = atom->map(xspecial[atom1][j]);
+            atom2 = domain->closest_image(atom1,atom2);
+            for (int k = 0; k < 3; k++) {
+              my4coords[3*jj+k] = x[atom2][k];
+            }
+            break;
+          }
+        }
+      }
+      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) return 0;
+    }
+  }
+
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+compute local temperature: average over all atoms in reaction template
+------------------------------------------------------------------------- */
+
+double FixBondReact::get_temperature()
+{
+  int i,ilocal;
+  double adof = domain->dimension;
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+
+  double t = 0.0;
+
+  if (rmass) {
+    for (i = 0; i < onemol->natoms; i++) {
+      ilocal = atom->map(glove[i][1]);
+      t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
+        v[ilocal][2]*v[ilocal][2]) * rmass[ilocal];
+    }
+  } else {
+    for (i = 0; i < onemol->natoms; i++) {
+      ilocal = atom->map(glove[i][1]);
+      t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
+        v[ilocal][2]*v[ilocal][2]) * mass[type[ilocal]];
+    }
+  }
+
+  // final temperature
+  double dof = adof*onemol->natoms;
+  double tfactor = force->mvv2e / (dof * force->boltz);
+  t *= tfactor;
+  return t;
+}
+
+/* ----------------------------------------------------------------------
+return handedness (1 or -1) of a chiral center, given ordered set of coordinates
+------------------------------------------------------------------------- */
+
+int FixBondReact::get_chirality(double four_coords[12])
+{
+  // define oriented plane with first three coordinates
+  double vec1[3],vec2[3],vec3[3],vec4[3],mean3[3],dot;
+
+  for (int i = 0; i < 3; i++) {
+    vec1[i] = four_coords[i]-four_coords[i+3];
+    vec2[i] = four_coords[i+3]-four_coords[i+6];
+  }
+
+  MathExtra::cross3(vec1,vec2,vec3);
+
+  for (int i = 0; i < 3; i++) {
+    mean3[i] = (four_coords[i] + four_coords[i+3] +
+                                 four_coords[i+6])/3;
+    vec4[i] = four_coords[i+9] - mean3[i];
+  }
+
+  dot = MathExtra::dot3(vec3,vec4);
+  dot = dot/fabs(dot);
+  return (int) dot;
 }
 
 /* ----------------------------------------------------------------------
@@ -1808,7 +1969,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     if (dedup_mode == 1) ghostly_rxn_count[i] = 0;
   }
 
-  int dedup_size;
+  int dedup_size = 0;
   if (dedup_mode == 0) {
     dedup_size = local_num_mega;
   } else if (dedup_mode == 1) {
@@ -2757,14 +2918,20 @@ void FixBondReact::read(int myrxn)
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
-    else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
+    else if (strstr(line,"equivalences")) {
+      sscanf(line,"%d",&nequivalent);
+      if (nequivalent != onemol->natoms)
+        error->one(FLERR,"Bond/react: Number of equivalences in map file must "
+                                  "equal number of atoms in reaction templates");
+    }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"constraints")) sscanf(line,"%d",&nconstraints[myrxn]);
-    else break;
+    else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
+    else if (strstr(line,"constraints")) {
+      sscanf(line,"%d",&nconstr);
+      memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
+    } else break;
   }
-
-  //count = NULL;
 
   // grab keyword and skip next line
 
@@ -2773,7 +2940,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
+  int equivflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2782,7 +2949,6 @@ void FixBondReact::read(int myrxn)
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
-      edgeflag = 1;
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
@@ -2792,6 +2958,8 @@ void FixBondReact::read(int myrxn)
       CustomEdges(line, myrxn);
     } else if (strcmp(keyword,"DeleteIDs") == 0) {
       DeleteAtoms(line, myrxn);
+    } else if (strcmp(keyword,"ChiralIDs") == 0) {
+      ChiralCenters(line, myrxn);
     } else if (strcmp(keyword,"Constraints") == 0) {
       Constraints(line, myrxn);
     } else error->one(FLERR,"Bond/react: Unknown section in map file");
@@ -2869,23 +3037,72 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
   }
 }
 
+void FixBondReact::ChiralCenters(char *line, int myrxn)
+{
+  int tmp;
+  for (int i = 0; i < nchiral; i++) {
+    readline(line);
+    sscanf(line,"%d",&tmp);
+    chiral_atoms[tmp-1][0][myrxn] = 1;
+    if (onemol->xflag == 0)
+      error->one(FLERR,"Bond/react: Molecule template 'Coords' section required for chiralIDs keyword");
+    if ((int) onemol_nxspecial[tmp-1][0] != 4)
+      error->one(FLERR,"Bond/react: Chiral atoms must have exactly four first neighbors");
+    for (int j = 0; j < 4; j++) {
+      for (int k = j+1; k < 4; k++) {
+        if (onemol->type[onemol_xspecial[tmp-1][j]-1] ==
+            onemol->type[onemol_xspecial[tmp-1][k]-1])
+          error->one(FLERR,"Bond/react: First neighbors of chiral atoms must be of mutually different types");
+      }
+    }
+    // record order of atom types, and coords
+    double my4coords[12];
+    for (int j = 0; j < 4; j++) {
+      chiral_atoms[tmp-1][j+2][myrxn] = onemol->type[onemol_xspecial[tmp-1][j]-1];
+      for (int k = 0; k < 3; k++) {
+        my4coords[3*j+k] = onemol->x[onemol_xspecial[tmp-1][j]-1][k];
+      }
+    }
+    // get orientation
+    chiral_atoms[tmp-1][1][myrxn] = get_chirality(my4coords);
+  }
+}
+
 void FixBondReact::Constraints(char *line, int myrxn)
 {
   double tmp[MAXCONARGS];
   int n = strlen("distance") + 1;
   char *constraint_type = new char[n];
-  for (int i = 0; i < nconstraints[myrxn]; i++) {
+  for (int i = 0; i < nconstr; i++) {
     readline(line);
     sscanf(line,"%s",constraint_type);
+    constraints[nconstraints][0] = myrxn;
     if (strcmp(constraint_type,"distance") == 0) {
-      constraints[myrxn][0] = 0; // 0 = 'distance' ...maybe use another enum eventually
+      constraints[nconstraints][1] = DISTANCE;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      constraints[myrxn][1] = tmp[0];
-      constraints[myrxn][2] = tmp[1];
-      constraints[myrxn][3] = tmp[2]*tmp[2]; // using square of distance
-      constraints[myrxn][4] = tmp[3]*tmp[3];
+      constraints[nconstraints][2] = tmp[0];
+      constraints[nconstraints][3] = tmp[1];
+      constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
+      constraints[nconstraints][5] = tmp[3]*tmp[3];
+    } else if (strcmp(constraint_type,"angle") == 0) {
+      constraints[nconstraints][1] = ANGLE;
+      sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
+      constraints[nconstraints][2] = tmp[0];
+      constraints[nconstraints][3] = tmp[1];
+      constraints[nconstraints][4] = tmp[2];
+      constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
+      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+    } else if (strcmp(constraint_type,"arrhenius") == 0) {
+      constraints[nconstraints][1] = ARRHENIUS;
+      constraints[nconstraints][2] = narrhenius++;
+      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      constraints[nconstraints][3] = tmp[0];
+      constraints[nconstraints][4] = tmp[1];
+      constraints[nconstraints][5] = tmp[2];
+      constraints[nconstraints][6] = tmp[3];
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
+    nconstraints++;
   }
   delete [] constraint_type;
 }
@@ -3114,8 +3331,8 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    int n = strlen(rxn_name[i]) + 1;
-    strncpy(set[i].rxn_name,rxn_name[i],n);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
   if (me == 0) {

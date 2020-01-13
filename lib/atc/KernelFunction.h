@@ -83,7 +83,7 @@ namespace ATC {
     // function derivative 
     virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     // bond function value
-    virtual double bond(DENS_VEC& xa, DENS_VEC&xb, double lam1, double lam2) const
+    virtual double bond(DENS_VEC& /* xa */, DENS_VEC& /* xb */, double lam1, double lam2) const
       { return lam2-lam1; }
   };
 
@@ -105,7 +105,7 @@ namespace ATC {
     // function derivative 
     virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
     // bond function value
-    virtual double bond(DENS_VEC& xa, DENS_VEC&xb, double lam1, double lam2) const
+    virtual double bond(DENS_VEC& /* xa */, DENS_VEC& /* xb */, double lam1, double lam2) const
       {return lam2 -lam1;}
     // bond intercept values : origin is the node position
     void bond_intercepts(DENS_VEC& xa, DENS_VEC& xb, 

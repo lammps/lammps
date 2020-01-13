@@ -40,7 +40,7 @@ namespace ATC
 
     //! @name Pairwise interaction term and derivatives.
     //@{
-    virtual double phi    (const double &r) const { return 0.0; }
+    virtual double phi    (const double & /* r */) const { return 0.0; }
     virtual double phi_r  (const double &r) const;
     virtual double phi_rr (const double &r) const;
     virtual double phi_rrr(const double &r) const;
@@ -48,11 +48,11 @@ namespace ATC
 
     //! @name Embedding terms. Electron cloud density and embedding functions
     //@{
-    virtual double rho   (const double &r) const { return 0.0; }
+    virtual double rho   (const double & /* r */) const { return 0.0; }
     virtual double rho_r (const double &r) const;
     virtual double rho_rr(const double &r) const;
     virtual double rho_rrr(const double &r) const;
-    virtual double F   (const double &p) const { return 0.0; }
+    virtual double F   (const double & /* p */) const { return 0.0; }
     virtual double F_p (const double &p) const;
     virtual double F_pp(const double &p) const;
     virtual double F_ppp(const double &p) const;
@@ -60,7 +60,7 @@ namespace ATC
 
     //! @name Three-body terms and derivatives
     //@{
-    virtual double phi3   (const double &q) const {return 0.0; }
+    virtual double phi3   (const double & /* q */) const {return 0.0; }
     virtual double phi3_q (const double &q) const;
     virtual double phi3_qq(const double &q) const;
     //@}

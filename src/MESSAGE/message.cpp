@@ -28,7 +28,7 @@ void Message::command(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal message command");
 
-  int clientserver;
+  int clientserver=0;
   if (strcmp(arg[0],"client") == 0) clientserver = 1;
   else if (strcmp(arg[0],"server") == 0) clientserver = 2;
   else error->all(FLERR,"Illegal message command");

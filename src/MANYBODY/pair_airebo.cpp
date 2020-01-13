@@ -3391,8 +3391,8 @@ void PairAIREBO::read_file(char *filename)
 
     // skip initial comment line and check for potential file style identifier comment
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     if (((variant == AIREBO) && (strncmp(s,"# AIREBO ",9) != 0))
         || ((variant == REBO_2) && (strncmp(s,"# REBO2 ",8) != 0))
@@ -3638,9 +3638,9 @@ void PairAIREBO::read_file(char *filename)
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (1 != sscanf(s,"%lg",&reqM_HH)) ++cerror;
     }
-    
+
   }
-  
+
   // check for errors parsing global parameters
 
   MPI_Bcast(&cerror,1,MPI_INT,0,world);
@@ -3654,7 +3654,7 @@ void PairAIREBO::read_file(char *filename)
   cerror = numpar = 0;
 
   if (me == 0) {
-    
+
     // gC spline
 
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
@@ -3899,7 +3899,7 @@ void PairAIREBO::read_file(char *filename)
 
     fclose(fp);
   }
-  
+
   // check for errors parsing spline data
 
   MPI_Bcast(&cerror,1,MPI_INT,0,world);

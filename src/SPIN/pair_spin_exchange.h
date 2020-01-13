@@ -26,11 +26,10 @@ namespace LAMMPS_NS {
 
 class PairSpinExchange : public PairSpin {
  public:
-  PairSpinExchange(class LAMMPS *);
+  PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp) {}
   virtual ~PairSpinExchange();
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   double init_one(int, int);
   void *extract(const char *, int &);
 
@@ -45,16 +44,13 @@ class PairSpinExchange : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;	// global exchange cutoff distance
+  double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
-  double **J1_mag;			// exchange coeffs in eV
-  double **J1_mech;			// mech exchange coeffs in
+  double **J1_mag;                      // exchange coeffs in eV
+  double **J1_mech;                     // mech exchange coeffs in
   double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
-  double **cut_spin_exchange;		// cutoff distance exchange
-
-  int lattice_flag; 			// flag for mech force computation
-  class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups
+  double **cut_spin_exchange;           // cutoff distance exchange
 
   void allocate();
 };

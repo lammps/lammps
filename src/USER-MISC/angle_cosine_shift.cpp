@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -224,10 +225,10 @@ void AngleCosineShift::read_restart(FILE *fp)
 
   if (comm->me == 0)
     {
-       fread(&k[1],sizeof(double),atom->nangletypes,fp);
-       fread(&kcost[1],sizeof(double),atom->nangletypes,fp);
-       fread(&ksint[1],sizeof(double),atom->nangletypes,fp);
-       fread(&theta[1],sizeof(double),atom->nangletypes,fp);
+      utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+      utils::sfread(FLERR,&kcost[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+      utils::sfread(FLERR,&ksint[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+      utils::sfread(FLERR,&theta[1],sizeof(double),atom->nangletypes,fp,NULL,error);
     }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&kcost[1],atom->nangletypes,MPI_DOUBLE,0,world);

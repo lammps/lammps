@@ -29,7 +29,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE=0,DIFFUSIVE=1,MAXWELL=2,CERCIGNANILAMPIS=3};
+enum{NONE,DIFFUSIVE,MAXWELL,CCL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,16 +51,16 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
   nwall = 0;
   int scaleflag = 1;
-  reflectionstyle = NONE;
+  rstyle = NONE;
   
   if (strcmp(arg[3],"diffusive") == 0) {
-    reflectionstyle = DIFFUSIVE;
+    rstyle = DIFFUSIVE;
     arginc = 6;
   } else if (strcmp(arg[3],"maxwell") == 0) {
-    reflectionstyle = MAXWELL;
+    rstyle = MAXWELL;
     arginc = 7;
-  } else if (strcmp(arg[3],"cercignanilampis") == 0) {
-    reflectionstyle = CERCIGNANILAMPIS;
+  } else if (strcmp(arg[3],"ccl") == 0) {
+    rstyle = CCL;
     arginc = 9;
   } else error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
@@ -73,7 +73,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) 
+      if (iarg+arginc > narg) 
         error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
       int newwall;
@@ -108,13 +108,15 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         int dim = wallwhich[nwall] / 2;
         if ((wallvel[nwall][dir] !=0) & (dir == dim)) 
           error->all(FLERR,"The wall velocity must be tangential");
-        
-        if (reflectionstyle == CERCIGNANILAMPIS) {
+
+        // DIFFUSIVE = no accomodation coeffs
+        // MAXWELL = one for all dimensions
+        // CLL = one for each dimension
+
+        if (rstyle == CCL)
           wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+6]);
-        } else if (reflectionstyle == MAXWELL) {
-          // one accommodation coefficient for all directions
+        else if (rstyle == MAXWELL)
           wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+6]);
-        }
       }
       
       nwall++;
@@ -227,7 +229,7 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 
     // only needed for Maxwell model
     
-    if (reflectionstyle == MAXWELL) difftest = random->uniform();
+    if (rstyle == MAXWELL) difftest = random->uniform();
     
     for (dir = 0; dir < 3; dir++) {
 
@@ -237,14 +239,14 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
       
       // diffusive reflection
       
-      if (reflectionstyle  == DIFFUSIVE) {
+      if (rstyle  == DIFFUSIVE) {
         if (dir != dim) 
           v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor);
         else v[i][dir] =  sign*random->rayleigh(factor);
         
       // Maxwell reflection
           
-      } else if (reflectionstyle  == MAXWELL) {
+      } else if (rstyle  == MAXWELL) {
         if (difftest < wallaccom[m][dir]) {
           if (dir != dim) 
             v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor);
@@ -255,7 +257,7 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 
       // Cercignani Lampis reflection
 
-      } else if (reflectionstyle  == CERCIGNANILAMPIS) {
+      } else if (rstyle  == CCL) {
         if (dir != dim)
           v[i][dir] = wallvel[m][dir] + 
             random->gaussian((1-wallaccom[m][dir]) * 

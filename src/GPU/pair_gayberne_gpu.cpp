@@ -36,6 +36,7 @@
 #include "domain.h"
 #include "update.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -74,6 +75,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
   quat_nmax = 0;
   reinitflag = 0;
   quat = NULL;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

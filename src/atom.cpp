@@ -211,7 +211,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   tag_enable = 1;
   map_style = map_user = 0;
   map_tag_max = -1;
-  map_maxarray = map_nhash = -1;
+  map_maxarray = map_nhash = map_nbucket = -1;
 
   max_same = 0;
   sametag = NULL;

@@ -1,58 +1,57 @@
 # fcc nickel in a 3d periodic box
 
 clear 
-units 		metal
-atom_style 	spin
+units           metal
+atom_style      spin
 
-dimension 	3
-boundary 	p p p
+dimension       3
+boundary        p p p
 
 # necessary for the serial algorithm (sametag)
-atom_modify 	map array 
+atom_modify     map array 
 
-lattice 	fcc 3.524
-region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
-create_box 	1 box
-create_atoms 	1 box
+lattice         fcc 3.524
+region          box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box      1 box
+create_atoms    1 box
 
 # setting mass, mag. moments, and interactions for cobalt
 
-mass		1 58.69
+mass            1 58.69
 
-set 		group all spin/random 31 0.63
-#set 		group all spin 0.63 0.0 0.0 1.0 
-velocity 	all create 100 4928459 rot yes dist gaussian
+set             group all spin/random 31 0.63
+#set            group all spin 0.63 0.0 0.0 1.0 
+velocity        all create 100 4928459 rot yes dist gaussian
 
-pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy Ni99.eam.alloy Ni
-pair_coeff 	* * spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
+pair_style      hybrid/overlay eam/alloy spin/exchange 4.0
+pair_coeff      * * eam/alloy Ni99.eam.alloy Ni
+pair_coeff      * * spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
 
-neighbor 	0.1 bin
-neigh_modify 	every 10 check yes delay 20
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
 
-fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix 		2 all langevin/spin 0.0 0.0 21
+fix             1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix             2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
-timestep	0.0001
+fix             3 all nve/spin lattice moving
+timestep        0.0001
 
 # compute and output options
 
-compute 	out_mag    all spin
-compute 	out_pe     all pe
-compute 	out_ke     all ke
-compute 	out_temp   all temp
+compute         out_mag    all spin
+compute         out_pe     all pe
+compute         out_ke     all ke
+compute         out_temp   all temp
 
-variable 	magz      equal c_out_mag[3]
-variable 	magnorm   equal c_out_mag[4]
-variable 	emag      equal c_out_mag[5]
-variable 	tmag      equal c_out_mag[6]
+variable        magz      equal c_out_mag[3]
+variable        magnorm   equal c_out_mag[4]
+variable        emag      equal c_out_mag[5]
+variable        tmag      equal c_out_mag[6]
 
 thermo_style    custom step time v_magnorm v_emag temp v_tmag etotal
 thermo          50
 
-compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		50 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+compute         outsp all property/atom spx spy spz sp fmx fmy fmz
+dump            1 all custom 100 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
-run 		2000
-
+run             1000

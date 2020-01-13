@@ -22,6 +22,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -193,7 +194,7 @@ void AngleCosine::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0) fread(&k[1],sizeof(double),atom->nangletypes,fp);
+  if (comm->me == 0) utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;

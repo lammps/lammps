@@ -331,7 +331,7 @@ void AWPMD_split::get_el_forces(int flag, Vector_3P fe_x,
           fe_pw[ic1+k1]+=E_der[s1][indw1+8*k1+1]/(2*w*h_plank);
           for(int i=0;i<3;i++){
             fe_x[ic1+k1][i]+= -2*real(wk.a)*E_der[s1][indw1+8*k1+2+2*i]-2*imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1];
-            fe_p[ic1+k1][i]+= (-E_der[s1][indw1+8*k1+2+2*i+1])*(m_electron/h_plank); //*(h_plank/m_electron);
+            fe_p[ic1+k1][i]+= (-E_der[s1][indw1+8*k1+2+2*i+1])*(m_electron/h_plank); // *(h_plank/m_electron);
             fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;  
             fe_w[ic1+k1]+=2*r[i]*(t*E_der[s1][indw1+8*k1+2+2*i]+imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1]/w);
           }*/
@@ -368,7 +368,6 @@ int  AWPMD_split::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
     
     for(int c1=0;c1<ne[s1];c1++){
       // calculating single-electron quantities within block
-      double Ee1=0., Ew1=0., Eei1=0.;
       double pref=-h2_me/(2*wf_norm[s1][c1]); // ekin
       double pref_ei=coul_pref/wf_norm[s1][c1];
       
@@ -502,7 +501,6 @@ int  AWPMD_split::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
                 continue;
 
               double pref_ee=coul_pref/(wf_norm[s1][c1]*wf_norm[s2][c2]);
-              double dE=0.;
               for(int j2=0;j2<nspl[s2][c2];j2++){
                 
                 cdouble cj2(split_c[s2][ic2+j2][0],split_c[s2][ic2+j2][1]);
@@ -513,9 +511,8 @@ int  AWPMD_split::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
                   o2.set1(wj2);
 
                 for(int k2=j2;k2<nspl[s2][c2];k2++){
-                  int M2a=(j2==k2 ? 1: 2);
                   double M2e, M2f;
-                  _mytie(M2e,M2f)=check_part1(s1,ic1+j1,ic1+k1,s2,ic2+j2,ic2+k2);
+                  _mytie(M2e,M2f)=check_part1(s1,ic1+j1,ic1+k1);
 
                   cdouble ck2(split_c[s2][ic2+k2][0],split_c[s2][ic2+k2][1]);
 
@@ -1180,7 +1177,7 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
                         M0= (c1==c2 && c3==c4 ? 1: 2); // will have exchange term for different pairs instead of M12*M34 factor
                       }
                       double Me, Mf;
-                      _mytie(Me,Mf)=check_part1(s1,ic1+j1,ic2+k2,s2,ic3+j3,ic4+k4)*M0;
+                      _mytie(Me,Mf)=check_part1(s1,ic1+j1,ic2+k2)*M0;
                       if(!Mf)
                         continue;
 

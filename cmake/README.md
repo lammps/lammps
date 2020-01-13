@@ -1798,6 +1798,32 @@ Requires installation of the Voro++ library
 </tbody>
 </table>
 
+### USER-COLVARS Package
+
+Requires a C++11 compiler to compile with the Lepton library included.
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>COLVARS_LEPTON</code></td>
+  <td>Enable the use of the Lepton library inside the Colvars library.
+  <td>
+  <dl>
+    <dt><code>on</code> (default)</dt>
+    <dt><code>off</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>
+
 ### USER-LATTE Package
 
 Requires installation of the LATTE library

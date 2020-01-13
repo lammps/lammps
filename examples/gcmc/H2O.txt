@@ -1,4 +1,4 @@
-# CO2 molecule file. TraPPE model.
+# Water molecule. SPC/E model.
 
 3 atoms
 2 bonds
@@ -12,15 +12,15 @@ Coords
 
 Types
 
-1        1  
-2        2   
-3        2  
+1        1
+2        2
+3        2
 
-Charges 
+Charges
 
 1       -0.8472
-2        0.4236 
-3        0.4236  
+2        0.4236
+3        0.4236
 
 Bonds
 

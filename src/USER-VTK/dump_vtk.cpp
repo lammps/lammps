@@ -166,13 +166,6 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   header_choice = NULL;
   write_choice = NULL;
   boxcorners = NULL;
-
-  // unsupported feature by dump vtk
-  delete [] vformat;
-  vformat = NULL;
-
-  delete [] format_column_user;
-  format_column_user = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

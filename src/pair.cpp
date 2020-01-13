@@ -72,6 +72,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
+  centroidstressflag = 4;
 
   // pair_modify settings
 
@@ -91,9 +92,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
-  maxeatom = maxvatom = 0;
+  maxeatom = maxvatom = maxcvatom = 0;
   eatom = NULL;
   vatom = NULL;
+  cvatom = NULL;
 
   num_tally_compute = 0;
   list_tally_compute = NULL;
@@ -122,6 +124,7 @@ Pair::~Pair()
 
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -779,9 +782,21 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   eflag_global = eflag % 2;
   eflag_atom = eflag / 2;
 
-  vflag_either = vflag;
   vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_atom = vflag & 4;
+  cvflag_atom = 0;
+
+  if (vflag & 8) {
+    if (centroidstressflag & 2) {
+      cvflag_atom = 1;
+    } else {
+      vflag_atom = 1;
+    }
+    // extra check, because both bits might be set
+    if (centroidstressflag & 1) vflag_atom = 1;
+  }
+
+  vflag_either = vflag_global || vflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -797,6 +812,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     if (alloc) {
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
+    }
+  }
+  if (cvflag_atom && atom->nmax > maxcvatom) {
+    maxcvatom = atom->nmax;
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,comm->nthreads*maxcvatom,9,"pair:cvatom");
     }
   }
 
@@ -823,6 +845,22 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][5] = 0.0;
     }
   }
+  if (cvflag_atom && alloc) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+      cvatom[i][9] = 0.0;
+    }
+  }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
@@ -831,7 +869,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
-    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
 
@@ -863,6 +901,7 @@ void Pair::ev_unset()
   vflag_either = 0;
   vflag_global = 0;
   vflag_atom = 0;
+  cvflag_atom = 0;
   vflag_fdotr = 0;
 }
 
@@ -1760,6 +1799,7 @@ double Pair::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
 

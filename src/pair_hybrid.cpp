@@ -27,6 +27,7 @@
 #include "error.h"
 #include "respa.h"
 #include "utils.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -918,6 +919,12 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[1] = force->numeric(FLERR,arg[1]);
   special[2] = force->numeric(FLERR,arg[2]);
   special[3] = force->numeric(FLERR,arg[3]);
+
+  // have to cast to PairHybrid to work around C++ access restriction
+
+  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+    error->all(FLERR,"Pair_modify special is not compatible with "
+                     "suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];

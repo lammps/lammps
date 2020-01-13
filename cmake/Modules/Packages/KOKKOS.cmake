@@ -42,6 +42,10 @@ if(PKG_KOKKOS)
     list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                    ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                    ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
+    if(KOKKOS_ENABLE_CUDA)
+      add_definitions(-DFFT_CUFFT)
+      list(APPEND LAMMPS_LINK_LIBS -lcufft)
+    endif()
   endif()
 
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")

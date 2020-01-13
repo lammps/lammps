@@ -42,13 +42,7 @@ using namespace MathExtra;
 #define SELF_CUTOFF 20
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
-#define DELTA1 1.0
-#define DELTA2 2.0
 #define QUADRATURE 100
-#define UINF_POINTS 1001
-#define GAMMA_POINTS 26
-#define PHI_POINTS 1001
-#define USEMI_POINTS 1001
 
 /* ---------------------------------------------------------------------- */
 
@@ -445,25 +439,7 @@ void PairMesoCNT::allocate()
 
 void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg == 0) {
-    uinf_points = UINF_POINTS;
-    gamma_points = GAMMA_POINTS;
-    phi_points = PHI_POINTS;
-    usemi_points = USEMI_POINTS;
-  }
-  else if (narg == 2) {
-    uinf_points = force->inumeric(FLERR,arg[0]);
-    gamma_points = force->inumeric(FLERR,arg[1]);
-    phi_points = force->inumeric(FLERR,arg[0]);
-    usemi_points = force->inumeric(FLERR,arg[0]);
-  }
-  else if (narg == 4) {
-    uinf_points = force->inumeric(FLERR,arg[0]);
-    gamma_points = force->inumeric(FLERR,arg[1]);
-    phi_points = force->inumeric(FLERR,arg[2]);
-    usemi_points = force->inumeric(FLERR,arg[3]);
-  }
-  else error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -472,18 +448,10 @@ void PairMesoCNT::settings(int narg, char **arg)
 
 void PairMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg != 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  file = arg[2];
+  read_file();
   if (!allocated) allocate();
-
-  // CNT constants
-  n = force->inumeric(FLERR,arg[2]);
-  sig = force->numeric(FLERR,arg[3]);
-   
-  // file names
-  uinf_file = arg[4];
-  gamma_file = arg[5];
-  phi_file = arg[6];
-  usemi_file = arg[7];
 
   // units, eV to energy unit conversion
   ang = force->angstrom;
@@ -500,55 +468,18 @@ void PairMesoCNT::coeff(int narg, char **arg)
   funit = eunit * ang_inv;
 
   // potential variables
-  r = 1.421 * 3 * n / MY_2PI * ang;
+  sig = sig_ang * ang;
+  r = r_ang * ang;
   rsq = r * r;
-  d = 2 * r;
-  d_ang = d * ang_inv;
+  d = 2.0 * r;
+  d_ang = 2.0 * r_ang;
   rc = 3.0 * sig;
   cutoff = rc + d;
   cutoffsq = cutoff * cutoff;
   cutoff_ang = cutoff * ang_inv;
   cutoffsq_ang = cutoff_ang * cutoff_ang;
-  comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r*ang_inv));
-  ctheta = 0.35 + 0.0226*(r*ang_inv - 6.785);
-
-  // parse and bcast data
-  int me;
-  double *uinf_data,*gamma_data,**phi_data,**usemi_data;
-  memory->create(uinf_data,uinf_points,"pair:uinf_data");
-  memory->create(gamma_data,gamma_points,"pair:gamma_data");
-  memory->create(phi_data,phi_points,phi_points,"pair:phi_data");
-  memory->create(usemi_data,usemi_points,phi_points,"pair:usemi_data");
-
-  MPI_Comm_rank(world,&me);
-  if (me == 0) {
-    read_file(uinf_file,uinf_data,hstart_uinf,delh_uinf,uinf_points);
-    read_file(gamma_file,gamma_data,hstart_gamma,delh_gamma,gamma_points);
-    read_file(phi_file,phi_data,hstart_phi,psistart_phi,
-		  delh_phi,delpsi_phi,phi_points);
-    read_file(usemi_file,usemi_data,hstart_usemi,xistart_usemi,
-		  delh_usemi,delxi_usemi,usemi_points);
-  }
-
-  MPI_Bcast(&hstart_uinf,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&hstart_gamma,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&hstart_phi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&psistart_phi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&hstart_usemi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&xistart_usemi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delh_uinf,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delh_gamma,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delh_phi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delpsi_phi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delh_usemi,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&delxi_usemi,1,MPI_DOUBLE,0,world);
-
-  MPI_Bcast(uinf_data,uinf_points,MPI_DOUBLE,0,world);
-  MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
-  for (int i = 0; i < phi_points; i++)
-    MPI_Bcast(phi_data[i],phi_points,MPI_DOUBLE,0,world);
-  for (int i = 0; i < usemi_points; i++)
-    MPI_Bcast(usemi_data[i],usemi_points,MPI_DOUBLE,0,world);
+  comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r_ang));
+  ctheta = 0.35 + 0.0226*(r_ang - 6.785);
 
   // compute spline coefficients
   spline_coeff(uinf_data,uinf_coeff,delh_uinf,uinf_points);
@@ -811,22 +742,94 @@ void PairMesoCNT::sort(int *list, int size)
 }
 
 /* ----------------------------------------------------------------------
+   read mesocnt potential file
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::read_file()
+{ 
+  int me; 
+  MPI_Comm_rank(world,&me);
+
+  FILE *fp;
+
+  if (me == 0) {
+     char line[MAXLINE];
+
+    // open file
+    
+    fp = force->open_potential(file);
+    if (fp == NULL) {
+      std::string str("Cannot open mesocnt file ");
+      str += file;
+      error->one(FLERR,str.c_str());
+    }
+    fgets(line,MAXLINE,fp);
+
+    // potential parameters
+    
+    fgets(line,MAXLINE,fp);
+    sscanf(line,"%d %d %d %d",
+      &uinf_points,&gamma_points,&phi_points,&usemi_points);
+    fgets(line,MAXLINE,fp);
+    sscanf(line,"%lg %lg %lg %lg",&r_ang,&sig_ang,&delta1,&delta2);
+  }  
+ 
+  MPI_Bcast(&uinf_points,1,MPI_INT,0,world);
+  MPI_Bcast(&gamma_points,1,MPI_INT,0,world);
+  MPI_Bcast(&phi_points,1,MPI_INT,0,world);
+  MPI_Bcast(&usemi_points,1,MPI_INT,0,world);
+  MPI_Bcast(&r_ang,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&sig_ang,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delta1,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delta2,1,MPI_DOUBLE,0,world);
+  
+  // potential tables
+  
+  memory->create(uinf_data,uinf_points,"pair:uinf_data");
+  memory->create(gamma_data,gamma_points,"pair:gamma_data");
+  memory->create(phi_data,phi_points,phi_points,"pair:phi_data");
+  memory->create(usemi_data,usemi_points,phi_points,"pair:usemi_data");
+  
+  if (me == 0) {
+    read_data(fp,uinf_data,hstart_uinf,delh_uinf,uinf_points);
+    read_data(fp,gamma_data,hstart_gamma,delh_gamma,gamma_points);
+    read_data(fp,phi_data,hstart_phi,psistart_phi,
+		  delh_phi,delpsi_phi,phi_points);
+    read_data(fp,usemi_data,hstart_usemi,xistart_usemi,
+		  delh_usemi,delxi_usemi,usemi_points);
+
+    fclose(fp);
+  }
+
+  MPI_Bcast(&hstart_uinf,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&hstart_gamma,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&hstart_phi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&psistart_phi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&hstart_usemi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&xistart_usemi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delh_uinf,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delh_gamma,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delh_phi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delpsi_phi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delh_usemi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delxi_usemi,1,MPI_DOUBLE,0,world);
+
+  MPI_Bcast(uinf_data,uinf_points,MPI_DOUBLE,0,world);
+  MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
+  for (int i = 0; i < phi_points; i++)
+    MPI_Bcast(phi_data[i],phi_points,MPI_DOUBLE,0,world);
+  for (int i = 0; i < usemi_points; i++)
+    MPI_Bcast(usemi_data[i],usemi_points,MPI_DOUBLE,0,world); 
+}
+
+/* ----------------------------------------------------------------------
    read 1D data file
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::read_file(const char *file, double *data, 
+void PairMesoCNT::read_data(FILE *fp, double *data, 
 		double &xstart, double &dx, int ninput)
 {
   char line[MAXLINE];
-
-  // open file
-  
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    std::string str("Cannot open mesocnt file ");
-    str += file;
-    error->one(FLERR,str.c_str());
-  }
   fgets(line,MAXLINE,fp);
 
   // read values from file
@@ -873,28 +876,17 @@ void PairMesoCNT::read_file(const char *file, double *data,
     errstr += file;
     error->warning(FLERR,errstr.c_str());
   }
-
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
    read 2D data file
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::read_file(const char *file, double **data, 
+void PairMesoCNT::read_data(FILE *fp, double **data, 
 		double &xstart, double &ystart, 
 		double &dx, double &dy, int ninput)
 {
   char line[MAXLINE];
-
-  // open file
-  
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    std::string str("Cannot open file ");
-    str += file;
-    error->one(FLERR,str.c_str());
-  }
   fgets(line,MAXLINE,fp);
 
   // read values from file
@@ -959,8 +951,6 @@ void PairMesoCNT::read_file(const char *file, double **data,
     errstr += file;
     error->warning(FLERR,errstr.c_str());
   }
-
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1654,9 +1644,9 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double zeta1 = xi1 * c1;
     double zeta2 = xi2 * c1;  
     
-    double smooth = s5((h-d_ang-DELTA1)/(DELTA2-DELTA1));
-    double dsmooth = ds5((h-d_ang-DELTA1)/(DELTA2-DELTA1));
-    double g = d_ang + DELTA2;
+    double smooth = s5((h-d_ang-delta1)/(delta2-delta1));
+    double dsmooth = ds5((h-d_ang-delta1)/(delta2-delta1));
+    double g = d_ang + delta2;
     double hsq = h * h;
 
     double zetaminbar;
@@ -1669,7 +1659,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     if (h >= g) dzetaminbar = 0;
     else dzetaminbar = -h / zetaminbar;
     double dzetamin = 
-	    dzetaminbar*smooth + zetaminbar*dsmooth/(DELTA2-DELTA1);
+	    dzetaminbar*smooth + zetaminbar*dsmooth/(delta2-delta1);
     double dzetamax = -h / zetamax;
 
     double zeta_range_inv = 1.0 / (zetamax - zetamin);

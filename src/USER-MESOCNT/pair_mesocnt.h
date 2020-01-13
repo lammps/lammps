@@ -24,15 +24,15 @@ class PairMesoCNT : public Pair {
  protected:
   int uinf_points,gamma_points,phi_points,usemi_points;
   int nlocal_size,reduced_neigh_size;
-  int n;
   int *reduced_nlist,*numchainlist;
   int **reduced_neighlist,**nchainlist,**endlist;
   int ***chainlist;
 
   double ang,ang_inv,eunit,funit;
+  double delta1,delta2;
   double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
   double r_ang,rsq_ang,d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
-  double sig,comega,ctheta;
+  double sig,sig_ang,comega,ctheta;
   double hstart_uinf,hstart_gamma,
 	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
   double delh_uinf,delh_gamma,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
@@ -41,18 +41,20 @@ class PairMesoCNT : public Pair {
   double *param,*w,*wnode;
   double **dq_w;
   double ***q1_dq_w,***q2_dq_w;
+  double *uinf_data,*gamma_data,**phi_data,**usemi_data;
   double **uinf_coeff,**gamma_coeff,****phi_coeff,****usemi_coeff;
   double **flocal,**fglobal,**basis;
 
-  char *uinf_file,*gamma_file,*phi_file,*usemi_file;
+  char *file;
 
   void allocate();
   void bond_neigh();
   void neigh_common(int, int, int &, int *);
   void chain_split(int *, int, int &, int **, int *, int *);
   void sort(int *, int);
-  void read_file(const char *, double *, double &, double &, int);
-  void read_file(const char *, double **, double &, double &, 
+  void read_file();
+  void read_data(FILE *, double *, double &, double &, int);
+  void read_data(FILE *, double **, double &, double &, 
 		             double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);

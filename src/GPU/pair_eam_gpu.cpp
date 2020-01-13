@@ -15,11 +15,11 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -30,6 +30,7 @@
 #include "error.h"
 #include "neigh_request.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 #define MAXLINE 1024
 
@@ -71,6 +72,7 @@ PairEAMGPU::PairEAMGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

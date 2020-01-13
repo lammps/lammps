@@ -16,15 +16,20 @@
                          Rolf Isele-Holder (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
+#include "pppm_disp_omp.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "pppm_disp_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "memory.h"
 #include "math_const.h"
+#include "timer.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -359,11 +364,11 @@ void PPPMDispOMP::particle_map(double dxinv, double dyinv,
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions. Simulation unstable.");
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
 
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // current particle coord can be outside global and local box

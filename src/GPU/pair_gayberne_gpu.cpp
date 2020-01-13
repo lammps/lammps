@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_gayberne_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_gayberne_gpu.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -36,6 +36,7 @@
 #include "domain.h"
 #include "update.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -74,6 +75,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
   quat_nmax = 0;
   reinitflag = 0;
   quat = NULL;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

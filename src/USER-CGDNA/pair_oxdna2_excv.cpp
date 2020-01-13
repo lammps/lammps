@@ -14,10 +14,6 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna2_excv.h"
 
 using namespace LAMMPS_NS;
@@ -39,8 +35,8 @@ PairOxdna2Excv::~PairOxdna2Excv()
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxDNA2
 ------------------------------------------------------------------------- */
-void PairOxdna2Excv::compute_interaction_sites(double e1[3],
-  double e2[3], double rs[3], double rb[3])
+void PairOxdna2Excv::compute_interaction_sites(double e1[3], double e2[3],
+    double /*e3*/[3], double rs[3], double rb[3])
 {
   double d_cs_x=-0.34, d_cs_y=+0.3408, d_cb=+0.4;
 

@@ -28,6 +28,13 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
+// C++11 check
+#ifndef LAMMPS_CXX98
+#if __cplusplus <= 199711L
+  #error LAMMPS is planning to transition to C++11. To disable this error please use a C++11 compliant compiler, enable C++11 (or later) compliance, or define LAMMPS_CXX98 in your makefile
+#endif
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -37,6 +44,7 @@
 #endif
 
 #include <climits>
+#include <cstdlib>
 #include <stdint.h>   // <cstdint> requires C++-11
 #include <inttypes.h> // <cinttypes> requires C++-11
 
@@ -47,10 +55,6 @@
 #endif
 
 namespace LAMMPS_NS {
-
-// enum used for KOKKOS host/device flags
-
-enum ExecutionSpace{Host,Device};
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
 // max local + ghost atoms per processor = 2^30 - 1
@@ -211,7 +215,7 @@ typedef int bigint;
 #elif defined(__INTEL_COMPILER)
 #  define _noopt
 #elif defined(__GNUC__)
-#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
+#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
 #    define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
 #  else
 #    define _noopt __attribute__((optimize("O0")))

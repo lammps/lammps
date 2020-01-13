@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_pair_local.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -22,7 +22,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 

@@ -15,13 +15,15 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_thole_long_omp.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_thole_long_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -29,7 +31,7 @@
 #include "math_const.h"
 #include "error.h"
 #include "suffix.h"
-#include "domain.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -72,7 +74,7 @@ void PairLJCutTholeLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {

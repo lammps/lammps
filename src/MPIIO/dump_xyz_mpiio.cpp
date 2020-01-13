@@ -15,21 +15,13 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "dump_xyz_mpiio.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "dump_xyz_mpiio.h"
-#include "atom.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 

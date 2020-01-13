@@ -21,7 +21,7 @@ namespace ATC {
       virtual ~ElectronHeatFlux() {};
       /** computes heat flux */
       virtual void electron_heat_flux(const FIELD_MATS &fields,
-                                      const GRAD_FIELD_MATS &gradFields,
+                                      const GRAD_FIELD_MATS & /* gradFields */,
                                             DENS_MAT_VEC &flux)
       {
          
@@ -70,7 +70,7 @@ namespace ATC {
     ElectronHeatFluxLinear(std::fstream &matfile,std::map<std::string,double> & parameters,
                            /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
       virtual ~ElectronHeatFluxLinear() {};
-      virtual void electron_heat_flux(const FIELD_MATS &fields,
+      virtual void electron_heat_flux(const FIELD_MATS & /* fields */,
                                       const GRAD_FIELD_MATS &gradFields,
                                             DENS_MAT_VEC &flux)
       {

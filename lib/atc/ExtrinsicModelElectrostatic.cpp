@@ -827,7 +827,7 @@ namespace ATC {
   //  apply_charged_surfaces
   //--------------------------------------------------------
   void ExtrinsicModelElectrostatic::apply_charged_surfaces
-    (MATRIX & potential)
+  (MATRIX & /* potential */)
   {
     //double qE2f = LammpsInterface::instance()->qe2f();
     double qV2e = LammpsInterface::instance()->qv2e();

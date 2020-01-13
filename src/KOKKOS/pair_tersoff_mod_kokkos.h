@@ -23,7 +23,6 @@ PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>)
 #ifndef LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 #define LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 
-#include <cstdio>
 #include "pair_kokkos.h"
 #include "pair_tersoff_mod.h"
 #include "neigh_list_kokkos.h"

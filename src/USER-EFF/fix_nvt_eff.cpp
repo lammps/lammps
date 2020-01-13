@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cmath>
 #include "fix_nvt_eff.h"
 #include "group.h"
 #include "modify.h"

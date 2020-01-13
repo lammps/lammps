@@ -161,6 +161,10 @@
 /fix_setforce_spin.h
 /min_spin.cpp
 /min_spin.h
+/min_spin_cg.cpp
+/min_spin_cg.h
+/min_spin_lbfgs.cpp
+/min_spin_lbfgs.h
 /neb_spin.cpp
 /neb_spin.h
 /pair_spin.cpp
@@ -276,6 +280,8 @@
 /bond_oxdna_fene.h
 /bond_oxdna2_fene.cpp
 /bond_oxdna2_fene.h
+/bond_oxrna2_fene.cpp
+/bond_oxrna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
 /bond_table.cpp
@@ -801,6 +807,8 @@
 /pair_comb3.h
 /pair_colloid.cpp
 /pair_colloid.h
+/pair_cosine_squared.cpp
+/pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
 /pair_coul_long.cpp
@@ -976,6 +984,8 @@
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
 /pair_oxdna2_*.h
+/pair_oxrna2_*.cpp
+/pair_oxrna2_*.h
 /mf_oxdna.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h

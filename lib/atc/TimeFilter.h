@@ -143,62 +143,62 @@ namespace ATC {
     virtual void initialize(){};
 
     /** pre time integration with a target for an initial condition */
-    virtual void initialize(const MATRIX & target){initialize();};
+    virtual void initialize(const MATRIX & /* target */){initialize();};
         
     /** Step 1:
         apply first step in a time filter update in the pre integration phase */
-    virtual void apply_pre_step1(MATRIX & filteredQuantity,
+    virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
                                  const MATRIX & unFilteredQuantity,
-                                 double dt)
+                                 double /* dt */)
       { TimeFilter::unFilteredQuantityOld_ = unFilteredQuantity;}
         
     /** Step 2:
          apply second step in a time filter update in pre integration phase */
-    virtual void apply_pre_step2(MATRIX & filteredQuantity,
-                                 const MATRIX & unFilteredQuantity,
-                                 double dt) {};
+    virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
+                                 const MATRIX & /* unFilteredQuantity */,
+                                 double /* dt */) {};
         
     /** Step 3:
         apply first step in a time filter update in post integration phase */
     virtual void apply_post_step1(MATRIX & filteredQuantity,
                                   const MATRIX & unFilteredQuantity,
-                                  double dt) 
+                                  double /* dt */) 
       { filteredQuantity = unFilteredQuantity;};
         
     /** Step 4:
         apply second step in a time filter update in post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   const MATRIX & unFilteredQuantity,
-                                  double dt)
+                                  double /* dt */)
       { filteredQuantity = unFilteredQuantity;}
                                                   
     /** coefficient multipling unfiltered terms in apply_pre_step1 method */
-    virtual double unfiltered_coefficient_pre_s1(double dt){return 0.;};
+    virtual double unfiltered_coefficient_pre_s1(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_pre_step1 method */
-    virtual double filtered_coefficient_pre_s1(double dt){return 0.;};
+    virtual double filtered_coefficient_pre_s1(double /* dt */){return 0.;};
         
     /** coefficient multipling unfiltered terms in apply_post_step1 method */
-    virtual double unfiltered_coefficient_post_s1(double dt){return 0.;};
+    virtual double unfiltered_coefficient_post_s1(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_post_step1 method */
-    virtual double filtered_coefficient_post_s1(double dt){return 0.;};
+    virtual double filtered_coefficient_post_s1(double /* dt */){return 0.;};
         
     /** coefficient multipling unfiltered terms in apply_pre_step2 method */
-    virtual double unfiltered_coefficient_pre_s2(double dt){return 0.;};
+    virtual double unfiltered_coefficient_pre_s2(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_pre_step2 method */
-    virtual double filtered_coefficient_pre_s2(double dt){return 0.;};
+    virtual double filtered_coefficient_pre_s2(double /* dt */){return 0.;};
         
     /** coefficient multipling unfiltered terms in apply_post_step2 method */
-    virtual double unfiltered_coefficient_post_s2(double dt){return 0.;};
+    virtual double unfiltered_coefficient_post_s2(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_post_step2 method */
-    virtual double filtered_coefficient_post_s2(double dt){return 0.;};
+    virtual double filtered_coefficient_post_s2(double /* dt */){return 0.;};
   
     /** rate of filtered quantity to be called in post integration phase */
     virtual void rate(MATRIX & rate,
-                      const MATRIX & filteredQuantity,
+                      const MATRIX & /* filteredQuantity */,
                       const MATRIX & unFilteredQuantity,
                       double dt = 0.0)
       { rate = 1/dt*(unFilteredQuantity - TimeFilter::unFilteredQuantityOld_);}; 
@@ -243,30 +243,36 @@ namespace ATC {
     // destructor
     virtual ~TimeFilterExponential(){};
     /** apply first step in a time filter update in the pre integration phase */
-    virtual void apply_pre_step1(MATRIX & filteredQuantity,
-                                 const MATRIX & unFilteredQuantity,
-                                 double dt) {};
+    virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
+                                 const MATRIX & /* unFilteredQuantity */,
+                                 double /* dt */) {};
         
     /** apply second step in a time filter update in pre integration phase */
-    virtual void apply_pre_step2(MATRIX & filteredQuantity,
-                                 const MATRIX & unFilteredQuantity,
-                                 double dt) {};
+    virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
+                                 const MATRIX & /* unFilteredQuantity */,
+                                 double /* dt */) {};
         
     /** apply first step in a time filter update in post integration phase */
-    virtual void apply_post_step1(MATRIX & filteredQuantity,
-                                  const MATRIX & unFilteredQuantity,
-                                  double dt) {};
+    virtual void apply_post_step1(MATRIX & /* filteredQuantity */,
+                                  const MATRIX & /* unFilteredQuantity */,
+                                  double /* dt */) {};
         
     /** apply second step in a time filter update in post integration phase */
-    virtual void apply_post_step2(MATRIX & filteredQuantity,
-                                  const MATRIX & unFilteredQuantity,
-                                  double dt) {};
+    virtual void apply_post_step2(MATRIX & /* filteredQuantity */,
+                                  const MATRIX & /* unFilteredQuantity */,
+                                  double /* dt */) {};
 
     /** time rate of filtered quantity */
     virtual void rate(MATRIX & rate,
-        const MATRIX & filteredQuantity,
-                                const MATRIX & unfilteredQuantity,
-                                double dt = 0)
+                      const MATRIX & filteredQuantity,
+                      const MATRIX & unfilteredQuantity,
+                      double /* dt */)
+    { double tau = TimeFilter::filterScale_;
+      rate = 1/tau*(unfilteredQuantity - filteredQuantity); };
+
+    virtual void rate(MATRIX & rate,
+                      const MATRIX & filteredQuantity,
+                      const MATRIX & unfilteredQuantity)
     { double tau = TimeFilter::filterScale_;
       rate = 1/tau*(unfilteredQuantity - filteredQuantity); };
 
@@ -702,19 +708,19 @@ namespace ATC {
     virtual void initialize(const MATRIX & target);
 
     /** apply first step in a time filter update in the pre integration phase */
-    virtual void apply_pre_step1(MATRIX & filteredQuantity,
-                                 const MATRIX & unFilteredQuantity,
-                                 double dt) {};
+    virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
+                                 const MATRIX & /* unFilteredQuantity */,
+                                 double /* dt */) {};
         
     /** apply second step in a time filter update in pre integration phase */
-    virtual void apply_pre_step2(MATRIX & filteredQuantity,
-                                 const MATRIX & unFilteredQuantity,
-                                 double dt) {};
+    virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
+                                 const MATRIX & /* unFilteredQuantity */,
+                                 double /* dt */) {};
         
     /** apply first step in a time filter update in post integration phase */
-    virtual void apply_post_step1(MATRIX & filteredQuantity,
-                                  const MATRIX & unFilteredQuantity,
-                                  double dt) {};
+    virtual void apply_post_step1(MATRIX & /* filteredQuantity */,
+                                  const MATRIX & /* unFilteredQuantity */,
+                                  double /* dt */) {};
         
     /** apply second step in a time filter update in post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
@@ -726,9 +732,14 @@ namespace ATC {
 
     /** time rate of filtered quantity */
     virtual void rate(MATRIX & rate,
-        const MATRIX & filteredQuantity,
-                                const MATRIX & unfilteredQuantity,
-                                double dt = 0)
+                      const MATRIX & filteredQuantity,
+                      const MATRIX & unfilteredQuantity,
+                      double /* dt */)
+    { rate = 1/elapsedTime_*(unfilteredQuantity - filteredQuantity); }
+
+    virtual void rate(MATRIX & rate,
+                      const MATRIX & filteredQuantity,
+                      const MATRIX & unfilteredQuantity)
     { rate = 1/elapsedTime_*(unfilteredQuantity - filteredQuantity); }
 
   protected:

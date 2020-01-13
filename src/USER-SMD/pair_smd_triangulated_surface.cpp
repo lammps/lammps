@@ -26,20 +26,15 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_smd_triangulated_surface.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include <iostream>
 #include <Eigen/Eigen>
-#include "pair_smd_triangulated_surface.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"

@@ -17,22 +17,19 @@
    see Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_msst.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "output.h"
 #include "modify.h"
 #include "fix_external.h"
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
-#include "respa.h"
 #include "domain.h"
-#include "thermo.h"
 #include "memory.h"
 #include "error.h"
 

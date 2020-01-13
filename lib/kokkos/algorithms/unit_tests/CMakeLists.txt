@@ -42,6 +42,12 @@ IF(Kokkos_ENABLE_OpenMP)
   )
 ENDIF()
 
+IF(Kokkos_ENABLE_HPX)
+  LIST( APPEND SOURCES
+    TestHPX.cpp
+  )
+ENDIF()
+
 IF(Kokkos_ENABLE_Serial)
   LIST( APPEND SOURCES
     TestSerial.cpp

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_client_md.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_client_md.h"
 #include "update.h"
 #include "atom.h"
 #include "comm.h"

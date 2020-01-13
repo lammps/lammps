@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "message.h"
+#include <cstring>
 #include "error.h"
 
 // CSlib interface
@@ -28,7 +28,7 @@ void Message::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal message command");
 
-  int clientserver;
+  int clientserver=0;
   if (strcmp(arg[0],"client") == 0) clientserver = 1;
   else if (strcmp(arg[0],"server") == 0) clientserver = 2;
   else if (strcmp(arg[0],"quit") == 0) clientserver = 0;

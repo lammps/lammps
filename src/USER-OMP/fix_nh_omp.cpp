@@ -16,14 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "modify.h"
-
-#include <cmath>
-#include <cstdio>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -58,11 +56,10 @@ void FixNHOMP::remap()
 
   if (allremap) domain->x2lamda(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
@@ -209,11 +206,10 @@ void FixNHOMP::remap()
 
   if (allremap) domain->lamda2x(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
@@ -236,13 +232,12 @@ void FixNHOMP::nh_v_press()
   dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i].x *= factor0;
         v[i].y *= factor1;
@@ -258,9 +253,9 @@ void FixNHOMP::nh_v_press()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);
@@ -290,14 +285,13 @@ void FixNHOMP::nve_v()
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (atom->rmass) {
     const double * _noalias const rmass = atom->rmass;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm*f[i].x;
@@ -309,9 +303,9 @@ void FixNHOMP::nve_v()
     const double *_noalias const mass = atom->mass;
     const int * _noalias const type = atom->type;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm*f[i].x;
@@ -332,14 +326,13 @@ void FixNHOMP::nve_x()
   const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   // x update by full step only for atoms in group
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       x[i].x += dtv * v[i].x;
       x[i].y += dtv * v[i].y;
@@ -356,13 +349,12 @@ void FixNHOMP::nh_v_temp()
   dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
@@ -371,9 +363,9 @@ void FixNHOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);

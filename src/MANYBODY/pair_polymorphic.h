@@ -22,6 +22,7 @@ PairStyle(polymorphic,PairPolymorphic)
 
 #include "pair.h"
 #include <cmath>
+#include <cstring>
 
 namespace LAMMPS_NS {
 

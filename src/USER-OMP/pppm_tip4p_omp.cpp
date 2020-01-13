@@ -15,18 +15,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_tip4p_omp.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "pppm_tip4p_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_omp.h"
 #include "force.h"
-#include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "timer.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -350,11 +353,11 @@ void PPPMTIP4POMP::particle_map()
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
     int iH1,iH2;
 
@@ -747,11 +750,18 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     // since local atoms are in lambda coordinates, but ghosts are not.
 
     int *sametag = atom->sametag;
-    double xo[3],xh1[3],xh2[3];
+    double xo[3],xh1[3],xh2[3],xm[3];
+    const int nlocal = atom->nlocal;
 
-    domain->lamda2x(x[i],xo);
-    domain->lamda2x(x[iH1],xh1);
-    domain->lamda2x(x[iH2],xh2);
+    for (int ii = 0; ii < 3; ++ii) {
+      xo[ii] = x[i][ii];
+      xh1[ii] = x[iH1][ii];
+      xh2[ii] = x[iH2][ii];
+    }
+
+    if (i < nlocal) domain->lamda2x(x[i],xo);
+    if (iH1 < nlocal) domain->lamda2x(x[iH1],xh1);
+    if (iH2 < nlocal) domain->lamda2x(x[iH2],xh2);
 
     double delx = xo[0] - xh1[0];
     double dely = xo[1] - xh1[1];
@@ -760,6 +770,7 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     double rsq;
     int closest = iH1;
 
+    // no need to run lamda2x here -> ghost atoms
     while (sametag[iH1] >= 0) {
       iH1 = sametag[iH1];
       delx = xo[0] - x[iH1][0];
@@ -808,13 +819,13 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     double dely2 = xh2[1] - xo[1];
     double delz2 = xh2[2] - xo[2];
 
-    xM.x = xo[0] + alpha * 0.5 * (delx1 + delx2);
-    xM.y = xo[1] + alpha * 0.5 * (dely1 + dely2);
-    xM.z = xo[2] + alpha * 0.5 * (delz1 + delz2);
+    xm[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xm[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xm[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
 
     // ... and convert M to lamda space for PPPM
 
-    domain->x2lamda((double *)&xM,(double *)&xM);
+    domain->x2lamda(xm,(double *)&xM);
 
   } else {
 

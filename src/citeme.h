@@ -15,7 +15,6 @@
 #define LMP_CITEME_H
 
 #include "pointers.h"
-#include <cstdio>
 #include <set>
 
 namespace LAMMPS_NS {
@@ -29,7 +28,7 @@ class CiteMe : protected Pointers {
  private:
   FILE *fp;                    // opaque pointer to log.cite file object
   typedef std::set<const char *> citeset;
-  citeset *cs;                // registered set of publications
+  citeset *cs;                 // registered set of publications
 };
 
 }

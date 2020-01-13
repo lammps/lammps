@@ -61,6 +61,16 @@ IF(KOKKOS_LEGACY_TRIBITS)
 
   #-----------------------------------------------------------------------------
 
+  FILE(GLOB HEADERS_HPX HPX/*.hpp)
+  FILE(GLOB SOURCES_HPX HPX/*.cpp)
+
+  LIST(APPEND HEADERS_PRIVATE ${HEADERS_HPX} )
+  LIST(APPEND SOURCES         ${SOURCES_HPX} )
+
+  INSTALL(FILES ${HEADERS_HPX} DESTINATION ${TRILINOS_INCDIR}/HPX/)
+
+  #-----------------------------------------------------------------------------
+
   FILE(GLOB HEADERS_CUDA Cuda/*.hpp)
   FILE(GLOB SOURCES_CUDA Cuda/*.cpp)
 

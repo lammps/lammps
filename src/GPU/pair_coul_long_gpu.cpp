@@ -15,11 +15,11 @@
    Contributing author: Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_long_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -35,6 +35,7 @@
 #include "domain.h"
 #include "kspace.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -78,6 +79,7 @@ PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

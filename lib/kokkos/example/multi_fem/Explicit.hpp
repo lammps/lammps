@@ -230,7 +230,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
                  mesh.parallel_data_map.count_owned ,
                  mesh.parallel_data_map.count_receive );
 
-      execution_space::fence();
+      execution_space().fence();
     }
 #endif
 
@@ -261,7 +261,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
                                                    user_dt ,
                                                    current_state );
 
-    execution_space::fence();
+    execution_space().fence();
 
     perf_data.internal_force_time +=
       comm::max( machine , wall_clock.seconds() );
@@ -276,7 +276,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
                                                x_bc ,
                                                current_state,
                                                next_state );
-    execution_space::fence();
+    execution_space().fence();
 
     perf_data.central_diff +=
       comm::max( machine , wall_clock.seconds() );

@@ -212,6 +212,10 @@ protected:
   bool get_key_string_value(std::string const &conf,
                             char const *key, std::string &data);
 
+  /// Get multiple strings from repeated instances of a same keyword
+  bool get_key_string_multi_value(std::string const &conf,
+                                  char const *key, std::vector<std::string>& data);
+
   /// Template for single-value keyword parsers
   template<typename TYPE>
   bool _get_keyval_scalar_(std::string const &conf,
@@ -321,6 +325,12 @@ public:
   /// \param conf The configuration string \param start_pos Start the count
   /// from this position
   static int check_braces(std::string const &conf, size_t const start_pos);
+
+  /// \brief Split a string with a specified delimiter into a vector
+  /// \param data The string to be splitted
+  /// \param delim A delimiter
+  /// \param dest A destination vector to store the splitted results
+  static void split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest);
 
 protected:
 

@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list.h"
+#include "my_page.h"    // IWYU pragma: keep
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "pair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "my_page.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -87,6 +85,9 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   // USER-DPD package
 
   np = NULL;
+
+  requestor = NULL;
+  requestor_type = NeighList::NONE;
 }
 
 /* ---------------------------------------------------------------------- */

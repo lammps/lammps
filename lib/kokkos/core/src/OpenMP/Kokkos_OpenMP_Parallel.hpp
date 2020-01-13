@@ -128,11 +128,10 @@ public:
       OpenMPExec::verify_is_master("Kokkos::OpenMP parallel_for");
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      const int pool_size = OpenMP::thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-      const int pool_size = OpenMP::impl_thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-      #pragma omp parallel num_threads(pool_size)
       {
         HostThreadTeamData & data = *(m_instance->get_thread_data());
 
@@ -228,11 +227,10 @@ public:
       OpenMPExec::verify_is_master("Kokkos::OpenMP parallel_for");
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      const int pool_size = OpenMP::thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-      const int pool_size = OpenMP::impl_thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-      #pragma omp parallel num_threads(pool_size)
       {
         HostThreadTeamData & data = *(m_instance->get_thread_data());
 
@@ -703,11 +701,10 @@ public:
                                     );
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      const int pool_size = OpenMP::thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-      const int pool_size = OpenMP::impl_thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-      #pragma omp parallel num_threads(pool_size)
       {
         HostThreadTeamData & data = *(m_instance->get_thread_data());
 
@@ -840,11 +837,10 @@ public:
                                     );
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      const int pool_size = OpenMP::thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-      const int pool_size = OpenMP::impl_thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-      #pragma omp parallel num_threads(pool_size)
       {
         HostThreadTeamData & data = *(m_instance->get_thread_data());
 
@@ -1005,11 +1001,10 @@ public:
                                     , thread_local_size );
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      const int pool_size = OpenMP::thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::thread_pool_size())
 #else
-      const int pool_size = OpenMP::impl_thread_pool_size();
+      #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
 #endif
-      #pragma omp parallel num_threads(pool_size)
       {
         HostThreadTeamData & data = *(m_instance->get_thread_data());
 

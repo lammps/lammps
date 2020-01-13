@@ -22,11 +22,11 @@
    [Lebedeva et al., Physica E, 44(6), 949-954, 2012.]
 ------------------------------------------------------------------------- */
 
+#include "pair_lebedeva_z.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lebedeva_z.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

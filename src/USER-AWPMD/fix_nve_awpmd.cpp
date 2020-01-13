@@ -15,15 +15,14 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_awpmd.h"
+#include "pair_awpmd_cut.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "utils.h"
 
 #include "TCP/wpmd_split.h"
 
@@ -62,7 +61,7 @@ void FixNVEAwpmd::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   awpmd_pair=(PairAWPMDCut *)force->pair;
@@ -73,7 +72,7 @@ void FixNVEAwpmd::init()
    allow for only per-type  mass
 ------------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate(int vflag)
+void FixNVEAwpmd::initial_integrate(int /* vflag */)
 {
 
 
@@ -118,7 +117,7 @@ void FixNVEAwpmd::final_integrate(){}
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int /* iloop */)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -132,7 +131,7 @@ void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate_respa(int ilevel, int iloop)
+void FixNVEAwpmd::final_integrate_respa(int ilevel, int /* iloop */)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

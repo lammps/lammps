@@ -6,7 +6,7 @@ used to automate the steps described in the README file in this dir
 """
 
 from __future__ import print_function
-import sys, os, subprocess, shutil
+import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.5.1"
+version = "2.5.3"
 mode = "static"
 
 # help message
@@ -44,6 +44,8 @@ checksums = { \
         '2.4.4' : '71ed465bdc7c2059e282dbda8d564e71', \
         '2.5.0' : '6224cd089493661e19ceacccd35cf911', \
         '2.5.1' : 'c2a7b519e32197a120cdf47e0f194f81', \
+        '2.5.2' : 'bd2f18346c788eb54e1e52f4f6acf41a', \
+        '2.5.3' : 'de30d6e7c2dcc0973298e24a6da24286', \
         }
 
 # parse and process arguments
@@ -129,7 +131,10 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
   plumedinc = os.path.join('liblink', 'plumed', 'src', 'lib', 'Plumed.inc.' + mode)
   lines1 = open(plumedinc, 'r').readlines()
-  lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
+  if (platform.system() == 'Darwin' and os.path.isfile("Makefile.lammps.%s.macosx" % mode)):
+    lines2 = open("Makefile.lammps.%s.macosx" % mode, 'r').readlines()
+  else:
+    lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
   fp = open("Makefile.lammps", 'w')
   fp.write("PLUMED_LIBDIR=" + os.path.join(homedir, "lib\n"))
   for line in lines1:

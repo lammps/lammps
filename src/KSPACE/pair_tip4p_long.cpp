@@ -16,25 +16,21 @@
    simpler force assignment added by Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tip4p_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -472,11 +468,11 @@ void PairTIP4PLong::read_restart_settings(FILE *fp)
   PairCoulLong::read_restart_settings(fp);
 
   if (comm->me == 0) {
-    fread(&typeO,sizeof(int),1,fp);
-    fread(&typeH,sizeof(int),1,fp);
-    fread(&typeB,sizeof(int),1,fp);
-    fread(&typeA,sizeof(int),1,fp);
-    fread(&qdist,sizeof(double),1,fp);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);

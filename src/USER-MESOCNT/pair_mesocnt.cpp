@@ -788,7 +788,7 @@ void PairMesoCNT::read_file()
   memory->create(uinf_data,uinf_points,"pair:uinf_data");
   memory->create(gamma_data,gamma_points,"pair:gamma_data");
   memory->create(phi_data,phi_points,phi_points,"pair:phi_data");
-  memory->create(usemi_data,usemi_points,phi_points,"pair:usemi_data");
+  memory->create(usemi_data,usemi_points,usemi_points,"pair:usemi_data");
   
   if (me == 0) {
     read_data(fp,uinf_data,hstart_uinf,delh_uinf,uinf_points);

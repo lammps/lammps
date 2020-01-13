@@ -39,7 +39,7 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective) : 
+             int scaled, int permute, int *nbuf, int usecollective) :
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
@@ -206,7 +206,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
      d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
      d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
 
-    remapKK->remap_3d_kokkos(d_in_scalar, d_copy_scalar, 
+    remapKK->remap_3d_kokkos(d_in_scalar, d_copy_scalar,
              d_scratch_scalar, plan->pre_plan);
 
     d_data = d_copy;
@@ -230,7 +230,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   #elif defined(FFT_CUFFT)
     cufftExec(plan->plan_fast,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
   #else
-    typename AT::t_FFT_DATA_1d d_tmp = 
+    typename AT::t_FFT_DATA_1d d_tmp =
      typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
     kiss_fft_functor<DeviceType> f;
     if (flag == -1)
@@ -253,7 +253,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size()*2);
   d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size()*2);
 
-  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar, 
+  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
            d_scratch_scalar, plan->mid1_plan);
 
   d_data = d_copy;
@@ -295,7 +295,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
   d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
 
-  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar, 
+  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
            d_scratch_scalar, plan->mid2_plan);
 
   d_data = d_copy;
@@ -335,7 +335,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
     d_out_scalar = typename AT::t_FFT_SCALAR_1d(d_out.data(),d_out.size());
     d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
 
-    remapKK->remap_3d_kokkos(d_data_scalar, d_out_scalar, 
+    remapKK->remap_3d_kokkos(d_data_scalar, d_out_scalar,
              d_scratch_scalar, plan->post_plan);
     }
 
@@ -534,7 +534,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
   // configure plan memory pointers and allocate work space
   // out_size = amount of memory given to FFT by user
-  // first/second/third_size = amount of memory needed after 
+  // first/second/third_size = amount of memory needed after
   //                           pre,mid1,mid2 remaps
   // copy_size = amount needed internally for extra copy of data
   // scratch_size = amount needed internally for remap scratch space

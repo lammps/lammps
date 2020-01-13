@@ -90,7 +90,6 @@ double RanMars::uniform()
   return uni;
 }
 
-
 /* ----------------------------------------------------------------------
    gaussian RN
 ------------------------------------------------------------------------- */
@@ -127,7 +126,6 @@ double RanMars::gaussian(double mu, double sigma)
   return v1;
 }
 
-
 /* ----------------------------------------------------------------------
    Rayleigh RN
 ------------------------------------------------------------------------- */
@@ -136,15 +134,12 @@ double RanMars::rayleigh(double sigma)
 {
   double first,v1;
  
-  if (sigma <= 0) {
-    error->all(FLERR,"Invalid Rayleigh parameter");
-  } else {
-    v1 = uniform();
-    first = sigma*sqrt(-2.0*log(v1));
-    return first;
-  }
-}
+  if (sigma <= 0) error->all(FLERR,"Invalid Rayleigh parameter");
 
+  v1 = uniform();
+  first = sigma*sqrt(-2.0*log(v1));
+  return first;
+}
 
 /* ----------------------------------------------------------------------
    Bessel exponential RN
@@ -153,20 +148,21 @@ double RanMars::rayleigh(double sigma)
 double RanMars::besselexp(double theta, double alpha, double cp)
 {
   double first,v1,v2;
-  if ((theta < 0) || (alpha < 0) || (alpha >1)) {
+
+  if (theta < 0.0 || alpha < 0.0 || alpha < 1.0)
     error->all(FLERR,"Invalid Bessel exponential distribution parameters");
-  } else {
-    v1 = uniform();
-    v2 = uniform();
-    if (cp < 0) {
-      first = sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1)
-                   + 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1))
-                   * cos(2.0*MathConst::MY_PI*v2)*cp);
-    } else {
-      first = -sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1)
-                    - 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1))
-                    * cos(2.0*MathConst::MY_PI*v2)*cp);
-    }
-    return first;
-  }
+  
+  v1 = uniform();
+  v2 = uniform();
+
+  if (cp < 0.0)
+    first = sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) + 
+                 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) * 
+                 cos(2.0*MathConst::MY_PI*v2)*cp);
+  else
+    first = -sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) - 
+                  2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) * 
+                  cos(2.0*MathConst::MY_PI*v2)*cp);
+
+  return first;
 }

@@ -40,19 +40,15 @@
 # if defined(FFT_CUFFT)
 #  error "Must enable CUDA with KOKKOS to use -DFFT_CUFFT"
 # endif
-#endif
-
 // if user set FFTW, it means FFTW3
-
-#ifdef FFT_FFTW
-#define FFT_FFTW3
-#endif
-
-
-#ifdef FFT_FFTW_THREADS
-#if !defined(FFT_FFTW3)
-#error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
-#endif
+# ifdef FFT_FFTW
+#  define FFT_FFTW3
+# endif
+# ifdef FFT_FFTW_THREADS
+#  if !defined(FFT_FFTW3)
+#   error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
+#  endif
+# endif
 #endif
 
 #if defined(FFT_MKL)

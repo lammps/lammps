@@ -19,8 +19,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fstream>
-#include <string>
 #include "pair_mesocnt.h"
 #include "atom.h"
 #include "comm.h"
@@ -130,8 +128,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
-  int *tag = atom->tag;
-  int *mol = atom->molecule;
+  tagint *tag = atom->tag;
+  tagint *mol = atom->molecule;
   int nlocal = atom->nlocal;
   int nbondlist = neighbor->nbondlist;
   int newton_pair = force->newton_pair;
@@ -688,8 +686,8 @@ void PairMesoCNT::bond_neigh()
 void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
 {
   int nlocal = atom->nlocal;
-  int *tag = atom->tag;
-  int *mol = atom->molecule;
+  tagint *tag = atom->tag;
+  tagint *mol = atom->molecule;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int numneigh1,numneigh2;
@@ -749,8 +747,8 @@ void PairMesoCNT::chain_split(int *redlist, int numred,
     return;
   }
 
-  int *tag = atom->tag;
-  int *mol = atom->molecule;
+  tagint *tag = atom->tag;
+  tagint *mol = atom->molecule;
   int clen = 0;
   int cid = 0;
 
@@ -773,8 +771,8 @@ void PairMesoCNT::chain_split(int *redlist, int numred,
   for (int j = 0; j < cid; j++) {
     int cstart = chain[j][0];
     int cend = chain[j][nchain[j]-1];
-    int tagstart = tag[cstart];
-    int tagend = tag[cend];
+    tagint tagstart = tag[cstart];
+    tagint tagend = tag[cend];
     end[j] = 0;
     if (tagstart == 1) end[j] = 1;
     else {
@@ -798,7 +796,7 @@ void PairMesoCNT::chain_split(int *redlist, int numred,
 void PairMesoCNT::sort(int *list, int size)
 {
   int i,j,temp1,temp2;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   for (int i = 1; i < size; i++) {
     j = i;
     temp1 = list[j-1];

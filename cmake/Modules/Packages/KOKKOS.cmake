@@ -44,7 +44,7 @@ if(PKG_KOKKOS)
                                    ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
     if(KOKKOS_ENABLE_CUDA)
       add_definitions(-DFFT_CUFFT)
-      list(APPEND LAMMPS_LINK_LIBS -lcufft)
+      list(APPEND LAMMPS_LINK_LIBS cufft)
     endif()
   endif()
 

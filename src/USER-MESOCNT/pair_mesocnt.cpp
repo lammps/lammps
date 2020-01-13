@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "pair_mesocnt.h"
 #include "atom.h"
 #include "comm.h"
@@ -822,12 +823,13 @@ void PairMesoCNT::read_file(const char *file, double *data,
 
   // open file
   
-  FILE *fp = fopen(file,"r");
+  FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     std::string str("Cannot open file ");
     str += file;
     error->one(FLERR,str.c_str());
   }
+  fgets(line,MAXLINE,fp);
 
   // read values from file
 
@@ -889,12 +891,13 @@ void PairMesoCNT::read_file(const char *file, double **data,
 
   // open file
   
-  FILE *fp = fopen(file,"r");
+  FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     std::string str("Cannot open file ");
     str += file;
     error->one(FLERR,str.c_str());
   }
+  fgets(line,MAXLINE,fp);
 
   // read values from file
 

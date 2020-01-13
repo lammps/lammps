@@ -489,7 +489,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   ang = force->angstrom;
   ang_inv = 1.0 / ang;
   if (strcmp(update->unit_style,"lj") == 0) 
-    error->all(FLERR,"mesoCNT does not support lj units");
+    error->all(FLERR,"Pair style mesocnt does not support lj units");
   else if (strcmp(update->unit_style,"real") == 0) eunit = 23.06054966;
   else if (strcmp(update->unit_style,"metal") == 0) eunit = 1.0;
   else if (strcmp(update->unit_style,"si") == 0) eunit = 1.6021765e-19;
@@ -574,9 +574,9 @@ void PairMesoCNT::coeff(int narg, char **arg)
 void PairMesoCNT::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style mesoCNT requires atom IDs");
+    error->all(FLERR,"Pair style mesocnt requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style mesoCNT requires newton pair on");
+    error->all(FLERR,"Pair style mesocnt requires newton pair on");
 
   // need a full neighbor list
 
@@ -591,8 +591,6 @@ void PairMesoCNT::init_style()
 
 double PairMesoCNT::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-
   return cutoff;
 }
 
@@ -825,7 +823,7 @@ void PairMesoCNT::read_file(const char *file, double *data,
   
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
-    std::string str("Cannot open file ");
+    std::string str("Cannot open mesocnt file ");
     str += file;
     error->one(FLERR,str.c_str());
   }
@@ -955,7 +953,7 @@ void PairMesoCNT::read_file(const char *file, double **data,
   }
   if (syerror) {
     char str[128];
-    sprintf(str,"%d spacings in first column were different\n"
+    sprintf(str,"%d spacings in second column were different\n"
 		  "  from first spacing in pair table ",syerror);
     std::string errstr = str;
     errstr += file;

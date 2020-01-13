@@ -185,3 +185,61 @@ namespace MathExtra {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style mesocnt does not support lj units
+
+Self-explanatory. Specify different unit system using the units 
+command.
+
+E: Pair style mesocnt requires atom IDs
+
+Self-explanatory. Turn on atom IDs using the atom_modify command.
+
+E: Pair style mesocnt requires newton pair on
+
+Self-explanatory. Turn on Newton's third law with the newton command.
+
+E: Cannot open mesocnt file %s
+
+The specified mesocnt potential file cannot be opened. Check that the
+path and name are correct.
+
+E: Premature end of file in pair table %s
+
+The specified mesocnt potential file is shorter than specified. Check
+if the correct file is being used and the right number of data points
+was specified in the pair_style
+
+W: %d of %d lines were incomplete or could not be parsed completely 
+in pair table %s
+
+A number of lines in the specified mesocnt potential file is incomplete
+or in the wrong format. Check the file for errors and missing data.
+
+W: %d spacings in the first column were different from the first spacing
+in the pair table %s
+
+The spacings between x coordinates in the first column of the specified
+mesocnt potential file vary throughout the file. Use a potential file
+with higher precision.
+
+W: %d spacings in second column were different from first 
+spacing in pair table %s
+
+The spacings between y coordinates in the second column of the specified
+mesocnt potential file vary throughout the file. Use a potential file
+with higher precision.
+
+*/

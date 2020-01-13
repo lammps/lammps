@@ -40,9 +40,9 @@ class FixDeposit : public Fix {
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
   int mode,rigidflag,shakeflag,idnext,distflag,orientflag;
   double lo,hi,deltasq,nearsq,rate,sigma;
-  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi,rx,ry,rz;
+  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
   double xlo,xhi,ylo,yhi,zlo,zhi,xmid,ymid,zmid;
-  double tx,ty,tz;
+  double rx,ry,rz,tx,ty,tz;
   char *idregion;
   char *idrigid,*idshake;
 

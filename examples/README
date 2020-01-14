@@ -112,6 +112,7 @@ tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 threebody: regression test input for a variety of manybody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
+wall:     use of reflective walls with different stochastic models
 
 Here is how you might run and visualize one of the sample problems:
 

@@ -103,7 +103,7 @@ MEAM::alloyparams(void)
         this->alpha_meam[i][j] = this->alpha_meam[j][i];
         this->lattce_meam[i][j] = this->lattce_meam[j][i];
         this->nn2_meam[i][j] = this->nn2_meam[j][i];
-	    // theta for lin,tri,zig references
+        // theta for lin,tri,zig references
         this->stheta_meam[i][j] = this->stheta_meam[j][i];
         this->ctheta_meam[i][j] = this->ctheta_meam[j][i];
         // If i<j and term is unset, use default values (e.g. mean of i-i and
@@ -747,9 +747,9 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
       break;
     case CH4:
       *rho01 = 4.0 * rhoa02; //in assumption that 'a' represent carbon
-      *rho02 = rhoa01;	//in assumption that 'b' represent hydrogen
+      *rho02 = rhoa01;       //in assumption that 'b' represent hydrogen
 
-      get_shpfcn(DIM, 0, 0, s);	//H
+      get_shpfcn(DIM, 0, 0, s); //H
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;

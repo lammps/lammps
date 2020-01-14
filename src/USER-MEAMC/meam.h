@@ -1,15 +1,16 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include "memory.h"
 #include <cmath>
-#include <cstdlib>
+#include <cstring>
+#include "math_const.h"
 
 #define maxelt 5
 
 namespace LAMMPS_NS {
+class Memory;
 
-typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
 
 class MEAM
 {
@@ -27,9 +28,7 @@ private:
 
   // Ec_meam = cohesive energy
   // re_meam = nearest-neighbor distance
-  // Omega_meam = atomic volume
   // B_meam = bulk modulus
-  // Z_meam = number of first neighbors for reference structure
   // ielt_meam = atomic number of element
   // A_meam = adjustable parameter
   // alpha_meam = sqrt(9*Omega*B/Ec)
@@ -65,8 +64,11 @@ private:
   // nr,dr = pair function discretization parameters
   // nrar,rdrar = spline coeff array parameters
 
+  // theta = angle between three atoms in line, zigzag, and trimer reference structures
+  // stheta_meam = sin(theta/2) in radian used in line, zigzag, and trimer reference structures
+  // ctheta_meam = cos(theta/2) in radian used in line, zigzag, and trimer reference structures
+
   double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
-  double Omega_meam[maxelt], Z_meam[maxelt];
   double A_meam[maxelt], alpha_meam[maxelt][maxelt], rho0_meam[maxelt];
   double delta_meam[maxelt][maxelt];
   double beta0_meam[maxelt], beta1_meam[maxelt];
@@ -93,8 +95,9 @@ private:
   int augt1, ialloy, mix_ref_t, erose_form;
   int emb_lin_neg, bkgd_dyn;
   double gsmooth_factor;
-  int vind2D[3][3], vind3D[3][3][3];
-  int v2D[6], v3D[10];
+
+  int vind2D[3][3], vind3D[3][3][3];                  // x-y-z to Voigt-like index
+  int v2D[6], v3D[10];                                // multiplicity of Voigt index (i.e. [1] -> xy+yx = 2
 
   int nr, nrar;
   double dr, rdrar;
@@ -107,6 +110,10 @@ public:
 
   int maxneigh;
   double *scrfcn, *dscrfcn, *fcpair;
+
+  //angle for trimer, zigzag, line reference structures
+  double stheta_meam[maxelt][maxelt];
+  double ctheta_meam[maxelt][maxelt];
 
 protected:
   // meam_funcs.cpp
@@ -121,6 +128,7 @@ protected:
     else if (xi <= 0.0)
       return 0.0;
     else {
+      // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
       a = 1.0 - xi;
       a *= a; a *= a;
       a = 1.0 - a;
@@ -187,11 +195,15 @@ protected:
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
   static double zbl(const double r, const int z1, const int z2);
+  double embedding(const double A, const double Ec, const double rhobar, double& dF) const;
   static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
 
-  static void get_shpfcn(const lattice_t latt, double (&s)[3]);
-  static int get_Zij(const lattice_t latt);
-  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, double &a, double &S);
+  static void get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3]);
+
+  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax,
+                      const double sthe, double &a, double &S);
+  static int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
+
 protected:
   void meam_checkindex(int, int, int, int*, int*);
   void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
@@ -202,6 +214,7 @@ protected:
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
+  const double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat);
   void compute_reference_density();
   void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
                   double, double, double, int, int, lattice_t);
@@ -210,7 +223,41 @@ protected:
   void interpolate_meam(int);
 
 public:
-  void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
+  //-----------------------------------------------------------------------------
+  // convert lattice spec to lattice_t
+  // only use single-element lattices if single=true
+  // return false on failure
+  // return true and set lat on success
+  static bool str_to_lat(const char* str, bool single, lattice_t& lat)
+  {
+    if (strcmp(str,"fcc") == 0) lat = FCC;
+    else if (strcmp(str,"bcc") == 0) lat = BCC;
+    else if (strcmp(str,"hcp") == 0) lat = HCP;
+    else if (strcmp(str,"dim") == 0) lat = DIM;
+    else if (strcmp(str,"dia") == 0) lat = DIA;
+    else if (strcmp(str,"dia3") == 0) lat = DIA3;
+    else if (strcmp(str,"lin") == 0) lat = LIN;
+    else if (strcmp(str,"zig") == 0) lat = ZIG;
+    else if (strcmp(str,"tri") == 0) lat = TRI;
+    else {
+      if (single)
+        return false;
+
+      if (strcmp(str,"b1")  == 0) lat = B1;
+      else if (strcmp(str,"c11") == 0) lat = C11;
+      else if (strcmp(str,"l12") == 0) lat = L12;
+      else if (strcmp(str,"b2")  == 0) lat = B2;
+      else if (strcmp(str,"ch4")  == 0) lat = CH4;
+      else if (strcmp(str,"lin")  == 0) lat =LIN;
+      else if (strcmp(str,"zig")  == 0) lat = ZIG;
+      else if (strcmp(str,"tri")  == 0) lat = TRI;
+      else return false;
+    }
+    return true;
+  }
+
+  static int get_Zij(const lattice_t latt);
+  void meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* atwt, double* alpha,
                          double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                          double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
                          int* ibar);
@@ -220,9 +267,9 @@ public:
   void meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                       int numneigh_full, int* firstneigh_full, int fnoffset);
   void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
-                       double* eatom, int ntype, int* type, int* fmap, int& errorflag);
+                       double* eatom, int ntype, int* type, int* fmap, double** scale, int& errorflag);
   void meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                  double* eatom, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                  double* eatom, int ntype, int* type, int* fmap, double** scale, double** x, int numneigh, int* firstneigh,
                   int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom);
 };
 
@@ -232,19 +279,8 @@ static inline bool iszero(const double f) {
   return fabs(f) < 1e-20;
 }
 
-template <typename TYPE, size_t maxi, size_t maxj>
-static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      arr[i][j] = v;
-}
-
-template <typename TYPE, size_t maxi, size_t maxj, size_t maxk>
-static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      for (size_t k = 0; k < maxk; k++)
-        arr[i][j][k] = v;
+static inline bool isone(const double f) {
+  return fabs(f-1.0) < 1e-20;
 }
 
 // Helper functions

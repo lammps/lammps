@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009 Stanford University and the Authors.           *
+ * Portions copyright (c) 2009-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -65,6 +65,14 @@ public:
      * Get an Operation in this program.
      */
     const Operation& getOperation(int index) const;
+    /**
+     * Change an Operation in this program.
+     *
+     * The Operation must have been allocated on the heap with the "new" operator.
+     * The ExpressionProgram assumes ownership of it and will delete it when it
+     * is no longer needed.
+     */
+    void setOperation(int index, Operation* operation);
     /**
      * Get the size of the stack needed to execute this program.  This is the largest number of elements present
      * on the stack at any point during evaluation.

@@ -15,19 +15,15 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_body_polygon.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polygon.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
-#include "modify.h"
-#include "respa.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"

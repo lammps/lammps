@@ -1,0 +1,148 @@
+LAMMPS (30 Oct 2019)
+# bfo in a 3d periodic box
+
+units 		metal
+dimension 	3
+boundary 	p p f
+atom_style 	spin
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	sc 3.96
+Lattice spacing in x,y,z = 3.96 3.96 3.96
+region 		box block 0.0 34.0 0.0 34.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (134.64 134.64 19.8)
+  1 by 1 by 1 MPI processor grid
+create_atoms 	1 box
+Created 5780 atoms
+  create_atoms CPU = 0.00107217 secs
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 1.0
+set 		group all spin/random 11 2.50
+  5780 settings made for spin/random
+
+pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5 spin/dmi 4.5
+pair_coeff 	* * spin/exchange exchange 6.0 -0.01575 0.0 1.965
+#pair_coeff 	* * spin/magelec magelec 4.5 0.000109 1.0 1.0 1.0
+pair_coeff 	* * spin/magelec magelec 4.5 0.00109 1.0 1.0 1.0
+pair_coeff 	* * spin/dmi dmi 4.5 0.00005 1.0 1.0 1.0
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+#fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0
+fix 		1 all precession/spin anisotropy 0.0000033 0.0 0.0 1.0
+fix_modify	1 energy yes
+
+timestep	0.0001
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo          50
+thermo_style    custom step time v_magnorm v_emag v_tmag temp etotal
+thermo_modify   format float %20.15g
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 50 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+
+min_style	spin
+min_modify 	alpha_damp 1.0 discrete_factor 10.0
+minimize        1.0e-10 0.0 1000 100
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:177)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:87)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:87)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:87)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.1
+  ghost atom cutoff = 6.1
+  binsize = 3.05, bins = 45 45 7
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair spin/magelec, perpetual, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair spin/dmi, perpetual, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 8.331 | 8.331 | 8.331 Mbytes
+Step Time v_magnorm v_emag v_tmag Temp TotEng 
+       0                    0   0.0100717228668283   -0.163834417271778     14831.3069413956                    0  -0.0819172086358848 
+      50                0.005 0.000106105812337003    -128.307447484203    0.104264818055985                    0    -64.1537237421011 
+     100                 0.01 7.95347901119144e-06    -131.449389798071   0.0221943604064967                    0    -65.7246948990356 
+     150                0.015 5.63006161138875e-07    -132.296453030419   0.0085472877724348                    0    -66.1482265152089 
+     200                 0.02 5.07390677383517e-07    -132.622857703805  0.00361380451198708                    0    -66.3114288519012 
+     250                0.025 3.28458336892231e-07    -132.774411992703  0.00187753161968493                    0    -66.3872059963511 
+     300                 0.03 1.93294839202864e-07    -132.861283726084  0.00121374398924599                    0    -66.4306418630428 
+     350                0.035 1.13872157437693e-07    -132.923137019136 0.000954736871701507                    0    -66.4615685095675 
+     400                 0.04 6.42075545620808e-08    -132.975239148591 0.000854064736183609                    0    -66.4876195742954 
+     450                0.045 3.44210513403008e-08    -133.023523287306 0.000812909459005007                    0    -66.5117616436536 
+     500                 0.05 1.80394981485933e-08    -133.070071976252 0.000789742875305133                    0    -66.5350359881254 
+     550                0.055 9.54697157105863e-09     -133.11541233939 0.000769860218895372                    0    -66.5577061696963 
+     600                 0.06 5.22455110720346e-09    -133.159676447906 0.000752941158466282                    0    -66.5798382239526 
+     650                0.065 2.95172977724016e-09    -133.203196195612 0.000745065216626277                    0    -66.6015980978057 
+     700                 0.07  1.6727567441294e-09    -133.246696814329 0.000752898926000619                    0    -66.6233484071653 
+     750                0.075 9.17127001723567e-10    -133.291227007554 0.000780491405791262                    0    -66.6456135037769 
+     800                 0.08 4.72669535949609e-10    -133.337962593396 0.000827942834401386                    0    -66.6689812966976 
+     850                0.085 2.25696738407094e-10    -133.387945245851 0.000890246383931885                    0    -66.6939726229243 
+     900                 0.09  1.0030717061716e-10    -133.441737087546 0.000955403731484674                    0     -66.720868543773 
+     950                0.095 4.19867626359036e-11    -133.498969798312  0.00100352240545389                    0    -66.7494848991554 
+    1000                  0.1 1.64283478182092e-11    -133.557979904763  0.00101162410316333                    0    -66.7789899523816 
+Loop time of 9.23057 on 1 procs for 1000 steps with 5780 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+      -0.0819172086359      -66.778399627     -66.7789899524
+  Force two-norm initial, final = 0 0
+  Force max component initial, final = 0 0
+  Final line search alpha, max atom move = 0 0
+  Iterations, force evaluations = 1000 1000
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.7576     | 8.7576     | 8.7576     |   0.0 | 94.88
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.023815   | 0.023815   | 0.023815   |   0.0 |  0.26
+Output  | 0.31665    | 0.31665    | 0.31665    |   0.0 |  3.43
+Modify  | 0.029446   | 0.029446   | 0.029446   |   0.0 |  0.32
+Other   |            | 0.1031     |            |       |  1.12
+
+Nlocal:    5780 ave 5780 max 5780 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1065 ave 1065 max 1065 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  92480 ave 92480 max 92480 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 92480
+Ave neighs/atom = 16
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:09

@@ -27,18 +27,10 @@
 #ifndef __REAX_TYPES_H_
 #define __REAX_TYPES_H_
 
-#include <mpi.h>
 #include "lmptype.h"
-
-#include <cctype>
-#include <cmath>
+#include <mpi.h>
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <sys/time.h>
 #include "accelerator_kokkos.h"
-
 
 namespace LAMMPS_NS { class Error;}
 

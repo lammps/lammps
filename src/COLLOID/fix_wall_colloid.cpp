@@ -15,13 +15,11 @@
    Contributing authors: Jeremy Lechman (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_wall_colloid.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

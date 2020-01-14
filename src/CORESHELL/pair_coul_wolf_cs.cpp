@@ -11,25 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_wolf_cs.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "math_special.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define EPSILON 1.0e-20
 

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_client_md.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_client_md.h"
 #include "update.h"
 #include "atom.h"
 #include "comm.h"
@@ -80,21 +80,6 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 FixClientMD::~FixClientMD()
 {
   memory->destroy(xpbc);
-
-  CSlib *cs = (CSlib *) lmp->cslib;
-
-  // all-done message to server
-
-  cs->send(-1,0);
-
-  int nfield;
-  int *fieldID,*fieldtype,*fieldlen;
-  cs->recv(nfield,fieldID,fieldtype,fieldlen);
-
-  // clean-up
-
-  delete cs;
-  lmp->cslib = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

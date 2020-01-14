@@ -17,23 +17,23 @@
                           the "tridiag.c" written by Gerard Jungman for GSL
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <sstream>  // IWYU pragma: keep
+#include <fstream>  // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "dihedral_table.h"
 #include "utils.h"
 
@@ -1012,8 +1012,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
 void DihedralTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1022,15 +1021,34 @@ void DihedralTable::write_restart(FILE *fp)
 
 void DihedralTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 

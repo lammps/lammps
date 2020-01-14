@@ -183,7 +183,7 @@ struct ModifiedGramSchmidt
       }
     }
 
-    execution_space::fence();
+    execution_space().fence();
 
     return timer.seconds();
   }

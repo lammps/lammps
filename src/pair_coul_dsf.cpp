@@ -16,11 +16,10 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_dsf.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -29,6 +28,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -43,7 +43,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {
+  centroidstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -253,7 +255,7 @@ void PairCoulDSF::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -277,10 +279,10 @@ void PairCoulDSF::write_restart_settings(FILE *fp)
 void PairCoulDSF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&alpha,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&alpha,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&alpha,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);

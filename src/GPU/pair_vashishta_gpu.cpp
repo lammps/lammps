@@ -14,12 +14,12 @@
 /* ----------------------------------------------------------------------
    Contributing author: Anders Hafreager (UiO)
 ------------------------------------------------------------------------- */
-#include <limits>
+
+#include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,6 +32,7 @@
 #include "error.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -73,6 +74,7 @@ PairVashishtaGPU::PairVashishtaGPU(LAMMPS *lmp) : PairVashishta(lmp), gpu_mode(G
   cpu_time = 0.0;
   reinitflag = 0;
   gpu_allocated = false;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
   cutghost = NULL;
@@ -234,9 +236,11 @@ void PairVashishtaGPU::init_style()
     neighbor->requests[irequest]->ghost = 1;
   }
 
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
+  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser=2.0*cutmax + neighbor->skin;
-
+    if (comm->me == 0)
+       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  }
 }
 
 /* ----------------------------------------------------------------------

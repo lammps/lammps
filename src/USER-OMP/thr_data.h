@@ -18,10 +18,6 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 #include "timer.h"
 
 namespace LAMMPS_NS {
@@ -101,6 +97,10 @@ class ThrData {
   double **vatom_dihed;
   double **vatom_imprp;
   double **vatom_kspce;
+  double **cvatom_pair;
+  double **cvatom_angle;
+  double **cvatom_dihed;
+  double **cvatom_imprp;
 
   // per thread segments of various force or similar arrays
 

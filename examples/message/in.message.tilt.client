@@ -40,3 +40,5 @@ thermo_style    custom step temp epair etotal press xy
 
 thermo		1000
 run		50000
+
+message         quit

@@ -11,26 +11,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lammps.h"
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
+#include <cstdlib>
 #include <cctype>
 #include <map>
 #include <string>
-#include "lammps.h"
-#include "style_angle.h"
-#include "style_atom.h"
-#include "style_bond.h"
-#include "style_command.h"
-#include "style_compute.h"
-#include "style_dihedral.h"
-#include "style_dump.h"
-#include "style_fix.h"
-#include "style_improper.h"
-#include "style_integrate.h"
-#include "style_kspace.h"
-#include "style_minimize.h"
-#include "style_pair.h"
-#include "style_region.h"
+#include "style_angle.h"     // IWYU pragma: keep
+#include "style_atom.h"      // IWYU pragma: keep
+#include "style_bond.h"      // IWYU pragma: keep
+#include "style_command.h"   // IWYU pragma: keep
+#include "style_compute.h"   // IWYU pragma: keep
+#include "style_dihedral.h"  // IWYU pragma: keep
+#include "style_dump.h"      // IWYU pragma: keep
+#include "style_fix.h"       // IWYU pragma: keep
+#include "style_improper.h"  // IWYU pragma: keep
+#include "style_integrate.h" // IWYU pragma: keep
+#include "style_kspace.h"    // IWYU pragma: keep
+#include "style_minimize.h"  // IWYU pragma: keep
+#include "style_pair.h"      // IWYU pragma: keep
+#include "style_region.h"    // IWYU pragma: keep
 #include "universe.h"
 #include "input.h"
 #include "info.h"
@@ -46,7 +48,7 @@
 #include "output.h"
 #include "citeme.h"
 #include "accelerator_kokkos.h"
-#include "accelerator_omp.h"
+#include "accelerator_omp.h"    // IWYU pragma: keep
 #include "timer.h"
 #include "lmppython.h"
 #include "version.h"
@@ -442,6 +444,19 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
+#if defined(LAMMPS_CXX98)
+      const char warning[] = "\nWARNING-WARNING-WARNING-WARNING-WARNING\n"
+        "This LAMMPS executable was compiled using C++98 compatibility.\n"
+        "Please report the compiler info below at https://github.com/lammps/lammps/issues/1659\n";
+      const char *infobuf = Info::get_compiler_info();
+      if (screen)
+         fprintf(screen,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
+                 warning,infobuf);
+      if (logfile)
+         fprintf(logfile,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
+                 warning,infobuf);
+      delete[] infobuf;
+#endif
     }
 
   // universe is one or more worlds, as setup by partition switch
@@ -998,7 +1013,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
-bool LAMMPS::is_installed_pkg(const char *pkg) 
+bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
     if (strcmp(installed_packages[i],pkg) == 0) return true;
@@ -1256,13 +1271,18 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
-  char *infobuf = Info::get_os_info();
+  const char *infobuf = Info::get_os_info();
   fprintf(fp,"OS: %s\n\n",infobuf);
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
+  fprintf(fp,"Compiler: %s with %s\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
+  fprintf(fp,"C++ standard: %s\n",Info::get_cxx_info());
+
+  int major,minor;
+  infobuf = Info::get_mpi_info(major,minor);
+  fprintf(fp,"MPI v%d.%d: %s\n\n",major,minor,infobuf);
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

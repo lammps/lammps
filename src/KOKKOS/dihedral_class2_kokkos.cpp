@@ -15,9 +15,9 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_class2_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
@@ -243,15 +243,20 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT sb3 = 1.0/r3mag2;
   const F_FLOAT rb3 = 1.0/r3;
 
-  const F_FLOAT c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
+  F_FLOAT c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
   // 1st and 2nd angle
 
   const F_FLOAT r12c1 = rb1*rb2;
   const F_FLOAT r12c2 = rb2*rb3;
-  const F_FLOAT costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
-  const F_FLOAT costh13 = c0;
-  const F_FLOAT costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
+  F_FLOAT costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
+  F_FLOAT costh13 = c0;
+  F_FLOAT costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
+
+  costh12 = MAX(MIN(costh12, 1.0), -1.0);
+  costh13 = MAX(MIN(costh13, 1.0), -1.0);
+  costh23 = MAX(MIN(costh23, 1.0), -1.0);
+  c0 = costh13;
 
   // cos and sin of 2 angles and final c
 

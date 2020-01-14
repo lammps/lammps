@@ -225,9 +225,9 @@ void test_dynamic_view_sort(unsigned int n )
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys_view,g,Kokkos::Random_XorShift64_Pool<ExecutionSpace>::generator_type::MAX_URAND);
 
-  ExecutionSpace::fence();
+  ExecutionSpace().fence();
   Kokkos::deep_copy(keys,keys_view);
-  //ExecutionSpace::fence();
+  //ExecutionSpace().fence();
 
   double sum_before = 0.0;
   double sum_after = 0.0;
@@ -237,9 +237,9 @@ void test_dynamic_view_sort(unsigned int n )
 
   Kokkos::sort(keys, 0 /* begin */ , n /* end */ );
 
-  ExecutionSpace::fence(); // Need this fence to prevent BusError with Cuda
+  ExecutionSpace().fence(); // Need this fence to prevent BusError with Cuda
   Kokkos::deep_copy( keys_view , keys );
-  //ExecutionSpace::fence();
+  //ExecutionSpace().fence();
 
   Kokkos::parallel_reduce(n,sum<ExecutionSpace, KeyType>(keys_view),sum_after);
   Kokkos::parallel_reduce(n-1,is_sorted_struct<ExecutionSpace, KeyType>(keys_view),sort_fails);

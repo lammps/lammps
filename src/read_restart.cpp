@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "read_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include <dirent.h>
-#include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -23,7 +22,6 @@
 #include "irregular.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_read_restart.h"
 #include "group.h"
 #include "force.h"
@@ -37,6 +35,7 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -304,24 +303,24 @@ void ReadRestart::command(int narg, char **arg)
         error->one(FLERR,str);
       }
 
-      fread(&flag,sizeof(int),1,fp);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
 
       for (int i = 0; i < procsperfile; i++) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
@@ -381,10 +380,10 @@ void ReadRestart::command(int narg, char **arg)
     int flag,procsperfile;
 
     if (filereader) {
-      fread(&flag,sizeof(int),1,fp);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
     }
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
 
@@ -393,17 +392,17 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         if (i % nclusterprocs) {
           iproc = me + (i % nclusterprocs);
@@ -580,32 +579,32 @@ void ReadRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   infile contains a "*"
-   search for all files which match the infile pattern
+   inpfile contains a "*"
+   search for all files which match the inpfile pattern
    replace "*" with latest timestep value to create outfile name
    search dir referenced by initial pathname of file
-   if infile also contains "%", use "base" when searching directory
+   if inpfile also contains "%", use "base" when searching directory
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadRestart::file_search(char *infile, char *outfile)
+void ReadRestart::file_search(char *inpfile, char *outfile)
 {
   char *ptr;
 
-  // separate infile into dir + filename
+  // separate inpfile into dir + filename
 
-  char *dirname = new char[strlen(infile) + 1];
-  char *filename = new char[strlen(infile) + 1];
+  char *dirname = new char[strlen(inpfile) + 1];
+  char *filename = new char[strlen(inpfile) + 1];
 
-  if (strchr(infile,'/')) {
-    ptr = strrchr(infile,'/');
+  if (strchr(inpfile,'/')) {
+    ptr = strrchr(inpfile,'/');
     *ptr = '\0';
-    strcpy(dirname,infile);
+    strcpy(dirname,inpfile);
     strcpy(filename,ptr+1);
     *ptr = '/';
   } else {
     strcpy(dirname,"./");
-    strcpy(filename,infile);
+    strcpy(filename,inpfile);
   }
 
   // if filename contains "%" replace "%" with "base"
@@ -651,11 +650,11 @@ void ReadRestart::file_search(char *infile, char *outfile)
   if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
 
   // create outfile with maxint substituted for "*"
-  // use original infile, not pattern, since need to retain "%" in filename
+  // use original inpfile, not pattern, since need to retain "%" in filename
 
-  ptr = strchr(infile,'*');
+  ptr = strchr(inpfile,'*');
   *ptr = '\0';
-  sprintf(outfile,"%s" BIGINT_FORMAT "%s",infile,maxnum,ptr+1);
+  sprintf(outfile,"%s" BIGINT_FORMAT "%s",inpfile,maxnum,ptr+1);
   *ptr = '*';
 
   // clean up
@@ -736,8 +735,12 @@ void ReadRestart::header(int incompatible)
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors");
+      if (nprocs_file != comm->nprocs && me == 0) {
+        char msg[128];
+        snprintf(msg,128,"Restart file used different # of processors: %d vs. %d",
+                 nprocs_file,comm->nprocs);
+        error->warning(FLERR,msg);
+      }
 
     // don't set procgrid, warn if different
 
@@ -1103,7 +1106,7 @@ void ReadRestart::file_layout()
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
 
-          fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
+          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,NULL,error);
 
           if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
             // nprocs differ, but atom sizes are fixed length, yeah!
@@ -1285,7 +1288,7 @@ char *ReadRestart::read_string()
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) fread(value,sizeof(char),n,fp);
+  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,NULL,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -1297,7 +1300,7 @@ char *ReadRestart::read_string()
 void ReadRestart::read_int_vec(int n, int *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
-  if (me == 0) fread(vec,sizeof(int),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
@@ -1308,6 +1311,6 @@ void ReadRestart::read_int_vec(int n, int *vec)
 void ReadRestart::read_double_vec(int n, double *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
-  if (me == 0) fread(vec,sizeof(double),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

@@ -51,11 +51,6 @@ private:
 };
 
 }
-
-#endif
-
-#if LMP_PYTHON
-#include "python_impl.h"
 #endif
 
 /* ERROR/WARNING messages:

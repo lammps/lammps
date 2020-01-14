@@ -21,18 +21,12 @@
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-// before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
+#include "neb_spin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "neb_spin.h"
 #include "citeme.h"
-#include "compute.h"
 #include "force.h"
 #include "universe.h"
 #include "atom.h"
@@ -50,9 +44,9 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 static const char cite_neb_spin[] =
   "neb/spin command:\n\n"
@@ -139,12 +133,12 @@ void NEBSpin::command(int narg, char **arg)
 
   if (strcmp(arg[5],"final") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEBSpin command");
-    infile = arg[6];
-    readfile(infile,0);
+    inpfile = arg[6];
+    readfile(inpfile,0);
   } else if (strcmp(arg[5],"each") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEBSpin command");
-    infile = arg[6];
-    readfile(infile,1);
+    inpfile = arg[6];
+    readfile(inpfile,1);
   } else if (strcmp(arg[5],"none") == 0) {
     if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEBSpin command");
   } else error->universe_all(FLERR,"Illegal NEBSpin command");
@@ -185,7 +179,7 @@ void NEBSpin::run()
 
   update->whichflag = 2;
   update->etol = etol;
-  update->ftol = ttol;		// update->ftol is a torque tolerance
+  update->ftol = ttol;          // update->ftol is a torque tolerance
   update->multireplica = 1;
 
   lmp->init();
@@ -194,8 +188,8 @@ void NEBSpin::run()
 
   if (update->minimize->searchflag)
     error->all(FLERR,"NEBSpin requires damped dynamics minimizer");
-  if (strcmp(update->minimize_style,"spin") != 0)
-    error->all(FLERR,"NEBSpin requires spin minimizer");
+  if (!utils::strmatch(update->minimize_style,"^spin"))
+    error->all(FLERR,"NEBSpin requires a spin minimizer");
 
   // setup regular NEBSpin minimization
 
@@ -220,7 +214,7 @@ void NEBSpin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-		"GradV0dottan DN0 ... GradVNdottan DNN\n");
+                "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -230,10 +224,10 @@ void NEBSpin::run()
 
     if (ulogfile) {
       if (verbose) {
-	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
-	    "GradV0 GradV1 GradVc EBF EBR RDT "
-	    "RD1 PE1 RD2 PE2 ... RDN PEN "
-	    "GradV0dottan DN0 ... GradVNdottan DNN\n");
+        fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
+            "GradV0 GradV1 GradVc EBF EBR RDT "
+            "RD1 PE1 RD2 PE2 ... RDN PEN "
+            "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -250,6 +244,8 @@ void NEBSpin::run()
 
   timer->init();
   timer->barrier_start();
+
+  // if(ireplica != 0 && ireplica != nreplica -1)
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -305,7 +301,7 @@ void NEBSpin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-		"GradV0dottan DN0... GradVNdottan DNN\n");
+                "GradV0dottan DN0... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -315,10 +311,10 @@ void NEBSpin::run()
     }
     if (ulogfile) {
       if (verbose) {
-	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
-	    "GradV0 GradV1 GradVc EBF EBR RDT "
-	    "RD1 PE1 RD2 PE2 ... RDN PEN "
-	    "GradV0dottan DN0 ... GradVNdottan DNN\n");
+        fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
+            "GradV0 GradV1 GradVc EBF EBR RDT "
+            "RD1 PE1 RD2 PE2 ... RDN PEN "
+            "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -476,8 +472,8 @@ void NEBSpin::readfile(char *file, int flag)
       m = atom->map(tag);
       if (m >= 0 && m < nlocal) {
         ncount++;
-	musp = atof(values[1]);
-	xx = atof(values[2]);
+        musp = atof(values[1]);
+        xx = atof(values[2]);
         yy = atof(values[3]);
         zz = atof(values[4]);
         spx = atof(values[5]);
@@ -486,39 +482,39 @@ void NEBSpin::readfile(char *file, int flag)
 
         if (flag == 0) {
 
-	  spinit[0] = sp[m][0];
-	  spinit[1] = sp[m][1];
-	  spinit[2] = sp[m][2];
-	  spfinal[0] = spx;
-	  spfinal[1] = spy;
-	  spfinal[2] = spz;
+          spinit[0] = sp[m][0];
+          spinit[1] = sp[m][1];
+          spinit[2] = sp[m][2];
+          spfinal[0] = spx;
+          spfinal[1] = spy;
+          spfinal[2] = spz;
 
-	  // interpolate intermediate spin states
+          // interpolate intermediate spin states
 
-	  sp[m][3] = musp;
-	  if (fraction == 0.0) {
-	    sp[m][0] = spinit[0];
-	    sp[m][1] = spinit[1];
-	    sp[m][2] = spinit[2];
-	  } else if (fraction == 1.0) {
-	    sp[m][0] = spfinal[0];
-	    sp[m][1] = spfinal[1];
-	    sp[m][2] = spfinal[2];
-	  } else {
+          sp[m][3] = musp;
+          if (fraction == 0.0) {
+            sp[m][0] = spinit[0];
+            sp[m][1] = spinit[1];
+            sp[m][2] = spinit[2];
+          } else if (fraction == 1.0) {
+            sp[m][0] = spfinal[0];
+            sp[m][1] = spfinal[1];
+            sp[m][2] = spfinal[2];
+          } else {
             temp_flag = initial_rotation(spinit,spfinal,fraction);
             rot_flag = MAX(temp_flag,rot_flag);
-	    sp[m][0] = spfinal[0];
-	    sp[m][1] = spfinal[1];
-	    sp[m][2] = spfinal[2];
-	  }
+            sp[m][0] = spfinal[0];
+            sp[m][1] = spfinal[1];
+            sp[m][2] = spfinal[2];
+          }
         } else {
           sp[m][3] = musp;
-	  x[m][0] = xx;
+          x[m][0] = xx;
           x[m][1] = yy;
           x[m][2] = zz;
-	  sp[m][0] = spx;
-	  sp[m][1] = spy;
-	  sp[m][2] = spz;
+          sp[m][0] = spx;
+          sp[m][1] = spy;
+          sp[m][2] = spz;
         }
       }
 
@@ -606,24 +602,24 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
   // Rodrigues' formula breaks, needs to define another axis k
 
   if (knormsq == 0.0) {
-    if (sidotsf > 0.0) { 	// spins aligned and in same direction
+    if (sidotsf > 0.0) {        // spins aligned and in same direction
       return 0;
-    } else if (sidotsf < 0.0) {	// spins aligned and in opposite directions
+    } else if (sidotsf < 0.0) { // spins aligned and in opposite directions
 
       // defining a rotation axis
       // first guess, k = spi x [100]
       // second guess, k = spi x [010]
 
       if (spiy*spiy + spiz*spiz != 0.0) { // spin not along [100]
-	kx = 0.0;
-	ky = spiz;
-	kz = -spiy;
-	knormsq = ky*ky + kz*kz;
+        kx = 0.0;
+        ky = spiz;
+        kz = -spiy;
+        knormsq = ky*ky + kz*kz;
       } else if (spix*spix + spiz*spiz != 0.0) { // spin not along [010]
-	kx = -spiz;
-	ky = 0.0;
-	kz = spix;
-	knormsq = kx*kx + kz*kz;
+        kx = -spiz;
+        ky = 0.0;
+        kz = spix;
+        knormsq = kx*kx + kz*kz;
       } else error->all(FLERR,"Incorrect initial rotation operation");
       rot_flag = 1;
     }
@@ -647,7 +643,7 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
   kcrossy = kz*spix - kx*spiz;
   kcrossz = kx*spiy - ky*spix;
 
-  kdots = kx*spix + ky*spiz + kz*spiz;
+  kdots = kx*spix + ky*spiy + kz*spiz;
 
   omega = acos(sidotsf);
   omega *= fraction;
@@ -826,9 +822,9 @@ void NEBSpin::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-	for (int i = 0; i < nreplica-1; i++)
-	  fprintf(uscreen,"%12.8g %12.8g ",all[i][2],all[i][5]);
-	fprintf(uscreen,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
+        for (int i = 0; i < nreplica-1; i++)
+          fprintf(uscreen,"%12.8g %12.8g ",all[i][2],all[i][5]);
+        fprintf(uscreen,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
       }
       fprintf(uscreen,"\n");
     }
@@ -842,9 +838,9 @@ void NEBSpin::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-	for (int i = 0; i < nreplica-1; i++)
-	  fprintf(ulogfile,"%12.8g %12.8g ",all[i][2],all[i][5]);
-	fprintf(ulogfile,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
+        for (int i = 0; i < nreplica-1; i++)
+          fprintf(ulogfile,"%12.8g %12.8g ",all[i][2],all[i][5]);
+        fprintf(ulogfile,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
       }
       fprintf(ulogfile,"\n");
       fflush(ulogfile);

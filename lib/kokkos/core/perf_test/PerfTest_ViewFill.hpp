@@ -90,6 +90,7 @@ void run_fillview_tests123(int N, int R) {
         a_ptr[i] = 1.1;
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -126,6 +127,7 @@ void run_fillview_tests45(int N, int R) {
         a_ptr[i] = 1.1;
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -157,6 +159,7 @@ void run_fillview_tests6(int N, int R) {
         a_ptr[i] = 1.1;
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -187,6 +190,7 @@ void run_fillview_tests7(int N, int R) {
         a_ptr[i] = 1.1;
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -217,6 +221,7 @@ void run_fillview_tests8(int N, int R) {
         a_ptr[i] = 1.1;
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif

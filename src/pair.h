@@ -14,7 +14,7 @@
 #ifndef LMP_PAIR_H
 #define LMP_PAIR_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixIntel;
   friend class FixOMP;
   friend class ThrOMP;
   friend class Info;
@@ -36,6 +37,7 @@ class Pair : protected Pointers {
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
+  double **cvatom;               // accumulated per-atom centroid virial
 
   double cutforce;               // max cutoff for all atom pairs
   double **cutsq;                // cutoff sq for each atom pair
@@ -46,6 +48,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
+  int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
@@ -61,8 +64,13 @@ class Pair : protected Pointers {
   int dispersionflag;            // 1 if compatible with LJ/dispersion solver
   int tip4pflag;                 // 1 if compatible with TIP4P solver
   int dipoleflag;                // 1 if compatible with dipole solver
-  int spinflag;			 // 1 if compatible with spin solver
+  int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
+
+  int centroidstressflag;        // compatibility with centroid atomic stress
+                                 // 1 if same as two-body atomic stress
+                                 // 2 if implemented and different from two-body
+                                 // 4 if not compatible/implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
@@ -70,7 +78,7 @@ class Pair : protected Pointers {
 
   int evflag;                    // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
+  int vflag_either,vflag_global,vflag_atom,cvflag_atom;
 
   int ncoultablebits;            // size of Coulomb table, accessed by KSpace
   int ndisptablebits;            // size of dispersion table
@@ -148,6 +156,16 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  void hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]);
+
+  virtual double single_hessian(int, int, int, int,
+                        double, double[3], double, double,
+                        double& fforce, double d2u[6]) {
+    fforce = 0.0;
+    for (int i=0; i<6; i++) d2u[i] = 0;
+    return 0.0;
+  }
+
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -218,7 +236,7 @@ class Pair : protected Pointers {
 
  protected:
   int vflag_fdotr;
-  int maxeatom,maxvatom;
+  int maxeatom,maxvatom,maxcvatom;
 
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos

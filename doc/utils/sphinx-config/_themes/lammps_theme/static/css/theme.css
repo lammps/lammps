@@ -5092,4 +5092,17 @@ span[id*='MathJax-Span'] {
   src: local("Roboto Slab Bold"), local("RobotoSlab-Bold"), url(../fonts/RobotoSlab-Bold.ttf) format("truetype");
 }
 
+.codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight'] {
+  font-size: 12px;
+  line-height: 1.5;
+  display: block;
+  overflow: auto;
+  color: #404040;
+  padding: 12px 12px;
+}
+
+.codeblock,div[class^='highlight'] {
+  padding: 0;
+}
+
 /*# sourceMappingURL=theme.css.map */

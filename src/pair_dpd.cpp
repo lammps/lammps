@@ -15,12 +15,10 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_dpd.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -29,6 +27,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -315,13 +314,13 @@ void PairDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a0[i][j],sizeof(double),1,fp);
-          fread(&gamma[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
@@ -349,10 +348,10 @@ void PairDPD::write_restart_settings(FILE *fp)
 void PairDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&temperature,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&temperature,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&temperature,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);

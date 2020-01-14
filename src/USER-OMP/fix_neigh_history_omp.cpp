@@ -11,18 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdio>
 #include "fix_neigh_history_omp.h"
+#include <cstring>
+#include "my_page.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "force.h"
 #include "pair.h"
-#include "update.h"
 #include "memory.h"
-#include "modify.h"
 #include "error.h"
 
 #if defined(_OPENMP)
@@ -175,6 +171,8 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
+
     maxpartner = m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -184,7 +182,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix =MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 
@@ -347,6 +345,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
     m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -356,7 +355,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 
@@ -485,6 +484,8 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
+
     m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -494,7 +495,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 }

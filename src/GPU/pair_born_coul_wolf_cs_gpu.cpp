@@ -15,11 +15,11 @@
    Contributing authors: Trung Dac Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_wolf_cs_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_born_coul_wolf_cs_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -35,6 +35,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -78,6 +79,7 @@ PairBornCoulWolfCSGPU::PairBornCoulWolfCSGPU(LAMMPS *lmp) : PairBornCoulWolfCS(l
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

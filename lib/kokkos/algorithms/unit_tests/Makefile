@@ -49,6 +49,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	TEST_TARGETS += test-openmp
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+	OBJ_HPX = TestHPX.o UnitTestMain.o gtest-all.o
+	TARGETS += KokkosAlgorithms_UnitTest_HPX
+	TEST_TARGETS += test-hpx
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 	OBJ_SERIAL = TestSerial.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_Serial
@@ -67,6 +73,9 @@ KokkosAlgorithms_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 KokkosAlgorithms_UnitTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_OpenMP
 
+KokkosAlgorithms_UnitTest_HPX: $(OBJ_HPX) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_HPX) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_HPX
+
 KokkosAlgorithms_UnitTest_Serial: $(OBJ_SERIAL) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_SERIAL) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_Serial
 
@@ -81,6 +90,9 @@ test-threads: KokkosAlgorithms_UnitTest_Threads
 
 test-openmp: KokkosAlgorithms_UnitTest_OpenMP
 	./KokkosAlgorithms_UnitTest_OpenMP
+
+test-hpx: KokkosAlgorithms_UnitTest_HPX
+	./KokkosAlgorithms_UnitTest_HPX
 
 test-serial: KokkosAlgorithms_UnitTest_Serial
 	./KokkosAlgorithms_UnitTest_Serial

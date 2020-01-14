@@ -15,12 +15,10 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include "domain.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,13 +35,11 @@
 #include "output.h"
 #include "thermo.h"
 #include "universe.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
@@ -356,6 +352,11 @@ void Domain::set_local_box()
 void Domain::reset_box()
 {
   // perform shrink-wrapping
+
+  // nothing to do for empty systems
+
+  if (atom->natoms == 0) return;
+
   // compute extent of atoms on this proc
   // for triclinic, this is done in lamda space
 
@@ -1734,7 +1735,7 @@ void Domain::add_region(int narg, char **arg)
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1746,7 +1747,7 @@ void Domain::add_region(int narg, char **arg)
 
     if (lmp->suffix2) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix2);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);

@@ -453,15 +453,18 @@ struct TestReduceCombinatoricalInstantiation {
 
     result_view() = 0;
     CallParallelReduce( args..., result_view );
+    Kokkos::fence();
     ASSERT_EQ( expected_result, result_view() );
 
     value = 0;
     CallParallelReduce( args..., Kokkos::View< double, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged> >( &value ) );
+    Kokkos::fence();
     ASSERT_EQ( expected_result, value );
 
     result_view() = 0;
     const Kokkos::View< double, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_const_um = result_view;
     CallParallelReduce( args..., result_view_const_um );
+    Kokkos::fence();
     ASSERT_EQ( expected_result, result_view_const_um() );
 
     value = 0;
@@ -526,18 +529,21 @@ struct TestReduceCombinatoricalInstantiation {
     h_r() = 0;
     Kokkos::deep_copy( result_view, h_r );
     CallParallelReduce( args..., Test::ReduceCombinatorical::FunctorScalarFinal< ISTEAM >( result_view ) );
+    Kokkos::fence();
     Kokkos::deep_copy( h_r, result_view );
     ASSERT_EQ( expected_result, h_r() );
 
     h_r() = 0;
     Kokkos::deep_copy( result_view, h_r );
     CallParallelReduce( args..., Test::ReduceCombinatorical::FunctorScalarJoinFinal< ISTEAM >( result_view ) );
+    Kokkos::fence();
     Kokkos::deep_copy( h_r, result_view );
     ASSERT_EQ( expected_result, h_r() );
 
     h_r() = 0;
     Kokkos::deep_copy( result_view, h_r );
     CallParallelReduce( args..., Test::ReduceCombinatorical::FunctorScalarJoinFinalInit< ISTEAM >( result_view ) );
+    Kokkos::fence();
     Kokkos::deep_copy( h_r, result_view );
     ASSERT_EQ( expected_result, h_r() );
   }

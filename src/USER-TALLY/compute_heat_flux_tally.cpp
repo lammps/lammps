@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_heat_flux_tally.h"
+#include <mpi.h>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -38,6 +38,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = 7;
   extvector = 1;

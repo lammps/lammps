@@ -22,21 +22,14 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_smd_adjust_dt.h"
-#include "atom.h"
+#include <mpi.h>
+#include <cstdlib>
 #include "update.h"
-#include "integrate.h"
-#include "domain.h"
-#include "lattice.h"
 #include "force.h"
 #include "pair.h"
 #include "modify.h"
 #include "fix.h"
-#include "output.h"
-#include "dump.h"
 #include "comm.h"
 #include "error.h"
 

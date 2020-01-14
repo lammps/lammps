@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_hyper.h"
 #include "update.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

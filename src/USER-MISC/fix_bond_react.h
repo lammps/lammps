@@ -30,6 +30,9 @@ namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
  public:
+
+  enum {MAXLINE=256};
+
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
   int setmask();
@@ -61,7 +64,8 @@ class FixBondReact : public Fix {
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
-  int *nconstraints;
+  int nconstraints;
+  int narrhenius;
   double **constraints;
   int status;
   int *groupbits;
@@ -85,7 +89,8 @@ class FixBondReact : public Fix {
   Fix *fix2;              // properties/atom used to indicate 1) relaxing atoms
                           //                                  2) to which 'react' atom belongs
   Fix *fix3;              // property/atom used for system-wide thermostat
-  class RanMars **random;
+  class RanMars **random; // random number for 'prob' keyword
+  class RanMars **rrhandom; // random number for Arrhenius constraint
   class NeighList *list;
 
   int *reacted_mol,*unreacted_mol;
@@ -105,7 +110,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete; // number of edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ncustom,ndelete,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -121,6 +126,7 @@ class FixBondReact : public Fix {
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
   int **custom_edges; // atoms in molecule templates with incorrect valences
   int **delete_atoms; // atoms in pre-reacted templates to delete
+  int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
 
   int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
   tagint **xspecial,**onemol_xspecial,**twomol_xspecial; // full 1-4 neighbor list
@@ -144,6 +150,7 @@ class FixBondReact : public Fix {
   void Equivalences(char *,int);
   void CustomEdges(char *,int);
   void DeleteAtoms(char *,int);
+  void ChiralCenters(char *,int);
   void Constraints(char *,int);
 
   void make_a_guess ();
@@ -153,6 +160,8 @@ class FixBondReact : public Fix {
   void inner_crosscheck_loop();
   void ring_check();
   int check_constraints();
+  double get_temperature();
+  int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
   void open(char *);
   void readline(char *);
@@ -170,6 +179,15 @@ class FixBondReact : public Fix {
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove
+  virtual void write_restart(FILE *);
+  virtual void restart(char *buf);
+
+  struct Set {
+    int nreacts;
+    char rxn_name[MAXLINE];
+    int reaction_count_total;
+  };
+  Set *set;
 
   // DEBUG
 
@@ -233,6 +251,18 @@ range.
 E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
 
 Self-explanatory.
+
+E: Bond/react: First neighbors of chiral atoms must be of mutually different types
+
+Self-explanatory.
+
+E: Bond/react: Chiral atoms must have exactly four first neighbors
+
+Self-explanatory.
+
+E: Bond/react: Molecule template 'Coords' section required for chiralIDs keyword
+
+The coordinates of atoms in the pre-reacted template are used to determine chirality.
 
 E: Bond/react special bond generation overflow
 

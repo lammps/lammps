@@ -1,5 +1,5 @@
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2019-04-26"
+#define COLVARS_VERSION "2019-08-05"
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
 // https://github.com/colvars/colvars

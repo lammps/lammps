@@ -21,27 +21,20 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+#include "pair_spin.h"
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
-#include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
+#include "neigh_request.h"
 #include "pair.h"
-#include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
-#include "pair_spin.h"
 #include "update.h"
+#include "fix_nve_spin.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -52,7 +45,9 @@ PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
+  respa_enable = 0;
   no_virial_fdotr_compute = 1;
+  lattice_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,11 +63,10 @@ void PairSpin::settings(int narg, char **/*arg*/)
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
-  // pair/spin need the metal unit style
+  // pair spin/* need the metal unit style
 
   if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"pair/spin style requires metal units");
-
+    error->all(FLERR,"Spin pair styles require metal units");
 }
 
 /* ----------------------------------------------------------------------
@@ -84,13 +78,24 @@ void PairSpin::init_style()
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
 
-  // checking if nve/spin is a listed fix
+  // checking if nve/spin or neb/spin is a listed fix
 
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    ifix++;
-  }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  bool have_fix = ((modify->find_fix_by_style("^nve/spin") != -1)
+                   || (modify->find_fix_by_style("^neb/spin") != -1));
+
+  if (!have_fix && (comm->me == 0))
+    error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
+
+  // need a full neighbor list
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+
+  // get the lattice_flag from nve/spin
+
+  int ifix = modify->find_fix_by_style("^nve/spin");
+  if (ifix >=0)
+    lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
+
 }

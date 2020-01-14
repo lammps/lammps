@@ -15,19 +15,18 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "improper_umbrella.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_umbrella.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -317,9 +316,9 @@ void ImproperUmbrella::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&kw[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&w0[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&C[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&kw[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&w0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&C[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&kw[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&w0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

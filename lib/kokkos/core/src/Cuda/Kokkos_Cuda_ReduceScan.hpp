@@ -376,13 +376,13 @@ template< class ReducerType >
 __device__ inline
 typename std::enable_if< Kokkos::is_reducer<ReducerType>::value >::type
 cuda_intra_warp_reduction( const ReducerType& reducer,
+                           typename ReducerType::value_type& result,
                            const uint32_t max_active_thread = blockDim.y) {
 
   typedef typename ReducerType::value_type ValueType;
 
   unsigned int shift = 1;
 
-  ValueType result = reducer.reference();
   //Reduce over values from threads with different threadIdx.y
   while(blockDim.x * shift < 32 ) {
     const ValueType tmp = shfl_down(result, blockDim.x*shift,32u);
@@ -400,6 +400,7 @@ template< class ReducerType >
 __device__ inline
 typename std::enable_if< Kokkos::is_reducer<ReducerType>::value >::type
 cuda_inter_warp_reduction( const ReducerType& reducer,
+                           typename ReducerType::value_type value,
                            const int max_active_thread = blockDim.y) {
 
   typedef typename ReducerType::value_type ValueType;
@@ -410,7 +411,6 @@ cuda_inter_warp_reduction( const ReducerType& reducer,
   // could lead to race conditions
   __shared__ double sh_result[(sizeof(ValueType)+7)/8*STEP_WIDTH];
   ValueType* result = (ValueType*) & sh_result;
-  ValueType value = reducer.reference();
   const int step = 32 / blockDim.x;
   int shift = STEP_WIDTH;
   const int id = threadIdx.y%step==0?threadIdx.y/step:65000;
@@ -438,9 +438,18 @@ template< class ReducerType >
 __device__ inline
 typename std::enable_if< Kokkos::is_reducer<ReducerType>::value >::type
 cuda_intra_block_reduction( const ReducerType& reducer,
+                            typename ReducerType::value_type value,
                             const int max_active_thread = blockDim.y) {
-  cuda_intra_warp_reduction(reducer,max_active_thread);
-  cuda_inter_warp_reduction(reducer,max_active_thread);
+  cuda_intra_warp_reduction(reducer,value,max_active_thread);
+  cuda_inter_warp_reduction(reducer,value,max_active_thread);
+}
+
+template< class ReducerType >
+__device__ inline
+typename std::enable_if< Kokkos::is_reducer<ReducerType>::value >::type
+cuda_intra_block_reduction( const ReducerType& reducer,
+                            const int max_active_thread = blockDim.y) {
+  cuda_intra_block_reduction(reducer,reducer.reference(),max_active_thread);
 }
 
 template< class ReducerType>

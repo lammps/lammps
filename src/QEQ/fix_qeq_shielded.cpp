@@ -15,14 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_shielded.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -80,7 +77,7 @@ void FixQEqShielded::init()
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("reax/c",1);
+  Pair *pair = force->pair_match("^reax/c",0);
   if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);

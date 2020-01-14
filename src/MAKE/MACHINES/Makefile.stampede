@@ -6,13 +6,13 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpicc -openmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64
-MIC_OPT =       -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
-CCFLAGS =	-O3 -xhost -fp-model precise -restrict -override-limits $(MIC_OPT)
+CC =		mpicc -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64
+MIC_OPT =       -qoffload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
+CCFLAGS =	-O3 -xhost -fp-model precise -restrict -qoverride-limits $(MIC_OPT)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicc -openmp
+LINK =		mpicc -qopenmp
 LINKFLAGS =	-O3 -xhost
 LIB =           -ltbbmalloc
 SIZE =		size

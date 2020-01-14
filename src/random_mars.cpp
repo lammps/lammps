@@ -149,7 +149,7 @@ double RanMars::besselexp(double theta, double alpha, double cp)
 {
   double first,v1,v2;
 
-  if (theta < 0.0 || alpha < 0.0 || alpha < 1.0)
+  if (theta < 0.0 || alpha < 0.0 || alpha > 1.0)
     error->all(FLERR,"Invalid Bessel exponential distribution parameters");
 
   v1 = uniform();

@@ -195,6 +195,12 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
 
+* Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
+   When using fix bond/create multiple times or in combination with
+   fix bond/break, the individual fix instances do not share information
+   about changes they made at the same time step and thus it may result
+   in unexpected behavior.
+
 *Fix bond/swap will ignore defined angles*
    See the doc page for fix bond/swap for more info on this
    restriction.

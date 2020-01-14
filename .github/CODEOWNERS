@@ -111,6 +111,7 @@ src/exceptions.h          @rbberger
 src/fix_nh.*              @athomps
 src/info.*                @akohlmey @rbberger
 src/timer.*               @akohlmey
+src/min*                  @sjplimp @stanmoore1
 
 # tools
 tools/msi2lmp/*       @akohlmey

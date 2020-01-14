@@ -64,7 +64,7 @@ PairOxdna2Dh::~PairOxdna2Dh()
     compute vector COM-sugar-phosphate backbone interaction site in oxDNA2
 ------------------------------------------------------------------------- */
 void PairOxdna2Dh::compute_interaction_sites(double e1[3],
-  double e2[3], double r[3])
+  double e2[3], double /*e3*/[3], double r[3])
 {
   double d_cs_x=-0.34, d_cs_y=+0.3408;
 
@@ -125,7 +125,7 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     // vector COM-backbone site a
-    compute_interaction_sites(ax,ay,ra_cs);
+    compute_interaction_sites(ax,ay,az,ra_cs);
 
     rtmp_s[0] = x[a][0] + ra_cs[0];
     rtmp_s[1] = x[a][1] + ra_cs[1];
@@ -145,7 +145,7 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       // vector COM-backbone site b
-      compute_interaction_sites(bx,by,rb_cs);
+      compute_interaction_sites(bx,by,bz,rb_cs);
 
       // vector backbone site b to a
       delr[0] = rtmp_s[0] - x[b][0] - rb_cs[0];

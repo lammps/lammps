@@ -42,7 +42,7 @@ def main():
                     else:
                         anchors[label] = [(filename, line_number+1)]
 
-    print("found %d anchor labels" % len(anchors))
+    print("Found %d anchor labels" % len(anchors))
 
     count = 0
 

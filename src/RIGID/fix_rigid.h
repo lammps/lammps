@@ -66,7 +66,8 @@ class FixRigid : public Fix {
   double *step_respa;
   int triclinic;
 
-  char *inpfile;             // file to read rigid body attributes from
+  char *inpfile;            // file to read rigid body attributes from
+
   int rstyle;               // SINGLE,MOLECULE,GROUP
   int setupflag;            // 1 if body properties are setup, else 0
   int earlyflag;            // 1 if forces/torques computed at post_force()
@@ -130,6 +131,9 @@ class FixRigid : public Fix {
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
+
+  char *id_gravity;         // ID of fix gravity command to add gravity forces
+  double *gvec;             // ptr to gravity vector inside the fix
 
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;

@@ -133,6 +133,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | reax        | RDX and TATB models using the ReaxFF                             |
 +-------------+------------------------------------------------------------------+
+| rerun       | use of rerun and read\_dump commands                             |
++-------------+------------------------------------------------------------------+
 | rigid       | rigid bodies modeled as independent or coupled                   |
 +-------------+------------------------------------------------------------------+
 | shear       | sideways shear applied to 2d solid, with and without a void      |

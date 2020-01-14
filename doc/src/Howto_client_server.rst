@@ -24,8 +24,37 @@ atoms.  The quantum code computes energy and forces based on the
 coords.  It returns them as a message to LAMMPS, which completes the
 timestep.
 
+A more complex example is where LAMMPS is the client code and
+processes a series of data files, sending each configuration to a
+quantum code to compute energy and forces.  Or LAMMPS runs dynamics
+with an atomistic force field, but pauses every N steps to ask the
+quantum code to compute energy and forces.
+
 Alternate methods for code coupling with LAMMPS are described on
 the :doc:`Howto couple <Howto_couple>` doc page.
+
+The protocol for using LAMMPS as a client is to use these 3 commands
+in this order (other commands may come in between):
+
+* :doc:`message client <message>`  # initiate client/server interaction
+* :doc:`fix client/md <fix_client_md>`   # any client fix which makes specific requests to the server
+* :doc:`message quit <message>`    # terminate client/server interaction
+
+In between the two message commands, a client fix command and
+:doc:`unfix <unfix>` command can be used multiple times.  Similarly,
+this sequence of 3 commands can be repeated multiple times, assuming
+the server program operates in a similar fashion, to initiate and
+terminate client/server communication.
+
+The protocol for using LAMMPS as a server is to use these 2 commands
+in this order (other commands may come in between):
+
+* :doc:`message server <message>`  # initiate client/server interaction
+* :doc:`server md <server_md>`    # any server command which responds to specific requests from the client
+
+This sequence of 2 commands can be repeated multiple times, assuming
+the client program operates in a similar fashion, to initiate and
+terminate client/server communication.
 
 LAMMPS support for client/server coupling is in its :ref:`MESSAGE package <PKG-MESSAGE>` which implements several
 commands that enable LAMMPS to act as a client or server, as discussed
@@ -39,8 +68,8 @@ programs.
 .. note::
 
    For client/server coupling to work between LAMMPS and another
-   code, the other code also has to use the CSlib.  This can sometimes be
-   done without any modifications to the other code by simply wrapping it
+   code, the other code also has to use the CSlib.  This can often be
+   done without any modification to the other code by simply wrapping it
    with a Python script that exchanges CSlib messages with LAMMPS and
    prepares input for or processes output from the other code.  The other
    code also has to implement a matching protocol for the format and

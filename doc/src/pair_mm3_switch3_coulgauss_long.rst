@@ -37,7 +37,7 @@ Examples
 Description
 """""""""""
 
-The *mm3/switch3/coulgauss* style evaluates the MM3
+The *mm3/switch3/coulgauss/long* style evaluates the MM3
 vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 
 .. image:: Eqs/pair_mm3_switch3.jpg

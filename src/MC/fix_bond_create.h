@@ -170,4 +170,11 @@ See the read_data command for info on setting the "extra special per
 atom" header value to allow for additional special values to be
 stored.
 
+W: Fix bond/create is used multiple times or with fix bond/break - may not work as expected
+
+When using fix bond/create multiple times or in combination with
+fix bond/break, the individual fix instances do not share information
+about changes they made at the same time step and thus it may result
+in unexpected behavior.
+
 */

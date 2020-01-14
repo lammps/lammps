@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Julien Guénolé, RWTH Aachen University and
+                         Erik Bitzek, FAU Erlangen-Nuernberg
+------------------------------------------------------------------------- */
+
 #include <cmath>
 #include "min_fire2.h"
 #include "universe.h"
@@ -55,7 +60,6 @@ void MinFire2::init()
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
   vdotf_negatif = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -260,6 +264,7 @@ int MinFire2::iterate(int maxiter)
           x[i][2] -= 0.5 * dtv * v[i][2];
         }
       }
+
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
     }
@@ -273,6 +278,7 @@ int MinFire2::iterate(int maxiter)
       vmax = MAX(vmax,fabs(v[i][2]));
       if (dtvone*vmax > dmax) dtvone = dmax/vmax;
     }
+
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
 
     // min dtv over replicas, if necessary
@@ -333,7 +339,7 @@ int MinFire2::iterate(int maxiter)
 
     // Velocity Verlet integration
 
-    }else if (integrator == 1) {
+    } else if (integrator == 1) {
 
       dtf = 0.5 * dtv * force->ftm2v;
 
@@ -391,7 +397,7 @@ int MinFire2::iterate(int maxiter)
 
     // Standard Euler integration
 
-    }else if (integrator == 3) {
+    } else if (integrator == 3) {
 
       dtf = dtv * force->ftm2v; 
 
@@ -430,7 +436,6 @@ int MinFire2::iterate(int maxiter)
       eprevious = ecurrent;
       ecurrent = energy_force(0);
       neval++;
-
     }
 
     // energy tolerance criterion

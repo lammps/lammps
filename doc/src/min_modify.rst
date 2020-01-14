@@ -65,32 +65,30 @@ highly overlapped atoms from being moved long distances (e.g. through
 another atom) due to large forces.
 
 The choice of line search algorithm for the *cg* and *sd* minimization
-styles can be selected via the *line* keyword.
-The default *quadratic* line search algorithm starts out using
-the robust backtracking method described below. However, once
-the system gets close to a local
-minimum and the linesearch steps get small, so that the energy
-is approximately quadratic in the step length, it uses the
-estimated location of zero gradient as the linesearch step,
-provided the energy change is downhill.
-This becomes more efficient than backtracking
-for highly-converged relaxations. The *forcezero*
-line search algorithm is similar to *quadratic*\ .
-It may be more efficient than *quadratic* on some systems.
+styles can be selected via the *line* keyword.  The default
+*quadratic* line search algorithm starts out using the robust
+backtracking method described below. However, once the system gets
+close to a local minimum and the linesearch steps get small, so that
+the energy is approximately quadratic in the step length, it uses the
+estimated location of zero gradient as the linesearch step, provided
+the energy change is downhill.  This becomes more efficient than
+backtracking for highly-converged relaxations. The *forcezero* line
+search algorithm is similar to *quadratic*\ .  It may be more
+efficient than *quadratic* on some systems.
 
-The backtracking search is robust and should always find a local energy
-minimum.  However, it will "converge" when it can no longer reduce the
-energy of the system.  Individual atom forces may still be larger than
-desired at this point, because the energy change is measured as the
-difference of two large values (energy before and energy after) and
-that difference may be smaller than machine epsilon even if atoms
-could move in the gradient direction to reduce forces further.
+The backtracking search is robust and should always find a local
+energy minimum.  However, it will "converge" when it can no longer
+reduce the energy of the system.  Individual atom forces may still be
+larger than desired at this point, because the energy change is
+measured as the difference of two large values (energy before and
+energy after) and that difference may be smaller than machine epsilon
+even if atoms could move in the gradient direction to reduce forces
+further.
 
-The choice of a norm can be modified for the min styles *cg*\ , *sd*\ , 
-*quickmin*\ , *fire*\ , *spin*\ , *spin/cg* and *spin/lbfgs* using 
-the *norm* keyword.
-The default *two* norm computes the 2-norm (Euclidean length) of the
-global force vector:
+The choice of a norm can be modified for the min styles *cg*\ , *sd*\
+, *quickmin*\ , *fire*\ , *spin*\ , *spin/cg* and *spin/lbfgs* using
+the *norm* keyword.  The default *two* norm computes the 2-norm
+(Euclidean length) of the global force vector:
 
 .. image:: Eqs/norm_two.jpg
    :align: center
@@ -111,57 +109,57 @@ all atoms in the system:
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
-Keywords *alpha\_damp* and *discrete\_factor* only make sense when
-a :doc:`min\_spin <min_spin>` command is declared.
-Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
-damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system.
-Keyword *discrete\_factor* defines a discretization factor for the
-adaptive timestep used in the *spin* minimization.
-See :doc:`min\_spin <min_spin>` for more information about those
+Keywords *alpha\_damp* and *discrete\_factor* should only be used when
+a :doc:`min\_spin <min_spin>` command is declared.  Keyword
+*alpha\_damp* defines an analog of a magnetic Gilbert damping. It
+defines a relaxation rate toward an equilibrium for a given magnetic
+system.  Keyword *discrete\_factor* defines a discretization factor
+for the adaptive timestep used in the *spin* minimization.  See
+:doc:`min\_spin <min_spin>` for more information about those
 quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
-*spin/lbfgs* styles can be specified via the *line* keyword.
-The *spin\_cubic* and  *spin\_none* only make sense when one of those 
-two minimization styles is declared.
-The *spin\_cubic* performs the line search based on a cubic interpolation
-of the energy along the search direction. The *spin\_none* keyword
-deactivates the line search procedure.
-The *spin\_none* is a default value for *line* keyword for both *spin/lbfgs*
-and *spin/cg*\ . Convergence of *spin/lbfgs* can be more robust if
-*spin\_cubic* line search is used.
+*spin/lbfgs* styles can be specified via the *line* keyword.  The
+*spin\_cubic* and *spin\_none* only make sense when one of those two
+minimization styles is declared.  The *spin\_cubic* performs the line
+search based on a cubic interpolation of the energy along the search
+direction. The *spin\_none* keyword deactivates the line search
+procedure.  The *spin\_none* is a default value for *line* keyword for
+both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
+more robust if *spin\_cubic* line search is used.
 
-The Newton *integrator* used for *fire2* minimization can be selected to be
-either the symplectic Euler (\ *eulerimplicit*\ ) or velocity Verlet (\ *verlet*\ ).
-*tmax* define the maximum value for the adaptive timestep
-during a *fire2* minimization. It is multiplication factor applied
-to the current :doc:`timestep <timestep>` (not in time unit). For example,
-*tmax* = 4.0 in metal :doc:`units <units>` means that the maximum value
-the timestep can reach during a minimization is 4fs (with the default
-:doc:`timestep <timestep>` value). Note that parameters defaults has been
-chosen to be reliable in most cases, but one should consider adjusting
-:doc:`timestep <timestep>` and *tmax* to optimize the minimization for large
-or complex systems.
-Others parameters of the *fire2* minimization can be tuned (\ *tmin*\ , *delaystep*\ ,
-*dtgrow*\ , *dtshrink*\ , *alpha0*\ , and *alphashrink*\ ). Please refer to the article
-describing the *fire2* :doc:`min\_style <min_style>`.
+The Newton *integrator* used for *fire2* minimization can be selected
+to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
+Verlet (\ *verlet*\ ).  *tmax* define the maximum value for the
+adaptive timestep during a *fire2* minimization. It is multiplication
+factor applied to the current :doc:`timestep <timestep>` (not in time
+unit). For example, *tmax* = 4.0 in metal :doc:`units <units>` means
+that the maximum value the timestep can reach during a minimization is
+4fs (with the default :doc:`timestep <timestep>` value). Note that
+parameter defaults has been chosen to be reliable in most cases, but
+one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
+optimize the minimization for large or complex systems.  Other
+parameters of the *fire2* minimization can be tuned (\ *tmin*\ ,
+*delaystep*\ , *dtgrow*\ , *dtshrink*\ , *alpha0*\ , and
+*alphashrink*\ ). Please refer to the article describing the *fire2*
+:doc:`min\_style <min_style>`.
 
-An additional stopping criteria *vdfmax* is added in order to avoid unnecessary looping
-when it is reasonable to think the system will not be relaxed further.
-Note that in this case the system will NOT be relaxed. This could
-happen when the system comes to be stuck in a local basin of the phase space.
-*vdfmax* is the maximum number of consecutive iterations with P(t) < 0.
-For debugging purposes, it is possible to switch off the inertia correction
-(\ *halfstepback* = *no*\ ) and the initial delay (\ *initialdelay* = *no*\ ).
+An additional stopping criteria *vdfmax* is added in order to avoid
+unnecessary looping when it is reasonable to think the system will not
+be relaxed further.  Note that in this case the system will NOT be
+relaxed. This could happen when the system comes to be stuck in a
+local basin of the phase space.  *vdfmax* is the maximum number of
+consecutive iterations with P(t) < 0.  For debugging purposes, it is
+possible to switch off the inertia correction (\ *halfstepback* =
+*no*\ ) and the initial delay (\ *initialdelay* = *no*\ ).
 
 Restrictions
 """"""""""""
 
 
-For magnetic GNEB calculations, only *spin\_none* value for *line* keyword can be used
-when styles *spin/cg* and *spin/lbfgs* are employed.
-See :doc:`neb/spin <neb_spin>` for more explanation.
+For magnetic GNEB calculations, only *spin\_none* value for *line*
+keyword can be used when styles *spin/cg* and *spin/lbfgs* are
+employed.  See :doc:`neb/spin <neb_spin>` for more explanation.
 
 Related commands
 """"""""""""""""
@@ -173,11 +171,11 @@ Default
 
 The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
-For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the
-option defaults are alpha\_damp = 1.0, discrete\_factor = 10.0,
-line = spin\_none, and norm = euclidean.
+For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
+defaults are alpha\_damp = 1.0, discrete\_factor = 10.0, line =
+spin\_none, and norm = euclidean.
 
-For the *fire2* style, the option defaults are
-integrator = eulerimplicit, tmax = 10.0, tmin = 0.02,
-delaystep = 20, dtgrow = 1.1, dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99,
-vdfmax = 2000, halfstepback = yes and initialdelay = yes.
+For the *fire2* style, the option defaults are integrator =
+eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,
+dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99, vdfmax = 2000,
+halfstepback = yes and initialdelay = yes.

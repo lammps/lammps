@@ -65,6 +65,7 @@ fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2
 fix ttm/mod, Sergey Starikov and Vasily Pisarev (JIHT), pisarevvv at gmail.com, 2 Feb 2015
 fix wall/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
 fix wall/region/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
+fix wall/reflect/stochastic, Quy-Dong To (U Gustave Eiffel), toquydong at gmail.com, Jan 2020
 improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12

@@ -318,7 +318,7 @@ Here is additional information on the optional keywords for this fix.
 The *bound* keyword turns on min/max bounds for bias coefficients Cij
 for all bonds.  Cij is a prefactor for each bond on the bias potential
 of maximum strength Vmax.  Depending on the choice of *alpha* and
-*Btarget* and *Vmax*\ , the booststatting can cause individual Cij
+*Btarget* and *Vmax*\ , the boostostatting can cause individual Cij
 values to fluctuate.  If the fluctuations are too large Cij\*Vmax can
 exceed low barrier heights and induce bad event dynamics.  Bounding
 the Cij values is a way to prevent this.  If *Bfrac* is set to -1 or
@@ -342,7 +342,7 @@ A setting for *Rfreq* of -1 (the default) means *Vmax* never changes.
 A setting of 0 means *Vmax* is adjusted every time an event occurs and
 bond pairs are recalculated.  A setting of N > 0 timesteps means
 *Vmax* is adjusted on the first time an event occurs on a timestep >=
-N steps after the previous adjustment.  The adjustement to *Vmax* is
+N steps after the previous adjustment.  The adjustment to *Vmax* is
 computed as follows.  The current average of all Cij\*Vmax values is
 computed and the *Vmax* is reset to that value.  All Cij values are
 changed to new prefactors such the new Cij\*Vmax is the same as it was
@@ -430,7 +430,7 @@ defined).
 For value 10, each bond instantaneous boost factor is given by the
 equation for Bij above.  The total system boost (average across all
 bonds) fluctuates, but should average to a value close to the
-speficied Btarget.
+specified Btarget.
 
 For value 12, the numerator is a count of all biased bonds on each
 timestep whose bias energy = 0.0 due to Eij >= *qfactor*\ .  The
@@ -550,7 +550,7 @@ Related commands
 Default
 """""""
 
-The default settings for optinal keywords are bounds = -1 and reset =
+The default settings for optimal keywords are bounds = -1 and reset =
 -1.  The check/ghost and check/bias keywords are not enabled by
 default.
 

@@ -13,38 +13,31 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(wall/reflect,FixWallReflect)
+FixStyle(wall/reflect/stochastic,FixWallReflectStochastic)
 
 #else
 
-#ifndef LMP_FIX_WALL_REFLECT_H
-#define LMP_FIX_WALL_REFLECT_H
+#ifndef LMP_FIX_WALL_REFLECT_STOCHASTIC_H
+#define LMP_FIX_WALL_REFLECT_STOCHASTIC_H
 
-#include "fix.h"
+#include "random_mars.h"
+#include "fix_wall_reflect.h"
 
 namespace LAMMPS_NS {
 
-class FixWallReflect : public Fix {
+class FixWallReflectStochastic : public FixWallReflect {
  public:
-  enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
-  enum{NONE=0,EDGE,CONSTANT,VARIABLE};
+  FixWallReflectStochastic(class LAMMPS *, int, char **);
+  virtual ~FixWallReflectStochastic();
 
-  FixWallReflect(class LAMMPS *, int, char **);
-  virtual ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
+ private:
+  int seedfix;
+  double walltemp[6],wallvel[6][3],wallaccom[6][3];
+  int rstyle;
 
- protected:
-  int nwall;
-  int wallwhich[6],wallstyle[6];
-  double coord0[6];
-  char *varstr[6];
-  int varindex[6];
-  int varflag;
-  double xscale,yscale,zscale;
+  class RanMars *random;
 
-  virtual void wall_particle(int m, int which, double coord);
+  void wall_particle(int m,int which, double coord);
 };
 
 }
@@ -60,23 +53,23 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Wall defined twice in fix wall/reflect command
+E: Wall defined twice in fix wall/stochastic command
 
 Self-explanatory.
 
-E: Cannot use fix wall/reflect in periodic dimension
+E: Cannot use fix wall/stochastic in periodic dimension
 
 Self-explanatory.
 
-E: Cannot use fix wall/reflect zlo/zhi for a 2d simulation
+E: Cannot use fix wall/stochastic zlo/zhi for a 2d simulation
 
 Self-explanatory.
 
-E: Variable name for fix wall/reflect does not exist
+E: Variable name for fix wall/stochastic does not exist
 
 Self-explanatory.
 
-E: Variable for fix wall/reflect is invalid style
+E: Variable for fix wall/stochastic is invalid style
 
 Only equal-style variables can be used.
 

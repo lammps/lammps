@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author:  Quy-Dong To, Universite Gustave Eiffel, FRANCE
+   Email: toquydong at gmail.com
+------------------------------------------------------------------------- */
+
 #include "fix_wall_reflect_stochastic.h"
 #include <cstring>
 #include <cstdlib>

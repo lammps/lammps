@@ -760,7 +760,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // min value must always be >= 0.0
 
     biascoeff[m] = MAX(biascoeff[m],0.0);
-    if (boundflag) { 
+    if (boundflag) {
       biascoeff[m] = MAX(biascoeff[m],bound_lower);
       biascoeff[m] = MIN(biascoeff[m],bound_upper);
     }
@@ -911,7 +911,7 @@ void FixHyperLocal::build_bond_list(int natom)
       for (m = 0; m < nblocal; m++) biascoeff[m] *= vmaxold/vmax;
 
       // enforce bounds for new Cij
-      
+
       if (boundflag) {
         for (m = 0; m < nblocal; m++) {
           biascoeff[m] = MAX(biascoeff[m],bound_lower);
@@ -1560,10 +1560,10 @@ double FixHyperLocal::compute_vector(int i)
   // during minimization, just output previous value
 
   if (i == 9) {
-    if (update->ntimestep == update->firststep) 
+    if (update->ntimestep == update->firststep)
       aveboost_running_output = 0.0;
-    else if (update->whichflag == 1) 
-      aveboost_running_output = 
+    else if (update->whichflag == 1)
+      aveboost_running_output =
         aveboost_running / (update->ntimestep - update->firststep);
     return aveboost_running_output;
   }
@@ -1604,7 +1604,7 @@ double FixHyperLocal::compute_vector(int i)
     if (update->ntimestep == update->firststep)
       avebiascoeff_running_output = 0.0;
     else if (update->whichflag == 1)
-      avebiascoeff_running_output = 
+      avebiascoeff_running_output =
         avebiascoeff_running / (update->ntimestep - update->firststep);
     return avebiascoeff_running_output;
   }

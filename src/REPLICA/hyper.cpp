@@ -306,7 +306,7 @@ void Hyper::command(int narg, char **arg)
       fprintf(out,"Cummulative quantities for fix hyper:\n");
       fprintf(out,"  hyper time = %g\n",t_hyper);
       if (hyperenable)
-        fprintf(out,"  time boost factor = %g\n", t_hyper / 
+        fprintf(out,"  time boost factor = %g\n", t_hyper /
                 ((update->ntimestep-fix_hyper->ntimestep_initial)*update->dt));
       else fprintf(out,"  time boost factor = 1\n");
       fprintf(out,"  event timesteps = %d\n",nevent_running);

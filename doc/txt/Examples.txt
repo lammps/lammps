@@ -94,6 +94,7 @@ python:   using embedded Python in a LAMMPS input script
 qeq:      use of the QEQ package for charge equilibration
 rdf-adf:  computing radial and angle distribution functions for water
 reax:     RDX and TATB models using the ReaxFF
+rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential

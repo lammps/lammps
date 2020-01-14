@@ -34,13 +34,13 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-static const int nkeywords = 21;
+static const int nkeywords = 22;
 static const char *keywords[] = {
   "Ec","alpha","rho0","delta","lattce",
   "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
   "augt1","gsmooth_factor","re","ialloy",
   "mixture_ref_t","erose_form","zbl",
-  "emb_lin_neg","bkgd_dyn"};
+  "emb_lin_neg","bkgd_dyn", "theta"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,6 +57,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   elements = NULL;
   mass = NULL;
   meam_inst = new MEAM(memory);
+  scale = NULL;
 
   // set comm size needed by this Pair
 
@@ -80,6 +81,7 @@ PairMEAMC::~PairMEAMC()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(scale);
     delete [] map;
   }
 }
@@ -144,7 +146,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   comm->reverse_comm_pair(this);
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
-                   &eng_vdwl,eatom,ntype,type,map,errorflag);
+                   &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
@@ -165,7 +167,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_force(i,eflag_either,eflag_global,eflag_atom,
-                vflag_atom,&eng_vdwl,eatom,ntype,type,map,x,
+                vflag_atom,&eng_vdwl,eatom,ntype,type,map,scale,x,
                 numneigh_half[i],firstneigh_half[i],
                 numneigh_full[i],firstneigh_full[i],
                 offset,f,vptr);
@@ -184,6 +186,7 @@ void PairMEAMC::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(scale,n+1,n+1,"pair:scale");
 
   map = new int[n+1];
 }
@@ -268,13 +271,16 @@ void PairMEAMC::coeff(int narg, char **arg)
   // set mass for i,i in atom class
 
   int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
         if (i == j) atom->set_mass(FLERR,i,mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
+    }
+  }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -313,8 +319,10 @@ void PairMEAMC::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAMC::init_one(int /*i*/, int /*j*/)
+double PairMEAMC::init_one(int i, int j)
 {
+  if (setflag[i][j] == 0) scale[i][j] = 1.0;
+  scale[j][i] = scale[i][j];
   return cutmax;
 }
 
@@ -434,12 +442,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     // map lat string to an integer
 
-    if (strcmp(words[1],"fcc") == 0) lat[i] = FCC;
-    else if (strcmp(words[1],"bcc") == 0) lat[i] = BCC;
-    else if (strcmp(words[1],"hcp") == 0) lat[i] = HCP;
-    else if (strcmp(words[1],"dim") == 0) lat[i] = DIM;
-    else if (strcmp(words[1],"dia") == 0) lat[i] = DIA;
-    else error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
+    if (!MEAM::str_to_lat(words[1], true, lat[i]))
+      error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
     // store parameters
 
@@ -461,8 +465,12 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     rozero[i] = atof(words[17]);
     ibar[i] = atoi(words[18]);
 
-    if (!iszero(t0[i]-1.0))
-      error->all(FLERR,"Unsupported parameter in MEAM potential file");
+    if (!isone(t0[i]))
+      error->all(FLERR,"Unsupported parameter in MEAM potential file: t0!=1");
+
+    // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
+    if (z[i] != MEAM::get_Zij(lat[i]))
+      error->all(FLERR,"Mismatched parameter in MEAM potential file: z!=lat");
 
     nset++;
   }
@@ -474,7 +482,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // pass element parameters to MEAM package
 
-  meam_inst->meam_setup_global(nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
+  meam_inst->meam_setup_global(nelements,lat,ielement,atwt,alpha,b0,b1,b2,b3,
                        alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
 
   // set element masses
@@ -526,6 +534,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   int which;
   double value;
+  lattice_t latt;
   int nindex,index[3];
   int maxparams = 6;
   char **params = new char*[maxparams];
@@ -575,16 +584,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // map lattce_meam value to an integer
 
     if (which == 4) {
-      if (strcmp(params[nparams-1],"fcc") == 0) value = FCC;
-      else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
-      else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;
-      else if (strcmp(params[nparams-1],"dim") == 0) value = DIM;
-      else if (strcmp(params[nparams-1],"dia") == 0) value = DIA;
-      else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
-      else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
-      else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
-      else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
-      else error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
+      if (!MEAM::str_to_lat(params[nparams-1], false, latt))
+        error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
+      value = latt;
     }
     else value = atof(params[nparams-1]);
 
@@ -786,4 +788,13 @@ void PairMEAMC::neigh_strip(int inum, int *ilist,
     jnum = numneigh[i];
     for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairMEAMC::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  return NULL;
 }

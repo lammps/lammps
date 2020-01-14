@@ -17,6 +17,7 @@
 #include <cstring>
 #include "atom.h"
 #include "update.h"
+#include "group.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"
@@ -129,6 +130,10 @@ void FixHyperGlobal::init()
                    "requires care in defining hyperdynamic bonds");
 
   dt = update->dt;
+
+  // count of atoms in fix group
+
+  groupatoms = group->count(igroup);
 
   // need an occasional half neighbor list
 
@@ -491,7 +496,7 @@ double FixHyperGlobal::compute_vector(int i)
     bigint mybonds = nblocal;
     bigint allbonds;
     MPI_Allreduce(&mybonds,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
-    return 2.0*allbonds/atom->natoms;
+    return 1.0*allbonds/groupatoms;
   }
 
   if (i == 5) {

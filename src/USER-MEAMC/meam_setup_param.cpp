@@ -1,6 +1,7 @@
 #include "meam.h"
 #include <algorithm>
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 //
 //     do a sanity check on index parameters
@@ -46,6 +47,8 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
 //     18 = zbl_meam
 //     19 = emb_lin_neg
 //     20 = bkgd_dyn
+//     21 = theta
+
 
 void
 MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag)
@@ -201,6 +204,20 @@ MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3
     //     20 = bkgd_dyn
     case 20:
       this->bkgd_dyn = (int)value;
+      break;
+
+    //     21 = theta
+    // see alloyparams(void) in meam_setup_done.cpp
+    case 21:
+      // const double PI = 3.141592653589793238463;
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
+      if (*errorflag != 0)
+        return;
+      i1 = std::min(index[0], index[1]);
+      i2 = std::max(index[0], index[1]);
+      // we don't use theta, instead stheta and ctheta
+      this->stheta_meam[i1][i2] = sin(value/2*MY_PI/180.0);
+      this->ctheta_meam[i1][i2] = cos(value/2*MY_PI/180.0);
       break;
 
     default:

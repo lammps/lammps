@@ -345,7 +345,7 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy of the bias potential to the system's potential
 energy as part of "thermodynamic output"_thermo_style.html.
 
-This fix computes a global scalar and global vector of length 26,
+This fix computes a global scalar and global vector of length 28,
 which can be accessed by various "output commands"_Howto_output.html.
 The scalar is the magnitude of the bias potential (energy units)
 applied on the current timestep, summed over all biased bonds.  The
@@ -368,18 +368,21 @@ vector stores the following quantities:
 14 = max bond length during this run (distance units)
 15 = average bias coeff for all bonds during this run (unitless)
 16 = min bias coeff for any bond during this run (unitless)
-17 = max bias coeff for any bond during this run (unitless)
+17 = max bias coeff for any bond during this run (unitless) :ul
 
 18 = max drift distance of any bond atom during this run (distance units)
 19 = max distance from proc subbox of any ghost atom with maxstrain < qfactor during this run (distance units)
 20 = max distance outside my box of any ghost atom with any maxstrain during this run (distance units)
 21 = count of ghost atoms that could not be found on reneighbor steps during this run
-22 = count of bias overlaps (< Dcut) found during this run
+22 = count of bias overlaps (< Dcut) found during this run :ul
 
 23 = cumulative hyper time since fix created (time units)
 24 = cumulative count of event timesteps since fix created
 25 = cumulative count of atoms in events since fix created
 26 = cumulative # of new bonds formed since fix created :ul
+
+27 = average boost for biased bonds on this step (unitless)
+28 = # of bonds with absolute strain >= q on this step
 
 The first quantities 1-9 are for the current timestep.  Quantities
 10-22 are for the current hyper run.  They are reset each time a new
@@ -472,6 +475,11 @@ Value 26 tallies the number of new bonds created by the bond reset
 operation.  Bonds between a specific I,J pair of atoms may persist for
 the entire hyperdynamics simulation if neither I or J are involved in
 an event.
+
+Value 27 computes the average boost for biased bonds only on this step.
+
+Value 28 is the count of bonds with an absolute value of strain >= q
+on this step.
 
 The scalar and vector values calculated by this fix are all
 "intensive".

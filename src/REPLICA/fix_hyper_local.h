@@ -140,7 +140,7 @@ class FixHyperLocal : public FixHyper {
   };
 
   OneBond *blist;              // list of owned bonds
-  double *biascoeff;           // biasing coefficient Cij for each bond
+  double *biascoeff;           // bias coefficient Cij for each bond
   int nblocal;                 // # of owned bonds
   int maxbond;                 // allocated size of blist
 

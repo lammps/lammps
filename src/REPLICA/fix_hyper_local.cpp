@@ -63,7 +63,6 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   hyperflag = 2;
   scalar_flag = 1;
   vector_flag = 1;
-  // DEBUG - changed 26 to 28
   size_vector = 28;
   local_flag = 1;
   size_local_rows = 0;
@@ -196,7 +195,6 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   bound_upper = 1.0 + boundfrac;
   lastreset = update->ntimestep;
 
-  // DEBUG - one line
   overcount = 0;
 }
 
@@ -485,7 +483,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   double **x = atom->x;
 
-  // DEBUG - one line
   overcount = 0;
 
   m = 0;
@@ -506,7 +503,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       maxbondlen = MAX(r,maxbondlen);
       r0 = blist[m].r0;
       estrain = fabs(r-r0) / r0;
-      // DEBUG - one line
+      // DEBUG quantity - could remove this line and output option
       if (estrain >= qfactor) overcount++;
       maxstrain[i] = MAX(maxstrain[i],estrain);
       maxstrain[j] = MAX(maxstrain[j],estrain);
@@ -739,6 +736,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // delta in boost coeff is function of boost_domain vs target boost
   // boost_domain is function of two maxstrain_domains for I,J
   // NOTE: biascoeff update is now scaled by 1/Vmax
+  //       still need to think about what this means for units
 
   minbiascoeff = BIG;
   maxbiascoeff = 0.0;
@@ -1466,8 +1464,7 @@ double FixHyperLocal::compute_scalar()
 
 double FixHyperLocal::compute_vector(int i)
 {
-  // 26 vector outputs returned for i = 0-25
-  // DEBUG = 28
+  // 28 vector outputs returned for i = 0-27
 
   // i = 0 = average boost for all bonds on this step
   // i = 1 = # of biased bonds on this step
@@ -1502,7 +1499,8 @@ double FixHyperLocal::compute_vector(int i)
   // i = 24 = cumulative # of atoms in events since fix created
   // i = 25 = cumulative # of new bonds formed since fix created
 
-  // i = 26 = average boost for biased bonds on this step (unitless)
+  // these 2 were added for debugging - could be removed at some point
+  // i = 26 = average boost for biased bonds on this step
   // i = 27 = current count of bonds with strain >= q
 
   if (i == 0) {
@@ -1658,7 +1656,7 @@ double FixHyperLocal::compute_vector(int i)
     return (double) allnewbond;
   }
 
-  // DEBUG - added two options
+  // these two options were added for debugging
 
   if (i == 26) {
     double allboost;

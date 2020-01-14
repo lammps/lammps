@@ -421,9 +421,15 @@ void FixDeposit::pre_exchange()
       while (rng > molfrac[imol]) imol++;
       natom = onemols[imol]->natoms;
       if (dimension == 3) {
-        r[0] = random->uniform() - 0.5;
-        r[1] = random->uniform() - 0.5;
-        r[2] = random->uniform() - 0.5;
+        if (orientflag) {
+          r[0] = rx;
+          r[1] = ry;
+          r[2] = rz;
+        } else {
+          r[0] = random->uniform() - 0.5;
+          r[1] = random->uniform() - 0.5;
+          r[2] = random->uniform() - 0.5;
+        }
       } else {
         r[0] = r[1] = 0.0;
         r[2] = 1.0;
@@ -662,6 +668,10 @@ void FixDeposit::options(int narg, char **arg)
   xmid = ymid = zmid = 0.0;
   scaleflag = 1;
   targetflag = 0;
+  orientflag = 0;
+  rx = 0.0;
+  ry = 0.0;
+  rz = 0.0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -769,6 +779,17 @@ void FixDeposit::options(int narg, char **arg)
       vzlo = force->numeric(FLERR,arg[iarg+1]);
       vzhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
+    } else if (strcmp(arg[iarg],"orient") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
+      orientflag = 1;
+      rx = force->numeric(FLERR,arg[iarg+1]);
+      ry = force->numeric(FLERR,arg[iarg+2]);
+      rz = force->numeric(FLERR,arg[iarg+3]);
+      if (domain->dimension == 2 && (rx != 0.0 || ry != 0.0))
+        error->all(FLERR,"Illegal fix deposit orient settings");
+      if (rx == 0.0 && ry == 0.0 && rz == 0.0)
+        error->all(FLERR,"Illegal fix deposit orient settings");
+      iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;

@@ -1141,6 +1141,7 @@ ico
 icosahedral
 idealgas
 IDR
+idx
 ielement
 ieni
 ifdefs
@@ -2475,6 +2476,8 @@ Runge
 runtime
 Rutuparna
 rx
+ry
+rz
 Ryckaert
 Rycroft
 Rydbergs

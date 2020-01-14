@@ -32,7 +32,7 @@ using namespace FixConst;
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nwall(0)
-{ 
+{
   if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
 
   // let child class process all args

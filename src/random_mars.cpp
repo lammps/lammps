@@ -120,7 +120,7 @@ double RanMars::gaussian()
 ------------------------------------------------------------------------- */
 
 double RanMars::gaussian(double mu, double sigma)
-{  
+{
   double v1;
   v1 = mu+sigma*gaussian();
   return v1;
@@ -133,7 +133,7 @@ double RanMars::gaussian(double mu, double sigma)
 double RanMars::rayleigh(double sigma)
 {
   double first,v1;
- 
+
   if (sigma <= 0) error->all(FLERR,"Invalid Rayleigh parameter");
 
   v1 = uniform();
@@ -151,17 +151,17 @@ double RanMars::besselexp(double theta, double alpha, double cp)
 
   if (theta < 0.0 || alpha < 0.0 || alpha < 1.0)
     error->all(FLERR,"Invalid Bessel exponential distribution parameters");
-  
+
   v1 = uniform();
   v2 = uniform();
 
   if (cp < 0.0)
-    first = sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) + 
-                 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) * 
+    first = sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) +
+                 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) *
                  cos(2.0*MathConst::MY_PI*v2)*cp);
   else
-    first = -sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) - 
-                  2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) * 
+    first = -sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1) -
+                  2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1)) *
                   cos(2.0*MathConst::MY_PI*v2)*cp);
 
   return first;

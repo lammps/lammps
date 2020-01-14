@@ -38,8 +38,8 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   FixWallReflect(lmp, narg, arg), random(NULL)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
-  
-  if (domain->triclinic != 0) 
+
+  if (domain->triclinic != 0)
     error->all(FLERR, "Fix wall/reflect/stochastic cannot be used with "
                "triclinic simulation box");
 
@@ -52,7 +52,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   nwall = 0;
   int scaleflag = 1;
   rstyle = NONE;
-  
+
   if (strcmp(arg[3],"diffusive") == 0) {
     rstyle = DIFFUSIVE;
     arginc = 6;
@@ -73,7 +73,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+arginc > narg) 
+      if (iarg+arginc > narg)
         error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
       int newwall;
@@ -83,7 +83,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"yhi") == 0) newwall = YHI;
       else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
       else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
-      
+
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
           error->all(FLERR,
@@ -106,7 +106,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       for (int dir = 0; dir < 3; dir++) {
         wallvel[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+3]);
         int dim = wallwhich[nwall] / 2;
-        if ((wallvel[nwall][dir] !=0) & (dir == dim)) 
+        if ((wallvel[nwall][dir] !=0) & (dir == dim))
           error->all(FLERR,"The wall velocity must be tangential");
 
         // DIFFUSIVE = no accomodation coeffs
@@ -118,12 +118,12 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         else if (rstyle == MAXWELL)
           wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+6]);
       }
-      
+
       nwall++;
       iarg += arginc;
-      
+
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal wall/reflect/stochastic command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
@@ -147,19 +147,19 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Cannot use fix wall/reflect/stochastic "
                  "in periodic dimension");
   }
-  
+
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
       error->all(FLERR,
                  "Cannot use fix wall/reflect/stochastic zlo/zhi "
                  "for a 2d simulation");
-  
+
   // scale factors for CONSTANT walls, VARIABLE wall is not allowed
-  
+
   int flag = 0;
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] != EDGE) flag = 1;
-  
+
   if (flag) {
     if (scaleflag) {
       xscale = domain->lattice->xlattice;
@@ -167,7 +167,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       zscale = domain->lattice->zlattice;
     }
     else xscale = yscale = zscale = 1.0;
-    
+
     for (int m = 0; m < nwall; m++) {
       if (wallstyle[m] != CONSTANT) continue;
       if (wallwhich[m] < YLO) coord0[m] *= xscale;
@@ -211,7 +211,7 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-      
+
     sign = 0;
     if ((side == 0) & (x[i][dim] < coord)) sign = 1;
     else if ((side == 1) & (x[i][dim] > coord)) sign = -1;
@@ -222,33 +222,33 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
     if (rmass) theta = force->boltz*walltemp[m]/(rmass[i]*force->mvv2e);
     else theta = force->boltz*walltemp[m]/(mass[type[i]]*force->mvv2e);
     factor = sqrt(theta);
-      
+
     // time travelling after collision
 
-    timecol = (x[i][dim]-coord) / v[i][dim]; 
+    timecol = (x[i][dim]-coord) / v[i][dim];
 
     // only needed for Maxwell model
-    
+
     if (rstyle == MAXWELL) difftest = random->uniform();
-    
+
     for (dir = 0; dir < 3; dir++) {
 
       // pushing back atoms to wall position, assign new reflected velocity
-      
-      x[i][dir] -= v[i][dir]*timecol; 
-      
+
+      x[i][dir] -= v[i][dir]*timecol;
+
       // diffusive reflection
-      
+
       if (rstyle  == DIFFUSIVE) {
-        if (dir != dim) 
+        if (dir != dim)
           v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor);
         else v[i][dir] =  sign*random->rayleigh(factor);
-        
+
       // Maxwell reflection
-          
+
       } else if (rstyle  == MAXWELL) {
         if (difftest < wallaccom[m][dir]) {
-          if (dir != dim) 
+          if (dir != dim)
             v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor);
           else v[i][dir] =  sign*random->rayleigh(factor);
         } else {
@@ -259,16 +259,16 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 
       } else if (rstyle  == CCL) {
         if (dir != dim)
-          v[i][dir] = wallvel[m][dir] + 
-            random->gaussian((1-wallaccom[m][dir]) * 
+          v[i][dir] = wallvel[m][dir] +
+            random->gaussian((1-wallaccom[m][dir]) *
                              (v[i][dir] - wallvel[m][dir]),
-                             sqrt((2-wallaccom[m][dir]) * 
+                             sqrt((2-wallaccom[m][dir]) *
                                   wallaccom[m][dir]*theta));
         else v[i][dir] = random->besselexp(theta,wallaccom[m][dir],v[i][dir]);
       }
 
       // update new position due to the new velocity
-      
+
       if (dir != dim) x[i][dir] += v[i][dir]*timecol;
       else x[i][dir] = coord + v[i][dir]*timecol;
     }

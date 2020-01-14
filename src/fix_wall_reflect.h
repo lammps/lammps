@@ -34,7 +34,7 @@ class FixWallReflect : public Fix {
   int setmask();
   void init();
   void post_integrate();
-  
+
  protected:
   int nwall;
   int wallwhich[6],wallstyle[6];

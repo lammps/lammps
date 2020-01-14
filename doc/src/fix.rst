@@ -386,6 +386,7 @@ accelerated styles exist.
 * :doc:`wall/morse <fix_wall>` - Morse potential wall
 * :doc:`wall/piston <fix_wall_piston>` - moving reflective piston wall
 * :doc:`wall/reflect <fix_wall_reflect>` - reflecting wall(s)
+* :doc:`wall/reflect/stochastic <fix_wall_reflect_stochastic>` - reflecting wall(s) with finite temperature
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles

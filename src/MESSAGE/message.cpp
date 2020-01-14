@@ -37,7 +37,7 @@ void Message::command(int narg, char **arg)
   // shutdown current client mode
 
   if (clientserver == 0) {
-    if (lmp->clientserver != 1) 
+    if (lmp->clientserver != 1)
       error->all(FLERR,"Cannot message quit if not in client mode");
     quit();
     return;

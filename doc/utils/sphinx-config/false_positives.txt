@@ -214,6 +214,7 @@ Berne
 Bertotti
 Bessarab
 Beutler
+Bext
 bgq
 Bh
 Biersack
@@ -1048,6 +1049,7 @@ Gunsteren
 Gunzenmuller
 Guo
 gw
+gyromagnetic
 gz
 gzipped
 Haak
@@ -1068,6 +1070,7 @@ Haswell
 Haugk
 Hayoun
 Hayre
+hbar
 hbcut
 hbn
 hbnewflag
@@ -1146,6 +1149,7 @@ ico
 icosahedral
 idealgas
 IDR
+idx
 ielement
 ieni
 ifdefs
@@ -1412,6 +1416,7 @@ Lammps
 LAMMPS
 lammpsplot
 Lamoureux
+Lande
 Landron
 langevin
 Langevin
@@ -1784,6 +1789,7 @@ mtk
 Mtotal
 muB
 Muccioli
+mui
 Mukherjee
 Mulders
 multi
@@ -2084,7 +2090,9 @@ Ouyang
 overlayed
 Ovito
 oxdna
+oxrna
 oxDNA
+oxRNA
 padua
 Padua
 palegoldenrod
@@ -2481,6 +2489,8 @@ Runge
 runtime
 Rutuparna
 rx
+ry
+rz
 Ryckaert
 Rycroft
 Rydbergs

@@ -39,9 +39,9 @@ class Min : protected Pointers {
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   virtual int modify_param(int, char **) {return 0;}
-  double fnorm_sqr();
-  double fnorm_inf();
-  double fnorm_max();
+  virtual double fnorm_sqr();
+  virtual double fnorm_inf();
+  virtual double fnorm_max();
 
   enum{TWO,MAX,INF};
 

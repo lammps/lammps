@@ -34,6 +34,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 #define LOOKUP 0
 #define LINEAR 1
@@ -73,6 +74,7 @@ PairTableGPU::PairTableGPU(LAMMPS *lmp) : PairTable(lmp),
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

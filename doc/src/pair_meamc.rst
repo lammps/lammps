@@ -233,15 +233,20 @@ where
    Cmin(I,J,K) = Cmin screening parameter when I-J pair is screened
                  by K (I<=J); default = 2.0
    lattce(I,J) = lattice structure of I-J reference structure:
-                   dia = diamond (interlaced fcc for alloy)
                    fcc = face centered cubic
                    bcc = body centered cubic
-                   dim = dimer
-                   b1  = rock salt (NaCl structure)
                    hcp = hexagonal close-packed
+                   dim = dimer
+                   dia = diamond (interlaced fcc for alloy)
+                   dia3= diamond structure with primary 1NN and secondary 3NN interation
+                   b1  = rock salt (NaCl structure)
                    c11 = MoSi2 structure
                    l12 = Cu3Au structure (lower case L, followed by 12)
                    b2  = CsCl structure (interpenetrating simple cubic)
+                   ch4 = methane-like structure, only for binary system
+                   lin = linear structure (180 degree angle)
+                   zig = zigzag structure with a uniform angle
+                   tri = H2O-like structure that has an angle
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off
@@ -254,6 +259,8 @@ where
    zbl(I,J)    = blend the MEAM I-J pair potential with the ZBL potential for small
                  atom separations :ref:`(ZBL) <ZBL>`
                    default = 1
+   theta(I,J)  = angle between three atoms in line, zigzag, and trimer reference structures in degrees
+                   default = 180
    gsmooth_factor  = factor determining the length of the G-function smoothing
                      region; only significant for ibar=0 or ibar=4.
                          99.0 = short smoothing region, sharp step

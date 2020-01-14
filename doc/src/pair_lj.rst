@@ -90,6 +90,9 @@ pair\_style lj/cut/coul/wolf/omp command
 pair\_style lj/cut/tip4p/cut command
 ====================================
 
+pair\_style lj/cut/tip4p/cut/gpu command
+========================================
+
 pair\_style lj/cut/tip4p/cut/omp command
 ========================================
 

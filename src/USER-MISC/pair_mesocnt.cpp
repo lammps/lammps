@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -749,7 +750,7 @@ void PairMesoCNT::sort(int *list, int size)
 
 void PairMesoCNT::read_file()
 {
-  int me;
+  int me, num;
   MPI_Comm_rank(world,&me);
 
   FILE *fp;
@@ -761,19 +762,29 @@ void PairMesoCNT::read_file()
 
     fp = force->open_potential(file);
     if (fp == NULL) {
-      std::string str("Cannot open mesocnt file ");
+      std::string str("Cannot open mesocnt file: ");
       str += file;
       error->one(FLERR,str.c_str());
     }
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
     // potential parameters
 
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %d %d %d",
-      &uinf_points,&gamma_points,&phi_points,&usemi_points);
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%lg %lg %lg %lg",&r_ang,&sig_ang,&delta1,&delta2);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    num = sscanf(line,"%d %d %d %d",
+                 &uinf_points,&gamma_points,&phi_points,&usemi_points);
+    if (num != 4) {
+      std::string str("Could not correctly parse line 2 in mesocnt file: ");
+      str += file;
+      error->one(FLERR,str.c_str());
+    }
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    num = sscanf(line,"%lg %lg %lg %lg",&r_ang,&sig_ang,&delta1,&delta2);
+    if (num != 4) {
+      std::string str("Could not correctly parse line 3 in mesocnt file: ");
+      str += file;
+      error->one(FLERR,str.c_str());
+    }
   }
 
   MPI_Bcast(&uinf_points,1,MPI_INT,0,world);
@@ -829,10 +840,10 @@ void PairMesoCNT::read_file()
 ------------------------------------------------------------------------- */
 
 void PairMesoCNT::read_data(FILE *fp, double *data,
-                double &xstart, double &dx, int ninput)
+                            double &xstart, double &dx, int ninput)
 {
   char line[MAXLINE];
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
   // read values from file
 

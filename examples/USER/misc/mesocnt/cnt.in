@@ -1,0 +1,37 @@
+#Initialisation
+
+units 		      nano
+dimension 	    3
+boundary 	      p p p
+atom_style 	    full
+comm_modify 	  vel no cutoff 33.0
+neighbor 	      7.80 bin
+newton 	        on
+
+#Read data
+
+read_data 	    cnt.data
+
+#Force field
+
+bond_style 	    harmonic
+bond_coeff 	    1 268896.77 2.0
+
+angle_style 	  harmonic
+angle_coeff 	  1 46562.17 180.0
+
+pair_style 	    mesocnt
+pair_coeff      * * 10_10.cnt
+
+#Output
+
+thermo 	        10000
+dump 	          xyz all xyz 1000 cnt.xyz
+
+#Simulation setup
+
+timestep 	      1.0e-05
+
+#Nose-Hoover thermostat
+fix 	          nvt all nvt temp 300 300 0.001
+run 	          100000

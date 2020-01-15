@@ -1,0 +1,126 @@
+LAMMPS (09 Jan 2020)
+#Initialisation
+
+units             nano
+dimension         3
+boundary          p p p
+atom_style        full
+comm_modify       cutoff 11.0
+neighbor          7.80 bin
+newton            on
+
+#Read data
+
+read_data           cnt.data
+  orthogonal box = (0 0 0) to (600 600 60)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  498 bonds
+  reading angles ...
+  496 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+  special bonds CPU = 0.000354767 secs
+  read_data CPU = 0.00286365 secs
+replicate 1 2 2
+  orthogonal box = (0 0 0) to (600 1200 120)
+  1 by 4 by 1 MPI processor grid
+  2000 atoms
+  1992 bonds
+  1984 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+  special bonds CPU = 0.00019598 secs
+  replicate CPU = 0.00055337 secs
+
+#Force field
+
+bond_style        harmonic
+bond_coeff        1 268896.77 2.0
+
+angle_style       harmonic
+angle_coeff       1 46562.17 180.0
+
+pair_style        mesocnt
+pair_coeff      * * 10_10.cnt
+Reading potential file 10_10.cnt with DATE: 2020-01-13
+
+#Output
+
+thermo          1000
+dump            xyz all xyz 1000 cnt.xyz
+
+#Simulation setup
+
+timestep        1.0e-05
+
+#Nose-Hoover thermostat
+fix             nvt all nvt temp 300 300 0.001
+run             10000
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (src/pair.cpp:226)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.177
+  ghost atom cutoff = 11
+  binsize = 5.0885, bins = 118 236 24
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair mesocnt, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.725 | 2.725 | 2.725 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -4632.0136 5.7939238e-17   -4632.0136 -0.00015032304 
+    1000    298.82235   -19950.274    13208.089    5628.7024 -0.0056205182 
+    2000    300.43861   -28320.205    11980.287   -3902.1202 -0.0045324738 
+    3000    300.41076   -36049.308    11339.149   -12273.513 -0.0018848513 
+    4000    299.13326   -43471.424    11927.668   -19159.998 -0.00042845101 
+    5000    293.78857   -50083.216    12333.969   -25586.752 -0.0015664633 
+    6000    296.45482   -56329.621    12326.419   -31730.328 -0.0012773686 
+    7000    298.19097   -62119.086      12581.4   -37192.937 -0.0013862831 
+    8000    299.46424   -67880.989     13057.62   -42425.908 -0.00020874264 
+    9000    301.80677   -73332.208    13597.237   -47240.532 -0.00060074773 
+   10000    307.17104   -78292.912    13818.889    -51757.51 -0.00056148282 
+Loop time of 1.23665 on 4 procs for 10000 steps with 2000 atoms
+
+Performance: 6986.607 ns/day, 0.003 hours/ns, 8086.351 timesteps/s
+96.1% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.66321    | 0.68439    | 0.71413    |   2.5 | 55.34
+Bond    | 0.28561    | 0.29434    | 0.30976    |   1.7 | 23.80
+Neigh   | 0.00043321 | 0.00043637 | 0.00043917 |   0.0 |  0.04
+Comm    | 0.026656   | 0.05346    | 0.097228   |  12.7 |  4.32
+Output  | 0.0070224  | 0.0073031  | 0.0081415  |   0.6 |  0.59
+Modify  | 0.12769    | 0.15394    | 0.18743    |   6.5 | 12.45
+Other   |            | 0.04279    |            |       |  3.46
+
+Nlocal:    500 ave 504 max 496 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    22 ave 24 max 20 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  3330 ave 3368 max 3292 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 13320
+Ave neighs/atom = 6.66
+Ave special neighs/atom = 5.952
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:02

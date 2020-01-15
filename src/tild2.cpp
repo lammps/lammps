@@ -31,9 +31,11 @@
 #include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
+#include <fstream>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace std;
 
 #define SMALL 0.00001
 #define OFFSET 16384
@@ -291,6 +293,23 @@ void TILD::setup(){
   delxinv = nx_pppm/xprd;
   delyinv = ny_pppm/yprd;
   delzinv = nz_pppm/zprd_slab;
+
+  double per;
+  int i; 
+  for (i = nxlo_fft; i <= nxhi_fft; i++) {
+    per = i - nx_pppm*(2*i/nx_pppm);
+    fkx[i] = unitkx*per;
+  }
+
+  for (i = nylo_fft; i <= nyhi_fft; i++) {
+    per = i - ny_pppm*(2*i/ny_pppm);
+    fky[i] = unitky*per;
+  }
+
+  for (i = nzlo_fft; i <= nzhi_fft; i++) {
+    per = i - nz_pppm*(2*i/nz_pppm);
+    fkz[i] = unitkz*per;
+  }
 
   delvolinv = delxinv*delyinv*delzinv;
 
@@ -779,12 +798,12 @@ void TILD::set_grid()
   double h, h_x,h_y,h_z;
   bigint natoms = atom->natoms;
 
-  if (!gewaldflag) {
-    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0)
-      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-    g_ewald = sqrt(-log(g_ewald)) / cutoff;
-  }
+  // if (!gewaldflag) {
+  //   g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+  //   if (g_ewald >= 1.0)
+  //     error->all(FLERR,"KSpace accuracy too large to estimate G vector");
+  //   g_ewald = sqrt(-log(g_ewald)) / cutoff;
+  // }
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
@@ -1369,6 +1388,26 @@ void TILD::init_gauss(){
   ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
 
+  std::cout << me << '\t' << "ngrid   "    << '\t' << ngrid    << std::endl;
+  std::cout << me << '\t' << "nfft    "    << '\t' << nfft     << std::endl;
+  std::cout << me << '\t' << "nxhi_out" << '\t' << nxhi_out  << std::endl;
+  std::cout << me << '\t' << "nyhi_out" << '\t' << nyhi_out  << std::endl;
+  std::cout << me << '\t' << "nzhi_out" << '\t' << nzhi_out  << std::endl;
+  std::cout << me << '\t' << "nxlo_out" << '\t' << nxlo_out  << std::endl;
+  std::cout << me << '\t' << "nylo_out" << '\t' << nylo_out  << std::endl;
+  std::cout << me << '\t' << "nzlo_out" << '\t' << nzlo_out  << std::endl;
+  std::cout << me << '\t' << "nxhi_in "  << '\t' << nxhi_in  << std::endl;
+  std::cout << me << '\t' << "nyhi_in "  << '\t' << nyhi_in  << std::endl;
+  std::cout << me << '\t' << "nzhi_in "  << '\t' << nzhi_in  << std::endl;
+  std::cout << me << '\t' << "nxlo_in "  << '\t' << nxlo_in  << std::endl;
+  std::cout << me << '\t' << "nylo_in "  << '\t' << nylo_in  << std::endl;
+  std::cout << me << '\t' << "nzlo_in "  << '\t' << nzlo_in  << std::endl;
+  std::cout << me << '\t' << "nxhi_fft" << '\t' << nxhi_fft << std::endl;
+  std::cout << me << '\t' << "nyhi_fft" << '\t' << nyhi_fft << std::endl;
+  std::cout << me << '\t' << "nzhi_fft" << '\t' << nzhi_fft << std::endl;
+  std::cout << me << '\t' << "nxlo_fft" << '\t' << nxlo_fft << std::endl;
+  std::cout << me << '\t' << "nylo_fft" << '\t' << nylo_fft << std::endl;
+  std::cout << me << '\t' << "nzlo_fft" << '\t' << nzlo_fft << std::endl;
   // FFT grids owned by this proc, without ghosts
   // nfft = FFT points in FFT decomposition on this proc
   // nfft_brick = FFT points in 3d brick-decomposition on this proc
@@ -1386,6 +1425,7 @@ void TILD::init_gauss(){
   double yprd=domain->yprd;
   double zprd=domain->zprd;
   n = 0;
+  // ofstream file1("uG_lammps.txt");
 
   double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
 
@@ -1426,6 +1466,9 @@ void TILD::init_gauss(){
       }
     }
   }
+  // remap->perform(uG, uG, work1);
+  
+  // file1.close();
 
   std::cout << sum * scale_inv * V << std::endl;
   int j = 0;
@@ -1473,6 +1516,22 @@ void TILD::init_gauss(){
     }
   }
 
+  // double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+  // for (int jjj = 0; jjj < Dim; jjj++) {
+  //   fft1->compute(grad_uG_hat[jjj], grad_uG_hat[jjj], -1);
+  //   fft1->compute(grad_uG_hat[jjj], grad_uG_hat[jjj], 1);
+  //   for (int j = 0; j < 2 * nfft; j++) {
+  //     grad_uG_hat[jjj][j] = grad_uG_hat[jjj][j] * scale_inv;
+  //   }
+  // }
+  // ofstream file2("grad_uG_hat_lammps.txt");
+  // for (int ii = 0; ii<Dim; ii++){
+  // int inddd = 0;
+	//   for (int jj=0; jj< n; jj++)
+	// 	file2 << ii << '\t' << jj <<'\t'<<grad_uG_hat[ii][inddd++]<<'\t'<<grad_uG_hat[ii][inddd++]<<std::endl;
+  // }
+
+  // file2.close();
 }
 
 
@@ -1495,7 +1554,33 @@ void TILD::field_gradient(FFT_SCALAR *in,
     work1[j] *= scale_inv;
     uG_hat[j] = work1[j];
   }
+  // for (j = 0; j < 2*nfft; j++) {
+  //   work2[j] = work1[j];
+
+  // }
+  // ofstream file4("fft_uG_lammps.txt");
+  // int inddd = 0;
+  //   for (int jj=0; jj< nfft; jj++)
+  //   file4 <<  jj <<'\t'<<work1[inddd++]<<'\t'<<work1[inddd++]<<std::endl;
+
+  // file4.close();
+
   get_k_alias(work1, out);
+  // n = 0;
+  // for (int k = 0; k < nfft; k++) {
+  //   work1[n] = (work2[n] * work2[n] - work2[n + 1] * work2[n + 1]);
+  //   work1[n + 1] = (work2[n + 1] * work2[n] + work2[n] * work2[n + 1]);
+  //   n += 2;
+  // }
+
+  // fft1->compute(work1, work1, -1);
+  // ofstream file3("real_convolved_uG_lammps.txt");
+  // inddd = 0;
+	//   for (int jj=0; jj< nfft; jj++)
+	// 	file3 <<  jj <<'\t'<<work1[inddd++]<<'\t'<<work1[inddd++]<<std::endl;
+
+  // file3.close();
+  
 
 }
 
@@ -2429,6 +2514,9 @@ void TILD::fieldforce_param(){
   int nlocal = atom->nlocal;
 
   // Convert field to force per particle
+  // ofstream delvolinv_forces("delv_forces_lammps.txt");
+  // ofstream grid_vol_forces("gridvol_forces_lammps.txt");
+  // ofstream both_forces("delv_gridvol_forces_lammps.txt");
 
   for (i = 0; i < nlocal; i++) {
     nx = part2grid[i][0];
@@ -2466,6 +2554,20 @@ void TILD::fieldforce_param(){
     f[i][0] += ekx;
     f[i][1] += eky;
     f[i][2] += ekz;
+    // f[i][0] += grid_vol * ekx;
+    // f[i][1] += grid_vol * eky;
+    // f[i][2] += grid_vol * ekz;
+    // delvolinv_forces<<i<<'\t'<< "0 " <<'\t'<<  delvolinv*ekx << endl;
+    // delvolinv_forces<<i<<'\t'<< "1 " <<'\t'<<  delvolinv*eky << endl;
+    // delvolinv_forces<<i<<'\t'<< "2 " <<'\t'<<  delvolinv*ekz << endl;
+    // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
+    // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;
+    // grid_vol_forces<<i<<'\t'<< "2 " <<'\t'<<  grid_vol*ekz << endl;
+    // both_forces<<i<<'\t'<< "0 " <<'\t'<<  delvolinv*grid_vol*ekx << endl;
+    // both_forces<<i<<'\t'<< "1 " <<'\t'<<  delvolinv*grid_vol*eky << endl;
+    // both_forces<<i<<'\t'<< "2 " <<'\t'<<  delvolinv*grid_vol*ekz << endl;
+    // forces<< "Y " <<'\t'<< delvolinv*eky << "\t";
+    // forces<< "Z " <<'\t'<< delvolinv*ekz << std::endl;
   }
 }
 
@@ -2544,10 +2646,35 @@ inline void TILD::complex_multiply(double *in1,double  *in2, int n){
 
 void TILD::ev_calculation(int den_group) {
   int n = 0;
+  double eng;
+  double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
+  double s2 = scale_inv * scale_inv;
   double rho0;
   FFT_SCALAR *dummy, *wk2;
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
+  int igroup1 = group->find("all");
+
+  // Determine if working with the all group
+  if (den_group == igroup1){
+    n=0;
+      for (int k = 0; k < nfft; k++) {
+        work2[n++] = density_fft_types[den_group][k] ;
+        tmp[k]     = density_fft_types[den_group][k] ;
+        work2[n++] = ZEROF;
+      }
+    fft1->compute(work2,work2,1);
+
+    n=0;
+    for (int k = 0; k < nfft; k++) {
+      work2[n++] *= scale_inv;
+      work2[n++] *= scale_inv;
+    }
+
+    wk2 = work2;
+  } else { // Else not the all group
+    wk2 = work1;
+  }
 
   int igroup1 = group->find("all");
 
@@ -2585,11 +2712,14 @@ void TILD::ev_calculation(int den_group) {
   double same_group_factor, off_diag_factor, factor, factor2;
   for (int i2 = den_group; i2 < group->ngroup; i2++) {
     if (fabs(param[den_group][i2]) >= 1e-10) {
-      if (den_group == i2 ) {
+      if (den_group == igroup1 && i2 == igroup1) {
+        // Store the reduced all group
+        dummy = tmp;
         same_group_factor = 1.0;
         if (den_group == igroup1 && subtract_rho0 ==1 ) dummy = tmp;
         else dummy = density_fft_types[i2];
       } else {
+        dummy = density_fft_types[i2];
         same_group_factor = 2.0;
         dummy = density_fft_types[i2];
       }

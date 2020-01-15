@@ -5298,22 +5298,23 @@ void PairBOP::read_table(char *filename)
     pass=0;
     i=0;
     if(nws==3) {
-      while(fgets(s,MAXLINE,fp)!=NULL&&i<npairs) {
+      for(i=0;i<npairs;i++) {
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf",&rcut3[i]);
-        pass=1;
-        i++;
       }
-      if(pass==1) {
-        for(i=0;i<npairs;i++) {
-          for(j=0;j<nr;j++) {
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      for(i=0;i<npairs;i++) {
+        for(j=0;j<nr;j++) {
+          pass=0;
+          while(fgets(s,MAXLINE,fp)!=NULL&&pass==0) {
             sscanf(s,"%lf%lf%lf%lf%lf",&pLong[i][j],&pLong[i][j+1]
-                ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
+              ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
             j+=4;
+            pass=1;
           }
         }
       }
     }
+
     rcutall=0.0;
     for(i=0;i<npairs;i++) {
       if(rcut[i]>rcutall)

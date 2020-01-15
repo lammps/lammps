@@ -84,7 +84,7 @@ Atoms belonging to different CNTs need to be assigned
 different molecule IDs.
 
 A full summary of the method and LAMMPS implementation details
-are expected to soon become available in Computer Physics
+is expected to soon become available in Computer Physics
 Communications.
 
 :line

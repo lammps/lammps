@@ -118,8 +118,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
   double dq_p1[3][3],dq_p2[3][3];
   double temp[3][3];
 
-  if (eflag || vflag) ev_setup(eflag,evflag);
-  else evflag = vflag_fdotr = 0;
+  evdwl = 0.0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

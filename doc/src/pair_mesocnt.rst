@@ -40,7 +40,7 @@ chain approach outlined in :ref:`(Volkov2) <Volkov2>`.
 This allows to simplify the computation of the interactions
 significantly and reduces the computational times to the
 same order of magnitude as for regular bead spring models
-where beads interact with the standard :doc:`pair\_lj/cut <pair_lj>`
+where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
 potential.
 
 In LAMMPS, cylindrical segments are represented by bonds. Each
@@ -69,7 +69,9 @@ given in eV and Gamma is unitless.
 Potential files for CNTs can be readily generated using the freely 
 available code provided on
 
-https://github.com/phankl/cntpot
+.. parsed-literal::
+  
+   https://github.com/phankl/cntpot
 
 Using the same approach, it should also be possible to
 generate potential files for other 1D systems such as
@@ -106,11 +108,12 @@ This pair style does not support mixing.
 This pair style does not support the :doc:`pair\_modify <pair_modify>`
 shift, table, and tail options.
 
-The mesocnt pair style do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
+The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`, 
+since it is stored in tabulated potential files.
 Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
-These pair style can only be used via the *pair* keyword of the
+This pair style can only be used via the *pair* keyword of the
 :doc:`run\_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
@@ -122,7 +125,7 @@ Restrictions
 """"""""""""
 
 
-The mesocnt pair style is part of the USER-MISC package. It is only
+This style is part of the USER-MISC package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair potential requires the :doc:`newton <newton>` setting to be

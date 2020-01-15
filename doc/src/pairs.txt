@@ -72,6 +72,7 @@ Pair Styles :h1
    pair_meam_spline
    pair_meam_sw_spline
    pair_meso
+   pair_mesocnt
    pair_mgpt
    pair_mie
    pair_mm3_switch3_coulgauss

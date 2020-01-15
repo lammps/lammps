@@ -1388,26 +1388,26 @@ void TILD::init_gauss(){
   ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
 
-  std::cout << me << '\t' << "ngrid   "    << '\t' << ngrid    << std::endl;
-  std::cout << me << '\t' << "nfft    "    << '\t' << nfft     << std::endl;
-  std::cout << me << '\t' << "nxhi_out" << '\t' << nxhi_out  << std::endl;
-  std::cout << me << '\t' << "nyhi_out" << '\t' << nyhi_out  << std::endl;
-  std::cout << me << '\t' << "nzhi_out" << '\t' << nzhi_out  << std::endl;
-  std::cout << me << '\t' << "nxlo_out" << '\t' << nxlo_out  << std::endl;
-  std::cout << me << '\t' << "nylo_out" << '\t' << nylo_out  << std::endl;
-  std::cout << me << '\t' << "nzlo_out" << '\t' << nzlo_out  << std::endl;
-  std::cout << me << '\t' << "nxhi_in "  << '\t' << nxhi_in  << std::endl;
-  std::cout << me << '\t' << "nyhi_in "  << '\t' << nyhi_in  << std::endl;
-  std::cout << me << '\t' << "nzhi_in "  << '\t' << nzhi_in  << std::endl;
-  std::cout << me << '\t' << "nxlo_in "  << '\t' << nxlo_in  << std::endl;
-  std::cout << me << '\t' << "nylo_in "  << '\t' << nylo_in  << std::endl;
-  std::cout << me << '\t' << "nzlo_in "  << '\t' << nzlo_in  << std::endl;
-  std::cout << me << '\t' << "nxhi_fft" << '\t' << nxhi_fft << std::endl;
-  std::cout << me << '\t' << "nyhi_fft" << '\t' << nyhi_fft << std::endl;
-  std::cout << me << '\t' << "nzhi_fft" << '\t' << nzhi_fft << std::endl;
-  std::cout << me << '\t' << "nxlo_fft" << '\t' << nxlo_fft << std::endl;
-  std::cout << me << '\t' << "nylo_fft" << '\t' << nylo_fft << std::endl;
-  std::cout << me << '\t' << "nzlo_fft" << '\t' << nzlo_fft << std::endl;
+  // std::cout << me << '\t' << "ngrid   "    << '\t' << ngrid    << std::endl;
+  // std::cout << me << '\t' << "nfft    "    << '\t' << nfft     << std::endl;
+  // std::cout << me << '\t' << "nxhi_out" << '\t' << nxhi_out  << std::endl;
+  // std::cout << me << '\t' << "nyhi_out" << '\t' << nyhi_out  << std::endl;
+  // std::cout << me << '\t' << "nzhi_out" << '\t' << nzhi_out  << std::endl;
+  // std::cout << me << '\t' << "nxlo_out" << '\t' << nxlo_out  << std::endl;
+  // std::cout << me << '\t' << "nylo_out" << '\t' << nylo_out  << std::endl;
+  // std::cout << me << '\t' << "nzlo_out" << '\t' << nzlo_out  << std::endl;
+  // std::cout << me << '\t' << "nxhi_in "  << '\t' << nxhi_in  << std::endl;
+  // std::cout << me << '\t' << "nyhi_in "  << '\t' << nyhi_in  << std::endl;
+  // std::cout << me << '\t' << "nzhi_in "  << '\t' << nzhi_in  << std::endl;
+  // std::cout << me << '\t' << "nxlo_in "  << '\t' << nxlo_in  << std::endl;
+  // std::cout << me << '\t' << "nylo_in "  << '\t' << nylo_in  << std::endl;
+  // std::cout << me << '\t' << "nzlo_in "  << '\t' << nzlo_in  << std::endl;
+  // std::cout << me << '\t' << "nxhi_fft" << '\t' << nxhi_fft << std::endl;
+  // std::cout << me << '\t' << "nyhi_fft" << '\t' << nyhi_fft << std::endl;
+  // std::cout << me << '\t' << "nzhi_fft" << '\t' << nzhi_fft << std::endl;
+  // std::cout << me << '\t' << "nxlo_fft" << '\t' << nxlo_fft << std::endl;
+  // std::cout << me << '\t' << "nylo_fft" << '\t' << nylo_fft << std::endl;
+  // std::cout << me << '\t' << "nzlo_fft" << '\t' << nzlo_fft << std::endl;
   // FFT grids owned by this proc, without ghosts
   // nfft = FFT points in FFT decomposition on this proc
   // nfft_brick = FFT points in 3d brick-decomposition on this proc
@@ -1433,8 +1433,8 @@ void TILD::init_gauss(){
   output->thermo->evaluate_keyword("vol",&vole);
   double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ;
 
-  std::ofstream rhoA("ug_analytic.txt");
-  std::ofstream rhob("uG_convolved.txt");
+  // std::ofstream rhoA("ug_analytic.txt");
+  // std::ofstream rhob("uG_convolved.txt");
 
   double sum = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
@@ -1458,10 +1458,10 @@ void TILD::init_gauss(){
         mdr2 = xper * xper + yper * yper + zper * zper;
         uG[n] = V*exp(-mdr2 * 0.5/(a_squared)) / pow(sqrt(2.0*PI * (a_squared)),  3);
         tmp[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
-        sum += uG[n-1];
+        // sum += uG[n-1];
 
         // rhoA<<n-1 << '\t' << work1[n-1] <<std::endl;
-        rhoA<<n-1 << '\t' << tmp[n-1] <<std::endl;
+        // rhoA<<n-1 << '\t' << tmp[n-1] <<std::endl;
 
       }
     }
@@ -1470,7 +1470,7 @@ void TILD::init_gauss(){
   
   // file1.close();
 
-  std::cout << sum * scale_inv * V << std::endl;
+  // std::cout << sum * scale_inv * V << std::endl;
   int j = 0;
   for (int i = 0; i < nfft; i++){
     work1[j++] = uG[i];
@@ -1495,11 +1495,11 @@ void TILD::init_gauss(){
   j = 0;
   sum = 0;
   for (int i = 0; i < nfft; i ++){
-    rhob << i << '\t' << work1[j] << std::endl;
+    // rhob << i << '\t' << work1[j] << std::endl;
     sum += work1[j] ;
     j += 2;
   }
-  std::cout << sum * scale_inv * vole << std::endl;
+  // std::cout << sum * scale_inv * vole << std::endl;
 
 // error->all(FLERR, "Die uG");
   field_gradient(uG, grad_uG_hat, 0);

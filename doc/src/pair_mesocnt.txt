@@ -24,7 +24,7 @@ for the interaction of carbon nanotubes (CNTs). In this potential,
 CNTs are modelled as chains of cylindrical segments in which
 each infinitesimal surface element interacts with all other
 CNT surface elements with the Lennard-Jones (LJ) term adopted from
-the "airebo"_pair_airebo.html style. The interation energy
+the "airebo"_pair_airebo.html style. The interaction energy
 is then computed by integrating over the surfaces of all interacting
 CNTs.
 

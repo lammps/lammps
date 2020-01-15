@@ -72,7 +72,6 @@ class FixRigidSmall : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  double MINUSPI,TWOPI;
 
   char *inpfile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
@@ -129,9 +128,6 @@ class FixRigidSmall : public Fix {
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
-
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
@@ -167,6 +163,9 @@ class FixRigidSmall : public Fix {
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
+
+  char *id_gravity;         // ID of fix gravity command to add gravity forces
+  double *gvec;             // ptr to gravity vector inside the fix
 
   double p_current[3],p_target[3];
 

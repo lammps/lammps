@@ -434,8 +434,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
   // all filereader procs close all their files and return
 
   if (ntimestep < 0) {
-    for (int i = 0; i < nreader; i++)
-      readers[i]->close_file();
+    if (filereader)
+      for (int i = 0; i < nreader; i++)
+        readers[i]->close_file();
     return ntimestep;
   }
 
@@ -503,7 +504,7 @@ void ReadDump::header(int fieldinfo)
     yhi = box[1][1];
     zlo = box[2][0];
     zhi = box[2][1];
-    
+
     if (triclinic_snap) {
       xy = box[0][2];
       xz = box[1][2];

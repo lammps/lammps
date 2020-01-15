@@ -161,8 +161,8 @@ void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
     for (int i = 0; i < field_data->nRows(); ++i) {
       for (int j = 0; j < field_data->nCols(); ++j) {
         double myVal;
-        fread(&myVal,sizeof(double),1,fp);
-        (*field_data)(i,j) = myVal;  
+        if (fread(&myVal,sizeof(double),1,fp) == 1)
+          (*field_data)(i,j) = myVal;  
     
       }
     }
@@ -792,7 +792,7 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
 }
 
 /** write (ensight gold : ASCII "C" format) dictionary */
-void OutputManager::write_dictionary(double time, OUTPUT_LIST *data)
+void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
 {
   // file names
   string dict_file_name = outputPrefix_ + ".case";

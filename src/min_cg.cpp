@@ -14,6 +14,7 @@
 #include "min_cg.h"
 #include <mpi.h>
 #include <cmath>
+#include "error.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -35,7 +36,7 @@ MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinCG::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double beta,gg,dot[2],dotall[2];
+  double beta,gg,dot[2],dotall[2],fdotf;
   double *fatom,*gatom,*hatom;
 
   // nlimit = max # of CG iterations before restarting
@@ -90,6 +91,7 @@ int MinCG::iterate(int maxiter)
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
     }
+
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
         fatom = fextra_atom[m];
@@ -107,7 +109,14 @@ int MinCG::iterate(int maxiter)
         dotall[1] += fextra[i]*gextra[i];
       }
 
-    if (dotall[0] < update->ftol*update->ftol) return FTOL;
+    fdotf = 0.0;
+    if (update->ftol > 0.0) {
+      if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf();   // infinite force norm
+      else if (normstyle == TWO) fdotf = fnorm_sqr();   // Euclidean force 2-norm
+      else error->all(FLERR,"Illegal min_modify command");
+      if (fdotf < update->ftol*update->ftol) return FTOL;
+    }
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

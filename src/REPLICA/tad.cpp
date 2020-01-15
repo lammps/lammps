@@ -197,7 +197,7 @@ void TAD::command(int narg, char **arg)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -711,7 +711,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style_neb;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -777,7 +777,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   update->etol = etol;
   update->ftol = ftol;

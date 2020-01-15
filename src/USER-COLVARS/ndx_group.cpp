@@ -126,7 +126,7 @@ void Ndx2Group::command(int narg, char **arg)
         }
         name = find_section(fp,NULL);
         if (name != NULL) {
-          len=strlen(name);
+          len=strlen(name)+1;
 
           // skip over group "all", which is called "System" in gromacs
           if (strcmp(name,"System") == 0) continue;
@@ -152,8 +152,8 @@ void Ndx2Group::command(int narg, char **arg)
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len > 0) {
           delete[] name;
-          name = new char[len+1];
-          MPI_Bcast(name,len+1,MPI_CHAR,0,world);
+          name = new char[len];
+          MPI_Bcast(name,len,MPI_CHAR,0,world);
 
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
           tags = (tagint *)malloc(sizeof(tagint)*(num ? num : 1));
@@ -174,7 +174,7 @@ void Ndx2Group::command(int narg, char **arg)
         if (name != NULL) delete[] name;
         rewind(fp);
         name = find_section(fp,arg[idx]);
-        if (name != NULL) len=strlen(name);
+        if (name != NULL) len=strlen(name)+1;
 
         if (screen)
           fprintf(screen," %s group '%s'\n",
@@ -185,7 +185,7 @@ void Ndx2Group::command(int narg, char **arg)
 
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len > 0) {
-          MPI_Bcast(name,len+1,MPI_CHAR,0,world);
+          MPI_Bcast(name,len,MPI_CHAR,0,world);
           // read tags for atoms in group and broadcast
           num = 0;
           tags = read_section(fp,num);
@@ -199,8 +199,8 @@ void Ndx2Group::command(int narg, char **arg)
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len > 0) {
           delete[] name;
-          name = new char[len+1];
-          MPI_Bcast(name,len+1,MPI_CHAR,0,world);
+          name = new char[len];
+          MPI_Bcast(name,len,MPI_CHAR,0,world);
 
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
           tags = (tagint *)malloc(sizeof(tagint)*(num ? num : 1));

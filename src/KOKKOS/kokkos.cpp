@@ -113,22 +113,36 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       }
       iarg += 2;
 
+      int set_flag = 0;
       char *str;
       if ((str = getenv("SLURM_LOCALID"))) {
         int local_rank = atoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
+        set_flag = 1;
+      }
+      if ((str = getenv("MPT_LRANK"))) {
+        int local_rank = atoi(str);
+        device = local_rank % ngpus;
+        if (device >= skip_gpu) device++;
+        set_flag = 1;
       }
       if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
         int local_rank = atoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
+        set_flag = 1;
       }
       if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
         int local_rank = atoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
+        set_flag = 1;
       }
+
+      if (ngpus > 1 && !set_flag)
+        error->all(FLERR,"Could not determine local MPI rank for multiple "
+                           "GPUs with Kokkos CUDA because MPI library not recognized");
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
@@ -173,7 +187,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   binsize = 0.0;
 #ifdef KOKKOS_ENABLE_CUDA
-  cuda_aware_flag = 1; 
+  cuda_aware_flag = 1;
 #else
   cuda_aware_flag = 0;
 #endif
@@ -206,7 +220,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
-  if (nmpi > 0) {
+  if (nmpi > 1) {
 
 #if defined(MPI_VERSION) && (MPI_VERSION > 2)
     // Check for IBM Spectrum MPI
@@ -383,9 +397,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
+#ifdef KOKKOS_ENABLE_CUDA
+
+  int nmpi = 0;
+  MPI_Comm_size(world,&nmpi);
+
   // if "cuda/aware off" and "comm device", change to "comm host"
 
-  if (!cuda_aware_flag) {
+  if (!cuda_aware_flag && nmpi > 1) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_on_host = 1;
       exchange_comm_changed = 1;
@@ -416,6 +435,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       reverse_comm_changed = 0;
     }
   }
+
+#endif
 
   // set newton flags
   // set neighbor binsize, same as neigh_modify command

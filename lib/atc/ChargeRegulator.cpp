@@ -53,7 +53,7 @@ namespace ATC {
   //    parses and adjusts charge regulator state based on
   //    user input, in the style of LAMMPS user input
   //--------------------------------------------------------
-  bool ChargeRegulator::modify(int narg, char **arg)
+  bool ChargeRegulator::modify(int /* narg */, char ** /* arg */)
   {
     bool foundMatch = false;
     return foundMatch;
@@ -241,7 +241,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
-  void ChargeRegulatorMethod::output(OUTPUT_LIST & outputData)
+  void ChargeRegulatorMethod::output(OUTPUT_LIST & /* outputData */)
   {
     //vector<double> localSum(sum_.size());
     //lammpsInteface_->allsum(localSum.pointer,sum_.pointer,sum_.size());
@@ -383,7 +383,7 @@ namespace ATC {
   //--------------------------------------------------------
   // change potential/charge pre-force calculation
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::apply_pre_force(double dt)
+  void ChargeRegulatorMethodFeedback::apply_pre_force(double /* dt */)
   {
 
     sum_ = 0; 
@@ -455,7 +455,7 @@ namespace ATC {
   //--------------------------------------------------------
   // change potential/charge post-force calculation
   //--------------------------------------------------------
-  void ChargeRegulatorMethodImageCharge::apply_post_force(double dt)
+  void ChargeRegulatorMethodImageCharge::apply_post_force(double /* dt */)
   {
     sum_ = 0;
     apply_local_forces();
@@ -644,7 +644,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  add effective forces post LAMMPS force call
   //--------------------------------------------------------
-  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double dt) 
+  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double /* dt */) 
   {
     apply_local_forces();
   }

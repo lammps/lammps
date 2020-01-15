@@ -316,10 +316,9 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
         numtyp tempv[3];
         gpu_row_times3(iota,b1,tempv);
         gpu_cross3(tempv,iota,tchi);
-        temp1 = (numtyp)-4.0*ir*ir;
-        tchi[0] *= temp1;
-        tchi[1] *= temp1;
-        tchi[2] *= temp1;
+        tchi[0] *= temp2;
+        tchi[1] *= temp2;
+        tchi[2] *= temp2;
       }
 
       numtyp temp2 = factor_lj*eta*chi;

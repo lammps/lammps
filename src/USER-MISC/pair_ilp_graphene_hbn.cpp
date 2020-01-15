@@ -442,13 +442,13 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vilp,TSvdw,TSvdw2inv,fsum;
@@ -523,7 +523,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
 
         // derivatives
         fpair = -6.0*p.C6*r8inv/TSvdw + p.C6*p.d/p.seff*(TSvdw-1.0)*TSvdw2inv*r8inv*r;
-	fsum = fpair*Tap - Vilp*dTap/r;
+        fsum = fpair*Tap - Vilp*dTap/r;
 
         f[i][0] += fsum*delx;
         f[i][1] += fsum*dely;
@@ -540,19 +540,19 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,Rcut,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vilp;
-  double frho1,TSvdw,TSvdw2inv,Erep,fsum,rdsq1;
+  double rsq,r,Rcut,rhosq1,exp0,exp1,Tap,dTap,Vilp;
+  double frho1,Erep,fsum,rdsq1;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *ILP_neighs_i,*ILP_neighs_j;
+  int *ILP_neighs_i;
 
   evdwl = 0.0;
 
@@ -634,12 +634,12 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
         dprodnorm1[0] = dnormdri[0][0][i]*delx + dnormdri[1][0][i]*dely + dnormdri[2][0][i]*delz;
         dprodnorm1[1] = dnormdri[0][1][i]*delx + dnormdri[1][1][i]*dely + dnormdri[2][1][i]*delz;
         dprodnorm1[2] = dnormdri[0][2][i]*delx + dnormdri[1][2][i]*dely + dnormdri[2][2][i]*delz;
-  	fp1[0] = prodnorm1*normal[i][0]*fpair1;
-  	fp1[1] = prodnorm1*normal[i][1]*fpair1;
-  	fp1[2] = prodnorm1*normal[i][2]*fpair1;
-  	fprod1[0] = prodnorm1*dprodnorm1[0]*fpair1;
-  	fprod1[1] = prodnorm1*dprodnorm1[1]*fpair1;
-  	fprod1[2] = prodnorm1*dprodnorm1[2]*fpair1;
+        fp1[0] = prodnorm1*normal[i][0]*fpair1;
+        fp1[1] = prodnorm1*normal[i][1]*fpair1;
+        fp1[2] = prodnorm1*normal[i][2]*fpair1;
+        fprod1[0] = prodnorm1*dprodnorm1[0]*fpair1;
+        fprod1[1] = prodnorm1*dprodnorm1[1]*fpair1;
+        fprod1[2] = prodnorm1*dprodnorm1[2]*fpair1;
 
         fkcx = (delx*fsum - fp1[0])*Tap - Vilp*dTap*delx/r;
         fkcy = (dely*fsum - fp1[1])*Tap - Vilp*dTap*dely/r;

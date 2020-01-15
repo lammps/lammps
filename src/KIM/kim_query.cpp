@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -64,11 +65,14 @@
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
+#include "version.h"
+#include "info.h"
 #include "fix_store_kim.h"
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
+#include <cstdlib>
 #endif
 
 using namespace LAMMPS_NS;
@@ -103,12 +107,22 @@ void KimQuery::command(int narg, char **arg)
     model_name = (char *)fix_store->getptr("model_name");
   } else error->all(FLERR,"Must use 'kim_init' before 'kim_query'");
 
-
   varname = arg[0];
   bool split = false;
   if (0 == strcmp("split",arg[1])) {
     if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    if (0 == strcmp("list",arg[2]))
+      error->all(FLERR,"Illegal kim_query command");
     split = true;
+    arg++;
+    narg--;
+  }
+
+  // The “list” is the default setting
+  // the result is returned as a space-separated list of values in variable
+  if (0 == strcmp("list",arg[1])) {
+    if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    if (split) error->all(FLERR,"Illegal kim_query command");
     arg++;
     narg--;
   }
@@ -141,12 +155,13 @@ void KimQuery::command(int narg, char **arg)
 
   kim_query_log_delimiter("begin");
   char **varcmd = new char*[3];
+  varcmd[1] = (char *) "string";
+
+  std::stringstream ss(value);
+  std::string token;
+
   if (split) {
     int counter = 1;
-    std::stringstream ss(value);
-    std::string token;
-    varcmd[1] = (char *) "string";
-
     while(std::getline(ss, token, ',')) {
       token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
       token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
@@ -159,11 +174,17 @@ void KimQuery::command(int narg, char **arg)
     }
   } else {
     varcmd[0] = varname;
-    varcmd[1] = (char *) "string";
-    varcmd[2] = value;
+    std::string value_string;
+    while(std::getline(ss, token, ',')) {
+      token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
+      token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
+      if (value_string.size() && token.size())
+        value_string += " ";
+      value_string += token;
+    }
+    varcmd[2] = const_cast<char *>(value_string.c_str());;
     input->variable->set(3,varcmd);
-
-    echo_var_assign(varname, value);
+    echo_var_assign(varname, value_string);
   }
   kim_query_log_delimiter("end");
 
@@ -237,11 +258,29 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
 #endif
 
-#if defined(LMP_NO_SSL_CHECK)
-      // disable verifying SSL certificate and host name
+#if LMP_NO_SSL_CHECK
+      // Certificate Verification
+      // by telling libcurl to not verify the peer.
+      // Disable verifying SSL certificate and host name. Insecure.
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+
+      {
+        char *env_c = std::getenv("CURL_CA_BUNDLE");
+        if (env_c)
+        {
+          // Certificate Verification
+          // by specifying your own CA cert path. Set the environment variable
+          // CURL_CA_BUNDLE to the path of your choice.
+          curl_easy_setopt(handle, CURLOPT_CAINFO, env_c);
+        }
+      }
+
+      std::string user_agent = std::string("kim_query--LAMMPS/")
+                               + LAMMPS_VERSION
+                               + " (" + Info::get_os_info() + ")";
+      curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());
 
       curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
       curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);

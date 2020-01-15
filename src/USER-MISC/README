@@ -31,6 +31,8 @@ compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
 compute entropy/atom, Pablo Piaggi (EPFL), pablo.piaggi at epfl.ch, 15 June 2018
 compute gyration/shape, Evangelos Voyiatzis, evoyiatzis at gmail.com, 25 July 2019
+compute gyration/shape/chunk, Evangelos Voyiatzis, evoyiatzis at gmail.com, 22 October 2019
+compute hma, Andrew Schultz & David Kofke (UB), ajs42 at buffalo.edu & kofke at buffalo.edu, 1 Jul 2019
 compute pressure/cylinder, Cody K. Addington (NCSU), , 2 Oct 2018
 compute momentum, Rupert Nash (University of Edinburgh), r.nash at epcc.ed.ac.uk, 28 June 2019
 compute stress/mop, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
@@ -62,6 +64,7 @@ fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2013
 fix ttm/mod, Sergey Starikov and Vasily Pisarev (JIHT), pisarevvv at gmail.com, 2 Feb 2015
 fix wall/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
+fix wall/reflect/stochastic, Quy-Dong To (U Gustave Eiffel), toquydong at gmail.com, Jan 2020
 fix wall/region/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
 improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
@@ -69,6 +72,7 @@ improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style distance, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style agni, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 16
 pair_style buck/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
+pair_style cosine/squared, Eugen Rozic, eugen.rozic.17 at ucl.ac.uk, 9 Aug 19
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style coul/shield, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
@@ -82,6 +86,7 @@ pair_style lebedeva/z, Zbigniew Koziol (National Center for Nuclear Research), s
 pair_style lennard/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
 pair_style lj/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
+pair_style local/density, Tanmoy Sanyal (tanmoy dot 7989 at gmail.com) and M. Scott Shell (UCSB), and David Rosenberger (TU Darmstadt), 9 Sept 19
 pair_style kolmogorov/crespi/full, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12

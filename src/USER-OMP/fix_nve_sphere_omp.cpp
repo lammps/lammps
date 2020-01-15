@@ -42,7 +42,6 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
   const double * const rmass = atom->rmass;
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   // set timestep here since dt may have changed or come via rRESPA
   const double dtfrotate = dtf / INERTIA;
@@ -50,9 +49,9 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none)
+#pragma omp parallel for default(none)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
@@ -77,9 +76,9 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
     double * const * const mu = atom->mu;
     if (dlm == NODLM) {
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none)
+#pragma omp parallel for default(none)
 #endif
-      for (i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nlocal; i++) {
         double g0,g1,g2,msq,scale;
         if (mask[i] & groupbit) {
           if (mu[i][3] > 0.0) {
@@ -96,10 +95,10 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
       }
     } else {
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none)
+#pragma omp parallel for default(none)
 #endif
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
-      for (i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nlocal; i++) {
         vector w, w_temp, a;
         matrix Q, Q_temp, R;
 
@@ -215,7 +214,6 @@ void FixNVESphereOMP::final_integrate()
   const double * const radius = atom->radius;
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   // set timestep here since dt may have changed or come via rRESPA
 
@@ -225,9 +223,9 @@ void FixNVESphereOMP::final_integrate()
   // d_omega/dt = torque / inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none)
+#pragma omp parallel for default(none)
 #endif
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];

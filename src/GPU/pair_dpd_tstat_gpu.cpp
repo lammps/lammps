@@ -35,6 +35,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -212,6 +213,7 @@ PairDPDTstatGPU::PairDPDTstatGPU(LAMMPS *lmp) : PairDPDTstat(lmp),
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

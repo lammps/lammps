@@ -115,6 +115,7 @@ OPT.
    * :doc:`npt (iko) <fix_nh>`
    * :doc:`npt/asphere (o) <fix_npt_asphere>`
    * :doc:`npt/body <fix_npt_body>`
+   * :doc:`npt/cauchy <fix_npt_cauchy>`
    * :doc:`npt/eff <fix_nh_eff>`
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`

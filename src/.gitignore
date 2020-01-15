@@ -56,6 +56,9 @@
 /fix_qeq*.cpp
 /fix_qeq*.h
 
+/fix_*cauchy.cpp
+/fix_*cauchy.h
+
 /compute_test_nbl.cpp
 /compute_test_nbl.h
 /pair_multi_lucy.cpp

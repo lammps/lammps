@@ -311,6 +311,8 @@ cartesian
 CasP
 Caswell
 Cates
+cauchy
+cauchystat
 Cavium
 Cawkwell
 cbecker
@@ -781,6 +783,7 @@ equi
 equil
 equilibrate
 equilibrated
+equilibrates
 equilibrating
 equilibration
 Equilibria
@@ -2129,6 +2132,7 @@ pathangle
 Patomtrans
 Pattnaik
 Pavese
+Pavia
 Paxton
 pbc
 pc
@@ -2188,6 +2192,7 @@ piecewise
 Pieniazek
 Pieter
 pimd
+Piola
 Pisarev
 Pishevar
 Pitera

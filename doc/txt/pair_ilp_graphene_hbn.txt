@@ -72,15 +72,15 @@ a screened Coulomb interaction "coul/shield"_pair_coul_shield.html. Therefore,
 to simulated the properties of h-BN correctly, this potential must be used in
 combination with the pair style "coul/shield"_pair_coul_shield.html.
 
-NOTE: Four new sets of parameters of ILP for 2D layered Materials with bilayer and 
-bulk configurations are presented in "(Ouyang1)"_#Ouyang1 and "(Ouyang2)"_#Ouyang2, respectively.
-These parameters provide a good description in both short- and long-range interaction regimes.
-While the old ILP parameters published in "(Leven2)"_#Leven2 and
-"(Maaravi)"_#Maaravi2 are only suitable for long-range interaction
-regime. This feature is essential for simulations in high pressure
-regime (i.e., the interlayer distance is smaller than the equilibrium
-distance). The benchmark tests and comparison of these parameters can
-be found in "(Ouyang1)"_#Ouyang1 and "(Ouyang2)"_#Ouyang2.
+NOTE: Four new sets of parameters of ILP for 2D layered Materials with bilayer
+and bulk configurations are presented in "(Ouyang1)"_#Ouyang1 and
+ "(Ouyang2)"_#Ouyang2, respectively. These parameters provide a good description
+in both short- and long-range interaction regimes. While the old ILP parameters
+published in "(Leven2)"_#Leven2 and "(Maaravi)"_#Maaravi2 are only suitable for
+long-range interaction regime. This feature is essential for simulations in
+high pressure regime (i.e., the interlayer distance is smaller than the
+equilibrium distance). The benchmark tests and comparison of these paramete
+can be found in "(Ouyang1)"_#Ouyang1 and "(Ouyang2)"_#Ouyang2.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.

@@ -69,7 +69,8 @@ parameters (CC.KC) published in "(Kolmogorov)"_#Kolmogorov1 are only
 suitable for long-range interaction regime.  This feature is essential
 for simulations in high pressure regime (i.e., the interlayer distance
 is smaller than the equilibrium distance).  The benchmark tests and
-comparison of these parameters can be found in "(Ouyang1)"_#Ouyang3" and (Ouyang2)"_#Ouyang4.
+comparison of these parameters can be found in "(Ouyang1)"_#Ouyang3"
+and (Ouyang2)"_#Ouyang4.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.

@@ -426,6 +426,7 @@ void PairEAM::init_style()
   array2spline();
 
   neighbor->request(this,instance_me);
+  embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -927,6 +928,9 @@ void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
   double *tmp = fp;
   fp = fp_caller;
   *fp_caller_hold = tmp;
+
+  // skip warning about out-of-sync timestep, since we already warn in the caller
+  embedstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

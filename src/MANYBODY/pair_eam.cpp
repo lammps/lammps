@@ -27,6 +27,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
@@ -39,6 +40,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
+  embedstep = -1;
 
   nmax = 0;
   rho = NULL;
@@ -246,6 +248,7 @@ void PairEAM::compute(int eflag, int vflag)
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -807,6 +810,14 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
+
+  if (!numforce)
+    error->all(FLERR,"EAM embedding data required for this calculation is missing");
+
+  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
+    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    embedstep = update->ntimestep;
+  }
 
   if (numforce[i] > 0) {
     p = rho[i]*rdrho + 1.0;

@@ -777,8 +777,8 @@ void CreateAtoms::add_lattice()
   const double * const * const basis = domain->lattice->basis;
 
   // rough estimate of total time used for create atoms.
-  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
-  double testimate = 2.5e-8/3600.0; // convert seconds to hours
+  // one inner loop iteration takes about 1us on a typical desktop CPU core in 2020
+  double testimate = 1.0e-6/3600.0; // convert seconds to hours
   testimate *= static_cast<double>(khi-klo+1);
   testimate *= static_cast<double>(jhi-jlo+1);
   testimate *= static_cast<double>(ihi-ilo+1);

@@ -27,7 +27,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *reinit* or *force* or *torque* or *infile*
+* keyword = *reinit* or *force* or *torque* or *inpfile*
   
   .. parsed-literal::
   
@@ -38,7 +38,7 @@ Syntax
        *torque* values = M xflag yflag zflag
          M = which rigid body from 1-Nbody (see asterisk form below)
          xflag,yflag,zflag = off/on if component of center-of-mass torque is active
-       *infile* filename
+       *inpfile* filename
          filename = file with per-body values of mass, center-of-mass, moments of inertia
 
 
@@ -100,7 +100,7 @@ internal energy and extrapolated velocity are also updated.
    internal data structures. The properties include the position and
    velocity of the center-of-mass of the body, its moments of inertia, and
    its angular momentum.  This is done using the properties of the
-   constituent particles of the body at that point in time (or see the *infile*
+   constituent particles of the body at that point in time (or see the *inpfile*
    keyword option).  Thereafter, changing these properties of individual
    particles in the body will have no effect on a rigid body's dynamics, unless
    they effect any computation of per-particle forces or torques. If the
@@ -115,7 +115,7 @@ internal energy and extrapolated velocity are also updated.
    :doc:`displace\_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
    of the body unless *reinit* is set to *yes*\ . With *reinit* set to *no*
-   (or using the *infile* option, which implies *reinit* *no*\ ) the position
+   (or using the *inpfile* option, which implies *reinit* *no*\ ) the position
    and velocity of individual particles in the body will be reset when time
    integration starts again.
 
@@ -214,14 +214,14 @@ are re-initialized between run commands. With the option *yes* (the
 default) this is done, with the option *no* this is not done. Turning
 off the re-initialization can be helpful to protect rigid bodies against
 unphysical manipulations between runs or when properties cannot be
-easily re-computed (e.g. when read from a file). When using the *infile*
+easily re-computed (e.g. when read from a file). When using the *inpfile*
 keyword, the *reinit* option is automatically set to *no*\ .
 
 
 ----------
 
 
-The *infile* keyword allows a file of rigid body attributes to be read
+The *inpfile* keyword allows a file of rigid body attributes to be read
 in from a file, rather then having LAMMPS compute them.  There are 5
 such attributes: the total mass of the rigid body, its center-of-mass
 position, its 6 moments of inertia, its center-of-mass velocity, and
@@ -284,14 +284,14 @@ cross periodic boundaries during the simulation.
 
 .. note::
 
-   If you use the *infile* keyword and write restart
+   If you use the *inpfile* keyword and write restart
    files during a simulation, then each time a restart file is written,
    the fix also write an auxiliary restart file with the name
    rfile.rigid, where "rfile" is the name of the restart file,
    e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
    file is in the same format described above.  Thus it can be used in a
    new input script that restarts the run and re-specifies a rigid fix
-   using an *infile* keyword and the appropriate filename.  Note that the
+   using an *inpfile* keyword and the appropriate filename.  Note that the
    auxiliary file will contain one line for every rigid body, even if the
    original file only listed a subset of the rigid bodies.
 
@@ -302,9 +302,9 @@ cross periodic boundaries during the simulation.
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 No information is written to :doc:`binary restart files <restart>`.
-If the *infile* keyword is used, an auxiliary file is written out
+If the *inpfile* keyword is used, an auxiliary file is written out
 with rigid body information each time a restart file is written, as
-explained above for the *infile* keyword.
+explained above for the *inpfile* keyword.
 
 None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
 fix.

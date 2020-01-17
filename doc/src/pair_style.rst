@@ -32,7 +32,7 @@ Description
 Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
 LAMMPS, pair potentials are defined between pairs of atoms that are
 within a cutoff distance and the set of active interactions typically
-changes over time.  See the :doc:`bond\_style <bond_style>` command to
+changes over time.  See the :doc:`bond_style <bond_style>` command to
 define potentials between pairs of bonded atoms, which typically
 remain in place for the duration of a simulation.
 
@@ -48,11 +48,11 @@ different pair potentials can be setup using the *hybrid* pair style.
 
 The coefficients associated with a pair style are typically set for
 each pair of atom types, and are specified by the
-:doc:`pair\_coeff <pair_coeff>` command or read from a file by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`pair_coeff <pair_coeff>` command or read from a file by the
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
-The :doc:`pair\_modify <pair_modify>` command sets options for mixing of
+The :doc:`pair_modify <pair_modify>` command sets options for mixing of
 type I-J interaction coefficients and adding energy offsets or tail
 corrections to Lennard-Jones potentials.  Details on these options as
 they pertain to individual potentials are described on the doc page
@@ -70,11 +70,11 @@ cutoffs for all pairs of atom types.  The distance(s) can be smaller
 or larger than the dimensions of the simulation box.
 
 Typically, the global cutoff value can be overridden for a specific
-pair of atom types by the :doc:`pair\_coeff <pair_coeff>` command.  The
+pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
 pair style settings (including global cutoffs) can be changed by a
 subsequent pair\_style command using the same style.  This will reset
 the cutoffs for all atom type pairs, including those previously set
-explicitly by a :doc:`pair\_coeff <pair_coeff>` command.  The exceptions
+explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
 to this are that pair\_style *table* and *hybrid* settings cannot be
 reset.  A new pair\_style command for these styles will wipe out all
 previously specified pair\_coeff values.
@@ -88,7 +88,7 @@ also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc
 
 Click on the style to display the formula it computes, any additional
 arguments specified in the pair\_style command, and coefficients
-specified by the associated :doc:`pair\_coeff <pair_coeff>` command.
+specified by the associated :doc:`pair_coeff <pair_coeff>` command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
@@ -170,6 +170,7 @@ accelerated styles exist.
 * :doc:`gauss <pair_gauss>` - Gaussian potential
 * :doc:`gauss/cut <pair_gauss>` - generalized Gaussian potential
 * :doc:`gayberne <pair_gayberne>` - Gay-Berne ellipsoidal potential
+* :doc:`granular <pair_granular>` - Generalized granular potential
 * :doc:`gran/hertz/history <pair_gran>` - granular potential with Hertzian interactions
 * :doc:`gran/hooke <pair_gran>` - granular potential with history effects
 * :doc:`gran/hooke/history <pair_gran>` - granular potential without history effects
@@ -231,7 +232,7 @@ accelerated styles exist.
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
-* `lj/switch3/coulgauss <pair_lj_switch3_coulgauss>`_ - smoothed LJ vdW potential with Gaussian electrostatics
+* :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed LJ vdW potential with Gaussian electrostatics
 * :doc:`lj96/cut <pair_lj96>` - Lennard-Jones 9/6 potential
 * :doc:`local/density <pair_local_density>` - generalized basic local density potential
 * :doc:`lubricate <pair_lubricate>` - hydrodynamic lubrication forces
@@ -243,9 +244,10 @@ accelerated styles exist.
 * :doc:`meam/c <pair_meamc>` - modified embedded atom method (MEAM) in C
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
+* :doc:`mesocnt <pair_mesocnt>` - mesoscale model for (carbon) nanotubes
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
-* `mm3/switch3/coulgauss <pair_mm3_switch3_coulgauss>`_ - smoothed MM3 vdW potential with Gaussian electrostatics
+* :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
 * :doc:`morse/smooth/linear <pair_morse>` - linear smoothed Morse potential
@@ -267,6 +269,12 @@ accelerated styles exist.
 * :doc:`oxdna2/hbond <pair_oxdna2>` -
 * :doc:`oxdna2/stk <pair_oxdna2>` -
 * :doc:`oxdna2/xstk <pair_oxdna2>` -
+* :doc:`oxrna2/coaxstk <pair_oxrna2>` -
+* :doc:`oxrna2/dh <pair_oxrna2>` -
+* :doc:`oxrna2/excv <pair_oxrna2>` -
+* :doc:`oxrna2/hbond <pair_oxrna2>` -
+* :doc:`oxrna2/stk <pair_oxrna2>` -
+* :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
@@ -280,7 +288,7 @@ accelerated styles exist.
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smd/hertz <pair_smd_hertz>` -
 * :doc:`smd/tlsph <pair_smd_tlsph>` -
-* :doc:`smd/tri\_surface <pair_smd_triangulated_surface>` -
+* :doc:`smd/tri_surface <pair_smd_triangulated_surface>` -
 * :doc:`smd/ulsph <pair_smd_ulsph>` -
 * :doc:`smtbq <pair_smtbq>` -
 * :doc:`snap <pair_snap>` - SNAP quantum-accurate potential
@@ -328,8 +336,8 @@ Restrictions
 
 
 This command must be used before any coefficients are set by the
-:doc:`pair\_coeff <pair_coeff>`, :doc:`read\_data <read_data>`, or
-:doc:`read\_restart <read_restart>` commands.
+:doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`, or
+:doc:`read_restart <read_restart>` commands.
 
 Some pair styles are part of specific packages.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
@@ -338,9 +346,9 @@ individual pair potentials tell if it is part of a package.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`read\_data <read_data>`,
-:doc:`pair\_modify <pair_modify>`, :doc:`kspace\_style <kspace_style>`,
-:doc:`dielectric <dielectric>`, :doc:`pair\_write <pair_write>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`,
+:doc:`pair_modify <pair_modify>`, :doc:`kspace_style <kspace_style>`,
+:doc:`dielectric <dielectric>`, :doc:`pair_write <pair_write>`
 
 Default
 """""""

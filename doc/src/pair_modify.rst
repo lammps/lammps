@@ -247,7 +247,9 @@ or *lj/coul* to change both to the same set of 3 values.  The wt1,wt2,wt3
 values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
 1-3, and 1-4 bond topology neighbors, respectively. The *special*
 keyword can only be used in conjunction with the *pair* keyword
-and has to directly follow it.
+and has to directly follow it.  This option is not compatible with
+pair styles from the GPU or the USER-INTEL package and attempting
+it will cause an error.
 
 .. note::
 
@@ -278,10 +280,11 @@ and allows to selectively disable or enable processing of the various
 
 Restrictions
 """"""""""""
- none
 
 You cannot use *shift* yes with *tail* yes, since those are
 conflicting options.  You cannot use *tail* yes with 2d simulations.
+You cannot use *special* with pair styles from the GPU or
+USER-INTEL package.
 
 Related commands
 """"""""""""""""

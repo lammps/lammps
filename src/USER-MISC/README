@@ -57,6 +57,7 @@ fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov
 fix grem, David Stelter, dstelter@bu.edu, 22 Nov 16
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
+fix npt/cauchy, R. E. Miller (Carleton University), F. Pavia and S. Pattamatta, 12 Jan 2020
 fix nvk, Efrem Braun (UC Berkeley), efrem.braun at gmail.com, https://github.com/lammps/lammps/pull/310
 fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
 fix rhok, Ulf Pedersen (Roskilde U), ulf at urp.dk, 25 Sep 2017
@@ -64,6 +65,7 @@ fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2013
 fix ttm/mod, Sergey Starikov and Vasily Pisarev (JIHT), pisarevvv at gmail.com, 2 Feb 2015
 fix wall/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
+fix wall/reflect/stochastic, Quy-Dong To (U Gustave Eiffel), toquydong at gmail.com, Jan 2020
 fix wall/region/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
 improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
@@ -90,6 +92,7 @@ pair_style kolmogorov/crespi/full, Wengen Ouyang (Tel Aviv University), w.g.ouya
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
 pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12
+pair_style mesocnt, Philipp Kloza (U Cambridge), pak37 at cam.ac.uk, 15 Jan 20
 pair_style morse/smooth/linear, Stefan Paquay (TU Eindhoven), stefanpaquay at gmail.com, 29 Feb 16
 pair_style srp, Tim Sirk, tim.sirk at us.army.mil, 21 Nov 14
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11

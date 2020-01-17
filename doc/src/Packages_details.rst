@@ -2438,8 +2438,8 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`bond\_style mm3 <bond_mm3>`
 * :doc:`improper\_style distharm <improper_distharm>`
 * :doc:`improper\_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss>`
-* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss>`
+* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
 
 

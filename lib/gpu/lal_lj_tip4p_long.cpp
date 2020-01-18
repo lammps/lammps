@@ -198,8 +198,7 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
           &nall, &ainum,
           &nbor_pitch, &this->_threads_per_atom,
           &hneight, &m, &TypeO, &TypeH, &alpha,
-          &this->atom->q, &tag, &map_array,
-          &atom_sametag);
+          &this->atom->q);
 
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
@@ -217,8 +216,7 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
           &ainum, &nbor_pitch, &this->_threads_per_atom,
           &hneight, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
-          &cut_coulsq, &cut_coulsqplus, &tag, &map_array,
-          &atom_sametag, &this->ansO);
+          &cut_coulsq, &cut_coulsqplus, &this->ansO);
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   this->k_pair_distrib.set_size(GX,BX);
   this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv,
@@ -234,25 +232,26 @@ void LJTIP4PLongT::copy_relations_data(int n, tagint *tag, int *map_array,
   int nall = n;
   const int hn_sz = n*4; // matrix size = col size * col number
   hneight.resize_ib(hn_sz);
-  if (ago == 0)
-    hneight.zero();
+
   m.resize_ib(n);
   m.zero();
+  if (ago == 0) {
+    hneight.zero();
+    UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
+    this->tag.resize_ib(nall);
+    for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
+    ucl_copy(this->tag, host_tag_write, nall, false);
 
-  UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
-  this->tag.resize_ib(nall);
-  for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
-  ucl_copy(this->tag, host_tag_write, nall, false);
+    host_tag_write.resize_ib(max_same);
+    this->atom_sametag.resize_ib(max_same);
+    for(int i=0; i<max_same; ++i) host_tag_write[i] = sametag[i];
+    ucl_copy(this->atom_sametag, host_tag_write, max_same, false);
 
-  host_tag_write.resize_ib(max_same);
-  this->atom_sametag.resize_ib(max_same);
-  for(int i=0; i<max_same; ++i) host_tag_write[i] = sametag[i];
-  ucl_copy(this->atom_sametag, host_tag_write, max_same, false);
-
-  host_tag_write.resize_ib(map_size);
-  this->map_array.resize_ib(map_size);
-  for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
-  ucl_copy(this->map_array, host_tag_write, map_size, false);
+    host_tag_write.resize_ib(map_size);
+    this->map_array.resize_ib(map_size);
+    for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
+    ucl_copy(this->map_array, host_tag_write, map_size, false);
+  }
 }
 
 

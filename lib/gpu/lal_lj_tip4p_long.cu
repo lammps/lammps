@@ -226,9 +226,7 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
     __global int *restrict hneigh,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
-    const numtyp alpha, const __global numtyp *restrict q_,
-    const __global int *restrict tag, const __global int *restrict map,
-    const __global int *restrict sametag) {
+    const numtyp alpha, const __global numtyp *restrict q_) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
@@ -268,8 +266,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp *restrict cutsq,
     const numtyp qqrd2e, const numtyp g_ewald,
     const numtyp cut_coulsq, const numtyp cut_coulsqplus,
-    const __global int *restrict tag, const __global int *restrict map,
-    const __global int *restrict sametag, __global acctyp4 *restrict ansO) {
+    __global acctyp4 *restrict ansO) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 

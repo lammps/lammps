@@ -235,22 +235,26 @@ void LJTIP4PLongT::copy_relations_data(int n, tagint *tag, int *map_array,
 
   m.resize_ib(n);
   m.zero();
+
   if (ago == 0) {
     hneight.zero();
-    UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
-    this->tag.resize_ib(nall);
-    for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
-    ucl_copy(this->tag, host_tag_write, nall, false);
 
-    host_tag_write.resize_ib(max_same);
+    {
+      UCL_H_Vec<tagint> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
+      this->tag.resize_ib(nall);
+      for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
+      ucl_copy(this->tag, host_tag_write, nall, false);
+    }
+
+    UCL_H_Vec<int> host_write(max_same,*(this->ucl_device),UCL_WRITE_ONLY);
     this->atom_sametag.resize_ib(max_same);
-    for(int i=0; i<max_same; ++i) host_tag_write[i] = sametag[i];
-    ucl_copy(this->atom_sametag, host_tag_write, max_same, false);
+    for(int i=0; i<max_same; ++i) host_write[i] = sametag[i];
+    ucl_copy(this->atom_sametag, host_write, max_same, false);
 
-    host_tag_write.resize_ib(map_size);
+    host_write.resize_ib(map_size);
     this->map_array.resize_ib(map_size);
-    for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
-    ucl_copy(this->map_array, host_tag_write, map_size, false);
+    for(int i=0; i<map_size; ++i) host_write[i] = map_array[i];
+    ucl_copy(this->map_array, host_write, map_size, false);
   }
 }
 

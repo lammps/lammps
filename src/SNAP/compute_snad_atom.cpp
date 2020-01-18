@@ -34,7 +34,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -48,7 +48,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  alloyflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // process required arguments
 
@@ -92,6 +96,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       bzeroflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"switchflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snad/atom command");
@@ -102,11 +111,31 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"alloy") == 0) {
+      if (iarg+2+ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      alloyflag = 1;
+      memory->create(map,ntypes+1,"compute_snad_atom:map");
+      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      for(int i = 0; i < ntypes; i++) {
+        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        printf("%d %d %d %d\n",ntypes,nelements,i,jelem);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute snad/atom command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"wselfall") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute snad/atom command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag, bnormflag,
+                   alloyflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -215,6 +244,9 @@ void ComputeSNADAtom::compute_peratom()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (alloyflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
@@ -243,6 +275,9 @@ void ComputeSNADAtom::compute_peratom()
         const double delz = x[j][2] - ztmp;
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (alloyflag)
+            jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
@@ -250,21 +285,21 @@ void ComputeSNADAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr->compute_ui(ninside);
+      snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
       if (quadraticflag) {
-        snaptr->compute_bi();
+        snaptr->compute_bi(ielem);
       }
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
-        snaptr->compute_duidrj(snaptr->rij[jj],
-                                    snaptr->wj[jj],
-                                    snaptr->rcutij[jj],jj);
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi, -dBi/dRj

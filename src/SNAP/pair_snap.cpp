@@ -90,7 +90,6 @@ void PairSNAP::compute(int eflag, int vflag)
   double delx,dely,delz,evdwl,rsq;
   double fij[3];
   int *jlist,*numneigh,**firstneigh;
-  evdwl = 0.0;
 
   ev_init(eflag,vflag);
 
@@ -156,24 +155,28 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        snaptr->element[ninside] = jelem; // element index for alloy snap
         ninside++;
       }
     }
 
     // compute Ui, Yi for atom I
 
-    snaptr->compute_ui(ninside);
+    snaptr->compute_ui(ninside, ielem);
 
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
+    //for (int q=0; q<snaptr->idxu_max*2; q++){
+    //  fprintf(screen, "%i %f\n",q, snaptr->ylist_r[q]);
+    //}
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      snaptr->compute_duidrj(snaptr->rij[jj],
-                             snaptr->wj[jj],snaptr->rcutij[jj],jj);
+      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                             snaptr->rcutij[jj],jj, snaptr->element[jj]);
 
       snaptr->compute_deidrj(fij);
 
@@ -192,6 +195,7 @@ void PairSNAP::compute(int eflag, int vflag)
                      -snaptr->rij[jj][0],-snaptr->rij[jj][1],
                      -snaptr->rij[jj][2]);
     }
+    //fprintf(screen, "%f %f %f\n",f[i][0],f[i][1],f[i][2]);
 
     // tally energy contribution
 
@@ -201,6 +205,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
       double* coeffi = coeffelem[ielem];
       evdwl = coeffi[0];
+      // snaptr->copy_bi2bvec();
 
       // E = beta.B + 0.5*B^t.alpha.B
 
@@ -319,17 +324,20 @@ void PairSNAP::compute_bispectrum()
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        snaptr->element[ninside] = jelem; // element index for alloy snap
         ninside++;
       }
     }
 
-    snaptr->compute_ui(ninside);
+    snaptr->compute_ui(ninside, ielem);
     snaptr->compute_zi();
-    snaptr->compute_bi();
+    snaptr->compute_bi(ielem);
 
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
       bispectrum[ii][icoeff] = snaptr->blist[icoeff];
+    }
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -441,8 +449,9 @@ void PairSNAP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag, bnormflag,
+                   alloyflag, wselfallflag, nelements);
 
   if (ncoeff != snaptr->ncoeff) {
     if (comm->me == 0)
@@ -634,7 +643,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  alloyflag = 0;
+  wselfallflag = 0;
 
   // open SNAP parameter file on proc 0
 
@@ -696,8 +708,14 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       switchflag = atoi(keyval);
     else if (strcmp(keywd,"bzeroflag") == 0)
       bzeroflag = atoi(keyval);
+    else if (strcmp(keywd,"bnormflag") == 0)
+      bnormflag = atoi(keyval);
     else if (strcmp(keywd,"quadraticflag") == 0)
       quadraticflag = atoi(keyval);
+    else if (strcmp(keywd,"alloyflag") == 0)
+      alloyflag = atoi(keyval);
+    else if (strcmp(keywd,"wselfallflag") == 0)
+      wselfallflag = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }

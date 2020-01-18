@@ -42,6 +42,8 @@ class ComputeSNAAtom : public Compute {
   double rcutfac;
   double *radelem;
   double *wjelem;
+  int * map;  // map types to [0,nelements)
+  int nelements, alloyflag, wselfallflag;
   class SNA* snaptr;
   double cutmax;
   int quadraticflag;

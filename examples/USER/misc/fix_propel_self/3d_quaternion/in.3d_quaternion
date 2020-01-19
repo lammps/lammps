@@ -29,12 +29,12 @@ neighbor 0.6 bin
 
 dump traj all custom 100 3d_active.dump.bin id type x y z fx fy fz
 
-thermo_style custom time step pe ke etotal temp
+thermo_style custom step pe ke etotal temp
 thermo 100
-run 5000
+run 500
 
 fix active all propel/self quaternion 1.0
 
 # With active force there is more motion so increase bin size:
 neighbor 1.0 bin
-run 5000
+run 500

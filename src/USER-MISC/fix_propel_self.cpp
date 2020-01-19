@@ -263,6 +263,6 @@ int FixPropelSelf::atoms_have_quaternion()
 
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall > 0) return 0;
-  
+
   return 1;
 }

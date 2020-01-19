@@ -27,39 +27,34 @@ namespace LAMMPS_NS {
 class FixPropelSelf : public Fix {
  public:
 
-  enum operation_modes {
-    VELOCITY = 0,
-    QUATERNION = 1
-  };
-	
   FixPropelSelf(class LAMMPS *, int, char **);
   virtual ~FixPropelSelf();
   virtual int setmask();
   virtual void post_force(int);
-  // virtual void post_force_respa(int, int, int);
 
   double memory_usage();
 
+ protected:
+  enum operation_modes {
+    VELOCITY = 0,
+    QUATERNION = 1
+  };
+
 private:
   double magnitude;
-  int thermostat_orient;
   int mode;
-
 
   // If 0, apply fix to everything in group. If > 0, apply only to those
   // types i for which i <= n_types_filter _and_ apply_to_type[i] == 1:
   int n_types_filter;
   int *apply_to_type; //< Specifies, per type, if the fix applies to it or not.
-  
 
-  int verify_atoms_have_quaternion();
+
+  int atoms_have_quaternion();
 
   template <int filter_by_type> void post_force_velocity(int);
   template <int filter_by_type> void post_force_quaternion(int);
-	
-	
 };
-
 }
 
 #endif

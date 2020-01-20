@@ -2336,6 +2336,7 @@ quadratically
 quadrupolar
 Quant
 quartic
+quat
 quaternion
 quaternions
 quati

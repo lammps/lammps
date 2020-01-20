@@ -220,6 +220,7 @@ Bext
 Bfrac
 bgq
 Bh
+Bialke
 Biersack
 bigbig
 bigint
@@ -691,6 +692,7 @@ eangle
 eatom
 Eb
 Eba
+Ebeling
 ebond
 ebook
 ebt
@@ -789,6 +791,7 @@ equilibration
 Equilibria
 equilization
 Ercolessi
+Erdmann
 eradius
 erate
 erc
@@ -879,6 +882,7 @@ filename
 Filename
 filenames
 Filenames
+Fily
 fileper
 filesystem
 Fincham
@@ -975,6 +979,7 @@ gcc
 gcmc
 gdot
 GeC
+Geier
 gencode
 georg
 Georg
@@ -1087,6 +1092,7 @@ Heenen
 Hendrik
 Henin
 Henkelman
+Henkes
 henrich
 Henrich
 Herrmann
@@ -1534,6 +1540,7 @@ lmptype
 ln
 localTemp
 localvectors
+Loewen
 logfile
 logfreq
 logicals
@@ -1598,6 +1605,7 @@ manpages
 manybody
 MANYBODY
 Maras
+Marchetti
 Marrink
 Marroquin
 Marsaglia
@@ -2093,6 +2101,7 @@ outfile
 outmost
 outputss
 Ouyang
+overdamped
 overlayed
 Ovito
 oxdna
@@ -2327,6 +2336,7 @@ quadratically
 quadrupolar
 Quant
 quartic
+quat
 quaternion
 quaternions
 quati
@@ -2529,6 +2539,7 @@ scalexz
 scaleyz
 Schaik
 Schilfgarde
+Schimansky
 Schiotz
 Schlitter
 Schmid

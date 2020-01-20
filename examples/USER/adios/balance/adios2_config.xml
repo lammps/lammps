@@ -3,14 +3,14 @@
 
     <!-- example engines 
 
-        <engine type="BPFile">
+        <engine type="BP4">
             <parameter key="substreams" value="10"/>
         </engine>
 
         <engine type="HDF5">
 
 
-        The 'substreams' parameter in BPFile controls how many 
+        The 'substreams' parameter in BP4 controls how many 
         files on disk are created. This number should be proportional 
         to the number of servers in the parallel file system, 
         NOT to the number of processes. 
@@ -22,7 +22,7 @@
         ====================================================-->
 
     <io name="atom">
-        <engine type="BPFile">
+        <engine type="BP4">
             <parameter key="substreams" value="1"/>
         </engine>
     </io>
@@ -32,7 +32,7 @@
         ====================================================-->
 
     <io name="custom">
-        <engine type="BPFile">
+        <engine type="BP4">
             <parameter key="substreams" value="1"/>
         </engine>
     </io>

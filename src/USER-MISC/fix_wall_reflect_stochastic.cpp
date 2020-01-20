@@ -200,7 +200,7 @@ void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
   int i, dir, dim, side, sign;
   double factor,timecol,difftest,theta;
 
-  double *rmass atom->rmass;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
 
   // coord = current position of wall

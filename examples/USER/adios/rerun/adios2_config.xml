@@ -56,7 +56,6 @@
 
     <io name="read_dump">
         <engine type="BP4">
-            <parameter key="OpenTimeoutSecs" value="10.0"/>
         </engine>
     </io>
 

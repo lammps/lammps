@@ -65,6 +65,7 @@ public:
     // list of column names for the atom table
     // (individual list of 'columns' string)
     std::vector<std::string> columnNames;
+    float timeout = 0.0;
 };
 } // namespace LAMMPS_NS
 
@@ -114,7 +115,26 @@ ReaderADIOS::~ReaderADIOS()
    pass on settings to find and load the proper plugin
    Called by all processors.
 ------------------------------------------------------------------------- */
-void ReaderADIOS::settings(int narg, char **arg) {}
+void ReaderADIOS::settings(int narg, char **arg)
+{
+    int idx = 0;
+    while (idx < narg) {
+        if (!strcmp(arg[idx], "timeout")) {
+            if (idx + 1 < narg) {
+                internal->timeout = std::stof(arg[idx + 1]);
+                internal->io.SetParameter("OpenTimeoutSecs", arg[idx + 1]);
+                ++idx;
+            } else {
+                char str[128];
+                snprintf(str, sizeof(str),
+                         "Missing value for 'timeout' option for ADIOS "
+                         "read_dump command");
+                error->one(FLERR, str);
+            }
+        }
+        ++idx;
+    }
+}
 
 /* ----------------------------------------------------------------------
    try to open given file
@@ -130,9 +150,15 @@ void ReaderADIOS::open_file(const char *file)
     if (internal->fh)
         internal->fh.Close();
 
-    internal->fh = internal->io.Open(file, adios2::Mode::Read, world);
+    try {
+        internal->fh = internal->io.Open(file, adios2::Mode::Read, world);
+    } catch (std::ios_base::failure &e) {
+        char str[256];
+        snprintf(str, sizeof(str), "%s", e.what());
+        error->one(FLERR, str);
+    }
     if (!internal->fh) {
-        snprintf(str, strlen(str), "Cannot open file %s using ADIOS", file);
+        snprintf(str, sizeof(str), "Cannot open file %s using ADIOS", file);
         error->one(FLERR, str);
     }
 }
@@ -161,7 +187,7 @@ int ReaderADIOS::read_time(bigint &ntimestep)
     char str[1024];
 
     adios2::StepStatus status =
-        internal->fh.BeginStep(adios2::StepMode::Read, 10.0f);
+        internal->fh.BeginStep(adios2::StepMode::Read, internal->timeout);
 
     switch (status) {
     case adios2::StepStatus::EndOfStream:
@@ -176,13 +202,15 @@ int ReaderADIOS::read_time(bigint &ntimestep)
         internal->io.InquireVariable<uint64_t>("ntimestep");
 
     if (!internal->varNtimestep) {
-        snprintf(str, strlen(str),
+        snprintf(str, sizeof(str),
                  "Did not find 'ntimestep' variable in ADIOS file %s",
                  internal->fh.Name().c_str());
         error->one(FLERR, str);
     }
 
     ntimestep = static_cast<bigint>(internal->varNtimestep.Max());
+    // std::cerr << " ****  ReaderADIOS::read_time found step " << ntimestep
+    //          << " **** " << std::endl;
     return 0;
 }
 
@@ -220,7 +248,7 @@ bigint ReaderADIOS::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
     internal->varNatoms = internal->io.InquireVariable<uint64_t>("natoms");
     if (!internal->varNatoms) {
-        snprintf(str, strlen(str),
+        snprintf(str, sizeof(str),
                  "Did not find 'natoms' variable in ADIOS file %s",
                  internal->fh.Name().c_str());
         error->one(FLERR, str);
@@ -242,7 +270,7 @@ bigint ReaderADIOS::read_header(double box[3][3], int &boxinfo, int &triclinic,
     adios2::Attribute<int32_t> attTriclinic =
         internal->io.InquireAttribute<int32_t>("triclinic");
     if (!attTriclinic) {
-        snprintf(str, strlen(str),
+        snprintf(str, sizeof(str),
                  "Did not find 'triclinic' attribute in ADIOS file %s",
                  internal->fh.Name().c_str());
         error->one(FLERR, str);
@@ -458,7 +486,7 @@ void ReaderADIOS::read_atoms(int n, int nfield, double **fields)
 
     if (n != nAtoms) {
         snprintf(
-            str, strlen(str),
+            str, sizeof(str),
             "ReaderADIOS::read_atoms() expects 'n=%d' equal to the number of "
             "atoms (=%" PRIu64 ") for process %d in ADIOS file %s.",
             n, nAtoms, comm->me, internal->fh.Name().c_str());

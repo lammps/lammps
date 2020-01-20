@@ -25,5 +25,5 @@ neighbor	0.3 bin
 thermo          100
 
 rerun           lj_dump.bp first 200 last 800 every 200 &
-                dump x y z vx vy vz format adios
+                dump x y z vx vy vz format adios timeout 10.0
 

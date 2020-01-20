@@ -44,6 +44,8 @@ Examples
    rerun dump.vels dump x y z vx vy vz box yes format molfile lammpstrj
    rerun dump.dcd dump x y z box no format molfile dcd
    rerun ../run7/dump.file.gz skip 2 dump x y z box yes
+   rerun dump.bp dump x y z box no format adios 
+   rerun dump.bp dump x y z vx vy vz format adios timeout 10.0
 
 Description
 """""""""""

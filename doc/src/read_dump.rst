@@ -43,7 +43,9 @@ Syntax
        *format* values = format of dump file, must be last keyword if used
          *native* = native LAMMPS dump file
          *xyz* = XYZ file
-         *adios* = dump file written by the :doc:`dump adios <dump_adios>` command
+         *adios* [*timeout* value] = dump file written by the :doc:`dump adios <dump_adios>` command
+           *timeout* = specify waiting time for the arrival of the timestep when running concurrently.
+                     The value is a float number and is interpreted in seconds.
          *molfile* style path = VMD molfile plugin interface
            style = *dcd* or *xyz* or others supported by molfile plugins
            path = optional path for location of molfile plugins
@@ -67,6 +69,7 @@ Examples
    read_dump dump.dcd 0 x y z format molfile dcd
    read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
    read_dump dump.bp 5000 x y z vx vy vz format adios
+   read_dump dump.bp 5000 x y z vx vy vz format adios timeout 60.0
 
 Description
 """""""""""
@@ -144,7 +147,10 @@ entire dump is read in parallel across all the processes, dividing
 the atoms evenly amongs the processes. The number of writers that
 has written the dump file does not matter. Using the adios style for
 dump and read_dump is a convenient way to dump all atoms from *N* 
-writers and read it back by *M* readers.
+writers and read it back by *M* readers. If one is running two 
+LAMMPS instances concurrently where one dumps data and the other is 
+reading it with the rerun command, the timeout option can be specified 
+to wait on the reader side for the arrival of the requested step. 
 
 Support for other dump format readers may be added in the future.
 

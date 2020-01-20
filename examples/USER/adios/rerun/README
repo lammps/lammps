@@ -40,7 +40,12 @@ $ bpls -l lj_dump.bp -d atoms -n 8 --format "%g" | less -S
 Concurrent rerun use case
 =========================
 
-The ADIOS BP4 engine allows for reading from the dump file (completed steps) while the writer is still running (and dumping new steps). In two terminals one can run the in.first and in.rerun examples concurrently. The second simulation will blocking wait for the steps from the first.
+The ADIOS BP4 engine allows for reading from the dump file (completed steps) 
+while the writer is still running (and dumping new steps). In two terminals, 
+one can run the in.first and in.rerun examples concurrently. The second 
+simulation will blocking wait for the steps from the first up to the timeout 
+specified in the rerun command.
 
 $ mpirun -n 2 lmp -in in.first
 $ mpirun -n 4 lmp -in in.rerun 
+

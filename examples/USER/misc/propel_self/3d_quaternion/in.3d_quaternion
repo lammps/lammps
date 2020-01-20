@@ -18,11 +18,11 @@ pair_coeff * * 1.0 1.0
 pair_modify shift yes
 
 # mass * 1.0
-set type * density 1.0
 set type * shape 1.0 1.0 1.0
+set type * density 1.9098593171027443
 set type * quat 0 0 1 0
 
-fix step all nve
+fix step all nve/asphere
 fix temp all langevin 1.0 1.0 1.0 13 angmom 3.333333333
 
 neighbor 0.6 bin

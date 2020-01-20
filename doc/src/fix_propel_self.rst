@@ -10,7 +10,7 @@ fix ID group-ID propel/self mode magnitude keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * propel/self = style name of this fix command
-* mode = velocity or quaternion
+* mode = velocity or quat
 * magnitude = magnitude of the active force
 * one or more keyword/value pairs may be appended to args
 * keyword = *types*
@@ -28,9 +28,9 @@ Examples
    fix active_group all propel/self velocity 1.0
    fix constant_velocity all viscous 1.0
 
-   fix active_group all propel/self quaternion 1.0
+   fix active_group all propel/self quat 1.0
 
-   fix active all propel/self quaternion 1.0 types 1 2 4
+   fix active all propel/self quat 1.0 types 1 2 4
 
 Description
 """""""""""
@@ -42,7 +42,7 @@ For *mode* = *velocity*, the active force acts along the velocity vector of
 each atom. This can be interpreted as a velocity-dependent friction,
 such as proposed by :ref:`(Erdmann) <Erdmann>`.
 
-For *mode* = *quaternion* the force is applied along the axis obtained
+For *mode* = *quat* the force is applied along the axis obtained
 by rotating the x-axis along the atom's quaternion. In other words, the
 force is along the x-axis in the atom's body frame. This mode requires
 all atoms in the group to have a quaternion, so atom\_style should
@@ -70,9 +70,9 @@ Restrictions
 """"""""""""
 
 
-In quaternion mode, this fix makes use of per-atom quaternions to take
+In quat mode, this fix makes use of per-atom quaternions to take
 into account the fact that the orientation can rotate and hence the
-direction of the active force can change. The quaternion mode
+direction of the active force can change. The quat mode
 of this fix only works with atom\_style ellipsoid.
 
 Related commands

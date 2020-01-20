@@ -33,7 +33,7 @@ thermo_style custom step pe ke etotal temp
 thermo 100
 run 500
 
-fix active all propel/self quaternion 1.0
+fix active all propel/self quat 1.0
 
 # With active force there is more motion so increase bin size:
 neighbor 1.0 bin

@@ -66,7 +66,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   if (strncmp(mode_str, "velocity", 8) == 0) {
     mode = VELOCITY;
 
-  } else if (strncmp(mode_str, "quaternion", 10) == 0) {
+  } else if (strncmp(mode_str, "quat", 10) == 0) {
 
     // This mode should only be supported if the atom style has
     // a quaternion (and if all atoms in the group have it)
@@ -248,7 +248,7 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/)
 int FixPropelSelf::atoms_have_quaternion()
 {
   if (!atom->ellipsoid_flag) {
-    error->all(FLERR, "Mode 'quaternion' requires atom style ellipsoid");
+    error->all(FLERR, "Mode 'quat' requires atom style ellipsoid");
     return 0;
   }
 

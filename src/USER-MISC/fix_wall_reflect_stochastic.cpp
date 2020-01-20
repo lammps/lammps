@@ -198,9 +198,9 @@ FixWallReflectStochastic::~FixWallReflectStochastic()
 void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 {
   int i, dir, dim, side, sign;
-  double vsave,factor,timecol,difftest,theta;
+  double factor,timecol,difftest,theta;
 
-  double *rmass;
+  double *rmass atom->rmass;
   double *mass = atom->mass;
 
   // coord = current position of wall

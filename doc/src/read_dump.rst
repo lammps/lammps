@@ -144,7 +144,7 @@ i.e. the current directory.
 The *adios* format supports reading data that was written by the 
 :doc:`dump adios <dump_adios>` command. The 
 entire dump is read in parallel across all the processes, dividing
-the atoms evenly amongs the processes. The number of writers that
+the atoms evenly among the processes. The number of writers that
 has written the dump file does not matter. Using the adios style for
 dump and read_dump is a convenient way to dump all atoms from *N* 
 writers and read it back by *M* readers. If one is running two 

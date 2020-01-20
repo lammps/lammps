@@ -97,7 +97,7 @@ pair\_style lj/cut/tip4p/long command
 =====================================
 
 pair\_style lj/cut/tip4p/long/gpu command
-========================================
+=========================================
 
 pair\_style lj/cut/tip4p/long/omp command
 =========================================

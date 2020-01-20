@@ -139,5 +139,3 @@ An alphabetic list of all general LAMMPS commands.
    *
    *
    *
-   *
-   *

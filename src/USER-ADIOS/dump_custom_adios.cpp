@@ -132,8 +132,15 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg)
 : DumpCustom(lmp, narg, arg)
 {
     internal = new DumpCustomADIOSInternal();
-    internal->ad =
-        new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+    try {
+        internal->ad =
+            new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+    } catch (std::ios_base::failure &e) {
+        char str[256];
+        snprintf(str, sizeof(str), "ADIOS initialization failed with error: %s",
+                 e.what());
+        error->one(FLERR, str);
+    }
 
     // if (screen) fprintf(screen, "DumpCustomADIOS constructor: nvariable=%d
     // id_variable=%p, variables=%p, nfield=%d, earg=%p\n", nvariable,

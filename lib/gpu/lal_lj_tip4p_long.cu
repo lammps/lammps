@@ -16,6 +16,16 @@
 #ifdef NV_KERNEL
 
 #include "lal_aux_fun1.h"
+#ifdef LAMMPS_SMALLBIG
+#define tagint int
+#endif
+#ifdef LAMMPS_BIGBIG
+#include "inttypes.h"
+#define tagint int64_t
+#endif
+#ifdef LAMMPS_SMALLSMALL
+#define tagint int
+#endif
 #ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex;
 texture<float> q_tex;
@@ -29,7 +39,7 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-ucl_inline int atom_mapping(const __global int *map, int glob) {
+ucl_inline int atom_mapping(const __global int *map, tagint glob) {
   return map[glob];
 }
 
@@ -170,7 +180,7 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
     __global int *restrict hneigh,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
-    const __global int *restrict tag, const __global int *restrict map,
+    const __global tagint *restrict tag, const __global int *restrict map,
     const __global int *restrict sametag) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -226,9 +236,7 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
     __global int *restrict hneigh,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
-    const numtyp alpha, const __global numtyp *restrict q_,
-    const __global int *restrict tag, const __global int *restrict map,
-    const __global int *restrict sametag) {
+    const numtyp alpha, const __global numtyp *restrict q_) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
@@ -268,8 +276,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp *restrict cutsq,
     const numtyp qqrd2e, const numtyp g_ewald,
     const numtyp cut_coulsq, const numtyp cut_coulsqplus,
-    const __global int *restrict tag, const __global int *restrict map,
-    const __global int *restrict sametag, __global acctyp4 *restrict ansO) {
+    __global acctyp4 *restrict ansO) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 

@@ -66,7 +66,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   if (strncmp(mode_str, "velocity", 8) == 0) {
     mode = VELOCITY;
 
-  } else if (strncmp(mode_str, "quat", 10) == 0) {
+  } else if (strncmp(mode_str, "quat", 4) == 0) {
 
     // This mode should only be supported if the atom style has
     // a quaternion (and if all atoms in the group have it)

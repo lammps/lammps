@@ -46,7 +46,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
-   * :doc:`dump adios <dump_adios>`
+   * :doc:`dump atom/adios <dump_adios>`
+   * :doc:`dump custom/adios <dump_adios>`
    * :doc:`dump image <dump_image>`
    * :doc:`dump movie <dump_image>`
    * :doc:`dump netcdf <dump_netcdf>`
@@ -131,11 +132,10 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`units <units>`
    * :doc:`variable <variable>`
    * :doc:`velocity <velocity>`
-   * :doc:`write_coeff <write_coeff>`
-   * :doc:`write_data <write_data>`
-   * :doc:`write_dump <write_dump>`
-   * :doc:`write_restart <write_restart>`
-   *
+   * :doc:`write\_coeff <write_coeff>`
+   * :doc:`write\_data <write_data>`
+   * :doc:`write\_dump <write_dump>`
+   * :doc:`write\_restart <write_restart>`
    *
    *
    *

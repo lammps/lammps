@@ -21,8 +21,11 @@ dump command
 :doc:`dump movie <dump_image>` command
 ======================================
 
-:doc:`dump adios <dump_adios>` command
-======================================
+:doc:`dump atom/adios <dump_adios>` command
+===========================================
+
+:doc:`dump custom/adios <dump_adios>` command
+=============================================
 
 Syntax
 """"""
@@ -45,12 +48,12 @@ Syntax
        *atom* args = none
        *atom/gz* args = none
        *atom/mpiio* args = none
-       *atom/adios* args = none,  discussed on :doc:`dump adios <dump_adios>` doc page
+       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` doc page
        *cfg* args = same as *custom* args, see below
        *cfg/gz* args = same as *custom* args, see below
        *cfg/mpiio* args = same as *custom* args, see below
        *custom*\ , *custom/gz*\ , *custom/mpiio* args = see below
-       *custom/adios* args = same as *custom* args, discussed on :doc:`dump adios <dump_adios>` doc page
+       *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` doc page
        *dcd* args = none
        *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` doc page
        *image* args = discussed on :doc:`dump image <dump_image>` doc page
@@ -713,7 +716,8 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`dump adios <dump_adios>` :doc:`dump h5md <dump_h5md>`, :doc:`dump image <dump_image>`,
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`, 
+:doc:`dump h5md <dump_h5md>`, :doc:`dump image <dump_image>`,
 :doc:`dump molfile <dump_molfile>`, :doc:`dump\_modify <dump_modify>`,
 :doc:`undump <undump>`
 

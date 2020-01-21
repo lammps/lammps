@@ -116,7 +116,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
         // DIFFUSIVE = no accomodation coeffs
         // MAXWELL = one for all dimensions
-        // CLL = one for each dimension
+        // CCL = one for each dimension
 
         if (rstyle == CCL)
           wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+6]);

@@ -802,26 +802,6 @@ void CreateAtoms::add_lattice()
   if (ymin < 0.0) jlo--;
   if (zmin < 0.0) klo--;
 
-  // rough estimate of total time used for create atoms
-  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
-  // maxestimate = time in hours
-
-  double estimate = 2.5e-8/3600.0;
-  estimate *= static_cast<double> (khi-klo+1);
-  estimate *= static_cast<double> (jhi-jlo+1);
-  estimate *= static_cast<double> (ihi-ilo+1);
-  estimate *= static_cast<double> (nbasis);
-
-  double maxestimate = 0.0;
-  MPI_Reduce(&estimate,&maxestimate,1,MPI_DOUBLE,MPI_MAX,0,world);
-
-  if ((comm->me == 0) && (maxestimate > 0.01)) {
-    if (screen) fprintf(screen,"WARNING: create_atoms will take "
-                        "approx. %.2f hours to complete\n",maxestimate);
-    if (logfile) fprintf(logfile,"WARNING: create_atoms will take "
-                         "approx. %.2f hours to complete\n",maxestimate);
-  }
-
   // count lattice sites on each proc
 
   nlatt_overflow = 0;

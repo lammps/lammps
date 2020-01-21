@@ -223,18 +223,18 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     }
 
     // bound thresh for RNG accuracy
-  
+
     thresh = MAX(thresh,0.01);
     thresh = MIN(thresh,0.99);
 
     // new empty active sets for next iteration
-  
+
     newactive[0] = newactive[1] = 0;
     newfirst[0] = newfirst[1] = -1;
     newlast[0] = newlast[1] = -1;
 
     // index = first value in ADD or SUBTRACT set
-  
+
     if (mode == ADD) newvalue = 1;
     else if (mode == SUBTRACT) newvalue = 0;
     index = first[mode];
@@ -242,7 +242,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     // flip marks from 0 -> 1 (ADD) or 1 -> 0 (SUBTRACT)
     // loop over active set via next vector = linked list
     // flip each value based on RN < thresh
-  
+
     nflip = 0;
     while (index >= 0) {
       if (uniform() < thresh) {
@@ -254,7 +254,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 
       // oldindex can now be appended to a new active set
       // which = which of two new active sets to append to
-    
+
       which = mark[oldindex];
       newactive[which]++;
       if (newfirst[which] < 0) newfirst[which] = oldindex;
@@ -264,13 +264,13 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 
       // set active sets for next iteration to the new ones
       // next vector is already updated
-  
+
       active[0] = newactive[0];
-      active[1] = newactive[1];  
+      active[1] = newactive[1];
       first[0] = newfirst[0];
-      first[1] = newfirst[1];  
+      first[1] = newfirst[1];
       last[0] = newlast[0];
-      last[1] = newlast[1];  
+      last[1] = newlast[1];
     }
 
     // update nmark and activeall
@@ -289,7 +289,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     else if (mode == SUBTRACT) nmark -= nflipall;
 
     niter++;
-    
+
     // DEBUG output of stats
 
     //if (comm->me == 0) printf("%d %ld %ld %g %ld\n",

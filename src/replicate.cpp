@@ -225,7 +225,7 @@ void Replicate::command(int narg, char **arg)
   atom->allocate_type_arrays();
 
   // allocate atom arrays to size N, rounded up by AtomVec->DELTA
-      
+
   bigint nbig = n;
   nbig = atom->avec->roundup(nbig);
   n = static_cast<int> (nbig);

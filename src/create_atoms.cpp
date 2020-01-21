@@ -205,7 +205,7 @@ void CreateAtoms::command(int narg, char **arg)
       subsetflag = RATIO;
       subsetfrac = force->numeric(FLERR,arg[iarg+1]);
       subsetseed = force->inumeric(FLERR,arg[iarg+2]);
-      if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0) 
+      if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"subset") == 0) {
@@ -213,7 +213,7 @@ void CreateAtoms::command(int narg, char **arg)
       subsetflag = SUBSET;
       nsubset = force->bnumeric(FLERR,arg[iarg+1]);
       subsetseed = force->inumeric(FLERR,arg[iarg+2]);
-      if (nsubset <= 0 || subsetseed <= 0) 
+      if (nsubset <= 0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
@@ -805,7 +805,7 @@ void CreateAtoms::add_lattice()
   // rough estimate of total time used for create atoms
   // one inner loop takes about 25ns on a typical desktop CPU core in 2019
   // maxestimate = time in hours
-  
+
   double estimate = 2.5e-8/3600.0;
   estimate *= static_cast<double> (khi-klo+1);
   estimate *= static_cast<double> (jhi-jlo+1);
@@ -831,7 +831,7 @@ void CreateAtoms::add_lattice()
 
   int overflow;
   MPI_Allreduce(&nlatt_overflow,&overflow,1,MPI_INT,MPI_SUM,world);
-  if (overflow) 
+  if (overflow)
     error->all(FLERR,"Create_atoms lattice size overflow on 1 or more procs");
 
   bigint nadd;
@@ -850,7 +850,7 @@ void CreateAtoms::add_lattice()
     if (nprocs == 1) nadd = nsubset;
     else nadd = static_cast<bigint> (LB_FACTOR * nsubset/bnlattall * nlatt);
   }
-  
+
   // allocate atom arrays to size N, rounded up by AtomVec->DELTA
 
   bigint nbig = atom->avec->roundup(nadd + atom->nlocal);
@@ -895,13 +895,13 @@ void CreateAtoms::loop_lattice(int action)
         for (m = 0; m < nbasis; m++) {
           double *coord;
           double x[3],lamda[3];
-          
+
           x[0] = i + basis[m][0];
           x[1] = j + basis[m][1];
           x[2] = k + basis[m][2];
 
           // convert from lattice coords to box coords
-          
+
           domain->lattice->lattice2box(x[0],x[1],x[2]);
 
           // if a region was specified, test if atom is in it
@@ -910,20 +910,20 @@ void CreateAtoms::loop_lattice(int action)
             if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
 
           // if variable test specified, eval variable
-          
+
           if (varflag && vartest(x) == 0) continue;
-          
+
           // test if atom/molecule position is in my subbox
-          
+
           if (triclinic) {
             domain->x2lamda(x,lamda);
             coord = lamda;
           } else coord = x;
-          
+
           if (coord[0] < sublo[0] || coord[0] >= subhi[0] ||
               coord[1] < sublo[1] || coord[1] >= subhi[1] ||
               coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
-          
+
           // this proc owns the lattice site
           // perform action: add, just count, add if flagged
           // add = add an atom or entire molecule to my list of atoms

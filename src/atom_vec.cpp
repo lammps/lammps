@@ -118,7 +118,7 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 bigint AtomVec::roundup(bigint n)
 {
   if (n % DELTA) n = n/DELTA * DELTA + DELTA;
-  if (n > MAXSMALLINT) 
+  if (n > MAXSMALLINT)
     error->one(FLERR,"Too many atoms created on one or more procs");
   return n;
 }

@@ -45,7 +45,7 @@ class CreateAtoms : protected Pointers {
 
   int ilo,ihi,jlo,jhi,klo,khi;
 
-  int nlatt;                  // number of owned lattice sites 
+  int nlatt;                  // number of owned lattice sites
   int nlatt_overflow;         // 1 if local nlatt exceeds a 32-bit int
 
   int *flag;                  // flag subset of particles to insert on lattice

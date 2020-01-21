@@ -167,7 +167,7 @@ void ReadRestart::command(int narg, char **arg)
   atom->deallocate_topology();
 
   // allocate atom arrays to size N, rounded up by AtomVec->DELTA
-      
+
   bigint nbig = n;
   nbig = atom->avec->roundup(nbig);
   n = static_cast<int> (nbig);
@@ -220,7 +220,7 @@ void ReadRestart::command(int narg, char **arg)
 
     // can calculate number of atoms from assignedChunkSize
 
-    if (!nextra) { 
+    if (!nextra) {
       atom->nlocal = 1; // temporarily claim there is one atom...
       int perAtomSize = avec->size_restart(); // ...so we can get its size
       atom->nlocal = 0; // restore nlocal to zero atoms

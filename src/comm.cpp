@@ -34,6 +34,7 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -688,7 +689,7 @@ double Comm::get_comm_cutoff()
 
   // print warning if neighborlist cutoff overrides user cutoff
 
-  if (me == 0) {
+  if ((me == 0) && (update->setupflag == 1)) {
     if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
       char mesg[128];
       snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);

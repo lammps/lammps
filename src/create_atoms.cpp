@@ -776,23 +776,6 @@ void CreateAtoms::add_lattice()
 
   const double * const * const basis = domain->lattice->basis;
 
-  // rough estimate of total time used for create atoms.
-  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
-  double testimate = 2.5e-8/3600.0; // convert seconds to hours
-  testimate *= static_cast<double>(khi-klo+1);
-  testimate *= static_cast<double>(jhi-jlo+1);
-  testimate *= static_cast<double>(ihi-ilo+1);
-  testimate *= static_cast<double>(nbasis);
-  double maxestimate = 0.0;
-  MPI_Reduce(&testimate,&maxestimate,1,MPI_DOUBLE,MPI_MAX,0,world);
-
-  if ((comm->me == 0) && (maxestimate > 0.01)) {
-    if (screen) fprintf(screen,"WARNING: create_atoms will take "
-                        "approx. %.2f hours to complete\n",maxestimate);
-    if (logfile) fprintf(logfile,"WARNING: create_atoms will take "
-                         "approx. %.2f hours to complete\n",maxestimate);
-  }
-
   int i,j,k,m;
   for (k = klo; k <= khi; k++) {
     for (j = jlo; j <= jhi; j++) {

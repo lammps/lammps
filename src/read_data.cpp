@@ -440,6 +440,12 @@ void ReadData::command(int narg, char **arg)
 
       atom->allocate_type_arrays();
       atom->deallocate_topology();
+
+      // allocate atom arrays to N, rounded up by increment of DELTA
+      
+      bigint nbig = n;
+      nbig = atom->avec->roundup(nbig);
+      n = static_cast<int> (nbig);
       atom->avec->grow(n);
 
       domain->boxlo[0] = boxlo[0]; domain->boxhi[0] = boxhi[0];

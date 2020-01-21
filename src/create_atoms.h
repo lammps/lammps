@@ -32,16 +32,24 @@ class CreateAtoms : protected Pointers {
  private:
   int me,nprocs;
   int ntype,style,mode,nregion,nbasis,nrandom,seed;
+  int remapflag;
+  int subsetflag;
+  bigint nsubset;
+  double subsetfrac;
   int *basistype;
   double xone[3],quatone[4];
-  int remapflag;
 
   int varflag,vvar,xvar,yvar,zvar;
   char *vstr,*xstr,*ystr,*zstr;
   char *xstr_copy,*ystr_copy,*zstr_copy;
 
-  int nlatt,nsubset,subsetflag;
-  int *flag;                  // used to insert N number of particles on lattice
+  int ilo,ihi,jlo,jhi,klo,khi;
+
+  int nlatt;                  // number of owned lattice sites 
+  int nlatt_overflow;         // 1 if local nlatt exceeds a 32-bit int
+
+  int *flag;                  // flag subset of particles to insert on lattice
+  int *next;
 
   class Molecule *onemol;
   class RanMars *ranmol;
@@ -53,7 +61,7 @@ class CreateAtoms : protected Pointers {
   void add_single();
   void add_random();
   void add_lattice();
-  void get_subset();
+  void loop_lattice(int);
   void add_molecule(double *, double * = NULL);
   int vartest(double *);      // evaluate a variable with new atom position
 };

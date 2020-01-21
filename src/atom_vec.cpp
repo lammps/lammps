@@ -19,6 +19,8 @@
 #include "error.h"
 #include "utils.h"
 
+#include "comm.h"
+
 using namespace LAMMPS_NS;
 
 #define DELTA 16384
@@ -106,6 +108,19 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
   nmax_bonus = nmax_bonus/DELTA_BONUS * DELTA_BONUS;
   nmax_bonus += DELTA_BONUS;
   return nmax_bonus;
+}
+
+/* ----------------------------------------------------------------------
+   roundup N so it is a multiple of DELTA
+   error if N exceeds 32-bit int, since will be used as arg to grow()
+------------------------------------------------------------------------- */
+
+bigint AtomVec::roundup(bigint n)
+{
+  if (n % DELTA) n = n/DELTA * DELTA + DELTA;
+  if (n > MAXSMALLINT) 
+    error->one(FLERR,"Too many atoms created on one or more procs");
+  return n;
 }
 
 /* ----------------------------------------------------------------------

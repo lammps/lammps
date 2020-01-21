@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
+------------------------------------------------------------------------- */
+
 #include "create_atoms.h"
 #include <mpi.h>
 #include <cstring>

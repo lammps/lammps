@@ -132,10 +132,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`units <units>`
    * :doc:`variable <variable>`
    * :doc:`velocity <velocity>`
-   * :doc:`write\_coeff <write_coeff>`
-   * :doc:`write\_data <write_data>`
-   * :doc:`write\_dump <write_dump>`
-   * :doc:`write\_restart <write_restart>`
-   *
-   *
-   *
+   * :doc:`write_coeff <write_coeff>`
+   * :doc:`write_data <write_data>`
+   * :doc:`write_dump <write_dump>`
+   * :doc:`write_restart <write_restart>`
+

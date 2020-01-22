@@ -486,6 +486,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Only systems with bonds that can be changed can be used. Atom\_style
    template does not qualify.
 
+*Bond/react: Invalid template atom ID in map file*
+   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+
 *Bond/react: Rmax cutoff is longer than pairwise cutoff*
    This is not allowed because bond creation is done using the pairwise
    neighbor list.

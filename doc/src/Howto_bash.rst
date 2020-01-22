@@ -115,8 +115,8 @@ Files in Ubuntu on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you launch "Bash on Ubuntu on Windows" you will start out in your Linux
-user home directory /home/\ **username**\ . You can access your Windows user directory
-using the /mnt/c/Users/\ **username** folder.
+user home directory /home/[username]\ . You can access your Windows user directory
+using the /mnt/c/Users/[username] folder.
 
 Download LAMMPS
 ^^^^^^^^^^^^^^^

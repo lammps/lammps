@@ -22,6 +22,12 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 #ifndef LMP_PPPM_KOKKOS_H
 #define LMP_PPPM_KOKKOS_H
 
+#include "gridcomm_kokkos.h"
+#include "remap_kokkos.h"
+#include "fft3d_kokkos.h"
+#include "kokkos_base.h"
+#include "kokkos_type.h"
+
 // fix up FFT defines for KOKKOS with CUDA
 
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -40,11 +46,6 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 #endif
 
 #include "pppm.h"
-#include "gridcomm_kokkos.h"
-#include "remap_kokkos.h"
-#include "fft3d_kokkos.h"
-#include "kokkos_base.h"
-#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 

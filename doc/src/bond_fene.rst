@@ -1,22 +1,22 @@
-.. index:: bond\_style fene
+.. index:: bond_style fene
 
-bond\_style fene command
-========================
+bond_style fene command
+=======================
 
-bond\_style fene/intel command
-==============================
+bond_style fene/intel command
+=============================
 
-bond\_style fene/kk command
+bond_style fene/kk command
+==========================
+
+bond_style fene/omp command
 ===========================
-
-bond\_style fene/omp command
-============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style fene
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style fene
    bond_coeff 1 30.0 1.5 1.0 1.0
@@ -34,24 +34,26 @@ Description
 
 The *fene* bond style uses the potential
 
-.. image:: Eqs/bond_fene.jpg
-   :align: center
+.. math::
+
+   E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] + 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
+
 
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <fene-Kremer>`, used for bead-spring polymer models.  The first
 term is attractive, the 2nd Lennard-Jones term is repulsive.  The
-first term extends to R0, the maximum extent of the bond.  The 2nd
-term is cutoff at 2\^(1/6) sigma, the minimum of the LJ potential.
+first term extends to :math:`R_0`, the maximum extent of the bond.  The 2nd
+term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/distance\^2)
-* R0 (distance)
-* epsilon (energy)
-* sigma (distance)
+* :math:`K` (energy/distance\^2)
+* :math:`R_0` (distance)
+* :math:`\epsilon` (energy)
+* :math:`\sigma` (distance)
 
 
 ----------
@@ -107,8 +109,3 @@ Related commands
 
 
 **(Kremer)** Kremer, Grest, J Chem Phys, 92, 5057 (1990).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

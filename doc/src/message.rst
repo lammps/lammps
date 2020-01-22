@@ -11,7 +11,7 @@ Syntax
 
    message which protocol mode arg
 
-* which = *client* or *server*
+* which = *client* or *server* or *quit*
 * protocol = *md* or *mc*
 * mode = *file* or *zmq* or *mpi/one* or *mpi/two*
   
@@ -46,6 +46,8 @@ Examples
    message client md mpi/two tmp.couple
    message server md mpi/two tmp.couple
 
+   message quit
+
 Description
 """""""""""
 
@@ -63,6 +65,10 @@ enables the two codes to work in tandem to perform a simulation.
 
 
 The *which* argument defines LAMMPS to be the client or the server.
+
+As explained below the *quit* option should be used when LAMMPS is
+finished as a client.  It sends a message to the server to tell it to
+shut down.
 
 
 ----------
@@ -146,12 +152,12 @@ path/file in a common filesystem.
 ----------
 
 
-Normally, the message command should be used at the top of a LAMMPS
-input script.  It performs an initial handshake with the other code to
-setup messaging and to verify that both codes are using the same
-message protocol and mode.  Assuming both codes are launched at
-(nearly) the same time, the other code should perform the same kind of
-initialization.
+Normally, the message client or message server command should be used
+at the top of a LAMMPS input script.  It performs an initial handshake
+with the other code to setup messaging and to verify that both codes
+are using the same message protocol and mode.  Assuming both codes are
+launched at (nearly) the same time, the other code should perform the
+same kind of initialization.
 
 If LAMMPS is the client code, it will begin sending messages when a
 LAMMPS client command begins its operation.  E.g. for the :doc:`fix client/md <fix_client_md>` command, it is when a :doc:`run <run>`
@@ -160,16 +166,25 @@ command is executed.
 If LAMMPS is the server code, it will begin receiving messages when
 the :doc:`server <server>` command is invoked.
 
-A fix client command will terminate its messaging with the server when
-LAMMPS ends, or the fix is deleted via the :doc:`unfix <unfix>` command.
-The server command will terminate its messaging with the client when the
-client signals it.  Then the remainder of the LAMMPS input script will
-be processed.
+If LAMMPS is being used as a client, the message quit command will
+terminate its messaging with the server.  If you do not use this
+command and just allow LAMMPS to exit, then the server will continue
+to wait for further messages.  This may not be a problem, but if both
+the client and server programs were launched in the same batch script,
+then if the server runs indefinitely, it may consume the full allocation
+of computer time, even if the calculation finishes sooner.
 
-If both codes do something similar, this means a new round of
-client/server messaging can be initiated after termination by re-using
-a 2nd message command in your LAMMPS input script, followed by a new
-fix client or server command.
+Note that if LAMMPS is the client or server, it will continue
+processing the rest of its input script after client/server
+communication terminates.
+
+If both codes cooperate in this manner, a new round of client/server
+messaging can be initiated after termination by re-using a 2nd message
+command in your LAMMPS input script, followed by a new fix client or
+server command, followed by another message quit command (if LAMMPS is
+the client).  As an example, this can be performed in a loop to use a
+quantum code as a server to compute quantum forces for multiple LAMMPS
+data files or periodic snapshots while running dynamics.
 
 
 ----------

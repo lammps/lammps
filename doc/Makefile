@@ -31,7 +31,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
 OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check style_check
 
 # ------------------------------------------
 
@@ -46,6 +46,7 @@ help:
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
@@ -69,6 +70,7 @@ html: $(OBJECTS) $(ANCHORCHECK)
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -122,24 +124,27 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-                . $(VENV)/bin/activate ;\
-                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
-                echo "############################################" ;\
-                rst_anchor_check src/*.rst ;\
-                echo "############################################" ;\
-                deactivate ;\
+		. $(VENV)/bin/activate ;\
+		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		echo "############################################" ;\
+		rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		echo "############################################" ;\
+		deactivate ;\
 	)
 	@cd latex && \
-          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-	  mv temp Makefile && \
-	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  make && \
-	  make && \
-	  mv LAMMPS.pdf ../Manual.pdf && \
-	  cd ../;
+		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+		mv temp Makefile && \
+		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		make && \
+		make && \
+		make && \
+		mv LAMMPS.pdf ../Manual.pdf && \
+		cd ../;
 	@rm -rf latex/_sources
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
@@ -166,9 +171,16 @@ anchor_check : $(ANCHORCHECK)
 		deactivate ;\
 	)
 
+style_check :
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		deactivate ;\
+	)
+
 # ------------------------------------------
 
-$(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
+$(RSTDIR)/%.rst : $(TXTDIR)/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\

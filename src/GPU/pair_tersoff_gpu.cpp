@@ -32,6 +32,7 @@
 #include "error.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -76,6 +77,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 PairTersoffGPU::PairTersoffGPU(LAMMPS *lmp) : PairTersoff(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
   cutghost = NULL;

@@ -1,41 +1,45 @@
-.. index:: angle\_style fourier/simple
+.. index:: angle_style fourier/simple
 
-angle\_style fourier/simple command
-===================================
+angle_style fourier/simple command
+==================================
 
-angle\_style fourier/simple/omp command
-=======================================
+angle_style fourier/simple/omp command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style fourier/simple
 
 Examples
 """"""""
 
-angle\_style fourier/simple
-angle\_coeff 100.0 -1.0 1.0
+.. code-block:: LAMMPS
+
+   angle_style fourier/simple
+   angle_coeff 100.0 -1.0 1.0
 
 Description
 """""""""""
 
 The *fourier/simple* angle style uses the potential
 
-.. image:: Eqs/angle_fourier_simple.jpg
-   :align: center
+.. math::
+
+   E = K [ 1.0 + c \cos ( n \theta) ]
+
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy)
-* c (real)
-* n (real)
+* :math:`K` (energy)
+* :math:`c` (real)
+* :math:`n` (real)
 
 
 ----------
@@ -77,8 +81,3 @@ Related commands
 :doc:`angle\_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

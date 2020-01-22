@@ -17,7 +17,7 @@ one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 0.5
    run      100
@@ -26,7 +26,7 @@ Thus this sequence of commands:
 does something different than this sequence:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run      100
    timestep 0.5
@@ -55,8 +55,3 @@ Many input script errors are detected by LAMMPS and an ERROR or
 WARNING message is printed.  The :doc:`Errors <Errors>` doc page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

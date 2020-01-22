@@ -57,6 +57,7 @@ class AtomVec : protected Pointers {
 
   virtual void grow(int) = 0;
   virtual void grow_reset() = 0;
+  bigint roundup(bigint);
   virtual void copy(int, int, int) = 0;
   virtual void clear_bonus() {}
   virtual void force_clear(int, size_t) {}

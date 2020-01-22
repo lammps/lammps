@@ -1,13 +1,13 @@
-.. index:: atom\_style
+.. index:: atom_style
 
-atom\_style command
-===================
+atom_style command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style style args
 
@@ -33,7 +33,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style atomic
    atom_style bond
@@ -371,8 +371,3 @@ atom\_style atomic
 
 **(Grime)** Grime and Voth, to appear in J Chem Theory & Computation
 (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

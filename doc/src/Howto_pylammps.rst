@@ -57,7 +57,7 @@ output support enabled.
 Step 1a: For the CMake based build system, the steps are:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mkdir $LAMMPS_DIR/build-shared
    cd  $LAMMPS_DIR/build-shared
@@ -69,7 +69,7 @@ Step 1a: For the CMake based build system, the steps are:
 Step 1b: For the legacy, make based build system, the steps are:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd $LAMMPS_DIR/src
 
@@ -86,7 +86,7 @@ PyLammps is part of the lammps Python package. To install it simply install
 that package into your current Python installation with:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make install-python
 
@@ -111,7 +111,7 @@ Benefits of using a virtualenv
 **Prerequisite (e.g. on Ubuntu)**
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    apt-get install python-virtualenv
 
@@ -119,7 +119,7 @@ Creating a virtualenv with lammps installed
 """""""""""""""""""""""""""""""""""""""""""
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    # create virtualenv named 'testing'
    virtualenv $HOME/python/testing
@@ -133,7 +133,7 @@ need to re-run CMake to update the location of the python executable
 to the location in the virtual environment with:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cmake . -DPYTHON_EXECUTABLE=$(which python)
 
@@ -155,7 +155,7 @@ To create a PyLammps object you need to first import the class from the lammps
 module. By using the default constructor, a new *lammps* instance is created.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from lammps import PyLammps
    L = PyLammps()
@@ -163,7 +163,7 @@ module. By using the default constructor, a new *lammps* instance is created.
 You can also initialize PyLammps on top of this existing *lammps* object:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from lammps import lammps, PyLammps
    lmp = lammps()
@@ -178,7 +178,7 @@ the command method of the lammps object instance.
 For instance, let's take the following LAMMPS command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region box block 0 10 0 5 -0.5 0.5
 
@@ -186,7 +186,7 @@ In the original interface this command can be executed with the following
 Python code if *L* was a lammps instance:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.command("region box block 0 10 0 5 -0.5 0.5")
 
@@ -194,7 +194,7 @@ With the PyLammps interface, any command can be split up into arbitrary parts
 separated by white-space, passed as individual arguments to a region method.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.region("box block", 0, 10, 0, 5, -0.5, 0.5)
 
@@ -207,7 +207,7 @@ parameterization. In the original interface parameterization needed to be done
 manually by creating formatted strings.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
 
@@ -215,7 +215,7 @@ In contrast, methods of PyLammps accept parameters directly and will convert
 them automatically to a final command string.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.region("box block", xlo, xhi, ylo, yhi, zlo, zhi)
 
@@ -270,7 +270,7 @@ LAMMPS variables can be both defined and accessed via the PyLammps interface.
 To define a variable you can use the :doc:`variable <variable>` command:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.variable("a index 2")
 
@@ -280,7 +280,7 @@ you can access an individual variable by retrieving a variable object from the
 L.variables dictionary by name
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    a = L.variables['a']
 
@@ -288,7 +288,7 @@ The variable value can then be easily read and written by accessing the value
 property of this object.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    print(a.value)
    a.value = 4
@@ -301,7 +301,7 @@ passed string parameter can be any expression containing global thermo values,
 variables, compute or fix data.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    result = L.eval("ke") # kinetic energy
    result = L.eval("pe") # potential energy
@@ -316,7 +316,7 @@ Each element of this list is an object which exposes its properties (id, type,
 position, velocity, force, etc.).
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    # access first atom
    L.atoms[0].id
@@ -330,7 +330,7 @@ position, velocity, force, etc.).
 Some properties can also be used to set:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    # set position in 2D simulation
    L.atoms[0].position = (1.0, 0.0)
@@ -348,7 +348,7 @@ The first element is the output of the first run, the second element that of
 the second run.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    L.run(1000)
    L.runs[0] # data of first 1000 time steps
@@ -360,20 +360,19 @@ Each run contains a dictionary of all trajectories. Each trajectory is
 accessible through its thermo name:
 
 
-.. parsed-literal::
+.. code-block:: Python
 
-   L.runs[0].step # list of time steps in first run
-   L.runs[0].ke   # list of kinetic energy values in first run
+   L.runs[0].thermo.Step # list of time steps in first run
+   L.runs[0].thermo.Ke   # list of kinetic energy values in first run
 
 Together with matplotlib plotting data out of LAMMPS becomes simple:
 
-import matplotlib.plot as plt
 
+.. code-block:: Python
 
-.. parsed-literal::
-
-   steps = L.runs[0].step
-   ke    = L.runs[0].ke
+   import matplotlib.plot as plt
+   steps = L.runs[0].thermo.Step
+   ke    = L.runs[0].thermo.Ke
    plt.plot(steps, ke)
 
 Error handling with PyLammps
@@ -408,7 +407,7 @@ To launch an instance of Jupyter simply run the following command inside your
 Python environment (this assumes you followed the Quick Start instructions):
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    jupyter notebook
 
@@ -431,7 +430,7 @@ them using a datafile. Then one of the atoms is rotated along the central axis b
 setting its position from Python, which changes the dihedral angle.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    phi = [d \* math.pi / 180 for d in range(360)]
 
@@ -465,7 +464,7 @@ Initially, a 2D system is created in a state with minimal energy.
 It is then disordered by moving each atom by a random delta.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    random.seed(27848)
    deltaperturb = 0.2
@@ -485,7 +484,7 @@ Finally, the Monte Carlo algorithm is implemented in Python. It continuously
 moves random atoms by a random delta and only accepts certain moves.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    estart = L.eval("pe")
    elast = estart
@@ -538,7 +537,7 @@ Using PyLammps and mpi4py (Experimental)
 PyLammps can be run in parallel using mpi4py. This python package can be installed using
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    pip install mpi4py
 
@@ -546,7 +545,7 @@ The following is a short example which reads in an existing LAMMPS input file an
 executes it in parallel.  You can find in.melt in the examples/melt folder.
 
 
-.. parsed-literal::
+.. code-block:: Python
 
    from mpi4py import MPI
    from lammps import PyLammps
@@ -563,7 +562,7 @@ To run this script (melt.py) in parallel using 4 MPI processes we invoke the
 following mpirun command:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 4 python melt.py
 

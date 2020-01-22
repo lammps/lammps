@@ -22,6 +22,10 @@ comment after a trailing "&" character will prevent the command from
 continuing on the next line.  Also note that for multi-line commands a
 single leading "#" will comment out the entire command.
 
+.. code-block:: LAMMPS
+
+   # this is a comment
+
 (3) The line is searched repeatedly for $ characters, which indicate
 variables that are replaced with a text string.  See an exception in
 (6).
@@ -47,7 +51,7 @@ to use numeric formulas in an input script without having to assign
 them to variable names.  For example, these 3 input script lines:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable X equal (xlo+xhi)/2+sqrt(v_area)
    region 1 block $X 2 INF INF EDGE EDGE
@@ -56,7 +60,7 @@ them to variable names.  For example, these 3 input script lines:
 can be replaced by
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE
 
@@ -72,7 +76,7 @@ specified a high-precision "%.20g" is used as the default.
 This can be useful for formatting print output to a desired precision:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print "Final energy per atom: $(pe/atoms:%10.3f) eV/atom"
 
@@ -81,7 +85,7 @@ contain nested $ characters for other variables to substitute for.
 Thus you cannot do this:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        a equal 2
    variable        b2 equal 4
@@ -113,7 +117,7 @@ can be enclosed in triple quotes, in which case "&" characters are not
 needed.  For example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print "Volume = $v"
    print 'Volume = $v'
@@ -142,8 +146,3 @@ comment indicator in (2) or substituted for as a variable in (3).
    triple quotes can be nested in the usual manner.  See the doc pages
    for those commands for examples.  Only one of level of nesting is
    allowed, but that should be sufficient for most use cases.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

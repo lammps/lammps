@@ -32,6 +32,11 @@ import select
 import re
 import sys
 
+LAMMPS_INT    = 0
+LAMMPS_DOUBLE = 1
+LAMMPS_BIGINT = 2
+LAMMPS_TAGINT = 3
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32
@@ -45,6 +50,57 @@ class MPIAbortException(Exception):
 
   def __str__(self):
     return repr(self.message)
+
+class NeighList:
+    """This is a wrapper class that exposes the contents of a neighbor list
+
+    It can be used like a regular Python list.
+
+    Internally it uses the lower-level LAMMPS C-library interface.
+
+    :param lmp: reference to instance of :class:`lammps`
+    :type  lmp: lammps
+    :param idx: neighbor list index
+    :type  idx: int
+    """
+    def __init__(self, lmp, idx):
+        self.lmp = lmp
+        self.idx = idx
+
+    def __str__(self):
+        return "Neighbor List ({} atoms)".format(self.size)
+
+    def __repr__(self):
+        return self.__str__()
+
+    @property
+    def size(self):
+        """
+        :return: number of elements in neighbor list
+        """
+        return self.lmp.get_neighlist_size(self.idx)
+
+    def get(self, element):
+        """
+        :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
+        :rtype:  (int, int, numpy.array)
+        """
+        iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
+        return iatom, numneigh, neighbors
+
+    # the methods below implement the iterator interface, so NeighList can be used like a regular Python list
+
+    def __getitem__(self, element):
+        return self.get(element)
+
+    def __len__(self):
+        return self.size
+
+    def __iter__(self):
+        inum = self.size
+
+        for ii in range(inum):
+            yield self.get(ii)
 
 class lammps(object):
 
@@ -68,6 +124,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
+    self.lmp = None
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
@@ -131,6 +188,21 @@ class lammps(object):
     self.lib.lammps_scatter_atoms_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
+
+    self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
+    self.lib.lammps_find_pair_neighlist.restype  = c_int
+
+    self.lib.lammps_find_fix_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_fix_neighlist.restype  = c_int
+
+    self.lib.lammps_find_compute_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_compute_neighlist.restype  = c_int
+
+    self.lib.lammps_neighlist_num_elements.argtypes = [c_void_p, c_int]
+    self.lib.lammps_neighlist_num_elements.restype  = c_int
+
+    self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
+    self.lib.lammps_neighlist_element_neighbors.restype  = None
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -221,8 +293,8 @@ class lammps(object):
 
     # add way to insert Python callback for fix external
     self.callback = {}
-    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, c_void_p, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
-    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, c_void_p]
+    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
+    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, py_object]
     self.lib.lammps_set_fix_external_callback.restype = None
 
   # shut-down LAMMPS instance
@@ -283,10 +355,14 @@ class lammps(object):
 
   def extract_global(self,name,type):
     if name: name = name.encode()
-    if type == 0:
+    if type == LAMMPS_INT:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
-    elif type == 1:
+    elif type == LAMMPS_DOUBLE:
       self.lib.lammps_extract_global.restype = POINTER(c_double)
+    elif type == LAMMPS_BIGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
+    elif type == LAMMPS_TAGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
     else: return None
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
@@ -357,26 +433,38 @@ class lammps(object):
           else:
             c_int_type = c_int
 
+          if dim == 1:
+            raw_ptr = self.lmp.extract_atom(name, 0)
+          else:
+            raw_ptr = self.lmp.extract_atom(name, 1)
+
+          return self.iarray(c_int_type, raw_ptr, nelem, dim)
+
+        def extract_atom_darray(self, name, nelem, dim=1):
+          if dim == 1:
+            raw_ptr = self.lmp.extract_atom(name, 2)
+          else:
+            raw_ptr = self.lmp.extract_atom(name, 3)
+
+          return self.darray(raw_ptr, nelem, dim)
+
+        def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
           np_int_type = self._ctype_to_numpy_int(c_int_type)
 
           if dim == 1:
-            tmp = self.lmp.extract_atom(name, 0)
-            ptr = cast(tmp, POINTER(c_int_type * nelem))
+            ptr = cast(raw_ptr, POINTER(c_int_type * nelem))
           else:
-            tmp = self.lmp.extract_atom(name, 1)
-            ptr = cast(tmp[0], POINTER(c_int_type * nelem * dim))
+            ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
           a = np.frombuffer(ptr.contents, dtype=np_int_type)
           a.shape = (nelem, dim)
           return a
 
-        def extract_atom_darray(self, name, nelem, dim=1):
+        def darray(self, raw_ptr, nelem, dim=1):
           if dim == 1:
-            tmp = self.lmp.extract_atom(name, 2)
-            ptr = cast(tmp, POINTER(c_double * nelem))
+            ptr = cast(raw_ptr, POINTER(c_double * nelem))
           else:
-            tmp = self.lmp.extract_atom(name, 3)
-            ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
+            ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
           a = np.frombuffer(ptr.contents)
           a.shape = (nelem, dim)
@@ -617,32 +705,113 @@ class lammps(object):
             return np.int64
           return np.intc
 
-    def callback_wrapper(caller_ptr, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
-      if cast(caller_ptr,POINTER(py_object)).contents:
-        pyCallerObj = cast(caller_ptr,POINTER(py_object)).contents.value
-      else:
-        pyCallerObj = None
-
-      tptr = cast(tag_ptr, POINTER(self.c_tagint * nlocal))
-      tag = np.frombuffer(tptr.contents, dtype=_ctype_to_numpy_int(self.c_tagint))
-      tag.shape = (nlocal)
-
-      xptr = cast(x_ptr[0], POINTER(c_double * nlocal * 3))
-      x = np.frombuffer(xptr.contents)
-      x.shape = (nlocal, 3)
-
-      fptr = cast(fext_ptr[0], POINTER(c_double * nlocal * 3))
-      f = np.frombuffer(fptr.contents)
-      f.shape = (nlocal, 3)
-
-      callback(pyCallerObj, ntimestep, nlocal, tag, x, f)
+    def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
+      tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)
+      x   = self.numpy.darray(x_ptr, nlocal, 3)
+      f   = self.numpy.darray(fext_ptr, nlocal, 3)
+      callback(caller, ntimestep, nlocal, tag, x, f)
 
     cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
-    cCaller = cast(pointer(py_object(caller)), c_void_p)
+    cCaller = caller
 
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
 
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+
+  def get_neighlist(self, idx):
+    """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
+
+    :param idx: index of neighbor list
+    :type  idx: int
+    :return: an instance of :class:`NeighList` wrapping access to neighbor list data
+    :rtype:  NeighList
+    """
+    if idx < 0:
+        return None
+    return NeighList(self, idx)
+
+  def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
+    """Find neighbor list index of pair style neighbor list
+
+    Try finding pair instance that matches style. If exact is set, the pair must
+    match style exactly. If exact is 0, style must only be contained. If pair is
+    of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+
+    Once the pair instance has been identified, multiple neighbor list requests
+    may be found. Every neighbor list is uniquely identified by its request
+    index. Thus, providing this request index ensures that the correct neighbor
+    list index is returned.
+
+    :param style: name of pair style that should be searched for
+    :type  style: string
+    :param exact: controls whether style should match exactly or only must be contained in pair style name, defaults to True
+    :type  exact: bool, optional
+    :param nsub:  match nsub-th hybrid sub-style, defaults to 0
+    :type  nsub:  int, optional
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    style = style.encode()
+    exact = int(exact)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
+    return self.get_neighlist(idx)
+
+  def find_fix_neighlist(self, fixid, request=0):
+    """Find neighbor list index of fix neighbor list
+
+    :param fixid: name of fix
+    :type  fixid: string
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    fixid = fixid.encode()
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    return self.get_neighlist(idx)
+
+  def find_compute_neighlist(self, computeid, request=0):
+    """Find neighbor list index of compute neighbor list
+
+    :param computeid: name of compute
+    :type  computeid: string
+    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
+    :type  request:   int, optional
+    :return: neighbor list index if found, otherwise -1
+    :rtype:  int
+     """
+    computeid = computeid.encode()
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    return self.get_neighlist(idx)
+
+  def get_neighlist_size(self, idx):
+    """Return the number of elements in neighbor list with the given index
+
+    :param idx: neighbor list index
+    :type  idx: int
+    :return: number of elements in neighbor list with index idx
+    :rtype:  int
+     """
+    return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
+
+  def get_neighlist_element_neighbors(self, idx, element):
+    """Return data of neighbor list entry
+
+    :param element: neighbor list index
+    :type  element: int
+    :param element: neighbor list element index
+    :type  element: int
+    :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
+    :rtype:  (int, int, numpy.array)
+    """
+    c_iatom = c_int()
+    c_numneigh = c_int()
+    c_neighbors = POINTER(c_int)()
+    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
+    neighbors = self.numpy.iarray(c_int, c_neighbors, c_numneigh.value, 1)
+    return c_iatom.value, c_numneigh.value, neighbors
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -860,10 +1029,19 @@ def get_thermo_data(output):
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
         elif in_run and len(columns) > 0:
-            values = [float(x) for x in line.split()]
+            items = line.split()
+            # Convert thermo output and store it.
+            # It must have the same number of columns and
+            # all of them must be convertable to floats.
+            # Otherwise we ignore the line
+            if len(items) == len(columns):
+                try:
+                    values = [float(x) for x in items]
+                    for i, col in enumerate(columns):
+                        current_run[col].append(values[i])
+                except ValueError:
+                  pass
 
-            for i, col in enumerate(columns):
-                current_run[col].append(values[i])
     return runs
 
 class PyLammps(object):

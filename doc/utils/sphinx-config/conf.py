@@ -20,6 +20,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src/_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,7 +31,10 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax', 'sphinx.ext.imgmath'
+    'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
+    'sphinx.ext.autodoc',
+    'table_from_list',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -317,3 +321,11 @@ if spelling_spec:
 
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+import LAMMPSLexer
+from sphinx.highlighting import lexers
+
+lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))

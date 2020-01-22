@@ -20,6 +20,10 @@ namespace LAMMPS_NS {
 
 class NeighList : protected Pointers {
  public:
+  enum RequestorType { NONE, PAIR, FIX, COMPUTE };
+  void *         requestor;        // object that made request
+  RequestorType  requestor_type;   // type of requestor
+
   int index;                   // index of which neigh list this is
                                // also indexes the request it came from
                                // and the npair list of NPair classes

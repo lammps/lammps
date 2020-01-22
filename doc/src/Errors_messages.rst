@@ -286,6 +286,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Attempting to rescale a 0.0 temperature*
    Cannot rescale a temperature that is already 0.0.
 
+*Attempting to insert more particles than available lattice points*
+   Self-explanatory.
+
 *Bad FENE bond*
    Two atoms in a FENE bond have become so far apart that the bond cannot
    be computed.

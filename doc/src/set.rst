@@ -14,7 +14,7 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i\_name* or *d\_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i\_name* or *d\_name*
   
   .. parsed-literal::
   
@@ -22,7 +22,15 @@ Syntax
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
          type = new atom type
-         fraction = fraction of selected atoms to set to new atom type
+         fraction = approximate fraction of selected atoms to set to new atom type
+         seed = random # seed (positive integer)
+       *type/ratio* values = type fraction seed
+         type = new atom type
+         fraction = exact fraction of selected atoms to set to new atom type
+         seed = random # seed (positive integer)
+       *type/subset* values = type Nsubset seed
+         type = new atom type
+         Nsubset = exact number of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *mol* value = molecule ID
          value can be an atom-style variable (see below)
@@ -184,15 +192,16 @@ This section describes the keyword options for which properties to
 change, for the selected atoms.
 
 Note that except where explicitly prohibited below, all of the
-keywords allow an :doc:`atom-style or atomfile-style variable <variable>` to be used as the specified value(s).  If the
-value is a variable, it should be specified as v\_name, where name is
-the variable name.  In this case, the variable will be evaluated, and
-its resulting per-atom value used to determine the value assigned to
-each selected atom.  Note that the per-atom value from the variable
-will be ignored for atoms that are not selected via the *style* and
-*ID* settings explained above.  A simple way to use per-atom values
-from the variable to reset a property for all atoms is to use style
-*atom* with *ID* = "\*"; this selects all atom IDs.
+keywords allow an :doc:`atom-style or atomfile-style variable
+<variable>` to be used as the specified value(s).  If the value is a
+variable, it should be specified as v\_name, where name is the
+variable name.  In this case, the variable will be evaluated, and its
+resulting per-atom value used to determine the value assigned to each
+selected atom.  Note that the per-atom value from the variable will be
+ignored for atoms that are not selected via the *style* and *ID*
+settings explained above.  A simple way to use per-atom values from
+the variable to reset a property for all atoms is to use style *atom*
+with *ID* = "\*"; this selects all atom IDs.
 
 Atom-style variables can specify formulas with various mathematical
 functions, and include :doc:`thermo\_style <thermo_style>` command
@@ -220,23 +229,36 @@ command.
 
 Keyword *type/fraction* sets the atom type for a fraction of the
 selected atoms.  The actual number of atoms changed is not guaranteed
-to be exactly the requested fraction, but should be statistically
-close.  Random numbers are used in such a way that a particular atom
-is changed or not changed, regardless of how many processors are being
-used.  This keyword does not allow use of an atom-style variable.
+to be exactly the specified fraction (0 <= *fraction* <= 1), but
+should be statistically close.  Random numbers are used in such a way
+that a particular atom is changed or not changed, regardless of how
+many processors are being used.  This keyword does not allow use of an
+atom-style variable.
 
-Keyword *mol* sets the molecule ID for all selected atoms.  The :doc:`atom style <atom_style>` being used must support the use of molecule
-IDs.
+Keywords *type/ratio* and *type/subset" also set the atom type for a
+fraction of the selected atoms.  The actual number of atoms changed
+will be exactly the requested number.  For *type/ratio* the specified
+fraction (0 <= *fraction* <= 1) determines the number.  For
+*type/subset*, the specified *Nsubset* is the number.  An iterative
+algorithm is used which insures the correct number of atoms are
+selected, in a perfectly random fashion.  Which atoms are selected
+will change with the number of processors used.  These keywords do not
+allow use of an atom-style variable.
 
-Keywords *x*\ , *y*\ , *z*\ , and *charge* set the coordinates or charge of
-all selected atoms.  For *charge*\ , the :doc:`atom style <atom_style>`
-being used must support the use of atomic charge. Keywords *vx*\ , *vy*\ ,
-and *vz* set the velocities of all selected atoms.
+Keyword *mol* sets the molecule ID for all selected atoms.  The
+:doc:`atom style <atom_style>` being used must support the use of
+molecule IDs.
+
+Keywords *x*\ , *y*\ , *z*\ , and *charge* set the coordinates or
+charge of all selected atoms.  For *charge*\ , the :doc:`atom style
+<atom_style>` being used must support the use of atomic
+charge. Keywords *vx*\ , *vy*\ , and *vz* set the velocities of all
+selected atoms.
 
 Keyword *dipole* uses the specified x,y,z values as components of a
 vector to set as the orientation of the dipole moment vectors of the
-selected atoms.  The magnitude of the dipole moment is set
-by the length of this orientation vector.
+selected atoms.  The magnitude of the dipole moment is set by the
+length of this orientation vector.
 
 Keyword *dipole/random* randomizes the orientation of the dipole
 moment vectors for the selected atoms and sets the magnitude of each

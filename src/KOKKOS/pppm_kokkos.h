@@ -37,6 +37,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 # if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
 #  define FFT_KISSFFT
 # endif
+#endif
 
 #include "pppm.h"
 #include "gridcomm_kokkos.h"

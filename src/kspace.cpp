@@ -39,7 +39,7 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = 
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag =
     dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;

@@ -233,10 +233,6 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = nvalues;
 
   nmax = maxvector = 0;
-  indices = NULL;
-  varatom = NULL;
-  vecglobal = NULL;
-
   vector_atom = NULL;
   array_atom = NULL;
 }

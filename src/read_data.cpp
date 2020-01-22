@@ -441,7 +441,7 @@ void ReadData::command(int narg, char **arg)
       atom->allocate_type_arrays();
       atom->deallocate_topology();
 
-      // allocate atom arrays to N, rounded up by increment of DELTA
+      // allocate atom arrays to N, rounded up by Atomvec->DELTA
 
       bigint nbig = n;
       nbig = atom->avec->roundup(nbig);

@@ -10,7 +10,7 @@ if(PKG_KOKKOS)
     set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
     set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
     add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  
+
     set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                             ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
                             ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
@@ -43,8 +43,10 @@ if(PKG_KOKKOS)
                                    ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                    ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
     if(KOKKOS_ENABLE_CUDA)
-      add_definitions(-DFFT_CUFFT)
-      list(APPEND LAMMPS_LINK_LIBS cufft)
+      if(NOT ${FFT} STREQUAL "KISS")
+        add_definitions(-DFFT_CUFFT)
+        list(APPEND LAMMPS_LINK_LIBS cufft)
+      endif()
     endif()
   endif()
 

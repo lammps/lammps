@@ -23,7 +23,7 @@
 namespace LAMMPS_NS {
 
 struct SNA_ZINDICES {
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju, ma, mb;
 };
 
 struct SNA_BINDICES {
@@ -71,6 +71,10 @@ public:
   void grow_rij(int);
 
   int twojmax;
+  double* ylist_r, * ylist_i;
+  int idxcg_max, idxu_max, idxz_max, idxb_max;
+
+
 
 private:
   double rmin0, rfac0;
@@ -79,7 +83,6 @@ private:
 
   SNA_ZINDICES* idxz;
   SNA_BINDICES* idxb;
-  int idxcg_max, idxu_max, idxz_max, idxb_max;
 
   double** rootpqarray;
   double* cglist;
@@ -96,7 +99,6 @@ private:
 
   double** dulist_r, ** dulist_i;
   int elem_duarray; // element of j in derivative
-  double* ylist_r, * ylist_i;
 
   static const int nmaxfactorial = 167;
   static const double nfac_table[];

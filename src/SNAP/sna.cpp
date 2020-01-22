@@ -277,7 +277,8 @@ void SNA::build_indexlist()
             idxz[idxz_count].mb1min = MAX(0, (2 * mb - j - j2 + j1) / 2);
             idxz[idxz_count].mb2max = (2 * mb - j - (2 * idxz[idxz_count].mb1min - j1) + j2) / 2;
             idxz[idxz_count].nb = MIN(j1, (2 * mb - j + j2 + j1) / 2) - idxz[idxz_count].mb1min + 1;
-
+            idxz[idxz_count].ma = ma;
+            idxz[idxz_count].mb = mb;
             // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
 
             const int jju = idxu_block[j] + (j+1)*mb + ma;
@@ -364,6 +365,10 @@ void SNA::compute_zi()
   int idouble = 0;
   for(int elem1 = 0; elem1 < nelements; elem1++)
     for(int elem2 = 0; elem2 < nelements; elem2++) {
+
+      double *zptr_r = &zlist_r[idouble*idxz_max];
+      double *zptr_i = &zlist_i[idouble*idxz_max];
+
       for (int jjz = 0; jjz < idxz_max; jjz++) {
         const int j1 = idxz[jjz].j1;
         const int j2 = idxz[jjz].j2;
@@ -377,8 +382,8 @@ void SNA::compute_zi()
 
         const double *cgblock = cglist + idxcg_block[j1][j2][j];
 
-        zlist_r[idouble*idxz_max+jjz] = 0.0;
-        zlist_i[idouble*idxz_max+jjz] = 0.0;
+        zptr_r[jjz] = 0.0;
+        zptr_i[jjz] = 0.0;
 
         int jju1 = idxu_block[j1] + (j1 + 1) * mb1min;
         int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
@@ -406,12 +411,12 @@ void SNA::compute_zi()
           } // end loop over ia
 
           if (bnorm_flag){
-            zlist_r[idouble*idxz_max+jjz] += cgblock[icgb] * suma1_r/(j+1);
-            zlist_i[idouble*idxz_max+jjz] += cgblock[icgb] * suma1_i/(j+1);
+            zptr_r[jjz] += cgblock[icgb] * suma1_r/(j+1);
+            zptr_i[jjz] += cgblock[icgb] * suma1_i/(j+1);
           }
           else {
-            zlist_r[idouble*idxz_max+jjz] += cgblock[icgb] * suma1_r;
-            zlist_i[idouble*idxz_max+jjz] += cgblock[icgb] * suma1_i;
+            zptr_r[jjz] += cgblock[icgb] * suma1_r;
+            zptr_i[jjz] += cgblock[icgb] * suma1_i;
           }
           jju1 += j1 + 1;
           jju2 -= j2 + 1;
@@ -431,6 +436,8 @@ void SNA::compute_yi(const double* beta)
   int jju;
   double betaj;
   int itriple;
+  int jelem;
+  double temp;
 
   for(int ielem1 = 0; ielem1 < nelements; ielem1++)
     for(int j = 0; j <= twojmax; j++) {
@@ -445,7 +452,6 @@ void SNA::compute_yi(const double* beta)
 
   for(int elem1 = 0; elem1 < nelements; elem1++)
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      for(int elem3 = 0; elem3 < nelements; elem3++) {
         for (int jjz = 0; jjz < idxz_max; jjz++) {
           const int j1 = idxz[jjz].j1;
           const int j2 = idxz[jjz].j2;
@@ -456,6 +462,8 @@ void SNA::compute_yi(const double* beta)
           const int mb1min = idxz[jjz].mb1min;
           const int mb2max = idxz[jjz].mb2max;
           const int nb = idxz[jjz].nb;
+          const int ma = idxz[jjz].ma;
+          const int mb = idxz[jjz].mb;
 
           const double *cgblock = cglist + idxcg_block[j1][j2][j];
 
@@ -470,10 +478,10 @@ void SNA::compute_yi(const double* beta)
             double suma1_r = 0.0;
             double suma1_i = 0.0;
 
-            const double *u1_r = &ulisttot_r[elem2*idxu_max+jju1];
-            const double *u1_i = &ulisttot_i[elem2*idxu_max+jju1];
-            const double *u2_r = &ulisttot_r[elem3*idxu_max+jju2];
-            const double *u2_i = &ulisttot_i[elem3*idxu_max+jju2];
+            const double *u1_r = &ulisttot_r[elem1*idxu_max+jju1];
+            const double *u1_i = &ulisttot_i[elem1*idxu_max+jju1];
+            const double *u2_r = &ulisttot_r[elem2*idxu_max+jju2];
+            const double *u2_i = &ulisttot_i[elem2*idxu_max+jju2];
 
             int ma1 = ma1min;
             int ma2 = ma2max;
@@ -506,28 +514,41 @@ void SNA::compute_yi(const double* beta)
           // account for multiplicity of 1, 2, or 3
 
           jju = idxz[jjz].jju;
-
+          for(int elem3 = 0; elem3 < nelements; elem3++) {
           // pick out right beta value
           if (alloy_flag) {
             if (j >= j1) {
               const int jjb = idxb_block[j1][j2][j];
-              itriple = (elem2 * nelements + elem3) * nelements + elem1;
-              if (j1 == j && (elem1 == elem2 || elem1 == elem3)) {
-                if (j2 == j && elem2 == elem3) betaj = 3 * beta[itriple * idxb_max + jjb];
-                else if (j2 == j && elem1 == elem3) betaj = 4 * beta[itriple * idxb_max + jjb];
+              itriple = (elem3 * nelements + elem2) * nelements + elem1;
+              if (j1 == j && (elem3 == elem1 || elem3 == elem2)) {
+                if (j2 == j && elem1 == elem2) betaj = 3 * beta[itriple * idxb_max + jjb];
+                else if (elem1 == elem2)
+                  betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
+                else if (j2 == j & elem2 == elem3)
+                  betaj = 2 * (beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
+                else if (elem2 == elem3)
+                  betaj = (beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
                 else betaj = 2 * beta[itriple * idxb_max + jjb];
-              } else if (j1 == j2 && j2 ==j && elem2 == elem3) betaj = 3 * beta[itriple * idxb_max + jjb];
-              else if (j1 == j && elem2 == elem3) betaj = 2 * beta[itriple * idxb_max + jjb];
-              else betaj = beta[itriple * idxb_max + jjb];
+              } else if (j1 == j2 && j2 ==j && elem1 == elem2)
+                betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
+              else if (j1 == j && elem3 == elem2) betaj = 2 * beta[itriple * idxb_max + jjb];
+              else if (j1 ==j && elem2 == elem1)
+                betaj = beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
+              else
+                betaj = beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
             } else if (j >= j2) {
               const int jjb = idxb_block[j][j2][j1];
-              itriple = (elem1 * nelements + elem3) * nelements + elem2;
-              if (j2 == j && (elem2 == elem3 || elem1 == elem2 || elem1 == elem3))
+              itriple = (elem3 * nelements + elem2) * nelements + elem1;
+              if (j2 == j && elem3 == elem2)
                 betaj = 2 * beta[itriple * idxb_max + jjb];
+              else if (j2 ==j && elem1 == elem2)
+                betaj = beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
+              else if (j2 == j && elem1 == elem3)
+                betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
               else betaj = beta[itriple * idxb_max + jjb];
             } else {
               const int jjb = idxb_block[j2][j][j1];
-              itriple = (elem3 * nelements + elem1) * nelements + elem2;
+              itriple = (elem2 * nelements + elem3) * nelements + elem1;
               betaj = beta[itriple * idxb_max + jjb];
             }
           } else {
@@ -550,8 +571,10 @@ void SNA::compute_yi(const double* beta)
           if (!bnorm_flag && j1 > j)
             betaj *= (j1 + 1) / (j + 1.0);
 
-          ylist_r[elem1 * idxu_max + jju] += betaj * ztmp_r;
-          ylist_i[elem1 * idxu_max + jju] += betaj * ztmp_i;
+          ylist_r[elem3 * idxu_max + jju] += betaj * ztmp_r;
+          ylist_i[elem3 * idxu_max + jju] += betaj * ztmp_i;
+          //if (elem3==0 && j ==4 &&  ma==2 &&  mb==0)
+          //  fprintf(screen, "%i %i %i %i %i %i %f %f %f\n", elem1, elem2, elem3, j, j1, j2, betaj, ztmp_r, ylist_r[elem3 * idxu_max + jju]);
 
         }
       } // end loop over jjz
@@ -644,6 +667,10 @@ void SNA::compute_bi(int ielem) {
   int idouble = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++)
     for (int elem2 = 0; elem2 < nelements; elem2++) {
+
+      double *zptr_r = &zlist_r[idouble*idxz_max];
+      double *zptr_i = &zlist_i[idouble*idxz_max];
+
       for (int elem3 = 0; elem3 < nelements; elem3++) {
         for (int jjb = 0; jjb < idxb_max; jjb++) {
           const int j1 = idxb[jjb].j1;
@@ -655,8 +682,8 @@ void SNA::compute_bi(int ielem) {
           double sumzu = 0.0;
           for (int mb = 0; 2 * mb < j; mb++)
             for (int ma = 0; ma <= j; ma++) {
-              sumzu += ulisttot_r[elem3*idxu_max+jju] * zlist_r[idouble*idxz_max+jjz] +
-                       ulisttot_i[elem3*idxu_max+jju] * zlist_i[idouble*idxz_max+jjz];
+              sumzu += ulisttot_r[elem3*idxu_max+jju] * zptr_r[jjz] +
+                       ulisttot_i[elem3*idxu_max+jju] * zptr_i[jjz];
               jjz++;
               jju++;
             } // end loop over ma, mb
@@ -666,14 +693,14 @@ void SNA::compute_bi(int ielem) {
           if (j % 2 == 0) {
             int mb = j / 2;
             for (int ma = 0; ma < mb; ma++) {
-              sumzu += ulisttot_r[elem3*idxu_max+jju] * zlist_r[idouble*idxz_max+jjz] +
-                       ulisttot_i[elem3*idxu_max+jju] * zlist_i[idouble*idxz_max+jjz];
+              sumzu += ulisttot_r[elem3*idxu_max+jju] * zptr_r[jjz] +
+                       ulisttot_i[elem3*idxu_max+jju] * zptr_i[jjz];
               jjz++;
               jju++;
             }
 
-            sumzu += 0.5 * (ulisttot_r[elem3*idxu_max+jju] * zlist_r[idouble*idxz_max+jjz] +
-                            ulisttot_i[elem3*idxu_max+jju] * zlist_i[idouble*idxz_max+jjz]);
+            sumzu += 0.5 * (ulisttot_r[elem3*idxu_max+jju] * zptr_r[jjz] +
+                            ulisttot_i[elem3*idxu_max+jju] * zptr_i[jjz]);
           } // end if jeven
 
           blist[itriple*idxb_max+jjb] = 2.0 * sumzu;
@@ -784,6 +811,8 @@ void SNA::compute_dbidrj()
         idouble = elem1*nelements+elem2;
         itriple = (elem1*nelements+elem2)*nelements+elem3;
         dbdr = dblist[itriple*idxb_max+jjb];
+        double *zptr_r = &zlist_r[idouble*idxz_max];
+        double *zptr_i = &zlist_i[idouble*idxz_max];
 
         for (int k = 0; k < 3; k++)
           sumzdu_r[k] = 0.0;
@@ -794,8 +823,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           } //end loop over ma mb
@@ -809,8 +838,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           }
@@ -818,8 +847,8 @@ void SNA::compute_dbidrj()
           dudr_i = dulist_i[jju];
           for (int k = 0; k < 3; k++)
             sumzdu_r[k] +=
-                (dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                 dudr_i[k] * zlist_i[idouble*idxz_max+jjz]) * 0.5;
+                (dudr_r[k] * zptr_r[jjz] +
+                 dudr_i[k] * zptr_i[jjz]) * 0.5;
           // jjz++;
           // jju++;
         } // end if jeven
@@ -836,6 +865,8 @@ void SNA::compute_dbidrj()
         dbdr = dblist[itriple*idxb_max+jjb];
         jjz = idxz_block[j][j2][j1];
         jju = idxu_block[j1];
+        zptr_r = &zlist_r[idouble*idxz_max];
+        zptr_i = &zlist_i[idouble*idxz_max];
 
         for (int k = 0; k < 3; k++)
           sumzdu_r[k] = 0.0;
@@ -846,8 +877,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           } //end loop over ma mb
@@ -861,8 +892,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           }
@@ -870,8 +901,8 @@ void SNA::compute_dbidrj()
           dudr_i = dulist_i[jju];
           for (int k = 0; k < 3; k++)
             sumzdu_r[k] +=
-                (dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                 dudr_i[k] * zlist_i[idouble*idxz_max+jjz]) * 0.5;
+                (dudr_r[k] * zptr_r[jjz] +
+                 dudr_i[k] * zptr_i[jjz]) * 0.5;
           // jjz++;
           // jju++;
         } // end if j1even
@@ -891,6 +922,8 @@ void SNA::compute_dbidrj()
         dbdr = dblist[itriple*idxb_max+jjb];
         jjz = idxz_block[j][j1][j2];
         jju = idxu_block[j2];
+        zptr_r = &zlist_r[idouble*idxz_max];
+        zptr_i = &zlist_i[idouble*idxz_max];
 
         for (int k = 0; k < 3; k++)
           sumzdu_r[k] = 0.0;
@@ -901,8 +934,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           } //end loop over ma mb
@@ -916,8 +949,8 @@ void SNA::compute_dbidrj()
             dudr_i = dulist_i[jju];
             for (int k = 0; k < 3; k++)
               sumzdu_r[k] +=
-                  dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                  dudr_i[k] * zlist_i[idouble*idxz_max+jjz];
+                  dudr_r[k] * zptr_r[jjz] +
+                  dudr_i[k] * zptr_i[jjz];
             jjz++;
             jju++;
           }
@@ -925,8 +958,8 @@ void SNA::compute_dbidrj()
           dudr_i = dulist_i[jju];
           for (int k = 0; k < 3; k++)
             sumzdu_r[k] +=
-                (dudr_r[k] * zlist_r[idouble*idxz_max+jjz] +
-                 dudr_i[k] * zlist_i[idouble*idxz_max+jjz]) * 0.5;
+                (dudr_r[k] * zptr_r[jjz] +
+                 dudr_i[k] * zptr_i[jjz]) * 0.5;
           // jjz++;
           // jju++;
         } // end if j2even

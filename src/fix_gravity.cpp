@@ -62,7 +62,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     mstyle = CONSTANT;
   }
 
-  int iarg;
+  int iarg=4;
 
   if (strcmp(arg[4],"chute") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");

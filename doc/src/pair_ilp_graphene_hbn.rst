@@ -82,15 +82,15 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   Two new sets of parameters of ILP for two-dimensional hexagonal
-   Materials are presented in :ref:`(Ouyang) <Ouyang>`.  These parameters provide
-   a good description in both short- and long-range interaction regimes.
+   Four new sets of parameters of ILP for 2D layered Materials with bilayer and 
+   bulk configurations are presented in :ref:`(Ouyang1) <Ouyang1>` and :ref:`(Ouyang2) <Ouyang2>`, respectively.
+   These parameters provide a good description in both short- and long-range interaction regimes.
    While the old ILP parameters published in :ref:`(Leven2) <Leven2>` and
    :ref:`(Maaravi) <Maaravi2>` are only suitable for long-range interaction
    regime. This feature is essential for simulations in high pressure
    regime (i.e., the interlayer distance is smaller than the equilibrium
-   distance).  The benchmark tests and comparison of these parameters can
-   be found in :ref:`(Ouyang) <Ouyang>`.
+   distance). The benchmark tests and comparison of these parameters can
+   be found in :ref:`(Ouyang1) <Ouyang1>` and :ref:`(Ouyang2) <Ouyang2>`.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair\_style *none*\ .
@@ -185,11 +185,17 @@ Related commands
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
 
-.. _Ouyang:
+.. _Ouyang1:
 
 
 
-**(Ouyang)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
+**(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
+
+.. _Ouyang2:
+
+
+
+**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 
 
 .. _lws: http://lammps.sandia.gov

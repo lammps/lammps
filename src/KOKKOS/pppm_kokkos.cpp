@@ -210,6 +210,10 @@ void PPPMKokkos<DeviceType>::init()
     error->all(FLERR,str);
   }
 
+  // compute two charge force
+
+  two_charge();
+
   // extract short-range Coulombic cutoff from pair style
 
   triclinic = domain->triclinic;

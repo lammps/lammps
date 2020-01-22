@@ -1096,8 +1096,9 @@ USER-ADIOS package
 **Contents:**
 
 ADIOS is a high-performance I/O library. This package implements the
-dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library.
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>` and
+:doc:`read_dump ... format adios <read_dump>`
+commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
@@ -1111,6 +1112,10 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 * src/USER-ADIOS/README
 * examples/USER/adios
 * https://github.com/ornladios/ADIOS2
+* :doc:`dump atom/adios <dump_adios>`
+* :doc:`dump custom/adios <dump_adios>`
+* :doc:`read_dump <read_dump>`
+
 
 
 ----------

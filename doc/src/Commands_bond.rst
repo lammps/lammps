@@ -47,7 +47,6 @@ OPT.
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
    * :doc:`table (o) <bond_table>`
-   *
 
 .. _angle:
 
@@ -89,7 +88,6 @@ OPT.
    * :doc:`quartic (o) <angle_quartic>`
    * :doc:`sdk (o) <angle_sdk>`
    * :doc:`table (o) <angle_table>`
-   *
 
 .. _dihedral:
 
@@ -127,8 +125,6 @@ OPT.
    * :doc:`spherical <dihedral_spherical>`
    * :doc:`table (o) <dihedral_table>`
    * :doc:`table/cut <dihedral_table_cut>`
-   *
-   *
 
 .. _improper:
 
@@ -162,4 +158,3 @@ OPT.
    * :doc:`ring (o) <improper_ring>`
    * :doc:`sqdistharm <improper_sqdistharm>`
    * :doc:`umbrella (o) <improper_umbrella>`
-   *

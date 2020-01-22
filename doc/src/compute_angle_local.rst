@@ -81,12 +81,12 @@ and output the statistics in various ways:
 
    compute 1 all property/local aatom1 aatom2 aatom3 atype
    compute 2 all angle/local eng theta v_cos v_cossq set theta t
-   dump 1 all local 100 tmp.dump c_1**\*** c_2**\***
+   dump 1 all local 100 tmp.dump c_1[*] c_2[*]
 
-   compute 3 all reduce ave c_2**\***
-   thermo_style custom step temp press c_3**\***
+   compute 3 all reduce ave c_2[*]
+   thermo_style custom step temp press c_3[*]
 
-   fix 10 all ave/histo 10 10 100 -1 1 20 c_2\ **3** mode vector file tmp.histo
+   fix 10 all ave/histo 10 10 100 -1 1 20 c_2[3] mode vector file tmp.histo
 
 The :doc:`dump local <dump>` command will output the energy, angle,
 cosine(angle), cosine\^2(angle) for every angle in the system.  The

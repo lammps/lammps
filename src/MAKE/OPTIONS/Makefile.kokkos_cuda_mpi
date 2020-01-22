@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-KOKKOS_ABSOLUTE_PATH = /home/stefan/projects/lammps-mine/lib/kokkos
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CC =		mpicxx
@@ -33,7 +33,7 @@ KOKKOS_ARCH = Kepler35
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -55,9 +55,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	-I/usr/include/
-FFT_PATH = 	-L/usr/lib/
-FFT_LIB =	-lfftw3
+FFT_INC =    	
+FFT_PATH = 
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -68,7 +68,7 @@ FFT_LIB =	-lfftw3
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg -lpng
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

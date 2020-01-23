@@ -167,7 +167,7 @@ fetch:
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		rst_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
 		deactivate ;\
 	)
 

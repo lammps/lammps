@@ -232,6 +232,10 @@ E: Bond/react: Unknown section in map file
 
 Please ensure reaction map files are properly formatted.
 
+E: Bond/react: Invalid template atom ID in map file
+
+Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
 
 This means an atom which changes type or connectivity during the

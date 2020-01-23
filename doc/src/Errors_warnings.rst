@@ -683,6 +683,9 @@ This will most likely cause errors in kinetic fluctuations.
 *Slab correction not needed for MSM*
    Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.
 
+*Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword*
+   Self-explanatory.
+
 *System is not charge neutral, net charge = %g*
    The total charge on all atoms on the system is not 0.0.
    For some KSpace solvers this is only a warning.

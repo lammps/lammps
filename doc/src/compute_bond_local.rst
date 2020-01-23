@@ -134,12 +134,12 @@ output the statistics in various ways:
 
    compute 1 all property/local batom1 batom2 btype
    compute 2 all bond/local engpot dist v_dsq set dist d
-   dump 1 all local 100 tmp.dump c_1**\*** c_2**\***
+   dump 1 all local 100 tmp.dump c_1[*] c_2[*]
 
-   compute 3 all reduce ave c_2**\***
-   thermo_style custom step temp press c_3**\***
+   compute 3 all reduce ave c_2[*]
+   thermo_style custom step temp press c_3[*]
 
-   fix 10 all ave/histo 10 10 100 0 6 20 c_2\ **3** mode vector file tmp.histo
+   fix 10 all ave/histo 10 10 100 0 6 20 c_2[3] mode vector file tmp.histo
 
 The :doc:`dump local <dump>` command will output the energy, distance,
 distance\^2 for every bond in the system.  The

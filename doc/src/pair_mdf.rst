@@ -90,7 +90,7 @@ standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 Either the first two or all of the following coefficients must be
 defined for each pair of atoms types via the pair\_coeff command as
 in the examples above, or in the data file read by the
-:doc:`read\_data <read_data>`. The two cutoffs default to the global
+:doc:`read_data <read_data>`. The two cutoffs default to the global
 values and epsilon and sigma can also be determined by mixing as
 described below:
 
@@ -152,13 +152,13 @@ support mixing, so all I,J pairs of coefficients must be specified
 explicitly.
 
 None of the lj/mdf, buck/mdf, or lennard/mdf pair styles supports
-the :doc:`pair\_modify <pair_modify>` shift option or long-range
+the :doc:`pair_modify <pair_modify>` shift option or long-range
 tail corrections to pressure and energy.
 
 These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run\_style respa <run_style>` command.  They do not support the *inner*\ ,
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 
@@ -176,7 +176,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

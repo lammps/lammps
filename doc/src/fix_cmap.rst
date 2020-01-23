@@ -76,7 +76,7 @@ remaining 5 columns are the atom IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP 5-body interaction.  Note
 that the "crossterm" and "CMAP" keywords for the header and body
 sections match those specified in the read\_data command following the
-data file name; see the :doc:`read\_data <read_data>` doc page for
+data file name; see the :doc:`read_data <read_data>` doc page for
 more details.
 
 A data file containing CMAP cross-terms can be generated from a PDB
@@ -88,7 +88,7 @@ more information.
 The potential energy associated with CMAP interactions can be output
 as described below.  It can also be included in the total potential
 energy of the system, as output by the
-:doc:`thermo\_style <thermo_style>` command, if the :doc:`fix\_modify energy <fix_modify>` command is used, as in the example above.  See
+:doc:`thermo_style <thermo_style>` command, if the :doc:`fix_modify energy <fix_modify>` command is used, as in the example above.  See
 the note below about how to include the CMAP energy when performing an
 :doc:`energy minimization <minimize>`.
 
@@ -98,16 +98,16 @@ the note below about how to include the CMAP energy when performing an
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>` command
+This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential "energy" of the CMAP interactions system's
 potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interaction between atoms to
 the system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial yes*
@@ -128,15 +128,15 @@ invoked by the :doc:`minimize <minimize>` command.
    If you want the potential energy associated with the CMAP terms
    forces to be included in the total potential energy of the system (the
    quantity being minimized), you MUST enable the
-   :doc:`fix\_modify <fix_modify>` *energy* option for this fix.
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
 """"""""""""
 
 
 To function as expected this fix command must be issued *before* a
-:doc:`read\_data <read_data>` command but *after* a
-:doc:`read\_restart <read_restart>` command.
+:doc:`read_data <read_data>` command but *after* a
+:doc:`read_restart <read_restart>` command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -145,7 +145,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`fix\_modify <fix_modify>`, :doc:`read\_data <read_data>`
+:doc:`fix_modify <fix_modify>`, :doc:`read_data <read_data>`
 
 **Default:** none
 

@@ -129,14 +129,14 @@ circumstances:
   where MPI parallelism is maxed out.  For example, this can happen when
   using the :doc:`PPPM solver <kspace_style>` for long-range
   electrostatics on large numbers of nodes.  The scaling of the KSpace
-  calculation (see the :doc:`kspace\_style <kspace_style>` command) becomes
+  calculation (see the :doc:`kspace_style <kspace_style>` command) becomes
   the performance-limiting factor.  Using multi-threading allows less
   MPI tasks to be invoked and can speed-up the long-range solver, while
   increasing overall performance by parallelizing the pairwise and
   bonded calculations via OpenMP.  Likewise additional speedup can be
   sometimes be achieved by increasing the length of the Coulombic cutoff
   and thus reducing the work done by the long-range solver.  Using the
-  :doc:`run\_style verlet/split <run_style>` command, which is compatible
+  :doc:`run_style verlet/split <run_style>` command, which is compatible
   with the USER-OMP package, is an alternative way to reduce the number
   of MPI tasks assigned to the KSpace calculation.
 

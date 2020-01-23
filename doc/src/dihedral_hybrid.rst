@@ -32,7 +32,7 @@ example, dihedrals in a polymer flow (of dihedral type 1) could be
 computed with a *harmonic* potential and dihedrals in the wall
 boundary (of dihedral type 2) could be computed with a *helix*
 potential.  The assignment of dihedral type to style is made via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command or in the data file.
+:doc:`dihedral_coeff <dihedral_coeff>` command or in the data file.
 
 In the dihedral\_coeff commands, the name of a dihedral style must be
 added after the dihedral type, with the remaining coefficients being
@@ -43,7 +43,7 @@ K, d, n.  All other dihedral types (2-N) are computed with a *helix*
 potential with coefficients 10, 10, 10 for A, B, C.
 
 If dihedral coefficients are specified in the data file read via the
-:doc:`read\_data <read_data>` command, then the same rule applies.
+:doc:`read_data <read_data>` command, then the same rule applies.
 E.g. "harmonic" or "helix", must be added after the dihedral type, for
 each line in the "Dihedral Coeffs" section, e.g.
 
@@ -101,7 +101,7 @@ restart file, you need to re-specify dihedral\_coeff commands.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 

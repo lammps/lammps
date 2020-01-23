@@ -98,7 +98,7 @@ as long as *flagVF* is set to 1 (default).
    When using the FLD terms, these pair styles are designed to be
    used with explicit time integration and a correspondingly small
    timestep.  Thus either :doc:`fix nve/sphere <fix_nve_sphere>` or :doc:`fix nve/asphere <fix_nve_asphere>` should be used for time integration.
-   To perform implicit FLD, see the :doc:`pair\_style lubricateU <pair_lubricateU>` command.
+   To perform implicit FLD, see the :doc:`pair_style lubricateU <pair_lubricateU>` command.
 
 Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
@@ -129,7 +129,7 @@ boundaries.
 Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
-:doc:`pair\_style brownian <pair_brownian>` command. These pair styles
+:doc:`pair_style brownian <pair_brownian>` command. These pair styles
 and the brownian style should use consistent parameters for *mu*\ ,
 *flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
 
@@ -138,9 +138,9 @@ and the brownian style should use consistent parameters for *mu*\ ,
 
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutinner (distance units)
@@ -182,13 +182,13 @@ For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
 the "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -196,7 +196,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -216,15 +216,15 @@ lubricate.
 Only spherical particles are allowed for pair\_style lubricate/poly.
 
 These pair styles will not restart exactly when using the
-:doc:`read\_restart <read_restart>` command, though they should provide
+:doc:`read_restart <read_restart>` command, though they should provide
 statistically similar results.  This is because the forces they
 compute depend on atom velocities.  See the
-:doc:`read\_restart <read_restart>` command for more details.
+:doc:`read_restart <read_restart>` command for more details.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style lubricateU <pair_lubricateU>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style lubricateU <pair_lubricateU>`
 
 Default
 """""""

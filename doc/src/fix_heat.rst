@@ -82,7 +82,7 @@ name.  In this case, the variable will be evaluated each timestep, and
 its value(s) used to determine the flux.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent flux.
 
@@ -114,7 +114,7 @@ by another fix - e.g. :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevi
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various

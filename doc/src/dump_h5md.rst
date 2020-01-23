@@ -91,7 +91,7 @@ every N steps.
 **Use from write\_dump:**
 
 It is possible to use this dump style with the
-:doc:`write\_dump <write_dump>` command.  In this case, the sub-intervals
+:doc:`write_dump <write_dump>` command.  In this case, the sub-intervals
 must not be set at all.  The write\_dump command can be used either to
 create a new file or to add current data to an existing dump file by
 using the *file\_from* keyword.
@@ -137,7 +137,7 @@ provided by the HDF5 library.
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
 
 ----------

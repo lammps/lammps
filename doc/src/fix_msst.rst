@@ -132,7 +132,7 @@ timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the state of all internal variables to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>` command
+This fix writes the state of all internal variables to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -142,11 +142,11 @@ scalar and global vector quantities computed by the fix.
 
 The scalar is the cumulative energy change due to the fix. This is
 also the energy added to the potential energy by the
-:doc:`fix\_modify <fix_modify>` *energy* command.  With this command, the
+:doc:`fix_modify <fix_modify>` *energy* command.  With this command, the
 thermo keyword *etotal* prints the conserved quantity of the MSST
 dynamic equations. This can be used to test if the MD timestep is
 sufficiently small for accurate integration of the dynamic
-equations. See also :doc:`thermo\_style <thermo_style>` command.
+equations. See also :doc:`thermo_style <thermo_style>` command.
 
 The global vector contains four values in this order:
 

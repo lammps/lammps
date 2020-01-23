@@ -5,7 +5,7 @@ There is one class that computes and stores :doc:`variable <variable>`
 information in LAMMPS; see the file variable.cpp.  The value
 associated with a variable can be periodically printed to the screen
 via the :doc:`print <print>`, :doc:`fix print <fix_print>`, or
-:doc:`thermo\_style custom <thermo_style>` commands.  Variables of style
+:doc:`thermo_style custom <thermo_style>` commands.  Variables of style
 "equal" can compute complex equations that involve the following types
 of arguments:
 
@@ -19,7 +19,7 @@ of arguments:
    atom values = x[123], y[3], vx[34], ...
    compute values = c_mytemp[0], c_thermo_press[3], ...
 
-Adding keywords for the :doc:`thermo\_style custom <thermo_style>`
+Adding keywords for the :doc:`thermo_style custom <thermo_style>`
 command (which can then be accessed by variables) is discussed on the
 :doc:`Modify thermo <Modify_thermo>` doc page.
 

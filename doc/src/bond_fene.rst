@@ -46,9 +46,9 @@ first term extends to :math:`R_0`, the maximum extent of the bond.  The 2nd
 term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^2)
 * :math:`R_0` (distance)
@@ -89,14 +89,14 @@ This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
-You typically should specify :doc:`special\_bonds fene <special_bonds>`
-or :doc:`special\_bonds lj/coul 0 1 1 <special_bonds>` to use this bond
+You typically should specify :doc:`special_bonds fene <special_bonds>`
+or :doc:`special_bonds lj/coul 0 1 1 <special_bonds>` to use this bond
 style.  LAMMPS will issue a warning it that's not the case.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
 

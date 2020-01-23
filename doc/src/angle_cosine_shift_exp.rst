@@ -48,9 +48,9 @@ order in :math:`a` for :math:`a < 0.001`. In this limit the potential reduces to
 cosineshifted potential.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`U_min` (energy)
 * :math:`\theta` (angle)
@@ -93,7 +93,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`,
+:doc:`angle_coeff <angle_coeff>`,
 :doc:`angle\_cosine\_shift <angle_cosine_shift>`,
 :doc:`dihedral\_cosine\_shift\_exp <dihedral_cosine_shift_exp>`
 

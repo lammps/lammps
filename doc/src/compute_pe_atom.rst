@@ -48,13 +48,13 @@ atoms in a dihedral or 3 atoms in a Tersoff 3-body interaction), that
 energy is assigned in equal portions to each atom in the set.
 E.g. 1/4 of the dihedral energy to each of the 4 atoms.
 
-The :doc:`dihedral\_style charmm <dihedral_charmm>` style calculates
+The :doc:`dihedral_style charmm <dihedral_charmm>` style calculates
 pairwise interactions between 1-4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 
 The KSpace contribution is calculated using the method in
 :ref:`(Heyes) <Heyes1>` for the Ewald method and a related method for PPPM,
-as specified by the :doc:`kspace\_style pppm <kspace_style>` command.
+as specified by the :doc:`kspace_style pppm <kspace_style>` command.
 For PPPM, the calculation requires 1 extra FFT each timestep that
 per-atom energy is calculated.  This `document <PDF/kspace.pdf>`_
 describes how the long-range per-atom energy calculation is performed.
@@ -66,7 +66,7 @@ per-atom potential energy.
 
 .. note::
 
-   The :doc:`fix\_modify energy yes <fix_modify>` command must also be
+   The :doc:`fix_modify energy yes <fix_modify>` command must also be
    specified if a fix is to contribute per-atom potential energy to this
    command.
 
@@ -84,7 +84,7 @@ in the last 2 columns of thermo output:
 .. note::
 
    The per-atom energy does not include any Lennard-Jones tail
-   corrections to the energy added by the :doc:`pair\_modify tail yes <pair_modify>` command, since those are contributions to the
+   corrections to the energy added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
    global system energy.
 
 **Output info:**

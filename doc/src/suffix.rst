@@ -60,7 +60,7 @@ These are the variants these packages provide:
 * HYBRID = a combination of two packages can be specified (see below)
 
 
-As an example, all of the packages provide a :doc:`pair\_style lj/cut <pair_lj>` variant, with style names lj/cut/opt, lj/cut/omp,
+As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, lj/cut/intel, or lj/cut/kk.  A variant styles
 can be specified explicitly in your input script, e.g. pair\_style
 lj/cut/gpu. If the suffix command is used with the appropriate style,
@@ -93,7 +93,7 @@ commands in your input script.
 
 .. note::
 
-   The default :doc:`run\_style <run_style>` verlet is invoked prior to
+   The default :doc:`run_style <run_style>` verlet is invoked prior to
    reading the input script and is therefore not affected by a suffix command
    in the input script. The KOKKOS package requires "run\_style verlet/kk",
    so when using the KOKKOS package it is necessary to either use the command

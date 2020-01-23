@@ -146,7 +146,7 @@ implementing the grow\_arrays, copy\_arrays, pack\_exchange, and
 unpack\_exchange methods.  Similarly, the pack\_restart and
 unpack\_restart methods can be implemented to store information about
 the fix in restart files.  If you wish an integrator or force
-constraint fix to work with rRESPA (see the :doc:`run\_style <run_style>`
+constraint fix to work with rRESPA (see the :doc:`run_style <run_style>`
 command), the initial\_integrate, post\_force\_integrate, and
 final\_integrate\_respa methods can be implemented.  The thermo method
 enables a fix to contribute values to thermodynamic output, as printed

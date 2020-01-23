@@ -55,7 +55,7 @@ velocity field, before computing the kinetic energy.  This can be
 useful for thermostatting a collection of atoms undergoing a complex
 flow, e.g. via a profile-unbiased thermostat (PUT) as described in
 :ref:`(Evans) <Evans1>`.  A compute of this style can be used by any command
-that computes a temperature, e.g. :doc:`thermo\_modify <thermo_modify>`,
+that computes a temperature, e.g. :doc:`thermo_modify <thermo_modify>`,
 :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 The *xflag*\ , *yflag*\ , *zflag* settings determine which components of
@@ -107,7 +107,7 @@ bin.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 The removal of the spatially-averaged velocity field by this fix is
 essentially computing the temperature after a "bias" has been removed
@@ -122,7 +122,7 @@ constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 .. note::
 

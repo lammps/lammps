@@ -112,7 +112,7 @@ internal energy and extrapolated velocity are also updated.
    could displace the particles in a body or add a large velocity to each particle
    in a body to make it move in a desired direction before a 2nd run is
    performed, using the :doc:`set <set>` or
-   :doc:`displace\_atoms <displace_atoms>` or :doc:`velocity <velocity>`
+   :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
    of the body unless *reinit* is set to *yes*\ . With *reinit* set to *no*
    (or using the *infile* option, which implies *reinit* *no*\ ) the position
@@ -306,7 +306,7 @@ If the *infile* keyword is used, an auxiliary file is written out
 with rigid body information each time a restart file is written, as
 explained above for the *infile* keyword.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix computes a global array of values which can be accessed by
@@ -362,7 +362,7 @@ package.  It is only enabled if LAMMPS was built with both packages. See
 the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms store density and internal energy as
-defined by the :doc:`atom\_style meso <atom_style>` command.
+defined by the :doc:`atom_style meso <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
 
@@ -370,7 +370,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix meso/move <fix_meso_move>`, :doc:`fix rigid <fix_rigid>`,
-:doc:`neigh\_modify exclude <neigh_modify>`
+:doc:`neigh_modify exclude <neigh_modify>`
 
 Default
 """""""

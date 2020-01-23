@@ -38,7 +38,7 @@ to enumerate pairs of atoms within some cutoff distance, but when
 pairwise forces are not otherwise needed.  Examples are the :doc:`fix bond/create <fix_bond_create>`, :doc:`compute rdf <compute_rdf>`,
 :doc:`compute voronoi/atom <compute_voronoi_atom>` commands.
 
-Note that the :doc:`comm\_modify cutoff <comm_modify>` command can be
+Note that the :doc:`comm_modify cutoff <comm_modify>` command can be
 used to insure communication of ghost atoms even when a pair style is
 not defined, but it will not trigger neighbor list generation.
 
@@ -48,9 +48,9 @@ will only be checked for the atom type numbers and the rest ignored.
 In this case, only the global cutoff will be used.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutoff (distance units)
@@ -69,14 +69,14 @@ pair coefficient is ignored.
 The cutoff distance for this pair style can be mixed.  The default mix
 value is *geometric*\ .  See the "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ ,
-and *outer* keywords of the :doc:`run\_style respa <run_style>` command.
+and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 
 ----------
@@ -89,7 +89,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style none <pair_none>`
+:doc:`pair_style none <pair_none>`
 
 **Default:** none
 

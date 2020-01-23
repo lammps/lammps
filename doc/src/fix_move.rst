@@ -78,7 +78,7 @@ whose movement can influence nearby atoms.
    are stored by the fix in "unwrapped" form, by using the image flags
    associated with each atom.  See the :doc:`dump custom <dump>` command
    for a discussion of "unwrapped" coordinates.  See the Atoms section of
-   the :doc:`read\_data <read_data>` command for a discussion of image flags
+   the :doc:`read_data <read_data>` command for a discussion of image flags
    and how they are set for each atom.  You can reset the image flags
    (e.g. to 0) before invoking this fix by using the :doc:`set image <set>`
    command.
@@ -159,7 +159,7 @@ around the axis in the direction of rotation.
 This style also sets the velocity of each atom to (omega cross Rperp)
 where omega is its angular velocity around the rotation axis and Rperp
 is a perpendicular vector from the rotation axis to the atom.  If the
-defined :doc:`atom\_style <atom_style>` assigns an angular velocity or
+defined :doc:`atom_style <atom_style>` assigns an angular velocity or
 angular momentum or orientation to each atom (:doc:`atom styles <atom_style>` sphere, ellipsoid, line, tri, body), then
 those properties are also updated appropriately to correspond to the
 atom's motion and rotation over time.
@@ -219,7 +219,7 @@ spacings can be different in x,y,z.
 
 This fix writes the original coordinates of moving atoms to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
+:doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
@@ -230,7 +230,7 @@ operation of the fix continues in an uninterrupted fashion.
    different value after reading a restart file, if you expect a fix move
    command to work in an uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix produces a per-atom array which can be accessed by various
@@ -251,7 +251,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`fix nve <fix_nve>`, :doc:`displace\_atoms <displace_atoms>`
+:doc:`fix nve <fix_nve>`, :doc:`displace_atoms <displace_atoms>`
 
 **Default:** none
 

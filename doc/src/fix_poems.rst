@@ -115,7 +115,7 @@ off, and there is only a single fix poems defined.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *bodyforces* option is supported by
+The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 this fix style to set whether per-body forces and torques are computed
 early or late in a timestep, i.e. at the post-force stage or at the
 final-integrate stage, respectively.
@@ -136,8 +136,8 @@ built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc 
 Related commands
 """"""""""""""""
 
-:doc:`fix rigid <fix_rigid>`, :doc:`delete\_bonds <delete_bonds>`,
-:doc:`neigh\_modify <neigh_modify>` exclude
+:doc:`fix rigid <fix_rigid>`, :doc:`delete_bonds <delete_bonds>`,
+:doc:`neigh_modify <neigh_modify>` exclude
 
 **Default:** none
 

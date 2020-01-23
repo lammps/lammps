@@ -137,7 +137,7 @@ point charges, but uses a shielded Coulomb potential to describe the
 interaction between a pair of charged particles.  Interaction through
 the shielded Coulomb is given by equation (13) of the :ref:`ReaxFF force field <vanDuin>` paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
-as :doc:`fix qeq/reax <fix_qeq_reax>`, and can be used with :doc:`pair\_style reax/c <pair_reaxc>`.  Only the *chi*\ , *eta*\ , and *gamma*
+as :doc:`fix qeq/reax <fix_qeq_reax>`, and can be used with :doc:`pair_style reax/c <pair_reaxc>`.  Only the *chi*\ , *eta*\ , and *gamma*
 parameters from the *qfile* file are used. When using the string
 *reax/c* as filename, these parameters are extracted directly from
 an active *reax/c* pair style.  This style solves partial

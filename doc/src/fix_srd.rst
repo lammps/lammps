@@ -333,12 +333,12 @@ one of the operations and off for the other.
 
 Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
-:doc:`atom\_modify first <atom_modify>`, :doc:`neigh\_modify include <neigh_modify>`, and :doc:`comm\_modify group <comm_modify>`
+:doc:`atom_modify first <atom_modify>`, :doc:`neigh_modify include <neigh_modify>`, and :doc:`comm_modify group <comm_modify>`
 commands.  Each takes a group-ID as an argument, which in this case
 should be the group-ID of the big solute particles.
 
-Additionally, when a :doc:`pair\_style <pair_style>` for big/big particle
-interactions is specified, the :doc:`pair\_coeff <pair_coeff>` command
+Additionally, when a :doc:`pair_style <pair_style>` for big/big particle
+interactions is specified, the :doc:`pair_coeff <pair_coeff>` command
 should be used to turn off big/SRD interactions, e.g. by setting their
 epsilon or cutoff length to 0.0.
 
@@ -352,7 +352,7 @@ particles.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix tabulates several SRD statistics which are stored in a vector

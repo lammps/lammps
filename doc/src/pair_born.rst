@@ -111,7 +111,7 @@ ionic-pair dependent length parameter, and Rc is the cutoff.
 The styles with *coul/long* or *coul/msm* add a Coulombic term as
 described for the :doc:`lj/cut <pair_lj>` pair styles.  An additional
 damping factor is applied to the Coulombic term so it can be used in
-conjunction with the :doc:`kspace\_style <kspace_style>` command and its
+conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* of *msm* option.  The Coulombic cutoff specified for
 this style means that pairwise interactions within this distance are
 computed directly; interactions outside that distance are computed in
@@ -132,9 +132,9 @@ damped shifted force model as in the :doc:`coul/dsf <pair_coul>` style.
 Note that these potentials are related to the :doc:`Buckingham potential <pair_buck>`.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * A (energy units)
@@ -185,12 +185,12 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These styles support the :doc:`pair\_modify <pair_modify>` shift option
+These styles support the :doc:`pair_modify <pair_modify>` shift option
 for the energy of the exp(), 1/r\^6, and 1/r\^8 portion of the pair
 interaction.
 
 The *born/coul/long* pair style supports the
-:doc:`pair\_modify <pair_modify>` table option to tabulate the
+:doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair\_modify tail option for adding long-range
@@ -200,7 +200,7 @@ Thess styles writes thei information to binary :doc:`restart <restart>`
 files, so pair\_style and pair\_coeff commands do not need to be
 specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run\_style respa <run_style>` command.  They do not support the *inner*\ ,
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 
@@ -217,7 +217,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style buck <pair_buck>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style buck <pair_buck>`
 
 **Default:** none
 

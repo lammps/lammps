@@ -73,7 +73,7 @@ initial simulation produced the dump file:
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the :doc:`next <next>` and :doc:`jump <jump>`
 commands).  Each iteration of the loop reads one snapshot from the
-dump file via the :doc:`read\_dump <read_dump>` command, sets the
+dump file via the :doc:`read_dump <read_dump>` command, sets the
 timestep to the appropriate value, and then invokes a :doc:`run <run>`
 command for zero timesteps to simply compute energy and forces, and
 any other :doc:`thermodynamic output <thermo_style>` or diagnostic info
@@ -81,18 +81,18 @@ you have defined.  This computation also invokes any fixes you have
 defined that apply constraints to the system, such as :doc:`fix shake <fix_shake>` or :doc:`fix indent <fix_indent>`.
 
 Note that a simulation box must already be defined before using the
-rerun command.  This can be done by the :doc:`create\_box <create_box>`,
-:doc:`read\_data <read_data>`, or :doc:`read\_restart <read_restart>`
+rerun command.  This can be done by the :doc:`create_box <create_box>`,
+:doc:`read_data <read_data>`, or :doc:`read_restart <read_restart>`
 commands.
 
 Also note that reading per-atom information from dump snapshots is
 limited to the atom coordinates, velocities and image flags as
-explained in the :doc:`read\_dump <read_dump>` command.  Other atom
+explained in the :doc:`read_dump <read_dump>` command.  Other atom
 properties, which may be necessary to compute energies and forces,
 such as atom charge, or bond topology information for a molecular
 system, are not read from (or even contained in) dump files.  Thus
 this auxiliary information should be defined in the usual way, e.g. in
-a data file read in by a :doc:`read\_data <read_data>` command, before
+a data file read in by a :doc:`read_data <read_data>` command, before
 using the rerun command.
 
 Also note that the frequency of thermodynamic or dump output from the
@@ -154,10 +154,10 @@ dump file with a timestep value larger than the *stop* setting you
 have specified.
 
 The *dump* keyword is required and must be the last keyword specified.
-Its arguments are passed internally to the :doc:`read\_dump <read_dump>`
+Its arguments are passed internally to the :doc:`read_dump <read_dump>`
 command.  The first argument following the *dump* keyword should be
-the *field1* argument of the :doc:`read\_dump <read_dump>` command.  See
-the :doc:`read\_dump <read_dump>` doc page for details on the various
+the *field1* argument of the :doc:`read_dump <read_dump>` command.  See
+the :doc:`read_dump <read_dump>` doc page for details on the various
 options it allows for extracting information from the dump file
 snapshots, and for using that information to alter the LAMMPS
 simulation.
@@ -181,12 +181,12 @@ in which you are reprocessing the dump snapshots.
 If you only want the rerun script to perform an analysis that does
 not involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a :doc:`pair style <pair_style>`, which may also mean neighbor lists will not
-need to be calculated which saves time.  The :doc:`comm\_modify cutoff <comm_modify>` command can also be used to insure ghost
+need to be calculated which saves time.  The :doc:`comm_modify cutoff <comm_modify>` command can also be used to insure ghost
 atoms are acquired from far enough away for operations like bond and
 angle evaluations, if no pair style is being used.
 
 Every time a snapshot is read, the timestep for the simulation is
-reset, as if the :doc:`reset\_timestep <reset_timestep>` command were
+reset, as if the :doc:`reset_timestep <reset_timestep>` command were
 used.  This command has some restrictions as to what fixes can be
 defined.  See its doc page for details.  For example, the :doc:`fix deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
 are in this category.  They also make no sense to use with a rerun
@@ -201,7 +201,7 @@ are read from the dump file(s).  If an averaging fix is not invoked on
 a timestep it expects to be, LAMMPS will flag an error.
 
 The various forms of LAMMPS output, as defined by the
-:doc:`thermo\_style <thermo_style>`, :doc:`thermo <thermo>`,
+:doc:`thermo_style <thermo_style>`, :doc:`thermo <thermo>`,
 :doc:`dump <dump>`, and :doc:`restart <restart>` commands occur with
 specified frequency, e.g. every N steps.  If the timestep for a dump
 snapshot is not a multiple of N, then it will be read and processed,
@@ -224,7 +224,7 @@ doc page for details.
 Related commands
 """"""""""""""""
 
-:doc:`read\_dump <read_dump>`
+:doc:`read_dump <read_dump>`
 
 Default
 """""""

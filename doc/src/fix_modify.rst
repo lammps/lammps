@@ -67,7 +67,7 @@ The *energy* keyword can be used with fixes that support it.
 *energy yes* adds a contribution to the potential energy of the
 system. The fix's global and per-atom
 energy is included in the calculation performed by the :doc:`compute pe <compute_pe>` or :doc:`compute pe/atom <compute_pe_atom>`
-commands.  See the :doc:`thermo\_style <thermo_style>` command for info
+commands.  See the :doc:`thermo_style <thermo_style>` command for info
 on how potential energy is output.  For fixes that tally a global
 energy, it can be printed by using the keyword f\_ID in the
 thermo\_style custom command, where ID is the fix-ID of the appropriate
@@ -85,7 +85,7 @@ The *virial* keyword can be used with fixes that support it.
 system. The fix's global and per-atom
 virial is included in the calculation performed by the :doc:`compute pressure <compute_pressure>` or
 :doc:`compute stress/atom <compute_stress_atom>`
-commands.  See the :doc:`thermo\_style <thermo_style>` command for info
+commands.  See the :doc:`thermo_style <thermo_style>` command for info
 on how pressure is output.
 
 .. note::
@@ -129,7 +129,7 @@ normalized.
 
    Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do
    not use the *dynamic/dof* keyword because they use a temperature
-   compute to calculate temperature.  See the :doc:`compute\_modify dynamic/dof <compute_modify>` command for a similar way to insure
+   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to insure
    correct temperature normalization for those thermostats.
 
 The *bodyforces* keyword determines whether the forces and torques
@@ -159,7 +159,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`, :doc:`thermo\_style <thermo_style>`
+:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`, :doc:`thermo_style <thermo_style>`
 
 Default
 """""""

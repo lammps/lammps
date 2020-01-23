@@ -107,13 +107,13 @@ initial values after the run.
 
 
 The *pair* keyword enables various parameters of potentials defined by
-the :doc:`pair\_style <pair_style>` command to be changed, if the pair
-style supports it.  Note that the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands must be used in the usual manner
+the :doc:`pair_style <pair_style>` command to be changed, if the pair
+style supports it.  Note that the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands must be used in the usual manner
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.
 
-The *pstyle* argument is the name of the pair style.  If :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
+The *pstyle* argument is the name of the pair style.  If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
 a sub-style name.  If there are multiple sub-styles using the same
 pair style, then *pstyle* should be specified as "style:N" where N is
 which instance of the pair style you wish to adapt, e.g. the first,
@@ -213,9 +213,9 @@ meaning of these parameters:
    the pair\_\*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
-viscosity setting "mu" for :doc:`pair\_style lubricate <pair_lubricate>`.
+viscosity setting "mu" for :doc:`pair_style lubricate <pair_lubricate>`.
 Other parameters apply to atom type pairs within the pair style,
-e.g. the prefactor "a" for :doc:`pair\_style soft <pair_soft>`.
+e.g. the prefactor "a" for :doc:`pair_style soft <pair_soft>`.
 
 Note that for many of the potentials, the parameter that can be varied
 is effectively a prefactor on the entire energy expression for the
@@ -233,7 +233,7 @@ be specified to indicate which type pairs to apply it to.  If a global
 parameter is specified, the *I* and *J* settings still need to be
 specified, but are ignored.
 
-Similar to the :doc:`pair\_coeff command <pair_coeff>`, I and J can be
+Similar to the :doc:`pair_coeff command <pair_coeff>`, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
 each, as in the 1st example above.  I <= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same values.
@@ -248,9 +248,9 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  Note that only type pairs with I <= J are considered; if
 asterisks imply type pairs where J < I, they are ignored.
 
-IMPROTANT NOTE: If :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` is being used, then the *pstyle* will
+IMPROTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being used, then the *pstyle* will
 be a sub-style name.  You must specify I,J arguments that correspond
-to type pair values defined (via the :doc:`pair\_coeff <pair_coeff>`
+to type pair values defined (via the :doc:`pair_coeff <pair_coeff>`
 command) for that sub-style.
 
 The *v\_name* argument for keyword *pair* is the name of an
@@ -258,16 +258,16 @@ The *v\_name* argument for keyword *pair* is the name of an
 this fix is invoked to set the parameter to a new value.  It should be
 specified as v\_name, where name is the variable name.  Equal-style
 variables can specify formulas with various mathematical functions,
-and include :doc:`thermo\_style <thermo_style>` command keywords for the
+and include :doc:`thermo_style <thermo_style>` command keywords for the
 simulation box parameters and timestep and elapsed time.  Thus it is
 easy to specify parameters that change as a function of time or span
 consecutive runs in a continuous fashion.  For the latter, see the
 *start* and *stop* keywords of the :doc:`run <run>` command and the
-*elaplong* keyword of :doc:`thermo\_style custom <thermo_style>` for
+*elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for
 details.
 
 For example, these commands would change the prefactor coefficient of
-the :doc:`pair\_style soft <pair_soft>` potential from 10.0 to 30.0 in a
+the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
 
@@ -309,7 +309,7 @@ working with fix\_adapt are
 
 The *kspace* keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
-defined by the :doc:`kspace\_style <kspace_style>` command.  If the
+defined by the :doc:`kspace_style <kspace_style>` command.  If the
 variable has a value of 1.0, then the solver is unaltered.
 
 The *kspace* keyword works this way whether the *scale* keyword
@@ -341,7 +341,7 @@ for all atoms in the fix group.
    by the *atom* keyword.
 
 If the atom parameter is *diameter* and per-atom density and per-atom
-mass are defined for particles (e.g. :doc:`atom\_style granular <atom_style>`), then the mass of each particle is also
+mass are defined for particles (e.g. :doc:`atom_style granular <atom_style>`), then the mass of each particle is also
 changed when the diameter changes (density is assumed to stay
 constant).
 
@@ -361,7 +361,7 @@ over the course of a 1000-step simulation:
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of

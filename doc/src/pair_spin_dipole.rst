@@ -52,18 +52,18 @@ is the direction vector between the two particles.
 
 Style *spin/dipole/long* computes long-range magnetic dipole-dipole
 interaction.
-A :doc:`kspace\_style <kspace_style>` must be defined to
-use this pair style.  Currently, :doc:`kspace\_style ewald/dipole/spin <kspace_style>` and :doc:`kspace\_style pppm/dipole/spin <kspace_style>` support long-range magnetic
+A :doc:`kspace_style <kspace_style>` must be defined to
+use this pair style.  Currently, :doc:`kspace_style ewald/dipole/spin <kspace_style>` and :doc:`kspace_style pppm/dipole/spin <kspace_style>` support long-range magnetic
 dipole-dipole interactions.
 
 
 ----------
 
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -85,7 +85,7 @@ currently supported.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`kspace\_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`kspace_style <kspace_style>`
 :doc:`fix nve/spin <fix_nve_spin>`
 
 **Default:** none

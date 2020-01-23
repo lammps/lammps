@@ -197,11 +197,11 @@ IDs of the new computes are the fix-ID + underscore + "temp" or fix\_ID
 as the fix group.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
@@ -209,7 +209,7 @@ It also means that changing attributes of *thermo\_temp* or
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by this fix.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its temperature and pressure calculations.  If you do this, note
@@ -237,7 +237,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nph <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`fix temp/berendsen <fix_temp_berendsen>`,
-:doc:`fix\_modify <fix_modify>`
+:doc:`fix_modify <fix_modify>`
 
 Default
 """""""

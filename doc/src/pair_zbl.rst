@@ -49,11 +49,11 @@ energy due to a pair of atoms at a distance r\_ij is given by:
 where e is the electron charge, epsilon\_0 is the electrical
 permittivity of vacuum, and Z\_i and Z\_j are the nuclear charges of the
 two atoms.  The switching function S(r) is identical to that used by
-:doc:`pair\_style lj/gromacs <pair_gromacs>`.  Here, the inner and outer
+:doc:`pair_style lj/gromacs <pair_gromacs>`.  Here, the inner and outer
 cutoff are the same for all pairs of atom types.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the LAMMPS data file.
 
 * Z\_i (atomic number for first atom type, e.g. 13.0 for aluminum)
@@ -115,17 +115,17 @@ with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style
 must be included in a pair\_coeff command.
-The :doc:`pair\_modify <pair_modify>` mix option has no effect on
+The :doc:`pair_modify <pair_modify>` mix option has no effect on
 the mixing behavior
 
-The ZBL pair style does not support the :doc:`pair\_modify <pair_modify>`
+The ZBL pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option, since the ZBL interaction is already smoothed to 0.0 at
 the cutoff.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant for
+The :doc:`pair_modify <pair_modify>` table option is not relevant for
 this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure, since there are no corrections for a potential that goes to
 0.0 at the cutoff.
@@ -134,7 +134,7 @@ This pair style does not write information to :doc:`binary restart files <restar
 specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -148,7 +148,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

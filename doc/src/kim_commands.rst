@@ -195,7 +195,7 @@ the simulation box is created (normally at the top of the file).
 This command sets the OpenKIM IM that will be used and may issue
 additional commands changing LAMMPS default settings that are required
 for using the selected IM (such as :doc:`units <units>` or
-:doc:`atom\_style <atom_style>`). If needed, those settings can be overridden,
+:doc:`atom_style <atom_style>`). If needed, those settings can be overridden,
 however, typically a script containing a *kim\_init* command
 would not include *units* and *atom\_style* commands.
 
@@ -216,7 +216,7 @@ printed to help diagnose any incompatible changes to input script or
 command syntax between the two LAMMPS versions.
 
 Based on the selected model *kim\_init* may modify the
-:doc:`atom\_style <atom_style>`.
+:doc:`atom_style <atom_style>`.
 Some SMs have requirements for this setting. If this is the case, then
 *atom\_style* will be set to the required style. Otherwise, the value is left
 unchanged (which in the absence of an *atom\_style* command in the input script
@@ -316,7 +316,7 @@ will work correctly for any IM for Al (KIM PM or SM) selected by the
 
 Care must be taken to apply unit conversion to dimensional variables read in
 from a file. For example, if a configuration of atoms is read in from a
-dump file using the :doc:`read\_dump <read_dump>` command, the following can
+dump file using the :doc:`read_dump <read_dump>` command, the following can
 be done to convert the box and all atomic positions to the correct units:
 
 
@@ -345,7 +345,7 @@ OpenKIM IM Execution (*kim\_interactions*)
 The second and final step in using an OpenKIM IM is to execute the
 *kim\_interactions* command. This command must be preceded by a *kim\_init*
 command and a command that defines the number of atom types *N* (such as
-:doc:`create\_box <create_box>`).
+:doc:`create_box <create_box>`).
 The *kim\_interactions* command has one argument *typeargs*\ . This argument
 contains either a list of *N* chemical species, which defines a mapping between
 atom types in LAMMPS to the available species in the OpenKIM IM, or the
@@ -374,7 +374,7 @@ Alternatively, for a model with a fixed mapping the command would be:
 The *kim\_interactions* command performs all the necessary steps to set up
 the OpenKIM IM selected in the *kim\_init* command. The specific actions depend
 on whether the IM is a KIM PM or a KIM SM.  For a KIM PM,
-a :doc:`pair\_style kim <pair_kim>` command is executed followed by
+a :doc:`pair_style kim <pair_kim>` command is executed followed by
 the appropriate *pair\_coeff* command. For example, for the
 Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
 
@@ -894,7 +894,7 @@ must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style kim <pair_kim>`
+:doc:`pair_style kim <pair_kim>`
 
 
 ----------

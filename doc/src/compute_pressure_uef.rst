@@ -38,7 +38,7 @@ value of the pressure. A :doc:`compute pressure <compute_pressure>`
 may be used for that purpose.
 
 The keywords and output information are documented in
-:doc:`compute\_pressure <compute_pressure>`.
+:doc:`compute_pressure <compute_pressure>`.
 
 Restrictions
 """"""""""""

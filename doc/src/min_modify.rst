@@ -43,7 +43,7 @@ Description
 """""""""""
 
 This command sets parameters that affect the energy minimization
-algorithms selected by the :doc:`min\_style <min_style>` command.  The
+algorithms selected by the :doc:`min_style <min_style>` command.  The
 various settings may affect the convergence rate and overall number of
 force evaluations required by a minimization, so users can experiment
 with these parameters to tune their minimizations.
@@ -107,13 +107,13 @@ For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
 Keywords *alpha\_damp* and *discrete\_factor* only make sense when
-a :doc:`min\_spin <min_spin>` command is declared.
+a :doc:`min_spin <min_spin>` command is declared.
 Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
 a given magnetic system.
 Keyword *discrete\_factor* defines a discretization factor for the
 adaptive timestep used in the *spin* minimization.
-See :doc:`min\_spin <min_spin>` for more information about those
+See :doc:`min_spin <min_spin>` for more information about those
 quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
@@ -138,7 +138,7 @@ See :doc:`neb/spin <neb_spin>` for more explanation.
 Related commands
 """"""""""""""""
 
-:doc:`min\_style <min_style>`, :doc:`minimize <minimize>`
+:doc:`min_style <min_style>`, :doc:`minimize <minimize>`
 
 Default
 """""""

@@ -122,7 +122,7 @@ Note coupling and post-processing can be combined in the same simulations using 
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix_modify <fix_modify>` options
 relevant to this fix are listed below.  No global scalar or vector or
 per-atom quantities are stored by this fix for access by various
 :doc:`output commands <Howto_output>`.  No parameter of this fix can be
@@ -141,7 +141,7 @@ Thermal and two\_temperature (coupling) types use a Verlet time-integration algo
 Related commands
 """"""""""""""""
 
-After specifying this fix in your input script, several other :doc:`fix\_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
+After specifying this fix in your input script, several other :doc:`fix_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
 fix\_modify commands for setup:
 

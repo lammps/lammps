@@ -35,7 +35,7 @@ where K is a prefactor, theta is the angle formed by the atoms
 specified by (i,j,k,l) indices and theta0 its equilibrium value.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
-by the :doc:`read\_data <read_data>` command) are ordered i,j,k,l then
+by the :doc:`read_data <read_data>` command) are ordered i,j,k,l then
 theta\_\ *ijl* is the angle between atoms i,j and l, theta\_\ *ijk* is the
 angle between atoms i,j and k, theta\_\ *kjl* is the angle between atoms
 j,k, and l.
@@ -51,9 +51,9 @@ data file four atoms: i, j, k and l are specified with i,j and l lying
 on the backbone of the chain and k specifying the chirality of j.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * K (energy)
@@ -96,7 +96,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 .. _Destree:
 

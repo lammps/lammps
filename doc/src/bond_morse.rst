@@ -37,9 +37,9 @@ where :math:`r_0` is the equilibrium bond distance, :math:`\alpha` is a stiffnes
 parameter, and :math:`D` determines the depth of the potential well.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`D` (energy)
 * :math:`\alpha` (inverse distance)
@@ -82,6 +82,6 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none

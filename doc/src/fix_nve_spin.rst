@@ -82,7 +82,7 @@ instead of "array" is also valid.
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`, :doc:`fix nve <fix_nve>`
+:doc:`atom_style spin <atom_style>`, :doc:`fix nve <fix_nve>`
 
 Default
 """""""

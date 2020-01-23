@@ -75,9 +75,9 @@ Description
 This command creates atoms (or molecules) on a lattice, or a single
 atom (or molecule), or a random collection of atoms (or molecules), as
 an alternative to reading in their coordinates explicitly via a
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 command.  A simulation box must already exist, which is typically
-created via the :doc:`create\_box <create_box>` command.  Before using
+created via the :doc:`create_box <create_box>` command.  Before using
 this command, a lattice must also be defined using the
 :doc:`lattice <lattice>` command, unless you specify the *single* style
 with units = box or the *random* style.  For the remainder of this doc
@@ -145,13 +145,13 @@ used multiple times, to add multiple sets of particles to the
 simulation.  For example, grain boundaries can be created, by
 interleaving create\_atoms with :doc:`lattice <lattice>` commands
 specifying different orientations.  By using the create\_atoms command
-in conjunction with the :doc:`delete\_atoms <delete_atoms>` command,
+in conjunction with the :doc:`delete_atoms <delete_atoms>` command,
 reasonably complex geometries can be created, or a protein can be
 solvated with a surrounding box of water molecules.
 
 In all these cases, care should be taken to insure that new atoms do
 not overlap existing atoms inappropriately, especially if molecules
-are being added.  The :doc:`delete\_atoms <delete_atoms>` command can be
+are being added.  The :doc:`delete_atoms <delete_atoms>` command can be
 used to remove overlapping atoms or molecules.
 
 .. note::
@@ -160,10 +160,10 @@ used to remove overlapping atoms or molecules.
    that are outside the simulation box; they will just be ignored by
    LAMMPS.  This is true even if you are using shrink-wrapped box
    boundaries, as specified by the :doc:`boundary <boundary>` command.
-   However, you can first use the :doc:`change\_box <change_box>` command to
+   However, you can first use the :doc:`change_box <change_box>` command to
    temporarily expand the box, then add atoms via create\_atoms, then
    finally use change\_box command again if needed to re-shrink-wrap the
-   new atoms.  See the :doc:`change\_box <change_box>` doc page for an
+   new atoms.  See the :doc:`change_box <change_box>` doc page for an
    example of how to do this, using the create\_atoms *single* style to
    insert a new atom outside the current simulation box.
 
@@ -200,12 +200,12 @@ not overlap, regardless of their relative orientations.
 
 .. note::
 
-   If the :doc:`create\_box <create_box>` command is used to create
+   If the :doc:`create_box <create_box>` command is used to create
    the simulation box, followed by the create\_atoms command with its
    *mol* option for adding molecules, then you typically need to use the
-   optional keywords allowed by the :doc:`create\_box <create_box>` command
+   optional keywords allowed by the :doc:`create_box <create_box>` command
    for extra bonds (angles,etc) or extra special neighbors.  This is
-   because by default, the :doc:`create\_box <create_box>` command sets up a
+   because by default, the :doc:`create_box <create_box>` command sets up a
    non-molecular system which doesn't allow molecules to be added.
 
 
@@ -264,7 +264,7 @@ create a sinusoidal surface.  Note that the surface is "rough" due to
 individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
 the sinusoid would appear to be "smoother".  Also note the use of the
-"xlat" and "ylat" :doc:`thermo\_style <thermo_style>` keywords which
+"xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
 converts lattice spacings to distance.  Click on the image for a
 larger version.
 
@@ -366,7 +366,7 @@ Restrictions
 """"""""""""
 
 
-An :doc:`atom\_style <atom_style>` must be previously defined to use this
+An :doc:`atom_style <atom_style>` must be previously defined to use this
 command.
 
 A rotation vector specified for a single molecule must be in
@@ -375,8 +375,8 @@ the z-direction for a 2d model.
 Related commands
 """"""""""""""""
 
-:doc:`lattice <lattice>`, :doc:`region <region>`, :doc:`create\_box <create_box>`,
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`
+:doc:`lattice <lattice>`, :doc:`region <region>`, :doc:`create_box <create_box>`,
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`
 
 Default
 """""""

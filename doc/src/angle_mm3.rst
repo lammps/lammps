@@ -36,9 +36,9 @@ prefactor. The anharmonic prefactors have units :math:`\deg^{-n}`, for example
 :math:`-0.014 \deg^{-1}`, :math:`5.6 \cdot 10^{-5} \deg^{-2}`, ...
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/radian\^2)
 * :math:`\theta_0` (degrees)
@@ -57,6 +57,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none

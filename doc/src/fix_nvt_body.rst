@@ -63,11 +63,11 @@ underscore + "temp", and the group for the new compute is the same as
 the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* will have no
 effect on this fix.
 
@@ -77,7 +77,7 @@ after removing a "bias" from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
 temperature on the x-component of velocity or only calculating
 temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix\_modify <fix_modify>` command is used
+default, but only if the :doc:`fix_modify <fix_modify>` command is used
 to assign a temperature compute to this fix that includes such a bias
 term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
 this case, the thermostat works in the following manner: the current
@@ -109,17 +109,17 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>`
+This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a :doc:`compute <compute>` you have
 defined to this fix which will be used in its thermostatting
 procedure.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Nose/Hoover thermostatting to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -140,13 +140,13 @@ This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
-quaternion as defined by the :doc:`atom\_style body <atom_style>`
+quaternion as defined by the :doc:`atom_style body <atom_style>`
 command.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix nve\_body <fix_nve_body>`, :doc:`fix npt\_body <fix_npt_body>`, :doc:`fix\_modify <fix_modify>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix nve\_body <fix_nve_body>`, :doc:`fix npt\_body <fix_npt_body>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
 

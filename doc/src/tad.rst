@@ -129,7 +129,7 @@ check is performed by quenching the system and comparing the resulting
 atom coordinates to the coordinates from the previous basin.
 
 A quench is an energy minimization and is performed by whichever
-algorithm has been defined by the :doc:`min\_style <min_style>` command;
+algorithm has been defined by the :doc:`min_style <min_style>` command;
 its default is the CG minimizer.  The tolerances and limits for each
 quench can be set by the *min* keyword.  Note that typically, you do
 not need to perform a highly-converged minimization to detect a
@@ -304,8 +304,8 @@ Related commands
 """"""""""""""""
 
 :doc:`compute event/displace <compute_event_displace>`,
-:doc:`min\_modify <min_modify>`, :doc:`min\_style <min_style>`,
-:doc:`run\_style <run_style>`, :doc:`minimize <minimize>`,
+:doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
+:doc:`run_style <run_style>`, :doc:`minimize <minimize>`,
 :doc:`temper <temper>`, :doc:`neb <neb>`,
 :doc:`prd <prd>`
 

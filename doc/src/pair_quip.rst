@@ -44,7 +44,7 @@ number of LAMMPS atom types:
 * QUIP initialization string
 * N atomic numbers = mapping of QUIP elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 A QUIP potential is fully specified by the filename which contains the
@@ -62,7 +62,7 @@ directory.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -70,7 +70,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 Restrictions
@@ -84,7 +84,7 @@ QUIP potentials are parameterized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal :doc:`units <units>`.
 
 QUIP potentials are generally not designed to work with the scaling
-factors set by the :doc:`special\_bonds <special_bonds>` command.  The
+factors set by the :doc:`special_bonds <special_bonds>` command.  The
 recommended setting in molecular systems is to include all
 interactions, i.e. to use *special\_bonds lj/coul 1.0 1.0 1.0*. Scaling
 factors > 0.0 will be ignored and treated as 1.0. The only exception
@@ -98,7 +98,7 @@ required.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 
 ----------

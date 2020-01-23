@@ -53,8 +53,8 @@ about atoms and to use during a simulation.  The specified *group-ID*
 is ignored by this fix.
 
 The atom style used for a simulation defines a set of per-atom
-properties, as explained on the :doc:`atom\_style <atom_style>` and
-:doc:`read\_data <read_data>` doc pages.  The latter command allows these
+properties, as explained on the :doc:`atom_style <atom_style>` and
+:doc:`read_data <read_data>` doc pages.  The latter command allows these
 properties to be defined for each atom in the system when a data file
 is read.  This fix will augment the set of properties with new custom
 ones. This can be useful in several scenarios.
@@ -113,7 +113,7 @@ new properties are also defined for the ghost atoms.
 
    If you use this command with the *mol*\ , *q* or *rmass* vectors,
    then you most likely want to set *ghost* yes, since these properties
-   are stored with ghost atoms if you use an :doc:`atom\_style <atom_style>`
+   are stored with ghost atoms if you use an :doc:`atom_style <atom_style>`
    that defines them, and many LAMMPS operations that use molecule IDs or
    charge, such as neighbor lists and pair styles, will expect ghost
    atoms to have these values.  LAMMPS will issue a warning it you define
@@ -142,14 +142,14 @@ new properties are also defined for the ghost atoms.
 
 This fix is one of a small number that can be defined in an input
 script before the simulation box is created or atoms are defined.
-This is so it can be used with the :doc:`read\_data <read_data>` command
+This is so it can be used with the :doc:`read_data <read_data>` command
 as described below.
 
 Per-atom properties that are defined by the :doc:`atom style <atom_style>` are initialized when atoms are created, e.g. by
-the :doc:`read\_data <read_data>` or :doc:`create\_atoms <create_atoms>`
+the :doc:`read_data <read_data>` or :doc:`create_atoms <create_atoms>`
 commands.  The per-atom properties defined by this fix are not.  So
 you need to initialize them explicitly.  This can be done by the
-:doc:`read\_data <read_data>` command, using its *fix* keyword and
+:doc:`read_data <read_data>` command, using its *fix* keyword and
 passing it the fix-ID of this fix.
 
 Thus these commands:
@@ -258,7 +258,7 @@ this to using per-atom masses:
    set type 1 mass 15.9994
    set type 2 mass 1.008
 
-When writing out the system data with the :doc:`write\_data <write_data>`
+When writing out the system data with the :doc:`write_data <write_data>`
 command, there will be a new section named with the fix-ID
 (i.e. *Isotopes* in this case). Alternatively, you can take an
 existing data file and just add this *Isotopes* section with
@@ -312,12 +312,12 @@ instructions on how to use the accelerated styles effectively.
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
-simulation is restarted.  See the :doc:`read\_restart <read_restart>`
+simulation is restarted.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -330,7 +330,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`set <set>`, :doc:`compute property/atom <compute_property_atom>`
+:doc:`read_data <read_data>`, :doc:`set <set>`, :doc:`compute property/atom <compute_property_atom>`
 
 Default
 """""""

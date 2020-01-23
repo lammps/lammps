@@ -90,7 +90,7 @@ dependent bias potentials that were accumulated in previous calculations
 will be read in when the RESTART command is included in the PLUMED
 input.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is not supported by
+The :doc:`fix_modify <fix_modify>` *energy* option is not supported by
 this fix.
 
 Nothing is computed by this fix that can be accessed by any of the

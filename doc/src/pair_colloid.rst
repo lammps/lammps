@@ -69,14 +69,14 @@ Lennard-Jones formula
 with A\_ss set appropriately, which results from letting both particle
 sizes go to zero.
 
-When used in combination with :doc:`pair\_style yukawa/colloid <pair_colloid>`, the two terms become the so-called
+When used in combination with :doc:`pair_style yukawa/colloid <pair_colloid>`, the two terms become the so-called
 DLVO potential, which combines electrostatic repulsion and van der
 Waals attraction.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * A (energy units)
@@ -132,7 +132,7 @@ colloid-solvent cutoff in this case.
    widely different particles sizes (e.g. sigma=10 colloids in a
    background sigma=1 LJ fluid), you will likely want to use these
    commands for efficiency: :doc:`neighbor multi <neighbor>` and
-   :doc:`comm\_modify multi <comm_modify>`.
+   :doc:`comm_modify multi <comm_modify>`.
 
 
 ----------
@@ -168,13 +168,13 @@ is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
 *geometric*\ .  See the "pair\_modify" command for details.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -182,7 +182,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -197,7 +197,7 @@ This style is part of the COLLOID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Normally, this pair style should be used with finite-size particles
-which have a diameter, e.g. see the :doc:`atom\_style sphere <atom_style>` command.  However, this is not a requirement,
+which have a diameter, e.g. see the :doc:`atom_style sphere <atom_style>` command.  However, this is not a requirement,
 since the only definition of particle size is via the pair\_coeff
 parameters for each type.  In other words, the physical radius of the
 particle is ignored.  Thus you should insure that the d1,d2 parameters
@@ -210,7 +210,7 @@ only per-type polydispersity is enabled via the pair\_coeff parameters.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

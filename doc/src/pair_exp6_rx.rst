@@ -50,7 +50,7 @@ where the *epsilon* parameter determines the depth of the potential
 minimum located at *Rm*\ , and *alpha* determines the softness of the repulsion.
 
 The coefficients must be defined for each species in a given particle
-type via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+type via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, where the first argument is the filename that includes the
 exponential-6 parameters for each species.  The file includes the
 species tag followed by the *alpha*\ , *epsilon* and *Rm*
@@ -161,7 +161,7 @@ comprise the gas mixture.
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This style does not support the :doc:`pair\_modify <pair_modify>` shift option
+This style does not support the :doc:`pair_modify <pair_modify>` shift option
 for the energy of the exp() and 1/r\^6 portion of the pair interaction.
 
 This style does not support the pair\_modify tail option for adding long-range
@@ -204,7 +204,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** fractional weighting
 

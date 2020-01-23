@@ -80,12 +80,12 @@ results from a unitless LJ simulation into physical quantities.
 * density = mass/volume, where rho\* = rho sigma\^dim
 
 Note that for LJ units, the default mode of thermodynamic output via
-the :doc:`thermo\_style <thermo_style>` command is to normalize all
+the :doc:`thermo_style <thermo_style>` command is to normalize all
 extensive quantities by the number of atoms.  E.g. potential energy is
 extensive because it is summed over atoms, so it is output as
 energy/atom.  Temperature is intensive since it is already normalized
 by the number of atoms, so it is output as-is.  This behavior can be
-changed via the :doc:`thermo\_modify norm <thermo_modify>` command.
+changed via the :doc:`thermo_modify norm <thermo_modify>` command.
 
 For style *real*\ , these are the units:
 
@@ -220,7 +220,7 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 **Related commands:** none
 

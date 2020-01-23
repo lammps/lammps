@@ -14,7 +14,7 @@
 KSpace solvers
 ==============
 
-All LAMMPS :doc:`kspace\_style <kspace_style>` solvers.  Some styles have
+All LAMMPS :doc:`kspace_style <kspace_style>` solvers.  Some styles have
 accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.

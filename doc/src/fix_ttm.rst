@@ -285,7 +285,7 @@ ignored. The lines with the even numbers are treated as follows:
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 These fixes write the state of the electronic subsystem and the energy
-exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>` command
+exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -296,7 +296,7 @@ fix, where the simulation continues on the same as if no restart had
 taken place.  However, in a statistical sense, a restarted simulation
 should produce the same behavior.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to these
+None of the :doc:`fix_modify <fix_modify>` options are relevant to these
 fixes.
 
 Both fixes compute 2 output quantities stored in a vector of length 2,

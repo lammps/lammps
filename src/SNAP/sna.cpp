@@ -363,11 +363,13 @@ void SNA::compute_zi()
 {
 
   int idouble = 0;
+  double * zptr_r;
+  double * zptr_i;
   for(int elem1 = 0; elem1 < nelements; elem1++)
     for(int elem2 = 0; elem2 < nelements; elem2++) {
 
-      double *zptr_r = &zlist_r[idouble*idxz_max];
-      double *zptr_i = &zlist_i[idouble*idxz_max];
+      zptr_r = &zlist_r[idouble*idxz_max];
+      zptr_i = &zlist_i[idouble*idxz_max];
 
       for (int jjz = 0; jjz < idxz_max; jjz++) {
         const int j1 = idxz[jjz].j1;
@@ -769,6 +771,8 @@ void SNA::compute_dbidrj()
   double* dbdr;
   double* dudr_r, *dudr_i;
   double sumzdu_r[3];
+  double* zptr_r;
+  double* zptr_i;
   int jjz, jju;
 
   int idouble;
@@ -802,17 +806,16 @@ void SNA::compute_dbidrj()
 
     // Sum terms Conj(dudr(j,ma,mb))*z(j1,j2,j,ma,mb)
 
-    jjz = idxz_block[j1][j2][j];
-    jju = idxu_block[j];
-
     for(int elem1 = 0; elem1 < nelements; elem1++)
       for(int elem2 = 0; elem2 < nelements; elem2++) {
 
+        jjz = idxz_block[j1][j2][j];
+        jju = idxu_block[j];
         idouble = elem1*nelements+elem2;
         itriple = (elem1*nelements+elem2)*nelements+elem3;
         dbdr = dblist[itriple*idxb_max+jjb];
-        double *zptr_r = &zlist_r[idouble*idxz_max];
-        double *zptr_i = &zlist_i[idouble*idxz_max];
+        zptr_r = &zlist_r[idouble*idxz_max];
+        zptr_i = &zlist_i[idouble*idxz_max];
 
         for (int k = 0; k < 3; k++)
           sumzdu_r[k] = 0.0;
@@ -855,7 +858,6 @@ void SNA::compute_dbidrj()
 
         for (int k = 0; k < 3; k++)
           dbdr[k] += 2.0 * sumzdu_r[k];
-
         // Sum over Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
 
         double j1fac = (j + 1) / (j1 + 1.0);
@@ -917,8 +919,8 @@ void SNA::compute_dbidrj()
 
         double j2fac = (j + 1) / (j2 + 1.0);
 
-        idouble = elem1*nelements+elem2;
-        itriple = (elem3*nelements+elem2)*nelements+elem1;
+        idouble = elem2*nelements+elem1;
+        itriple = (elem1*nelements+elem3)*nelements+elem2;
         dbdr = dblist[itriple*idxb_max+jjb];
         jjz = idxz_block[j][j1][j2];
         jju = idxu_block[j2];
@@ -1004,7 +1006,6 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj, int jelem)
 
 void SNA::zero_uarraytot(int ielem)
 {
-
   for(int jelem = 0; jelem < nelements; jelem++)
   for (int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];

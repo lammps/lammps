@@ -117,7 +117,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"alloy") == 0) {
+    } else if (strcmp(arg[iarg],"alloyflag") == 0) {
       if (iarg+2+ntypes > narg)
         error->all(FLERR,"Illegal compute snap command");
       alloyflag = 1;
@@ -125,13 +125,13 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
         int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
-        printf("%d %d %d %d\n",ntypes,nelements,i,jelem);
+        if (screen && comm->me==0) fprintf(screen, "%d %d %d %d\n",ntypes,nelements,i,jelem);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snap command");
         map[i+1] = jelem;
       }
       iarg += 2+ntypes;
-    } else if (strcmp(arg[iarg],"wselfall") == 0) {
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
       wselfallflag = atoi(arg[iarg+1]);

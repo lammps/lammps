@@ -405,8 +405,8 @@ calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
 The *pppm/kk* style performs charge assignment and force interpolation
-calculations, along with the FFTs themselves, on the GPU or threaded
-on the CPU when using OpenMP.
+calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
+on the CPU when using OpenMP and FFTW3.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP, and OPT packages respectively.  They are only enabled if

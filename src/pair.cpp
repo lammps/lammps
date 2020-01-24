@@ -1664,6 +1664,8 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
+  if ((comm->me == 0) && (epair))
+    error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
 

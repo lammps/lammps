@@ -140,7 +140,7 @@ void Hyper::command(int narg, char **arg)
   update->whichflag = 1;
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
-  update->endstep = update->laststep = update->firststep + nsteps;
+  update->endstep = update->laststep = update->beginstep + nsteps;
   if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
@@ -253,17 +253,18 @@ void Hyper::command(int narg, char **arg)
   }
 
   // subset of quantities also available in fix hyper output
+  // set t_hyper to no-boost value when hyperenable is not set
 
   int nevent_running = 0;
   int nevent_atoms_running = 0;
-  double t_hyper = 0.0;
+  double t_hyper = update->dt * (update->endstep - update->beginstep);
   double avebonds = 0.0;
   double maxdrift = 0.0;
   double maxbondlen = 0.0;
   double fraczero = 1.0;
   double fracneg = 1.0;
 
-  double nnewbond,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
+  double nnewbond,aveboost,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
   double maxbondperatom,neighbondperbond,avebiasnow;
   double tbondbuild,rmaxever,rmaxeverbig,allghost_toofar;
   double biasoverlap;
@@ -281,17 +282,18 @@ void Hyper::command(int narg, char **arg)
     if (hyperstyle == LOCAL) {
       nnewbond = fix_hyper->query(9);
       maxbondperatom = fix_hyper->query(10);
-      avenbias = fix_hyper->query(11);
-      avebiascoeff = fix_hyper->query(12);
-      minbiascoeff = fix_hyper->query(13);
-      maxbiascoeff = fix_hyper->query(14);
-      neighbondperbond = fix_hyper->query(15);
-      avebiasnow = fix_hyper->query(16);
-      tbondbuild = fix_hyper->query(17);
-      rmaxever = fix_hyper->query(18);
-      rmaxeverbig = fix_hyper->query(19);
-      allghost_toofar = fix_hyper->query(20);
-      biasoverlap = fix_hyper->query(21);
+      aveboost = fix_hyper->query(11);
+      avenbias = fix_hyper->query(12);
+      avebiascoeff = fix_hyper->query(13);
+      minbiascoeff = fix_hyper->query(14);
+      maxbiascoeff = fix_hyper->query(15);
+      neighbondperbond = fix_hyper->query(16);
+      avebiasnow = fix_hyper->query(17);
+      tbondbuild = fix_hyper->query(18);
+      rmaxever = fix_hyper->query(19);
+      rmaxeverbig = fix_hyper->query(20);
+      allghost_toofar = fix_hyper->query(21);
+      biasoverlap = fix_hyper->query(22);
     }
   }
 
@@ -303,7 +305,10 @@ void Hyper::command(int narg, char **arg)
       if (!out) continue;
       fprintf(out,"Cummulative quantities for fix hyper:\n");
       fprintf(out,"  hyper time = %g\n",t_hyper);
-      fprintf(out,"  time boost factor = %g\n",t_hyper/(nsteps*update->dt));
+      if (hyperenable)
+        fprintf(out,"  time boost factor = %g\n", t_hyper /
+                ((update->ntimestep-fix_hyper->ntimestep_initial)*update->dt));
+      else fprintf(out,"  time boost factor = 1\n");
       fprintf(out,"  event timesteps = %d\n",nevent_running);
       fprintf(out,"  # of atoms in events = %d\n",nevent_atoms_running);
       fprintf(out,"Quantities for this hyper run:\n");
@@ -323,6 +328,7 @@ void Hyper::command(int narg, char **arg)
         fprintf(out,"  max bonds/atom = %g\n",maxbondperatom);
         fprintf(out,"Quantities for this hyper run specific to "
                 "fix hyper/local:\n");
+        fprintf(out,"  ave boost for all bonds/step = %g\n",aveboost);
         fprintf(out,"  ave biased bonds/step = %g\n",avenbias);
         fprintf(out,"  ave bias coeff of all bonds = %g\n",avebiascoeff);
         fprintf(out,"  min bias coeff of any bond = %g\n",minbiascoeff);
@@ -380,6 +386,7 @@ void Hyper::dynamics(int nsteps, double & /* time_category */)
 
   lmp->init();
   update->integrate->setup(0);
+
   // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
   bigint ncalls = neighbor->ncalls;
@@ -411,7 +418,7 @@ void Hyper::quench(int flag)
 
   update->whichflag = 2;
   update->nsteps = maxiter;
-  update->endstep = update->laststep = update->firststep + maxiter;
+  update->endstep = update->laststep = update->ntimestep + maxiter;
   if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
   update->restrict_output = 1;

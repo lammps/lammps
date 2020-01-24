@@ -34,6 +34,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,6 +66,7 @@ PairLJClass2GPU::PairLJClass2GPU(LAMMPS *lmp) : PairLJClass2(lmp), gpu_mode(GPU_
 {
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

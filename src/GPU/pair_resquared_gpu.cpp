@@ -36,6 +36,7 @@
 #include "domain.h"
 #include "update.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -76,6 +77,7 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp),
     error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

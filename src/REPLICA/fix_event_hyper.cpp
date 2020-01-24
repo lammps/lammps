@@ -56,12 +56,12 @@ void FixEventHyper::write_restart(FILE *fp)
 {
   int n = 0;
   double list[6];
-  list[n++] = event_number;
-  list[n++] = event_timestep;
-  list[n++] = clock;
-  list[n++] = replica_number;
-  list[n++] = correlated_event;
-  list[n++] = ncoincident;
+  list[n++] = ubuf(event_number).d;
+  list[n++] = ubuf(event_timestep).d;
+  list[n++] = ubuf(clock).d;
+  list[n++] = ubuf(replica_number).d;
+  list[n++] = ubuf(correlated_event).d;
+  list[n++] = ubuf(ncoincident).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -79,10 +79,10 @@ void FixEventHyper::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  event_number = static_cast<int> (list[n++]);
-  event_timestep = static_cast<bigint> (list[n++]);
-  clock = static_cast<bigint> (list[n++]);
-  replica_number = static_cast<int> (list[n++]);
-  correlated_event = static_cast<int> (list[n++]);
-  ncoincident = static_cast<int> (list[n++]);
+  event_number = (int) ubuf(list[n++]).i;
+  event_timestep = (bigint) ubuf(list[n++]).i;
+  clock = (bigint) ubuf(list[n++]).i;
+  replica_number = (int) ubuf(list[n++]).i;
+  correlated_event = (int) ubuf(list[n++]).i;
+  ncoincident = (int) ubuf(list[n++]).i;
 }

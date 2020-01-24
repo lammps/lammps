@@ -94,10 +94,10 @@ something like the following commands:
    write_dump      all custom tmp.dump id type x y z    # see comment below
 
    variable        Dhop equal 0.6
-   variable        check atom "c_dsp\ **4** > v_Dhop"
+   variable        check atom "c_dsp[4] > v_Dhop"
    compute         dsp all displace/atom refresh check
    dump            1 all custom 100 tmp.dump id type x y z
-   dump_modify     1 append yes thresh c_dsp\ **4** > $\ *Dhop* &
+   dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} &
                    refresh c_dsp delay 100
 
 The :doc:`dump\_modify thresh <dump_modify>` command will only output

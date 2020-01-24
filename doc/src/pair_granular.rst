@@ -432,7 +432,7 @@ option by an additional factor of *a*\ , the radius of the contact region. The t
 Here, *a* is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
 for all normal contact models, except for *jkr*\ , where it is given
 implicitly by :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`, see
-discussion above. To match the Mindlin solution, one should set :math:`k_t = 8G`, where :math:`G` is the shear modulus, related to Young's modulus
+discussion above. To match the Mindlin solution, one should set :math:`k_t = 4G/(2-\nu)`, where :math:`G` is the shear modulus, related to Young's modulus
 :math:`E` by :math:`G = E/(2(1+\nu))`, where :math:`\nu` is Poisson's ratio. This
 can also be achieved by specifying *NULL* for :math:`k_t`, in which case a
 normal contact model that specifies material parameters :math:`E` and

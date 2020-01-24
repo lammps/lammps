@@ -223,6 +223,12 @@ void Replicate::command(int narg, char **arg)
   else n = static_cast<int> (LB_FACTOR * atom->natoms / nprocs);
 
   atom->allocate_type_arrays();
+
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
+
+  bigint nbig = n;
+  nbig = atom->avec->roundup(nbig);
+  n = static_cast<int> (nbig);
   atom->avec->grow(n);
   n = atom->nmax;
 

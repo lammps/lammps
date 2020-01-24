@@ -57,6 +57,8 @@ Syntax
          fix-ID = ID of :doc:`fix rigid/small <fix_rigid>` command
        *shake* value = fix-ID
          fix-ID = ID of :doc:`fix shake <fix_shake>` command
+       *orient* values = rx ry rz
+         rx,ry,rz = vector to randomly rotate an inserted molecule around
        *units* value = *lattice* or *box*
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
@@ -235,6 +237,13 @@ unchanged.  This can be useful, for example, for simulating a
 sputtering process.  E.g. the target point can be far away, so that
 all incident particles strike the surface as if they are in an
 incident beam of particles at a prescribed angle.
+
+The *orient* keyword is only used when molecules are deposited.  By
+default, each molecule is inserted at a random orientation.  If this
+keyword is specified, then (rx,ry,rz) is used as an orientation
+vector, and each inserted molecule is rotated around that vector with
+a random value from zero to 2*PI.  For a 2d simulation, rx = ry = 0.0
+is required, since rotations can only be performed around the z axis.
 
 The *id* keyword determines how atom IDs and molecule IDs are assigned
 to newly deposited particles.  Molecule IDs are only assigned if

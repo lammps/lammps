@@ -1096,8 +1096,9 @@ USER-ADIOS package
 **Contents:**
 
 ADIOS is a high-performance I/O library. This package implements the
-dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library.
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>` and
+:doc:`read_dump ... format adios <read_dump>`
+commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
@@ -1111,6 +1112,10 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 * src/USER-ADIOS/README
 * examples/USER/adios
 * https://github.com/ornladios/ADIOS2
+* :doc:`dump atom/adios <dump_adios>`
+* :doc:`dump custom/adios <dump_adios>`
+* :doc:`read_dump <read_dump>`
+
 
 
 ----------
@@ -2438,8 +2443,8 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`bond\_style mm3 <bond_mm3>`
 * :doc:`improper\_style distharm <improper_distharm>`
 * :doc:`improper\_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss>`
-* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss>`
+* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
 
 

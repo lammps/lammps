@@ -1,6 +1,6 @@
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
-from docutils.nodes import Element, Node
+from docutils.nodes import Element, Node, list_item
 from typing import Any, Dict, List
 from sphinx import addnodes
 from sphinx.util import logging
@@ -26,8 +26,12 @@ class TableFromList(SphinxDirective):
             raise SphinxError('table_from_list content is not a list')
         fulllist = node.children[0]
 
+        # fill list with empty items to have a number of entries
+        # that is divisible by ncolumns
         if (len(fulllist) % ncolumns) != 0:
-            raise SphinxError('number of list elements not a multiple of column number')
+            missing = int(ncolumns - (len(fulllist) % ncolumns))
+            for i in range(0,missing):
+                fulllist += list_item()
 
         table = nodes.table()
         tgroup = nodes.tgroup(cols=ncolumns)

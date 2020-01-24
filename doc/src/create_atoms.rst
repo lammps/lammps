@@ -27,7 +27,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *remap* or *var* or *set* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
   
   .. parsed-literal::
   
@@ -37,6 +37,12 @@ Syntax
        *basis* values = M itype
          M = which basis atom
          itype = atom type (1-N) to assign to this basis atom
+       *ratio* values = frac seed
+         frac = fraction of lattice sites (0 to 1) to populate randomly
+         seed = random # seed (positive integer)
+       *subset* values = Nsubset seed
+         Nsubset = # of lattice sites to populate randomly
+         seed = random # seed (positive integer)
        *remap* value = *yes* or *no*
        *var* value = name = variable name to evaluate for test of atom creation
        *set* values = dim name
@@ -59,6 +65,7 @@ Examples
 
    create_atoms 1 box
    create_atoms 3 region regsphere basis 2 3
+   create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
 
@@ -213,6 +220,19 @@ basis atoms as they are created.  See the :doc:`lattice <lattice>`
 command for specifics on how basis atoms are defined for the unit cell
 of the lattice.  By default, all created atoms are assigned the
 argument *type* as their atom type.
+
+The *ratio* and *subset* keywords can be used in conjunction with the
+*box* or *region* styles to limit the total number of particles
+inserted.  The lattice defines a set of *Nlatt* eligible sites for
+inserting particles, which may be limited by the *region* style or the
+*var* and *set* keywords.  For the *ratio* keyword only the specified
+fraction of them (0 <= *frac* <= 1) will be assigned particles.  For
+the *subset* keyword only the specified *Nsubset* of them will be
+assigned particles.  In both cases the assigned lattice sites are
+chosen randomly.  An iterative algorithm is used which insures the
+correct number of particles are inserted, in a perfectly random
+fashion.  Which lattice sites are selected will change with the number
+of processors used.
 
 The *remap* keyword only applies to the *single* style.  If it is set
 to *yes*\ , then if the specified position is outside the simulation

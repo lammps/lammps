@@ -1739,7 +1739,10 @@ void SNA::compute_ncoeff()
 
   ndoubles = nelements*nelements;
   ntriples = nelements*nelements*nelements;
-  ncoeff = ncount*ntriples;
+  if (alloy_flag)
+    ncoeff = ncount*ntriples;
+  else
+    ncoeff = ncount;
 }
 
 /* ---------------------------------------------------------------------- */

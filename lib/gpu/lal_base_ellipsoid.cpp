@@ -36,6 +36,7 @@ BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
   nbor_program=NULL;
   ellipsoid_program=NULL;
   lj_program=NULL;
+  ucl_device=NULL;
 }
 
 template <class numtyp, class acctyp>
@@ -92,7 +93,9 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                   max_nbors,cell_size,true,1);
   if (success!=0)
     return success;
-  
+
+  if (ucl_device!=device->gpu) _compiled=false;
+
   ucl_device=device->gpu;
   atom=&device->atom;
 

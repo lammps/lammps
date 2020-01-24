@@ -48,6 +48,7 @@ PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 1;
   writedata = 1;
   ftable = NULL;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

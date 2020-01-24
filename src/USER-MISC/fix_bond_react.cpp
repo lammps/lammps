@@ -36,6 +36,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "group.h"
 #include "citeme.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
@@ -297,6 +298,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
   memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
+  memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
   for (int j = 0; j < nreacts; j++)
     for (int i = 0; i < max_natoms; i++) {
@@ -304,6 +306,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
       else custom_edges[i][j] = 0;
       delete_atoms[i][j] = 0;
+      for (int k = 0; k < 6; k++) {
+        chiral_atoms[i][k][j] = 0;
+      }
     }
 
   // read all map files afterward
@@ -430,6 +435,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(landlocked_atoms);
   memory->destroy(custom_edges);
   memory->destroy(delete_atoms);
+  memory->destroy(chiral_atoms);
 
   memory->destroy(nevery);
   memory->destroy(cutsq);
@@ -1675,6 +1681,7 @@ int FixBondReact::check_constraints()
         delx1 = x[atom1][0] - x[atom2][0];
         dely1 = x[atom1][1] - x[atom2][1];
         delz1 = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx1,dely1,delz1); // ghost location fix
         rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
         r1 = sqrt(rsq1);
 
@@ -1682,6 +1689,7 @@ int FixBondReact::check_constraints()
         delx2 = x[atom3][0] - x[atom2][0];
         dely2 = x[atom3][1] - x[atom2][1];
         delz2 = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(delx2,dely2,delz2); // ghost location fix
         rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
         r2 = sqrt(rsq2);
 
@@ -1699,6 +1707,30 @@ int FixBondReact::check_constraints()
       }
     }
   }
+
+  // let's also check chirality within 'check_constraint'
+  for (int i = 0; i < onemol->natoms; i++) {
+    if (chiral_atoms[i][0][rxnID] == 1) {
+      double my4coords[12];
+      // already ensured, by transitive property, that chiral simulation atom has four neighs
+      for (int j = 0; j < 4; j++) {
+        atom1 = atom->map(glove[i][1]);
+        // loop over known types involved in chiral center
+        for (int jj = 0; jj < 4; jj++) {
+          if (atom->type[atom->map(xspecial[atom1][j])] == chiral_atoms[i][jj+2][rxnID]) {
+            atom2 = atom->map(xspecial[atom1][j]);
+            atom2 = domain->closest_image(atom1,atom2);
+            for (int k = 0; k < 3; k++) {
+              my4coords[3*jj+k] = x[atom2][k];
+            }
+            break;
+          }
+        }
+      }
+      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) return 0;
+    }
+  }
+
   return 1;
 }
 
@@ -1737,6 +1769,33 @@ double FixBondReact::get_temperature()
   double tfactor = force->mvv2e / (dof * force->boltz);
   t *= tfactor;
   return t;
+}
+
+/* ----------------------------------------------------------------------
+return handedness (1 or -1) of a chiral center, given ordered set of coordinates
+------------------------------------------------------------------------- */
+
+int FixBondReact::get_chirality(double four_coords[12])
+{
+  // define oriented plane with first three coordinates
+  double vec1[3],vec2[3],vec3[3],vec4[3],mean3[3],dot;
+
+  for (int i = 0; i < 3; i++) {
+    vec1[i] = four_coords[i]-four_coords[i+3];
+    vec2[i] = four_coords[i+3]-four_coords[i+6];
+  }
+
+  MathExtra::cross3(vec1,vec2,vec3);
+
+  for (int i = 0; i < 3; i++) {
+    mean3[i] = (four_coords[i] + four_coords[i+3] +
+                                 four_coords[i+6])/3;
+    vec4[i] = four_coords[i+9] - mean3[i];
+  }
+
+  dot = MathExtra::dot3(vec3,vec4);
+  dot = dot/fabs(dot);
+  return (int) dot;
 }
 
 /* ----------------------------------------------------------------------
@@ -2867,6 +2926,7 @@ void FixBondReact::read(int myrxn)
     }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
+    else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstr);
       memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
@@ -2886,8 +2946,12 @@ void FixBondReact::read(int myrxn)
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
+      if (ibonding[myrxn] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
+      if (jbonding[myrxn] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
@@ -2898,6 +2962,8 @@ void FixBondReact::read(int myrxn)
       CustomEdges(line, myrxn);
     } else if (strcmp(keyword,"DeleteIDs") == 0) {
       DeleteAtoms(line, myrxn);
+    } else if (strcmp(keyword,"ChiralIDs") == 0) {
+      ChiralCenters(line, myrxn);
     } else if (strcmp(keyword,"Constraints") == 0) {
       Constraints(line, myrxn);
     } else error->one(FLERR,"Bond/react: Unknown section in map file");
@@ -2925,6 +2991,8 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
   for (int i = 0; i < nedge; i++) {
     readline(line);
     sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     edge[tmp-1][myrxn] = 1;
   }
 }
@@ -2936,6 +3004,8 @@ void FixBondReact::Equivalences(char *line, int myrxn)
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
     sscanf(line,"%d %d",&tmp1,&tmp2);
+    if (tmp1 > onemol->natoms || tmp2 > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     equivalences[tmp2-1][0][myrxn] = tmp2;
     equivalences[tmp2-1][1][myrxn] = tmp1;
@@ -2955,6 +3025,8 @@ void FixBondReact::CustomEdges(char *line, int myrxn)
   for (int i = 0; i < ncustom; i++) {
     readline(line);
     sscanf(line,"%d %s",&tmp,edgemode);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     if (strcmp(edgemode,"none") == 0)
       custom_edges[tmp-1][myrxn] = 0;
     else if (strcmp(edgemode,"charges") == 0)
@@ -2971,7 +3043,42 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
   for (int i = 0; i < ndelete; i++) {
     readline(line);
     sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
+  }
+}
+
+void FixBondReact::ChiralCenters(char *line, int myrxn)
+{
+  int tmp;
+  for (int i = 0; i < nchiral; i++) {
+    readline(line);
+    sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
+    chiral_atoms[tmp-1][0][myrxn] = 1;
+    if (onemol->xflag == 0)
+      error->one(FLERR,"Bond/react: Molecule template 'Coords' section required for chiralIDs keyword");
+    if ((int) onemol_nxspecial[tmp-1][0] != 4)
+      error->one(FLERR,"Bond/react: Chiral atoms must have exactly four first neighbors");
+    for (int j = 0; j < 4; j++) {
+      for (int k = j+1; k < 4; k++) {
+        if (onemol->type[onemol_xspecial[tmp-1][j]-1] ==
+            onemol->type[onemol_xspecial[tmp-1][k]-1])
+          error->one(FLERR,"Bond/react: First neighbors of chiral atoms must be of mutually different types");
+      }
+    }
+    // record order of atom types, and coords
+    double my4coords[12];
+    for (int j = 0; j < 4; j++) {
+      chiral_atoms[tmp-1][j+2][myrxn] = onemol->type[onemol_xspecial[tmp-1][j]-1];
+      for (int k = 0; k < 3; k++) {
+        my4coords[3*j+k] = onemol->x[onemol_xspecial[tmp-1][j]-1][k];
+      }
+    }
+    // get orientation
+    chiral_atoms[tmp-1][1][myrxn] = get_chirality(my4coords);
   }
 }
 
@@ -2987,6 +3094,8 @@ void FixBondReact::Constraints(char *line, int myrxn)
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[nconstraints][1] = DISTANCE;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       constraints[nconstraints][2] = tmp[0];
       constraints[nconstraints][3] = tmp[1];
       constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
@@ -2994,6 +3103,8 @@ void FixBondReact::Constraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints][1] = ANGLE;
       sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
+      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms || tmp[2] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       constraints[nconstraints][2] = tmp[0];
       constraints[nconstraints][3] = tmp[1];
       constraints[nconstraints][4] = tmp[2];

@@ -440,7 +440,7 @@ By default, these header lines are as follows:
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
-replaced with the appropriate value names, e.g. fx or c\_myCompute\ **2**\ .
+replaced with the appropriate value names, e.g. fx or c\_myCompute[2].
 
 The words in parenthesis only appear with corresponding columns if the
 chunk style specified for the :doc:`compute chunk/atom <compute_chunk_atom>` command supports them.  The OrigID

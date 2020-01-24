@@ -19,16 +19,36 @@
 #include "remap_kokkos.h"
 #include "fftdata_kokkos.h"
 
+// with KOKKOS in CUDA mode we can only have
+// CUFFT or KISSFFT, thus undefine all other
+// FFTs here, since they may be valid in fft3d.cpp
+
+#if defined(KOKKOS_ENABLE_CUDA)
+# if defined(FFT_FFTW)
+#  undef FFT_FFTW
+# endif
+# if defined(FFT_FFTW3)
+#  undef FFT_FFTW3
+# endif
+# if defined(FFT_MKL)
+#  undef FFT_MKL
+# endif
+# if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
+#  define FFT_KISSFFT
+# endif
+#else
+# if defined(FFT_CUFFT)
+#  error "Must enable CUDA with KOKKOS to use -DFFT_CUFFT"
+# endif
 // if user set FFTW, it means FFTW3
-
-#ifdef FFT_FFTW
-#define FFT_FFTW3
-#endif
-
-#ifdef FFT_FFTW_THREADS
-#if !defined(FFT_FFTW3)
-#error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
-#endif
+# ifdef FFT_FFTW
+#  define FFT_FFTW3
+# endif
+# ifdef FFT_FFTW_THREADS
+#  if !defined(FFT_FFTW3)
+#   error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
+#  endif
+# endif
 #endif
 
 #if defined(FFT_MKL)
@@ -165,14 +185,14 @@ The FFT setup for the PPPM solver failed, typically due
 to lack of memory.  This is an unusual error.  Check the
 size of the FFT grid you are requesting.
 
-E: Cannot use the FFTW library with Kokkos CUDA on GPUs 
+E: Cannot use the FFTW library with Kokkos CUDA on GPUs
 
-Kokkos CUDA doesn't support using the FFTW library to calculate FFTs for 
-PPPM on GPUs. 
+Kokkos CUDA doesn't support using the FFTW library to calculate FFTs for
+PPPM on GPUs.
 
 E: Cannot use the cuFFT library with Kokkos CUDA on the host CPUs
 
-Kokkos CUDA doesn't support using the cuFFT library to calculate FFTs 
-for PPPM on the host CPUs, use KISS FFT instead. 
+Kokkos CUDA doesn't support using the cuFFT library to calculate FFTs
+for PPPM on the host CPUs, use KISS FFT instead.
 
 */

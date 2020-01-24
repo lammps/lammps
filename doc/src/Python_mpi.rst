@@ -7,7 +7,7 @@ make MPI calls directly from Python in your script, if you desire.
 
 We recommend use of mpi4py:
 
-* `PyPar <https://github.com/daleroberts/pypar>`_
+* `mpi4py <https://pypi.org/project/mpi4py/>`_
 
 As of version 2.0.0 it allows passing a custom MPI communicator to
 the LAMMPS constructor, which means one can easily run one or more

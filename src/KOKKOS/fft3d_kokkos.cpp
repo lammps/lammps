@@ -12,30 +12,97 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
-                         Axel Kohlmeyer (Temple U) added support for
-                         FFTW3, KISS FFT, Dfti/MKL, and ACML.
-                         Phil Blood (PSC) added single precision FFT.
-                         Paul Coffman (IBM) added MPI collectives remap
+   Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis)
 ------------------------------------------------------------------------- */
 
-#include "fft3d.h"
 #include <mpi.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include "remap.h"
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "fft3d_kokkos.h"
+#include "remap_kokkos.h"
+#include "kokkos_type.h"
+#include "error.h"
+#include "kokkos.h"
 
-#ifdef FFT_KISS
-/* include kissfft implementation */
-#include "kissfft.h"
-#endif
+
+using namespace LAMMPS_NS;
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
+             int in_ilo, int in_ihi, int in_jlo, int in_jhi,
+             int in_klo, int in_khi,
+             int out_ilo, int out_ihi, int out_jlo, int out_jhi,
+             int out_klo, int out_khi,
+             int scaled, int permute, int *nbuf, int usecollective) :
+  Pointers(lmp)
+{
+  int nthreads = lmp->kokkos->nthreads;
+  int ngpus = lmp->kokkos->ngpus;
+  ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+
+#if defined(FFT_MKL)
+  if (ngpus > 0 && execution_space == Device)
+    lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos CUDA on GPUs");
+#elif defined(FFT_FFTW3)
+  if (ngpus > 0 && execution_space == Device)
+    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA on GPUs");
+#elif defined(FFT_CUFFT)
+  if (ngpus > 0 && execution_space == Host)
+    lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos CUDA on the host CPUs");
+#elif defined(FFT_KISSFFT)
+  // The compiler can't statically determine the stack size needed for
+  //  recursive function calls in KISS FFT and the default per-thread
+  //  stack size on GPUs needs to be increased to prevent stack overflows
+  //  for reasonably sized FFTs
+  #if defined (KOKKOS_ENABLE_CUDA)
+    size_t stack_size;
+    cudaDeviceGetLimit(&stack_size,cudaLimitStackSize);
+    if (stack_size < 2048)
+      cudaDeviceSetLimit(cudaLimitStackSize,2048);
+  #endif
+#endif
+
+  plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
+                            in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+                            out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
+                            scaled,permute,nbuf,usecollective,nthreads);
+  if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+FFT3dKokkos<DeviceType>::~FFT3dKokkos()
+{
+  fft_3d_destroy_plan_kokkos(plan);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::compute(typename AT::t_FFT_SCALAR_1d d_in, typename AT::t_FFT_SCALAR_1d d_out, int flag)
+{
+  typename AT::t_FFT_DATA_1d d_in_data(d_in.data(),d_in.size()/2);
+  typename AT::t_FFT_DATA_1d d_out_data(d_out.data(),d_out.size()/2);
+
+  fft_3d_kokkos(d_in_data,d_out_data,flag,plan);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::timing1d(typename AT::t_FFT_SCALAR_1d d_in, int nsize, int flag)
+{
+  typename AT::t_FFT_DATA_1d d_in_data(d_in.data(),d_in.size());
+
+  fft_3d_1d_only_kokkos(d_in_data,nsize,flag,plan);
+}
 
 /* ----------------------------------------------------------------------
    Data layout for 3d FFTs:
@@ -67,175 +134,219 @@
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
-void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
-{
-  int i,total,length,offset,num;
-  FFT_SCALAR norm;
-#if defined(FFT_FFTW3)
-  FFT_SCALAR *out_ptr;
-#endif
-  FFT_DATA *data,*copy;
+template<class DeviceType>
+struct norm_functor {
+public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_FFT_DATA_1d_um d_out;
+  int norm;
 
-  // system specific constants
+  norm_functor(typename AT::t_FFT_DATA_1d &d_out_, int norm_):
+    d_out(d_out_),norm(norm_) {}
 
-#if defined(FFT_FFTW3)
-  FFTW_API(plan) theplan;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int &i) const {
+#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
+    FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
+    *(out_ptr++) *= norm;
+    *(out_ptr++) *= norm;
+#elif defined(FFT_MKL)
+    d_out(i) *= norm;
 #else
-  // nothing to do for other FFTs
+    d_out(i,0) *= norm;
+    d_out(i,1) *= norm;
 #endif
+  }
+};
+
+#ifdef FFT_KISSFFT
+template<class DeviceType>
+struct kiss_fft_functor {
+public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_FFT_DATA_1d_um d_data,d_tmp;
+  kiss_fft_state_kokkos<DeviceType> st;
+  int length;
+
+  kiss_fft_functor() {}
+
+  kiss_fft_functor(typename AT::t_FFT_DATA_1d &d_data_,typename AT::t_FFT_DATA_1d &d_tmp_, kiss_fft_state_kokkos<DeviceType> &st_, int length_):
+    d_data(d_data_),
+    d_tmp(d_tmp_),
+    st(st_)
+    {
+      length = length_;
+    }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int &i) const {
+    const int offset = i*length;
+    KissFFTKokkos<DeviceType>::kiss_fft_kokkos(st,d_data,d_tmp,offset);
+  }
+};
+#endif
+
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typename AT::t_FFT_DATA_1d d_out, int flag, struct fft_plan_3d_kokkos<DeviceType> *plan)
+{
+  int total,length;
+  typename AT::t_FFT_DATA_1d d_data,d_copy;
+  typename AT::t_FFT_SCALAR_1d d_in_scalar,d_data_scalar,d_out_scalar,d_copy_scalar,d_scratch_scalar;
 
   // pre-remap to prepare for 1st FFTs if needed
   // copy = loc for remap result
 
   if (plan->pre_plan) {
-    if (plan->pre_target == 0) copy = out;
-    else copy = plan->copy;
-    remap_3d((FFT_SCALAR *) in, (FFT_SCALAR *) copy,
-             (FFT_SCALAR *) plan->scratch, plan->pre_plan);
-    data = copy;
-  }
-  else
-    data = in;
+    if (plan->pre_target == 0) d_copy = d_out;
+    else d_copy = plan->d_copy;
+
+     d_in_scalar = typename AT::t_FFT_SCALAR_1d(d_in.data(),d_in.size());
+     d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
+     d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+
+    remapKK->remap_3d_kokkos(d_in_scalar, d_copy_scalar,
+             d_scratch_scalar, plan->pre_plan);
+
+    d_data = d_copy;
+  } else d_data = d_in;
 
   // 1d FFTs along fast axis
 
   total = plan->total1;
   length = plan->length1;
 
-#if defined(FFT_MKL)
-  if (flag == -1)
-    DftiComputeForward(plan->handle_fast,data);
-  else
-    DftiComputeBackward(plan->handle_fast,data);
-  /*
-#elif defined(FFT_FFTW2)
-  if (flag == -1)
-    fftw(plan->plan_fast_forward,total/length,data,1,length,NULL,0,0);
-  else
-   fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
-  */
-#elif defined(FFT_FFTW3)
-  if (flag == -1)
-    theplan=plan->plan_fast_forward;
-  else
-    theplan=plan->plan_fast_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-#else
-  if (flag == -1)
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
-  else
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
-#endif
+  #if defined(FFT_MKL)
+    if (flag == -1)
+      DftiComputeForward(plan->handle_fast,(FFT_DATA *)d_data.data());
+    else
+      DftiComputeBackward(plan->handle_fast,(FFT_DATA *)d_data.data());
+  #elif defined(FFT_FFTW3)
+    if (flag == -1)
+      FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+  #elif defined(FFT_CUFFT)
+    cufftExec(plan->plan_fast,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+  #else
+    typename AT::t_FFT_DATA_1d d_tmp =
+     typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
+    kiss_fft_functor<DeviceType> f;
+    if (flag == -1)
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length);
+    else
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length);
+    Kokkos::parallel_for(total/length,f);
+    d_data = d_tmp;
+    d_tmp = typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
+  #endif
+
 
   // 1st mid-remap to prepare for 2nd FFTs
   // copy = loc for remap result
 
-  if (plan->mid1_target == 0) copy = out;
-  else copy = plan->copy;
-  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy,
-           (FFT_SCALAR *) plan->scratch, plan->mid1_plan);
-  data = copy;
+  if (plan->mid1_target == 0) d_copy = d_out;
+  else d_copy = plan->d_copy;
+
+  d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size()*2);
+  d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size()*2);
+  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size()*2);
+
+  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
+           d_scratch_scalar, plan->mid1_plan);
+
+  d_data = d_copy;
 
   // 1d FFTs along mid axis
 
   total = plan->total2;
   length = plan->length2;
 
-#if defined(FFT_MKL)
-  if (flag == -1)
-    DftiComputeForward(plan->handle_mid,data);
-  else
-    DftiComputeBackward(plan->handle_mid,data);
-  /*
-#elif defined(FFT_FFTW2)
-  if (flag == -1)
-    fftw(plan->plan_mid_forward,total/length,data,1,length,NULL,0,0);
-  else
-    fftw(plan->plan_mid_backward,total/length,data,1,length,NULL,0,0);
-  */
-#elif defined(FFT_FFTW3)
-  if (flag == -1)
-    theplan=plan->plan_mid_forward;
-  else
-    theplan=plan->plan_mid_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-#else
-  if (flag == -1)
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_mid_forward,&data[offset],&data[offset]);
-  else
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_mid_backward,&data[offset],&data[offset]);
-#endif
+  #if defined(FFT_MKL)
+    if (flag == -1)
+      DftiComputeForward(plan->handle_mid,(FFT_DATA *)d_data.data());
+    else
+      DftiComputeBackward(plan->handle_mid,(FFT_DATA *)d_data.data());
+  #elif defined(FFT_FFTW3)
+    if (flag == -1)
+      FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+  #elif defined(FFT_CUFFT)
+    cufftExec(plan->plan_mid,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+  #else
+    if (flag == -1)
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_forward,length);
+    else
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length);
+    Kokkos::parallel_for(total/length,f);
+    d_data = d_tmp;
+    d_tmp = typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
+  #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs
   // copy = loc for remap result
 
-  if (plan->mid2_target == 0) copy = out;
-  else copy = plan->copy;
-  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy,
-           (FFT_SCALAR *) plan->scratch, plan->mid2_plan);
-  data = copy;
+  if (plan->mid2_target == 0) d_copy = d_out;
+  else d_copy = plan->d_copy;
+
+  d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
+  d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
+  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+
+  remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
+           d_scratch_scalar, plan->mid2_plan);
+
+  d_data = d_copy;
 
   // 1d FFTs along slow axis
 
   total = plan->total3;
   length = plan->length3;
 
-#if defined(FFT_MKL)
-  if (flag == -1)
-    DftiComputeForward(plan->handle_slow,data);
-  else
-    DftiComputeBackward(plan->handle_slow,data);
-  /*
-#elif defined(FFT_FFTW2)
-  if (flag == -1)
-    fftw(plan->plan_slow_forward,total/length,data,1,length,NULL,0,0);
-  else
-    fftw(plan->plan_slow_backward,total/length,data,1,length,NULL,0,0);
-  */
-#elif defined(FFT_FFTW3)
-  if (flag == -1)
-    theplan=plan->plan_slow_forward;
-  else
-    theplan=plan->plan_slow_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-#else
-  if (flag == -1)
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_slow_forward,&data[offset],&data[offset]);
-  else
-    for (offset = 0; offset < total; offset += length)
-      kiss_fft(plan->cfg_slow_backward,&data[offset],&data[offset]);
-#endif
+  #if defined(FFT_MKL)
+    if (flag == -1)
+      DftiComputeForward(plan->handle_slow,(FFT_DATA *)d_data.data());
+    else
+      DftiComputeBackward(plan->handle_slow,(FFT_DATA *)d_data.data());
+  #elif defined(FFT_FFTW3)
+    if (flag == -1)
+      FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+  #elif defined(FFT_CUFFT)
+    cufftExec(plan->plan_slow,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+  #else
+    if (flag == -1)
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_forward,length);
+    else
+      f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_backward,length);
+    Kokkos::parallel_for(total/length,f);
+    d_data = d_tmp;
+  #endif
+
 
   // post-remap to put data in output format if needed
   // destination is always out
 
-  if (plan->post_plan)
-    remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) out,
-             (FFT_SCALAR *) plan->scratch, plan->post_plan);
+  if (plan->post_plan) {
+    d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
+    d_out_scalar = typename AT::t_FFT_SCALAR_1d(d_out.data(),d_out.size());
+    d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+
+    remapKK->remap_3d_kokkos(d_data_scalar, d_out_scalar,
+             d_scratch_scalar, plan->post_plan);
+    }
 
   // scaling if required
+
   if (flag == 1 && plan->scaled) {
-    norm = plan->norm;
-    num = plan->normnum;
-#if defined(FFT_FFTW3)
-    out_ptr = (FFT_SCALAR *)out;
-#endif
-    for (i = 0; i < num; i++) {
-#if defined(FFT_FFTW3)
-      *(out_ptr++) *= norm;
-      *(out_ptr++) *= norm;
-#elif defined(FFT_MKL)
-      out[i] *= norm;
-#else
-      out[i].re *= norm;
-      out[i].im *= norm;
-#endif
-    }
+    FFT_SCALAR norm = plan->norm;
+    int num = plan->normnum;
+
+    norm_functor<DeviceType> f(d_out,norm);
+    Kokkos::parallel_for(num,f);
   }
 }
 
@@ -243,7 +354,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
    Create plan for performing a 3d FFT
 
    Arguments:
-   comm                 MPI communicator for the P procs which own the data
+   comm                 MPI communicator for the P procs which own the d_data
    nfast,nmid,nslow     size of global 3d matrix
    in_ilo,in_ihi        input bounds of data I own in fast index
    in_jlo,in_jhi        input bounds of data I own in mid index
@@ -260,16 +371,18 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
    usecollective        use collective MPI operations for remapping data
 ------------------------------------------------------------------------- */
 
-struct fft_plan_3d *fft_3d_create_plan(
+template<class DeviceType>
+struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_plan_kokkos (
        MPI_Comm comm, int nfast, int nmid, int nslow,
        int in_ilo, int in_ihi, int in_jlo, int in_jhi,
        int in_klo, int in_khi,
        int out_ilo, int out_ihi, int out_jlo, int out_jhi,
        int out_klo, int out_khi,
-       int scaled, int permute, int *nbuf, int usecollective)
+       int scaled, int permute, int *nbuf, int usecollective,
+       int nthreads)
 {
-  struct fft_plan_3d *plan;
-  int me,nprocs,nthreads;
+  struct fft_plan_3d_kokkos<DeviceType> *plan;
+  int me,nprocs;
   int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
@@ -282,14 +395,6 @@ struct fft_plan_3d *fft_3d_create_plan(
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-#if defined(_OPENMP)
-  // query OpenMP info.
-  // should have been initialized systemwide in Comm class constructor
-  nthreads = omp_get_max_threads();
-#else
-  nthreads = 1;
-#endif
-
   // compute division of procs in 2 dimensions not on-processor
 
   bifactor(nprocs,&np1,&np2);
@@ -298,17 +403,17 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   // allocate memory for plan data struct
 
-  plan = (struct fft_plan_3d *) malloc(sizeof(struct fft_plan_3d));
+  plan = new struct fft_plan_3d_kokkos<DeviceType>;
+  remapKK = new RemapKokkos<DeviceType>(lmp);
   if (plan == NULL) return NULL;
 
   // remap from initial distribution to layout needed for 1st set of 1d FFTs
   // not needed if all procs own entire fast axis initially
   // first indices = distribution after 1st set of FFTs
 
-  if (in_ilo == 0 && in_ihi == nfast-1)
-    flag = 0;
-  else
-    flag = 1;
+
+  if (in_ilo == 0 && in_ihi == nfast-1) flag = 0;
+  else flag = 1;
 
   MPI_Allreduce(&flag,&remapflag,1,MPI_INT,MPI_MAX,comm);
 
@@ -320,7 +425,8 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_klo = in_klo;
     first_khi = in_khi;
     plan->pre_plan = NULL;
-  } else {
+  }
+  else {
     first_ilo = 0;
     first_ihi = nfast - 1;
     first_jlo = ip1*nmid/np1;
@@ -328,7 +434,7 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_klo = ip2*nslow/np2;
     first_khi = (ip2+1)*nslow/np2 - 1;
     plan->pre_plan =
-      remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+      remapKK->remap_3d_create_plan_kokkos(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                            first_ilo,first_ihi,first_jlo,first_jhi,
                            first_klo,first_khi,2,0,0,FFT_PRECISION,0);
     if (plan->pre_plan == NULL) return NULL;
@@ -350,7 +456,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   second_klo = ip2*nslow/np2;
   second_khi = (ip2+1)*nslow/np2 - 1;
   plan->mid1_plan =
-      remap_3d_create_plan(comm,
+      remapKK->remap_3d_create_plan_kokkos(comm,
                            first_ilo,first_ihi,first_jlo,first_jhi,
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
@@ -368,10 +474,8 @@ struct fft_plan_3d *fft_3d_create_plan(
   //   then this remapping goes directly to final distribution
   //  third indices = distribution after 3rd set of FFTs
 
-  if (permute == 2 && out_klo == 0 && out_khi == nslow-1)
-    flag = 0;
-  else
-    flag = 1;
+  if (permute == 2 && out_klo == 0 && out_khi == nslow-1) flag = 0;
+  else flag = 1;
 
   MPI_Allreduce(&flag,&remapflag,1,MPI_INT,MPI_MAX,comm);
 
@@ -382,7 +486,8 @@ struct fft_plan_3d *fft_3d_create_plan(
     third_jhi = out_jhi;
     third_klo = out_klo;
     third_khi = out_khi;
-  } else {
+  }
+  else {
     third_ilo = ip1*nfast/np1;
     third_ihi = (ip1+1)*nfast/np1 - 1;
     third_jlo = ip2*nmid/np2;
@@ -392,7 +497,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   }
 
   plan->mid2_plan =
-    remap_3d_create_plan(comm,
+    remapKK->remap_3d_create_plan_kokkos(comm,
                          second_jlo,second_jhi,second_klo,second_khi,
                          second_ilo,second_ihi,
                          third_jlo,third_jhi,third_klo,third_khi,
@@ -410,10 +515,8 @@ struct fft_plan_3d *fft_3d_create_plan(
   if (permute == 2 &&
       out_ilo == third_ilo && out_ihi == third_ihi &&
       out_jlo == third_jlo && out_jhi == third_jhi &&
-      out_klo == third_klo && out_khi == third_khi)
-    flag = 0;
-  else
-    flag = 1;
+      out_klo == third_klo && out_khi == third_khi) flag = 0;
+  else flag = 1;
 
   MPI_Allreduce(&flag,&remapflag,1,MPI_INT,MPI_MAX,comm);
 
@@ -421,7 +524,7 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->post_plan = NULL;
   else {
     plan->post_plan =
-      remap_3d_create_plan(comm,
+      remapKK->remap_3d_create_plan_kokkos(comm,
                            third_klo,third_khi,third_ilo,third_ihi,
                            third_jlo,third_jhi,
                            out_klo,out_khi,out_ilo,out_ihi,
@@ -431,8 +534,8 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   // configure plan memory pointers and allocate work space
   // out_size = amount of memory given to FFT by user
-  // first/second/third_size =
-  //   amount of memory needed after pre,mid1,mid2 remaps
+  // first/second/third_size = amount of memory needed after
+  //                           pre,mid1,mid2 remaps
   // copy_size = amount needed internally for extra copy of data
   // scratch_size = amount needed internally for remap scratch space
   // for each remap:
@@ -486,16 +589,12 @@ struct fft_plan_3d *fft_3d_create_plan(
   *nbuf = copy_size + scratch_size;
 
   if (copy_size) {
-    plan->copy = (FFT_DATA *) malloc(copy_size*sizeof(FFT_DATA));
-    if (plan->copy == NULL) return NULL;
+    plan->d_copy = typename AT::t_FFT_DATA_1d("fft3d:copy",copy_size);
   }
-  else plan->copy = NULL;
 
   if (scratch_size) {
-    plan->scratch = (FFT_DATA *) malloc(scratch_size*sizeof(FFT_DATA));
-    if (plan->scratch == NULL) return NULL;
+    plan->d_scratch = typename AT::t_FFT_DATA_1d("fft3d:scratch",scratch_size);
   }
-  else plan->scratch = NULL;
 
   // system specific pre-computation of 1d FFT coeffs
   // and scaling normalization
@@ -508,6 +607,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   DftiSetValue(plan->handle_fast, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, (MKL_LONG)nfast);
   DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nfast);
+  //DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_USER_THREADS, nthreads);
   DftiCommitDescriptor(plan->handle_fast);
 
   DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1,
@@ -517,6 +617,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   DftiSetValue(plan->handle_mid, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, (MKL_LONG)nmid);
   DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nmid);
+  //DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_USER_THREADS, nthreads);
   DftiCommitDescriptor(plan->handle_mid);
 
   DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1,
@@ -526,6 +627,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   DftiSetValue(plan->handle_slow, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, (MKL_LONG)nslow);
   DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nslow);
+  //DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_USER_THREADS, nthreads);
   DftiCommitDescriptor(plan->handle_slow);
 
   if (scaled == 0)
@@ -537,52 +639,9 @@ struct fft_plan_3d *fft_3d_create_plan(
       (out_khi-out_klo+1);
   }
 
-  /*
-#elif defined(FFT_FFTW2)
-
-  plan->plan_fast_forward =
-    fftw_create_plan(nfast,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-  plan->plan_fast_backward =
-    fftw_create_plan(nfast,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-
-  if (nmid == nfast) {
-    plan->plan_mid_forward = plan->plan_fast_forward;
-    plan->plan_mid_backward = plan->plan_fast_backward;
-  }
-  else {
-    plan->plan_mid_forward =
-      fftw_create_plan(nmid,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-    plan->plan_mid_backward =
-      fftw_create_plan(nmid,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-  }
-
-  if (nslow == nfast) {
-    plan->plan_slow_forward = plan->plan_fast_forward;
-    plan->plan_slow_backward = plan->plan_fast_backward;
-  }
-  else if (nslow == nmid) {
-    plan->plan_slow_forward = plan->plan_mid_forward;
-    plan->plan_slow_backward = plan->plan_mid_backward;
-  }
-  else {
-    plan->plan_slow_forward =
-      fftw_create_plan(nslow,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-    plan->plan_slow_backward =
-      fftw_create_plan(nslow,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-  }
-
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
-  */
-
 #elif defined(FFT_FFTW3)
-#if defined(FFT_FFTW_THREADS)
+
+#if defined (FFT_FFTW_THREADS)
   if (nthreads > 1) {
     FFTW_API(init_threads)();
     FFTW_API(plan_with_nthreads)(nthreads);
@@ -591,54 +650,68 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   plan->plan_fast_forward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-                            NULL,&nfast,1,plan->length1,
-                            NULL,&nfast,1,plan->length1,
-                            FFTW_FORWARD,FFTW_ESTIMATE);
+                       NULL,&nfast,1,plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
+
   plan->plan_fast_backward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-                            NULL,&nfast,1,plan->length1,
-                            NULL,&nfast,1,plan->length1,
-                            FFTW_BACKWARD,FFTW_ESTIMATE);
+                       NULL,&nfast,1,plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
+
   plan->plan_mid_forward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-                            NULL,&nmid,1,plan->length2,
-                            NULL,&nmid,1,plan->length2,
-                            FFTW_FORWARD,FFTW_ESTIMATE);
+                       NULL,&nmid,1,plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
+
   plan->plan_mid_backward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-                            NULL,&nmid,1,plan->length2,
-                            NULL,&nmid,1,plan->length2,
-                            FFTW_BACKWARD,FFTW_ESTIMATE);
+                       NULL,&nmid,1,plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
+
+
   plan->plan_slow_forward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-                            NULL,&nslow,1,plan->length3,
-                            NULL,&nslow,1,plan->length3,
-                            FFTW_FORWARD,FFTW_ESTIMATE);
+                       NULL,&nslow,1,plan->length3,
+                       NULL,&nslow,1,plan->length3,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
+
   plan->plan_slow_backward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-                            NULL,&nslow,1,plan->length3,
-                            NULL,&nslow,1,plan->length3,
-                            FFTW_BACKWARD,FFTW_ESTIMATE);
+                       NULL,&nslow,1,plan->length3,
+                       NULL,&nslow,1,plan->length3,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
+#elif defined(FFT_CUFFT)
+  cufftPlanMany(&(plan->plan_fast), 1, &nfast,
+    &nfast,1,plan->length1,
+    &nfast,1,plan->length1,
+    CUFFT_TYPE,plan->total1/plan->length1);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
+  cufftPlanMany(&(plan->plan_mid), 1, &nmid,
+    &nmid,1,plan->length2,
+    &nmid,1,plan->length2,
+    CUFFT_TYPE,plan->total2/plan->length2);
+
+  cufftPlanMany(&(plan->plan_slow), 1, &nslow,
+    &nslow,1,plan->length3,
+    &nslow,1,plan->length3,
+    CUFFT_TYPE,plan->total3/plan->length3);
 #else
-  plan->cfg_fast_forward = kiss_fft_alloc(nfast,0,NULL,NULL);
-  plan->cfg_fast_backward = kiss_fft_alloc(nfast,1,NULL,NULL);
+  kissfftKK = new KissFFTKokkos<DeviceType>();
+
+  plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,NULL,NULL);
+  plan->cfg_fast_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,1,NULL,NULL);
 
   if (nmid == nfast) {
     plan->cfg_mid_forward = plan->cfg_fast_forward;
     plan->cfg_mid_backward = plan->cfg_fast_backward;
   }
   else {
-    plan->cfg_mid_forward = kiss_fft_alloc(nmid,0,NULL,NULL);
-    plan->cfg_mid_backward = kiss_fft_alloc(nmid,1,NULL,NULL);
+    plan->cfg_mid_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,0,NULL,NULL);
+    plan->cfg_mid_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,1,NULL,NULL);
   }
 
   if (nslow == nfast) {
@@ -650,9 +723,10 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->cfg_slow_backward = plan->cfg_mid_backward;
   }
   else {
-    plan->cfg_slow_forward = kiss_fft_alloc(nslow,0,NULL,NULL);
-    plan->cfg_slow_backward = kiss_fft_alloc(nslow,1,NULL,NULL);
+    plan->cfg_slow_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,0,NULL,NULL);
+    plan->cfg_slow_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,1,NULL,NULL);
   }
+#endif
 
   if (scaled == 0)
     plan->scaled = 0;
@@ -663,8 +737,6 @@ struct fft_plan_3d *fft_3d_create_plan(
       (out_khi-out_klo+1);
   }
 
-#endif
-
   return plan;
 }
 
@@ -672,34 +744,18 @@ struct fft_plan_3d *fft_3d_create_plan(
    Destroy a 3d fft plan
 ------------------------------------------------------------------------- */
 
-void fft_3d_destroy_plan(struct fft_plan_3d *plan)
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *plan)
 {
-  if (plan->pre_plan) remap_3d_destroy_plan(plan->pre_plan);
-  if (plan->mid1_plan) remap_3d_destroy_plan(plan->mid1_plan);
-  if (plan->mid2_plan) remap_3d_destroy_plan(plan->mid2_plan);
-  if (plan->post_plan) remap_3d_destroy_plan(plan->post_plan);
-
-  if (plan->copy) free(plan->copy);
-  if (plan->scratch) free(plan->scratch);
+  if (plan->pre_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->pre_plan);
+  if (plan->mid1_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->mid1_plan);
+  if (plan->mid2_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->mid2_plan);
+  if (plan->post_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->post_plan);
 
 #if defined(FFT_MKL)
   DftiFreeDescriptor(&(plan->handle_fast));
   DftiFreeDescriptor(&(plan->handle_mid));
   DftiFreeDescriptor(&(plan->handle_slow));
-  /*
-#elif defined(FFT_FFTW2)
-  if (plan->plan_slow_forward != plan->plan_fast_forward &&
-      plan->plan_slow_forward != plan->plan_mid_forward) {
-    fftw_destroy_plan(plan->plan_slow_forward);
-    fftw_destroy_plan(plan->plan_slow_backward);
-  }
-  if (plan->plan_mid_forward != plan->plan_fast_forward) {
-    fftw_destroy_plan(plan->plan_mid_forward);
-    fftw_destroy_plan(plan->plan_mid_backward);
-  }
-  fftw_destroy_plan(plan->plan_fast_forward);
-  fftw_destroy_plan(plan->plan_fast_backward);
-  */
 #elif defined(FFT_FFTW3)
   FFTW_API(destroy_plan)(plan->plan_slow_forward);
   FFTW_API(destroy_plan)(plan->plan_slow_backward);
@@ -707,70 +763,25 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   FFTW_API(destroy_plan)(plan->plan_mid_backward);
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
-#if defined(FFT_FFTW_THREADS)
+
+#if defined (FFT_FFTW_THREADS)
   FFTW_API(cleanup_threads)();
 #endif
-#else
-  if (plan->cfg_slow_forward != plan->cfg_fast_forward &&
-      plan->cfg_slow_forward != plan->cfg_mid_forward) {
-    free(plan->cfg_slow_forward);
-    free(plan->cfg_slow_backward);
-  }
-  if (plan->cfg_mid_forward != plan->cfg_fast_forward) {
-    free(plan->cfg_mid_forward);
-    free(plan->cfg_mid_backward);
-  }
-  free(plan->cfg_fast_forward);
-  free(plan->cfg_fast_backward);
+
+#elif defined (FFT_KISSFFT)
+  delete kissfftKK;
 #endif
 
-  free(plan);
-}
-
-/* ----------------------------------------------------------------------
-   recursively divide n into small factors, return them in list
-------------------------------------------------------------------------- */
-
-void factor(int n, int *num, int *list)
-{
-  if (n == 1) {
-    return;
-  } else if (n % 2 == 0) {
-    *list = 2;
-    (*num)++;
-    factor(n/2,num,list+1);
-  } else if (n % 3 == 0) {
-    *list = 3;
-    (*num)++;
-    factor(n/3,num,list+1);
-  } else if (n % 5 == 0) {
-    *list = 5;
-    (*num)++;
-    factor(n/5,num,list+1);
-  } else if (n % 7 == 0) {
-    *list = 7;
-    (*num)++;
-    factor(n/7,num,list+1);
-  } else if (n % 11 == 0) {
-    *list = 11;
-    (*num)++;
-    factor(n/11,num,list+1);
-  } else if (n % 13 == 0) {
-    *list = 13;
-    (*num)++;
-    factor(n/13,num,list+1);
-  } else {
-    *list = n;
-    (*num)++;
-    return;
-  }
+  delete plan;
+  delete remapKK;
 }
 
 /* ----------------------------------------------------------------------
    divide n into 2 factors of as equal size as possible
 ------------------------------------------------------------------------- */
 
-void bifactor(int n, int *factor1, int *factor2)
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::bifactor(int n, int *factor1, int *factor2)
 {
   int n1,n2,facmax;
 
@@ -797,14 +808,10 @@ void bifactor(int n, int *factor1, int *factor2)
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
-void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename AT::t_FFT_DATA_1d d_data, int nsize, int flag,
+                    struct fft_plan_3d_kokkos<DeviceType> *plan)
 {
-  int i,num;
-  FFT_SCALAR norm;
-#if defined(FFT_FFTW3)
-  FFT_SCALAR *data_ptr;
-#endif
-
   // total = size of data needed in each dim
   // length = length of 1d FFT in each dim
   // total/length = # of 1d FFTs in each dim
@@ -817,8 +824,8 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   int total3 = plan->total3;
   int length3 = plan->length3;
 
-// fftw3 and Dfti in MKL encode the number of transforms
-// into the plan, so we cannot operate on a smaller data set.
+  // fftw3 and Dfti in MKL encode the number of transforms
+  // into the plan, so we cannot operate on a smaller data set
 #if defined(FFT_MKL) || defined(FFT_FFTW3)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;
@@ -840,50 +847,41 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     DftiComputeBackward(plan->handle_mid,data);
     DftiComputeBackward(plan->handle_slow,data);
   }
-  /*
-#elif defined(FFT_FFTW2)
-  if (flag == -1) {
-    fftw(plan->plan_fast_forward,total1/length1,data,1,0,NULL,0,0);
-    fftw(plan->plan_mid_forward,total2/length2,data,1,0,NULL,0,0);
-    fftw(plan->plan_slow_forward,total3/length3,data,1,0,NULL,0,0);
-  } else {
-    fftw(plan->plan_fast_backward,total1/length1,data,1,0,NULL,0,0);
-    fftw(plan->plan_mid_backward,total2/length2,data,1,0,NULL,0,0);
-    fftw(plan->plan_slow_backward,total3/length3,data,1,0,NULL,0,0);
-  }
-  */
 #elif defined(FFT_FFTW3)
-  FFTW_API(plan) theplan;
-  if (flag == -1)
-    theplan=plan->plan_fast_forward;
-  else
-    theplan=plan->plan_fast_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-  if (flag == -1)
-    theplan=plan->plan_mid_forward;
-  else
-    theplan=plan->plan_mid_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-  if (flag == -1)
-    theplan=plan->plan_slow_forward;
-  else
-    theplan=plan->plan_slow_backward;
-  FFTW_API(execute_dft)(theplan,data,data);
-#else
   if (flag == -1) {
-    for (int offset = 0; offset < total1; offset += length1)
-      kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
-    for (int offset = 0; offset < total2; offset += length2)
-      kiss_fft(plan->cfg_mid_forward,&data[offset],&data[offset]);
-    for (int offset = 0; offset < total3; offset += length3)
-      kiss_fft(plan->cfg_slow_forward,&data[offset],&data[offset]);
+    FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   } else {
-    for (int offset = 0; offset < total1; offset += length1)
-      kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
-    for (int offset = 0; offset < total2; offset += length2)
-      kiss_fft(plan->cfg_mid_backward,&data[offset],&data[offset]);
-    for (int offset = 0; offset < total3; offset += length3)
-      kiss_fft(plan->cfg_slow_backward,&data[offset],&data[offset]);
+    FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+  }
+#elif defined(FFT_CUFFT)
+  cufftExec(plan->plan_fast,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExec(plan->plan_mid,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExec(plan->plan_slow,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+#else
+  kiss_fft_functor<DeviceType> f;
+  typename AT::t_FFT_DATA_1d d_tmp = typename AT::t_FFT_DATA_1d("fft_3d:tmp",d_data.dimension_0());
+  if (flag == -1) {
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length1);
+    Kokkos::parallel_for(total1/length1,f);
+
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_forward,length2);
+    Kokkos::parallel_for(total2/length2,f);
+
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_forward,length3);
+    Kokkos::parallel_for(total3/length3,f);
+  } else {
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length1);
+    Kokkos::parallel_for(total1/length1,f);
+
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length2);
+    Kokkos::parallel_for(total2/length2,f);
+
+    f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_backward,length3);
+    Kokkos::parallel_for(total3/length3,f);
   }
 #endif
 
@@ -891,21 +889,17 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   // limit num to size of data
 
   if (flag == 1 && plan->scaled) {
-    norm = plan->norm;
-    num = MIN(plan->normnum,nsize);
-#if defined(FFT_FFTW3)
-    data_ptr = (FFT_SCALAR *)data;
-#endif
-    for (i = 0; i < num; i++) {
-#if defined(FFT_FFTW3)
-      *(data_ptr++) *= norm;
-      *(data_ptr++) *= norm;
-#elif defined(FFT_MKL)
-      data[i] *= norm;
-#else
-      data[i].re *= norm;
-      data[i].im *= norm;
-#endif
-    }
+    FFT_SCALAR norm = plan->norm;
+    int num = MIN(plan->normnum,nsize);
+
+    norm_functor<DeviceType> f(d_data,norm);
+    Kokkos::parallel_for(num,f);
   }
+}
+
+namespace LAMMPS_NS {
+template class FFT3dKokkos<LMPDeviceType>;
+#ifdef KOKKOS_HAVE_CUDA
+template class FFT3dKokkos<LMPHostType>;
+#endif
 }

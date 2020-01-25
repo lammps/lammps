@@ -181,6 +181,10 @@ void MSM::init()
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
                "(remove -DFFT_SINGLE from Makefile and re-compile)");
 
+  // compute two charge force
+
+  two_charge();
+
   // extract short-range Coulombic cutoff from pair style
 
   triclinic = domain->triclinic;

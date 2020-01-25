@@ -203,7 +203,7 @@ inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG\_CONFIG\_PATH
 environment variable so that libkim-api can be found.
 
-For using KIM web queries.
+For using OpenKIM web queries in LAMMPS.
 
 If LMP\_DEBUG\_CURL is set, the libcurl verbose mode will be on, and any
 libcurl calls within the KIM web query display a lot of information about
@@ -350,10 +350,12 @@ For NVIDIA GPUs using CUDA:
    KOKKOS_DEVICES = Cuda
    KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
                                     # archGPU = GPU from list above
+   FFT_INC = -DFFT_CUFFT            # enable use of cuFFT (optional)
+   FFT_LIB = -lcufft                # link to cuFFT library
 
-For GPUs, you also need these 2 lines in your Makefile.machine before
-the CC line is defined, in this case for use with OpenMPI mpicxx.  The
-2 lines define a nvcc wrapper compiler, which will use nvcc for
+For GPUs, you also need the following 2 lines in your Makefile.machine
+before the CC line is defined, in this case for use with OpenMPI mpicxx.
+The 2 lines define a nvcc wrapper compiler, which will use nvcc for
 compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
 files.
 

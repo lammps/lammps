@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixIntel;
   friend class FixOMP;
   friend class ThrOMP;
   friend class Info;

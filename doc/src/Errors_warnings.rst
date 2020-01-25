@@ -195,6 +195,12 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
 
+* Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
+   When using fix bond/create multiple times or in combination with
+   fix bond/break, the individual fix instances do not share information
+   about changes they made at the same time step and thus it may result
+   in unexpected behavior.
+
 *Fix bond/swap will ignore defined angles*
    See the doc page for fix bond/swap for more info on this
    restriction.
@@ -676,6 +682,9 @@ This will most likely cause errors in kinetic fluctuations.
 
 *Slab correction not needed for MSM*
    Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.
+
+*Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword*
+   Self-explanatory.
 
 *System is not charge neutral, net charge = %g*
    The total charge on all atoms on the system is not 0.0.

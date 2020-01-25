@@ -70,7 +70,7 @@ list for calculating the normals for each atom pair.
 
    Two new sets of parameters of KC potential for hydrocarbons, CH.KC
    (without the taper function) and CH\_taper.KC (with the taper function)
-   are presented in :ref:`(Ouyang) <Ouyang1>`.  The energy for the KC potential
+   are presented in :ref:`(Ouyang1) <Ouyang3>`.  The energy for the KC potential
    with the taper function goes continuously to zero at the cutoff.  The
    parameters in both CH.KC and CH\_taper.KC provide a good description in
    both short- and long-range interaction regimes. While the original
@@ -78,7 +78,7 @@ list for calculating the normals for each atom pair.
    suitable for long-range interaction regime.  This feature is essential
    for simulations in high pressure regime (i.e., the interlayer distance
    is smaller than the equilibrium distance).  The benchmark tests and
-   comparison of these parameters can be found in :ref:`(Ouyang) <Ouyang1>`.
+   comparison of these parameters can be found in :ref:`(Ouyang1) <Ouyang3>` and :ref:`(Ouyang2) <Ouyang4>`.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair\_style *none*\ .
@@ -154,11 +154,17 @@ Related commands
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
-.. _Ouyang1:
+.. _Ouyang3:
 
 
 
-**(Ouyang)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
+**(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
+
+.. _Ouyang4:
+
+
+
+**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 
 
 .. _lws: http://lammps.sandia.gov

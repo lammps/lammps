@@ -136,6 +136,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
 
 template <class DeviceType>
 template <int omega_flag, int angmom_flag, int torque_flag>
+KOKKOS_INLINE_FUNCTION
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {
   if (mask[i] & groupbit){

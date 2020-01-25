@@ -26,6 +26,7 @@ Build_settings.html
 Build_package.html
 Build_extras.html
 Build_windows.html
+Build_development.html
 Run_head.html
 Run_basics.html
 Run_options.html
@@ -412,8 +413,10 @@ fix_wall_gran.html
 fix_wall_gran_region.html
 fix_wall_piston.html
 fix_wall_reflect.html
+fix_wall_reflect_stochastic.html
 fix_wall_region.html
 fix_wall_srd.html
+
 
 lammps_commands_compute.html
 compute.html
@@ -461,6 +464,7 @@ compute_gyration_shape.html
 compute_gyration_shape_chunk.html
 compute_heat_flux.html
 compute_hexorder_atom.html
+compute_hma.html
 compute_improper.html
 compute_improper_local.html
 compute_inertia_chunk.html

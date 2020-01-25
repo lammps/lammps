@@ -132,7 +132,7 @@ integrators derived by Tuckerman et al in :ref:`(Tuckerman) <nh-Tuckerman>`.
 ----------
 
 
-The thermostat parameters for fix styles *nvt* and *npt* is specified
+The thermostat parameters for fix styles *nvt* and *npt* are specified
 using the *temp* keyword.  Other thermostat-related keywords are
 *tchain*\ , *tloop* and *drag*\ , which are discussed below.
 

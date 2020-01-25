@@ -354,6 +354,7 @@ int NeighborKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
+KOKKOS_FUNCTION
 void NeighborKokkosExecute<DeviceType>::
    build_Item(const int &i) const
 {
@@ -704,6 +705,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>  template<int HalfNeigh>
+KOKKOS_FUNCTION
 void NeighborKokkosExecute<DeviceType>::
    build_Item_Ghost(const int &i) const
 {
@@ -826,6 +828,7 @@ void NeighborKokkosExecute<DeviceType>::
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
+KOKKOS_FUNCTION
 void NeighborKokkosExecute<DeviceType>::
    build_ItemSize(const int &i) const
 {

@@ -52,8 +52,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
   tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
   remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
-  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL),
-  avec_line(NULL), avec_tri(NULL)
+  dorient(NULL), id_dilate(NULL), id_gravity(NULL), random(NULL),
+  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
 
@@ -124,14 +124,17 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (custom_flag) {
       if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
 
-      // determine whether atom-style variable or atom property is used.
+      // determine whether atom-style variable or atom property is used
+
       if (strstr(arg[4],"i_") == arg[4]) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
-          error->all(FLERR,"Fix rigid custom requires previously defined property/atom");
+          error->all(FLERR,"Fix rigid custom requires "
+                     "previously defined property/atom");
         else if (is_double)
-          error->all(FLERR,"Fix rigid custom requires integer-valued property/atom");
+          error->all(FLERR,"Fix rigid custom requires "
+                     "integer-valued property/atom");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -163,12 +166,15 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           if (mask[i] & groupbit)
             molecule[i] = (tagint)((tagint)value[i] - minval + 1);
         delete[] value;
+
       } else error->all(FLERR,"Unsupported fix rigid custom property");
+
     } else {
       if (atom->molecule_flag == 0)
         error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
       molecule = atom->molecule;
     }
+
     iarg = 4 + custom_flag;
 
     tagint maxmol_tag = -1;
@@ -297,6 +303,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // number of linear rigid bodies is counted later
+
   nlinear = 0;
 
   // parse optional args
@@ -308,12 +315,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   tstat_flag = 0;
   pstat_flag = 0;
   allremap = 1;
-  id_dilate = NULL;
   t_chain = 10;
   t_iter = 1;
   t_order = 3;
   p_chain = 10;
+
   inpfile = NULL;
+  id_gravity = NULL;
+  id_dilate = NULL;
 
   pcouple = NONE;
   pstyle = ANISO;
@@ -532,7 +541,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"inpfile") == 0) {
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;
@@ -543,10 +552,18 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
       else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
       else error->all(FLERR,"Illegal fix rigid command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"gravity") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+      delete [] id_gravity;
+      int n = strlen(arg[iarg+1]) + 1;
+      id_gravity = new char[n];
+      strcpy(id_gravity,arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -621,6 +638,9 @@ FixRigid::~FixRigid()
 
   delete random;
   delete [] inpfile;
+  delete [] id_dilate;
+  delete [] id_gravity;
+
   memory->destroy(mol2body);
   memory->destroy(body2mol);
 
@@ -687,7 +707,7 @@ void FixRigid::init()
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   // warn if more than one rigid fix
-  // if earlyflag, warn if any post-force fixes come after POEMS fix
+  // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
@@ -701,8 +721,26 @@ void FixRigid::init()
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix rigid",
+                 modify->fix[i]->id);
         error->warning(FLERR,str);
+      }
+    }
+  }
+
+  // warn if body properties are read from inpfile
+  //   and the gravity keyword is not set and a gravity fix exists
+  // this could mean body particles are overlapped
+  //   and gravity is not applied correctly
+
+  if (inpfile && !id_gravity) {
+    for (i = 0; i < modify->nfix; i++) {
+      if (strcmp(modify->fix[i]->style,"gravity") == 0) {
+        if (comm->me == 0)
+          error->warning(FLERR,"Gravity may not be correctly applied "
+                         "to rigid bodies if they consist of "
+                         "overlapped particles");
+        break;
       }
     }
   }
@@ -713,10 +751,22 @@ void FixRigid::init()
     if (strcmp(modify->fix[i]->style,"npt") == 0) break;
     if (strcmp(modify->fix[i]->style,"nph") == 0) break;
   }
+
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
+  }
+
+  // add gravity forces based on gravity vector from fix
+
+  if (id_gravity) {
+    int ifix = modify->find_fix(id_gravity);
+    if (ifix < 0) error->all(FLERR,"Fix rigid cannot find fix gravity ID");
+    if (strcmp(modify->fix[ifix]->style,"gravity") != 0)
+      error->all(FLERR,"Fix rigid gravity fix is invalid");
+    int tmp;
+    gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
   }
 
   // timestep info
@@ -1061,8 +1111,17 @@ void FixRigid::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
-}
 
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+    for (ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += gvec[0]*masstotal[ibody];
+      fcm[ibody][1] += gvec[1]*masstotal[ibody];
+      fcm[ibody][2] += gvec[2]*masstotal[ibody];
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 

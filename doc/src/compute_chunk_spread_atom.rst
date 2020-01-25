@@ -32,7 +32,7 @@ Examples
 
 .. parsed-literal::
 
-   compute 1 all chunk/spread/atom mychunk c_com**\*** c_gyration
+   compute 1 all chunk/spread/atom mychunk c_com[*] c_gyration
 
 Description
 """""""""""
@@ -109,7 +109,7 @@ with 3 columns:
 .. parsed-literal::
 
    compute com all com/chunk mychunk
-   compute 10 all chunk/spread/atom mychunk c_com[\*]
+   compute 10 all chunk/spread/atom mychunk c_com[*]
    compute 10 all chunk/spread/atom mychunk c_com[1] c_com[2] c_com[3]
 
 
@@ -125,8 +125,8 @@ to the bench/in.chain script.
 
    compute         cmol all chunk/atom molecule
    compute         com all com/chunk cmol
-   compute         comchunk all chunk/spread/atom cmol c_com**\***
-   dump            1 all custom 50 tmp.dump id mol type x y z c_comchunk**\***
+   compute         comchunk all chunk/spread/atom cmol c_com[*]
+   dump            1 all custom 50 tmp.dump id mol type x y z c_comchunk[*]
    dump_modify     1 sort id
 
 The same per-chunk data for each atom could be used to define per-atom

@@ -8,7 +8,6 @@ atom in the system
 * integrating the equations of motion for the coupled spin-lattice system
 * implementing magnetic pair interactions and magnetic forces
 * thermostating and applying a transverse damping to the magnetic spins
-* minimizing spin configurations with an adaptive timestep scheme
 * performing geodesic NEB calculations
 * computing and outputing magnetic quantities
 * minimizing the energy or total torque of a magnetic system

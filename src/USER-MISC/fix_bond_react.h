@@ -110,7 +110,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete,nconstr; // # edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ncustom,ndelete,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -126,6 +126,7 @@ class FixBondReact : public Fix {
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
   int **custom_edges; // atoms in molecule templates with incorrect valences
   int **delete_atoms; // atoms in pre-reacted templates to delete
+  int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
 
   int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
   tagint **xspecial,**onemol_xspecial,**twomol_xspecial; // full 1-4 neighbor list
@@ -149,6 +150,7 @@ class FixBondReact : public Fix {
   void Equivalences(char *,int);
   void CustomEdges(char *,int);
   void DeleteAtoms(char *,int);
+  void ChiralCenters(char *,int);
   void Constraints(char *,int);
 
   void make_a_guess ();
@@ -159,6 +161,7 @@ class FixBondReact : public Fix {
   void ring_check();
   int check_constraints();
   double get_temperature();
+  int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
   void open(char *);
   void readline(char *);
@@ -229,6 +232,10 @@ E: Bond/react: Unknown section in map file
 
 Please ensure reaction map files are properly formatted.
 
+E: Bond/react: Invalid template atom ID in map file
+
+Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
 
 This means an atom which changes type or connectivity during the
@@ -248,6 +255,18 @@ range.
 E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
 
 Self-explanatory.
+
+E: Bond/react: First neighbors of chiral atoms must be of mutually different types
+
+Self-explanatory.
+
+E: Bond/react: Chiral atoms must have exactly four first neighbors
+
+Self-explanatory.
+
+E: Bond/react: Molecule template 'Coords' section required for chiralIDs keyword
+
+The coordinates of atoms in the pre-reacted template are used to determine chirality.
 
 E: Bond/react special bond generation overflow
 

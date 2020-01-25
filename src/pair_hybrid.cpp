@@ -27,6 +27,7 @@
 #include "error.h"
 #include "respa.h"
 #include "utils.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -173,11 +174,14 @@ void PairHybrid::compute(int eflag, int vflag)
             cvatom[i][j] += cvatom_substyle[i][j];
       } else {
         double **vatom_substyle = styles[m]->vatom;
-        for (i = 0; i < n; i++)
-          for (j = 0; j < 6; j++)
+        for (i = 0; i < n; i++) {
+          for (j = 0; j < 6; j++) {
             cvatom[i][j] += vatom_substyle[i][j];
-          for (j = 6; j < 9; j++)
+          }
+          for (j = 6; j < 9; j++) {
             cvatom[i][j] += vatom_substyle[i][j-3];
+          }
+        }
       }
     }
 
@@ -915,6 +919,12 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[1] = force->numeric(FLERR,arg[1]);
   special[2] = force->numeric(FLERR,arg[2]);
   special[3] = force->numeric(FLERR,arg[3]);
+
+  // have to cast to PairHybrid to work around C++ access restriction
+
+  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+    error->all(FLERR,"Pair_modify special is not compatible with "
+                     "suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];

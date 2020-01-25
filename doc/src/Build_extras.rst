@@ -195,11 +195,31 @@ minutes to hours) to build.  Of course you only need to do that once.)
 .. parsed-literal::
 
    -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build, value = no (default) or yes
+   -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off, value = off (default) or on
+   -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer, value = no (default) or yes
 
 If DOWNLOAD\_KIM is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG\_CONFIG\_PATH
 environment variable so that libkim-api can be found.
+
+For using OpenKIM web queries in LAMMPS.
+
+If LMP\_DEBUG\_CURL is set, the libcurl verbose mode will be on, and any
+libcurl calls within the KIM web query display a lot of information about
+libcurl operations. You hardly ever want this set in production use, you will
+almost always want this when you debug/report problems.
+
+The libcurl performs peer SSL certificate verification by default. This
+verification is done using a CA certificate store that the SSL library can
+use to make sure the peer's server certificate is valid. If SSL reports an
+error ("certificate verify failed") during the handshake and thus refuses
+further communication with that server, you can set LMP\_NO\_SSL\_CHECK.
+If LMP\_NO\_SSL\_CHECK is set, libcurl does not verify the peer and connection
+succeeds regardless of the names in the certificate. This option is insecure.
+As an alternative, you can specify your own CA cert path by setting the
+environment variable CURL\_CA\_BUNDLE to the path of your choice. A call to the
+KIM web query would get this value from the environmental variable.
 
 **Traditional make**\ :
 
@@ -330,10 +350,12 @@ For NVIDIA GPUs using CUDA:
    KOKKOS_DEVICES = Cuda
    KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
                                     # archGPU = GPU from list above
+   FFT_INC = -DFFT_CUFFT            # enable use of cuFFT (optional)
+   FFT_LIB = -lcufft                # link to cuFFT library
 
-For GPUs, you also need these 2 lines in your Makefile.machine before
-the CC line is defined, in this case for use with OpenMPI mpicxx.  The
-2 lines define a nvcc wrapper compiler, which will use nvcc for
+For GPUs, you also need the following 2 lines in your Makefile.machine
+before the CC line is defined, in this case for use with OpenMPI mpicxx.
+The 2 lines define a nvcc wrapper compiler, which will use nvcc for
 compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
 files.
 

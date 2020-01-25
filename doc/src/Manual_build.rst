@@ -55,9 +55,9 @@ the doc dir.
    make mobi         # generate LAMMPS.mobi in MOBI format using ebook-convert
    make clean        # remove intermediate RST files created by HTML build
    make clean-all    # remove entire build folder and any cached data
-
-make anchor\_check # check for duplicate anchor labels
-make spelling     # spell-check the manual
+   make anchor_check # check for duplicate anchor labels
+   style_check       # check for complete and consistent style lists
+   make spelling     # spell-check the manual
 
 
 ----------

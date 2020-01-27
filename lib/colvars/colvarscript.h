@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -86,6 +86,7 @@ public:
     cv_printframe,
     cv_printframelabels,
     cv_frame,
+    cv_units,
     cv_colvar,
     cv_colvar_value,
     cv_colvar_update,
@@ -269,9 +270,7 @@ extern "C" {
            "Clear the index groups loaded so far, allowing to replace them",
            0, 0,
            { },
-           cvm::main()->index_group_names.clear();
-           cvm::main()->index_groups.clear();
-           return COLVARS_OK;
+           return cvm::main()->reset_index_groups();
            )
 
   CVSCRIPT(cv_addenergy,
@@ -290,6 +289,18 @@ extern "C" {
            double *energy = reinterpret_cast<double *>(objv[2]);
            *energy = cvm::main()->total_bias_energy;
            return COLVARS_OK;
+           )
+
+  CVSCRIPT(cv_units,
+           "Get the current Colvars unit system",
+           0, 1,
+           { },
+           if (objc < 3) {
+            script->set_str_result(cvm::proxy->units);
+            return COLVARS_OK;
+           } else {
+            return cvm::proxy->set_unit_system(script->obj_to_str(objv[2]) , false);
+           }
            )
 
 #ifndef COLVARSCRIPT_INIT_FN

@@ -135,6 +135,7 @@ to assist:
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compier, serial interface
    FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
+   FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
 As with CMake, you do not need to set paths in FFT\_INC or FFT\_PATH, if
 the compiler can find the FFT header and library files in its default search path.

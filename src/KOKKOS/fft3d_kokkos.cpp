@@ -147,12 +147,10 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
-#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
+#if defined(FFT_FFTW3) || defined(FFT_CUFFT) || defined(FFT_MKL)
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
-#elif defined(FFT_MKL)
-    d_out(i) *= norm;
 #else
     d_out(i,0) *= norm;
     d_out(i,1) *= norm;
@@ -607,7 +605,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   DftiSetValue(plan->handle_fast, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, (MKL_LONG)nfast);
   DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nfast);
-  //DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#if defined(FFT_MKL_THREADS)
+  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#endif
   DftiCommitDescriptor(plan->handle_fast);
 
   DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1,
@@ -617,7 +617,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   DftiSetValue(plan->handle_mid, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, (MKL_LONG)nmid);
   DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nmid);
-  //DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#if defined(FFT_MKL_THREADS)
+  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#endif
   DftiCommitDescriptor(plan->handle_mid);
 
   DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1,
@@ -627,7 +629,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   DftiSetValue(plan->handle_slow, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, (MKL_LONG)nslow);
   DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nslow);
-  //DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#if defined(FFT_MKL_THREADS)
+  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_USER_THREADS, nthreads);
+#endif
   DftiCommitDescriptor(plan->handle_slow);
 
   if (scaled == 0)
@@ -684,6 +688,16 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                        NULL,&nslow,1,plan->length3,
                        NULL,&nslow,1,plan->length3,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
+
+  if (scaled == 0)
+    plan->scaled = 0;
+  else {
+    plan->scaled = 1;
+    plan->norm = 1.0/(nfast*nmid*nslow);
+    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
+      (out_khi-out_klo+1);
+  }
+
 #elif defined(FFT_CUFFT)
   cufftPlanMany(&(plan->plan_fast), 1, &nfast,
     &nfast,1,plan->length1,
@@ -699,6 +713,16 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     &nslow,1,plan->length3,
     &nslow,1,plan->length3,
     CUFFT_TYPE,plan->total3/plan->length3);
+
+  if (scaled == 0)
+    plan->scaled = 0;
+  else {
+    plan->scaled = 1;
+    plan->norm = 1.0/(nfast*nmid*nslow);
+    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
+      (out_khi-out_klo+1);
+  }
+
 #else
   kissfftKK = new KissFFTKokkos<DeviceType>();
 
@@ -726,7 +750,6 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->cfg_slow_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,0,NULL,NULL);
     plan->cfg_slow_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,1,NULL,NULL);
   }
-#endif
 
   if (scaled == 0)
     plan->scaled = 0;
@@ -736,6 +759,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
       (out_khi-out_klo+1);
   }
+
+#endif
 
   return plan;
 }
@@ -839,13 +864,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename AT::t_FFT_DATA_1d d
 
 #if defined(FFT_MKL)
   if (flag == -1) {
-    DftiComputeForward(plan->handle_fast,data);
-    DftiComputeForward(plan->handle_mid,data);
-    DftiComputeForward(plan->handle_slow,data);
+    DftiComputeForward(plan->handle_fast,(FFT_DATA*)d_data.data());
+    DftiComputeForward(plan->handle_mid,(FFT_DATA*)d_data.data());
+    DftiComputeForward(plan->handle_slow,(FFT_DATA *)d_data.data());
   } else {
-    DftiComputeBackward(plan->handle_fast,data);
-    DftiComputeBackward(plan->handle_mid,data);
-    DftiComputeBackward(plan->handle_slow,data);
+    DftiComputeBackward(plan->handle_fast,(FFT_DATA*)d_data.data());
+    DftiComputeBackward(plan->handle_mid,(FFT_DATA*)d_data.data());
+    DftiComputeBackward(plan->handle_slow,(FFT_DATA*)d_data.data());
   }
 #elif defined(FFT_FFTW3)
   if (flag == -1) {

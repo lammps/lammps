@@ -4,7 +4,7 @@ GPU package
 The GPU package was developed by Mike Brown while at SNL and ORNL
 and his collaborators, particularly Trung Nguyen (now at Northwestern).
 It provides GPU versions of many pair styles and for parts of the
-:doc:`kspace\_style pppm <kspace_style>` for long-range Coulombics.
+:doc:`kspace_style pppm <kspace_style>` for long-range Coulombics.
 It has the following general features:
 
 * It is designed to exploit common GPU hardware configurations where one

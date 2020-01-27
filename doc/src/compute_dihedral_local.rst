@@ -51,7 +51,7 @@ processors, equals the number of dihedral angles in the system, modified
 by the group parameter as explained below.
 
 The value *phi* is the dihedral angle, as defined in the diagram on
-the :doc:`dihedral\_style <dihedral_style>` doc page.
+the :doc:`dihedral_style <dihedral_style>` doc page.
 
 The value *v\_name* can be used together with the *set* keyword to
 compute a user-specified function of the dihedral angle phi.  The
@@ -88,7 +88,7 @@ the system and output the statistics in various ways:
 
 The :doc:`dump local <dump>` command will output the angle,
 cosine(angle), cosine\^2(angle) for every dihedral in the system.  The
-:doc:`thermo\_style <thermo_style>` command will print the average of
+:doc:`thermo_style <thermo_style>` command will print the average of
 those quantities via the :doc:`compute reduce <compute_reduce>` command
 with thermo output.  And the :doc:`fix ave/histo <fix_ave_histo>`
 command will histogram the cosine(angle) values and write them to a

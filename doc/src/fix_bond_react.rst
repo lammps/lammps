@@ -248,7 +248,7 @@ A discussion of correctly handling this is also provided on the
    the existing system and reaction templates. As when inserting
    molecules, enough space for this increased topology/atom must be
    reserved by using the relevant "extra" keywords to the
-   :doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` commands.
+   :doc:`read_data <read_data>` or :doc:`create_box <create_box>` commands.
 
 The map file is a text document with the following format:
 
@@ -492,7 +492,7 @@ local command.
 Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
 reaction name (react-ID). Additionally, internally-created per-atom
 properties are stored to allow for smooth restarts. None of the
-:doc:`fix\_modify <fix_modify>` options are relevant to this fix.
+:doc:`fix_modify <fix_modify>` options are relevant to this fix.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length 'number of react arguments', that
@@ -524,7 +524,7 @@ Related commands
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix bond/swap <fix_bond_swap>`,
-:doc:`dump local <dump>`, :doc:`special\_bonds <special_bonds>`
+:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`
 
 Default
 """""""

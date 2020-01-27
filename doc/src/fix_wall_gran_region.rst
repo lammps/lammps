@@ -81,7 +81,7 @@ wall exerts on the particle is along the direction between that point
 and the particle center, which is the direction normal to the surface
 at that point.  Note that if the region surface is comprised of
 multiple "faces", then each face can exert a force on the particle if
-it is close enough.  E.g. for :doc:`region\_style block <region>`, a
+it is close enough.  E.g. for :doc:`region_style block <region>`, a
 particle in the interior, near a corner of the block, could feel wall
 forces from 1, 2, or 3 faces of the block.
 
@@ -154,12 +154,12 @@ corresponding manner.
 
 The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
-:doc:`pair\_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
+:doc:`pair_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
 *hooke*\ , *hooke/history*\ , or *hertz/history* for the former, and
 *granular* with all the possible options of the associated
 *pair\_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
-corresponding equation on the :doc:`pair\_style gran/\* <pair_gran>` and
+corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
 :doc:`pair\_style\_granular <pair_granular>` doc pages, but the effective
 radius is calculated using the radius of the particle and the radius
 of curvature of the wall at the contact point.
@@ -175,16 +175,16 @@ particle.
 
 The parameters *Kn*\ , *Kt*\ , *gamma\_n*, *gamma\_t*, *xmu* and *dampflag*
 have the same meaning and units as those specified with the
-:doc:`pair\_style gran/\* <pair_gran>` commands.  This means a NULL can be
+:doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma\_t* as described on that page.  If a
 NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma\_t*, then a default value is used
 where *gamma\_t* = 1/2 *gamma\_n*.
 
 All the model choices for cohesion, tangential friction, rolling
-friction and twisting friction supported by the :doc:`pair\_style granular <pair_granular>` through its *pair\_coeff* command are also
+friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair\_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
-page for :doc:`pair\_style granular <pair_granular>`.
+page for :doc:`pair_style granular <pair_granular>`.
 
 Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
@@ -197,7 +197,7 @@ Similar to :doc:`fix wall/gran <fix_wall_gran>` command, this fix writes
 the shear friction state of atoms interacting with the wall to :doc:`binary restart files <restart>`, so that a simulation can continue
 correctly if granular potentials with shear "history" effects are
 being used.  This fix also includes info about a moving region in the
-restart file.  See the :doc:`read\_restart <read_restart>` command for
+restart file.  See the :doc:`read_restart <read_restart>` command for
 info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -205,7 +205,7 @@ uninterrupted fashion.
 .. note::
 
    Information about region definitions is NOT included in restart
-   files, as discussed on the :doc:`read\_restart <read_restart>` doc page.
+   files, as discussed on the :doc:`read_restart <read_restart>` doc page.
    So you must re-define your region and if it is a moving region, define
    its motion attributes in a way that is consistent with the simulation
    that wrote the restart file.  In particular, if you want to change the
@@ -219,7 +219,7 @@ uninterrupted fashion.
    use the same fix ID for fix wall/gran/region, but assign it a region
    with a different region ID.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -235,10 +235,10 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`fix\_move <fix_move>`,
+:doc:`fix_move <fix_move>`,
 :doc:`fix wall/gran <fix_wall_gran>`,
 :doc:`fix wall/region <fix_wall_region>`,
-:doc:`pair\_style granular <pair_gran>`,
+:doc:`pair_style granular <pair_gran>`,
 :doc:`region <region>`
 
 **Default:** none

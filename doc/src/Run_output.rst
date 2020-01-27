@@ -125,10 +125,10 @@ number of histogram counts is equal to the number of processors.
 
 The last section gives aggregate statistics (across all processors)
 for pair-wise neighbors and special neighbors that LAMMPS keeps track
-of (see the :doc:`special\_bonds <special_bonds>` command).  The number
+of (see the :doc:`special_bonds <special_bonds>` command).  The number
 of times neighbor lists were rebuilt is tallied, as is the number of
 potentially *dangerous* rebuilds.  If atom movement triggered neighbor
-list rebuilding (see the :doc:`neigh\_modify <neigh_modify>` command),
+list rebuilding (see the :doc:`neigh_modify <neigh_modify>` command),
 then dangerous reneighborings are those that were triggered on the
 first timestep atom movement was checked for.  If this count is
 non-zero you may wish to reduce the delay factor to insure no force
@@ -171,7 +171,7 @@ perform a 1d line minimization in the search direction.  See the
 ----------
 
 
-If a :doc:`kspace\_style <kspace_style>` long-range Coulombics solver
+If a :doc:`kspace_style <kspace_style>` long-range Coulombics solver
 that performs FFTs was used during the run (PPPM, Ewald), then
 additional information is printed, e.g.
 

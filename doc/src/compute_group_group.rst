@@ -55,7 +55,7 @@ interactions with atoms in the specified group2.
 
    The energies computed by the *pair* keyword do not include tail
    corrections, even if they are enabled via the
-   :doc:`pair\_modify <pair_modify>` command.
+   :doc:`pair_modify <pair_modify>` command.
 
 If the *molecule* keyword is set to *inter* or *intra* than an
 additional check is made based on the molecule IDs of the two atoms in
@@ -65,7 +65,7 @@ molecules.  For the *intra* setting, the two atoms must be in the same
 molecule.
 
 If the *kspace* keyword is set to *yes*\ , which is not the default, and
-if a :doc:`kspace\_style <kspace_style>` is defined, then the interaction
+if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
 atoms in the 2nd group.  Likewise, the interaction force calculated by
@@ -107,9 +107,9 @@ frequently.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this compute uses a neighbor list, it also
    means those pairs will not be included in the group/group interaction.
@@ -119,7 +119,7 @@ frequently.
    numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
    is to write a dump file, and use the :doc:`rerun <rerun>` command to
    compute the group/group interactions for snapshots in the dump file.
-   The rerun script can use a :doc:`special\_bonds <special_bonds>` command
+   The rerun script can use a :doc:`special_bonds <special_bonds>` command
    that includes all pairs in the neighbor list.
 
 If you desire a breakdown of the interactions into a pairwise and

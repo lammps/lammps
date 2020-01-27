@@ -62,15 +62,15 @@ standard velocity-Verlet (VV) scheme.  For more details, see
 :ref:`Groot <Groot2>`.
 
 Fix *mvv/dpd* updates the position and velocity of each atom.  It can
-be used with the :doc:`pair\_style mdpd <pair_meso>` command or other
+be used with the :doc:`pair_style mdpd <pair_meso>` command or other
 pair styles such as :doc:`pair dpd <pair_dpd>`.
 
 Fix *mvv/edpd* updates the per-atom temperature, in addition to
-position and velocity, and must be used with the :doc:`pair\_style edpd <pair_meso>` command.
+position and velocity, and must be used with the :doc:`pair_style edpd <pair_meso>` command.
 
 Fix *mvv/tdpd* updates the per-atom chemical concentration, in
 addition to position and velocity, and must be used with the
-:doc:`pair\_style tdpd <pair_meso>` command.
+:doc:`pair_style tdpd <pair_meso>` command.
 
 
 ----------
@@ -78,7 +78,7 @@ addition to position and velocity, and must be used with the
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -94,8 +94,8 @@ LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style mdpd <pair_meso>`, :doc:`pair\_style edpd <pair_meso>`,
-:doc:`pair\_style tdpd <pair_meso>`
+:doc:`pair_style mdpd <pair_meso>`, :doc:`pair_style edpd <pair_meso>`,
+:doc:`pair_style tdpd <pair_meso>`
 
 Default
 """""""

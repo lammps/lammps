@@ -99,7 +99,7 @@ velocities with zero aggregate linear and/or angular momentum.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -124,7 +124,7 @@ This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
 be lost, especially in parallel.  Instead, use the
-:doc:`displace\_atoms <displace_atoms>` command, which can be used to
+:doc:`displace_atoms <displace_atoms>` command, which can be used to
 move atoms a large distance.
 
 Related commands

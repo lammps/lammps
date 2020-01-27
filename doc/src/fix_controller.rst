@@ -194,7 +194,7 @@ equal-style versus internal-style variable interchangeably.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-Currently, no information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+Currently, no information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix produces a global vector with 3 values which can be accessed

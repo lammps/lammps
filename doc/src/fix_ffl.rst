@@ -95,7 +95,7 @@ This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the
 :doc:`run <run>` command for details of how to do this.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Langevin thermostatting to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -119,7 +119,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair\_style dpd/tstat <pair_dpd>`, :doc:`fix gld <fix_gld>`, :doc:`fix gle <fix_gle>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`, :doc:`fix gld <fix_gld>`, :doc:`fix gle <fix_gle>`
 
 
 ----------

@@ -50,9 +50,9 @@ See :ref:`(Sun) <dihedral-Sun>` for a description of the COMPASS class2 force fi
 
 Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
 must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above,
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
 These are the 6 coefficients for the Ed formula:
@@ -65,7 +65,7 @@ These are the 6 coefficients for the Ed formula:
 * phi3 (degrees)
 
 For the Embt formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
 5 coefficients, the first of which is "mbt" to indicate they are
 MiddleBondTorsion coefficients.  In a data file, these coefficients
 should be listed under a "MiddleBondTorsion Coeffs" heading and you
@@ -79,7 +79,7 @@ dihedral type.
 * r2 (distance)
 
 For the Eebt formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
 9 coefficients, the first of which is "ebt" to indicate they are
 EndBondTorsion coefficients.  In a data file, these coefficients
 should be listed under a "EndBondTorsion Coeffs" heading and you must
@@ -97,7 +97,7 @@ type.
 * r3 (distance)
 
 For the Eat formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
 9 coefficients, the first of which is "at" to indicate they are
 AngleTorsion coefficients.  In a data file, these coefficients should
 be listed under a "AngleTorsion Coeffs" heading and you must leave out
@@ -118,7 +118,7 @@ to radians internally; hence the units of D and E are in
 energy/radian.
 
 For the Eaat formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
 4 coefficients, the first of which is "aat" to indicate they are
 AngleAngleTorsion coefficients.  In a data file, these coefficients
 should be listed under a "AngleAngleTorsion Coeffs" heading and you
@@ -134,7 +134,7 @@ Theta1 and theta2 are specified in degrees, but LAMMPS converts them
 to radians internally; hence the units of M are in energy/radian\^2.
 
 For the Ebb13 formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
 4 coefficients, the first of which is "bb13" to indicate they are
 BondBond13 coefficients.  In a data file, these coefficients should be
 listed under a "BondBond13 Coeffs" heading and you must leave out the
@@ -182,7 +182,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 

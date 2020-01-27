@@ -37,7 +37,7 @@ default values below.
 
 The *skin* distance is also used to determine how often atoms migrate
 to new processors if the *check* option of the
-:doc:`neigh\_modify <neigh_modify>` command is set to *yes*\ .  Atoms are
+:doc:`neigh_modify <neigh_modify>` command is set to *yes*\ .  Atoms are
 migrated (communicated) to new processors on the same timestep that
 neighbor lists are re-built.
 
@@ -59,10 +59,10 @@ other type pairs have a much shorter cutoff.  For style *multi* the
 bin size is set to 1/2 of the shortest cutoff distance and multiple
 sets of bins are defined to search over for different atom types.
 This imposes some extra setup overhead, but the searches themselves
-may be much faster for the short-cutoff cases.  See the :doc:`comm\_modify mode multi <comm_modify>` command for a communication option
+may be much faster for the short-cutoff cases.  See the :doc:`comm_modify mode multi <comm_modify>` command for a communication option
 that may also be beneficial for simulations of this kind.
 
-The :doc:`neigh\_modify <neigh_modify>` command has additional options
+The :doc:`neigh_modify <neigh_modify>` command has additional options
 that control how often neighbor lists are built and which pairs are
 stored in the list.
 
@@ -77,8 +77,8 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`neigh\_modify <neigh_modify>`, :doc:`units <units>`,
-:doc:`comm\_modify <comm_modify>`
+:doc:`neigh_modify <neigh_modify>`, :doc:`units <units>`,
+:doc:`comm_modify <comm_modify>`
 
 Default
 """""""

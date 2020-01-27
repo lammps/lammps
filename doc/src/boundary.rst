@@ -39,8 +39,8 @@ Set the style of boundaries for the global simulation box in each
 dimension.  A single letter assigns the same style to both the lower
 and upper face of the box.  Two letters assigns the first style to the
 lower face and the second style to the upper face.  The initial size
-of the simulation box is set by the :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>`, or :doc:`create\_box <create_box>`
+of the simulation box is set by the :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
 commands.
 
 The style *p* means the box is periodic, so that particles interact
@@ -56,7 +56,7 @@ side of the box to the other.
 For style *f*\ , the position of the face is fixed.  If an atom moves
 outside the face it will be deleted on the next timestep that
 reneighboring occurs.  This will typically generate an error unless
-you have set the :doc:`thermo\_modify lost <thermo_modify>` option to
+you have set the :doc:`thermo_modify lost <thermo_modify>` option to
 allow for lost atoms.
 
 For style *s*\ , the position of the face is set so as to encompass the
@@ -73,7 +73,7 @@ shrink-wrapped dimensions more closely, by using *m* style boundaries
 
 For style *m*\ , shrink-wrapping occurs, but is bounded by the value
 specified in the data or restart file or set by the
-:doc:`create\_box <create_box>` command.  For example, if the upper z
+:doc:`create_box <create_box>` command.  For example, if the upper z
 face has a value of 50.0 in the data file, the face will always be
 positioned at 50.0 or above, even if the maximum z-extent of all the
 atoms becomes less than 50.0.  This can be useful if you start a
@@ -99,9 +99,9 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command or
-:doc:`read\_restart <read_restart>` command.  See the
-:doc:`change\_box <change_box>` command for how to change the simulation
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
+:doc:`read_restart <read_restart>` command.  See the
+:doc:`change_box <change_box>` command for how to change the simulation
 box boundaries after it has been defined.
 
 For 2d simulations, the z dimension must be periodic.
@@ -109,7 +109,7 @@ For 2d simulations, the z dimension must be periodic.
 Related commands
 """"""""""""""""
 
-See the :doc:`thermo\_modify <thermo_modify>` command for a discussion
+See the :doc:`thermo_modify <thermo_modify>` command for a discussion
 of lost atoms.
 
 Default

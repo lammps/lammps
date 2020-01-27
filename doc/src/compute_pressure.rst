@@ -156,7 +156,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
-:doc:`thermo\_style <thermo_style>`,
+:doc:`thermo_style <thermo_style>`,
 
 **Default:** none
 

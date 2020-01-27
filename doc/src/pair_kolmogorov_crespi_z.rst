@@ -63,13 +63,13 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_none <pair_none>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style drip <pair_drip>`,
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
-:doc:`pair\_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
-:doc:`pair\_style lebedeva/z <pair_lebedeva_z>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_none <pair_none>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
+:doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
+:doc:`pair_style lebedeva/z <pair_lebedeva_z>`
 
 **Default:** none
 

@@ -64,7 +64,7 @@ will be evaluated each timestep, and its value used to determine the
 force component.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent force field.
 
@@ -125,7 +125,7 @@ instructions on how to use the accelerated styles effectively.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 this fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is setting the forces to the desired values; on all
 other levels, the force is set to 0.0 for the atoms in the fix group,

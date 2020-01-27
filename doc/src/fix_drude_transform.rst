@@ -211,7 +211,7 @@ Related commands
 :doc:`fix drude <fix_drude>`,
 :doc:`fix langevin/drude <fix_langevin_drude>`,
 :doc:`compute temp/drude <compute_temp_drude>`,
-:doc:`pair\_style thole <pair_thole>`
+:doc:`pair_style thole <pair_thole>`
 
 **Default:** none
 

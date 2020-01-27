@@ -138,7 +138,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix nph <fix_nh>`, :doc:`fix npt <fix_nh>`,
-:doc:`fix\_modify <fix_modify>`, :doc:`run\_style <run_style>`
+:doc:`fix_modify <fix_modify>`, :doc:`run_style <run_style>`
 
 Default
 """""""

@@ -162,7 +162,7 @@ per-atom quantities to time average.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are
 stored by this fix for access by various :doc:`output commands <Howto_output>`.
 

@@ -90,7 +90,7 @@ keyword followed by one or more numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`bond\_style table <bond_style>` command.  Let
+specified in the :doc:`bond_style table <bond_style>` command.  Let
 Ntable = *N* in the bond_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It

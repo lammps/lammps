@@ -111,7 +111,7 @@ to the thermal conductivity :math:`\kappa`:
 
 
 The heat flux can be output every so many timesteps (e.g. via the
-:doc:`thermo\_style custom <thermo_style>` command).  Then as a
+:doc:`thermo_style custom <thermo_style>` command).  Then as a
 post-processing operation, an auto-correlation can be performed, its
 integral estimated, and the Green-Kubo formula above evaluated.
 

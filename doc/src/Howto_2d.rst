@@ -33,7 +33,7 @@ are for 2d models.
 .. note::
 
    Some models in LAMMPS treat particles as finite-size spheres, as
-   opposed to point particles.  See the :doc:`atom\_style sphere <atom_style>` and :doc:`fix nve/sphere <fix_nve_sphere>`
+   opposed to point particles.  See the :doc:`atom_style sphere <atom_style>` and :doc:`fix nve/sphere <fix_nve_sphere>`
    commands for details.  By default, for 2d simulations, such particles
    will still be modeled as 3d spheres, not 2d discs (circles), meaning
    their moment of inertia will be that of a sphere.  If you wish to

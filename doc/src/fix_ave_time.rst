@@ -76,7 +76,7 @@ Description
 Use one or more global values as inputs every few timesteps, and
 average them over longer timescales.  The resulting averages can be
 used by other :doc:`output commands <Howto_output>` such as
-:doc:`thermo\_style custom <thermo_style>`, and can also be written to a
+:doc:`thermo_style custom <thermo_style>`, and can also be written to a
 file.  Note that if no time averaging is done, this command can be
 used as a convenient way to simply output one or more global values to
 a file.
@@ -321,7 +321,7 @@ appropriate fields from the fix ave/time command.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix produces a global scalar or global vector or global array

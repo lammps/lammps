@@ -222,15 +222,15 @@ ordered in which they are listed.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included in the calculation.  One way to get
    around this, is to write a dump file, and use the :doc:`rerun <rerun>`
    command to compute the bispectrum components for snapshots in the dump
-   file.  The rerun script can use a :doc:`special\_bonds <special_bonds>`
+   file.  The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
 ;line
@@ -320,7 +320,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style snap <pair_snap>`
+:doc:`pair_style snap <pair_snap>`
 
 Default
 """""""

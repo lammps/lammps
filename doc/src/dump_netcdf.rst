@@ -20,7 +20,7 @@ Syntax
 * *netcdf* or *netcdf/mpiio*  = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
 * file = name of file to write dump info to
-* args = list of atom attributes, same as for :doc:`dump\_style custom <dump>`
+* args = list of atom attributes, same as for :doc:`dump_style custom <dump>`
 
 Examples
 """"""""
@@ -59,7 +59,7 @@ all extensions of this dump style.
 
 In addition to per-atom data, :doc:`thermo <thermo>` data can be included in the
 dump file. The data included in the dump file is identical to the data specified
-by :doc:`thermo\_style <thermo_style>`.
+by :doc:`thermo_style <thermo_style>`.
 
 .. _netcdf-home: http://www.unidata.ucar.edu/software/netcdf/
 
@@ -89,7 +89,7 @@ more info.
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
 
 .. _lws: http://lammps.sandia.gov

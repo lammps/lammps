@@ -51,7 +51,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`thermo\_style <thermo_style>`
+:doc:`thermo_style <thermo_style>`
 
 **Default:** none
 

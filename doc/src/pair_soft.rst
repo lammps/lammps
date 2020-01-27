@@ -50,9 +50,9 @@ interactions over time.  Rc is the cutoff.  See the :doc:`fix nve/limit <fix_nve
 overlapping atoms.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * A (energy units)
@@ -63,7 +63,7 @@ cutoff is used.
 
 .. note::
 
-   The syntax for :doc:`pair\_coeff <pair_coeff>` with a single A
+   The syntax for :doc:`pair_coeff <pair_coeff>` with a single A
    coeff is different in the current version of LAMMPS than in older
    versions which took two values, Astart and Astop, to ramp between
    them.  This functionality is now available in a more general form
@@ -124,17 +124,17 @@ distance for this pair style can be mixed.  A is always mixed via a
 mix value.  The default mix value is *geometric*\ .  See the
 "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option, since the pair interaction goes to 0.0 at the cutoff.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -148,7 +148,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nve/limit <fix_nve_limit>`, :doc:`fix adapt <fix_adapt>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/limit <fix_nve_limit>`, :doc:`fix adapt <fix_adapt>`
 
 **Default:** none
 

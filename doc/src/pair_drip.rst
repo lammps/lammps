@@ -67,13 +67,13 @@ potentials (e.g. 2 Angstrom for :doc:`REBO <pair_airebo>`) is much smaller than
 the equilibrium layer distance of graphene layers (about 3.4 Angstrom).
 If you want, you can enforce this by assigning different atom types to atoms in
 different layers, and apply an intralayer potential to one atom type.
-See :doc:`pair\_hybrid <pair_hybrid>` for details.
+See :doc:`pair_hybrid <pair_hybrid>` for details.
 
 
 ----------
 
 
-The :doc:`pair\_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
+The :doc:`pair_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
 *N* is the number of LAMMPS atom types. The fist three arguments must be fixed
 to be *\* \* drip*, the fourth argument is the path to the DRIP parameter file,
 and the remaining N arguments specifying the mapping between element in the
@@ -139,10 +139,10 @@ simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style lebedeva\_z <pair_lebedeva_z>`,
-:doc:`pair\_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
-:doc:`pair\_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
+:doc:`pair_style lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
+:doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
 
 ----------

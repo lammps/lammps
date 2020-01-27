@@ -91,8 +91,8 @@ atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` d
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_eam <pair_eam>`,
+:doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_eam <pair_eam>`,
 
 **Default:**
 

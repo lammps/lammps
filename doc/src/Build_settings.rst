@@ -5,11 +5,11 @@ LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
 | :ref:`C++11 standard compliance test <cxx11>` when building all of LAMMPS
-| :ref:`FFT library <fft>` for use with the :doc:`kspace\_style pppm <kspace_style>` command
+| :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
 | :ref:`Size of LAMMPS data types <size>`
 | :ref:`Read or write compressed files <gzip>`
 | :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
-| :ref:`Output of movie files <graphics>` via the :doc:`dump\_movie <dump_image>` command
+| :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
 | :ref:`Memory allocation alignment <align>`
 | :ref:`Workaround for long long integers <longlong>`
 | :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library 
@@ -72,7 +72,7 @@ FFT library
 ---------------------
 
 When the KSPACE package is included in a LAMMPS build, the
-:doc:`kspace\_style pppm <kspace_style>` command performs 3d FFTs which
+:doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
 require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
@@ -251,7 +251,7 @@ support 8-byte integers.  It allows for:
 
 Atom IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
-:doc:`atom\_modify id no <atom_modify>` command will turn them off.  Atom
+:doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
 angles, dihedrals, etc).  Thus if you model a molecular system with
 more than 2 billion atoms, you need the "bigbig" setting.
@@ -357,7 +357,7 @@ Read or write compressed files
 
 If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
-:doc:`read\_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
 
 **CMake variables**\ :
 

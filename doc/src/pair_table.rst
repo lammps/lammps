@@ -78,7 +78,7 @@ to index into the table via a fast bit-mapping technique due to
 adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * filename
@@ -95,12 +95,12 @@ table.  The format of this file is described below.
 
 If your tabulated potential(s) are designed to be used as the
 short-range part of one of the long-range solvers specified by the
-:doc:`kspace\_style <kspace_style>` command, then you must use one or
+:doc:`kspace_style <kspace_style>` command, then you must use one or
 more of the optional keywords listed above for the pair\_style command.
 These are *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*\ .  This
 is so LAMMPS can insure the short-range potential and long-range
 solver are compatible with each other, as it does for other
-short-range pair styles, such as :doc:`pair\_style lj/cut/coul/long <pair_lj>`.  Note that it is up to you to insure
+short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj>`.  Note that it is up to you to insure
 the tabulated values for each pair of atom types has the correct
 functional form to be compatible with the matching long-range solver.
 
@@ -113,7 +113,7 @@ best effect:
 
 * Vary the number of table points; you may need to use more than you think
   to get good resolution.
-* Always use the :doc:`pair\_write <pair_write>` command to produce a plot
+* Always use the :doc:`pair_write <pair_write>` command to produce a plot
   of what the final interpolated potential looks like.  This can show up
   interpolation "features" you may not like.
 * Start with the linear style; it's the style least likely to have problems.
@@ -158,7 +158,7 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`pair\_style table <pair_style>` command.  Let
+specified in the :doc:`pair_style table <pair_style>` command.  Let
 Ntable = *N* in the pair\_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
@@ -200,7 +200,7 @@ If used, the parameter "BITMAP" is also followed by 2 values *rlo* and
 *rhi*\ .  These values, along with the "N" value determine the ordering
 of the N lines that follow and what distance is associated with each.
 This ordering is complex, so it is not documented here, since this
-file is typically produced by the :doc:`pair\_write <pair_write>` command
+file is typically produced by the :doc:`pair_write <pair_write>` command
 with its *bitmap* option.  When the table is in BITMAP format, the "N"
 parameter in the file must be equal to 2\^M where M is the value
 specified in the pair\_style command.  Also, a cutoff parameter cannot
@@ -256,7 +256,7 @@ instructions on how to use the accelerated styles effectively.
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-The :doc:`pair\_modify <pair_modify>` shift, table, and tail options are
+The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
 This pair style writes the settings for the "pair\_style table" command
@@ -267,7 +267,7 @@ file, since it is tabulated in the potential files.  Thus, pair\_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -281,7 +281,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_write <pair_write>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`
 
 **Default:** none
 

@@ -61,7 +61,7 @@ field.  This pair-wise thermostat can be used in conjunction with any
 :doc:`pair style <pair_style>`, and in leiu of per-particle thermostats
 like :doc:`fix langevin <fix_langevin>` or ensemble thermostats like
 Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use
-*dpd/tstat* as a thermostat for another pair style, use the :doc:`pair\_style hybrid/overlay <pair_hybrid>` command to compute both the desired
+*dpd/tstat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 
 For style *dpd*\ , the force on atom I due to atom J is given as a sum
@@ -91,9 +91,9 @@ all 3 terms.  For style *dpd/tstat* there is no pairwise energy, but
 the last two terms of the formula make a contribution to the virial.
 
 For style *dpd*\ , the following coefficients must be defined for each
-pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command as in
+pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (force units)
@@ -102,11 +102,11 @@ commands:
 
 The last coefficient is optional.  If not specified, the global DPD
 cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
-where T is the temperature set by the :doc:`pair\_style <pair_style>`
+where T is the temperature set by the :doc:`pair_style <pair_style>`
 command so it does not need to be specified.
 
 For style *dpd/tstat*\ , the coefficients defined for each pair of
-atoms types via the :doc:`pair\_coeff <pair_coeff>` command is the same,
+atoms types via the :doc:`pair_coeff <pair_coeff>` command is the same,
 except that A is not included.
 
 The GPU-accelerated versions of these styles are implemented based on
@@ -115,7 +115,7 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 .. note::
 
    If you are modeling DPD polymer chains, you may want to use the
-   :doc:`pair\_style srp <pair_srp>` command in conjunction with these pair
+   :doc:`pair_style srp <pair_srp>` command in conjunction with these pair
    styles.  It is a soft segmental repulsive potential (SRP) that can
    prevent DPD polymer chains from crossing each other.
 
@@ -156,15 +156,15 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.  Note that as
 discussed above, the energy due to the conservative Fc term is already
 shifted to be 0.0 at the cutoff distance Rc.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for these pair styles.
 
-These pair style do not support the :doc:`pair\_modify <pair_modify>`
+These pair style do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -178,7 +178,7 @@ be the same as they would have been if the original simulation had
 continued past the restart time.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 The *dpd/tstat* style can ramp its target temperature over multiple
@@ -195,26 +195,26 @@ Restrictions
 
 
 The default frequency for rebuilding neighbor lists is every 10 steps
-(see the :doc:`neigh\_modify <neigh_modify>` command). This may be too
+(see the :doc:`neigh_modify <neigh_modify>` command). This may be too
 infrequent for style *dpd* simulations since particles move rapidly
 and can overlap by large amounts.  If this setting yields a non-zero
 number of "dangerous" reneighborings (printed at the end of a
 simulation), you should experiment with forcing reneighboring more
 often and see if system energies/trajectories change.
 
-These pair styles requires you to use the :doc:`comm\_modify vel yes <comm_modify>` command so that velocities are stored by ghost
+These pair styles requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the
-:doc:`read\_restart <read_restart>` command, though they should provide
+:doc:`read_restart <read_restart>` command, though they should provide
 statistically similar results.  This is because the forces they
 compute depend on atom velocities.  See the
-:doc:`read\_restart <read_restart>` command for more details.
+:doc:`read_restart <read_restart>` command for more details.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`pair\_style srp <pair_srp>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`pair_style srp <pair_srp>`
 
 **Default:** none
 

@@ -66,7 +66,7 @@ following parameters will only be modified for the specified
 sub-style.  If the sub-style is defined multiple times, then an
 additional numeric argument *N* must also be specified, which is a
 number from 1 to M where M is the number of times the sub-style was
-listed in the :doc:`pair\_style hybrid <pair_hybrid>` command.  The extra
+listed in the :doc:`pair_style hybrid <pair_hybrid>` command.  The extra
 number indicates which instance of the sub-style the remaining
 keywords will be applied to.  Note that if the *pair* keyword is not
 used, and the pair style is *hybrid* or *hybrid/overlay*\ , then all the
@@ -75,7 +75,7 @@ specified keywords will be applied to all sub-styles.
 The *special* and *compute/tally* keywords can **only** be used in
 conjunction with the *pair* keyword and must directly follow it.
 *special* allows to override the
-:doc:`special\_bonds <special_bonds>` settings for the specified sub-style.
+:doc:`special_bonds <special_bonds>` settings for the specified sub-style.
 *compute/tally* allows to disable or enable registering
 :doc:`compute \*/tally <compute_tally>` computes for a given sub-style.
 More details are given below.
@@ -93,7 +93,7 @@ In each case, the cutoff distance is mixed the same way as sigma.
 Note that not all pair styles support mixing.  Also, some mix options
 are not available for certain pair styles.  See the doc page for
 individual pair styles for those restrictions.  Note also that the
-:doc:`pair\_coeff <pair_coeff>` command also can be to directly set
+:doc:`pair_coeff <pair_coeff>` command also can be to directly set
 coefficients for a specific I != J pairing, in which case no mixing is
 performed.
 
@@ -168,7 +168,7 @@ These corrections are bookkeeping terms which do not affect dynamics,
 unless a constant-pressure simulation is being performed.  See the doc
 page for individual styles to see which support this option.  These
 corrections are included in the calculation and printing of
-thermodynamic quantities (see the :doc:`thermo\_style <thermo_style>`
+thermodynamic quantities (see the :doc:`thermo_style <thermo_style>`
 command).  Their effect will also be included in constant NPT or NPH
 simulations where the pressure influences the simulation box
 dimensions (e.g. the :doc:`fix npt <fix_nh>` and :doc:`fix nph <fix_nh>`
@@ -214,19 +214,19 @@ including the following:
 
 
 The *compute* keyword allows pairwise computations to be turned off,
-even though a :doc:`pair\_style <pair_style>` is defined.  This is not
+even though a :doc:`pair_style <pair_style>` is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
 purposes or for performing a :doc:`rerun <rerun>` simulation, when you
 only wish to compute partial forces that do not include the pairwise
 contribution.
 
 Two examples are as follows.  First, this option allows you to perform
-a simulation with :doc:`pair\_style hybrid <pair_hybrid>` with only a
+a simulation with :doc:`pair_style hybrid <pair_hybrid>` with only a
 subset of the hybrid sub-styles enabled.  Second, this option allows
 you to perform a simulation with only long-range interactions but no
 short-range pairwise interactions.  Doing this by simply not defining
 a pair style will not work, because the
-:doc:`kspace\_style <kspace_style>` command requires a Kspace-compatible
+:doc:`kspace_style <kspace_style>` command requires a Kspace-compatible
 pair style be defined.
 
 The *nofdotr* keyword allows to disable an optimization that computes
@@ -240,7 +240,7 @@ than from summing forces between individual pairs of atoms.
 The *special* keyword allows to override the 1-2, 1-3, and 1-4
 exclusion settings for individual sub-styles of a
 :doc:`hybrid pair style <pair_hybrid>`. It requires 4 arguments similar
-to the :doc:`special\_bonds <special_bonds>` command, *which* and
+to the :doc:`special_bonds <special_bonds>` command, *which* and
 wt1,wt2,wt3.  The *which* argument can be *lj* to change the
 Lennard-Jones settings, *coul* to change the Coulombic settings,
 or *lj/coul* to change both to the same set of 3 values.  The wt1,wt2,wt3
@@ -254,7 +254,7 @@ it will cause an error.
 .. note::
 
    The global settings specified by the
-   :doc:`special\_bonds <special_bonds>` command affect the construction of
+   :doc:`special_bonds <special_bonds>` command affect the construction of
    neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
    exclude those pairs from the neighbor list entirely.  Weights of 1.0
    store the neighbor with no weighting applied. Thus only global values
@@ -289,8 +289,8 @@ USER-INTEL package.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style <pair_style>`, :doc:`pair\_style hybrid <pair_hybrid>`,
-pair\_coeff"_pair\_coeff.html, :doc:`thermo\_style <thermo_style>`,
+:doc:`pair_style <pair_style>`, :doc:`pair_style hybrid <pair_hybrid>`,
+pair\_coeff"_pair\_coeff.html, :doc:`thermo_style <thermo_style>`,
 :doc:`compute \*/tally <compute_tally>`
 
 Default

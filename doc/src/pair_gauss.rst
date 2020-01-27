@@ -51,9 +51,9 @@ between an atom and its corresponding tether site which will typically
 be a frozen atom in the simulation.  Rc is the cutoff.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (energy units)
@@ -79,9 +79,9 @@ barrier is located at r\_mh and has a width of sigma\_h. The prefactor
 determines the height of the potential barrier.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the example above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the example above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * H (energy \* distance units)
@@ -146,22 +146,22 @@ before mixing, and converted back after mixing
 This way, if either particle is repulsive (if Ai<0 or Aj<0),
 then the default interaction between both particles will be repulsive.
 
-The *gauss* style does not support the :doc:`pair\_modify <pair_modify>`
+The *gauss* style does not support the :doc:`pair_modify <pair_modify>`
 shift option. There is no effect due to the Gaussian well beyond the
 cutoff; hence reasonable cutoffs need to be specified.
 
-The *gauss/cut* style supports the :doc:`pair\_modify <pair_modify>` shift
+The *gauss/cut* style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Gauss-potential portion of the pair
 interaction.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 The *gauss* pair style tallies an "occupancy" count of how many Gaussian-well
@@ -192,8 +192,8 @@ enabled if LAMMPS is build with that package.  See the :doc:`Build package <Buil
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style coul/diel <pair_coul_diel>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style coul/diel <pair_coul_diel>`
 
 **Default:** none
 

@@ -33,7 +33,7 @@ The *table/cut* dihedral style creates interpolation tables of length
 file(s) as a function of the dihedral angle "phi".  In addition, an
 analytic cutoff that is quadratic in the bond-angle (theta) is applied
 in order to regularize the dihedral interaction.  The dihedral table
-files are read by the :doc:`dihedral\_coeff <dihedral_coeff>` command.
+files are read by the :doc:`dihedral_coeff <dihedral_coeff>` command.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and derivative values at each of
@@ -53,7 +53,7 @@ coefficients are chosen from this list, and a cubic polynomial is used
 to compute the energy and the derivative at this angle.
 
 The following coefficients must be defined for each dihedral type via
-the :doc:`dihedral\_coeff <dihedral_coeff>` command as in the example
+the :doc:`dihedral_coeff <dihedral_coeff>` command as in the example
 above.
 
 * style (aat)
@@ -121,7 +121,7 @@ A section begins with a non-blank line whose 1st character is not a
 between sections. The first line begins with a keyword which
 identifies the section. The line can contain additional text, but the
 initial text must match the argument specified in the
-:doc:`dihedral\_coeff <dihedral_coeff>` command. The next line lists (in
+:doc:`dihedral_coeff <dihedral_coeff>` command. The next line lists (in
 any order) one or more parameters for the table. Each parameter is a
 keyword followed by one or more numeric values.
 
@@ -150,7 +150,7 @@ strange numerical behavior can occur in the large remaining gap.
 
 The parameter "N" is required and its value is the number of table
 entries that follow. Note that this may be different than the N
-specified in the :doc:`dihedral\_style table <dihedral_style>` command.
+specified in the :doc:`dihedral_style table <dihedral_style>` command.
 Let *Ntable* is the number of table entries requested dihedral\_style
 command, and let *Nfile* be the parameter following "N" in the
 tabulated file ("30" in the sparse example above).  What LAMMPS does
@@ -220,7 +220,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`, :doc:`dihedral\_style table <dihedral_table>`
+:doc:`dihedral_coeff <dihedral_coeff>`, :doc:`dihedral_style table <dihedral_table>`
 
 **Default:** none
 

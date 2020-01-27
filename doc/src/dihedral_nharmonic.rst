@@ -32,9 +32,9 @@ The *nharmonic* dihedral style uses the potential:
    :align: center
 
 The following coefficients must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * n (integer >=1)
 * A1 (energy)
@@ -79,7 +79,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 

@@ -1,7 +1,7 @@
 Accelerator packages
 ====================
 
-Accelerated versions of various :doc:`pair\_style <pair_style>`,
+Accelerated versions of various :doc:`pair_style <pair_style>`,
 :doc:`fixes <fix>`, :doc:`computes <compute>`, and other commands have
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
@@ -62,13 +62,13 @@ the same, and the numerical results it produces should also be the
 same, except for precision and round-off effects.
 
 For example, all of these styles are accelerated variants of the
-Lennard-Jones :doc:`pair\_style lj/cut <pair_lj>`:
+Lennard-Jones :doc:`pair_style lj/cut <pair_lj>`:
 
-* :doc:`pair\_style lj/cut/gpu <pair_lj>`
-* :doc:`pair\_style lj/cut/intel <pair_lj>`
-* :doc:`pair\_style lj/cut/kk <pair_lj>`
-* :doc:`pair\_style lj/cut/omp <pair_lj>`
-* :doc:`pair\_style lj/cut/opt <pair_lj>`
+* :doc:`pair_style lj/cut/gpu <pair_lj>`
+* :doc:`pair_style lj/cut/intel <pair_lj>`
+* :doc:`pair_style lj/cut/kk <pair_lj>`
+* :doc:`pair_style lj/cut/omp <pair_lj>`
+* :doc:`pair_style lj/cut/opt <pair_lj>`
 
 To see what accelerate styles are currently available for a particular
 style, find the style name in the `Commands\_all <lc_>`_

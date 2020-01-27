@@ -77,7 +77,7 @@ assumed to be constant for the duration of the run unless the
 Related commands
 """"""""""""""""
 
-:doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`pair\_style thole <pair_thole>`, :doc:`compute temp <compute_temp>`
+:doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`pair_style thole <pair_thole>`, :doc:`compute temp <compute_temp>`
 
 **Default:** none
 

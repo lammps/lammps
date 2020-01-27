@@ -93,7 +93,7 @@ insure that the variable calculates a result in the appropriate units,
 e.g. force/mass or degrees.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent gravitational
 field.
@@ -128,11 +128,11 @@ instructions on how to use the accelerated styles effectively.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the gravitational potential energy of the system to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -153,7 +153,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
+:doc:`atom_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
 

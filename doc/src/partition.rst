@@ -72,7 +72,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`run\_style verlet/split <run_style>`
+:doc:`run_style verlet/split <run_style>`
 
 **Default:** none
 

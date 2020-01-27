@@ -49,7 +49,7 @@ torques on finite-size spherical particles.  The former requires
 monodisperse spherical particles; the latter allows for polydisperse
 spherical particles.
 
-These pair styles are designed to be used with either the :doc:`pair\_style lubricate <pair_lubricate>` or :doc:`pair\_style lubricateU <pair_lubricateU>` commands to provide thermostatting
+These pair styles are designed to be used with either the :doc:`pair_style lubricate <pair_lubricate>` or :doc:`pair_style lubricateU <pair_lubricateU>` commands to provide thermostatting
 when dissipative lubrication forces are acting.  Thus the parameters
 *mu*\ , *flaglog*\ , *flagfld*\ , *cutinner*\ , and *cutoff* should be
 specified consistent with the settings in the lubrication pair styles.
@@ -67,9 +67,9 @@ used, or both must be defined.
 
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutinner (distance units)
@@ -111,13 +111,13 @@ For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
 the "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -125,7 +125,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -147,7 +147,7 @@ Only spherical particles are allowed for pair\_style brownian/poly.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style lubricate <pair_lubricate>`, :doc:`pair\_style lubricateU <pair_lubricateU>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style lubricate <pair_lubricate>`, :doc:`pair_style lubricateU <pair_lubricateU>`
 
 Default
 """""""

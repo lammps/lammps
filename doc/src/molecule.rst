@@ -64,8 +64,8 @@ templates include:
 * :doc:`fix rigid/small <fix_rigid>`
 * :doc:`fix shake <fix_shake>`
 * :doc:`fix gcmc <fix_gcmc>`
-* :doc:`create\_atoms <create_atoms>`
-* :doc:`atom\_style template <atom_style>`
+* :doc:`create_atoms <create_atoms>`
+* :doc:`atom_style template <atom_style>`
 
 The ID of a molecule template can only contain alphanumeric characters
 and underscores.
@@ -73,7 +73,7 @@ and underscores.
 A single template can contain multiple molecules, listed one per file.
 Some of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
-contains multiple molecules.  The :doc:`atom\_style template <atom_style>` command allows multiple-molecule templates
+contains multiple molecules.  The :doc:`atom_style template <atom_style>` command allows multiple-molecule templates
 to define a system with more than one templated molecule.
 
 Each filename can be followed by optional keywords which are applied
@@ -109,16 +109,16 @@ molecule (header keyword = inertia).
    to your simulation, via one or more of the commands listed above.
    Since this topology-related information requires that suitable storage
    is reserved when LAMMPS creates the simulation box (e.g. when using
-   the :doc:`create\_box <create_box>` command or the
-   :doc:`read\_data <read_data>` command) suitable space has to be reserved
+   the :doc:`create_box <create_box>` command or the
+   :doc:`read_data <read_data>` command) suitable space has to be reserved
    so you do not overflow those pre-allocated data structures when adding
-   molecules later.  Both the :doc:`create\_box <create_box>` command and
-   the :doc:`read\_data <read_data>` command have "extra" options which
+   molecules later.  Both the :doc:`create_box <create_box>` command and
+   the :doc:`read_data <read_data>` command have "extra" options which
    insure space is allocated for storing topology info for molecules that
    are added later.
 
 The format of an individual molecule file is similar but
-(not identical) to the data file read by the :doc:`read\_data <read_data>`
+(not identical) to the data file read by the :doc:`read_data <read_data>`
 commands, and is as follows.
 
 A molecule file has a header and a body.  The header appears first.
@@ -182,7 +182,7 @@ details below).  This is optional since if these sections are not
 included, LAMMPS will auto-generate this information.  Note that
 LAMMPS uses this info to properly exclude or weight bonded pairwise
 interactions between bonded atoms.  See the
-:doc:`special\_bonds <special_bonds>` command for more details.  One
+:doc:`special_bonds <special_bonds>` command for more details.  One
 reason to list the special bond info explicitly is for the
 :doc:`thermalized Drude oscillator model <Howto_drude>` which treats the
 bonds between nuclear cores and Drude electrons in a different manner.
@@ -350,7 +350,7 @@ the doc pages for individual styles for details.
 
 N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
-:doc:`special\_bonds <special_bonds>` doc page for more discussion of
+:doc:`special_bonds <special_bonds>` doc page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
 section must also appear.
 
@@ -373,7 +373,7 @@ A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
 Natoms, where Natoms = # of atoms in the molecule.  The first N1
 values should be the 1-2 neighbors, the next N2 should be the 1-3
 neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
-appear more than once.  See the :doc:`special\_bonds <special_bonds>` doc
+appear more than once.  See the :doc:`special_bonds <special_bonds>` doc
 page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
 appears, the Special Bond Counts section must also appear.
 
@@ -498,8 +498,8 @@ Restrictions
 
 
 This command must come after the simulation box is define by a
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`, or
-:doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
+:doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""

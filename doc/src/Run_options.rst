@@ -354,14 +354,14 @@ all P processors from 0 to P-1.  The mapping of these ranks to
 physical processors is done by MPI before LAMMPS begins.  It may be
 useful in some cases to alter the rank order.  E.g. to insure that
 cores within each node are ranked in a desired order.  Or when using
-the :doc:`run\_style verlet/split <run_style>` command with 2 partitions
+the :doc:`run_style verlet/split <run_style>` command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
 See the :doc:`Speed tips <Speed_tips>` doc page for more details.
 
 If the keyword *nth* is used with a setting *N*\ , then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
-when using the :doc:`run\_style verlet/split <run_style>` command with 2
+when using the :doc:`run_style verlet/split <run_style>` command with 2
 partitions via the -partition command-line switch.  The first set of
 processors will be in the first partition, the 2nd set in the 2nd
 partition.  The -reorder command-line switch can alter this so that
@@ -446,7 +446,7 @@ run:
 The specified restartfile and/or datafile name may contain the wild-card
 character "\*".  The restartfile name may also contain the wild-card
 character "%".  The meaning of these characters is explained on the
-:doc:`read\_restart <read_restart>` and :doc:`write\_data <write_data>` doc
+:doc:`read_restart <read_restart>` and :doc:`write_data <write_data>` doc
 pages.  The use of "%" means that a parallel restart file can be read.
 Note that a filename such as file.\* may need to be enclosed in quotes or
 the "\*" character prefixed with a backslash ("\") to avoid shell
@@ -454,7 +454,7 @@ expansion of the "\*" character.
 
 Following restartfile argument, the optional word "remap" may be used.
 This has the same effect like adding it to a
-:doc:`read\_restart <read_restart>` command, and operates as explained on
+:doc:`read_restart <read_restart>` command, and operates as explained on
 its doc page.  This is useful if reading the restart file triggers an
 error that atoms have been lost.  In that case, use of the remap flag
 should allow the data file to still be produced.
@@ -466,7 +466,7 @@ The syntax following restartfile (or remap), namely
 
    datafile keyword value ...
 
-is identical to the arguments of the :doc:`write\_data <write_data>`
+is identical to the arguments of the :doc:`write_data <write_data>`
 command.  See its doc page for details.  This includes its
 optional keyword/value settings.
 
@@ -490,7 +490,7 @@ run:
 
 Note that the specified restartfile and dumpfile names may contain
 wild-card characters ("\*","%") as explained on the
-:doc:`read\_restart <read_restart>` and :doc:`write\_dump <write_dump>` doc
+:doc:`read_restart <read_restart>` and :doc:`write_dump <write_dump>` doc
 pages.  The use of "%" means that a parallel restart file and/or
 parallel dump file can be read and/or written.  Note that a filename
 such as file.\* may need to be enclosed in quotes or the "\*" character
@@ -499,7 +499,7 @@ character.
 
 Note that following the restartfile argument, the optional word "remap"
 can be used.  This has the effect as adding it to the
-:doc:`read\_restart <read_restart>` command, as explained on its doc page.
+:doc:`read_restart <read_restart>` command, as explained on its doc page.
 This is useful if reading the restart file triggers an error that atoms
 have been lost.  In that case, use of the remap flag should allow the
 dump file to still be produced.
@@ -511,12 +511,12 @@ The syntax following restartfile (or remap), namely
 
    group-ID dumpstyle dumpfile arg1 arg2 ...
 
-is identical to the arguments of the :doc:`write\_dump <write_dump>`
+is identical to the arguments of the :doc:`write_dump <write_dump>`
 command.  See its doc page for details.  This includes what per-atom
 fields are written to the dump file and optional dump\_modify settings,
 including ones that affect how parallel dump files are written, e.g.
 the *nfile* and *fileper* keywords.  See the
-:doc:`dump\_modify <dump_modify>` doc page for details.
+:doc:`dump_modify <dump_modify>` doc page for details.
 
 
 ----------
@@ -566,7 +566,7 @@ Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.
 
-As an example, all of the packages provide a :doc:`pair\_style lj/cut <pair_lj>` variant, with style names lj/cut/gpu,
+As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/gpu,
 lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
 can be specified explicitly in your input script, e.g. pair\_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix

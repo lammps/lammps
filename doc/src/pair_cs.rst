@@ -111,26 +111,26 @@ the model as implemented in LAMMPS.
 All the styles are identical to the corresponding pair style without
 the "/cs" in the name:
 
-* :doc:`pair\_style born/coul/dsf <pair_born>`
-* :doc:`pair\_style born/coul/long <pair_born>`
-* :doc:`pair\_style born/coul/wolf <pair_born>`
-* :doc:`pair\_style buck/coul/long <pair_buck>`
-* :doc:`pair\_style coul/long <pair_coul>`
-* :doc:`pair\_style coul/wolf <pair_coul>`
-* :doc:`pair\_style lj/cut/coul/long <pair_lj>`
+* :doc:`pair_style born/coul/dsf <pair_born>`
+* :doc:`pair_style born/coul/long <pair_born>`
+* :doc:`pair_style born/coul/wolf <pair_born>`
+* :doc:`pair_style buck/coul/long <pair_buck>`
+* :doc:`pair_style coul/long <pair_coul>`
+* :doc:`pair_style coul/wolf <pair_coul>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj>`
 
 except that they correctly treat the special case where the distance
 between two charged core and shell atoms in the same core/shell pair
 approach r = 0.0.
 
 Styles with a "/long" in the name are used with a long-range solver
-for Coulombic interactions via the :doc:`kspace\_style <kspace_style>`
+for Coulombic interactions via the :doc:`kspace_style <kspace_style>`
 command.  They require special treatment of the short-range Coulombic
 interactions within the cor/shell model.
 
 Specifically, the short-range Coulomb interaction between a core and
 its shell should be turned off using the
-:doc:`special\_bonds <special_bonds>` command by setting the 1-2 weight
+:doc:`special_bonds <special_bonds>` command by setting the 1-2 weight
 to 0.0, which works because the core and shell atoms are bonded to
 each other.  This induces a long-range correction approximation which
 fails at small distances (~< 10e-8). Therefore, the Coulomb term which
@@ -196,8 +196,8 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style born <pair_born>`,
-:doc:`pair\_style buck <pair_buck>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`,
+:doc:`pair_style buck <pair_buck>`
 
 **Default:** none
 

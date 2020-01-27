@@ -226,7 +226,7 @@ successive runs to run a simulation for any number of steps (ok, up to
 Related commands
 """"""""""""""""
 
-:doc:`minimize <minimize>`, :doc:`run\_style <run_style>`,
+:doc:`minimize <minimize>`, :doc:`run_style <run_style>`,
 :doc:`temper <temper>`, :doc:`fix halt <fix_halt>`
 
 Default

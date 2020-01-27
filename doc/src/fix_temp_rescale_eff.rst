@@ -41,13 +41,13 @@ particles.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -72,7 +72,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix\_modify <fix_modify>`,
+:doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix_modify <fix_modify>`,
 :doc:`fix temp rescale <fix_temp_rescale>`,
 
 **Default:** none

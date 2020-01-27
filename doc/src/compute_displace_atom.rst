@@ -51,7 +51,7 @@ the compute command was issued.  The value of the displacement will be
 
    Initial coordinates are stored in "unwrapped" form, by using the
    image flags associated with each atom.  See the :doc:`dump custom <dump>` command for a discussion of "unwrapped" coordinates.
-   See the Atoms section of the :doc:`read\_data <read_data>` command for a
+   See the Atoms section of the :doc:`read_data <read_data>` command for a
    discussion of image flags and how they are set for each atom.  You can
    reset the image flags (e.g. to 0) before invoking this compute by
    using the :doc:`set image <set>` command.
@@ -100,7 +100,7 @@ something like the following commands:
    dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} &
                    refresh c_dsp delay 100
 
-The :doc:`dump\_modify thresh <dump_modify>` command will only output
+The :doc:`dump_modify thresh <dump_modify>` command will only output
 atoms that have displaced more than 0.6 Angstroms on each snapshot
 (assuming metal units).  The dump\_modify *refresh* option triggers a
 call to this compute at the end of every dump.
@@ -121,7 +121,7 @@ atoms is 0.0.  If an initial dump snapshot is desired, containing the
 initial reference positions of all atoms, one way to do this is
 illustrated above.  An initial write\_dump command can be used before
 the first run.  It will contain the positions of all the atoms,
-Options in the :doc:`dump\_modify <dump_modify>` command above will
+Options in the :doc:`dump_modify <dump_modify>` command above will
 append new output to that same file and delay the output until a later
 timestep.  The *delay* setting avoids a second time = 0 snapshot which
 would be empty.
@@ -140,7 +140,7 @@ for an overview of LAMMPS output options.
 The per-atom array values will be in distance :doc:`units <units>`.
 
 This compute supports the *refresh* option as explained above, for use
-in conjunction with :doc:`dump\_modify refresh <dump_modify>` to generate
+in conjunction with :doc:`dump_modify refresh <dump_modify>` to generate
 incremental dump files.
 
 Restrictions

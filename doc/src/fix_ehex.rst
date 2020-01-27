@@ -118,7 +118,7 @@ cool continuously.
    heat is added/subtracted less frequently but in larger portions.  The
    resulting temperature profile will therefore be the same.
 
-This fix will default to :doc:`fix\_heat <fix_heat>` (HEX algorithm) if
+This fix will default to :doc:`fix_heat <fix_heat>` (HEX algorithm) if
 the keyword *hex* is specified.
 
 
@@ -166,7 +166,7 @@ constraints will be satisfied.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 No parameter of this fix can be used with the *start/stop* keywords of

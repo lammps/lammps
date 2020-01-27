@@ -41,7 +41,7 @@ by other commands.
    The group specified for this command is **ignored**\ .
 
 The specified *pstyle* must be a pair style used in your simulation
-either by itself or as a sub-style in a :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` command. If the sub-style is
+either by itself or as a sub-style in a :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` command. If the sub-style is
 used more than once, an additional number *nsub* has to be specified
 in order to choose which instance of the sub-style will be used by
 the compute. Not specifying the number in this case will cause the
@@ -55,7 +55,7 @@ be tallied in *ecoul*\ .  Everything else (whether it is a Lennard-Jones
 style van der Waals interaction or not) is tallied in *evdwl*\ .  If
 *evalue* is blank or specified as *epair*\ , then *epair* is stored
 as a global scalar by this compute.  This is useful when using
-:doc:`pair\_style hybrid <pair_hybrid>` if you want to know the portion
+:doc:`pair_style hybrid <pair_hybrid>` if you want to know the portion
 of the total energy contributed by one sub-style.  If *evalue* is
 specified as *evdwl* or *ecoul*\ , then just that portion of the energy
 is stored as a global scalar.
@@ -64,10 +64,10 @@ is stored as a global scalar.
 
    The energy returned by the *evdwl* keyword does not include tail
    corrections, even if they are enabled via the
-   :doc:`pair\_modify <pair_modify>` command.
+   :doc:`pair_modify <pair_modify>` command.
 
 Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into 14 components is tallied by the :doc:`pair\_style reax/c <pair_reaxc>` command.  These values (1 or more)
+potential energy into 14 components is tallied by the :doc:`pair_style reax/c <pair_reaxc>` command.  These values (1 or more)
 are stored as a global vector by this compute.  See the doc page for
 :doc:`individual pair styles <pair_style>` for info on these values.
 

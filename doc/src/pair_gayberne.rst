@@ -71,13 +71,13 @@ listed below and in `this supplementary document <PDF/pair_gayberne_extra.pdf>`_
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in
-order to integrate particle rotation.  Additionally, :doc:`atom\_style ellipsoid <atom_style>` should be used since it defines the
+order to integrate particle rotation.  Additionally, :doc:`atom_style ellipsoid <atom_style>` should be used since it defines the
 rotational state and the size and shape of each ellipsoidal particle.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon = well depth (energy units)
@@ -96,7 +96,7 @@ cutoff specified in the pair\_style command is used.
 It is typical with the Gay-Berne potential to define *sigma* as the
 minimum of the 3 shape diameters of the particles involved in an I,I
 interaction, though this is not required.  Note that this is a
-different meaning for *sigma* than the :doc:`pair\_style resquared <pair_resquared>` potential uses.
+different meaning for *sigma* than the :doc:`pair_style resquared <pair_resquared>` potential uses.
 
 The epsilon\_i and epsilon\_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair\_coeff
@@ -114,7 +114,7 @@ J, you should insure they are consistent with their values in other
 pair\_coeff commands, since only the last setting will be in effect.
 
 Note that if this potential is being used as a sub-style of
-:doc:`pair\_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
+:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
 setting made for Gay-Berne for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
@@ -171,16 +171,16 @@ For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for this pair style can be mixed.  The default mix
 value is *geometric*\ .  See the "pair\_modify" command for details.
 
-This pair styles supports the :doc:`pair\_modify <pair_modify>` shift
+This pair styles supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic
 dependence of the interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -188,7 +188,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -204,12 +204,12 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 
 These pair style require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
-:doc:`atom\_style <atom_style>`.  It also require they store a per-type
+:doc:`atom_style <atom_style>`.  It also require they store a per-type
 :doc:`shape <set>`.  The particles cannot store a per-particle
 diameter.
 
 This pair style requires that atoms be ellipsoids as defined by the
-:doc:`atom\_style ellipsoid <atom_style>` command.
+:doc:`atom_style ellipsoid <atom_style>` command.
 
 Particles acted on by the potential can be finite-size aspherical or
 spherical particles, or point particles.  Spherical particles have all
@@ -224,8 +224,8 @@ ratio ellipsoids are used.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
-:doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair\_style resquared <pair_resquared>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
+:doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair_style resquared <pair_resquared>`
 
 **Default:** none
 

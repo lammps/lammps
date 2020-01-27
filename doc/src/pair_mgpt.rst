@@ -64,7 +64,7 @@ algorithms have been developed independently by Glosli
 The *mgpt* pair style calculates forces, energies, and the total
 energy per atom, E\_tot/N, using the Oppelstrup matrix-MGPT algorithm.
 Input potential and control data are entered through the
-:doc:`pair\_coeff <pair_coeff>` command.  Each material treated requires
+:doc:`pair_coeff <pair_coeff>` command.  Each material treated requires
 input parmin and potin potential files, as shown in the above
 examples, as well as specification by the user of the initial atomic
 volume Omega through pair\_coeff.  At the beginning of a time step in
@@ -83,7 +83,7 @@ time step, and then respecified at the new value of Omega.  In all
 simulations, Omega must remain within the defined volume range for
 E\_vol and the potentials for the given material.
 
-The default option volpress yes in the :doc:`pair\_coeff <pair_coeff>`
+The default option volpress yes in the :doc:`pair_coeff <pair_coeff>`
 command includes all volume derivatives of E\_tot required to calculate
 the stress tensor and pressure correctly.  The option volpress no
 disregards the pressure contribution resulting from the volume term
@@ -109,7 +109,7 @@ routines.  For x-86 machines, there is a provided Makefile.mgptfast
 which enables the fast algebra routines, i.e. build LAMMPS with "make
 mgptfast".  The user will be informed in the output files of the
 matrix kernels in use. To further improve speed, on x86 the option
-precision single can be added to the :doc:`pair\_coeff <pair_coeff>`
+precision single can be added to the :doc:`pair_coeff <pair_coeff>`
 command line, which improves speed (up to a factor of two) at the cost
 of doing matrix calculations with 7 digit precision instead of the
 default 16. For consistency the default option can be specified
@@ -151,7 +151,7 @@ before proceeding to more complex simulations.
 
 **Mixing, shift, table tail correction, restart**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -159,7 +159,7 @@ needs to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -201,12 +201,12 @@ such cases will be added over time.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 Default
 """""""
 
-The options defaults for the :doc:`pair\_coeff <pair_coeff>` command are
+The options defaults for the :doc:`pair_coeff <pair_coeff>` command are
 volpress yes, nbody 1234, and precision double.
 
 

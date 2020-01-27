@@ -39,7 +39,7 @@ Description
 
 Write a data file in text format of the current state of the
 simulation.  Data files can be read by the :doc:`read data <read_data>`
-command to begin a simulation.  The :doc:`read\_data <read_data>` command
+command to begin a simulation.  The :doc:`read_data <read_data>` command
 also describes their format.
 
 Similar to :doc:`dump <dump>` files, the data filename can contain a "\*"
@@ -52,7 +52,7 @@ value.
    respects.  First, most pair styles do not yet write their coefficient
    information into the data file.  This means you will need to specify
    that information in your input script that reads the data file, via
-   the :doc:`pair\_coeff <pair_coeff>` command.  Second, a few of the :doc:`atom styles <atom_style>` (body, ellipsoid, line, tri) that store
+   the :doc:`pair_coeff <pair_coeff>` command.  Second, a few of the :doc:`atom styles <atom_style>` (body, ellipsoid, line, tri) that store
    auxiliary "bonus" information about aspherical particles, do not yet
    write the bonus info into the data file.  Both these functionalities
    will be added to the write\_data command later.
@@ -66,8 +66,8 @@ thus typically diverge from a simulation that continued in the
 original input script.
 
 If you want to do more exact restarts, using binary files, see the
-:doc:`restart <restart>`, :doc:`write\_restart <write_restart>`, and
-:doc:`read\_restart <read_restart>` commands.  You can also convert
+:doc:`restart <restart>`, :doc:`write_restart <write_restart>`, and
+:doc:`read_restart <read_restart>` commands.  You can also convert
 binary restart files to text data files, after a simulation has run,
 using the :doc:`-r command-line switch <Run_options>`.
 
@@ -78,7 +78,7 @@ using the :doc:`-r command-line switch <Run_options>`.
    :doc:`fixes <fix>` are stored.  :doc:`Binary restart files <read_restart>`
    store more information.
 
-Bond interactions (angle, etc) that have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete\_bonds <delete_bonds>` command will
+Bond interactions (angle, etc) that have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>` command will
 be written to a data file as if they are turned on.  This means they
 will need to be turned off again in a new run after the data file is
 read.
@@ -98,7 +98,7 @@ are read in separately anyway, e.g. from an include file.
 
 The *nofix* keyword requests that no extra sections read by fixes
 should be written to the data file (see the *fix* option of the
-:doc:`read\_data <read_data>` command for details). For example, this
+:doc:`read_data <read_data>` command for details). For example, this
 option excludes sections for user-created per-atom properties
 from :doc:`fix property/atom <fix_property_atom>`.
 
@@ -108,9 +108,9 @@ is specified as *ii*\ , then one line per atom type is written, to
 specify the coefficients for each of the I=J interactions.  This means
 that no cross-interactions for I != J will be specified in the data
 file and the pair style will apply its mixing rule, as documented on
-individual :doc:`pair\_style <pair_style>` doc pages.  Of course this
+individual :doc:`pair_style <pair_style>` doc pages.  Of course this
 behavior can be overridden in the input script after reading the data
-file, by specifying additional :doc:`pair\_coeff <pair_coeff>` commands
+file, by specifying additional :doc:`pair_coeff <pair_coeff>` commands
 for any desired I,J pairs.
 
 If the value is specified as *ij*\ , then one line of coefficients is
@@ -120,7 +120,7 @@ point.  The presence of these I != J coefficients in the data file
 will effectively turn off the default mixing rule for the pair style.
 Again, the coefficient values in the data file can be overridden
 in the input script after reading the data file, by specifying
-additional :doc:`pair\_coeff <pair_coeff>` commands for any desired I,J
+additional :doc:`pair_coeff <pair_coeff>` commands for any desired I,J
 pairs.
 
 
@@ -139,7 +139,7 @@ setup, atom masses initialized, etc).
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`write\_restart <write_restart>`
+:doc:`read_data <read_data>`, :doc:`write_restart <write_restart>`
 
 Default
 """""""

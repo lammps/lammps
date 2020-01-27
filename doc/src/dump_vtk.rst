@@ -16,7 +16,7 @@ Syntax
 * vtk = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
 * file = name of file to write dump info to
-* args = same as arguments for :doc:`dump\_style custom <dump>`
+* args = same as arguments for :doc:`dump_style custom <dump>`
 
 Examples
 """"""""
@@ -34,20 +34,20 @@ Dump a snapshot of atom quantities to one or more files every N
 timesteps in a format readable by the `VTK visualization toolkit <http://www.vtk.org>`_ or other visualization tools that use it,
 e.g. `ParaView <http://www.paraview.org>`_.  The timesteps on which dump
 output is written can also be controlled by a variable; see the
-:doc:`dump\_modify every <dump_modify>` command for details.
+:doc:`dump_modify every <dump_modify>` command for details.
 
-This dump style is similar to :doc:`dump\_style custom <dump>` but uses
+This dump style is similar to :doc:`dump_style custom <dump>` but uses
 the VTK library to write data to VTK simple legacy or XML format
 depending on the filename extension specified for the dump file.  This
 can be either *\*.vtk* for the legacy format or *\*.vtp* and *\*.vtu*,
 respectively, for XML format; see the `VTK homepage <http://www.vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below), the
-:doc:`dump\_modify binary <dump_modify>` command allows setting of a
+:doc:`dump_modify binary <dump_modify>` command allows setting of a
 binary option for this dump style explicitly.
 
 Only information for atoms in the specified group is dumped.  The
-:doc:`dump\_modify thresh and region <dump_modify>` commands can also
+:doc:`dump_modify thresh and region <dump_modify>` commands can also
 alter what atoms are included; see details below.
 
 As described below, special characters ("\*", "%") in the filename
@@ -62,17 +62,17 @@ determine the kind of output.
 
 .. warning::
 
-   Unless the :doc:`dump\_modify sort <dump_modify>` option
+   Unless the :doc:`dump_modify sort <dump_modify>` option
    is invoked, the lines of atom information written to dump files will
    be in an indeterminate order for each snapshot.  This is even true
-   when running on a single processor, if the :doc:`atom\_modify sort <atom_modify>` option is on, which it is by default.  In this
+   when running on a single processor, if the :doc:`atom_modify sort <atom_modify>` option is on, which it is by default.  In this
    case atoms are re-ordered periodically during a simulation, due to
    spatial sorting.  It is also true when running in parallel, because
    data for a single snapshot is collected from multiple processors, each
    of which owns a subset of the atoms.
 
 For the *vtk* style, sorting is off by default. See the
-:doc:`dump\_modify <dump_modify>` doc page for details.
+:doc:`dump_modify <dump_modify>` doc page for details.
 
 
 ----------
@@ -91,7 +91,7 @@ hexahedrons in either legacy .vtk or .vtu XML format.
 
 Style *vtk* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  The list of possible attributes
-is the same as for the :doc:`dump\_style custom <dump>` command; see
+is the same as for the :doc:`dump_style custom <dump>` command; see
 its doc page for a listing and an explanation of each attribute.
 
 .. note::
@@ -118,21 +118,21 @@ timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
 if the current timestep is not a multiple of N.  This behavior can be
-changed via the :doc:`dump\_modify first <dump_modify>` command, which
+changed via the :doc:`dump_modify first <dump_modify>` command, which
 can also be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
-using the :doc:`dump\_modify every <dump_modify>` command.
-The :doc:`dump\_modify every <dump_modify>` command
+using the :doc:`dump_modify every <dump_modify>` command.
+The :doc:`dump_modify every <dump_modify>` command
 also allows a variable to be used to determine the sequence of
 timesteps on which dump files are written.  In this mode a dump on the
 first timestep of a run will also not be written unless the
-:doc:`dump\_modify first <dump_modify>` command is used.
+:doc:`dump_modify first <dump_modify>` command is used.
 
 Dump filenames can contain two wildcard characters.  If a "\*"
 character appears in the filename, then one file per snapshot is
 written and the "\*" character is replaced with the timestep value.
 For example, tmp.dump\*.vtk becomes tmp.dump0.vtk, tmp.dump10000.vtk,
-tmp.dump20000.vtk, etc.  Note that the :doc:`dump\_modify pad <dump_modify>`
+tmp.dump20000.vtk, etc.  Note that the :doc:`dump_modify pad <dump_modify>`
 command can be used to insure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
 in order with some post-processing tools.
@@ -146,7 +146,7 @@ mode of output on parallel machines that support parallel I/O for output.
 
 By default, P = the number of processors meaning one file per
 processor, but P can be set to a smaller value via the *nfile* or
-*fileper* keywords of the :doc:`dump\_modify <dump_modify>` command.
+*fileper* keywords of the :doc:`dump_modify <dump_modify>` command.
 These options can be the most efficient way of writing out dump files
 when running on large numbers of processors.
 
@@ -185,7 +185,7 @@ Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump image <dump_image>`,
-:doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
 Default
 """""""

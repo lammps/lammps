@@ -128,8 +128,8 @@ If its value is *soft*\ , LAMMPS will exit the current run, but continue
 to execute subsequent commands in the input script.  However,
 additional :doc:`run <run>` or :doc:`minimize <minimize>` commands will be
 skipped.  For example, this allows a script to output the current
-state of the system, e.g. via a :doc:`write\_dump <write_dump>` or
-:doc:`write\_restart <write_restart>` command.
+state of the system, e.g. via a :doc:`write_dump <write_dump>` or
+:doc:`write_restart <write_restart>` command.
 
 If its value is *continue*\ , the behavior is the same as for *soft*\ ,
 except subsequent :doc:`run <run>` or :doc:`minimize <minimize>` commands
@@ -148,7 +148,7 @@ files.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of

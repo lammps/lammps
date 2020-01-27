@@ -114,11 +114,11 @@ larger system sizes and longer time scales
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential energy computed by LATTE to the system's
 potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the LATTE DFTB contribution to the system's virial as part
 of :doc:`thermodynamic output <thermo_style>`.  The default is *virial
 yes*
@@ -139,7 +139,7 @@ energy minimization, invoked by the :doc:`minimize <minimize>` command.
    If you want the potential energy associated with the DFTB
    forces to be included in the total potential energy of the system (the
    quantity being minimized), you MUST enable the
-   :doc:`fix\_modify <fix_modify>` *energy* option for this fix.
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
 """"""""""""

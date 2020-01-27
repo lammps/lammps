@@ -9,7 +9,7 @@ periodically.
 These are the relevant commands:
 
 * :doc:`neb <neb>` for nudged elastic band calculations
-* :doc:`neb\_spin <neb_spin>` for magnetic nudged elastic band calculations
+* :doc:`neb_spin <neb_spin>` for magnetic nudged elastic band calculations
 * :doc:`prd <prd>` for parallel replica dynamics
 * :doc:`tad <tad>` for temperature accelerated dynamics
 * :doc:`temper <temper>` for parallel tempering

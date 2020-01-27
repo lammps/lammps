@@ -78,16 +78,16 @@ as required for the SDK Coarse-grained MD parameterization discussed in
 
 Style *lj/sdk/coul/long* computes the adds Coulombic interactions
 with an additional damping factor applied so it can be used in
-conjunction with the :doc:`kspace\_style <kspace_style>` command and
+conjunction with the :doc:`kspace_style <kspace_style>` command and
 its *ewald* or *pppm* or *pppm/cg* option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within
 this distance are computed directly; interactions outside that
 distance are computed in reciprocal space.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cg\_type (lj9\_6, lj12\_4, or lj12\_6)
@@ -147,18 +147,18 @@ command. Defining then in a data file is also not supported, due to
 limitations of that file format.
 
 All of the lj/sdk pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the
+:doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
 The *lj/sdk/coul/long* pair styles support the
-:doc:`pair\_modify <pair_modify>` table option since they can tabulate
+:doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
 All of the lj/sdk pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The lj/sdk and lj/cut/coul/long pair styles do not support
-the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run\_style respa <run_style>` command.
+the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 
 ----------
@@ -177,7 +177,7 @@ doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`angle\_style sdk <angle_sdk>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`angle_style sdk <angle_sdk>`
 
 **Default:** none
 

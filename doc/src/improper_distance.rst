@@ -27,7 +27,7 @@ The *distance* improper style uses the potential
 
 where d is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
-(listed in the data file read by the :doc:`read\_data <read_data>`
+(listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the I-atom is assumed to be the
 central atom.
 
@@ -61,7 +61,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
 

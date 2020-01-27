@@ -55,9 +55,9 @@ More details about the derivation of these torques/forces are reported in
 :ref:`(Tranchida) <Tranchida5>`.
 
 For the *spin/dmi* pair style, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command as in
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands, and
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands, and
 set in the following order:
 
 * rc (distance units)
@@ -85,8 +85,8 @@ atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` d
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_eam <pair_eam>`,
+:doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_eam <pair_eam>`,
 
 **Default:** none
 

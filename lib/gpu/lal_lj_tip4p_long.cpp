@@ -23,7 +23,7 @@ const char *lj_tip4p=0;
 
 #include "lal_lj_tip4p_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJTIP4PLongT LJ_TIP4PLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -370,6 +370,5 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
 }
 
 
-
-
 template class LJ_TIP4PLong<PRECISION,ACC_PRECISION>;
+}

@@ -23,6 +23,8 @@
 
 #ifdef USE_OPENCL
 #include "geryon/ocl_texture.h"
+#elif defined(USE_HIP)
+#include "geryon/hip_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif

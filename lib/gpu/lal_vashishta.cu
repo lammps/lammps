@@ -13,23 +13,23 @@
 //    email                : andershaf@gmail.com
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float4> param1_tex;
-texture<float4> param2_tex;
-texture<float4> param3_tex;
-texture<float4> param4_tex;
-texture<float4> param5_tex;
+_texture( pos_tex,float4);
+_texture( param1_tex,float4);
+_texture( param2_tex,float4);
+_texture( param3_tex,float4);
+_texture( param4_tex,float4);
+_texture( param5_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int4> param1_tex;
-texture<int4> param2_tex;
-texture<int4> param3_tex;
-texture<int4> param4_tex;
-texture<int4> param5_tex;
+_texture_2d( pos_tex,int4);
+_texture( param1_tex,int4);
+_texture( param2_tex,int4);
+_texture( param3_tex,int4);
+_texture( param4_tex,int4);
+_texture( param5_tex,int4);
 #endif
 
 #else

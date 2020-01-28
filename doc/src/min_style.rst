@@ -74,7 +74,7 @@ modified with the command :doc:`min\_modify <min_modify>`.
 Style *fire/old* is the original implementation of *fire* in Lammps, 
 conserved for backward compatibility. The main differences regarding 
 the current version *fire* are: time integration by Explicit Euler
-only, different sequence in maintining velocity components non-parallel
+only, different sequence in maintaining velocity components non-parallel
 to the current force vector and hard-coded minimization parameters.
 A complete description of the differences between *fire/old* and *fire* 
 can be found in :ref:`(Guenole) <Guenole>` (where the current *fire* 

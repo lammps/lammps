@@ -29,9 +29,9 @@ Syntax
        *discrete_factor* value = factor
          factor = discretization factor for adaptive spin timestep (adim)
        *integrator* value = *eulerimplicit* or *verlet*
-         time integration scheme for fire2 minimization
+         time integration scheme for fire minimization
        *tmax* value = factor
-         factor = maximum adaptive timestep for fire2 minimization
+         factor = maximum adaptive timestep for fire minimization (adim)
 
 
 
@@ -86,9 +86,9 @@ even if atoms could move in the gradient direction to reduce forces
 further.
 
 The choice of a norm can be modified for the min styles *cg*\ , *sd*\
-, *quickmin*\ , *fire*\ , *spin*\ , *spin/cg* and *spin/lbfgs* using
-the *norm* keyword.  The default *two* norm computes the 2-norm
-(Euclidean length) of the global force vector:
+, *quickmin*\ , *fire*\ , *fire/old*\ , *spin*\ , *spin/cg* and 
+*spin/lbfgs* using the *norm* keyword.  The default *two* norm computes 
+the 2-norm (Euclidean length) of the global force vector:
 
 .. image:: Eqs/norm_two.jpg
    :align: center
@@ -109,13 +109,14 @@ all atoms in the system:
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
-Keywords *alpha\_damp* and *discrete\_factor* should only be used when
-a :doc:`min\_spin <min_spin>` command is declared.  Keyword
-*alpha\_damp* defines an analog of a magnetic Gilbert damping. It
-defines a relaxation rate toward an equilibrium for a given magnetic
-system.  Keyword *discrete\_factor* defines a discretization factor
-for the adaptive timestep used in the *spin* minimization.  See
-:doc:`min\_spin <min_spin>` for more information about those
+Keywords *alpha\_damp* and *discrete\_factor* only make sense when
+a :doc:`min_spin <min_spin>` command is declared.
+Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
+damping. It defines a relaxation rate toward an equilibrium for
+a given magnetic system.
+Keyword *discrete\_factor* defines a discretization factor for the
+adaptive timestep used in the *spin* minimization.
+See :doc:`min_spin <min_spin>` for more information about those
 quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
@@ -128,30 +129,36 @@ procedure.  The *spin\_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
 more robust if *spin\_cubic* line search is used.
 
-The Newton *integrator* used for *fire2* minimization can be selected
+The Newton *integrator* used for *fire* minimization can be selected
 to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
 Verlet (\ *verlet*\ ).  *tmax* define the maximum value for the
-adaptive timestep during a *fire2* minimization. It is multiplication
+adaptive timestep during a *fire* minimization. It is a multiplication
 factor applied to the current :doc:`timestep <timestep>` (not in time
-unit). For example, *tmax* = 4.0 in metal :doc:`units <units>` means
-that the maximum value the timestep can reach during a minimization is
-4fs (with the default :doc:`timestep <timestep>` value). Note that
-parameter defaults has been chosen to be reliable in most cases, but
-one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
+unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
+2fs, means that the maximum value the timestep can reach during a *fire*
+minimization is 4fs. 
+Note that parameter defaults has been chosen to be reliable in most cases, 
+but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
 optimize the minimization for large or complex systems.  Other
-parameters of the *fire2* minimization can be tuned (\ *tmin*\ ,
+parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
 *delaystep*\ , *dtgrow*\ , *dtshrink*\ , *alpha0*\ , and
-*alphashrink*\ ). Please refer to the article describing the *fire2*
-:doc:`min\_style <min_style>`.
-
-An additional stopping criteria *vdfmax* is added in order to avoid
+*alphashrink*\ ). Please refer to the references describing the
+:doc:`min\_style <min_style>` *fire*.
+An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
 unnecessary looping when it is reasonable to think the system will not
-be relaxed further.  Note that in this case the system will NOT be
-relaxed. This could happen when the system comes to be stuck in a
-local basin of the phase space.  *vdfmax* is the maximum number of
-consecutive iterations with P(t) < 0.  For debugging purposes, it is
-possible to switch off the inertia correction (\ *halfstepback* =
-*no*\ ) and the initial delay (\ *initialdelay* = *no*\ ).
+be relaxed further.  Note that in this case the system will NOT have
+reached your minimization criteria. This could happen when the system 
+comes to be stuck in a local basin of the phase space.  *vdfmax* is 
+the maximum number of consecutive iterations with P(t) < 0.
+
+The :doc:`min\_style <min_style>` *fire* is an optimized implementation of
+:doc:`min\_style <min_style>` *fire/old*. It can however behave similarly 
+to the *fire/old* style by using the following set of parameters:
+
+.. parsed-literal::
+  min_modify integrator eulerexplicit tmax 10.0 tmin 0.0 delaystep 5 &
+             dtgrow 1.1 dtshrink 0.5 alpha0 0.1 alphashrink 0.99 &
+             vdfmax 100000 halfstepback no initialdelay no
 
 Restrictions
 """"""""""""
@@ -175,7 +182,7 @@ For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
 defaults are alpha\_damp = 1.0, discrete\_factor = 10.0, line =
 spin\_none, and norm = euclidean.
 
-For the *fire2* style, the option defaults are integrator =
+For the *fire* style, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,
 dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99, vdfmax = 2000,
 halfstepback = yes and initialdelay = yes.

@@ -38,19 +38,20 @@ be in local potential energy minimum.  More precisely, the
 configuration should approximate a critical point for the objective
 function (see below), which may or may not be a local minimum.
 
-The minimization algorithm used is set by the :doc:`min\_style
-<min_style>` command.  Other options are set by the :doc:`min\_modify
-<min_modify>` command.  Minimize commands can be interspersed with
-:doc:`run <run>` commands to alternate between relaxation and
-dynamics.  The minimizers bound the distance atoms move in one
-iteration, so that you can relax systems with highly overlapped atoms
-(large energies and forces) by pushing the atoms off of each other.
+The minimization algorithm used is set by the
+:doc:`min_style <min_style>` command.  Other options are set by the
+:doc:`min_modify <min_modify>` command.  Minimize commands can be
+interspersed with :doc:`run <run>` commands to alternate between
+relaxation and dynamics.  The minimizers bound the distance atoms move
+in one iteration, so that you can relax systems with highly overlapped
+atoms (large energies and forces) by pushing the atoms off of each
+other.
 
 Alternate means of relaxing a system are to run dynamics with a small
 or :doc:`limited timestep <fix_nve_limit>`.  Or dynamics can be run
 using :doc:`fix viscous <fix_viscous>` to impose a damping force that
-slowly drains all kinetic energy from the system.  The
-:doc:`pair\_style soft <pair_soft>` potential can be used to
+slowly drains all kinetic energy from the system.  The :doc:`pair_style soft <pair_soft>` potential can be used to un-overlap atoms while
+running dynamics.
 un-overlap atoms while running dynamics.
 
 Note that you can minimize some atoms in the system while holding the
@@ -70,7 +71,7 @@ backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
 The :doc:`minimization styles <min_style>` *quickmin*\ , *fire* and
-*fire2* perform damped dynamics using an Euler integration step.  Thus
+*fire/old* perform damped dynamics using an Euler integration step.  Thus
 they require a :doc:`timestep <timestep>` be defined.
 
 .. note::

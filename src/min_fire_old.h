@@ -13,31 +13,30 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(fire2,MinFire2)
+MinimizeStyle(fire/old,MinFireOld)
 
 #else
 
-#ifndef LMP_MIN_FIRE2_H
-#define LMP_MIN_FIRE2_H
+#ifndef LMP_MIN_FIRE_OLD_H
+#define LMP_MIN_FIRE_OLD_H
 
 #include "min.h"
 
 namespace LAMMPS_NS {
 
-class MinFire2 : public Min {
+class MinFireOld : public Min {
  public:
-  MinFire2(class LAMMPS *);
-  ~MinFire2() {}
+  MinFireOld(class LAMMPS *);
+  ~MinFireOld() {}
   void init();
   void setup_style();
   void reset_vectors();
   int iterate(int);
 
  private:
-  double dt,dtmax,dtmin;
+  double dt,dtmax;
   double alpha;
-  bigint last_negative,ntimestep_start;
-  int vdotf_negatif;
+  bigint last_negative;
 };
 
 }

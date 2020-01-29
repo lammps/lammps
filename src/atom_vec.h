@@ -74,41 +74,41 @@ class AtomVec : protected Pointers {
 
   virtual void force_clear(int, size_t) {}
 
-  void grow(int);
+  virtual void grow(int);
   virtual void grow_pointers() {}
-  void copy(int, int, int);
+  virtual void copy(int, int, int);
 
   virtual void copy_bonus(int, int, int) {}
   virtual void clear_bonus() {}
 
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
+  virtual int pack_comm(int, int *, double *, int, int *);
+  virtual int pack_comm_vel(int, int *, double *, int, int *);
+  virtual void unpack_comm(int, int, double *);
+  virtual void unpack_comm_vel(int, int, double *);
 
   virtual int pack_comm_bonus(int, int *, double *) {}
   virtual void unpack_comm_bonus(int, int, double *) {}
 
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
+  virtual int pack_reverse(int, int, double *);
+  virtual void unpack_reverse(int, int *, double *);
 
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
+  virtual int pack_border(int, int *, double *, int, int *);
+  virtual int pack_border_vel(int, int *, double *, int, int *);
+  virtual void unpack_border(int, int, double *);
+  virtual void unpack_border_vel(int, int, double *);
 
   virtual int pack_border_bonus(int, int *, double *) {}
   virtual int unpack_border_bonus(int, int, double *) {}
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(double *);
 
   virtual int pack_exchange_bonus(int, double *) {}
   virtual int unpack_exchange_bonus(int, double *) {}
 
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
+  virtual int size_restart();
+  virtual int pack_restart(int, double *);
+  virtual int unpack_restart(double *);
 
   virtual void pack_restart_pre(int) {}
   virtual void pack_restart_post(int) {}
@@ -118,36 +118,36 @@ class AtomVec : protected Pointers {
   virtual int pack_restart_bonus(int, double *) {}
   virtual int unpack_restart_bonus(int, double *) {}
 
-  void create_atom(int, double *);
+  virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  void data_atom(double *, imageint, char **);
+  virtual void data_atom(double *, imageint, char **);
   virtual void data_atom_post(int) {}
   virtual void data_atom_bonus(int, char **) {}
   virtual void data_body(int, int, int, int *, double *) {}
 
-  void pack_data(double **);
-  void write_data(FILE *, int, double **);
+  virtual void pack_data(double **);
+  virtual void write_data(FILE *, int, double **);
   virtual void pack_data_pre(int) {}
   virtual void pack_data_post(int) {}
 
-  void data_vel(int, char **);
-  void pack_vel(double **);
-  void write_vel(FILE *, int, double **);
+  virtual void data_vel(int, char **);
+  virtual void pack_vel(double **);
+  virtual void write_vel(FILE *, int, double **);
 
-  int pack_bond(tagint **);
-  void write_bond(FILE *, int, tagint **, int);
-  int pack_angle(tagint **);
-  void write_angle(FILE *, int, tagint **, int);
-  int pack_dihedral(tagint **);
-  void write_dihedral(FILE *, int, tagint **, int);
-  int pack_improper(tagint **);
-  void write_improper(FILE *, int, tagint **, int);
+  virtual int pack_bond(tagint **);
+  virtual void write_bond(FILE *, int, tagint **, int);
+  virtual int pack_angle(tagint **);
+  virtual void write_angle(FILE *, int, tagint **, int);
+  virtual int pack_dihedral(tagint **);
+  virtual void write_dihedral(FILE *, int, tagint **, int);
+  virtual int pack_improper(tagint **);
+  virtual void write_improper(FILE *, int, tagint **, int);
 
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
-  bigint memory_usage();
+  virtual bigint memory_usage();
   virtual bigint memory_usage_bonus() {}
 
  protected:

@@ -78,7 +78,7 @@ void MinFire::setup_style()
       fprintf(logfile,"  Parameters for fire: \n"
       "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
       "   integrator halfstepback \n"
-      "    %4g %9i %6g %8g %6g %11g \n",
+      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
       dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, 
       s1[integrator], s2[halfstepback_flag]);
   }

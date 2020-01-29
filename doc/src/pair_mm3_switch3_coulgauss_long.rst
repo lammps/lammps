@@ -59,16 +59,16 @@ where qi and qj are the
 charges on the 2 atoms, epsilon is the dielectric constant which
 can be set by the :doc:`dielectric <dielectric>` command, gamma\_i and gamma\_j
 are the widths of the Gaussian charge distribution and erf() is the error-function.
-This style has to be used in conjunction with the :doc:`kspace\_style <kspace_style>` command
+This style has to be used in conjunction with the :doc:`kspace_style <kspace_style>` command
 
 If one cutoff is specified it is used for both the vdW and Coulomb
 terms.  If two cutoffs are specified, the first is used as the cutoff
 for the vdW terms, and the second is the cutoff for the Coulombic term.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * epsilon (energy)
@@ -96,7 +96,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

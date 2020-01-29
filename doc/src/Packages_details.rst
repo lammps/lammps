@@ -72,8 +72,8 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 
 * src/ASPHERE: filenames -> commands
 * :doc:`Howto spherical <Howto_spherical>`
-* :doc:`pair\_style gayberne <pair_gayberne>`
-* :doc:`pair\_style resquared <pair_resquared>`
+* :doc:`pair_style gayberne <pair_gayberne>`
+* :doc:`pair_style resquared <pair_resquared>`
 * `doc/PDF/pair\_gayberne\_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair\_resquared\_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
@@ -101,9 +101,9 @@ overview.
 
 * src/BODY filenames -> commands
 * :doc:`Howto\_body <Howto_body>`
-* :doc:`atom\_style body <atom_style>`
+* :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
-* :doc:`pair\_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
 
 
@@ -123,11 +123,11 @@ CLASS2 molecular force field.
 **Supporting info:**
 
 * src/CLASS2: filenames -> commands
-* :doc:`bond\_style class2 <bond_class2>`
-* :doc:`angle\_style class2 <angle_class2>`
-* :doc:`dihedral\_style class2 <dihedral_class2>`
-* :doc:`improper\_style class2 <improper_class2>`
-* :doc:`pair\_style lj/class2 <pair_class2>`
+* :doc:`bond_style class2 <bond_class2>`
+* :doc:`angle_style class2 <angle_class2>`
+* :doc:`dihedral_style class2 <dihedral_class2>`
+* :doc:`improper_style class2 <improper_class2>`
+* :doc:`pair_style lj/class2 <pair_class2>`
 
 
 ----------
@@ -153,11 +153,11 @@ Higdon's group at UIUC.
 
 * src/COLLOID: filenames -> commands
 * :doc:`fix wall/colloid <fix_wall>`
-* :doc:`pair\_style colloid <pair_colloid>`
-* :doc:`pair\_style yukawa/colloid <pair_yukawa_colloid>`
-* :doc:`pair\_style brownian <pair_brownian>`
-* :doc:`pair\_style lubricate <pair_lubricate>`
-* :doc:`pair\_style lubricateU <pair_lubricateU>`
+* :doc:`pair_style colloid <pair_colloid>`
+* :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>`
+* :doc:`pair_style brownian <pair_brownian>`
+* :doc:`pair_style lubricate <pair_lubricate>`
+* :doc:`pair_style lubricateU <pair_lubricateU>`
 * examples/colloid
 * examples/srd
 
@@ -219,9 +219,9 @@ this package.
 * :doc:`Howto coreshell <Howto_coreshell>`
 * :doc:`Howto polarizable <Howto_polarizable>`
 * :doc:`compute temp/cs <compute_temp_cs>`
-* :doc:`pair\_style born/coul/long/cs <pair_cs>`
-* :doc:`pair\_style buck/coul/long/cs <pair_cs>`
-* :doc:`pair\_style lj/cut/coul/long/cs <pair_lj>`
+* :doc:`pair_style born/coul/long/cs <pair_cs>`
+* :doc:`pair_style buck/coul/long/cs <pair_cs>`
+* :doc:`pair_style lj/cut/coul/long/cs <pair_lj>`
 * examples/coreshell
 
 
@@ -241,10 +241,10 @@ short-range or long-range interactions.
 **Supporting info:**
 
 * src/DIPOLE: filenames -> commands
-* :doc:`atom\_style dipole <atom_style>`
-* :doc:`pair\_style lj/cut/dipole/cut <pair_dipole>`
-* :doc:`pair\_style lj/cut/dipole/long <pair_dipole>`
-* :doc:`pair\_style lj/long/dipole/long <pair_dipole>`
+* :doc:`atom_style dipole <atom_style>`
+* :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
+* :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
+* :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * examples/dipole
 
 
@@ -309,8 +309,8 @@ potentials.
 * :doc:`Howto granular <Howto_granular>`
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix wall/gran <fix_wall_gran>`
-* :doc:`pair\_style gran/hooke <pair_gran>`
-* :doc:`pair\_style gran/hertz/history <pair_gran>`
+* :doc:`pair_style gran/hooke <pair_gran>`
+* :doc:`pair_style gran/hertz/history <pair_gran>`
 * examples/granregion
 * examples/pour
 * bench/in.chute
@@ -335,13 +335,13 @@ This package contains a set of commands that serve as a wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs)
 enabling compatible ones to be used in LAMMPS simulations.
-This includes :doc:`kim\_init and kim\_interactions <kim_commands>`
+This includes :doc:`kim_init and kim\_interactions <kim_commands>`
 commands to select, initialize and instantiate the IM, and a
-:doc:`kim\_query <kim_commands>` command to perform web queries
+:doc:`kim_query <kim_commands>` command to perform web queries
 for material property predictions of OpenKIM IMs.
 Support for KIM IMs that conform to the
 `KIM Application Programming Interface (API) <https://openkim.org/kim-api/>`_
-is provided by the :doc:`pair\_style kim <pair_kim>` command.
+is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
@@ -361,7 +361,7 @@ and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 
 **Authors:** Ryan Elliott (U Minnesota) is the main developer for the KIM
 API and the *pair\_style kim* command. Axel Kohlmeyer (Temple U) and
-Ellad Tadmor (U Minnesota) contributed to the :doc:`kim\_commands <kim_commands>`
+Ellad Tadmor (U Minnesota) contributed to the :doc:`kim_commands <kim_commands>`
 interface in close collaboration with Ryan Elliott.
 
 **Install:**
@@ -370,8 +370,8 @@ This package has :ref:`specific installation instructions <kim>` on the :doc:`Bu
 
 **Supporting info:**
 
-* :doc:`kim\_commands <kim_commands>`
-* :doc:`pair\_style kim <pair_kim>`
+* :doc:`kim_commands <kim_commands>`
+* :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
 * lib/kim/README
@@ -458,12 +458,12 @@ different FFT options for your LAMPMS build.
 **Supporting info:**
 
 * src/KSPACE: filenames -> commands
-* :doc:`kspace\_style <kspace_style>`
+* :doc:`kspace_style <kspace_style>`
 * `doc/PDF/kspace.pdf <PDF/kspace.pdf>`_
 * :doc:`Howto tip3p <Howto_tip3p>`
 * :doc:`Howto tip4p <Howto_tip4p>`
 * :doc:`Howto spc <Howto_spc>`
-* :doc:`pair\_style coul <pair_coul>`
+* :doc:`pair_style coul <pair_coul>`
 * :doc:`Commands pair <Commands_pair>` page for styles with "long" or "msm" in name
 * examples/peptide
 * bench/in.rhodo
@@ -558,7 +558,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix bond/create <fix_bond_create>`
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix gcmc <fix_gcmc>`
-* :doc:`pair\_style dsmc <pair_dsmc>`
+* :doc:`pair_style dsmc <pair_dsmc>`
 * http://lammps.sandia.gov/movies.html#gcmc
 
 
@@ -642,13 +642,13 @@ force fields, and a TIP4P water model.
 **Supporting info:**
 
 * src/MOLECULE: filenames -> commands
-* :doc:`atom\_style <atom_style>`
-* :doc:`bond\_style <bond_style>`
-* :doc:`angle\_style <angle_style>`
-* :doc:`dihedral\_style <dihedral_style>`
-* :doc:`improper\_style <improper_style>`
-* :doc:`pair\_style hbond/dreiding/lj <pair_hbond_dreiding>`
-* :doc:`pair\_style lj/charmm/coul/charmm <pair_charmm>`
+* :doc:`atom_style <atom_style>`
+* :doc:`bond_style <bond_style>`
+* :doc:`angle_style <angle_style>`
+* :doc:`dihedral_style <dihedral_style>`
+* :doc:`improper_style <improper_style>`
+* :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>`
+* :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
 * :doc:`Howto bioFF <Howto_bioFF>`
 * examples/cmap
 * examples/dreiding
@@ -678,8 +678,8 @@ written and read in parallel.
 * src/MPIIO: filenames -> commands
 * :doc:`dump <dump>`
 * :doc:`restart <restart>`
-* :doc:`write\_restart <write_restart>`
-* :doc:`read\_restart <read_restart>`
+* :doc:`write_restart <write_restart>`
+* :doc:`read_restart <read_restart>`
 
 
 ----------
@@ -779,8 +779,8 @@ Foster (UTSA).
 * `doc/PDF/PDLammps\_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps\_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
 * `doc/PDF/PDLammps\_VES.pdf <PDF/PDLammps_VES.pdf>`_
-* :doc:`atom\_style peri <atom_style>`
-* :doc:`pair\_style peri/\* <pair_peri>`
+* :doc:`atom_style peri <atom_style>`
+* :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
@@ -902,7 +902,7 @@ another set.
 * :doc:`prd <prd>`
 * :doc:`tad <tad>`
 * :doc:`temper <temper>`,
-* :doc:`run\_style verlet/split <run_style>`
+* :doc:`run_style verlet/split <run_style>`
 * examples/neb
 * examples/prd
 * examples/tad
@@ -981,7 +981,7 @@ computes which analyze attributes of the potential.
 **Supporting info:**
 
 * src/SNAP: filenames -> commands
-* :doc:`pair\_style snap <pair_snap>`
+* :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
@@ -1007,12 +1007,12 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 * src/SPIN: filenames -> commands
 * :doc:`Howto spins <Howto_spins>`
-* :doc:`pair\_style spin/dipole/cut <pair_spin_dipole>`
-* :doc:`pair\_style spin/dipole/long <pair_spin_dipole>`
-* :doc:`pair\_style spin/dmi <pair_spin_dmi>`
-* :doc:`pair\_style spin/exchange <pair_spin_exchange>`
-* :doc:`pair\_style spin/magelec <pair_spin_magelec>`
-* :doc:`pair\_style spin/neel <pair_spin_neel>`
+* :doc:`pair_style spin/dipole/cut <pair_spin_dipole>`
+* :doc:`pair_style spin/dipole/long <pair_spin_dipole>`
+* :doc:`pair_style spin/dmi <pair_spin_dmi>`
+* :doc:`pair_style spin/exchange <pair_spin_exchange>`
+* :doc:`pair_style spin/magelec <pair_spin_magelec>`
+* :doc:`pair_style spin/neel <pair_spin_neel>`
 * :doc:`fix nve/spin <fix_nve_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`compute spin <compute_spin>`
@@ -1096,8 +1096,9 @@ USER-ADIOS package
 **Contents:**
 
 ADIOS is a high-performance I/O library. This package implements the
-dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library.
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>` and
+:doc:`read_dump ... format adios <read_dump>`
+commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
@@ -1111,6 +1112,10 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 * src/USER-ADIOS/README
 * examples/USER/adios
 * https://github.com/ornladios/ADIOS2
+* :doc:`dump atom/adios <dump_adios>`
+* :doc:`dump custom/adios <dump_adios>`
+* :doc:`read_dump <read_dump>`
+
 
 
 ----------
@@ -1167,7 +1172,7 @@ This package has :ref:`specific installation instructions <user-awpmd>` on the :
 
 * src/USER-AWPMD: filenames -> commands
 * src/USER-AWPMD/README
-* :doc:`pair\_style awpmd/cut <pair_awpmd>`
+* :doc:`pair_style awpmd/cut <pair_awpmd>`
 * examples/USER/awpmd
 
 
@@ -1228,10 +1233,10 @@ stability.
 
 * src/USER-CGDNA: filenames -> commands
 * /src/USER-CGDNA/README
-* :doc:`pair\_style oxdna/\* <pair_oxdna>`
-* :doc:`pair\_style oxdna2/\* <pair_oxdna2>`
-* :doc:`bond\_style oxdna/\* <bond_oxdna>`
-* :doc:`bond\_style oxdna2/\* <bond_oxdna>`
+* :doc:`pair_style oxdna/\* <pair_oxdna>`
+* :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`bond_style oxdna/\* <bond_oxdna>`
+* :doc:`bond_style oxdna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 
@@ -1256,8 +1261,8 @@ acids.
 
 * src/USER-CGSDK: filenames -> commands
 * src/USER-CGSDK/README
-* :doc:`pair\_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle\_style sdk <angle_sdk>`
+* :doc:`pair_style lj/sdk/\* <pair_sdk>`
+* :doc:`angle_style sdk <angle_sdk>`
 * examples/USER/cgsdk
 * http://lammps.sandia.gov/pictures.html#cg
 
@@ -1392,12 +1397,12 @@ Brennan (ARL).
 * :doc:`fix eos/table/rx <fix_eos_table_rx>`
 * :doc:`fix shardlow <fix_shardlow>`
 * :doc:`fix rx <fix_rx>`
-* :doc:`pair\_style table/rx <pair_table_rx>`
-* :doc:`pair\_style dpd/fdt <pair_dpd_fdt>`
-* :doc:`pair\_style dpd/fdt/energy <pair_dpd_fdt>`
-* :doc:`pair\_style exp6/rx <pair_exp6_rx>`
-* :doc:`pair\_style multi/lucy <pair_multi_lucy>`
-* :doc:`pair\_style multi/lucy/rx <pair_multi_lucy_rx>`
+* :doc:`pair_style table/rx <pair_table_rx>`
+* :doc:`pair_style dpd/fdt <pair_dpd_fdt>`
+* :doc:`pair_style dpd/fdt/energy <pair_dpd_fdt>`
+* :doc:`pair_style exp6/rx <pair_exp6_rx>`
+* :doc:`pair_style multi/lucy <pair_multi_lucy>`
+* :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
 * examples/USER/dpd
 
 
@@ -1429,8 +1434,8 @@ Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
 * :doc:`fix drude <fix_drude>`
 * :doc:`fix drude/transform/\* <fix_drude_transform>`
 * :doc:`compute temp/drude <compute_temp_drude>`
-* :doc:`pair\_style thole <pair_thole>`
-* :doc:`pair\_style lj/cut/thole/long <pair_thole>`
+* :doc:`pair_style thole <pair_thole>`
+* :doc:`pair_style lj/cut/thole/long <pair_thole>`
 * examples/USER/drude
 * tools/drude
 
@@ -1459,14 +1464,14 @@ tools/eff; see its README file.
 
 * src/USER-EFF: filenames -> commands
 * src/USER-EFF/README
-* :doc:`atom\_style electron <atom_style>`
+* :doc:`atom_style electron <atom_style>`
 * :doc:`fix nve/eff <fix_nve_eff>`
 * :doc:`fix nvt/eff <fix_nh_eff>`
 * :doc:`fix npt/eff <fix_nh_eff>`
 * :doc:`fix langevin/eff <fix_langevin_eff>`
 * :doc:`compute temp/eff <compute_temp_eff>`
-* :doc:`pair\_style eff/cut <pair_eff>`
-* :doc:`pair\_style eff/inline <pair_eff>`
+* :doc:`pair_style eff/cut <pair_eff>`
+* :doc:`pair_style eff/inline <pair_eff>`
 * examples/USER/eff
 * tools/eff/README
 * tools/eff
@@ -1496,7 +1501,7 @@ for using this package in tools/fep; see its README file.
 * src/USER-FEP/README
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
-* :doc:`pair\_style \*/soft <pair_fep_soft>`
+* :doc:`pair_style \*/soft <pair_fep_soft>`
 * examples/USER/fep
 * tools/fep/README
 * tools/fep
@@ -1639,7 +1644,7 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 
 * src/USER-MGPT: filenames -> commands
 * src/USER-MGPT/README
-* :doc:`pair\_style mgpt <pair_mgpt>`
+* :doc:`pair_style mgpt <pair_mgpt>`
 * examples/USER/mgpt
 
 
@@ -1724,7 +1729,7 @@ Sandia.
 
 * src/USER-MEAMC: filenames -> commands
 * src/USER-MEAMC/README
-* :doc:`pair\_style meam/c <pair_meamc>`
+* :doc:`pair_style meam/c <pair_meamc>`
 * examples/meamc
 
 
@@ -1752,10 +1757,10 @@ algorithm.
 
 * src/USER-MESO: filenames -> commands
 * src/USER-MESO/README
-* :doc:`atom\_style edpd <atom_style>`
-* :doc:`pair\_style edpd <pair_meso>`
-* :doc:`pair\_style mdpd <pair_meso>`
-* :doc:`pair\_style tdpd <pair_meso>`
+* :doc:`atom_style edpd <atom_style>`
+* :doc:`pair_style edpd <pair_meso>`
+* :doc:`pair_style mdpd <pair_meso>`
+* :doc:`pair_style tdpd <pair_meso>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/meso
 * http://lammps.sandia.gov/movies.html#mesodpd
@@ -1791,10 +1796,10 @@ Rochus Schmid (Ruhr-University Bochum).
 
 * src/USER-MOFFF: filenames -> commands
 * src/USER-MOFFF/README
-* :doc:`pair\_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
-* :doc:`angle\_style class2 <angle_class2>`
-* :doc:`angle\_style cosine/buck6d <angle_cosine_buck6d>`
-* :doc:`improper\_style inversion/harmonic <improper_inversion_harmonic>`
+* :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
+* :doc:`angle_style class2 <angle_class2>`
+* :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
+* :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
 * examples/USER/mofff
 
 
@@ -1960,8 +1965,8 @@ USER-PHONON package
 A :doc:`fix phonon <fix_phonon>` command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
-And a :doc:`dynamical\_matrix <dynamical_matrix>` as well as a
-:doc:`third\_order <third_order>` command to compute the dynamical matrix
+And a :doc:`dynamical_matrix <dynamical_matrix>` as well as a
+:doc:`third_order <third_order>` command to compute the dynamical matrix
 and third order tensor from finite differences.
 
 **Authors:** Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
@@ -1972,8 +1977,8 @@ and Charlie Sievers (UC Davis) for "dynamical\_matrix" and "third\_order"
 * src/USER-PHONON: filenames -> commands
 * src/USER-PHONON/README
 * :doc:`fix phonon <fix_phonon>`
-* :doc:`dynamical\_matrix <dynamical_matrix>`
-* :doc:`third\_order <third_order>`
+* :doc:`dynamical_matrix <dynamical_matrix>`
+* :doc:`third_order <third_order>`
 * examples/USER/phonon
 
 
@@ -2083,7 +2088,7 @@ USER-QUIP package
 
 **Contents:**
 
-A :doc:`pair\_style quip <pair_quip>` command which wraps the `QUIP libAtoms library <quip_>`_, which includes a variety of interatomic
+A :doc:`pair_style quip <pair_quip>` command which wraps the `QUIP libAtoms library <quip_>`_, which includes a variety of interatomic
 potentials, including Gaussian Approximation Potential (GAP) models
 developed by the Cambridge University group.
 
@@ -2104,7 +2109,7 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 
 * src/USER-QUIP: filenames -> commands
 * src/USER-QUIP/README
-* :doc:`pair\_style quip <pair_quip>`
+* :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
 
 
@@ -2129,7 +2134,7 @@ for monitoring molecules as bonds are created and destroyed.
 
 * src/USER-REAXC: filenames -> commands
 * src/USER-REAXC/README
-* :doc:`pair\_style reax/c <pair_reaxc>`
+* :doc:`pair_style reax/c <pair_reaxc>`
 * :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
 * :doc:`fix reax/c/species <fix_reaxc_species>`
 * examples/reax
@@ -2167,8 +2172,8 @@ This package has :ref:`specific installation instructions <user-scafacos>` on th
 
 * src/USER-SCAFACOS: filenames -> commands
 * src/USER-SCAFACOS/README
-* :doc:`kspace\_style scafacos <kspace_style>`
-* :doc:`kspace\_modify <kspace_modify>`
+* :doc:`kspace_style scafacos <kspace_style>`
+* :doc:`kspace_modify <kspace_modify>`
 * examples/USER/scafacos
 
 
@@ -2196,7 +2201,7 @@ Sciences, Iran).
 
 * src/USER-SDPD: filenames -> commands
 * src/USER-SDPD/README
-* :doc:`pair\_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
+* :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
 * examples/USER/sdpd
@@ -2263,7 +2268,7 @@ Tetot (LAAS-CNRS, France).
 
 * src/USER-SMTBQ: filenames -> commands
 * src/USER-SMTBQ/README
-* :doc:`pair\_style smtbq <pair_smtbq>`
+* :doc:`pair_style smtbq <pair_smtbq>`
 * examples/USER/smtbq
 
 
@@ -2433,13 +2438,13 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 **Supporting info:**
 
 * src/USER-YAFF/README
-* :doc:`angle\_style cross <angle_cross>`
-* :doc:`angle\_style mm3 <angle_mm3>`
-* :doc:`bond\_style mm3 <bond_mm3>`
-* :doc:`improper\_style distharm <improper_distharm>`
-* :doc:`improper\_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
-* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
+* :doc:`angle_style cross <angle_cross>`
+* :doc:`angle_style mm3 <angle_mm3>`
+* :doc:`bond_style mm3 <bond_mm3>`
+* :doc:`improper_style distharm <improper_distharm>`
+* :doc:`improper_style sqdistharm <improper_sqdistharm>`
+* :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
 
 

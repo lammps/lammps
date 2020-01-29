@@ -67,7 +67,7 @@ varied together during the minimization.
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
-dimensions (x,y,z,xy,xz,yz).  The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>` commands
+dimensions (x,y,z,xy,xz,yz).  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 
@@ -315,11 +315,11 @@ as the fix group.  Also note that the pressure compute does not
 include a kinetic component.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
@@ -331,7 +331,7 @@ It also means that changing attributes of *thermo\_temp* or
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by this fix.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its temperature and pressure calculation, as described above.  Note
@@ -357,7 +357,7 @@ energy, plus the strain energy, if it exists, as described above.  The
 energy values reported at the end of a minimization run under
 "Minimization stats" include this energy, and so differ from what
 LAMMPS normally reports as potential energy. This fix does not support
-the :doc:`fix\_modify <fix_modify>` *energy* option, because that would
+the :doc:`fix_modify <fix_modify>` *energy* option, because that would
 result in double-counting of the fix energy in the minimization
 energy. Instead, the fix energy can be explicitly added to the
 potential energy using one of these two variants:
@@ -385,8 +385,8 @@ Only dimensions that are available can be adjusted by this fix.
 Non-periodic dimensions are not available.  *z*\ , *xz*\ , and *yz*\ , are
 not available for 2D simulations. *xy*\ , *xz*\ , and *yz* are only
 available if the simulation domain is non-orthogonal.  The
-:doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and
-:doc:`read\_restart <read_restart>` commands specify whether the
+:doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
+:doc:`read_restart <read_restart>` commands specify whether the
 simulation box is orthogonal or non-orthogonal (triclinic) and explain
 the meaning of the xy,xz,yz tilt factors.
 

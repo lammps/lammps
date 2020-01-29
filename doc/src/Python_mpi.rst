@@ -5,15 +5,17 @@ If you wish to run LAMMPS in parallel from Python, you need to extend
 your Python with an interface to MPI.  This also allows you to
 make MPI calls directly from Python in your script, if you desire.
 
-We recommend use of mpi4py:
+We have tested this with mpi4py and pypar:
 
-* `PyPar <https://github.com/daleroberts/pypar>`_
+* `MPI for Python <https://mpi4py.readthedocs.io/>`_
+* `pypar <https://github.com/daleroberts/pypar>`_
 
-As of version 2.0.0 it allows passing a custom MPI communicator to
-the LAMMPS constructor, which means one can easily run one or more
+We recommend the use of mpi4py as it is the more complete MPI interface,
+and as of version 2.0.0 mpi4py allows passing a custom MPI communicator
+to the LAMMPS constructor, which means one can easily run one or more
 LAMMPS instances on subsets of the total MPI ranks.
 
-To install mpi4py (version mpi4py-2.0.0 as of Oct 2015), unpack it
+To install mpi4py (version mpi4py-3.0.3 as of Nov 2019), unpack it
 and from its main directory, type
 
 

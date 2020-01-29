@@ -147,7 +147,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of AIREBO elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
@@ -228,7 +228,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 These pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -236,7 +236,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 Restrictions
@@ -259,7 +259,7 @@ doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

@@ -99,7 +99,7 @@ with <font size="4">&upsilon;</font> being the kinematic
 viscosity. For more details, see Eq.(15) in :ref:`(Li2014\_JCP) <Li2014_JCP>`.
 
 The following coefficients must be defined in eDPD system for each
-pair of atom types via the :doc:`pair\_coeff <pair_coeff>` command as in
+pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above.
 
 * A (force units)
@@ -133,7 +133,7 @@ The *mdpd/rhosum* style computes the local particle mass density rho
 for mDPD particles by kernel function interpolation.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above.
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above.
 
 * cutoff (distance units)
 
@@ -157,7 +157,7 @@ term with B > 0 is the density-dependent repulsive force within an
 interaction range <font size="4">r<sub>d</sub></font>.
 
 The following coefficients must be defined for each pair of atom types via the
-:doc:`pair\_coeff <pair_coeff>` command as in the examples above.
+:doc:`pair_coeff <pair_coeff>` command as in the examples above.
 
 * A (force units)
 * B (force units)
@@ -201,7 +201,7 @@ a tDPD particle <font size="4"><i>m</i></font>. For more details, see
 :ref:`(Li2015\_JCP) <Li2015_JCP>`.
 
 The following coefficients must be defined for each pair of atom types via the
-:doc:`pair\_coeff <pair_coeff>` command as in the examples above.
+:doc:`pair_coeff <pair_coeff>` command as in the examples above.
 
 * A (force units)
 * gamma (force/velocity units)
@@ -272,7 +272,7 @@ The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
 mixing. Thus, coefficients for all I,J pairs must be specified explicitly.
 
 The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
-the :doc:`pair\_modify <pair_modify>` shift, table, and tail options.
+the :doc:`pair_modify <pair_modify>` shift, table, and tail options.
 
 The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not write
 information to :doc:`binary restart files <restart>`. Thus, you need
@@ -291,7 +291,7 @@ more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`,
 :doc:`fix mvv/edpd <fix_mvv_dpd>`, :doc:`fix mvv/tdpd <fix_mvv_dpd>`,
 :doc:`fix edpd/source <fix_dpd_source>`, :doc:`fix tdpd/source <fix_dpd_source>`,
 :doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`,

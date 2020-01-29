@@ -130,12 +130,12 @@ writing the orientation files is given in :ref:`(Wicaksono2) <Wicaksono2>`
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential energy of atom interactions with the grain
 boundary driving force to the system's potential energy as part of
 :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by these
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by these
 fixes. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator a fix is adding its forces. Default is the outermost level.
 
@@ -164,7 +164,7 @@ This fix should only be used with fcc or bcc lattices.
 Related commands
 """"""""""""""""
 
-:doc:`fix\_modify <fix_modify>`
+:doc:`fix_modify <fix_modify>`
 
 **Default:** none
 

@@ -49,7 +49,7 @@ Description
 """""""""""
 
 Write out the chemical species information computed by the ReaxFF
-potential specified by :doc:`pair\_style reax/c <pair_reaxc>`.
+potential specified by :doc:`pair_style reax/c <pair_reaxc>`.
 Bond-order values (either averaged or instantaneous, depending on
 value of *Nrepeat*\ ) are used to determine chemical bonds.  Every
 *Nfreq* timesteps, chemical species information is written to
@@ -122,7 +122,7 @@ average bond-order for the species analysis output on timestep 100.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes both a global vector of length 2 and a per-atom
@@ -174,7 +174,7 @@ Restrictions
 """"""""""""
 
 
-The "fix reax/c/species" currently only works with :doc:`pair\_style reax/c <pair_reaxc>` and it requires that the :doc:`pair\_style reax/c <pair_reaxc>` be invoked.  This fix is part of the
+The "fix reax/c/species" currently only works with :doc:`pair_style reax/c <pair_reaxc>` and it requires that the :doc:`pair_style reax/c <pair_reaxc>` be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
@@ -189,7 +189,7 @@ It should be possible to extend it to other reactive pair\_styles (such as
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style reax/c <pair_reaxc>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
+:doc:`pair_style reax/c <pair_reaxc>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
 
 Default
 """""""

@@ -56,7 +56,7 @@ particle is along the direction between that point and the particle,
 which is the direction normal to the surface at that point.  Note that
 if the region surface is comprised of multiple "faces", then each face
 can exert a force on the particle if it is close enough.  E.g. for
-:doc:`region\_style block <region>`, a particle in the interior, near a
+:doc:`region_style block <region>`, a particle in the interior, near a
 corner of the block, could feel wall forces from 1, 2, or 3 faces of
 the block.
 
@@ -146,7 +146,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
    :align: center
 
 For style *colloid*\ , the energy E is given by an integrated form of
-the :doc:`pair\_style colloid <pair_colloid>` potential:
+the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. image:: Eqs/fix_wall_colloid.jpg
    :align: center
@@ -178,15 +178,15 @@ For a full description of these wall styles, see fix\_style
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of interaction between atoms and the wall to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interaction between
 atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -207,7 +207,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
    If you want the atom/wall interaction energy to be included in
    the total potential energy of the system (the quantity being
-   minimized), you MUST enable the :doc:`fix\_modify <fix_modify>` *energy*
+   minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
 Restrictions

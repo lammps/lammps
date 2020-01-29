@@ -189,6 +189,8 @@ void PairEAMAlloyGPU::init_style()
     fp_single = false;
   else
     fp_single = true;
+
+  embedstep = -1;
 }
 
 /* ---------------------------------------------------------------------- */

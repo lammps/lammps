@@ -48,7 +48,7 @@ Description
 """""""""""
 
 This command sets parameters that affect the energy minimization
-algorithms selected by the :doc:`min\_style <min_style>` command.  The
+algorithms selected by the :doc:`min_style <min_style>` command.  The
 various settings may affect the convergence rate and overall number of
 force evaluations required by a minimization, so users can experiment
 with these parameters to tune their minimizations.
@@ -171,7 +171,7 @@ employed.  See :doc:`neb/spin <neb_spin>` for more explanation.
 Related commands
 """"""""""""""""
 
-:doc:`min\_style <min_style>`, :doc:`minimize <minimize>`
+:doc:`min_style <min_style>`, :doc:`minimize <minimize>`
 
 Default
 """""""

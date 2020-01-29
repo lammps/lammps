@@ -122,17 +122,17 @@ Note that the usual 1/2 factor is included in :math:`K`.
 This pair style does not support mixing since all parameters are
 explicit for each pair.
 
-The :doc:`pair\_modify <pair_modify>` shift option is supported by this
+The :doc:`pair_modify <pair_modify>` shift option is supported by this
 pair style.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -159,10 +159,10 @@ LAMMPS is build with that package. See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style lj/cut <pair_lj>`,
-:doc:`pair\_style morse <pair_morse>`,
-:doc:`bond\_style harmonic <bond_harmonic>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style lj/cut <pair_lj>`,
+:doc:`pair_style morse <pair_morse>`,
+:doc:`bond_style harmonic <bond_harmonic>`
 
 **Default:** none

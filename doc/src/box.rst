@@ -36,8 +36,8 @@ Set attributes of the simulation box.
 
 For triclinic (non-orthogonal) simulation boxes, the *tilt* keyword
 allows simulation domains to be created with arbitrary tilt factors,
-e.g. via the :doc:`create\_box <create_box>` or
-:doc:`read\_data <read_data>` commands.  Tilt factors determine how
+e.g. via the :doc:`create_box <create_box>` or
+:doc:`read_data <read_data>` commands.  Tilt factors determine how
 skewed the triclinic box is; see the :doc:`Howto triclinic <Howto_triclinic>` doc page for a discussion of triclinic
 boxes in LAMMPS.
 
@@ -60,8 +60,8 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command or
-:doc:`read\_restart <read_restart>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
+:doc:`read_restart <read_restart>` command.
 
 **Related commands:** none
 

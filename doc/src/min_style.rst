@@ -46,7 +46,7 @@ derivative.  When close to an energy minimum, the algorithm behaves
 like a Newton method and exhibits a quadratic convergence rate to high
 accuracy.  In most cases the behavior of *hftn* is similar to *cg*\ ,
 but it offers an alternative if *cg* seems to perform poorly.  This
-style is not affected by the :doc:`min\_modify <min_modify>` command.
+style is not affected by the :doc:`min_modify <min_modify>` command.
 
 Style *sd* is a steepest descent algorithm.  At each iteration, the
 search direction is set to the downhill direction corresponding to the
@@ -153,7 +153,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`min\_modify <min_modify>`, :doc:`minimize <minimize>`, :doc:`neb <neb>`
+:doc:`min_modify <min_modify>`, :doc:`minimize <minimize>`, :doc:`neb <neb>`
 
 Default
 """""""

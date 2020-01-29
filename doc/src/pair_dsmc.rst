@@ -48,9 +48,9 @@ There is no pairwise energy or virial contributions associated with
 this pair style.
 
 The following coefficient must be defined for each pair of atoms types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * sigma (area units, i.e. distance-squared)
@@ -118,13 +118,13 @@ as in the following:
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -138,7 +138,7 @@ be the same as they would have been if the original simulation had
 continued past the restart time.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -155,9 +155,9 @@ was built with that package.  See the :doc:`Build package <Build_package>` doc p
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
-:doc:`neigh\_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
-:doc:`comm\_modify <comm_modify>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
+:doc:`neigh_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
+:doc:`comm_modify <comm_modify>`
 
 **Default:** none
 

@@ -88,7 +88,7 @@ cutoffs for the NM and Coulombic terms respectively.
 Styles *nm/cut/coul/long* compute the same
 Coulombic interactions as style *nm/cut/coul/cut* except that an
 additional damping factor is applied to the Coulombic term so it can
-be used in conjunction with the :doc:`kspace\_style <kspace_style>`
+be used in conjunction with the :doc:`kspace_style <kspace_style>`
 command and its *ewald* or *pppm* option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
@@ -96,9 +96,9 @@ computed in reciprocal space.
 
 For all of the *nm* pair styles, the following coefficients must
 be defined for each pair of atoms types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the
+via the :doc:`pair_coeff <pair_coeff>` command as in the
 examples above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
 * E0 (energy units)
@@ -131,14 +131,14 @@ These pair styles do not support mixing. Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
 All of the *nm* pair styles supports the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the pair
+:doc:`pair_modify <pair_modify>` shift option for the energy of the pair
 interaction.
 
 The *nm/cut/coul/long* pair styles support the
-:doc:`pair\_modify <pair_modify>` table option since they can tabulate
+:doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
-All of the *nm* pair styles support the :doc:`pair\_modify <pair_modify>`
+All of the *nm* pair styles support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the energy and
 pressure for the NM portion of the pair interaction.
 
@@ -146,7 +146,7 @@ All of the *nm* pair styles write their information to :doc:`binary restart file
 to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of
-the :doc:`run\_style respa <run_style>` command.  They do not support the
+the :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -181,7 +181,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

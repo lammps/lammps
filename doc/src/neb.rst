@@ -171,8 +171,8 @@ For a *file-style* setting of *none*\ , no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
-dump file, via the :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>`, or :doc:`read\_dump <read_dump>`
+dump file, via the :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`read_dump <read_dump>`
 commands.  The replica-specific names of these files can be specified
 as in the discussion above for the *each* file-style.  Also see the
 section below for how a NEB calculation can produce restart files, so
@@ -192,7 +192,7 @@ that a long calculation can be restarted if needed.
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure, performed via damped dynamics.  To enable
 this, you must first define a damped dynamics
-:doc:`min\_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*\ ,
+:doc:`min_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*\ ,
 *sd*\ , and *hftn* styles cannot be used, since they perform iterative
 line searches in their inner loop, which cannot be easily synchronized
 across multiple replicas.
@@ -254,7 +254,7 @@ A few other settings in your input script are required or advised to
 perform a NEB calculation.  See the NOTE about the choice of timestep
 at the beginning of this doc page.
 
-An atom map must be defined which it is not by default for :doc:`atom\_style atomic <atom_style>` problems.  The :doc:`atom\_modify map <atom_modify>` command can be used to do this.
+An atom map must be defined which it is not by default for :doc:`atom_style atomic <atom_style>` problems.  The :doc:`atom_modify map <atom_modify>` command can be used to do this.
 
 The minimizers in LAMMPS operate on all atoms in your system, even
 non-NEB atoms, as defined above.  To prevent non-NEB atoms from moving

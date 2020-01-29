@@ -174,20 +174,6 @@ t_scalar3<Scalar> operator *
   return t_scalar3<Scalar>(a.x*b,a.y*b,a.z*b);
 }
 
-#if !defined(__CUDACC__) && !defined(__VECTOR_TYPES_H__)
-  struct double2 {
-    double x, y;
-  };
-  struct float2 {
-    float x, y;
-  };
-  struct float4 {
-    float x, y, z, w;
-  };
-  struct double4 {
-    double x, y, z, w;
-  };
-#endif
 // set LMPHostype and LMPDeviceType from Kokkos Default Types
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
@@ -310,14 +296,8 @@ public:
 #endif
 #if PRECISION==1
 typedef float LMP_FLOAT;
-typedef float2 LMP_FLOAT2;
-typedef lmp_float3 LMP_FLOAT3;
-typedef float4 LMP_FLOAT4;
 #else
 typedef double LMP_FLOAT;
-typedef double2 LMP_FLOAT2;
-typedef lmp_double3 LMP_FLOAT3;
-typedef double4 LMP_FLOAT4;
 #endif
 
 #ifndef PREC_FORCE
@@ -326,14 +306,8 @@ typedef double4 LMP_FLOAT4;
 
 #if PREC_FORCE==1
 typedef float F_FLOAT;
-typedef float2 F_FLOAT2;
-typedef lmp_float3 F_FLOAT3;
-typedef float4 F_FLOAT4;
 #else
 typedef double F_FLOAT;
-typedef double2 F_FLOAT2;
-typedef lmp_double3 F_FLOAT3;
-typedef double4 F_FLOAT4;
 #endif
 
 #ifndef PREC_ENERGY
@@ -342,12 +316,8 @@ typedef double4 F_FLOAT4;
 
 #if PREC_ENERGY==1
 typedef float E_FLOAT;
-typedef float2 E_FLOAT2;
-typedef float4 E_FLOAT4;
 #else
 typedef double E_FLOAT;
-typedef double2 E_FLOAT2;
-typedef double4 E_FLOAT4;
 #endif
 
 struct s_EV_FLOAT {
@@ -500,12 +470,8 @@ typedef struct s_FEV_FLOAT FEV_FLOAT;
 
 #if PREC_POS==1
 typedef float X_FLOAT;
-typedef float2 X_FLOAT2;
-typedef float4 X_FLOAT4;
 #else
 typedef double X_FLOAT;
-typedef double2 X_FLOAT2;
-typedef double4 X_FLOAT4;
 #endif
 
 #ifndef PREC_VELOCITIES
@@ -514,22 +480,14 @@ typedef double4 X_FLOAT4;
 
 #if PREC_VELOCITIES==1
 typedef float V_FLOAT;
-typedef float2 V_FLOAT2;
-typedef float4 V_FLOAT4;
 #else
 typedef double V_FLOAT;
-typedef double2 V_FLOAT2;
-typedef double4 V_FLOAT4;
 #endif
 
 #if PREC_KSPACE==1
 typedef float K_FLOAT;
-typedef float2 K_FLOAT2;
-typedef float4 K_FLOAT4;
 #else
 typedef double K_FLOAT;
-typedef double2 K_FLOAT2;
-typedef double4 K_FLOAT4;
 #endif
 
 typedef int T_INT;

@@ -83,7 +83,7 @@ table values from which the density-dependent energy and force are
 computed by linear interpolation.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * filename
@@ -145,7 +145,7 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`pair\_style multi/lucy/rx <pair_multi_lucy_rx>`
+specified in the :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
 command.  Let Ntable = *N* in the pair\_style command, and Nfile = "N"
 in the tabulated file.  What LAMMPS does is a preliminary
 interpolation by creating splines using the Nfile tabulated values as
@@ -203,7 +203,7 @@ one that matches the specified keyword.
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-The :doc:`pair\_modify <pair_modify>` shift, table, and tail options are
+The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
 This pair style writes the settings for the "pair\_style multi/lucy/rx" command
@@ -214,7 +214,7 @@ file, since it is tabulated in the potential files.  Thus, pair\_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -253,7 +253,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** fractional weighting
 

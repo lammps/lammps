@@ -50,10 +50,10 @@ and torques are the sum of various models selected for the normal,
 tangential, rolling and twisting modes of motion.
 
 All model choices and parameters are entered in the
-:doc:`pair\_coeff <pair_coeff>` command, as described below.  Unlike
+:doc:`pair_coeff <pair_coeff>` command, as described below.  Unlike
 e.g. :doc:`pair gran/hooke <pair_gran>`, coefficient values are not
 global, but can be set to different values for different combinations
-of particle types, as determined by the :doc:`pair\_coeff <pair_coeff>`
+of particle types, as determined by the :doc:`pair_coeff <pair_coeff>`
 command.  If the contact model choice is the same for two particle
 types, the mixing for the cross-coefficients can be carried out
 automatically. This is shown in the last example, where model
@@ -674,7 +674,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-The :doc:`pair\_modify <pair_modify>` mix, shift, table, and tail options
+The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
 
 Mixing of coefficients is carried out using geometric averaging for
@@ -711,7 +711,7 @@ These pair styles write their information to :doc:`binary restart files <restart
 specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 The single() function of these pair styles returns 0.0 for the energy
@@ -743,23 +743,23 @@ All the granular pair styles are part of the GRANULAR package.  It is
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 These pair styles require that atoms store torque and angular velocity
-(omega) as defined by the :doc:`atom\_style <atom_style>`.  They also
+(omega) as defined by the :doc:`atom_style <atom_style>`.  They also
 require a per-particle radius is stored.  The *sphere* atom style does
 all of this.
 
-This pair style requires you to use the :doc:`comm\_modify vel yes <comm_modify>` command so that velocities are stored by ghost
+This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the
-:doc:`read\_restart <read_restart>` command, though they should provide
+:doc:`read_restart <read_restart>` command, though they should provide
 statistically similar results.  This is because the forces they
 compute depend on atom velocities.  See the
-:doc:`read\_restart <read_restart>` command for more details.
+:doc:`read_restart <read_restart>` command for more details.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 :doc:`pair gran/\* <pair_gran>`
 
 Default

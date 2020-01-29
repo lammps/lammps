@@ -164,7 +164,7 @@ corresponding reciprocal lattice.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix. You can use it to change the temperature compute from thermo\_temp
 to the one that reflects the true temperature of atoms in the group.
 
@@ -200,7 +200,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute msd <compute_msd>`,
-:doc:`dynamical\_matrix <dynamical_matrix>`
+:doc:`dynamical_matrix <dynamical_matrix>`
 
 Default
 """""""

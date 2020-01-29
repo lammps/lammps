@@ -179,7 +179,7 @@ output.  This option can only be used with the *ave running* setting.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -190,12 +190,12 @@ Restrictions
 
 
 The attributes for fix\_saed\_vtk must match the values assigned in the
-associated :doc:`compute\_saed <compute_saed>` command.
+associated :doc:`compute_saed <compute_saed>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`compute\_saed <compute_saed>`
+:doc:`compute_saed <compute_saed>`
 
 Default
 """""""

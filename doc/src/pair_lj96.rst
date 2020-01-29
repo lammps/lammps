@@ -41,9 +41,9 @@ of the standard 12/6 potential, given by
 Rc is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -86,13 +86,13 @@ and cutoff distance for all of the lj/cut pair styles can be mixed.
 The default mix value is *geometric*\ .  See the "pair\_modify" command
 for details.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` tail
+This pair style supports the :doc:`pair_modify <pair_modify>` tail
 option for adding a long-range tail correction to the energy and
 pressure of the pair interaction.
 
@@ -100,9 +100,9 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
-keywords of the :doc:`run\_style respa <run_style>` command, meaning the
+keywords of the :doc:`run_style respa <run_style>` command, meaning the
 pairwise forces can be partitioned by distance at different levels of
-the rRESPA hierarchy.  See the :doc:`run\_style <run_style>` command for
+the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
 
@@ -116,7 +116,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

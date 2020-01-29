@@ -259,7 +259,10 @@ void PPPMDisp::init()
     if (logfile) fprintf(logfile,"PPPMDisp initialization ...\n");
   }
 
+  // error check
+
   triclinic_check();
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
   if (comm->style != 0)
@@ -279,6 +282,10 @@ void PPPMDisp::init()
     sprintf(str,"PPPMDisp coulomb order cannot be greater than %d",MAXORDER);
     error->all(FLERR,str);
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // free all arrays previously allocated
 

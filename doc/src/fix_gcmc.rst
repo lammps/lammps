@@ -343,7 +343,7 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 For that energy to be included in the total potential energy of the
 system (the quantity used when performing GCMC exchange and MC moves),
 you MUST enable
-the :doc:`fix\_modify <fix_modify>` *energy* option for that fix.  The
+the :doc:`fix_modify <fix_modify>` *energy* option for that fix.  The
 doc pages for individual :doc:`fix <fix>` commands specify if this
 should be done.
 
@@ -355,7 +355,7 @@ about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
-:doc:`compute\_modify dynamic/dof <compute_modify>` command to insure that the
+:doc:`compute_modify dynamic/dof <compute_modify>` command to insure that the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 
@@ -403,17 +403,17 @@ adds all inserted atoms of the specified type to the
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges,  the number
 of MC step attempts and successes etc.  See
-the :doc:`read\_restart <read_restart>` command for info on how to
+the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset\_timestep <reset_timestep>`.
+   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix computes a global vector of length 8, which can be accessed
@@ -471,7 +471,7 @@ Related commands
 :doc:`fix atom/swap <fix_atom_swap>`,
 :doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
-:doc:`delete\_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`
 
 Default
 """""""

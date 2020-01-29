@@ -57,7 +57,7 @@ Create bonds between pairs of atoms as a simulation runs according to
 specified criteria.  This can be used to model cross-linking of
 polymers, the formation of a percolation network, etc.  In this
 context, a bond means an interaction between a pair of atoms computed
-by the :doc:`bond\_style <bond_style>` command.  Once the bond is created
+by the :doc:`bond_style <bond_style>` command.  Once the bond is created
 it will be permanently in place.  Optionally, the creation of a bond
 can also create angle, dihedral, and improper interactions that bond
 is part of.  See the discussion of the *atype*\ , *dtype*\ , and *itype*
@@ -92,7 +92,7 @@ a bond on this timestep, even if it has other possible bond partners.
 
 It is permissible to have *itype* = *jtype*\ .  *Rmin* must be <= the
 pairwise cutoff distance between *itype* and *jtype* atoms, as defined
-by the :doc:`pair\_style <pair_style>` command.
+by the :doc:`pair_style <pair_style>` command.
 
 The *iparam* and *jparam* keywords can be used to limit the bonding
 functionality of the participating atoms.  Each atom keeps track of
@@ -106,7 +106,7 @@ The *newtype* value for *iparam* and *jparam* can be used to change
 the atom type of atom I or J when it reaches *maxbond* number of bonds
 of type *bondtype*\ .  This means it can now interact in a pairwise
 fashion with other atoms in a different way by specifying different
-:doc:`pair\_coeff <pair_coeff>` coefficients.  If you do not wish the
+:doc:`pair_coeff <pair_coeff>` coefficients.  If you do not wish the
 atom type to change, simply specify *newtype* as *itype* or *jtype*\ .
 
 The *prob* keyword can also effect whether an eligible bond is
@@ -132,10 +132,10 @@ of new bonds, angles, etc.
    molecule retain their original molecule IDs.
 
 If the *atype* keyword is used and if an angle potential is defined
-via the :doc:`angle\_style <angle_style>` command, then any new 3-body
+via the :doc:`angle_style <angle_style>` command, then any new 3-body
 interactions inferred by the creation of a bond will create new angles
 of type *angletype*\ , with parameters assigned by the corresponding
-:doc:`angle\_coeff <angle_coeff>` command.  Likewise, the *dtype* and
+:doc:`angle_coeff <angle_coeff>` command.  Likewise, the *dtype* and
 *itype* keywords will create new dihedrals and impropers of type
 *dihedraltype* and *impropertype*\ .
 
@@ -149,8 +149,8 @@ of type *angletype*\ , with parameters assigned by the corresponding
    "extra bond per atom" parameter must be set to allow for it.  Ditto
    for "extra angle per atom", "extra dihedral per atom", and "extra
    improper per atom" if angles, dihedrals, or impropers are being added
-   when bonds are created.  See the :doc:`read\_data <read_data>` or
-   :doc:`create\_box <create_box>` command for more details.  Note that a
+   when bonds are created.  See the :doc:`read_data <read_data>` or
+   :doc:`create_box <create_box>` command for more details.  Note that a
    data file with no atoms can be used if you wish to add non-bonded
    atoms via the :doc:`create atoms <create_atoms>` command, e.g. for a
    percolation simulation.
@@ -165,8 +165,8 @@ of type *angletype*\ , with parameters assigned by the corresponding
    molecular topology of your system.  The "extra special per atom"
    parameter must typically be set to allow for the new maximum total
    size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 2
-   ways to do this.  See the :doc:`read\_data <read_data>` or
-   :doc:`create\_box <create_box>` commands for details.
+   ways to do this.  See the :doc:`read_data <read_data>` or
+   :doc:`create_box <create_box>` commands for details.
 
 .. note::
 
@@ -174,20 +174,20 @@ of type *angletype*\ , with parameters assigned by the corresponding
    keywords, the list of topological neighbors is updated for atoms
    affected by the new bond.  This in turn affects which neighbors are
    considered for pairwise interactions, using the weighting rules set by
-   the :doc:`special\_bonds <special_bonds>` command.  Consider a new bond
+   the :doc:`special_bonds <special_bonds>` command.  Consider a new bond
    created between atoms I,J.  If J has a bonded neighbor K, then K
    becomes a 2nd neighbor of I.  Even if the *atype* keyword is not used
    to create angle I-J-K, the pairwise interaction between I and K will
    be potentially turned off or weighted by the 1-3 weighting specified
-   by the :doc:`special\_bonds <special_bonds>` command.  This is the case
+   by the :doc:`special_bonds <special_bonds>` command.  This is the case
    even if the "angle yes" option was used with that command.  The same
    is true for 3rd neighbors (1-4 interactions), the *dtype* keyword, and
    the "dihedral yes" option used with the
-   :doc:`special\_bonds <special_bonds>` command.
+   :doc:`special_bonds <special_bonds>` command.
 
 Note that even if your simulation starts with no bonds, you must
-define a :doc:`bond\_style <bond_style>` and use the
-:doc:`bond\_coeff <bond_coeff>` command to specify coefficients for the
+define a :doc:`bond_style <bond_style>` and use the
+:doc:`bond_coeff <bond_coeff>` command to specify coefficients for the
 *bondtype*\ .  Similarly, if new atom types are specified by the
 *iparam* or *jparam* keywords, they must be within the range of atom
 types allowed by the simulation and pairwise coefficients must be
@@ -201,7 +201,7 @@ created, neighbor lists must be immediately updated on the same
 timestep.  This is to insure that any pairwise interactions that
 should be turned "off" due to a bond creation, because they are now
 excluded by the presence of the bond and the settings of the
-:doc:`special\_bonds <special_bonds>` command, will be immediately
+:doc:`special_bonds <special_bonds>` command, will be immediately
 recognized.  All of these operations increase the cost of a timestep.
 Thus you should be cautious about invoking this fix too frequently.
 
@@ -224,7 +224,7 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
@@ -251,7 +251,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix bond/break <fix_bond_break>`, :doc:`fix bond/react <fix_bond_react>`, :doc:`fix bond/swap <fix_bond_swap>`,
-:doc:`dump local <dump>`, :doc:`special\_bonds <special_bonds>`
+:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`
 
 Default
 """""""

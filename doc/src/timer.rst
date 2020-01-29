@@ -122,7 +122,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`run post no <run>`, :doc:`kspace\_modify fftbench <kspace_modify>`
+:doc:`run post no <run>`, :doc:`kspace_modify fftbench <kspace_modify>`
 
 Default
 """""""

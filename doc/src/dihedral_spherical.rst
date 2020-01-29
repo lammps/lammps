@@ -52,9 +52,9 @@ The coefficient 69.3 is the harmonic spring constant for phi after
 division by sin(74.4)\*sin(48.1) (the minima positions for theta1 and theta2).
 
 The following coefficients must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above, or in
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
 the Dihedral Coeffs section of a data file read by the
-:doc:`read\_data <read_data>` command:
+:doc:`read_data <read_data>` command:
 
 * n (integer >= 1)
 * C1 (energy)
@@ -94,7 +94,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 

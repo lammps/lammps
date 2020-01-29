@@ -50,9 +50,9 @@ to control the softness of the interactions :ref:`(Paula Leite2017) <PL1>`.
 This model is useful as a reference system for fluid-phase free-energy calculations :ref:`(Paula Leite2016) <PL2>`.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -112,18 +112,18 @@ distance for this pair style can be mixed.  A is always mixed via a
 mix value.  The default mix value is *geometric*\ .  See the
 "pair\_modify" command for details.
 
-This pair style support the :doc:`pair\_modify <pair_modify>` shift option for the energy of the pair interaction.
+This pair style support the :doc:`pair_modify <pair_modify>` shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table and tail are not relevant for this
+The :doc:`pair_modify <pair_modify>` table and tail are not relevant for this
 pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>` tail option for adding long-range tail corrections to energy and pressure.
+This pair style does not support the :doc:`pair_modify <pair_modify>` tail option for adding long-range tail corrections to energy and pressure.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -137,7 +137,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`
 
 **Default:** none
 

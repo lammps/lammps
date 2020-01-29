@@ -54,7 +54,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style tdpd <pair_meso>`
+:doc:`pair_style tdpd <pair_meso>`
 
 **Default:** none
 

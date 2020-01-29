@@ -26,15 +26,30 @@ using namespace CSLIB_NS;
 
 void Message::command(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal message command");
+  if (narg < 1) error->all(FLERR,"Illegal message command");
 
   int clientserver=0;
   if (strcmp(arg[0],"client") == 0) clientserver = 1;
   else if (strcmp(arg[0],"server") == 0) clientserver = 2;
+  else if (strcmp(arg[0],"quit") == 0) clientserver = 0;
   else error->all(FLERR,"Illegal message command");
+
+  // shutdown current client mode
+
+  if (clientserver == 0) {
+    if (lmp->clientserver != 1)
+      error->all(FLERR,"Cannot message quit if not in client mode");
+    quit();
+    return;
+  }
+
+  // setup client or server mode
+
   lmp->clientserver = clientserver;
 
   // validate supported protocols
+
+  if (narg < 3) error->all(FLERR,"Illegal message command");
 
   if ((strcmp(arg[1],"md") != 0) && (strcmp(arg[1],"mc") != 0))
     error->all(FLERR,"Unknown message protocol");
@@ -81,4 +96,26 @@ void Message::command(int narg, char **arg)
 
     cs->send(0,0);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Message::quit()
+{
+  CSlib *cs = (CSlib *) lmp->cslib;
+
+  // send all-done message to server
+  // receive acknowledgement back
+
+  cs->send(-1,0);
+
+  int nfield;
+  int *fieldID,*fieldtype,*fieldlen;
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
+
+  // clean-up
+
+  delete cs;
+  lmp->cslib = NULL;
+  lmp->clientserver = 0;
 }

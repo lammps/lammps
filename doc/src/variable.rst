@@ -113,7 +113,7 @@ strings, the :doc:`next <next>` command can be used to increment which
 string is assigned to the variable.  Variables of style *equal* store
 a formula which when evaluated produces a single numeric value which
 can be output either directly (see the :doc:`print <print>`, :doc:`fix print <fix_print>`, and :doc:`run every <run>` commands) or as part
-of thermodynamic output (see the :doc:`thermo\_style <thermo_style>`
+of thermodynamic output (see the :doc:`thermo_style <thermo_style>`
 command), or used as input to an averaging fix (see the :doc:`fix ave/time <fix_ave_time>` command).  Variables of style *vector*
 store a formula which produces a vector of such values which can be
 used as input to various averaging fixes, or elements of which can be
@@ -425,7 +425,7 @@ For the *internal* style a numeric value is provided.  This value will
 be assigned to the variable until a LAMMPS command sets it to a new
 value.  There are currently only two LAMMPS commands that require
 *internal* variables as inputs, because they reset them:
-:doc:`create\_atoms <create_atoms>` and :doc:`fix controller <fix_controller>`.  As mentioned above, an
+:doc:`create_atoms <create_atoms>` and :doc:`fix controller <fix_controller>`.  As mentioned above, an
 internal-style variable can be used in place of an equal-style
 variable anywhere else in an input script, e.g. as an argument to
 another command that allows for equal-style variables.
@@ -557,10 +557,10 @@ will not work, since the *version* has been introduced more recently):
    if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes"
 
 The thermo keywords allowed in a formula are those defined by the
-:doc:`thermo\_style custom <thermo_style>` command.  Thermo keywords that
+:doc:`thermo_style custom <thermo_style>` command.  Thermo keywords that
 require a :doc:`compute <compute>` to calculate their values such as
 "temp" or "press", use computes stored and invoked by the
-:doc:`thermo\_style <thermo_style>` command.  This means that you can
+:doc:`thermo_style <thermo_style>` command.  This means that you can
 only use those keywords in a variable if the style you are using with
 the thermo\_style command (and the thermo keywords associated with that
 style) also define and use the needed compute.  Note that some thermo
@@ -688,7 +688,7 @@ timestep.  X,y > 0 and x > y are required.  The generated timesteps
 increase in a staggered fashion, as the sequence
 x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
 timestep in the sequence is returned.  Thus if stagger(1000,100) is
-used in a variable by the :doc:`dump\_modify every <dump_modify>`
+used in a variable by the :doc:`dump_modify every <dump_modify>`
 command, it will generate the sequence of output timesteps:
 
 
@@ -703,7 +703,7 @@ y value is how many of the z-1 possible timesteps within one
 logarithmic interval are generated.  I.e. the timesteps follow the
 sequence x,2x,3x,...y\*x,x\*z,2x\*z,3x\*z,...y\*x\*z,x\*z\^2,2x\*z\^2,etc.  For
 any current timestep, the next timestep in the sequence is returned.
-Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump\_modify every <dump_modify>` command, it will generate this sequence of
+Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, it will generate this sequence of
 output timesteps:
 
 
@@ -714,7 +714,7 @@ output timesteps:
 The logfreq2(x,y,z) function is similar to logfreq, except a single
 logarithmic interval is divided into y equally-spaced timesteps and
 all of them are output.  Y < z is not required.  Thus, if
-logfreq2(100,18,10) is used in a variable by the :doc:`dump\_modify every <dump_modify>` command, then the interval between 100 and
+logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, then the interval between 100 and
 1000 is divided as 900/18 = 50 steps, and it will generate the
 sequence of output timesteps:
 
@@ -743,7 +743,7 @@ the sequence x,x+z,x+2z,...,y.  If y-x is not a multiple of z, then
 similar to the way a for loop operates, the last value will be one
 that does not exceed y.  For any current timestep, the next timestep
 in the sequence is returned.  Thus if stride(1000,2000,100) is used
-in a variable by the :doc:`dump\_modify every <dump_modify>` command, it
+in a variable by the :doc:`dump_modify every <dump_modify>` command, it
 will generate the sequence of output timesteps:
 
 
@@ -763,7 +763,7 @@ that point the timestep increases in increments of c, from a to b,
 then after b, increments by z are resumed until y is reached.  For any
 current timestep, the next timestep in the sequence is returned.  Thus
 if stride2(1000,2000,100,1350,1360,1) is used in a variable by the
-:doc:`dump\_modify every <dump_modify>` command, it will generate the
+:doc:`dump_modify every <dump_modify>` command, it will generate the
 sequence of output timesteps:
 
 
@@ -786,7 +786,7 @@ where dt = the timestep size.
 The run begins on startstep.  Startstep can span multiple runs, using
 the *start* keyword of the :doc:`run <run>` command.  See the
 :doc:`run <run>` command for details of how to do this.  Note that the
-:doc:`thermo\_style <thermo_style>` keyword elaplong =
+:doc:`thermo_style <thermo_style>` keyword elaplong =
 timestep-startstep.
 
 The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
@@ -805,7 +805,7 @@ where dt = the timestep size.
 The run begins on startstep.  Startstep can span multiple runs, using
 the *start* keyword of the :doc:`run <run>` command.  See the
 :doc:`run <run>` command for details of how to do this.  Note that the
-:doc:`thermo\_style <thermo_style>` keyword elaplong =
+:doc:`thermo_style <thermo_style>` keyword elaplong =
 timestep-startstep.
 
 
@@ -1045,7 +1045,7 @@ evaluating the variable.
 
 The meaning of the different atom values and vectors is mostly
 self-explanatory.  *Mol* refers to the molecule ID of an atom, and is
-only defined if an :doc:`atom\_style <atom_style>` is being used that
+only defined if an :doc:`atom_style <atom_style>` is being used that
 defines molecule IDs.
 
 Note that many other atom attributes can be used as inputs to a
@@ -1260,7 +1260,7 @@ the string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v\_" is an optional or required
 kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
-:doc:`thermo\_style <thermo_style>` commands) if you wish it to evaluate
+:doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
 variable formula if you wish to reference a second variable.  The
 second variable will be evaluated whenever the first variable is
@@ -1333,7 +1333,7 @@ bond, etc) on timesteps that the variable will need the values.
 
 LAMMPS keeps track of all of this during a :doc:`run <run>` or :doc:`energy minimization <minimize>`.  An error will be generated if you
 attempt to evaluate a variable on timesteps when it cannot produce
-accurate values.  For example, if a :doc:`thermo\_style custom <thermo_style>` command prints a variable which accesses
+accurate values.  For example, if a :doc:`thermo_style custom <thermo_style>` command prints a variable which accesses
 values stored by a :doc:`fix ave/time <fix_ave_time>` command and the
 timesteps on which thermo output is generated are not multiples of the
 averaging frequency used in the fix command, then an error will occur.
@@ -1423,10 +1423,10 @@ commands:
    print "Final potential energy = $e"
 
 The first run is performed using one setting for the pairwise
-potential defined by the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands.  The potential energy is
+potential defined by the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands.  The potential energy is
 evaluated on the final timestep and stored by the :doc:`compute pe <compute_pe>` compute (this is done by the
-:doc:`thermo\_style <thermo_style>` command).  Then a pair coefficient is
+:doc:`thermo_style <thermo_style>` command).  Then a pair coefficient is
 changed, altering the potential energy of the system.  When the
 potential energy is printed via the "e" variable, LAMMPS will use the
 potential energy value stored by the :doc:`compute pe <compute_pe>`
@@ -1461,7 +1461,7 @@ Restrictions
 Indexing any formula element by global atom ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in
 order to look up the vector indices.  By default, only atom styles
-with molecular information create global maps.  The :doc:`atom\_modify map <atom_modify>` command can override the default, e.g. for
+with molecular information create global maps.  The :doc:`atom_modify map <atom_modify>` command can override the default, e.g. for
 atomic-style atom styles.
 
 All *universe*\ - and *uloop*\ -style variables defined in an input script

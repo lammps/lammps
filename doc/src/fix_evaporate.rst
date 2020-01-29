@@ -73,12 +73,12 @@ incur overhead due to the cost of building neighbor lists.
 
    If you are monitoring the temperature of a system where the atom
    count is changing due to evaporation, you typically should use the
-   :doc:`compute\_modify dynamic yes <compute_modify>` command for the
+   :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar, which can be accessed by various

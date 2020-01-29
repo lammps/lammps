@@ -40,9 +40,9 @@ dispersion in density functional theory calculations.
    :align: center
 
 For the *momb* pair style, the following coefficients must be defined
-for each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command as in the examples above, or in the data file or restart files
-read by the :doc:`read\_data <read_data>` as described below:
+read by the :doc:`read_data <read_data>` as described below:
 
 * D0 (energy units)
 * alpha (1/distance units)
@@ -64,7 +64,7 @@ LAMMPS is built with that package. See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style morse <pair_morse>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style morse <pair_morse>`
 
 **Default:** none
 

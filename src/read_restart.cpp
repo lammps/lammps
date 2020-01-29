@@ -165,6 +165,12 @@ void ReadRestart::command(int narg, char **arg)
 
   atom->allocate_type_arrays();
   atom->deallocate_topology();
+
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
+
+  bigint nbig = n;
+  nbig = atom->avec->roundup(nbig);
+  n = static_cast<int> (nbig);
   atom->avec->grow(n);
   n = atom->nmax;
 
@@ -211,13 +217,17 @@ void ReadRestart::command(int narg, char **arg)
     memory->create(buf,assignedChunkSize,"read_restart:buf");
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
-    if (!nextra) { // We can actually calculate number of atoms from assignedChunkSize
+
+    // can calculate number of atoms from assignedChunkSize
+
+    if (!nextra) {
       atom->nlocal = 1; // temporarily claim there is one atom...
       int perAtomSize = avec->size_restart(); // ...so we can get its size
       atom->nlocal = 0; // restore nlocal to zero atoms
       int atomCt = (int) (assignedChunkSize / perAtomSize);
       if (atomCt > atom->nmax) avec->grow(atomCt);
     }
+
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }

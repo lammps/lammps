@@ -39,7 +39,7 @@ where Ei is the improper term and Eaa is an angle-angle term.  The 3 X
 terms in Ei are an average over 3 out-of-plane angles.
 
 The 4 atoms in an improper quadruplet (listed in the data file read by
-the :doc:`read\_data <read_data>` command) are ordered I,J,K,L.  X\_IJKL
+the :doc:`read_data <read_data>` command) are ordered I,J,K,L.  X\_IJKL
 refers to the angle between the plane of I,J,K and the plane of J,K,L,
 and the bond JK lies in both planes.  Similarly for X\_KJLI and X\_LJIK.
 Note that atom J appears in the common bonds (JI, JK, JL) of all 3 X
@@ -60,9 +60,9 @@ this is not required.
 See :ref:`(Sun) <improper-Sun>` for a description of the COMPASS class2 force field.
 
 Coefficients for the Ei and Eaa formulas must be defined for each
-improper type via the :doc:`improper\_coeff <improper_coeff>` command as
+improper type via the :doc:`improper_coeff <improper_coeff>` command as
 in the example above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
 These are the 2 coefficients for the Ei formula:
@@ -74,7 +74,7 @@ X0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian\^2.
 
 For the Eaa formula, each line in a
-:doc:`improper\_coeff <improper_coeff>` command in the input script lists
+:doc:`improper_coeff <improper_coeff>` command in the input script lists
 7 coefficients, the first of which is "aa" to indicate they are
 AngleAngle coefficients.  In a data file, these coefficients should be
 listed under a "AngleAngle Coeffs" heading and you must leave out the
@@ -128,7 +128,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
 

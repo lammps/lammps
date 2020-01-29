@@ -96,9 +96,9 @@ commands)
 Atom creation
 --------------------------
 
-(:doc:`read\_data <read_data>`, :doc:`lattice <lattice>`,
-:doc:`create\_atoms <create_atoms>`, :doc:`delete\_atoms <delete_atoms>`,
-:doc:`displace\_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
+(:doc:`read_data <read_data>`, :doc:`lattice <lattice>`,
+:doc:`create_atoms <create_atoms>`, :doc:`delete_atoms <delete_atoms>`,
+:doc:`displace_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
 
 * read in atom coords from files
 * create atoms on one or more lattices (e.g. grain boundaries)
@@ -133,7 +133,7 @@ Ensembles, constraints, and boundary conditions
 Integrators
 ---------------------------
 
-(:doc:`run <run>`, :doc:`run\_style <run_style>`, :doc:`minimize <minimize>` commands)
+(:doc:`run <run>`, :doc:`run_style <run_style>`, :doc:`minimize <minimize>` commands)
 
 * velocity-Verlet integrator
 * Brownian dynamics

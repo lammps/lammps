@@ -51,7 +51,7 @@ Restrictions
 
 
 This compute requires that atoms store a radius as defined by the
-:doc:`atom\_style sphere <atom_style>` command.
+:doc:`atom_style sphere <atom_style>` command.
 
 Related commands
 """"""""""""""""

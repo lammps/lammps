@@ -46,7 +46,7 @@ pair styles in one simulation.  With the *hybrid* style, exactly one
 pair style is assigned to each pair of atom types.  With the
 *hybrid/overlay* style, one or more pair styles can be assigned to
 each pair of atom types.  The assignment of pair styles to type pairs
-is made via the :doc:`pair\_coeff <pair_coeff>` command.
+is made via the :doc:`pair_coeff <pair_coeff>` command.
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The
@@ -122,7 +122,7 @@ with Tersoff, and the cross-interactions with Lennard-Jones:
    pair_coeff 1 2 lj/cut 1.0 1.5
 
 If pair coefficients are specified in the data file read via the
-:doc:`read\_data <read_data>` command, then the same rule applies.
+:doc:`read_data <read_data>` command, then the same rule applies.
 E.g. "eam/alloy" or "lj/cut" must be added after the atom type, for
 each line in the "Pair Coeffs" section, e.g.
 
@@ -135,7 +135,7 @@ each line in the "Pair Coeffs" section, e.g.
    ...
 
 Note that the pair\_coeff command for some potentials such as
-:doc:`pair\_style eam/alloy <pair_eam>` includes a mapping specification
+:doc:`pair_style eam/alloy <pair_eam>` includes a mapping specification
 of elements to all atom types, which in the hybrid case, can include
 atom types not assigned to the *eam/alloy* potential.  The NULL
 keyword is used by many such potentials (eam/alloy, Tersoff, AIREBO,
@@ -170,20 +170,20 @@ commands are the same:
    pair_coeff 2 2 lj/cut 1.5 0.8
 
 Coefficients must be defined for each pair of atoms types via the
-:doc:`pair\_coeff <pair_coeff>` command as described above, or in the
-data file or restart files read by the :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` commands, or by mixing as described
+:doc:`pair_coeff <pair_coeff>` command as described above, or in the
+data file or restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands, or by mixing as described
 below.
 
 For both the *hybrid* and *hybrid/overlay* styles, every atom type
 pair I,J (where I <= J) must be assigned to at least one sub-style via
-the :doc:`pair\_coeff <pair_coeff>` command as in the examples above, or
-in the data file read by the :doc:`read\_data <read_data>`, or by mixing
+the :doc:`pair_coeff <pair_coeff>` command as in the examples above, or
+in the data file read by the :doc:`read_data <read_data>`, or by mixing
 as described below.
 
 If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the :doc:`neigh\_modify exclude type <neigh_modify>`
+sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for *hybrid* and *hybrid/overlay* simulations, you
@@ -205,7 +205,7 @@ If an assignment to *none* is made in a simulation with the
 *hybrid/overlay* pair style, it wipes out all previous assignments of
 that atom type pair to sub-styles.
 
-Note that you may need to use an :doc:`atom\_style <atom_style>` hybrid
+Note that you may need to use an :doc:`atom_style <atom_style>` hybrid
 command in your input script, if atoms in the simulation will need
 attributes from several atom styles, due to using multiple pair
 potentials.
@@ -218,8 +218,8 @@ Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
 interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
-:doc:`special\_bonds <special_bonds>` command.  Different weights can be
-assigned to different pair hybrid sub-styles via the :doc:`pair\_modify special <pair_modify>` command. This allows multiple force fields
+:doc:`special_bonds <special_bonds>` command.  Different weights can be
+assigned to different pair hybrid sub-styles via the :doc:`pair_modify special <pair_modify>` command. This allows multiple force fields
 to be used in a model of a hybrid system, however, there is no consistent
 approach to determine parameters automatically for the interactions
 between the two force fields, this is only recommended when particles
@@ -261,12 +261,12 @@ effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
    pair_modify pair tersoff special lj/coul 1.0 1.0 1.0
 
 For use with the various :doc:`compute \*/tally <compute_tally>`
-computes, the :doc:`pair\_modify compute/tally <pair_modify>`
+computes, the :doc:`pair_modify compute/tally <pair_modify>`
 command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
 (e.g. many-body styles) do not support this feature.
 
-See the :doc:`pair\_modify <pair_modify>` doc page for details on
+See the :doc:`pair_modify <pair_modify>` doc page for details on
 the specific syntax, requirements and restrictions.
 
 
@@ -288,7 +288,7 @@ individual sub-style can be accessed and output via the :doc:`compute pair <comp
    hybrid setting is as follows.
 
 A subset of atom types is assigned to the many-body potential with a
-single :doc:`pair\_coeff <pair_coeff>` command, using "\* \*" to include
+single :doc:`pair_coeff <pair_coeff>` command, using "\* \*" to include
 all types and the NULL keywords described above to exclude specific
 types not assigned to that potential.  If types 1,3,4 were assigned in
 that way (but not type 2), this means that all many-body interactions
@@ -309,7 +309,7 @@ to think of excluding an interaction between a particular pair of
 atoms when the potential computes 3-body or 4-body interactions.
 
 However, you can still use the pair\_coeff none setting or the
-:doc:`neigh\_modify exclude <neigh_modify>` command to exclude certain
+:doc:`neigh_modify exclude <neigh_modify>` command to exclude certain
 type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
 potential, since it builds its list of 3-body, 4-body, etc
@@ -390,7 +390,7 @@ instructions on how to use the accelerated styles effectively.
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 Any pair potential settings made via the
-:doc:`pair\_modify <pair_modify>` command are passed along to all
+:doc:`pair_modify <pair_modify>` command are passed along to all
 sub-styles of the hybrid potential.
 
 For atom type pairs I,J and I != J, if the sub-style assigned to I,I
@@ -405,19 +405,19 @@ sub-style.  See the "pair\_modify" command for details of mixing rules.
 See the See the doc page for the sub-style to see if allows for
 mixing.
 
-The hybrid pair styles supports the :doc:`pair\_modify <pair_modify>`
+The hybrid pair styles supports the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
 
 For the hybrid pair styles, the list of sub-styles and their
-respective settings are written to :doc:`binary restart files <restart>`, so a :doc:`pair\_style <pair_style>` command does
+respective settings are written to :doc:`binary restart files <restart>`, so a :doc:`pair_style <pair_style>` command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
 file.  Thus, pair\_coeff commands need to be re-specified in the
 restart input script.
 
 These pair styles support the use of the *inner*\ , *middle*\ , and
-*outer* keywords of the :doc:`run\_style respa <run_style>` command, if
+*outer* keywords of the :doc:`run_style respa <run_style>` command, if
 their sub-styles do.
 
 Restrictions
@@ -425,7 +425,7 @@ Restrictions
 
 
 When using a long-range Coulombic solver (via the
-:doc:`kspace\_style <kspace_style>` command) with a hybrid pair\_style,
+:doc:`kspace_style <kspace_style>` command) with a hybrid pair\_style,
 one or more sub-styles will be of the "long" variety,
 e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must insure that the
 short-range Coulombic cutoff used by each of these long pair styles is
@@ -434,7 +434,7 @@ the same or else LAMMPS will generate an error.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

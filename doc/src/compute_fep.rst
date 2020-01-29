@@ -140,7 +140,7 @@ lengths or other internal coordinates :ref:`(Boresch, Karplus) <BoreschKarplus>`
 
 
 The *pair* attribute enables various parameters of potentials defined
-by the :doc:`pair\_style <pair_style>` and :doc:`pair\_coeff <pair_coeff>`
+by the :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands to be changed, if the pair style supports it.
 
 The *pstyle* argument is the name of the pair style. For example,
@@ -212,7 +212,7 @@ Note that it is easy to add new potentials and their parameters to
 this list.  All it typically takes is adding an extract() method to
 the pair\_\*.cpp file associated with the potential.
 
-Similar to the :doc:`pair\_coeff <pair_coeff>` command, I and J can be
+Similar to the :doc:`pair_coeff <pair_coeff>` command, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
 each, as in the 1st example above.  I <= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same
@@ -226,10 +226,10 @@ means all types from 1 to N.  A leading asterisk means all types from
 (inclusive).  Note that only type pairs with I <= J are considered; if
 asterisks imply type pairs where J < I, they are ignored.
 
-If :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` is being
+If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being
 used, then the *pstyle* will be a sub-style name.  You must specify
 I,J arguments that correspond to type pair values defined (via the
-:doc:`pair\_coeff <pair_coeff>` command) for that sub-style.
+:doc:`pair_coeff <pair_coeff>` command) for that sub-style.
 
 The *v\_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
@@ -257,7 +257,7 @@ is the variable name.
 
 The *tail* keyword controls the calculation of the tail correction to
 "van der Waals" pair energies beyond the cutoff, if this has been
-activated via the :doc:`pair\_modify <pair_modify>` command. If the
+activated via the :doc:`pair_modify <pair_modify>` command. If the
 perturbation is small, the tail contribution to the energy difference
 between the reference and perturbed systems should be negligible.
 

@@ -39,10 +39,10 @@ the particle internal energy through a mesoparticle equation of state.
 An additional fix must be specified that defines the equation of state
 for each particle, e.g. :doc:`fix eos/cv <fix_eos_cv>`.
 
-This fix must be used with the :doc:`pair\_style dpd/fdt/energy <pair_style>` command.
+This fix must be used with the :doc:`pair_style dpd/fdt/energy <pair_style>` command.
 
 Note that numerous variants of DPD can be specified by choosing an
-appropriate combination of the integrator and :doc:`pair\_style dpd/fdt/energy <pair_style>` command.  DPD under isoenergetic conditions
+appropriate combination of the integrator and :doc:`pair_style dpd/fdt/energy <pair_style>` command.  DPD under isoenergetic conditions
 can be specified by using fix *dpd/energy*\ , fix *nve* and pair\_style
 *dpd/fdt/energy*\ .  DPD under isoenthalpic conditions can
 be specified by using fix *dpd/energy*\ , fix *nph* and pair\_style
@@ -85,7 +85,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 This fix must be used with an additional fix that specifies time
 integration, e.g. :doc:`fix nve <fix_nve>`.
 
-The fix *dpd/energy* requires the *dpd* :doc:`atom\_style <atom_style>`
+The fix *dpd/energy* requires the *dpd* :doc:`atom_style <atom_style>`
 to be used in order to properly account for the particle internal
 energies and temperature.
 

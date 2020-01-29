@@ -92,7 +92,7 @@ via the damped shifted force model described in :ref:`(Fennell) <Fennell>`
 approximating an Ewald sum similar to the :doc:`pair coul/dsf <pair_coul>`
 styles. In *buck6d/coul/gauss/long* an additional damping factor is
 applied to the Coulombic term so it can be used in conjunction with the
-:doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 options. The Coulombic cutoff in this case separates the real and
 reciprocal space evaluation of the Ewald sum.
 
@@ -101,9 +101,9 @@ terms.  If two cutoffs are specified, the first is used as the cutoff
 for the vdW terms, and the second is the cutoff for the Coulombic term.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (energy units)
@@ -126,7 +126,7 @@ is used.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These styles do not support the :doc:`pair\_modify <pair_modify>` shift
+These styles do not support the :doc:`pair_modify <pair_modify>` shift
 option for the energy. Instead the smoothing function should be applied
 by setting the global smoothing parameter to a value < 1.0.
 
@@ -143,7 +143,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

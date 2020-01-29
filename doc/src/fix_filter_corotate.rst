@@ -44,7 +44,7 @@ method. In biomolecular simulations, it allows the usage of larger
 timesteps for long-range electrostatic interactions.  For details, see
 :ref:`(Fath) <Fath2017>`.
 
-When using :doc:`run\_style respa <run_style>` for a biomolecular
+When using :doc:`run_style respa <run_style>` for a biomolecular
 simulation with high-frequency covalent bonds, the outer time-step is
 restricted to below ~ 4fs due to resonance problems. This fix filters
 the outer stage of the respa and thus a larger (outer) time-step can
@@ -60,7 +60,7 @@ is slightly modified only for the computation of long-range forces. A
 good cluster decomposition constitutes in building clusters which
 contain the fastest covalent bonds inside clusters.
 
-If the clusters are chosen suitably, the :doc:`run\_style respa <run_style>` is stable for outer time-steps of at least 8fs.
+If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer time-steps of at least 8fs.
 
 
 ----------
@@ -68,7 +68,7 @@ If the clusters are chosen suitably, the :doc:`run\_style respa <run_style>` is 
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to these fixes.  No global or per-atom quantities are
 stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
 with the *start/stop* keywords of the :doc:`run <run>` command.  These

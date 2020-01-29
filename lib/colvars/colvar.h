@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -217,11 +217,11 @@ public:
   /// should equal the system force plus \link f \endlink
   colvarvalue ft;
 
-
   /// Period, if this variable is periodic
   cvm::real period;
-  cvm::real wrap_center;
 
+  /// Center of wrapping, if this variable is periodic
+  cvm::real wrap_center;
 
   /// \brief Expand the boundaries of multiples of width, to keep the
   /// value always within range
@@ -233,8 +233,6 @@ public:
   colvarvalue lower_wall;
   /// \brief Force constant for the lower boundary potential (|x-xb|^2)
   cvm::real   lower_wall_k;
-  /// \brief Whether this colvar has a hard lower boundary
-  bool        hard_lower_boundary;
 
   /// \brief Location of the upper boundary
   colvarvalue upper_boundary;
@@ -242,8 +240,6 @@ public:
   colvarvalue upper_wall;
   /// \brief Force constant for the upper boundary potential (|x-xb|^2)
   cvm::real   upper_wall_k;
-  /// \brief Whether this colvar has a hard upper boundary
-  bool        hard_upper_boundary;
 
   /// \brief Is the interval defined by the two boundaries periodic?
   bool periodic_boundaries() const;
@@ -356,7 +352,7 @@ public:
   /// colvar::update()) to the external degrees of freedom
   void communicate_forces();
 
-  /// \brief Enables and disables individual CVCs based on flags
+  /// \brief Enables and disables individual CVCs based on the given array
   int set_cvc_flags(std::vector<bool> const &flags);
 
   /// \brief Updates the flags in the CVC objects, and their number
@@ -365,7 +361,23 @@ public:
   /// \brief Modify the configuration of CVCs (currently, only base class data)
   int update_cvc_config(std::vector<std::string> const &confs);
 
+  /// Whether this named parameter exists (in the first and only component)
+  int cvc_param_exists(std::string const &param_name);
+
+  /// Get the value of the named parameter (from the first and only component)
+  cvm::real get_cvc_param(std::string const &param_name);
+
+  /// Get a pointer to the named parameter (from the first and only component)
+  void const *get_cvc_param_ptr(std::string const &param_name);
+
+  /// Pointer to the derivative of the variable with respect to param_name
+  colvarvalue const *get_cvc_param_grad(std::string const &param_name);
+
+  /// Set the named parameter in the first and only component to the given value
+  int set_cvc_param(std::string const &param_name, void const *new_value);
+
 protected:
+
   /// \brief Number of CVC objects with an active flag
   size_t n_active_cvcs;
 
@@ -380,11 +392,24 @@ protected:
 
 public:
 
-  /// \brief Return the number of CVC objects defined
-  inline size_t num_cvcs() const { return cvcs.size(); }
+  /// \brief Number of dimensions of the value of this colvar
+  inline size_t num_dimensions() const
+  {
+    return value().size();
+  }
 
-  /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
-  inline size_t num_active_cvcs() const { return n_active_cvcs; }
+  /// \brief Number of CVC objects defined
+  inline size_t num_cvcs() const
+  {
+    return cvcs.size();
+  }
+
+  /// \brief number of CVC objects with an active flag (as set by
+  /// update_cvc_flags)
+  inline size_t num_active_cvcs() const
+  {
+    return n_active_cvcs;
+  }
 
   /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
@@ -413,21 +438,19 @@ public:
   /// Handles correctly symmetries and periodic boundary conditions
   void wrap(colvarvalue &x_unwrapped) const;
 
-
   /// Read the analysis tasks
   int parse_analysis(std::string const &conf);
 
   /// Perform analysis tasks
   int analyze();
 
-
   /// Read the value from a collective variable trajectory file
   std::istream & read_traj(std::istream &is);
+
   /// Output formatted values to the trajectory file
   std::ostream & write_traj(std::ostream &os);
   /// Write a label to the trajectory file (comment line)
   std::ostream & write_traj_label(std::ostream &os);
-
 
   /// Read the collective variable from a restart file
   std::istream & read_restart(std::istream &is);
@@ -437,8 +460,8 @@ public:
   /// Write output files (if defined, e.g. in analysis mode)
   int write_output_files();
 
-
 protected:
+
   /// Previous value (to calculate velocities during analysis)
   colvarvalue            x_old;
 
@@ -530,11 +553,12 @@ protected:
   /// Calculate the running average and its standard deviation
   int calc_runave();
 
-  /// If extended Lagrangian active: colvar energies (kinetic and harmonic potential)
+  /// If extended Lagrangian active: colvar kinetic energy
   cvm::real kinetic_energy;
+  /// If extended Lagrangian active: colvar harmonic potential
   cvm::real potential_energy;
-public:
 
+public:
 
   // collective variable component base class
   class cvc;
@@ -577,6 +601,8 @@ public:
   class CVBasedPath;
   class gspathCV;
   class gzpathCV;
+  class aspathCV;
+  class azpathCV;
 
   // non-scalar components
   class distance_vec;
@@ -596,7 +622,6 @@ protected:
   /// in all cvcs (called when enabling f_cv_collect_gradients)
   void build_atom_list(void);
 
-private:
   /// Name of scripted function to be used
   std::string scripted_function;
 
@@ -620,6 +645,7 @@ private:
 #endif
 
 public:
+
   /// \brief Sorted array of (zero-based) IDs for all atoms involved
   std::vector<int> atom_ids;
 
@@ -628,33 +654,34 @@ public:
   /// For scalar variables only!
   std::vector<cvm::rvector> atomic_gradients;
 
-  inline size_t n_components() const {
-    return cvcs.size();
-  }
-
   /// \brief Get vector of vectors of atom IDs for all atom groups
   virtual std::vector<std::vector<int> > get_atom_lists();
 };
+
 
 inline cvm::real const & colvar::force_constant() const
 {
   return ext_force_k;
 }
 
+
 inline colvarvalue const & colvar::value() const
 {
   return x_reported;
 }
+
 
 inline colvarvalue const & colvar::actual_value() const
 {
   return x;
 }
 
+
 inline colvarvalue const & colvar::run_ave() const
 {
   return runave;
 }
+
 
 inline colvarvalue const & colvar::velocity() const
 {

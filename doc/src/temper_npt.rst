@@ -66,7 +66,7 @@ isothermal-isobaric (NPT) ensemble.
 Related commands
 """"""""""""""""
 
-:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix\_npt <fix_nh>`
+:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix_npt <fix_nh>`
 
 **Default:** none
 

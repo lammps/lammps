@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -255,13 +255,11 @@ int colvarbias_alb::set_state_params(std::string const &conf)
   if (!get_keyval(conf, "maxCouplingRange", max_coupling_range))
     cvm::fatal_error("Error: maxCouplingRange  is missing from the restart.\n");
 
-
   if (!get_keyval(conf, "couplingRate", coupling_rate))
     cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "couplingAccum", coupling_accum))
     cvm::fatal_error("Error: couplingAccum is missing from the restart.\n");
-
 
   if (!get_keyval(conf, "mean", means))
     cvm::fatal_error("Error: current mean is missing from the restart.\n");
@@ -388,7 +386,7 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
     for (size_t i = 0; i < means.size(); i++) {
       os << " "
          << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << -2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls,2) - 1);
+         << -2.0 * (means[i] / (static_cast<cvm::real>(colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls, 2.0) - 1);
 
     }
 
@@ -405,8 +403,8 @@ cvm::real colvarbias_alb::restraint_potential(cvm::real k,
 
 
 colvarvalue colvarbias_alb::restraint_force(cvm::real k,
-                                            colvar const *x,
-                                            colvarvalue const &xcenter) const
+                                            colvar const * /* x */,
+                                            colvarvalue const & /* xcenter */) const
 {
   return k;
 }

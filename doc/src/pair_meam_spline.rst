@@ -56,7 +56,7 @@ element.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
-:doc:`pair\_coeff <pair_coeff>` command.  Parameter files for different
+:doc:`pair_coeff <pair_coeff>` command.  Parameter files for different
 elements are included in the "potentials" directory of the LAMMPS
 distribution and have a ".meam.spline" file suffix.  All of these
 files are parameterized in terms of LAMMPS :doc:`metal units <units>`.
@@ -79,7 +79,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of spline-based MEAM elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.spline file has values for Ti (old style).  If
@@ -143,7 +143,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The *meam/spline* pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in an external
@@ -151,7 +151,7 @@ potential parameter file.  Thus, you need to re-specify the pair\_style
 and pair\_coeff commands in an input script that reads a restart file.
 
 The *meam/spline* pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -172,7 +172,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style meam/c <pair_meamc>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`
 
 **Default:** none
 

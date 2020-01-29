@@ -81,9 +81,9 @@ regarding the VES and EPS models in LAMMPS you can contact R. Rahman
 (rezwanur.rahman at utsa.edu).
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below.
 
 For the *peri/pmb* style:
@@ -177,17 +177,17 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 shift option.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -204,7 +204,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

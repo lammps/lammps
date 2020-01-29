@@ -546,7 +546,7 @@ commands:
 The :doc:`compute displace/atom <compute_displace_atom>` command
 calculates the displacement of each atom from its reference position.
 The "4" index is the scalar displacement; 1,2,3 are the xyz components
-of the displacement.  The :doc:`dump\_modify thresh <dump_modify>`
+of the displacement.  The :doc:`dump_modify thresh <dump_modify>`
 command will cause only atoms that have displaced more than 0.6
 Angstroms to be output on a given snapshot (assuming metal units).
 However, note that when an atom is output, we also need to update the
@@ -621,7 +621,7 @@ most effective when the typical magnitude of position data is between
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom\_modify sort <atom_modify>` option is turned on, which it is by default, to
+parallel.  This is the case even in serial if the :doc:`atom_modify sort <atom_modify>` option is turned on, which it is by default, to
 improve performance.  A sort value of *id* means sort the output by
 atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending
@@ -647,7 +647,7 @@ performed.
 The *thermo* keyword only applies the dump *netcdf* style.  It
 triggers writing of :doc:`thermo <thermo>` information to the dump file
 alongside per-atom data.  The values included in the dump file are
-identical to the values specified by :doc:`thermo\_style <thermo_style>`.
+identical to the values specified by :doc:`thermo_style <thermo_style>`.
 
 
 ----------

@@ -177,7 +177,7 @@ KIM package
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the :doc:`kim\_query <kim_commands>`
+use with LAMMPS. If you want to use the :doc:`kim_query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
@@ -350,10 +350,12 @@ For NVIDIA GPUs using CUDA:
    KOKKOS_DEVICES = Cuda
    KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
                                     # archGPU = GPU from list above
+   FFT_INC = -DFFT_CUFFT            # enable use of cuFFT (optional)
+   FFT_LIB = -lcufft                # link to cuFFT library
 
-For GPUs, you also need these 2 lines in your Makefile.machine before
-the CC line is defined, in this case for use with OpenMPI mpicxx.  The
-2 lines define a nvcc wrapper compiler, which will use nvcc for
+For GPUs, you also need the following 2 lines in your Makefile.machine
+before the CC line is defined, in this case for use with OpenMPI mpicxx.
+The 2 lines define a nvcc wrapper compiler, which will use nvcc for
 compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
 files.
 

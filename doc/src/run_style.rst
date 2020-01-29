@@ -83,10 +83,10 @@ processors.  See the :doc:`-partition command-line switch <Run_options>`
 for info on how to run LAMMPS with multiple partitions.
 
 Specifically, this style performs all computation except the
-:doc:`kspace\_style <kspace_style>` portion of the force field on the 1st
+:doc:`kspace_style <kspace_style>` portion of the force field on the 1st
 partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`, :doc:`neighbor list building <neighbor>`,
 :doc:`fixes <fix>` including time integration, and output.  The
-:doc:`kspace\_style <kspace_style>` portion of the calculation is
+:doc:`kspace_style <kspace_style>` portion of the calculation is
 performed on the 2nd partition.
 
 This is most useful for the PPPM kspace\_style when its performance on
@@ -163,7 +163,7 @@ outermost rRESPA level.  Thus if the 3 loop factors are "2 2 2" for
 4-level rRESPA, and the outer timestep is set to 4.0 fmsec, then the
 inner timestep would be 8x smaller or 0.5 fmsec.  All other LAMMPS
 commands that specify number of timesteps (e.g. :doc:`thermo <thermo>`
-for thermo output every N steps, :doc:`neigh\_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
+for thermo output every N steps, :doc:`neigh_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
 steps, etc) refer to the outermost timesteps.
 
 The rRESPA keywords enable you to specify at what level of the
@@ -176,7 +176,7 @@ outermost level, and kspace forces are computed where pair forces are.
 The inner, middle, outer forces have no defaults.
 
 For fixes that support it, the rRESPA level at which a given fix is
-active, can be selected through the :doc:`fix\_modify <fix_modify>` command.
+active, can be selected through the :doc:`fix_modify <fix_modify>` command.
 
 The *inner* and *middle* keywords take additional arguments for
 cutoffs that are used by the pairwise force computations.  If the 2
@@ -200,7 +200,7 @@ are computed at the same rRESPA level.  See the doc pages for
 individual pair styles for details.
 
 Another option for using pair potentials with rRESPA is with the
-*hybrid* keyword, which requires the use of the :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
+*hybrid* keyword, which requires the use of the :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
 sub-styles of the hybrid pair style are evaluated at different rRESPA
 levels.  This can be useful, for example, to set different timesteps
 for hybrid coarse-grained/all-atom models.  The *hybrid* keyword

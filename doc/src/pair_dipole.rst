@@ -154,8 +154,8 @@ Style *lj/cut/dipole/long* computes long-range point-dipole
 interactions as discussed in :ref:`(Toukmaji) <Toukmaji2>`. Dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along
 with the standard 12/6 Lennard-Jones interactions, which are computed
-with a cutoff.  A :doc:`kspace\_style <kspace_style>` must be defined to
-use this pair style.  Currently, only :doc:`kspace\_style ewald/disp <kspace_style>` support long-range point-dipole
+with a cutoff.  A :doc:`kspace_style <kspace_style>` must be defined to
+use this pair style.  Currently, only :doc:`kspace_style ewald/disp <kspace_style>` support long-range point-dipole
 interactions.
 
 Style *lj/long/dipole/long* also computes point-dipole interactions as
@@ -166,16 +166,16 @@ can be cutoff or long-ranged.
 
 For style *lj/long/dipole/long*\ , if *flag\_lj* is set to *long*\ , no
 cutoff is used on the LJ 1/r\^6 dispersion term.  The long-range
-portion is calculated by using the :doc:`kspace\_style ewald\_disp <kspace_style>` command.  The specified LJ cutoff then
+portion is calculated by using the :doc:`kspace_style ewald\_disp <kspace_style>` command.  The specified LJ cutoff then
 determines which portion of the LJ interactions are computed directly
 by the pair potential versus which part is computed in reciprocal
 space via the Kspace style.  If *flag\_lj* is set to *cut*\ , the LJ
-interactions are simply cutoff, as with :doc:`pair\_style lj/cut <pair_lj>`.  If *flag\_lj* is set to *off*\ , LJ interactions
+interactions are simply cutoff, as with :doc:`pair_style lj/cut <pair_lj>`.  If *flag\_lj* is set to *off*\ , LJ interactions
 are not computed at all.
 
 If *flag\_coul* is set to *long*\ , no cutoff is used on the Coulombic or
 dipole interactions.  The long-range portion is calculated by using
-*ewald\_disp* of the :doc:`kspace\_style <kspace_style>` command. If
+*ewald\_disp* of the :doc:`kspace_style <kspace_style>` command. If
 *flag\_coul* is set to *off*\ , Coulombic and dipole interactions are not
 computed at all.
 
@@ -183,16 +183,16 @@ Atoms with dipole moments should be integrated using the :doc:`fix nve/sphere up
 dipole moments.  The *omega* option on the :doc:`fix langevin <fix_langevin>` command can be used to thermostat the
 rotational motion.  The :doc:`compute temp/sphere <compute_temp_sphere>`
 command can be used to monitor the temperature, since it includes
-rotational degrees of freedom.  The :doc:`atom\_style hybrid dipole sphere <atom_style>` command should be used since
+rotational degrees of freedom.  The :doc:`atom_style hybrid dipole sphere <atom_style>` command should be used since
 it defines the point dipoles and their rotational state.
 The magnitude and orientation of the dipole moment for each particle
 can be defined by the :doc:`set <set>` command or in the "Atoms" section
-of the data file read in by the :doc:`read\_data <read_data>` command.
+of the data file read in by the :doc:`read_data <read_data>` command.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -245,14 +245,14 @@ is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
 *geometric*\ .  See the "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the Lennard-Jones portion of the pair
 interaction; such energy goes to zero at the cutoff by construction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -260,7 +260,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 Restrictions
@@ -280,7 +280,7 @@ currently supported.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`set <set>`, :doc:`read\_data <read_data>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`set <set>`, :doc:`read_data <read_data>`,
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`
 
 **Default:** none

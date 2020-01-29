@@ -27,11 +27,11 @@ Description
 
 Set the timestep counter to the specified value.  This command
 normally comes after the timestep has been set by reading a restart
-file via the :doc:`read\_restart <read_restart>` command, or a previous
+file via the :doc:`read_restart <read_restart>` command, or a previous
 simulation advanced the timestep.
 
-The :doc:`read\_data <read_data>` and :doc:`create\_box <create_box>`
-commands set the timestep to 0; the :doc:`read\_restart <read_restart>`
+The :doc:`read_data <read_data>` and :doc:`create_box <create_box>`
+commands set the timestep to 0; the :doc:`read_restart <read_restart>`
 command sets the timestep to the value it had when the restart file
 was written.
 

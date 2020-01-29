@@ -41,7 +41,7 @@ Style *yukawa/colloid* computes pairwise interactions with the formula
 where Ri and Rj are the radii of the two particles and Rc is the
 cutoff.
 
-In contrast to :doc:`pair\_style yukawa <pair_yukawa>`, this functional
+In contrast to :doc:`pair_style yukawa <pair_yukawa>`, this functional
 form arises from the Coulombic interaction between two colloid
 particles, screened due to the presence of an electrolyte, see the
 book by :ref:`Safran <Safran>` for a derivation in the context of DLVO
@@ -52,14 +52,14 @@ This potential applies to nearby particle pairs for which the Derjagin
 approximation holds, meaning h << Ri + Rj, where h is the
 surface-to-surface separation of the two particles.
 
-When used in combination with :doc:`pair\_style colloid <pair_colloid>`,
+When used in combination with :doc:`pair_style colloid <pair_colloid>`,
 the two terms become the so-called DLVO potential, which combines
 electrostatic repulsion and van der Waals attraction.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * A (energy/distance units)
@@ -68,7 +68,7 @@ commands, or by mixing as described below:
 The prefactor A is determined from the relationship between surface
 charge and surface potential due to the presence of electrolyte.  Note
 that the A for this potential style has different units than the A
-used in :doc:`pair\_style yukawa <pair_yukawa>`.  For low surface
+used in :doc:`pair_style yukawa <pair_yukawa>`.  For low surface
 potentials, i.e. less than about 25 mV, A can be written as:
 
 
@@ -120,13 +120,13 @@ distance for this pair style can be mixed.  A is an energy value mixed
 like a LJ epsilon.  The default mix value is *geometric*\ .  See the
 "pair\_modify" command for details.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -134,7 +134,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -149,7 +149,7 @@ This style is part of the COLLOID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair style requires that atoms be finite-size spheres with a
-diameter, as defined by the :doc:`atom\_style sphere <atom_style>`
+diameter, as defined by the :doc:`atom_style sphere <atom_style>`
 command.
 
 Per-particle polydispersity is not yet supported by this pair style;
@@ -160,7 +160,7 @@ diameter.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

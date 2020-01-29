@@ -193,7 +193,7 @@ define the thermodynamic properties of each species.  Furthermore, the
 number of species molecules (i.e., concentration) can be specified
 either with the :doc:`set <set>` command using the "d\_" prefix or by
 reading directly the concentrations from a data file.  For the latter
-case, the :doc:`read\_data <read_data>` command with the fix keyword
+case, the :doc:`read_data <read_data>` command with the fix keyword
 should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_ suffix, e.g.
 
 fix          foo all rx reaction.file ...
@@ -232,7 +232,7 @@ Restrictions
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-This command also requires use of the :doc:`atom\_style dpd <atom_style>`
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.
 
 This command can only be used with a constant energy or constant

@@ -59,9 +59,9 @@ actual force cutoff is the sum of cutoff + delta.
 
 For all of the *lj/expand* pair styles, the following coefficients must
 be defined for each pair of atoms types via the
-:doc:`pair\_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands, or by mixing as
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands, or by mixing as
 described below:
 
 * epsilon (energy units)
@@ -112,13 +112,13 @@ coefficients are mixed according to the pair\_modify mix value.  The
 default mix value is *geometric*\ .  See the "pair\_modify" command for
 details.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` tail
+This pair style supports the :doc:`pair_modify <pair_modify>` tail
 option for adding a long-range tail correction to the energy and
 pressure of the pair interaction.
 
@@ -126,7 +126,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -140,7 +140,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 

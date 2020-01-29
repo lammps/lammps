@@ -93,9 +93,9 @@ Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
 See :ref:`(Sun) <pair-Sun>` for a description of the COMPASS class2 force field.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -123,7 +123,7 @@ specified in the pair\_style command.
 If the pair\_coeff command is not used to define coefficients for a
 particular I != J type pair, the mixing rule for epsilon and sigma for
 all class2 potentials is to use the *sixthpower* formulas documented
-by the :doc:`pair\_modify <pair_modify>` command.  The :doc:`pair\_modify mix <pair_modify>` setting is thus ignored for class2 potentials
+by the :doc:`pair_modify <pair_modify>` command.  The :doc:`pair_modify mix <pair_modify>` setting is thus ignored for class2 potentials
 for epsilon and sigma.  However it is still followed for mixing the
 cutoff distance.
 
@@ -172,15 +172,15 @@ command (default = geometric).  See the "pair\_modify" command for
 details.
 
 All of the lj/class2 pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the
+:doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
 The *lj/class2/coul/long* pair style does not support the
-:doc:`pair\_modify <pair_modify>` table option since a tabulation
+:doc:`pair_modify <pair_modify>` table option since a tabulation
 capability has not yet been added to this potential.
 
 All of the lj/class2 pair styles support the
-:doc:`pair\_modify <pair_modify>` tail option for adding a long-range
+:doc:`pair_modify <pair_modify>` tail option for adding a long-range
 tail correction to the energy and pressure of the Lennard-Jones
 portion of the pair interaction.
 
@@ -188,10 +188,10 @@ All of the lj/class2 pair styles write their information to :doc:`binary restart
 not need to be specified in an input script that reads a restart file.
 
 Only the *lj/class2* and *lj/class2/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run\_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run\_style respa.
-See the :doc:`run\_style <run_style>` command for details.
+See the :doc:`run_style <run_style>` command for details.
 
 Restrictions
 """"""""""""
@@ -203,7 +203,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
 
 **Default:** none
 

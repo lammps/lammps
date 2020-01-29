@@ -203,7 +203,7 @@ inputs specified.
 As discussed below, for the *sum* and *sumsq* modes, the value(s)
 produced by this compute are all "extensive", meaning their value
 scales linearly with the number of atoms involved.  If normalized
-values are desired, this compute can be accessed by the :doc:`thermo\_style custom <thermo_style>` command with :doc:`thermo\_modify norm yes <thermo_modify>` set as an option.  Or it can be accessed by a
+values are desired, this compute can be accessed by the :doc:`thermo_style custom <thermo_style>` command with :doc:`thermo_modify norm yes <thermo_modify>` set as an option.  Or it can be accessed by a
 :doc:`variable <variable>` that divides by the appropriate atom count.
 
 

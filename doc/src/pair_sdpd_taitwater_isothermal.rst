@@ -72,7 +72,7 @@ to formulas described in :ref:`(Espanol and Revenga) <Espanol_Revenga>`.
    different MPI tasks have distinct seeds.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * rho0 reference density (mass/volume units)
@@ -88,13 +88,13 @@ above.
 This style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This style does not support the :doc:`pair\_modify <pair_modify>`
+This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
 pair\_coeff commands in an input script that reads a restart file.
 
-This style can only be used via the *pair* keyword of the :doc:`run\_style respa <run_style>` command.  It does not support the *inner*\ ,
+This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 Restrictions

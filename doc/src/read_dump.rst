@@ -43,6 +43,9 @@ Syntax
        *format* values = format of dump file, must be last keyword if used
          *native* = native LAMMPS dump file
          *xyz* = XYZ file
+         *adios* [*timeout* value] = dump file written by the :doc:`dump adios <dump_adios>` command
+           *timeout* = specify waiting time for the arrival of the timestep when running concurrently.
+                     The value is a float number and is interpreted in seconds.
          *molfile* style path = VMD molfile plugin interface
            style = *dcd* or *xyz* or others supported by molfile plugins
            path = optional path for location of molfile plugins
@@ -65,6 +68,8 @@ Examples
    read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
    read_dump dump.dcd 0 x y z format molfile dcd
    read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
+   read_dump dump.bp 5000 x y z vx vy vz format adios
+   read_dump dump.bp 5000 x y z vx vy vz format adios timeout 60.0
 
 Description
 """""""""""
@@ -73,15 +78,15 @@ Read atom information from a dump file to overwrite the current atom
 coordinates, and optionally the atom velocities and image flags and
 the simulation box dimensions.  This is useful for restarting a run
 from a particular snapshot in a dump file.  See the
-:doc:`read\_restart <read_restart>` and :doc:`read\_data <read_data>`
+:doc:`read_restart <read_restart>` and :doc:`read_data <read_data>`
 commands for alternative methods to do this.  Also see the
 :doc:`rerun <rerun>` command for a means of reading multiple snapshots
 from a dump file.
 
 Note that a simulation box must already be defined before using the
 read\_dump command.  This can be done by the
-:doc:`create\_box <create_box>`, :doc:`read\_data <read_data>`, or
-:doc:`read\_restart <read_restart>` commands.  The read\_dump command can
+:doc:`create_box <create_box>`, :doc:`read_data <read_data>`, or
+:doc:`read_restart <read_restart>` commands.  The read\_dump command can
 reset the simulation box dimensions, as explained below.
 
 Also note that reading per-atom information from a dump snapshot is
@@ -90,7 +95,7 @@ explained below.  Other atom properties, which may be necessary to run
 a valid simulation, such as atom charge, or bond topology information
 for a molecular system, are not read from (or even contained in) dump
 files.  Thus this auxiliary information should be defined in the usual
-way, e.g. in a data file read in by a :doc:`read\_data <read_data>`
+way, e.g. in a data file read in by a :doc:`read_data <read_data>`
 command, before using the read\_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
@@ -136,6 +141,17 @@ contain multiple directories separated by a colon (or semi-colon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 
+The *adios* format supports reading data that was written by the 
+:doc:`dump adios <dump_adios>` command. The 
+entire dump is read in parallel across all the processes, dividing
+the atoms evenly among the processes. The number of writers that
+has written the dump file does not matter. Using the adios style for
+dump and read_dump is a convenient way to dump all atoms from *N* 
+writers and read it back by *M* readers. If one is running two 
+LAMMPS instances concurrently where one dumps data and the other is 
+reading it with the rerun command, the timeout option can be specified 
+to wait on the reader side for the arrival of the requested step. 
+
 Support for other dump format readers may be added in the future.
 
 
@@ -147,7 +163,19 @@ and box information.
 
 The dump file is scanned for a snapshot with a timestamp that matches
 the specified *Nstep*\ .  This means the LAMMPS timestep the dump file
-snapshot was written on for the *native* format.  Note that the *xyz*
+snapshot was written on for the *native* or *adios* formats.  
+
+The list of timestamps available in an adios .bp file is stored in the 
+variable *ntimestep*:
+
+.. parsed-literal::
+
+  $ bpls dump.bp -d ntimestep
+    uint64_t  ntimestep  5*scalar 
+      (0)    0 50 100 150 200 
+
+
+Note that the *xyz*
 and *molfile* formats do not store the timestep.  For these formats,
 timesteps are numbered logically, in a sequential manner, starting
 from 0.  Thus to access the 10th snapshot in an *xyz* or *mofile*
@@ -160,7 +188,8 @@ and the current simulation box is orthogonal or vice versa.  A warning
 will be generated if the snapshot box boundary conditions (periodic,
 shrink-wrapped, etc) do not match the current simulation boundary
 conditions, but the boundary condition information in the snapshot is
-otherwise ignored.  See the "boundary" command for more details.
+otherwise ignored.  See the "boundary" command for more details. The
+*adios* reader does the same as the *native* format reader.
 
 For the *xyz* format, no information about the box is available, so
 you must set the *box* flag to *no*\ .  See details below.
@@ -218,7 +247,7 @@ supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
 starting from 1.  Thus you should insure that order of atoms is
 consistent from snapshot to snapshot in the XYZ dump file.  See
-the :doc:`dump\_modify sort <dump_modify>` command if the XYZ dump file
+the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
 was written by LAMMPS.
 
 For dump files in *molfile* format, the *x*\ , *y*\ , *z*\ , *vx*\ , *vy*\ , and
@@ -228,8 +257,20 @@ velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
 file, starting from 1.  Thus you should insure that order of atoms are
 consistent from snapshot to snapshot in the molfile dump file.
-See the :doc:`dump\_modify sort <dump_modify>` command if the dump file
+See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
+
+The *adios* format supports all fields that the *native* format supports
+except for the *q* charge field. 
+The list of fields stored in an adios .bp file is recorded in the attributes
+*columns* (array of short strings) and *columnstr* (space-separated single string).
+
+.. parsed-literal::
+
+  $ bpls -la dump.bp column*
+    string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}
+    string    columnstr          attr   = "id type x y z vx vy vz "
+
 
 
 ----------
@@ -241,7 +282,7 @@ for how this is done, determined by the specified fields and optional
 keywords.
 
 The timestep of the snapshot becomes the current timestep for the
-simulation.  See the :doc:`reset\_timestep <reset_timestep>` command if
+simulation.  See the :doc:`reset_timestep <reset_timestep>` command if
 you wish to change this after the dump snapshot is read.
 
 If the *box* keyword is specified with a *yes* value, then the current
@@ -271,7 +312,7 @@ added to the system.  They are simply ignored.
 If a *yes* value is specified, the atoms with new IDs are added to the
 system but their atom IDs are not preserved.  Instead, after all the
 atoms are added, new IDs are assigned to them in the same manner as is
-described for the :doc:`create\_atoms <create_atoms>` command.  Basically
+described for the :doc:`create_atoms <create_atoms>` command.  Basically
 the largest existing atom ID in the system is identified, and all the
 added atoms are assigned IDs that consecutively follow the largest ID.
 
@@ -287,7 +328,7 @@ type, so this value must appear in the dump file.
 
 Any other attributes (e.g. charge or particle diameter for spherical
 particles) will be set to default values, the same as if the
-:doc:`create\_atoms <create_atoms>` command were used.
+:doc:`create_atoms <create_atoms>` command were used.
 
 
 ----------
@@ -357,11 +398,15 @@ The *molfile* dump file formats are part of the USER-MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
+To write and read adios .bp files, you must compile LAMMPS with the
+:ref:`USER-ADIOS <PKG-USER-ADIOS>` package.
+
 Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump molfile <dump_molfile>`,
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`,
+:doc:`dump adios <dump_adios>`,
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`,
 :doc:`rerun <rerun>`
 
 Default

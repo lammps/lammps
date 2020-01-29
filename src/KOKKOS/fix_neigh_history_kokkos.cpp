@@ -105,12 +105,14 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::zero_partner_count_item(const int &i) const
 {
   d_npartner[i] = 0;
 }
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
 {
   const int i = d_ilist[ii];

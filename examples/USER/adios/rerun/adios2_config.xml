@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<adios-config>
+
+    <!-- example engines 
+
+        <engine type="BP4">
+            <parameter key="substreams" value="10"/>
+        </engine>
+
+        <engine type="HDF5">
+
+
+        The 'substreams' parameter in BP4 controls how many 
+        files on disk are created. This number should be proportional 
+        to the number of servers in the parallel file system, 
+        NOT to the number of processes. 
+        substreams=1 is generally a very inefficient setting for large parallel runs.
+
+        To compress the atoms table, add a <variable...> element to <io> 
+        Note, outside the <engine> element!
+        Supported compression methods are: 
+            lossless: bzip2, blosc
+            lossy: sz, zfp, mgard
+        ADIOS must be built with the corresponding compression library.
+
+        <variable name="atoms">
+            <operation type="sz">
+                <parameter key="accuracy" value="0.001"/>
+            </operation>
+        </variable>
+    -->
+
+    <!--====================================================
+           Configuration for the dump atom/adios command
+        ====================================================-->
+
+    <io name="atom">
+        <engine type="BP4">
+            <parameter key="substreams" value="1"/>
+        </engine>
+    </io>
+
+    <!--====================================================
+           Configuration for the dump custom/adios command
+        ====================================================-->
+
+    <io name="custom">
+        <engine type="BP4">
+            <parameter key="substreams" value="1"/>
+        </engine>
+    </io>
+
+    <!--====================================================
+           Configuration for the read_dump adios command
+        ====================================================-->
+
+    <io name="read_dump">
+        <engine type="BP4">
+        </engine>
+    </io>
+
+</adios-config>

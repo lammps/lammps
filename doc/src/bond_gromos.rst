@@ -37,9 +37,9 @@ where :math:`r_0` is the equilibrium bond distance.  Note that the usual 1/4
 factor is included in :math:`K`.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^4)
 * :math:`r_0` (distance)
@@ -81,6 +81,6 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none

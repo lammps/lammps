@@ -68,7 +68,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    :doc:`fix dt/reset <fix_dt_reset>`) and the repulsive ZBL potential (see
    :doc:`ZBL <pair_zbl>` potential) or similar. Without these settings the
    interaction between the ion and the target atoms will be faulty. It is also
-   common to use in such simulations a thermostat (:doc:`fix\_nvt <fix_nh>`) in
+   common to use in such simulations a thermostat (:doc:`fix_nvt <fix_nh>`) in
    the borders of the simulation cell.
 
 .. note::
@@ -79,7 +79,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    e.g. simulations of Swift Heavy Ions (energy per nucleon of 100 keV/amu or
    higher) or multiple projectiles. You could compensate energy loss by coupling
    bulk atoms with some thermostat or control heat transfer between electronic and
-   atomic subsystems with the two-temperature model (:doc:`fix\_ttm <fix_ttm>`).
+   atomic subsystems with the two-temperature model (:doc:`fix_ttm <fix_ttm>`).
 
 At low velocities the electronic stopping is negligible. The electronic
 friction is not applied to atoms whose kinetic energy is smaller than *Ecut*\ ,
@@ -141,7 +141,7 @@ to derive the stopping power.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` options are not supported.
+The :doc:`fix_modify <fix_modify>` options are not supported.
 
 This fix computes a global scalar, which can be accessed by various
 :doc:`output commands <Howto_output>`. The scalar is the total energy

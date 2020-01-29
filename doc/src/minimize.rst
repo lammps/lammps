@@ -159,7 +159,7 @@ During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 
-Using the :doc:`thermo\_style custom <thermo_style>` command with the
+Using the :doc:`thermo_style custom <thermo_style>` command with the
 *fmax* or *fnorm* keywords can be useful for monitoring the progress
 of the minimization.  Note that these outputs will be calculated only
 from forces on the atoms, and will not include any extra degrees of
@@ -232,14 +232,14 @@ The iterations and force evaluation values are what is checked by the
 
 Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the
-:doc:`pair\_modify <pair_modify>` command.  See the doc pages for
+:doc:`pair_modify <pair_modify>` command.  See the doc pages for
 individual :doc:`pair styles <pair_style>` for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
-long-range component are used (e.g. :doc:`pair\_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
-the cutoff (e.g. :doc:`pair\_style lj/charmm/coul/charmm <pair_charmm>`),
-as do the GROMACS potentials (e.g. :doc:`pair\_style lj/gromacs <pair_gromacs>`).
+long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
+the cutoff (e.g. :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`),
+as do the GROMACS potentials (e.g. :doc:`pair_style lj/gromacs <pair_gromacs>`).
 
-If a soft potential (:doc:`pair\_style soft <pair_soft>`) is used the
+If a soft potential (:doc:`pair_style soft <pair_soft>`) is used the
 Astop value is used for the prefactor (no time dependence).
 
 The :doc:`fix box/relax <fix_box_relax>` command can be used to apply an
@@ -270,7 +270,7 @@ that can be used include:
    Some fixes which are invoked during minimization have an
    associated potential energy.  For that energy to be included in the
    total potential energy of the system (the quantity being minimized),
-   you MUST enable the :doc:`fix\_modify <fix_modify>` *energy* option for
+   you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
    that fix.  The doc pages for individual :doc:`fix <fix>` commands
    specify if this should be done.
 
@@ -325,7 +325,7 @@ algorithm.
 is not an error to have it defined, but the energy minimization will
 not keep the defined body(s) rigid during the minimization.  Note that
 if bonds, angles, etc internal to a rigid body have been turned off
-(e.g. via :doc:`neigh\_modify exclude <neigh_modify>`), they will not
+(e.g. via :doc:`neigh_modify exclude <neigh_modify>`), they will not
 contribute to the potential energy which is probably not what is
 desired.
 
@@ -337,8 +337,8 @@ system will not fully relax.
 Related commands
 """"""""""""""""
 
-:doc:`min\_modify <min_modify>`, :doc:`min\_style <min_style>`,
-:doc:`run\_style <run_style>`
+:doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
+:doc:`run_style <run_style>`
 
 **Default:**
 

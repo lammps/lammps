@@ -61,7 +61,7 @@ the atoms to follow.  If image flags are included with the atoms, the
 1st 3 lo/hi lines must appear in the file.  If image flags are not
 included, the 1st 3 lines should not appear.  The 3 lines contain the
 simulation box dimensions for the atom coordinates, in the same format
-as in a LAMMPS data file (see the :doc:`read\_data <read_data>` command).
+as in a LAMMPS data file (see the :doc:`read_data <read_data>` command).
 
 The remaining lines each contain an atom ID and its target x,y,z
 coordinates.  The atom lines (all or none of them) can optionally be
@@ -94,7 +94,7 @@ For more information about TMD, see :ref:`(Schlitter1) <Schlitter1>` and
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 

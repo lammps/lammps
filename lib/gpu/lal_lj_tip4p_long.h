@@ -110,7 +110,7 @@ public:
   UCL_D_Vec<acctyp4> ansO; // force applied to virtual particle
   // UCL_D_Vec<acctyp4> force_comp;
 
-  UCL_D_Vec<int> tag;
+  UCL_D_Vec<tagint> tag;
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 

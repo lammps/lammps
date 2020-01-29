@@ -41,10 +41,10 @@ computes their interaction, and returns the energy, forces, and virial
 for the interacting particles to LAMMPS, so it can complete the
 timestep.
 
-The server code could be a quantum code, or another classical MD code
-which encodes a force field (pair\_style in LAMMPS lingo) which LAMMPS
-does not have.  In the quantum case, this fix is a mechanism for
-running *ab initio* MD with quantum forces.
+Note that the server code can be a quantum code, or another classical
+MD code which encodes a force field (pair\_style in LAMMPS lingo) which
+LAMMPS does not have.  In the quantum case, this fix is a mechanism
+for running *ab initio* MD with quantum forces.
 
 The group associated with this fix is ignored.
 
@@ -53,8 +53,8 @@ that LAMMPS exchanges with the server code is defined on the :doc:`server md <se
 
 Note that when using LAMMPS as an MD client, your LAMMPS input script
 should not normally contain force field commands, like a
-:doc:`pair\_style <pair_style>`, :doc:`bond\_style <bond_style>`, or
-:doc:`kspace\_style <kspace_style>` command.  However it is possible for
+:doc:`pair_style <pair_style>`, :doc:`bond_style <bond_style>`, or
+:doc:`kspace_style <kspace_style>` command.  However it is possible for
 a server code to only compute a portion of the full force-field, while
 LAMMPS computes the remaining part.  Your LAMMPS script can also
 specify boundary conditions or force constraints in the usual way,
@@ -74,11 +74,11 @@ LAMMPS and another code in tandem to perform a coupled simulation.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential energy computed by the server application to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the server application's contribution to the system's
 virial as part of :doc:`thermodynamic output <thermo_style>`.  The
 default is *virial yes*
@@ -99,8 +99,8 @@ This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 A script that uses this command must also use the
-:doc:`message <message>` command to setup the messaging protocol with
-the other server code.
+:doc:`message <message>` command to setup and shut down the messaging
+protocol with the server code.
 
 Related commands
 """"""""""""""""

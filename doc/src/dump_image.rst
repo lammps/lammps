@@ -104,7 +104,7 @@ Description
 Dump a high-quality rendered image of the atom configuration every N
 timesteps and save the images either as a sequence of JPEG or PNG or
 PPM files, or as a single movie file.  The options for this command as
-well as the :doc:`dump\_modify <dump_modify>` command control what is
+well as the :doc:`dump_modify <dump_modify>` command control what is
 included in the image or movie and how it appears.  A series of such
 images can easily be manually converted into an animated movie of your
 simulation or the process can be automated without writing the
@@ -136,7 +136,7 @@ to see the full-size images:
    </DIV>
 
 Only atoms in the specified group are rendered in the image.  The
-:doc:`dump\_modify region and thresh <dump_modify>` commands can also
+:doc:`dump_modify region and thresh <dump_modify>` commands can also
 alter what atoms are included in the image.
 The filename suffix determines whether a JPEG, PNG, or PPM file is
 created with the *image* dump style.  If the suffix is ".jpg" or
@@ -153,7 +153,7 @@ Similarly, the format of the resulting movie is chosen with the
 and thus details have to be looked up in the FFmpeg documentation.
 Typical examples are: .avi, .mpg, .m4v, .mp4, .mkv, .flv, .mov, .gif
 Additional settings of the movie compression like bitrate and
-framerate can be set using the :doc:`dump\_modify <dump_modify>` command.
+framerate can be set using the :doc:`dump_modify <dump_modify>` command.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
@@ -176,16 +176,16 @@ timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
 if the current timestep is not a multiple of N.  This behavior can be
-changed via the :doc:`dump\_modify first <dump_modify>` command, which
+changed via the :doc:`dump_modify first <dump_modify>` command, which
 can be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
-using the :doc:`dump\_modify every <dump_modify>` command.
+using the :doc:`dump_modify every <dump_modify>` command.
 
 Dump *image* filenames must contain a wildcard character "\*", so that
 one image file per snapshot is written.  The "\*" character is replaced
 with the timestep value.  For example, tmp.dump.\*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
-that the :doc:`dump\_modify pad <dump_modify>` command can be used to
+that the :doc:`dump_modify pad <dump_modify>` command can be used to
 insure all timestep numbers are the same length (e.g. 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
@@ -219,11 +219,11 @@ to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for types > 6.  This mapping can be changed by the
-:doc:`dump\_modify acolor <dump_modify>` command.
+:doc:`dump_modify acolor <dump_modify>` command.
 
 If *type* is specified for the *diameter* setting then the diameter of
 each atom is determined by its atom type.  By default all types have
-diameter 1.0.  This mapping can be changed by the :doc:`dump\_modify adiam <dump_modify>` command.
+diameter 1.0.  This mapping can be changed by the :doc:`dump_modify adiam <dump_modify>` command.
 
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
@@ -244,7 +244,7 @@ If "vx", for example, is used as the *color* setting, then the color
 of the atom will depend on the x-component of its velocity.  The
 association of a per-atom value with a specific color is determined by
 a "color map", which can be specified via the
-:doc:`dump\_modify <dump_modify>` command.  The basic idea is that the
+:doc:`dump_modify <dump_modify>` command.  The basic idea is that the
 atom-attribute will be within a range of values, and every value
 within the range is mapped to a specific color.  Depending on how the
 color map is defined, that mapping can take place via interpolation so
@@ -255,7 +255,7 @@ If "vx", for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
 diameter.  If the per-atom value <= 0.0, them the atom will not be
 drawn.  Note that finite-size spherical particles, as defined by
-:doc:`atom\_style sphere <atom_style>` define a per-particle radius or
+:doc:`atom_style sphere <atom_style>` define a per-particle radius or
 diameter, which can be used as the *diameter* setting.
 
 
@@ -291,9 +291,9 @@ The *bond* keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
 in the specified group and due to other selection criteria
 (e.g. region, threshold settings of the
-:doc:`dump\_modify <dump_modify>` command).  By default, bonds are drawn
+:doc:`dump_modify <dump_modify>` command).  By default, bonds are drawn
 if they are defined in the input data file as read by the
-:doc:`read\_data <read_data>` command.  Using *none* for both the bond
+:doc:`read_data <read_data>` command.  Using *none* for both the bond
 *color* and *width* value will turn off the drawing of all bonds.
 
 If *atom* is specified for the bond *color* value, then each bond is
@@ -312,7 +312,7 @@ types to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for bond types > 6.  This mapping can be changed by
-the :doc:`dump\_modify bcolor <dump_modify>` command.
+the :doc:`dump_modify bcolor <dump_modify>` command.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -327,13 +327,13 @@ of the 2 atoms in the bond.
 
 If *type* is specified for the *width* value then the diameter of each
 bond is determined by its bond type.  By default all types have
-diameter 0.5.  This mapping can be changed by the :doc:`dump\_modify bdiam <dump_modify>` command.
+diameter 0.5.  This mapping can be changed by the :doc:`dump_modify bdiam <dump_modify>` command.
 
 
 ----------
 
 
-The *line* keyword can be used when :doc:`atom\_style line <atom_style>`
+The *line* keyword can be used when :doc:`atom_style line <atom_style>`
 is used to define particles as line segments, and will draw them as
 lines.  If this keyword is not used, such particles will be drawn as
 spheres, the same as if they were regular atoms.  The only setting
@@ -349,7 +349,7 @@ mapping of types to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for types > 6.  There is not yet an option to
-change this via the :doc:`dump\_modify <dump_modify>` command.
+change this via the :doc:`dump_modify <dump_modify>` command.
 
 The line *width* can only be a numeric value, which specifies that all
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
@@ -360,7 +360,7 @@ e.g. Angstroms.
 ----------
 
 
-The *tri* keyword can be used when :doc:`atom\_style tri <atom_style>` is
+The *tri* keyword can be used when :doc:`atom_style tri <atom_style>` is
 used to define particles as triangles, and will draw them as triangles
 or edges (3 lines) or both, depending on the setting for *tflag*\ .  If
 edges are drawn, the *width* setting determines the diameters of the
@@ -378,13 +378,13 @@ default the mapping of types to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for types > 6.  There is not yet an option to
-change this via the :doc:`dump\_modify <dump_modify>` command.
+change this via the :doc:`dump_modify <dump_modify>` command.
 
 
 ----------
 
 
-The *body* keyword can be used when :doc:`atom\_style body <atom_style>`
+The *body* keyword can be used when :doc:`atom_style body <atom_style>`
 is used to define body particles with internal state
 (e.g. sub-particles), and will drawn them in a manner specific to the
 body style.  If this keyword is not used, such particles will be drawn
@@ -413,7 +413,7 @@ particle.  By default the mapping of types to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for types > 6.  There is not yet an option to
-change this via the :doc:`dump\_modify <dump_modify>` command.
+change this via the :doc:`dump_modify <dump_modify>` command.
 
 
 ----------
@@ -439,7 +439,7 @@ the mapping of types to colors is as follows:
 * type 6 = cyan
 
 and repeats itself for types > 6.  There is not yet an option to
-change this via the :doc:`dump\_modify <dump_modify>` command.
+change this via the :doc:`dump_modify <dump_modify>` command.
 
 
 ----------
@@ -532,7 +532,7 @@ are rendered as thin cylinders in the image.  If *no* is set, then the
 box boundaries are not drawn and the *diam* setting is ignored.  If
 *yes* is set, the 12 edges of the box are drawn, with a diameter that
 is a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
-2d).  The color of the box boundaries can be set with the :doc:`dump\_modify boxcolor <dump_modify>` command.
+2d).  The color of the box boundaries can be set with the :doc:`dump_modify boxcolor <dump_modify>` command.
 
 The *axes* keyword determines if and how the coordinate axes are
 rendered as thin cylinders in the image.  If *no* is set, then the
@@ -551,7 +551,7 @@ set (default), then the sub-domain boundaries are not drawn and the
 *diam* setting is ignored.  If *yes* is set, the 12 edges of each
 processor sub-domain are drawn, with a diameter that is a fraction of
 the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
-of the sub-domain boundaries can be set with the :doc:`dump\_modify boxcolor <dump_modify>` command.
+of the sub-domain boundaries can be set with the :doc:`dump_modify boxcolor <dump_modify>` command.
 
 
 ----------
@@ -722,7 +722,7 @@ mp4).
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
 Default
 """""""

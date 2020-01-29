@@ -23,7 +23,7 @@ can be invoked via the *dpd/tstat* pair style:
 * :doc:`fix temp/csvr <fix_temp_csvr>`
 * :doc:`fix langevin <fix_langevin>`
 * :doc:`fix temp/rescale <fix_temp_rescale>`
-* :doc:`pair\_style dpd/tstat <pair_dpd>`
+* :doc:`pair_style dpd/tstat <pair_dpd>`
 
 :doc:`Fix nvt <fix_nh>` only thermostats the translational velocity of
 particles.  :doc:`Fix nvt/sllod <fix_nvt_sllod>` also does this, except
@@ -49,7 +49,7 @@ bias removed.  Second, the thermostat adjusts only the thermal
 temperature component of the particle's velocities, which are the
 velocities with the bias removed.  The removed bias is then added back
 to the adjusted velocities.  See the doc pages for the individual
-fixes and for the :doc:`fix\_modify <fix_modify>` command for
+fixes and for the :doc:`fix_modify <fix_modify>` command for
 instructions on how to assign a temperature compute to a
 thermostatting fix.  For example, you can apply a thermostat to only
 the x and z components of velocity by using it in conjunction with
@@ -70,16 +70,16 @@ particles without affecting the streaming velocity, by using :doc:`compute temp/
 * :doc:`fix nve/asphere <fix_nve_asphere>`
 
 Thermodynamic output, which can be setup via the
-:doc:`thermo\_style <thermo_style>` command, often includes temperature
+:doc:`thermo_style <thermo_style>` command, often includes temperature
 values.  As explained on the doc page for the
-:doc:`thermo\_style <thermo_style>` command, the default temperature is
+:doc:`thermo_style <thermo_style>` command, the default temperature is
 setup by the thermo command itself.  It is NOT the temperature
 associated with any thermostatting fix you have defined or with any
 compute you have defined that calculates a temperature.  The doc pages
 for the thermostatting fixes explain the ID of the temperature compute
 they create.  Thus if you want to view these temperatures, you need to
-specify them explicitly via the :doc:`thermo\_style custom <thermo_style>` command.  Or you can use the
-:doc:`thermo\_modify <thermo_modify>` command to re-define what
+specify them explicitly via the :doc:`thermo_style custom <thermo_style>` command.  Or you can use the
+:doc:`thermo_modify <thermo_modify>` command to re-define what
 temperature compute is used for default thermodynamic output.
 
 

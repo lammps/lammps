@@ -96,11 +96,6 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snav/atom command");
       bzeroflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute sna/atom command");
-      bnormflag = atoi(arg[iarg+1]);
-      iarg += 2;
     } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snav/atom command");
@@ -110,6 +105,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2+ntypes > narg)
         error->all(FLERR,"Illegal compute sna/atom command");
       alloyflag = 1;
+      bnormflag = alloyflag;
       memory->create(map,ntypes+1,"compute_sna_atom:map");
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
@@ -129,7 +125,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag, bnormflag,
+                   rmin0, switchflag, bzeroflag,
                    alloyflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;

@@ -33,7 +33,7 @@ struct SNA_BINDICES {
 class SNA : protected Pointers {
 
 public:
-  SNA(LAMMPS*, double, int, double, int, int, int, int, int, int);
+  SNA(LAMMPS*, double, int, double, int, int, int, int, int);
 
   SNA(LAMMPS* lmp) : Pointers(lmp) {};
   ~SNA();

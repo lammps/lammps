@@ -450,7 +450,7 @@ void PairSNAP::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag, bnormflag,
+                   rmin0, switchflag, bzeroflag,
                    alloyflag, wselfallflag, nelements);
 
   if (ncoeff != snaptr->ncoeff) {
@@ -708,8 +708,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       switchflag = atoi(keyval);
     else if (strcmp(keywd,"bzeroflag") == 0)
       bzeroflag = atoi(keyval);
-    else if (strcmp(keywd,"bnormflag") == 0)
-      bnormflag = atoi(keyval);
     else if (strcmp(keywd,"quadraticflag") == 0)
       quadraticflag = atoi(keyval);
     else if (strcmp(keywd,"alloyflag") == 0)
@@ -719,6 +717,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }
+
+  bnormflag = alloyflag;
 
   if (rcutfacflag == 0 || twojmaxflag == 0)
     error->all(FLERR,"Incorrect SNAP parameter file");

@@ -108,7 +108,7 @@ using namespace MathConst;
 ------------------------------------------------------------------------- */
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
-         double rmin0_in, int switch_flag_in, int bzero_flag_in, int bnorm_flag_in,
+         double rmin0_in, int switch_flag_in, int bzero_flag_in,
          int alloy_flag_in, int wselfall_flag_in, int nelements_in) : Pointers(lmp)
 {
   wself = 1.0;
@@ -117,7 +117,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
   bzero_flag = bzero_flag_in;
-  bnorm_flag = bnorm_flag_in;
+  bnorm_flag = alloy_flag_in;
   alloy_flag = alloy_flag_in;
   wselfall_flag = wselfall_flag_in;
   nelements = nelements_in;
@@ -521,37 +521,36 @@ void SNA::compute_yi(const double* beta)
           if (alloy_flag) {
             if (j >= j1) {
               const int jjb = idxb_block[j1][j2][j];
-              itriple = (elem3 * nelements + elem2) * nelements + elem1;
-              if (j1 == j && (elem3 == elem1 || elem3 == elem2)) {
-                if (j2 == j && elem1 == elem2) betaj = 3 * beta[itriple * idxb_max + jjb];
-                else if (elem1 == elem2)
-                  betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
-                else if (j2 == j & elem2 == elem3)
-                  betaj = 2 * (beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
-                else if (elem2 == elem3)
-                  betaj = (beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
-                else betaj = 2 * beta[itriple * idxb_max + jjb];
-              } else if (j1 == j2 && j2 ==j && elem1 == elem2)
-                betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
-              else if (j1 == j && elem3 == elem2) betaj = 2 * beta[itriple * idxb_max + jjb];
-              else if (j1 ==j && elem2 == elem1)
-                betaj = beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
+              itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+              if (j1 ==j && j2 == j && elem1 == elem2 && elem1 == elem3) betaj = 3 * beta[itriple];
+              else if (j1 == j && j2 == j && elem2 == elem3 && elem1!=elem3)
+                  betaj =
+                      2 * (beta[itriple] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
+              else if (j1 == j && j2 == j && elem1 == elem2 && elem1 != elem3)
+                betaj = beta[itriple] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb] +
+                        beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
+              else if (j1 ==j && (elem1 == elem3 || elem2 == elem3)) // this line covers quite a few cases
+                betaj = 2 * beta[itriple];
+              else if (j1 == j && j2 != j && elem2 == elem1 && elem1 != elem3)
+                betaj = beta[itriple] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
               else
                 betaj = beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
             } else if (j >= j2) {
               const int jjb = idxb_block[j][j2][j1];
-              itriple = (elem3 * nelements + elem2) * nelements + elem1;
-              if (j2 == j && elem3 == elem2)
-                betaj = 2 * beta[itriple * idxb_max + jjb];
-              else if (j2 ==j && elem1 == elem2)
-                betaj = beta[itriple * idxb_max + jjb] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
-              else if (j2 == j && elem1 == elem3)
-                betaj = beta[itriple * idxb_max + jjb] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
-              else betaj = beta[itriple * idxb_max + jjb];
+              itriple = ((elem3 * nelements + elem2) * nelements + elem1)*idxb_max + jjb;
+              if (j2 == j) {
+                if (elem3 == elem2)
+                  betaj = 2 * beta[itriple];
+                else if (elem1 == elem2)
+                  betaj = beta[itriple] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
+                else if (elem1 == elem3)
+                  betaj = beta[itriple] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
+              } else
+                betaj = beta[itriple];
             } else {
               const int jjb = idxb_block[j2][j][j1];
-              itriple = (elem2 * nelements + elem3) * nelements + elem1;
-              betaj = beta[itriple * idxb_max + jjb];
+              itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+              betaj = beta[itriple];
             }
           } else {
             if (j >= j1) {

@@ -88,8 +88,8 @@ FFT3dKokkos<DeviceType>::~FFT3dKokkos()
 template<class DeviceType>
 void FFT3dKokkos<DeviceType>::compute(typename AT::t_FFT_SCALAR_1d d_in, typename AT::t_FFT_SCALAR_1d d_out, int flag)
 {
-  typename AT::t_FFT_DATA_1d d_in_data(d_in.data(),d_in.size()/2);
-  typename AT::t_FFT_DATA_1d d_out_data(d_out.data(),d_out.size()/2);
+  typename AT::t_FFT_DATA_1d d_in_data((FFT_DATA*)d_in.data(),d_in.size()/2);
+  typename AT::t_FFT_DATA_1d d_out_data((FFT_DATA*)d_out.data(),d_out.size()/2);
 
   fft_3d_kokkos(d_in_data,d_out_data,flag,plan);
 }
@@ -99,7 +99,7 @@ void FFT3dKokkos<DeviceType>::compute(typename AT::t_FFT_SCALAR_1d d_in, typenam
 template<class DeviceType>
 void FFT3dKokkos<DeviceType>::timing1d(typename AT::t_FFT_SCALAR_1d d_in, int nsize, int flag)
 {
-  typename AT::t_FFT_DATA_1d d_in_data(d_in.data(),d_in.size());
+  typename AT::t_FFT_DATA_1d d_in_data((FFT_DATA*)d_in.data(),d_in.size()/2);
 
   fft_3d_1d_only_kokkos(d_in_data,nsize,flag,plan);
 }
@@ -151,7 +151,9 @@ public:
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
-#else    /* FFT_MKL or FFT_KISS */
+#elif defined(FFT_MKL)
+    d_out(i) *= norm;
+#else // FFT_KISS
     d_out(i,0) *= norm;
     d_out(i,1) *= norm;
 #endif
@@ -200,9 +202,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
     if (plan->pre_target == 0) d_copy = d_out;
     else d_copy = plan->d_copy;
 
-     d_in_scalar = typename AT::t_FFT_SCALAR_1d(d_in.data(),d_in.size());
-     d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
-     d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+     d_in_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_in.data(),d_in.size()*2);
+     d_copy_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_copy.data(),d_copy.size()*2);
+     d_scratch_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)plan->d_scratch.data(),plan->d_scratch.size()*2);
 
     remapKK->remap_3d_kokkos(d_in_scalar, d_copy_scalar,
              d_scratch_scalar, plan->pre_plan);
@@ -217,16 +219,16 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
 
   #if defined(FFT_MKL)
     if (flag == -1)
-      DftiComputeForward(plan->handle_fast,(FFT_DATA *)d_data.data());
+      DftiComputeForward(plan->handle_fast,d_data.data());
     else
-      DftiComputeBackward(plan->handle_fast,(FFT_DATA *)d_data.data());
+      DftiComputeBackward(plan->handle_fast,d_data.data());
   #elif defined(FFT_FFTW3)
     if (flag == -1)
-      FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_fast_forward,d_data.data(),d_data.data());
     else
-      FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_fast_backward,d_data.data(),d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_fast,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+    cufftExec(plan->plan_fast,d_data.data(),d_data.data(),flag);
   #else
     typename AT::t_FFT_DATA_1d d_tmp =
      typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
@@ -247,9 +249,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   if (plan->mid1_target == 0) d_copy = d_out;
   else d_copy = plan->d_copy;
 
-  d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size()*2);
-  d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size()*2);
-  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size()*2);
+  d_data_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_data.data(),d_data.size()*2);
+  d_copy_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_copy.data(),d_copy.size()*2);
+  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)plan->d_scratch.data(),plan->d_scratch.size()*2);
 
   remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
            d_scratch_scalar, plan->mid1_plan);
@@ -263,16 +265,16 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
 
   #if defined(FFT_MKL)
     if (flag == -1)
-      DftiComputeForward(plan->handle_mid,(FFT_DATA *)d_data.data());
+      DftiComputeForward(plan->handle_mid,d_data.data());
     else
-      DftiComputeBackward(plan->handle_mid,(FFT_DATA *)d_data.data());
+      DftiComputeBackward(plan->handle_mid,d_data.data());
   #elif defined(FFT_FFTW3)
     if (flag == -1)
-      FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_mid_forward,d_data.data(),d_data.data());
     else
-      FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_mid_backward,d_data.data(),d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_mid,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+    cufftExec(plan->plan_mid,d_data.data(),d_data.data(),flag);
   #else
     if (flag == -1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_forward,length);
@@ -289,9 +291,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   if (plan->mid2_target == 0) d_copy = d_out;
   else d_copy = plan->d_copy;
 
-  d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
-  d_copy_scalar = typename AT::t_FFT_SCALAR_1d(d_copy.data(),d_copy.size());
-  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+  d_data_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_data.data(),d_data.size()*2);
+  d_copy_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_copy.data(),d_copy.size()*2);
+  d_scratch_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)plan->d_scratch.data(),plan->d_scratch.size()*2);
 
   remapKK->remap_3d_kokkos(d_data_scalar, d_copy_scalar,
            d_scratch_scalar, plan->mid2_plan);
@@ -305,16 +307,16 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
 
   #if defined(FFT_MKL)
     if (flag == -1)
-      DftiComputeForward(plan->handle_slow,(FFT_DATA *)d_data.data());
+      DftiComputeForward(plan->handle_slow,d_data.data());
     else
-      DftiComputeBackward(plan->handle_slow,(FFT_DATA *)d_data.data());
+      DftiComputeBackward(plan->handle_slow,d_data.data());
   #elif defined(FFT_FFTW3)
     if (flag == -1)
-      FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_slow_forward,d_data.data(),d_data.data());
     else
-      FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+      FFTW_API(execute_dft)(plan->plan_slow_backward,d_data.data(),d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_slow,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
+    cufftExec(plan->plan_slow,d_data.data(),d_data.data(),flag);
   #else
     if (flag == -1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_forward,length);
@@ -329,9 +331,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
   // destination is always out
 
   if (plan->post_plan) {
-    d_data_scalar = typename AT::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
-    d_out_scalar = typename AT::t_FFT_SCALAR_1d(d_out.data(),d_out.size());
-    d_scratch_scalar = typename AT::t_FFT_SCALAR_1d(plan->d_scratch.data(),plan->d_scratch.size());
+    d_data_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_data.data(),d_data.size()*2);
+    d_out_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)d_out.data(),d_out.size()*2);
+    d_scratch_scalar = typename AT::t_FFT_SCALAR_1d((FFT_SCALAR*)plan->d_scratch.data(),plan->d_scratch.size()*2);
 
     remapKK->remap_3d_kokkos(d_data_scalar, d_out_scalar,
              d_scratch_scalar, plan->post_plan);
@@ -839,28 +841,28 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename AT::t_FFT_DATA_1d d
 
 #if defined(FFT_MKL)
   if (flag == -1) {
-    DftiComputeForward(plan->handle_fast,(FFT_DATA*)d_data.data());
-    DftiComputeForward(plan->handle_mid,(FFT_DATA*)d_data.data());
-    DftiComputeForward(plan->handle_slow,(FFT_DATA *)d_data.data());
+    DftiComputeForward(plan->handle_fast,d_data.data());
+    DftiComputeForward(plan->handle_mid,d_data.data());
+    DftiComputeForward(plan->handle_slow,d_data.data());
   } else {
-    DftiComputeBackward(plan->handle_fast,(FFT_DATA*)d_data.data());
-    DftiComputeBackward(plan->handle_mid,(FFT_DATA*)d_data.data());
-    DftiComputeBackward(plan->handle_slow,(FFT_DATA*)d_data.data());
+    DftiComputeBackward(plan->handle_fast,d_data.data());
+    DftiComputeBackward(plan->handle_mid,d_data.data());
+    DftiComputeBackward(plan->handle_slow,d_data.data());
   }
 #elif defined(FFT_FFTW3)
   if (flag == -1) {
-    FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_fast_forward,d_data.data(),d_data.data());
+    FFTW_API(execute_dft)(plan->plan_mid_forward,d_data.data(),d_data.data());
+    FFTW_API(execute_dft)(plan->plan_slow_forward,d_data.data(),d_data.data());
   } else {
-    FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    FFTW_API(execute_dft)(plan->plan_fast_backward,d_data.data(),d_data.data());
+    FFTW_API(execute_dft)(plan->plan_mid_backward,d_data.data(),d_data.data());
+    FFTW_API(execute_dft)(plan->plan_slow_backward,d_data.data(),d_data.data());
   }
 #elif defined(FFT_CUFFT)
-  cufftExec(plan->plan_fast,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
-  cufftExec(plan->plan_mid,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
-  cufftExec(plan->plan_slow,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExec(plan->plan_fast,d_data.data(),d_data.data(),flag);
+  cufftExec(plan->plan_mid,d_data.data(),d_data.data(),flag);
+  cufftExec(plan->plan_slow,d_data.data(),d_data.data(),flag);
 #else
   kiss_fft_functor<DeviceType> f;
   typename AT::t_FFT_DATA_1d d_tmp = typename AT::t_FFT_DATA_1d("fft_3d:tmp",d_data.dimension_0());

@@ -210,7 +210,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
       *(out_ptr++) *= norm;
 #elif defined(FFT_MKL)
       out[i] *= norm;
-#else
+#else  /* FFT_KISS */
       out[i].re *= norm;
       out[i].im *= norm;
 #endif
@@ -516,15 +516,6 @@ struct fft_plan_3d *fft_3d_create_plan(
 #endif
   DftiCommitDescriptor(plan->handle_slow);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
-
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   if (nthreads > 1) {
@@ -564,15 +555,8 @@ struct fft_plan_3d *fft_3d_create_plan(
                             NULL,&nslow,1,plan->length3,
                             FFTW_BACKWARD,FFTW_ESTIMATE);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
-#else
+#else /* FFT_KISS */
+
   plan->cfg_fast_forward = kiss_fft_alloc(nfast,0,NULL,NULL);
   plan->cfg_fast_backward = kiss_fft_alloc(nfast,1,NULL,NULL);
 
@@ -598,6 +582,8 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->cfg_slow_backward = kiss_fft_alloc(nslow,1,NULL,NULL);
   }
 
+#endif
+
   if (scaled == 0)
     plan->scaled = 0;
   else {
@@ -606,8 +592,6 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
       (out_khi-out_klo+1);
   }
-
-#endif
 
   return plan;
 }

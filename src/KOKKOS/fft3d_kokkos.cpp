@@ -147,11 +147,11 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
-#if defined(FFT_FFTW3) || defined(FFT_CUFFT) || defined(FFT_MKL)
+#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
-#else
+#else    /* FFT_MKL or FFT_KISS */
     d_out(i,0) *= norm;
     d_out(i,1) *= norm;
 #endif
@@ -634,15 +634,6 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 #endif
   DftiCommitDescriptor(plan->handle_slow);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
-
 #elif defined(FFT_FFTW3)
 
 #if defined (FFT_FFTW_THREADS)
@@ -689,16 +680,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                        NULL,&nslow,1,plan->length3,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
-
 #elif defined(FFT_CUFFT)
+
   cufftPlanMany(&(plan->plan_fast), 1, &nfast,
     &nfast,1,plan->length1,
     &nfast,1,plan->length1,
@@ -714,16 +697,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     &nslow,1,plan->length3,
     CUFFT_TYPE,plan->total3/plan->length3);
 
-  if (scaled == 0)
-    plan->scaled = 0;
-  else {
-    plan->scaled = 1;
-    plan->norm = 1.0/(nfast*nmid*nslow);
-    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
-      (out_khi-out_klo+1);
-  }
+#else  /* FFT_KISS */
 
-#else
   kissfftKK = new KissFFTKokkos<DeviceType>();
 
   plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,NULL,NULL);
@@ -751,6 +726,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->cfg_slow_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,1,NULL,NULL);
   }
 
+#endif
+
   if (scaled == 0)
     plan->scaled = 0;
   else {
@@ -759,8 +736,6 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
       (out_khi-out_klo+1);
   }
-
-#endif
 
   return plan;
 }

@@ -46,9 +46,9 @@ internally.
 
 Additional to the cosine term the *cosine/buck6d* angle style computes
 the short range (vdW) interaction belonging to the
-:doc:`pair\_buck6d <pair_buck6d_coul_gauss>` between the end atoms of the
+:doc:`pair_style buck6d <pair_buck6d_coul_gauss>` between the end atoms of the
 angle.  For this reason this angle style only works in combination
-with the :doc:`pair\_buck6d <pair_buck6d_coul_gauss>` styles and needs
+with the :doc:`pair_style buck6d <pair_buck6d_coul_gauss>` styles and needs
 the :doc:`special_bonds <special_bonds>` 1-3 interactions to be weighted
 0.0 to prevent double counting.
 
@@ -61,7 +61,7 @@ Restrictions
 
 
 *cosine/buck6d* can only be used in combination with the
-:doc:`pair\_buck6d <pair_buck6d_coul_gauss>` style and with a
+:doc:`pair_style buck6d <pair_buck6d_coul_gauss>` style and with a
 :doc:`special_bonds <special_bonds>` 0.0 weighting of 1-3 interactions.
 
 This angle style can only be used if LAMMPS was built with the

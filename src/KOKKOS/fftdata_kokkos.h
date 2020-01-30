@@ -13,13 +13,14 @@
 
 #include "kokkos_type.h"
 
-
+#ifndef MAX
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+#endif
 
 // data types for 2d/3d FFTs
 
-#ifndef FFT_DATA_KOKKOS_H
-#define FFT_DATA_KOKKOS_H
+#ifndef LMP_FFT_DATA_KOKKOS_H
+#define LMP_FFT_DATA_KOKKOS_H
 
 // User-settable FFT precision
 

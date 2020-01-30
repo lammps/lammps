@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef KOKKOS_BASE_FFT_H
-#define KOKKOS_BASE_FFT_H
+#ifndef LMP_KOKKOS_BASE_FFT_H
+#define LMP_KOKKOS_BASE_FFT_H
 
 #include "fftdata_kokkos.h"
 

@@ -11,6 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "kokkos_type.h"
+
+
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 // data types for 2d/3d FFTs
@@ -121,14 +124,12 @@ typedef double FFT_SCALAR;
 #endif
 
 // (double[2]*) is not a 1D pointer
-#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
+#if defined(FFT_FFTW3)
   typedef FFT_SCALAR* FFT_DATA_POINTER;
 #else
   typedef FFT_DATA* FFT_DATA_POINTER;
 #endif
 
-
-#include "kokkos_type.h"
 
 template <class DeviceType>
 struct FFTArrayTypes;

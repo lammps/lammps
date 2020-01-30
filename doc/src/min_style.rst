@@ -68,7 +68,7 @@ each atom is initialized to 0.0 by this style, at the beginning of a
 minimization. This style correspond to an optimized version described 
 in :ref:`(Guenole) <Guenole>` that include different time integration
 schemes and defaults parameters. The default parameters can be 
-modified with the command :doc:`min\_modify <min_modify>`.
+modified with the command :doc:`min_modify <min_modify>`.
 
 
 Style *fire/old* is the original implementation of *fire* in Lammps, 
@@ -80,7 +80,7 @@ A complete description of the differences between *fire/old* and *fire*
 can be found in :ref:`(Guenole) <Guenole>` (where the current *fire* 
 in lammps is named *fire2.0*). By using an appropriate set of 
 parameters, *fire* can behave similarly than *fire/old*, as described
-in the :doc:`min\_modify <min_modify>` command.
+in the :doc:`min_modify <min_modify>` command.
 
 Style *spin* is a damped spin dynamics with an adaptive timestep.
 

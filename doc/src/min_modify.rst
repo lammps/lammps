@@ -143,7 +143,7 @@ optimize the minimization for large or complex systems.  Other
 parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
 *delaystep*\ , *dtgrow*\ , *dtshrink*\ , *alpha0*\ , and
 *alphashrink*\ ). Please refer to the references describing the
-:doc:`min\_style <min_style>` *fire*.
+:doc:`min_style <min_style>` *fire*.
 An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
 unnecessary looping when it is reasonable to think the system will not
 be relaxed further.  Note that in this case the system will NOT have
@@ -151,8 +151,8 @@ reached your minimization criteria. This could happen when the system
 comes to be stuck in a local basin of the phase space.  *vdfmax* is 
 the maximum number of consecutive iterations with P(t) < 0.
 
-The :doc:`min\_style <min_style>` *fire* is an optimized implementation of
-:doc:`min\_style <min_style>` *fire/old*. It can however behave similarly 
+The :doc:`min_style <min_style>` *fire* is an optimized implementation of
+:doc:`min_style <min_style>` *fire/old*. It can however behave similarly 
 to the *fire/old* style by using the following set of parameters:
 
 .. parsed-literal::

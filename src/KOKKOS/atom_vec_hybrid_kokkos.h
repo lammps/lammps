@@ -36,7 +36,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void process_args(int, char **);
   void init();
   void grow(int);
-  void grow_reset();
+  void grow_pointers();
   void copy(int, int, int);
   void clear_bonus();
   void force_clear(int, size_t);

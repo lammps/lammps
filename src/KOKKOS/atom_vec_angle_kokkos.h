@@ -58,7 +58,7 @@ class AtomVecAngleKokkos : public AtomVecKokkos {
   int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
 
-  void grow_reset();
+  void grow_pointers();
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                        const int & iswap,
                        const DAT::tdual_xfloat_2d &buf,

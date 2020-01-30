@@ -121,7 +121,7 @@ void AtomVecMolecularKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom4");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -133,7 +133,7 @@ void AtomVecMolecularKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecMolecularKokkos::grow_reset()
+void AtomVecMolecularKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

@@ -60,7 +60,7 @@ static const char cite_fix_bond_react[] =
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 7 // max # of arguments for any type of constraint + rxnID
+#define MAXCONARGS 10 // max # of arguments for any type of constraint + rxnID
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -72,7 +72,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,ARRHENIUS};
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -1654,10 +1654,15 @@ evaluate constraints: return 0 if any aren't satisfied
 
 int FixBondReact::check_constraints()
 {
-  tagint atom1,atom2,atom3;
+  tagint atom1,atom2,atom3,atom4;
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
+  // for computation of dihedrals
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;
+  double s,phi;
+  int ANDgate;
 
   double **x = atom->x;
 
@@ -1699,6 +1704,69 @@ int FixBondReact::check_constraints()
         if (c > 1.0) c = 1.0;
         if (c < -1.0) c = -1.0;
         if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+      } else if (constraints[i][1] == DIHEDRAL) {
+        // phi calculation from dihedral style harmonic
+        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
+        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
+        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
+        atom4 = atom->map(glove[(int) constraints[i][5]-1][1]);
+
+        vb1x = x[atom1][0] - x[atom2][0];
+        vb1y = x[atom1][1] - x[atom2][1];
+        vb1z = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(vb1x,vb1y,vb1z);
+
+        vb2x = x[atom3][0] - x[atom2][0];
+        vb2y = x[atom3][1] - x[atom2][1];
+        vb2z = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(vb2x,vb2y,vb2z);
+
+        vb2xm = -vb2x;
+        vb2ym = -vb2y;
+        vb2zm = -vb2z;
+        domain->minimum_image(vb2xm,vb2ym,vb2zm);
+
+        vb3x = x[atom4][0] - x[atom3][0];
+        vb3y = x[atom4][1] - x[atom3][1];
+        vb3z = x[atom4][2] - x[atom3][2];
+        domain->minimum_image(vb3x,vb3y,vb3z);
+
+        ax = vb1y*vb2zm - vb1z*vb2ym;
+        ay = vb1z*vb2xm - vb1x*vb2zm;
+        az = vb1x*vb2ym - vb1y*vb2xm;
+        bx = vb3y*vb2zm - vb3z*vb2ym;
+        by = vb3z*vb2xm - vb3x*vb2zm;
+        bz = vb3x*vb2ym - vb3y*vb2xm;
+
+        rasq = ax*ax + ay*ay + az*az;
+        rbsq = bx*bx + by*by + bz*bz;
+        rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+        rg = sqrt(rgsq);
+
+        ra2inv = rb2inv = 0.0;
+        if (rasq > 0) ra2inv = 1.0/rasq;
+        if (rbsq > 0) rb2inv = 1.0/rbsq;
+        rabinv = sqrt(ra2inv*rb2inv);
+
+        c = (ax*bx + ay*by + az*bz)*rabinv;
+        s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
+
+        if (c > 1.0) c = 1.0;
+        if (c < -1.0) c = -1.0;
+        phi = atan2(s,c);
+
+        ANDgate = 0;
+        if (constraints[i][6] < constraints[i][7]) {
+          if (phi > constraints[i][6] && phi < constraints[i][7]) ANDgate = 1;
+        } else {
+          if (phi > constraints[i][6] || phi < constraints[i][7]) ANDgate = 1;
+        }
+        if (constraints[i][8] < constraints[i][9]) {
+          if (phi > constraints[i][8] && phi < constraints[i][9]) ANDgate = 1;
+        } else {
+          if (phi > constraints[i][8] || phi < constraints[i][9]) ANDgate = 1;
+        }
+        if (ANDgate != 1) return 0;
       } else if (constraints[i][1] == ARRHENIUS) {
         t = get_temperature();
         prrhob = constraints[i][3]*pow(t,constraints[i][4])*
@@ -3110,6 +3178,20 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[2];
       constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
       constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+    } else if (strcmp(constraint_type,"dihedral") == 0) {
+      constraints[nconstraints][1] = DIHEDRAL;
+      tmp[6] = 181.0; // impossible range
+      tmp[7] = 182.0;
+      sscanf(line,"%*s %lg %lg %lg %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],
+                        &tmp[2],&tmp[3],&tmp[4],&tmp[5],&tmp[6],&tmp[7]);
+      constraints[nconstraints][2] = tmp[0];
+      constraints[nconstraints][3] = tmp[1];
+      constraints[nconstraints][4] = tmp[2];
+      constraints[nconstraints][5] = tmp[3];
+      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+      constraints[nconstraints][7] = tmp[5]/180.0 * MY_PI;
+      constraints[nconstraints][8] = tmp[6]/180.0 * MY_PI;
+      constraints[nconstraints][9] = tmp[7]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[nconstraints][1] = ARRHENIUS;
       constraints[nconstraints][2] = narrhenius++;

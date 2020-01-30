@@ -17,7 +17,7 @@
 #include "kspace.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "kokkos_base.h"
+#include "kokkos_base_fft.h"
 #include "kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -502,9 +502,9 @@ void GridCommKokkos<DeviceType>::setup()
   }
   nbuf *= MAX(nforward,nreverse);
   //memory->create(buf1,nbuf,"Commgrid:buf1");
-  k_buf1 = DAT::tdual_FFT_SCALAR_1d("Commgrid:buf1",nbuf);
+  k_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("Commgrid:buf1",nbuf);
   //memory->create(buf2,nbuf,"Commgrid:buf2");
-  k_buf2 = DAT::tdual_FFT_SCALAR_1d("Commgrid:buf2",nbuf);
+  k_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("Commgrid:buf2",nbuf);
 }
 
 /* ----------------------------------------------------------------------

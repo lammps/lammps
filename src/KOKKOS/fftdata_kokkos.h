@@ -106,7 +106,6 @@ typedef double FFT_SCALAR;
     typedef cufftDoubleComplex FFT_DATA;
   #endif
 #else
-  #include "kissfft_kokkos.h"
   #if defined(FFT_SINGLE)
     #define kiss_fft_scalar float
   #else
@@ -121,6 +120,7 @@ typedef double FFT_SCALAR;
   #endif
 #endif
 
+#include "kokkos_type.h"
 
 template <class DeviceType>
 struct FFTArrayTypes;
@@ -151,6 +151,8 @@ typedef Kokkos::
   DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_dev t_int_64;
 typedef tdual_int_64::t_dev_um t_int_64_um;
+
+};
 
 #ifdef KOKKOS_ENABLE_CUDA
 template <>
@@ -184,5 +186,14 @@ typedef tdual_int_64::t_host_um t_int_64_um;
 
 };
 #endif
+
+typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
+typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
+
+
+#if defined(FFT_KISSFFT)
+#include "kissfft_kokkos.h"
+#endif
+
 
 #endif

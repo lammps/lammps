@@ -58,7 +58,7 @@ RemapKokkos<DeviceType>::~RemapKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void RemapKokkos<DeviceType>::perform(typename AT::t_FFT_SCALAR_1d d_in, typename AT::t_FFT_SCALAR_1d d_out, typename AT::t_FFT_SCALAR_1d d_buf)
+void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf)
 {
   remap_3d_kokkos(d_in,d_out,d_buf,plan);
 }
@@ -102,7 +102,7 @@ void RemapKokkos<DeviceType>::perform(typename AT::t_FFT_SCALAR_1d d_in, typenam
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void RemapKokkos<DeviceType>::remap_3d_kokkos(typename AT::t_FFT_SCALAR_1d d_in, typename AT::t_FFT_SCALAR_1d d_out, typename AT::t_FFT_SCALAR_1d d_buf,
+void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf,
               struct remap_plan_3d_kokkos<DeviceType> *plan)
 {
   // collective flag not yet supported
@@ -110,7 +110,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename AT::t_FFT_SCALAR_1d d_in,
   // use point-to-point communication
 
   int i,isend,irecv;
-  typename AT::t_FFT_SCALAR_1d d_scratch;
+  typename FFT_AT::t_FFT_SCALAR_1d d_scratch;
 
   if (plan->memory == 0)
     d_scratch = d_buf;
@@ -442,7 +442,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     size = MAX(size,plan->send_size[nsend]);
 
   if (size) {
-    plan->d_sendbuf = typename AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
+    plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
     if (!plan->d_sendbuf.data()) return NULL;
   }
 
@@ -452,7 +452,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   if (memory == 1) {
     if (nrecv > 0) {
       plan->d_scratch =
-        typename AT::t_FFT_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
+        typename FFT_AT::t_FFT_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
       if (!plan->d_scratch.data()) return NULL;
     }
   }

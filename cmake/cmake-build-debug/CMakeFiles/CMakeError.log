@@ -1,0 +1,132 @@
+Detecting CXX OpenMP failed with the following output:
+Change Dir: /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_f4afa/fast && /Library/Developer/CommandLineTools/usr/bin/make -f CMakeFiles/cmTC_f4afa.dir/build.make CMakeFiles/cmTC_f4afa.dir/build
+Building CXX object CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.o
+/usr/local/Cellar/llvm/9.0.1/bin/clang++    -std=c++11 -fopenmp=libomp -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.o -c /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/local/Cellar/llvm/9.0.1/bin/clang-9" -cc1 -triple x86_64-apple-macosx10.14.0 -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -emit-obj -mrelax-all -disable-free -disable-llvm-verifier -discard-value-names -main-file-name OpenMPTryFlag.cpp -mrelocation-model pic -pic-level 2 -mthread-model posix -mdisable-fp-elim -masm-verbose -munwind-tables -target-sdk-version=10.14 -target-cpu penryn -dwarf-column-info -debugger-tuning=lldb -ggnu-pubnames -target-linker-version 530 -v -coverage-notes-file /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.gcno -resource-dir /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -stdlib=libc++ -internal-isystem /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include -internal-isystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include -std=c++11 -fdeprecated-macro -fdebug-compilation-dir /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp -ferror-limit 19 -fmessage-length 0 -fopenmp -stack-protector 1 -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fobjc-runtime=macosx-10.14.0 -fcxx-exceptions -fexceptions -fmax-type-align=16 -fdiagnostics-show-option -o CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.o -x c++ /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang -cc1 version 9.0.1 based upon LLVM 9.0.1 default target x86_64-apple-darwin18.7.0
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/Library/Frameworks"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1
+ /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/System/Library/Frameworks (framework directory)
+End of search list.
+Linking CXX executable cmTC_f4afa
+/private/var/folders/2y/21tt9t0j4tz3_h89j99jf53r003f8c/T/AppTranslocation/87525DBF-E08C-4F4E-A022-F87E05937B52/d/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f4afa.dir/link.txt --verbose=1
+/usr/local/Cellar/llvm/9.0.1/bin/clang++   -std=c++11 -fopenmp=libomp -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.o  -o cmTC_f4afa -v -Wl,-v 
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/bin/ld" -demangle -lto_library /usr/local/Cellar/llvm/9.0.1/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -o cmTC_f4afa -search_paths_first -headerpad_max_install_names CMakeFiles/cmTC_f4afa.dir/OpenMPTryFlag.cpp.o -v -lomp -lc++ -lSystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/lib/darwin/libclang_rt.osx.a
+@(#)PROGRAM:ld  PROJECT:ld64-450.3
+BUILD 18:16:53 Apr  5 2019
+configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+Library search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+Framework search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/
+ld: library not found for -lomp
+clang-9: error: linker command failed with exit code 1 (use -v to see invocation)
+make[1]: *** [cmTC_f4afa] Error 1
+make: *** [cmTC_f4afa/fast] Error 2
+
+
+
+Detecting CXX OpenMP failed with the following output:
+Change Dir: /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_42566/fast && /Library/Developer/CommandLineTools/usr/bin/make -f CMakeFiles/cmTC_42566.dir/build.make CMakeFiles/cmTC_42566.dir/build
+Building CXX object CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.o
+/usr/local/Cellar/llvm/9.0.1/bin/clang++    -std=c++11 -fopenmp=libiomp5 -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.o -c /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/local/Cellar/llvm/9.0.1/bin/clang-9" -cc1 -triple x86_64-apple-macosx10.14.0 -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -emit-obj -mrelax-all -disable-free -disable-llvm-verifier -discard-value-names -main-file-name OpenMPTryFlag.cpp -mrelocation-model pic -pic-level 2 -mthread-model posix -mdisable-fp-elim -masm-verbose -munwind-tables -target-sdk-version=10.14 -target-cpu penryn -dwarf-column-info -debugger-tuning=lldb -ggnu-pubnames -target-linker-version 530 -v -coverage-notes-file /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.gcno -resource-dir /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -stdlib=libc++ -internal-isystem /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include -internal-isystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include -std=c++11 -fdeprecated-macro -fdebug-compilation-dir /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp -ferror-limit 19 -fmessage-length 0 -fopenmp -stack-protector 1 -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fobjc-runtime=macosx-10.14.0 -fcxx-exceptions -fexceptions -fmax-type-align=16 -fdiagnostics-show-option -o CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.o -x c++ /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang -cc1 version 9.0.1 based upon LLVM 9.0.1 default target x86_64-apple-darwin18.7.0
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/Library/Frameworks"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1
+ /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/System/Library/Frameworks (framework directory)
+End of search list.
+Linking CXX executable cmTC_42566
+/private/var/folders/2y/21tt9t0j4tz3_h89j99jf53r003f8c/T/AppTranslocation/87525DBF-E08C-4F4E-A022-F87E05937B52/d/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_42566.dir/link.txt --verbose=1
+/usr/local/Cellar/llvm/9.0.1/bin/clang++   -std=c++11 -fopenmp=libiomp5 -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.o  -o cmTC_42566 -v -Wl,-v 
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/bin/ld" -demangle -lto_library /usr/local/Cellar/llvm/9.0.1/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -o cmTC_42566 -search_paths_first -headerpad_max_install_names CMakeFiles/cmTC_42566.dir/OpenMPTryFlag.cpp.o -v -liomp5 -lc++ -lSystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/lib/darwin/libclang_rt.osx.a
+@(#)PROGRAM:ld  PROJECT:ld64-450.3
+BUILD 18:16:53 Apr  5 2019
+configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+Library search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+Framework search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/
+ld: library not found for -liomp5
+clang-9: error: linker command failed with exit code 1 (use -v to see invocation)
+make[1]: *** [cmTC_42566] Error 1
+make: *** [cmTC_42566/fast] Error 2
+
+
+
+Detecting CXX OpenMP failed with the following output:
+Change Dir: /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_98d34/fast && /Library/Developer/CommandLineTools/usr/bin/make -f CMakeFiles/cmTC_98d34.dir/build.make CMakeFiles/cmTC_98d34.dir/build
+Building CXX object CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.o
+/usr/local/Cellar/llvm/9.0.1/bin/clang++    -std=c++11 -fopenmp -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.o -c /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/local/Cellar/llvm/9.0.1/bin/clang-9" -cc1 -triple x86_64-apple-macosx10.14.0 -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -emit-obj -mrelax-all -disable-free -disable-llvm-verifier -discard-value-names -main-file-name OpenMPTryFlag.cpp -mrelocation-model pic -pic-level 2 -mthread-model posix -mdisable-fp-elim -masm-verbose -munwind-tables -target-sdk-version=10.14 -target-cpu penryn -dwarf-column-info -debugger-tuning=lldb -ggnu-pubnames -target-linker-version 530 -v -coverage-notes-file /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.gcno -resource-dir /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -stdlib=libc++ -internal-isystem /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include -internal-isystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include -std=c++11 -fdeprecated-macro -fdebug-compilation-dir /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/CMakeTmp -ferror-limit 19 -fmessage-length 0 -fopenmp -stack-protector 1 -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fobjc-runtime=macosx-10.14.0 -fcxx-exceptions -fexceptions -fmax-type-align=16 -fdiagnostics-show-option -o CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.o -x c++ /Users/casieve/LAMMPS/numerical_differentiation/cmake/cmake-build-debug/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp
+clang -cc1 version 9.0.1 based upon LLVM 9.0.1 default target x86_64-apple-darwin18.7.0
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include/c++/v1"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/local/include"
+ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/Library/Frameworks"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/Cellar/llvm/9.0.1/bin/../include/c++/v1
+ /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include
+ /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/System/Library/Frameworks (framework directory)
+End of search list.
+Linking CXX executable cmTC_98d34
+/private/var/folders/2y/21tt9t0j4tz3_h89j99jf53r003f8c/T/AppTranslocation/87525DBF-E08C-4F4E-A022-F87E05937B52/d/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98d34.dir/link.txt --verbose=1
+/usr/local/Cellar/llvm/9.0.1/bin/clang++   -std=c++11 -fopenmp -v -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.o  -o cmTC_98d34 -v -Wl,-v 
+clang version 9.0.1 
+Target: x86_64-apple-darwin18.7.0
+Thread model: posix
+InstalledDir: /usr/local/Cellar/llvm/9.0.1/bin
+ "/usr/bin/ld" -demangle -lto_library /usr/local/Cellar/llvm/9.0.1/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -o cmTC_98d34 -search_paths_first -headerpad_max_install_names CMakeFiles/cmTC_98d34.dir/OpenMPTryFlag.cpp.o -v -lomp -lc++ -lSystem /usr/local/Cellar/llvm/9.0.1/lib/clang/9.0.1/lib/darwin/libclang_rt.osx.a
+@(#)PROGRAM:ld  PROJECT:ld64-450.3
+BUILD 18:16:53 Apr  5 2019
+configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+Library search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+Framework search paths:
+	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/
+ld: library not found for -lomp
+clang-9: error: linker command failed with exit code 1 (use -v to see invocation)
+make[1]: *** [cmTC_98d34] Error 1
+make: *** [cmTC_98d34/fast] Error 2
+
+
+

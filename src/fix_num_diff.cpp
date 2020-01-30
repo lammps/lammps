@@ -19,71 +19,45 @@
 #include "atom_masks.h"
 #include "update.h"
 #include "modify.h"
+#include "comm.h"
 #include "domain.h"
 #include "region.h"
 #include "respa.h"
+#include "pair.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
+#include "kspace.h"
 #include "input.h"
+#include "neighbor.h"
+#include "timer.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
 
+//TODO: Hold onto analytical forces, make compute or whatever that set fix return as global forces
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,CONSTANT,EQUAL,ATOM};
+//enum{};
 
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), estr(NULL), idregion(NULL), sforce(NULL)
-
+  Fix(lmp, narg, arg), local_forces(NULL), global_forces(NULL), groupmap(NULL), fp(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix numdiff command");
-
-  dynamic_group_allow = 1;
-  scalar_flag = 1;
-  vector_flag = 1;
-  size_vector = 3;
-  global_freq = 1;
-  extscalar = 1;
-  extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
-
-  xstr = ystr = zstr = NULL;
-
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[3][2]);
-  } else {
-    xvalue = force->numeric(FLERR,arg[3]);
-    xstyle = CONSTANT;
-  }
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    ystr = new char[n];
-    strcpy(ystr,&arg[4][2]);
-  } else {
-    yvalue = force->numeric(FLERR,arg[4]);
-    ystyle = CONSTANT;
-  }
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    zstr = new char[n];
-    strcpy(zstr,&arg[5][2]);
-  } else {
-    zvalue = force->numeric(FLERR,arg[5]);
-    zstyle = CONSTANT;
-  }
+  vflag = 0;
+  eflag = 1;
 
   // optional args
 
   nevery = 1;
-  iregion = -1;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -92,43 +66,25 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
       nevery = atoi(arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal fix numdiff command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix numdiff command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1)
-        error->all(FLERR,"Region ID for fix numdiff does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix numdiff command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        estr = new char[n];
-        strcpy(estr,&arg[iarg+1][2]);
-      } else error->all(FLERR,"Illegal fix numdiff command");
-      iarg += 2;
     } else error->all(FLERR,"Illegal fix numdiff command");
   }
 
-  force_flag = 0;
-  foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
+  local_forces = NULL;
+  global_forces = NULL;
 
-  maxatom = 1;
-  memory->create(sforce,maxatom,4,"numdiff:sforce");
+  memory->grow(local_forces,atom->nmax,3,"fix_numdiff:local_forces");
+  memory->grow(global_forces,atom->nmax,3,"fix_numdiff:global_forces");
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::~FixNumDiff()
 {
-  delete [] xstr;
-  delete [] ystr;
-  delete [] zstr;
-  delete [] estr;
-  delete [] idregion;
-  memory->destroy(sforce);
+  if (fp && me == 0) fclose(fp);
+  memory->destroy(groupmap);
+  memory->destroy(local_forces);
+  memory->destroy(global_forces);
+  fp = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,58 +107,7 @@ void FixNumDiff::init()
 {
   // check variables
 
-  if (xstr) {
-    xvar = input->variable->find(xstr);
-    if (xvar < 0)
-      error->all(FLERR,"Variable name for fix numdiff does not exist");
-    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
-    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all(FLERR,"Variable for fix numdiff is invalid style");
-  }
-  if (ystr) {
-    yvar = input->variable->find(ystr);
-    if (yvar < 0)
-      error->all(FLERR,"Variable name for fix numdiff does not exist");
-    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
-    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all(FLERR,"Variable for fix numdiff is invalid style");
-  }
-  if (zstr) {
-    zvar = input->variable->find(zstr);
-    if (zvar < 0)
-      error->all(FLERR,"Variable name for fix numdiff does not exist");
-    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
-    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all(FLERR,"Variable for fix numdiff is invalid style");
-  }
-  if (estr) {
-    evar = input->variable->find(estr);
-    if (evar < 0)
-      error->all(FLERR,"Variable name for fix numdiff does not exist");
-    if (input->variable->atomstyle(evar)) estyle = ATOM;
-    else error->all(FLERR,"Variable for fix numdiff is invalid style");
-  } else estyle = NONE;
-
-  // set index and check validity of region
-
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for fix numdiff does not exist");
-  }
-
-  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
-    varflag = ATOM;
-  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
-    varflag = EQUAL;
-  else varflag = CONSTANT;
-
-  if (varflag == CONSTANT && estyle != NONE)
-    error->all(FLERR,"Cannot use variable energy with "
-               "constant force in fix numdiff");
-  if ((varflag == EQUAL || varflag == ATOM) &&
-      update->whichflag == 2 && estyle == NONE)
-    error->all(FLERR,"Must use variable energy with fix numdiff");
+  create_groupmap();
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -214,6 +119,12 @@ void FixNumDiff::init()
 
 void FixNumDiff::setup(int vflag)
 {
+  //if all then skip communication groupmap population
+  if (gcount == atom->natoms)
+    for (bigint i=0; i<atom->natoms; i++)
+      groupmap[i] = i;
+  else
+    create_groupmap();
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
@@ -234,130 +145,16 @@ void FixNumDiff::min_setup(int vflag)
 
 void FixNumDiff::post_force(int vflag)
 {
-  double **x = atom->x;
-  double **f = atom->f;
-  int *mask = atom->mask;
-  imageint *image = atom->image;
-  double v[6];
-  int nlocal = atom->nlocal;
-
   if (update->ntimestep % nevery) return;
 
   // energy and virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  ev_setup(1, vflag);
+  calculateForces();
 
   if (lmp->kokkos)
     atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
                       (unsigned int) F_MASK);
-
-  // update region if necessary
-
-  Region *region = NULL;
-  if (iregion >= 0) {
-    region = domain->regions[iregion];
-    region->prematch();
-  }
-
-  // reallocate sforce array if necessary
-
-  if ((varflag == ATOM || estyle == ATOM) && atom->nmax > maxatom) {
-    maxatom = atom->nmax;
-    memory->destroy(sforce);
-    memory->create(sforce,maxatom,4,"numdiff:sforce");
-  }
-
-  // foriginal[0] = "potential energy" for added force
-  // foriginal[123] = force on atoms before extra force added
-
-  foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
-  force_flag = 0;
-
-  // constant force
-  // potential energy = - x dot f in unwrapped coords
-
-  if (varflag == CONSTANT) {
-    double unwrap[3];
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        foriginal[0] -= xvalue*unwrap[0] + yvalue*unwrap[1] + zvalue*unwrap[2];
-        foriginal[1] += f[i][0];
-        foriginal[2] += f[i][1];
-        foriginal[3] += f[i][2];
-        f[i][0] += xvalue;
-        f[i][1] += yvalue;
-        f[i][2] += zvalue;
-        if (evflag) {
-          v[0] = xvalue * unwrap[0];
-          v[1] = yvalue * unwrap[1];
-          v[2] = zvalue * unwrap[2];
-          v[3] = xvalue * unwrap[1];
-          v[4] = xvalue * unwrap[2];
-          v[5] = yvalue * unwrap[2];
-          v_tally(i,v);
-        }
-      }
-
-  // variable force, wrap with clear/add
-  // potential energy = evar if defined, else 0.0
-  // wrap with clear/add
-
-  } else {
-    double unwrap[3];
-
-    modify->clearstep_compute();
-
-    if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM)
-      input->variable->compute_atom(xvar,igroup,&sforce[0][0],4,0);
-    if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM)
-      input->variable->compute_atom(yvar,igroup,&sforce[0][1],4,0);
-    if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM)
-      input->variable->compute_atom(zvar,igroup,&sforce[0][2],4,0);
-    if (estyle == ATOM)
-      input->variable->compute_atom(evar,igroup,&sforce[0][3],4,0);
-
-    modify->addstep_compute(update->ntimestep + 1);
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        if (xstyle == ATOM) xvalue = sforce[i][0];
-        if (ystyle == ATOM) yvalue = sforce[i][1];
-        if (zstyle == ATOM) zvalue = sforce[i][2];
-
-        if (estyle == ATOM) {
-          foriginal[0] += sforce[i][3];
-        } else {
-          if (xstyle) foriginal[0] -= xvalue*unwrap[0];
-          if (ystyle) foriginal[0] -= yvalue*unwrap[1];
-          if (zstyle) foriginal[0] -= zvalue*unwrap[2];
-        }
-        foriginal[1] += f[i][0];
-        foriginal[2] += f[i][1];
-        foriginal[3] += f[i][2];
-
-        if (xstyle) f[i][0] += xvalue;
-        if (ystyle) f[i][1] += yvalue;
-        if (zstyle) f[i][2] += zvalue;
-        if (evflag) {
-          v[0] = xstyle ? xvalue*unwrap[0] : 0.0;
-          v[1] = ystyle ? yvalue*unwrap[1] : 0.0;
-          v[2] = zstyle ? zvalue*unwrap[2] : 0.0;
-          v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
-          v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
-          v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
-          v_tally(i, v);
-        }
-      }
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -375,33 +172,256 @@ void FixNumDiff::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   potential energy of added force
-------------------------------------------------------------------------- */
-
-double FixNumDiff::compute_scalar()
-{
-  // only sum across procs one time
-
-  if (force_flag == 0) {
-    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
-    force_flag = 1;
-  }
-  return foriginal_all[0];
-}
-
-/* ----------------------------------------------------------------------
    return components of total force on fix group before force was changed
 ------------------------------------------------------------------------- */
 
-double FixNumDiff::compute_vector(int n)
+double FixNumDiff::compute_array(int i, int j)
 {
   // only sum across procs one time
 
-  if (force_flag == 0) {
-    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
-    force_flag = 1;
+  //if (force_flag == 0) {
+  //  MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+  //  force_flag = 1;
+  //}
+  //return foriginal_all[n+1];
+}
+/* ----------------------------------------------------------------------
+   create dynamical matrix
+------------------------------------------------------------------------- */
+
+void FixNumDiff::calculateForces()
+{
+  int local_idx; // local index
+  bigint natoms = atom->natoms;
+  bigint *gm = groupmap;
+  double **f = atom->f;
+  double *e = atom->e;
+  double temp = 1.0 / 2 / del;
+
+  double **temp_f;
+  memory->create(*&temp_f, natoms, 3, "fix_numdiff:temporary_forces");
+  for (int i=0; i<natoms; i++)
+    for (int j=0; j<3; j++)
+      temp_f[i][j] = f[i][j];
+
+  //initialize forces to all zeros
+  nd_force_clear(local_forces);
+  nd_force_clear(global_forces);
+
+
+
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Calculating Forces ...\n");
+    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
+    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
+    fprintf(screen,"  Total Force elements = " BIGINT_FORMAT "\n", (flen*3) );
   }
-  return foriginal_all[n+1];
+
+  // emit flen rows of dimalpha*flen*dimbeta elements
+
+  update->nsteps = 0;
+  int prog = 0;
+  for (bigint i=1; i<=natoms; i++){
+    local_idx = atom->map(i);
+    if (gm[i-1] < 0)
+      continue;
+    for (int alpha=0; alpha<3; alpha++){
+      displace_atom(local_idx, alpha, 1);
+      update_force();
+      local_forces[gm[i-1]][alpha] -= e[local_idx];
+
+      displace_atom(local_idx,alpha,-2);
+      update_force();
+      local_forces[gm[i-1]][alpha] -= -e[local_idx];
+      local_forces[gm[i-1]][alpha] *= temp;
+      displace_atom(local_idx,alpha,1);
+    }
+    for (int k=0; k<3; k++)
+      MPI_Reduce(local_forces[k],global_forces[k],flen,MPI_DOUBLE,MPI_SUM,0,world);
+    if (comm->me == 0 && screen) {
+      int p = 10 * gm[i-1] / gcount;
+      if (p > prog) {
+        prog = p;
+        fprintf(screen," %d%%",p*10);
+        fflush(screen);
+      }
+    }
+  }
+
+  for (int i=0; i<natoms; i++)
+    for (int j=0; j<3; j++)
+      f[i][j] = temp_f[i][j];
+
+  memory->destroy(*&temp_f);
+
+  if (comm->me == 0 && screen) fprintf(screen,"\n");
+
+  if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
+}
+
+/* ----------------------------------------------------------------------
+  Displace atoms
+   ---------------------------------------------------------------------- */
+
+void FixNumDiff::displace_atom(int local_idx, int direction, int magnitude)
+{
+  if (local_idx < 0) return;
+
+  double **x = atom->x;
+  int *sametag = atom->sametag;
+  int j = local_idx;
+
+  x[local_idx][direction] += del*magnitude;
+
+  while (sametag[j] >= 0){
+    j = sametag[j];
+    x[j][direction] += del*magnitude;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   evaluate potential energy and forces
+   may migrate atoms due to reneighboring
+   return new energy, which should include nextra_global dof
+   return negative gradient stored in atom->f
+   return negative gradient for nextra_global dof in fextra
+------------------------------------------------------------------------- */
+
+void FixNumDiff::update_force()
+{
+  force_clear();
+  int n_post_force = modify->n_post_force;
+
+  if (pair_compute_flag) {
+    force->pair->compute(eflag,vflag);
+    timer->stamp(Timer::PAIR);
+  }
+  if (atom->molecular) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+    timer->stamp(Timer::BOND);
+  }
+  if (kspace_compute_flag) {
+    force->kspace->compute(eflag,vflag);
+    timer->stamp(Timer::KSPACE);
+  }
+  if (force->newton) {
+    comm->reverse_comm();
+    timer->stamp(Timer::COMM);
+  }
+
+  // force modifications
+
+  if (n_post_force) modify->post_force(vflag);
+  timer->stamp(Timer::MODIFY);
+
+  ++ update->nsteps;
+}
+
+/* ----------------------------------------------------------------------
+   clear force on own & ghost atoms
+   clear other arrays as needed
+------------------------------------------------------------------------- */
+
+void FixNumDiff::force_clear()
+{
+  if (external_force_clear) return;
+
+  // clear global force array
+  // if either newton flag is set, also include ghosts
+
+  size_t nbytes = sizeof(double) * atom->nlocal;
+  if (force->newton) nbytes += sizeof(double) * atom->nghost;
+
+  if (nbytes) {
+    memset(&atom->f[0][0],0,3*nbytes);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   clear forces needed
+------------------------------------------------------------------------- */
+
+void FixNumDiff::nd_force_clear(double **forces)
+{
+
+  size_t nbytes = sizeof(double) * flen *3;
+
+
+  if (nbytes) {
+    for (int i=0; i<3; i++)
+      memset(&forces[0][i],0,nbytes);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNumDiff::create_groupmap()
+{
+  //Create a group map which maps atom order onto group
+  // groupmap[global atom index-1] = output column/row
+
+  int local_idx; // local index
+  int gid = 0; //group index
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  bigint natoms = atom->natoms;
+  int *recv = new int[comm->nprocs];
+  int *displs = new int[comm->nprocs];
+  bigint *temp_groupmap = new bigint[natoms];
+
+  //find number of local atoms in the group (final_gid)
+  for (bigint i=1; i<=natoms; i++){
+    local_idx = atom->map(i);
+    if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
+      gid += 1; // gid at the end of loop is final_Gid
+  }
+  //create an array of length final_gid
+  bigint *sub_groupmap = new bigint[gid];
+
+  gid = 0;
+  //create a map between global atom id and group atom id for each proc
+  for (bigint i=1; i<=natoms; i++){
+    local_idx = atom->map(i);
+    if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit){
+      sub_groupmap[gid] = i;
+      gid += 1;
+    }
+  }
+
+  //populate arrays for Allgatherv
+  for (int i=0; i<comm->nprocs; i++){
+    recv[i] = 0;
+  }
+  recv[comm->me] = gid;
+  MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
+  for (int i=0; i<comm->nprocs; i++){
+    recv[i]=displs[i];
+    if (i>0) displs[i] = displs[i-1]+recv[i-1];
+    else displs[i] = 0;
+  }
+
+  //combine subgroup maps into total temporary groupmap
+  MPI_Allgatherv(sub_groupmap,gid,MPI_LMP_BIGINT,temp_groupmap,recv,displs,MPI_LMP_BIGINT,world);
+  std::sort(temp_groupmap,temp_groupmap+gcount);
+
+  //populate member groupmap based on temp groupmap
+  bigint j = 0;
+  for (bigint i=1; i<=natoms; i++){
+    // flag groupmap contents that are in temp_groupmap
+    if (j < gcount && i == temp_groupmap[j])
+      groupmap[i-1] = j++;
+    else
+      groupmap[i-1] = -1;
+  }
+
+  //free that memory!
+  delete[] recv;
+  delete[] displs;
+  delete[] sub_groupmap;
+  delete[] temp_groupmap;
 }
 
 /* ----------------------------------------------------------------------
@@ -410,7 +430,7 @@ double FixNumDiff::compute_vector(int n)
 
 double FixNumDiff::memory_usage()
 {
-  double bytes = 0.0;
-  if (varflag == ATOM) bytes = maxatom*4 * sizeof(double);
-  return bytes;
+  //double bytes = 0.0;
+  //if (varflag == ATOM) bytes = maxatom*4 * sizeof(double);
+  //return bytes;
 }

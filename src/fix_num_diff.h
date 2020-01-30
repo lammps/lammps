@@ -35,22 +35,50 @@ class FixNumDiff : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  double compute_array(int, int);
   double memory_usage();
 
- private:
-  double xvalue,yvalue,zvalue;
-  int varflag,iregion;
-  char *xstr,*ystr,*zstr,*estr;
-  char *idregion;
-  int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
-  double foriginal[4],foriginal_all[4];
-  int force_flag;
-  int ilevel_respa;
+protected:
+  int eflag,vflag;            // flags for energy/virial computation
+  int external_force_clear;   // clear forces locally or externally
 
-  int maxatom;
-  double **sforce;
+  int triclinic;              // 0 if domain is orthog, 1 if triclinic
+  int pairflag;
+
+  int pair_compute_flag;            // 0 if pair->compute is skipped
+  int kspace_compute_flag;          // 0 if kspace->compute is skipped
+
+  double **local_forces;            // local forces from numerical difference (this might be usefull for debugging)
+  double **global_forces;           // global forces from numerical difference
+
+  void update_force();
+  void force_clear();
+  virtual void openfile(const char* filename);
+
+ private:
+  void create_groupmap();
+  void displace_atom(int local_idx, int direction, int magnitude);
+  void writeMatrix(double **dynmat);
+  void nd_force_clear(double **dynmat);
+  void calculateForces();
+
+  int ilevel_respa;
+  double del;
+
+  int igroup,groupbit;
+  bigint gcount;             // number of atoms in group
+  bigint flen;             // rank of dynamical matrix
+  int scaleflag;
+  int me;
+  bigint *groupmap;
+
+  int compressed;            // 1 if dump file is written compressed, 0 no
+  int binaryflag;            // 1 if dump file is written binary, 0 no
+  int file_opened;           // 1 if openfile method has been called, 0 no
+  int file_flag;             // 1 custom file name, 0 dynmat.dat
+
+  FILE *fp;
+
 };
 
 }

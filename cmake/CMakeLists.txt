@@ -52,6 +52,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
 endif()

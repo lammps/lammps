@@ -120,6 +120,14 @@ typedef double FFT_SCALAR;
   #endif
 #endif
 
+// (double[2]*) is not a 1D pointer
+#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
+  typedef FFT_SCALAR* FFT_DATA_POINTER;
+#else
+  typedef FFT_DATA* FFT_DATA_POINTER;
+#endif
+
+
 #include "kokkos_type.h"
 
 template <class DeviceType>
@@ -192,7 +200,7 @@ typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
 
 
 #if defined(FFT_KISSFFT)
-#include "kissfft_kokkos.h"
+#include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
 #endif
 
 

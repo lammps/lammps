@@ -1979,47 +1979,43 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   void *pdata;
 
   for (i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
-            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+    fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
 
-    if (ndata_vel) {
-      j = 4;
-      for (nn = 0; nn < ndata_vel; nn++) {
-        pdata = mdata_vel.pdata[nn];
-        datatype = mdata_vel.datatype[nn];
-        cols = mdata_vel.cols[nn];
-        if (datatype == DOUBLE) {
-          if (cols == 0) {
-            double *vec = *((double **) pdata);
+    j = 1;
+    for (nn = 1; nn < ndata_vel; nn++) {
+      pdata = mdata_vel.pdata[nn];
+      datatype = mdata_vel.datatype[nn];
+      cols = mdata_vel.cols[nn];
+      if (datatype == DOUBLE) {
+        if (cols == 0) {
+          double *vec = *((double **) pdata);
+          fprintf(fp," %-1.16e",buf[i][j++]);
+        } else {
+          double **array = *((double ***) pdata);
+          for (m = 0; m < cols; m++)
             fprintf(fp," %-1.16e",buf[i][j++]);
-          } else {
-            double **array = *((double ***) pdata);
-            for (m = 0; m < cols; m++)
-              fprintf(fp," %-1.16e",buf[i][j++]);
-          }
-        } else if (datatype == INT) {
-          if (cols == 0) {
-            int *vec = *((int **) pdata);
+        }
+      } else if (datatype == INT) {
+        if (cols == 0) {
+          int *vec = *((int **) pdata);
+          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+        } else {
+          int **array = *((int ***) pdata);
+          for (m = 0; m < cols; m++)
             fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
-          } else {
-            int **array = *((int ***) pdata);
-            for (m = 0; m < cols; m++)
-              fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
-          }
-        } else if (datatype == BIGINT) {
-          if (cols == 0) {
-            bigint *vec = *((bigint **) pdata);
+        }
+      } else if (datatype == BIGINT) {
+        if (cols == 0) {
+          bigint *vec = *((bigint **) pdata);
+          fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+        } else {
+          bigint **array = *((bigint ***) pdata);
+          for (m = 0; m < cols; m++)
             fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
-          } else {
-            bigint **array = *((bigint ***) pdata);
-            for (m = 0; m < cols; m++)
-              fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
-          }
         }
       }
     }
-
-    fprintf(fp,"\n");
+  fprintf(fp,"\n");
   }
 }
 

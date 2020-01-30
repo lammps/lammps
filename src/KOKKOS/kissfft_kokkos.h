@@ -64,7 +64,6 @@
 #include <math.h>
 #include "kissfft_kokkos.h"
 #include "fftdata_kokkos.h"
-#include "kokkos_type.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502884197169399375105820974944
@@ -139,7 +138,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct kiss_fft_state_kokkos {
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
   int nfft;
   int inverse;
   typename AT::t_int_64 d_factors;

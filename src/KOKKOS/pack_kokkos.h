@@ -29,7 +29,7 @@
    pack from data -> buf
 ------------------------------------------------------------------------- */
 
-#include "kokkos_type.h"
+#include "fftdata_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -37,7 +37,7 @@ template<class DeviceType>
 class PackKokkos {
  public:
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
 
 struct pack_3d_functor {
 public:

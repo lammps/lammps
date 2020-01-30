@@ -18,7 +18,6 @@
 #include <mpi.h>
 #include "fftdata_kokkos.h"
 #include "remap.h"
-#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
@@ -27,7 +26,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct remap_plan_3d_kokkos {
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
   typename AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
   typename AT::t_FFT_SCALAR_1d d_scratch;                  // scratch buffer for MPI recvs
   void (*pack)(typename AT::t_FFT_SCALAR_1d_um, int, typename AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
@@ -58,7 +57,7 @@ template<class DeviceType>
 class RemapKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
         int,int,int,int,int,int,int,int,int,int,int);

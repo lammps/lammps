@@ -25,7 +25,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 #include "gridcomm_kokkos.h"
 #include "remap_kokkos.h"
 #include "fft3d_kokkos.h"
-#include "kokkos_base.h"
+#include "kokkos_base_fft.h"
 #include "kokkos_type.h"
 
 // fix up FFT defines for KOKKOS with CUDA
@@ -107,7 +107,7 @@ struct TagPPPM_slabcorr4{};
 struct TagPPPM_timing_zero{};
 
 template<class DeviceType>
-class PPPMKokkos : public PPPM, public KokkosBase {
+class PPPMKokkos : public PPPM, public KokkosBaseFFT {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

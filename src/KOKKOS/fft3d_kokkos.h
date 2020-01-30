@@ -15,10 +15,8 @@
 #define LMP_FFT3D_KOKKOS_H
 
 #include "pointers.h"
-#include "kokkos_type.h"
 #include "remap_kokkos.h"
 #include "fftdata_kokkos.h"
-
 
 namespace LAMMPS_NS {
 
@@ -29,7 +27,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct fft_plan_3d_kokkos {
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
 
   struct remap_plan_3d_kokkos<DeviceType> *pre_plan;       // remap from input -> 1st FFTs
   struct remap_plan_3d_kokkos<DeviceType> *mid1_plan;      // remap from 1st -> 2nd FFTs
@@ -75,7 +73,7 @@ template<class DeviceType>
 class FFT3dKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> AT;
 
   FFT3dKokkos(class LAMMPS *, MPI_Comm,
         int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,

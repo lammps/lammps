@@ -21,7 +21,6 @@
 #include <math.h>
 #include "fft3d_kokkos.h"
 #include "remap_kokkos.h"
-#include "kokkos_type.h"
 #include "error.h"
 #include "kokkos.h"
 

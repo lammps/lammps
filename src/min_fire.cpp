@@ -79,7 +79,7 @@ void MinFire::setup_style()
       "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
       "   integrator halfstepback \n"
       "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
-      dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, 
+      dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin,
       s1[integrator], s2[halfstepback_flag]);
   }
 
@@ -256,7 +256,7 @@ int MinFire::iterate(int maxiter)
         return MAXVDOTF;
 
       // inertia correction
-      
+
       if (halfstepback_flag) {
         for (int i = 0; i < nlocal; i++) {
           x[i][0] -= 0.5 * dtv * v[i][0];
@@ -290,16 +290,16 @@ int MinFire::iterate(int maxiter)
     }
 
     // Dynamic integration scheme:
-    // 0: semi-implicit Euler 
+    // 0: semi-implicit Euler
     // 1: velocity Verlet
     // 2: leapfrog (initial half step before the iteration loop)
-    // 3: explicit Euler 
+    // 3: explicit Euler
 
     // Semi-implicit Euler OR Leap Frog integration
 
     if (integrator == 0 || integrator == 2) {
 
-      dtf = dtv * force->ftm2v; 
+      dtf = dtv * force->ftm2v;
 
       if (rmass) {
         for (int i = 0; i < nlocal; i++) {
@@ -374,7 +374,7 @@ int MinFire::iterate(int maxiter)
           x[i][2] += dtv * v[i][2];
         }
       }
-      
+
       eprevious = ecurrent;
       ecurrent = energy_force(0);
       neval++;
@@ -399,7 +399,7 @@ int MinFire::iterate(int maxiter)
 
     } else if (integrator == 3) {
 
-      dtf = dtv * force->ftm2v; 
+      dtf = dtv * force->ftm2v;
 
       if (rmass) {
         for (int i = 0; i < nlocal; i++) {

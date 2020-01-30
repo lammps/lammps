@@ -183,5 +183,6 @@ typedef tdual_int_64::t_host t_int_64;
 typedef tdual_int_64::t_host_um t_int_64_um;
 
 };
+#endif
 
 #endif

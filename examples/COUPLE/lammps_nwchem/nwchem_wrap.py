@@ -117,7 +117,7 @@ def nwchem_input_write_ao(input,coords):
 
     if (not re.match("#",line)) and re.search("geometry",line):
       geometry_block = True
-      line = "geometry units angstrom noautosym\n"
+      line = "geometry units angstrom noautosym nocenter\n"
 
     print(line,file=new_input,end='')
 
@@ -154,7 +154,7 @@ def nwchem_read_ao(natoms, log):
   hartree2eV = 27.21138602
   bohr2angstrom = 0.52917721092
   eout = eout * hartree2eV
-  fout = [i * hartree2eV/bohr2angstrom for i in fout]
+  fout = [i * -hartree2eV/bohr2angstrom for i in fout]
 
   return eout,fout
 

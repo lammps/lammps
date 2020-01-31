@@ -16,8 +16,7 @@ shared-memory boxes and distributed-memory clusters and
 supercomputers.
 
 .. _mpi: http://www-unix.mcs.anl.gov/mpi
-
-
+.. _lws: http://lammps.sandia.gov
 
 LAMMPS is written in C++.  Earlier versions were written in F77 and
 F90.  See the `History page <http://lammps.sandia.gov/history.html>`_ of

@@ -9,7 +9,7 @@ model a realistic problem.
 In many of the examples included here, LAMMPS must first be built as a
 library.
 
-See these sections of the LAMMPS manaul for details:
+See these sections of the LAMMPS manual for details:
 
 Build LAMMPS as a library (doc/Build_basics.html)
 Link LAMMPS as a library to another code (doc/Build_link.html)

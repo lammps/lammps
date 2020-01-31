@@ -100,6 +100,9 @@ void FixNVECAC::initial_integrate(int vflag)
     v[i][0] = 0;
     v[i][1] = 0;
     v[i][2] = 0;
+    f[i][0] = 0;
+    f[i][1] = 0;
+    f[i][2] = 0;
   for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
       for(int k=0; k<nodes_per_element; k++){	
         dtfm = dtf / rmass[i];
@@ -116,7 +119,9 @@ void FixNVECAC::initial_integrate(int vflag)
         v[i][0] += nodal_velocities[i][poly_counter][k][0];
         v[i][1] += nodal_velocities[i][poly_counter][k][1];
         v[i][2] += nodal_velocities[i][poly_counter][k][2];
-
+        f[i][0] += nodal_forces[i][poly_counter][k][0];
+        f[i][1] += nodal_forces[i][poly_counter][k][1];
+        f[i][2] += nodal_forces[i][poly_counter][k][2];
       }
     }
   x[i][0] = x[i][0] / nodes_per_element / poly_count[i];
@@ -125,6 +130,9 @@ void FixNVECAC::initial_integrate(int vflag)
   v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
   v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
   v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+  f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+  f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+  f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
   }
 
 
@@ -143,6 +151,9 @@ void FixNVECAC::initial_integrate(int vflag)
         v[i][0] = 0;
         v[i][1] = 0;
         v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
       for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
         for(int k=0; k<nodes_per_element; k++){	
           
@@ -160,7 +171,9 @@ void FixNVECAC::initial_integrate(int vflag)
           v[i][0] += nodal_velocities[i][poly_counter][k][0];
           v[i][1] += nodal_velocities[i][poly_counter][k][1];
           v[i][2] += nodal_velocities[i][poly_counter][k][2];
-
+          f[i][0] += nodal_forces[i][poly_counter][k][0];
+          f[i][1] += nodal_forces[i][poly_counter][k][1];
+          f[i][2] += nodal_forces[i][poly_counter][k][2];
         }
       }
       x[i][0] = x[i][0] / nodes_per_element / poly_count[i];
@@ -169,8 +182,10 @@ void FixNVECAC::initial_integrate(int vflag)
       v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
       v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
       v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+      f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+      f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+      f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
       }
-
     }
   }
 }
@@ -210,6 +225,9 @@ void FixNVECAC::final_integrate()
         v[i][0] = 0;
         v[i][1] = 0;
         v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
       for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
         for(int k=0; k<nodes_per_element; k++){	
           
@@ -221,14 +239,18 @@ void FixNVECAC::final_integrate()
             v[i][0] += nodal_velocities[i][poly_counter][k][0];
             v[i][1] += nodal_velocities[i][poly_counter][k][1];
             v[i][2] += nodal_velocities[i][poly_counter][k][2];
-
+            f[i][0] += nodal_forces[i][poly_counter][k][0];
+            f[i][1] += nodal_forces[i][poly_counter][k][1];
+            f[i][2] += nodal_forces[i][poly_counter][k][2];
           }
         }
       v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
       v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
       v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+      f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+      f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+      f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
       }
-
     }
 
   } else {
@@ -239,9 +261,11 @@ void FixNVECAC::final_integrate()
         v[i][0] = 0;
         v[i][1] = 0;
         v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
       for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
         for(int k=0; k<nodes_per_element; k++){	
-          
             dtfm = dtf / mass[node_types[i][poly_counter]];
             nodal_velocities[i][poly_counter][k][0] += dtfm * nodal_forces[i][poly_counter][k][0];
             nodal_velocities[i][poly_counter][k][1] += dtfm * nodal_forces[i][poly_counter][k][1];
@@ -250,14 +274,18 @@ void FixNVECAC::final_integrate()
             v[i][0] += nodal_velocities[i][poly_counter][k][0];
             v[i][1] += nodal_velocities[i][poly_counter][k][1];
             v[i][2] += nodal_velocities[i][poly_counter][k][2];
-
+            f[i][0] += nodal_forces[i][poly_counter][k][0];
+            f[i][1] += nodal_forces[i][poly_counter][k][1];
+            f[i][2] += nodal_forces[i][poly_counter][k][2];
           }
         }
       v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
       v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
       v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+      f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+      f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+      f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
       }
-
     }
   }
 }

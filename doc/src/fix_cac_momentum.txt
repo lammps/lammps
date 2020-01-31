@@ -1,0 +1,64 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix cac/momentum command :h3
+
+[Syntax:]
+
+fix ID group-ID momentum N keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+cac/momentum = style name of this fix command :l
+N = adjust the momentum every this many timesteps
+one or more keyword/value pairs may be appended :l
+keyword = {linear} or {angular} :l
+  {linear} values = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 to exclude/include each dimension
+  {angular} values = none :pre
+:ule
+
+[Examples:]
+
+fix 1 all cac/momentum 1 linear 1 1 0
+fix 1 boundary cac/momentum 100 linear 1 0 1
+fix 1 all cac/momentum 100 linear 1 1 1 angular :pre
+
+[Description:]
+
+Zero the linear and/or angular momentum of the group of atoms and CAC
+elements every N timesteps by adjusting their velocities.  One (or both) of
+the {linear} or {angular} keywords must be specified.
+
+If the {linear} keyword is used, the linear momentum is zeroed by
+subtracting the center-of-mass velocity of the group. One
+or more dimensions can be excluded from this operation by setting the
+corresponding flag to 0.
+
+If the {angular} keyword is used, the angular momentum is zeroed by
+subtracting a rotational component from the group.
+
+This command can be used to insure the entire collection of atoms and CAC
+elements (or a subset of them) does not drift or rotate during the simulation
+due to random perturbations (e.g. "fix langevin"_fix_langevin.html
+thermostatting).
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix momentum"_fix_momentum.html
+
+[Default:] none

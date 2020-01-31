@@ -106,8 +106,7 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
   // add 1 bin for USER-INTEL package
   
   if (mbins > maxbin) {
-    //compute maximum expansion count used in previous allocations
-    
+
     if(!first_alloc){
     first_alloc=1;
     memory->grow(bin_expansion_counts,mbins,"bin_CAC:bin_ncontent");
@@ -119,6 +118,7 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
     memory->create(bin_content[init],MAXBINCONTENT,"bin_CAC:bin_content");
     }
     else{
+    //compute maximum expansion count used in previous allocations
     for (int init = 0; init < maxbin; init++){
       if(bin_expansion_counts[init]>max_bin_expansion_count) max_bin_expansion_count=bin_expansion_counts[init];
     }
@@ -134,9 +134,6 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
     }
     maxbin = mbins;
     memory->grow(bin_ncontent,maxbin,"neigh:bin_ncontent");
-   
-    //initialize number of times bin memory sizes have been expanded
-    
   }
 
 

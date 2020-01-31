@@ -36,10 +36,8 @@ to read these in first in any post-processing script to avoid erroneous nodal in
 The six vector of stress components is output in the following order: xx, yy, zz,
 xy, xz, yz
 
-NOTE: Unless the "dump_modify sort"_dump_modify.html option
-is invoked, the atoms and finite elements will be written in an indeterminate 
-order for each snapshot; nodes and internal degrees of freedom will belong to 
-their respective finite element however.  
+NOTE: The "dump_modify sort"_dump_modify.html option
+does not work with this dump style.
 :line
 
 [Restrictions:]

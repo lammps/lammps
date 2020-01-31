@@ -1129,10 +1129,10 @@ src/USER-CAC: filenames -> commands
 "pair_style cac/buck"_pair_cac_buck.html
 "pair_style cac/sw"_pair_cac_sw.html
 "pair_style cac/eam"_pair_cac_eam.html
-"pair_style cac/eam/interp"_pair_cac_eam_interp.html
 "min_style cac/cg"_min_style.html
 "min_style cac/fire"_min_style.html
 "fix cac/nve"_fix_cac_nve.html
+"fix cac/momentum"_fix_cac_momentum.html
 "fix cac/viscous"_fix_cac_viscous.html
 "fix cac/setvelocity"_fix_cac_setvelocity.html
 "fix cac/setforce"_fix_cac_setforce.html

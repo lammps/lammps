@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "dump_cac_xyz.h"
+#include "dump_cac_atom.h"
 #include "atom.h"
 #include "domain.h"
 #include "group.h"
@@ -27,13 +27,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpCACXYZ::DumpCACXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
+DumpCACAtom::DumpCACAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(NULL)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump cac/xyz command");
-  if (binary || multiproc) error->all(FLERR,"Invalid dump cac/xyz filename");
+  if (narg != 5) error->all(FLERR,"Illegal dump cac/atom command");
+  if (binary || multiproc) error->all(FLERR,"Invalid dump cac/atom filename");
 
-  size_one = 5;
+  size_one = 11;
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -42,7 +42,7 @@ DumpCACXYZ::DumpCACXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   if (format_default) delete [] format_default;
 
-  char *str = (char *) "%s %g %g %g";
+  char *str = (char *) "%d %d %g %g %g %g %g %g %g %g %g";
   int n = strlen(str) + 1;
   format_default = new char[n];
   strcpy(format_default,str);
@@ -53,7 +53,7 @@ DumpCACXYZ::DumpCACXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-DumpCACXYZ::~DumpCACXYZ()
+DumpCACAtom::~DumpCACAtom()
 {
   delete[] format_default;
   format_default = NULL;
@@ -68,17 +68,13 @@ DumpCACXYZ::~DumpCACXYZ()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::init_style()
+void DumpCACAtom::init_style()
 {
   //check if CAC atom style is defined
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
-  
-  //check if sorting was used
-  if(sort_flag)
-  error->all(FLERR, "CAC dump styles cannot currently be sorted");
-
   // format = copy of default or user-specified line format
+
   delete [] format;
   char *str;
   if (format_line_user) str = format_line_user;
@@ -102,8 +98,8 @@ void DumpCACXYZ::init_style()
 
   // setup function ptr
 
-  if (buffer_flag == 1) write_choice = &DumpCACXYZ::write_string;
-  else write_choice = &DumpCACXYZ::write_lines;
+  if (buffer_flag == 1) write_choice = &DumpCACAtom::write_string;
+  else write_choice = &DumpCACAtom::write_lines;
 
   // open single file, one time only
 
@@ -111,7 +107,7 @@ void DumpCACXYZ::init_style()
 }
 
 /*------------------------------------------------------------------------*/
-int DumpCACXYZ::count()
+int DumpCACAtom::count()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -131,7 +127,7 @@ int DumpCACXYZ::count()
 }
 /* ---------------------------------------------------------------------- */
 
-int DumpCACXYZ::modify_param(int narg, char **arg)
+int DumpCACAtom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
@@ -160,7 +156,7 @@ int DumpCACXYZ::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::write_header(bigint n)
+void DumpCACAtom::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
@@ -169,7 +165,7 @@ void DumpCACXYZ::write_header(bigint n)
 }
 //-------------------------------------------------------------------------
 
-double DumpCACXYZ::shape_function(double s, double t, double w, int flag, int index){
+double DumpCACAtom::shape_function(double s, double t, double w, int flag, int index){
 double shape_function=0;
 if(flag==2){
 
@@ -198,13 +194,14 @@ if(flag==2){
     shape_function=(1-s)*(1+t)*(1+w)/8;
     }
 
+
 }
 return shape_function;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::pack(tagint *ids)
+void DumpCACAtom::pack(tagint *ids)
 {
   int m,n;
 
@@ -212,10 +209,13 @@ void DumpCACXYZ::pack(tagint *ids)
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
-  double xmap[3];
+  double **v = atom->v;
+  double xmap[3], vmap[3], fmap[3];
   double unit_cell[3];
   double unit_cell_mapped[3];
   double ***current_nodal_positions;
+  double ***current_nodal_velocities;
+  double ***current_nodal_forces;
   double shape_func;
   int nodes_per_element;
   double *boxlo = domain->boxlo;
@@ -226,6 +226,8 @@ void DumpCACXYZ::pack(tagint *ids)
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
   double ****nodal_positions = atom->nodal_positions;
+  double ****nodal_velocities = atom->nodal_velocities;
+  double ****nodal_forces = atom->nodal_forces;
   int *periodicity = domain->periodicity;
   double *prd = domain->prd;
   
@@ -239,12 +241,20 @@ void DumpCACXYZ::pack(tagint *ids)
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
+      buf[m++] = v[i][0];
+      buf[m++] = v[i][1];
+      buf[m++] = v[i][2];
+      buf[m++] = nodal_forces[i][0][0][0];
+      buf[m++] = nodal_forces[i][0][0][1];
+      buf[m++] = nodal_forces[i][0][0][2];
       }
       else if(element_type[i]==1){
       unit_cell_mapped[0] = 2 / double(element_scale[i][0]);
       unit_cell_mapped[1] = 2 / double(element_scale[i][1]);
       unit_cell_mapped[2] = 2 / double(element_scale[i][2]);
       current_nodal_positions=nodal_positions[i];
+      current_nodal_velocities=nodal_velocities[i];
+      current_nodal_forces=nodal_forces[i];
       nodes_per_element=8;
 
       
@@ -258,11 +268,23 @@ void DumpCACXYZ::pack(tagint *ids)
                 xmap[0]=0;
                 xmap[1]=0;
                 xmap[2]=0;
+                vmap[0]=0;
+                vmap[1]=0;
+                vmap[2]=0;
+                fmap[0]=0;
+                fmap[1]=0;
+                fmap[2]=0;
                 for (int kk = 0; kk < nodes_per_element; kk++) {
                   shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
                   xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;
                   xmap[1] += current_nodal_positions[polyscan][kk][1] * shape_func;
                   xmap[2] += current_nodal_positions[polyscan][kk][2] * shape_func;
+                  vmap[0] += current_nodal_velocities[polyscan][kk][0] * shape_func;
+                  vmap[1] += current_nodal_velocities[polyscan][kk][1] * shape_func;
+                  vmap[2] += current_nodal_velocities[polyscan][kk][2] * shape_func;
+                  fmap[0] += current_nodal_forces[polyscan][kk][0] * shape_func;
+                  fmap[1] += current_nodal_forces[polyscan][kk][1] * shape_func;
+                  fmap[2] += current_nodal_forces[polyscan][kk][2] * shape_func;
                 }
               //test if mapped particle is in box and remap otherwise
               if(periodicity[0]){
@@ -282,6 +304,12 @@ void DumpCACXYZ::pack(tagint *ids)
               buf[m++] = xmap[0];
               buf[m++] = xmap[1];
               buf[m++] = xmap[2];
+              buf[m++] = vmap[0];
+              buf[m++] = vmap[1];
+              buf[m++] = vmap[2];
+              buf[m++] = fmap[0];
+              buf[m++] = fmap[1];
+              buf[m++] = fmap[2];
             }
           }
         }
@@ -298,7 +326,7 @@ void DumpCACXYZ::pack(tagint *ids)
    return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
 ------------------------------------------------------------------------- */
 
-int DumpCACXYZ::convert_string(int n, double *mybuf)
+int DumpCACAtom::convert_string(int n, double *mybuf)
 {
   int offset = 0;
   int m = 0;
@@ -309,9 +337,9 @@ int DumpCACXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
-                      typenames[static_cast<int> (mybuf[m+1])],
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    offset += sprintf(&sbuf[offset],format, static_cast<int> (mybuf[m]),
+                      static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);
     m += size_one;
   }
 
@@ -320,27 +348,27 @@ int DumpCACXYZ::convert_string(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::write_data(int n, double *mybuf)
+void DumpCACAtom::write_data(int n, double *mybuf)
 {
   (this->*write_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::write_string(int n, double *mybuf)
+void DumpCACAtom::write_string(int n, double *mybuf)
 {
   fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACXYZ::write_lines(int n, double *mybuf)
+void DumpCACAtom::write_lines(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    fprintf(fp,format,
-            typenames[static_cast<int> (mybuf[m+1])],
-            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    fprintf(fp,format,static_cast<int> (mybuf[m]),
+            static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);
     m += size_one;
   }
 }

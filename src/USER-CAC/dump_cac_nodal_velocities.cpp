@@ -71,6 +71,10 @@ void DumpCACNodalVelocities::init_style()
 	//check if CAC atom style is defined
 	if(!atom->CAC_flag)
 	error->all(FLERR, "CAC dump styles require a CAC atom style");
+
+  //check if sorting was used
+  if(sort_flag)
+  error->all(FLERR, "CAC dump styles cannot currently be sorted");
 	
 	delete [] format;
 	char *str;

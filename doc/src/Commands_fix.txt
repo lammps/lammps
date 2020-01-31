@@ -46,6 +46,7 @@ OPT.
 "bond/react"_fix_bond_react.html,
 "bond/swap"_fix_bond_swap.html,
 "box/relax"_fix_box_relax.html,
+"cac/momentum"_fix_cac_momentum.html,
 "cac/nve"_fix_cac_nve.html,
 "cac/viscous"_fix_cac_viscous.html,
 "cac/setvelocity"_fix_cac_setvelocity.html,

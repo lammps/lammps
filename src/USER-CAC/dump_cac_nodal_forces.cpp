@@ -72,6 +72,10 @@ void DumpCACNodalForces::init_style()
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
 
+  //check if sorting was used
+  if(sort_flag)
+  error->all(FLERR, "CAC dump styles cannot currently be sorted");
+
   delete [] format;
   char *str;
   if (format_line_user) str = format_line_user;

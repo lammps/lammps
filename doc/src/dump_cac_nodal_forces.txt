@@ -31,10 +31,8 @@ The nodal forces of all finite elements for each of their respective internal de
 freedom will be printed; atom forces will also be printed and denoted by the 0 element
 type following one line of force data.
 
-NOTE: Unless the "dump_modify sort"_dump_modify.html option
-is invoked, the atoms and finite elements will be written in an indeterminate 
-order for each snapshot; nodes and internal degrees of freedom will belong to 
-their respective finite element however.  
+NOTE: The "dump_modify sort"_dump_modify.html option
+does not work with this dump style.
 :line
 
 [Restrictions:]

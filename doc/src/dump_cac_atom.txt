@@ -6,7 +6,7 @@
 
 :line
 
-dump cac/xyz command :h3
+dump cac/atom command :h3
 
 [Syntax:]
 
@@ -14,22 +14,23 @@ dump ID group-ID cac/xyz N file args :pre
 
 ID = user-assigned name for the dump
 group-ID = ID of the group of atoms/elements to be dumped
-cac/xyz = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page)
+cac/atom = style of dump command
 N = dump every this many timesteps
 file = name of file to write dump info to
 args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
 
-dump mesh all cac/xyz 1000 CACmesh.txt
+dump mesh all cac/atom 1000 CACmesh.txt
 
 [Description:]
 
-Periodically outputs the position of a set of virtual atoms and real atoms for the 
-specified group. These virtual atoms are the result of converting a CAC element into 
-atomistic resolution through the interpolation fields. The purpose of this is to 
-print small regions of a CAC model that may require the use of an atomistic 
-diagnostic tool such as OVITO.
+Periodically outputs the tag, type, position, velocity, and force of a set of
+virtual atoms and real atoms for the specified group. These virtual atoms are the
+result of converting a CAC element into atomistic resolution through the interpolation fields.
+The purpose of this is to print small regions of a CAC model that may require the use of
+an atomistic diagnostic tool such as OVITO. The tag associated with virtual atoms is that
+of the CAC element.
 
 IMPORTANT NOTE: CAC elements can be quite large, as a result a conversion to atomistic
 resolution may result in a massive amount of data if your group size is not carefully
@@ -48,7 +49,7 @@ This dump style requires a CAC "atom style"_atom_style.html
 [Related commands:]
 
 "dump"_dump.html, "dump cac/initial/nodes"_dump_cac_initial_nodes.html,
-"dump cac/atom"_dump_cac_atom.html, "dump cac/nodal/positions"_dump_cac_nodal_positions.html,
+"dump cac/kinetic/energy"_dump_cac_kinetic.html, "dump cac/nodal/positions"_dump_cac_nodal_positions.html,
 "dump cac/nodal/velocities"_dump_cac_nodal_velocities.html,
 "dump_modify"_dump_modify.html, "undump"_undump.html
 

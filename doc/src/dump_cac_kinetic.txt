@@ -30,10 +30,8 @@ at the specified interval. This is printed for all finite elements for each of t
 internal degrees of freedom; for atoms, denoted by the 0 element type, there will be one line
 of data after the one line declaring the atom's type information.
 
-NOTE: Unless the "dump_modify sort"_dump_modify.html option
-is invoked, the atoms and finite elements will be written in an indeterminate 
-order for each snapshot; nodes and internal degrees of freedom will belong to 
-their respective finite element however.  
+NOTE: The "dump_modify sort"_dump_modify.html option
+does not work with this dump style.
 :line
 
 [Restrictions:]

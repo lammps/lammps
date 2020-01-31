@@ -36,9 +36,8 @@ positions will not be nodal positions at the beginning of the restart run.
 They will be the nodal positions from the initial data file that was read or created
 for that model in the first run.
 
-NOTE: Unless the "dump_modify sort"_dump_modify.html option
-is invoked, the atom and finite element information written to dump files will
-be in an indeterminate order for each snapshot.  
+NOTE: The "dump_modify sort"_dump_modify.html option
+does not work with this dump style.
 :line
 
 [Related commands:]

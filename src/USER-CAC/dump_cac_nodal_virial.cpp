@@ -73,6 +73,10 @@ void DumpCACNodalVirial::init_style()
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
 
+  //check if sorting was used
+  if(sort_flag)
+  error->all(FLERR, "CAC dump styles cannot currently be sorted");
+
   atom->CAC_virial=1;
 
   delete [] format;

@@ -359,9 +359,9 @@ particles must be ellipsoids as defined by the :doc:`atom_style ellipsoid <atom_
 of the particles is set to the 3 specified components.
 
 Keyword *omega* sets the angular velocity of selected atoms.  The
-particles must be spheres as defined by the "atom\_style sphere"_
-atom\_style.html command.  The angular velocity vector of the particles
-is set to the 3 specified components.
+particles must be spheres as defined by the
+:doc:`atom_style sphere <atom_style>` command.  The angular velocity
+vector of the particles is set to the 3 specified components.
 
 Keyword *mass* sets the mass of all selected particles.  The particles
 must have a per-atom mass attribute, as defined by the

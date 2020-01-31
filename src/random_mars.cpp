@@ -183,8 +183,8 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
   int mode,index,oldindex,newvalue,nflip,which,niter;
   int active[2],first[2],last[2];
   int newactive[2],newfirst[2],newlast[2];
-  bigint nmark,nactive,nactiveall,nflipall,bnflip;
-  bigint activeall[2],bsum[3],bsumall[3];
+  bigint nmark,nactive,nactiveall,nflipall;
+  bigint activeall[2],bsum[4],bsumall[4];
   double thresh;
 
   active[0] = nmine;

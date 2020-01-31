@@ -53,7 +53,7 @@ describes how to use the :doc:`thermalized Drude oscillator model <Howto_drude>`
 discussed on the :doc:`Howto polarizable <Howto_polarizable>` doc page.
 
 The *thole* pair style should be used as a sub-style within in the
-:doc:`pair\_hybrid/overlay <pair_hybrid>` command, in conjunction with a
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command, in conjunction with a
 main pair style including Coulomb interactions, i.e. any pair style
 containing *coul/cut* or *coul/long* in its style name.
 

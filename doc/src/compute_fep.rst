@@ -301,7 +301,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`fix ave/time <fix_ave_time>`,
-:doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`pair_style .../soft <pair_fep_soft>`
 
 Default
 """""""

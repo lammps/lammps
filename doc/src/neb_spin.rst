@@ -389,8 +389,9 @@ This command can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-For magnetic GNEB calculations, only *spin\_none* value for *line* keyword can be used
-when styles *spin/cg* and *spin/lbfgs* are employed.
+For magnetic GNEB calculations, only the *spin\_none* value for the
+*line* keyword can be used when minimization styles *spin/cg* and
+*spin/lbfgs* are employed.
 
 
 ----------

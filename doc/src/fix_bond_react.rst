@@ -390,7 +390,7 @@ the activation energy (:doc:`units <units>` of energy), and *seed* is a
 random number seed. The temperature is defined as the instantaneous
 temperature averaged over all atoms in the reaction site, and is
 calculated in the same manner as for example
-:doc:`compute\_temp\_chunk <compute_temp_chunk>`. Currently, there are no
+:doc:`compute temp/chunk <compute_temp_chunk>`. Currently, there are no
 options for additional temperature averaging or velocity-biased
 temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the

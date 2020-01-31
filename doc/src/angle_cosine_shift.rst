@@ -83,6 +83,6 @@ Related commands
 """"""""""""""""
 
 :doc:`angle_coeff <angle_coeff>`,
-:doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
+:doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none

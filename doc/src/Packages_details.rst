@@ -927,7 +927,7 @@ Also several computes which calculate properties of rigid bodies.
 
 * src/RIGID: filenames -> commands
 * :doc:`compute erotate/rigid <compute_erotate_rigid>`
-* fix shake"_fix\_shake.html
+* :doc:`fix shake <fix_shake>`
 * :doc:`fix rattle <fix_shake>`
 * :doc:`fix rigid/\* <fix_rigid>`
 * examples/ASPHERE

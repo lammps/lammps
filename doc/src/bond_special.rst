@@ -26,8 +26,7 @@ Description
 The *special* bond style can be used to impose weighted Lennard Jones and/or
 Coloumbic interactions on any two particles in the system. It can be used for
 cases that cannot be handled in :doc:`special_bonds <special_bonds>`, such as
-1-5 interactions or complex systems that require the use of different
-weighting factors for different molecules. It is a potential of the form:
+1-5 interactions. It is a potential of the form:
 
 .. math::
 

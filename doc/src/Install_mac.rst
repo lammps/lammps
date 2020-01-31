@@ -46,9 +46,3 @@ up the Homebrew capability.
 
 
 .. _openkim: https://openkim.org
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

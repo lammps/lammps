@@ -78,8 +78,3 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix smd <fix_smd>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

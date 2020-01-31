@@ -79,8 +79,3 @@ Related commands
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

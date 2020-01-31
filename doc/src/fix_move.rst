@@ -256,8 +256,3 @@ Related commands
 **Default:** none
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

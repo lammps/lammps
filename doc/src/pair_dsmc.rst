@@ -171,8 +171,3 @@ Related commands
 
 **(Bird)** G. A. Bird, "Molecular Gas Dynamics and the Direct Simulation
 of Gas Flows" (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

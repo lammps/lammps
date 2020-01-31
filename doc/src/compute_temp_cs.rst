@@ -124,8 +124,3 @@ Related commands
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

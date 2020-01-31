@@ -263,8 +263,3 @@ Physical Chemistry, 105, 9396-9049 (2001)
 
 
 **(QEq/Fire)** T.-R. Shan, A. P. Thompson, S. J. Plimpton, in preparation
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -104,8 +104,3 @@ Related commands
 
 
 **(Watkins)** Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

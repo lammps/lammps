@@ -107,8 +107,3 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

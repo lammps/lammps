@@ -210,8 +210,3 @@ Related commands
 :doc:`pair_style granular <pair_granular>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

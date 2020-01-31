@@ -394,8 +394,3 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 **(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

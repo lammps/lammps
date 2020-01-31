@@ -80,8 +80,3 @@ Here are suggestions on how to perform these tasks:
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <http://www.python.org>`_
   and is available for download from `this page <http://www.cs.sandia.gov/~sjplimp/download.html>`_.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

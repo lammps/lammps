@@ -213,8 +213,3 @@ Related commands
 
 
 **(Thole)** Chem Phys, 59, 341 (1981).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

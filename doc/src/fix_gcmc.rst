@@ -493,8 +493,3 @@ listed above.
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

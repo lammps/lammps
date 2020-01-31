@@ -73,8 +73,3 @@ Related commands
 
 **(Li2014)** Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265:
 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

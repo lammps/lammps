@@ -154,8 +154,3 @@ Related commands
 
 **(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts, 
 Q31.013 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

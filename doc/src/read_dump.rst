@@ -416,10 +416,3 @@ The option defaults are box = yes, replace = yes, purge = no, trim =
 no, add = no, scaled = no, wrapped = yes, and format = native.
 
 .. _vmd: http://www.ks.uiuc.edu/Research/vmd
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

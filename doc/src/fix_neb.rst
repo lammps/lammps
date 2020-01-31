@@ -285,8 +285,3 @@ and Coker World Scientific, Singapore, 1998, p 385.
 
 **(Maras)** Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
 Comp Phys Comm, 205, 13-21 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

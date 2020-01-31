@@ -212,8 +212,3 @@ using the :doc:`fix ave/chunk <fix_ave_chunk>` command to calculate an
 average dipole moment vector for each bin.  This example is explained
 on the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 command doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

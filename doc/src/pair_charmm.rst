@@ -329,8 +329,3 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 
 **(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

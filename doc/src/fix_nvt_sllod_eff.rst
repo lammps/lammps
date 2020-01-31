@@ -96,8 +96,3 @@ Same as :doc:`fix nvt/eff <fix_nh_eff>`, except tchain = 1.
 
 **(Tuckerman)** Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

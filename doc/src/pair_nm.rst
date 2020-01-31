@@ -194,8 +194,3 @@ Related commands
 
 
 **(Clarke)** Clarke and Smith, J Chem Phys, 84, 2290 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

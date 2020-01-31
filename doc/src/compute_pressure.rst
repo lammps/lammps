@@ -169,8 +169,3 @@ Related commands
 
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

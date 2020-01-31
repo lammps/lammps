@@ -174,8 +174,3 @@ Related commands
 
 **(Safran)** Safran, Statistical Thermodynamics of Surfaces, Interfaces,
 And Membranes, Westview Press, ISBN: 978-0813340791 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

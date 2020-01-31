@@ -132,8 +132,3 @@ Related commands
 :doc:`fix setforce <fix_setforce>`, :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -161,8 +161,3 @@ Related commands
 :doc:`special_bonds <special_bonds>`, :doc:`fix shake <fix_shake>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

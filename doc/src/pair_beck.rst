@@ -126,8 +126,3 @@ Related commands
 
 
 **(Beck)** Beck, Molecular Physics, 14, 311 (1968).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

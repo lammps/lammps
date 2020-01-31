@@ -93,9 +93,3 @@ section below for examples where this has been done.
 * OpenCL in the GPU package does theoretically also support Intel CPUs or
   Intel Xeon Phi, but the native support for those in KOKKOS (or USER-INTEL)
   is superior.
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

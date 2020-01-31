@@ -367,8 +367,3 @@ to rRESPA levels is as follows:
 
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

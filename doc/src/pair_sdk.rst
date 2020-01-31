@@ -196,8 +196,3 @@ Related commands
 
 
 **(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

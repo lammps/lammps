@@ -105,8 +105,3 @@ Related commands
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -67,8 +67,3 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`, :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

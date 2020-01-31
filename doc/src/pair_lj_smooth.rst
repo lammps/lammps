@@ -133,8 +133,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth/linear <pair_lj_smooth_linear>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

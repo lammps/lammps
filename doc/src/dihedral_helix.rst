@@ -98,8 +98,3 @@ Related commands
 
 
 **(Guo)** Guo and Thirumalai, Journal of Molecular Biology, 263, 323-43 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

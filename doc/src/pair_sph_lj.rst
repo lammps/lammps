@@ -91,8 +91,3 @@ Related commands
 
 **(Monaghan)** Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

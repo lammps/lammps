@@ -165,8 +165,3 @@ Related commands
 
 
 **(Brooks)** Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

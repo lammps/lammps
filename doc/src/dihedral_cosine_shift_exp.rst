@@ -95,8 +95,3 @@ Related commands
 :doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

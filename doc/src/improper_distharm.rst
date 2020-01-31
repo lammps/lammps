@@ -58,8 +58,3 @@ Related commands
 :doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

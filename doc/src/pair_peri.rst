@@ -247,8 +247,3 @@ viscoelasticity model for peridynamics. Sandia National Lab Report,
 **(Mitchell2011a)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

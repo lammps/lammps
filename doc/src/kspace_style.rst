@@ -590,8 +590,3 @@ Illinois at Urbana-Champaign, (2006).
 
 **(Who)** Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

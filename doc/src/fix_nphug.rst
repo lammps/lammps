@@ -252,8 +252,3 @@ The keyword defaults are the same as those for :doc:`fix npt <fix_nh>`
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

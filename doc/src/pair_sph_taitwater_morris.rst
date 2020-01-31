@@ -87,8 +87,3 @@ Related commands
 
 
 **(Morris)** Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

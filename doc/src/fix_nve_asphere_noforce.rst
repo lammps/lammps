@@ -65,8 +65,3 @@ Related commands
 :doc:`fix nve/noforce <fix_nve_noforce>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

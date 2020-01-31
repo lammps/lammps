@@ -5,15 +5,9 @@ You can download a current LAMMPS tarball from the `download page <download_>`_
 of the `LAMMPS website <lws_>`_.
 
 .. _download: http://lammps.sandia.gov/download.html
-
-
-
 .. _bug: http://lammps.sandia.gov/bug.html
-
-
-
 .. _older: http://lammps.sandia.gov/tars
-
+.. _lws: http://lammps.sandia.gov
 
 
 You have two choices of tarballs, either the most recent stable
@@ -77,8 +71,3 @@ The patch files are posted on the `bug and feature page <bug_>`_ of the
 website, along with a list of changed files and details about what is
 in the new patch release.  Instructions for applying a patch file are
 on the :doc:`Install patch <Install_patch>` doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

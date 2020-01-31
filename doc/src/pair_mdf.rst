@@ -189,8 +189,3 @@ Related commands
 
 
 **(Mei)** Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

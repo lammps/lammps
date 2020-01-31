@@ -109,8 +109,3 @@ Related commands
 
 **(Los and Fasolino)** J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

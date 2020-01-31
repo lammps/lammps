@@ -112,8 +112,3 @@ The default value for the optional *lambda* parameter is 0.5.
 
 **(Groot)** Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:
 10.1063/1.474784
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

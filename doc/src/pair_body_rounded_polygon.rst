@@ -140,8 +140,3 @@ Related commands
 
 **(Fraige)** F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

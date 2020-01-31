@@ -99,8 +99,3 @@ Packages howto
    Howto_drude2
    Howto_manifold
    Howto_spins
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -74,8 +74,3 @@ Related commands
 :doc:`fix store\_state <fix_store_state>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

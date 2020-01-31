@@ -548,8 +548,3 @@ Materials Science & Engineering, 7, 075005 (2009).
 
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

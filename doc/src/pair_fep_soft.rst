@@ -426,8 +426,3 @@ Related commands
 
 **(Beutler)** Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
 Phys Lett, 222, 529 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

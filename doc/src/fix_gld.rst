@@ -174,8 +174,3 @@ The option defaults are frozen = no, zero = no.
 
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

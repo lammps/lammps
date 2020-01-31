@@ -73,8 +73,3 @@ Related commands
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

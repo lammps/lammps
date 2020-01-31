@@ -132,8 +132,3 @@ Related commands
 
 **(Jusufi)** Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

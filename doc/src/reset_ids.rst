@@ -62,8 +62,3 @@ Related commands
 :doc:`delete_atoms <delete_atoms>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

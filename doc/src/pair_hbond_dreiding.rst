@@ -279,8 +279,3 @@ Related commands
 
 **(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

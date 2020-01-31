@@ -209,8 +209,3 @@ Related commands
 
 **(Sides)** Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42,
 199-208 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -119,8 +119,3 @@ Related commands
 
 **(Avendano)** C. Avendano, T. Lafitte, A. Galindo, C. S. Adjiman,
 G. Jackson, E. Muller, J Phys Chem B, 115, 11154 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

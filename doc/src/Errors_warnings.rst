@@ -796,10 +796,3 @@ This will most likely cause errors in kinetic fluctuations.
 
 *pair style reax is now deprecated and will soon be retired. Users should switch to pair\_style reax/c*
    Self-explanatory.
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -75,8 +75,3 @@ Related commands
 :doc:`run_style verlet/split <run_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

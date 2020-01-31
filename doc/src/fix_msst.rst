@@ -221,8 +221,3 @@ timestep.
 
 **(Goldman)** Goldman, Srinivasan, Hamel, Fried, Gaus, and Elstner,
 J. Phys. Chem. C, 117, 7885 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

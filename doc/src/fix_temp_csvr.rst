@@ -191,8 +191,3 @@ Related commands
 
 
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

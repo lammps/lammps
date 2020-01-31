@@ -577,8 +577,3 @@ If you find this Python interface useful, please feel free to provide feedback
 and ideas on how to improve it to Richard Berger (richard.berger@temple.edu). We also
 want to encourage people to write tutorial style IPython notebooks showcasing LAMMPS usage
 and maybe their latest research results.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

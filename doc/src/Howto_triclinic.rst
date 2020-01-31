@@ -1,17 +1,3 @@
-:doc:`Higher level section <Howto>` - `LAMMPS WWW Site <lws_>`_ - `LAMMPS Documentation <ld_>`_ - `LAMMPS Commands <lc_>`_ 
-
-.. _lws: http://lammps.sandia.gov
-
-
-
-.. _ld: Manual.html
-
-
-
-.. _lc: Commands\_all.html
-
-
-
 Triclinic (non-orthogonal) simulation boxes
 ===========================================
 
@@ -225,4 +211,3 @@ material.  The :doc:`fix deform <fix_deform>` command can be used for
 this purpose.  It allows dynamic control of the xy, xz, yz tilt
 factors as a simulation runs.  This is discussed in the next section
 on non-equilibrium MD (NEMD) simulations.
-

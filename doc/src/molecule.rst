@@ -511,8 +511,3 @@ Default
 """""""
 
 The default keywords values are offset 0 0 0 0 0 and scale = 1.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

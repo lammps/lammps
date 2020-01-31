@@ -262,8 +262,3 @@ Alternatively, you may use an AUR helper to install these packages.
 
 Note that the AUR provides build-scripts that download the source and
 the build the package on your machine.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

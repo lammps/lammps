@@ -175,8 +175,3 @@ Related commands
 
 **(Ceriotti2)** Ceriotti, Bussi and Parrinello, Phys Rev Lett 103,
 030603 (2009)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -167,8 +167,3 @@ Related commands
 :doc:`message <message>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

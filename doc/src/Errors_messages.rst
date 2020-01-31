@@ -8415,10 +8415,3 @@ keyword to allow for additional bonds to be formed
 
 *Zero-length lattice orient vector*
    Self-explanatory.
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

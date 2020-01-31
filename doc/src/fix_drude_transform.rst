@@ -224,8 +224,3 @@ Related commands
 
 
 **(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

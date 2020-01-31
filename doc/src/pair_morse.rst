@@ -163,8 +163,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

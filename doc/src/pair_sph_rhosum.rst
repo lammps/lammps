@@ -68,8 +68,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, pair\_sph/taitwater
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

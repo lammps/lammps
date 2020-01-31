@@ -340,6 +340,4 @@ Related commands
 :doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
 :doc:`run_style <run_style>`
 
-**Default:**
-
-none
+**Default:** none

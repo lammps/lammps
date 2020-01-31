@@ -53,8 +53,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix npt/eff <fix_nh_eff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

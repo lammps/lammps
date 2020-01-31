@@ -444,8 +444,3 @@ Phys, 79, 926 (1983).
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

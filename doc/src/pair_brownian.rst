@@ -154,8 +154,3 @@ Default
 
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

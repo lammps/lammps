@@ -682,8 +682,3 @@ defaults are neigh = yes.  These settings are made automatically if
 the "-sf omp" :doc:`command-line switch <Run_options>` is used.  If it
 is not used, you must invoke the package omp command in your input
 script or via the "-pk omp" :doc:`command-line switch <Run_options>`.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

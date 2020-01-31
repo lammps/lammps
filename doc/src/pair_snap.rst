@@ -245,8 +245,3 @@ Related commands
 
 
 **(Bartok2013)** Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

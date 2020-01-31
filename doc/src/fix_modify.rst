@@ -167,8 +167,3 @@ Default
 The option defaults are temp = ID defined by fix, press = ID defined
 by fix, energy = no, virial = different for each fix style, respa = 0,
 bodyforce = late.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -158,8 +158,3 @@ Related commands
 :doc:`pair_write <pair_write>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

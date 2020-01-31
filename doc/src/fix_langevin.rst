@@ -379,8 +379,3 @@ types, tally = no, zero = no, gjf = no.
 
 
 **(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

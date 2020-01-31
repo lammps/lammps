@@ -427,8 +427,3 @@ Phys, 110, 8254 (1999).
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

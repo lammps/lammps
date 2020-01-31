@@ -282,8 +282,3 @@ J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
 
 **(Branicio2009)** Branicio, Rino, Gan and Tsuzuki, J. Phys Condensed
 Matter 21 (2009) 095002
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

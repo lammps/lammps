@@ -83,8 +83,3 @@ Related commands
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

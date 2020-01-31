@@ -133,8 +133,3 @@ Default
    timer normal nosync
    timer timeout off
    timer every 10
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

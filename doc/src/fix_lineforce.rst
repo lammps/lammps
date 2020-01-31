@@ -55,8 +55,3 @@ Related commands
 :doc:`fix planeforce <fix_planeforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

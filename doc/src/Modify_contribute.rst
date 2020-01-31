@@ -69,6 +69,8 @@ unusual event).
    `developers <http://lammps.sandia.gov/authors.html>`_ with info about
    your package and we will post it there.
 
+.. _lws: http://lammps.sandia.gov
+
 The previous sections of this doc page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of
 one or more new class files which are invoked as a new style within a
@@ -196,8 +198,3 @@ Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the
 easier you make it for people to get started, e.g. by providing example
 scripts, the more likely it is that users will try out your new feature.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

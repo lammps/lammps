@@ -473,8 +473,3 @@ Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
 
 **(Zhou)** X.W. Zhou, D.K. Ward, M. Foster (TBP).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

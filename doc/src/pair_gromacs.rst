@@ -186,8 +186,3 @@ Related commands
 
 
 **(Marrink)** Marrink, de Vries, Mark, J Phys Chem B, 108, 750-760 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

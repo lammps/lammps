@@ -98,8 +98,3 @@ Default
 The defaults are listed on the doc pages for the :doc:`dump <dump>` and
 :doc:`dump image <dump_image>` and :doc:`dump_modify <dump_modify>`
 commands.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

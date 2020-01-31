@@ -214,8 +214,3 @@ The default for the units keyword is lattice.
 
 
 **(Bond)** Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

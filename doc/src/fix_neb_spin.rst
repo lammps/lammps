@@ -86,8 +86,3 @@ none
 
 **(BessarabB)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

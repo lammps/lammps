@@ -160,8 +160,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`, :doc:`fix aveforce <fix_aveforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

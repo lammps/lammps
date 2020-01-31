@@ -428,8 +428,3 @@ Default
 
 The option defaults are side = in, units = lattice, and no move or
 rotation.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

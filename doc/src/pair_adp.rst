@@ -204,8 +204,3 @@ Related commands
 
 
 **(Singh)** Singh and Warner, Acta Mater, 58, 5797-5805 (2010),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

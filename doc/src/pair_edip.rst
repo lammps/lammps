@@ -187,8 +187,3 @@ Related commands
 
 
 **(EDIP)** J F Justo et al, Phys Rev B 58, 2539 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

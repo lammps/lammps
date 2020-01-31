@@ -112,8 +112,3 @@ Related commands
 :doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

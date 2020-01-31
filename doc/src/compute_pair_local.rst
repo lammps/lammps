@@ -172,8 +172,3 @@ Default
 """""""
 
 The keyword default is cutoff = type.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

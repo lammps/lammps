@@ -64,8 +64,3 @@ Related commands
 
 
 **(Pedersen)** Pedersen, J. Chem. Phys., 139, 104102 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

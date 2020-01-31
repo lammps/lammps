@@ -258,8 +258,3 @@ Default
 
 The option defaults are iparam = (0,itype), jparam = (0,jtype), and
 prob = 1.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -425,8 +425,3 @@ Chem Phys, 132, 174106 (2010).
 
 
 **(Lechman)** Lechman, et al, in preparation (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

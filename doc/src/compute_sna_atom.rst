@@ -357,8 +357,3 @@ available at `arXiv:1409.3880 <http://arxiv.org/abs/1409.3880>`_
 
 **(Varshalovich)** Varshalovich, Moskalev, Khersonskii, Quantum Theory
 of Angular Momentum, World Scientific, Singapore (1987).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

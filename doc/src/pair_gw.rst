@@ -138,8 +138,3 @@ Related commands
 
 **(Gao)** Gao and Weber, Nuclear Instruments and Methods in Physics
 Research B 191 (2012) 504.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -169,22 +169,16 @@ Default
 
 .. _Sheppard:
 
-
-
 **(Sheppard)** Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106
 (2008).  See ref 1 in this paper for original reference to Qmin in
 Jonsson, Mills, Jacobsen.
 
 .. _Bitzek:
 
-
-
 **(Bitzek)** Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
 
 .. _Guenole:
-
-
 
 **(Guenole)** Guenole, Noehring, Vaid, Houlle, Xie, Prakash, Bitzek,
 Comput Mater Sci, (2020), in press (arXiv:190802038).

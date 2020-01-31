@@ -110,8 +110,3 @@ Related commands
 :doc:`compute coord/atom <compute_coord_atom>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -162,8 +162,3 @@ Related commands
 
 **(Ziegler)** J.F. Ziegler, J. P. Biersack and U. Littmark, "The
 Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

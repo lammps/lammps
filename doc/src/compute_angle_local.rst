@@ -151,8 +151,3 @@ Related commands
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

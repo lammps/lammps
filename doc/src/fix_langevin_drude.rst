@@ -319,8 +319,3 @@ The option defaults are zero = no.
 
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -64,8 +64,3 @@ Related commands
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

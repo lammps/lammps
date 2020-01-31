@@ -137,8 +137,3 @@ Related commands
 :doc:`fix ehex <fix_ehex>`, :doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

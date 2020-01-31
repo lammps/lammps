@@ -135,8 +135,3 @@ Related commands
 :doc:`fix nvt/sllod <fix_nvt_sllod>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

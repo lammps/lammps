@@ -72,8 +72,3 @@ Default
 """""""
 
 The default settings are file = "third\_order.dat", binary = no
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

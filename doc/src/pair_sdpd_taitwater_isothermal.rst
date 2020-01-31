@@ -123,8 +123,3 @@ The default seed is 0 (before mixing).
 
 
 **(Espanol and Revenga)** Espanol, Revenga, Physical Review E, 67, 026705 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -405,8 +405,3 @@ If walls are present, they are assumed to be stationary.
 
 
 **(Adhikari et al.)** Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

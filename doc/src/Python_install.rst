@@ -68,8 +68,3 @@ the LAMMPS shared library (see :doc:`this section <Python_shlib>`), you will
 need to manually copy files like liblammps\_g++.so into the appropriate
 system directory.  This is not needed if you set the LD\_LIBRARY\_PATH
 environment variable as described above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -106,8 +106,3 @@ Physical Review B, 88(18), 184422. (2013).
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

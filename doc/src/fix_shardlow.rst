@@ -134,8 +134,3 @@ Algorithms", Comput. Phys. Commun., 185, 1987-1998 (2014).
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

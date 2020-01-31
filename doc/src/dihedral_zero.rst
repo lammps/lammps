@@ -51,8 +51,3 @@ Restrictions
 :doc:`dihedral_style none <dihedral_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

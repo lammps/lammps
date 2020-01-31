@@ -190,8 +190,3 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

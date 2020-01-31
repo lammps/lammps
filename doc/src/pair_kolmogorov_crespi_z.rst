@@ -89,8 +89,3 @@ Related commands
 
 **(vanWijk)** M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino,
 Physical Review Letters, 113, 135504 (2014)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

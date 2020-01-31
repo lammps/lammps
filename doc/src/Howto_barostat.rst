@@ -61,8 +61,3 @@ explicitly via the :doc:`thermo_style custom <thermo_style>` command.
 Or you can use the :doc:`thermo_modify <thermo_modify>` command to
 re-define what pressure compute is used for default thermodynamic
 output.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -227,8 +227,3 @@ Default
 The option defaults are delay = 10, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
 exclude = none, page = 100000, one = 2000, and binsize = 0.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

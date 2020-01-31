@@ -183,8 +183,3 @@ The option default for the *energy* keyword is energy = no.
 
 
 **(Zhu)** Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

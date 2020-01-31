@@ -160,8 +160,3 @@ Related commands
 
 
 **(Freitas)** Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

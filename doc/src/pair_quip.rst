@@ -117,8 +117,3 @@ Review Letters 104, 136403 (2010).
 
 **(Bartok\_PhD)** A Bartok-Partay, PhD Thesis, University of Cambridge,
 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -138,8 +138,3 @@ none
 
 
 **(Babadi)** Babadi and Ejtehadi, EPL, 77 (2007) 23002.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

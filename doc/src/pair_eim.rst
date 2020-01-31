@@ -197,8 +197,3 @@ Related commands
 
 **(Zhou)** Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

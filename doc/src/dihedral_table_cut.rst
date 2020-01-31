@@ -229,8 +229,3 @@ Related commands
 
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

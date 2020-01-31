@@ -76,7 +76,4 @@ estimate parallel performance for multi-node runs using the same logic
 as for all-MPI mode, except that now you will typically need many more
 atoms/node to achieve good scalability.
 
-
 .. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

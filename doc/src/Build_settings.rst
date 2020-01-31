@@ -488,8 +488,3 @@ e.g. to Python.
 .. parsed-literal::
 
    LMP_INC = -DLAMMPS_EXCEPTIONS
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

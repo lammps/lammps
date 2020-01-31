@@ -193,8 +193,3 @@ Kress, Modelling Simulation Materials Science Engineering, 8, 825
 
 
 **(Zhang)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

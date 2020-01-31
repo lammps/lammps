@@ -54,8 +54,3 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pair <compute_pair>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

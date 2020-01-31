@@ -121,8 +121,3 @@ Default
 
 The keyword defaults are size = 0.0, freq = 0, units = lattice.  All
 added atoms are of type 1 unless the basis keyword is used.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

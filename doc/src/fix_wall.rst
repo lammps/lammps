@@ -408,8 +408,3 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -319,7 +319,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute fep <compute_fep>`, :doc:`fix adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`compute fep <compute_fep>`, :doc:`fix adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`, :doc:`pair_style \*/soft <pair_fep_soft>`
 
 Default
 """""""

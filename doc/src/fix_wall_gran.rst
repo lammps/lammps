@@ -89,7 +89,7 @@ The nature of the wall/particle interactions are determined by the
 *pair\_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
 corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
-:doc:`pair\_style\_granular <pair_granular>` doc pages, in the limit of
+:doc:`pair_style granular <pair_granular>` doc pages, in the limit of
 one of the two particles going to infinite radius and mass (flat
 wall).  Specifically, delta = radius - r = overlap of particle with
 wall, m\_eff = mass of particle, and the effective radius of contact =

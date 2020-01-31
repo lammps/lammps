@@ -85,7 +85,7 @@ function for the same parameters.
 
 The temperature effects are accounted for by connecting the spin
 :math:`i` to a thermal bath using a Langevin thermostat (see
-:doc:`fix\_langevin\_spin <fix_langevin_spin>` for the definition of 
+:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of 
 this thermostat).
 
 Style *anisotropy* is used to simulate an easy axis or an easy plane

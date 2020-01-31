@@ -14,7 +14,7 @@ Syntax
 * N = total # of timesteps to run
 * M = attempt a tempering swap every this many steps
 * lambda = initial lambda for this ensemble
-* fix-ID = ID of fix\_grem
+* fix-ID = ID of *fix grem*
 * thermostat-ID = ID of the thermostat that controls kinetic temperature
 * seed1 = random # seed used to decide on adjacent temperature to partner with
 * seed2 = random # seed for Boltzmann factor in Metropolis swap

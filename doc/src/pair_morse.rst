@@ -95,7 +95,7 @@ the *morse* and *morse/smooth/linear* styles.
 
 A version of the *morse* style with a soft core, *morse/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair\_fep\_soft <pair_fep_soft>` styles. The version with soft core is only
+the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is only
 available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 
@@ -160,7 +160,7 @@ built with the USER-MISC package.  See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
 **Default:** none
 

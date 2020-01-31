@@ -70,14 +70,13 @@ discretization factor *discrete\_factor*.
 By default, style *spin/cg* does not employ the line search procedure 
 and uses the adaptive time-step technique in the same way as style *spin*\ .
 
-Style *spin/lbfgs* defines an orthogonal spin optimization
-(OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
-(L-BFGS) algorithm.
-By default, style *spin/lbfgs* does not employ line search procedure.
-If the line search procedure is not used then the discrete factor defines
-the maximum root mean squared rotation angle of spins by equation *pi/(5\*Kappa)*.
-The default value for Kappa is 10.
-The *spin\_cubic* line search can improve the convergence of the 
+Style *spin/lbfgs* defines an orthogonal spin optimization (OSO)
+combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS)
+algorithm.  By default, style *spin/lbfgs* does not employ line search
+procedure.  If the line search procedure is not used then the discrete
+factor defines the maximum root mean squared rotation angle of spins by
+equation *pi/(5\*Kappa)*.  The default value for Kappa is 10.  The
+*spin\_cubic* line search option can improve the convergence of the
 *spin/lbfgs* algorithm.
 
 The :doc:`min_modify <min_modify>` command can be used to

@@ -193,7 +193,7 @@ and Coulomb potentials modified by a soft core, with the functional form
 The *lj/class2/soft* style is a 9-6 potential with the exponent of the
 denominator of the first term in brackets taking the value 1.5 instead of 2
 (other details differ, see the form of the potential in
-:doc:`pair\_class2 <pair_class2>`).
+:doc:`pair_style lj/class2 <pair_class2>`).
 
 Coulomb interactions can also be damped with a soft core at short distance,
 
@@ -255,14 +255,14 @@ optional cutoffs.
 
 Style *lj/charmm/coul/long/soft* implements a soft-core version of the modified
 12-6 LJ potential used in CHARMM and documented in the
-:doc:`pair\_lj\_charmm <pair_charmm>` style. In the soft version the parameters n,
+:doc:`pair_style lj/charmm/coul/long <pair_charmm>` style. In the soft version the parameters n,
 alpha\_LJ and alpha\_C are set in the :doc:`pair_style <pair_style>` command, before
 the global cutoffs. The activation parameter lambda is introduced as an argument
 of the :doc:`pair_coeff <pair_coeff>` command, after epsilon and sigma and
 before the optional eps14 and sigma14.
 
 Style *lj/class2/soft* implements a soft-core version of the 9-6 potential in
-:doc:`pair\_class2 <pair_class2>`. In the soft version the parameters n, alpha\_LJ
+:doc:`pair_style lj/class2 <pair_class2>`. In the soft version the parameters n, alpha\_LJ
 and alpha\_C are set in the :doc:`pair_style <pair_style>` command, before the
 global cutoffs. The activation parameter lambda is introduced as an argument of
 the the :doc:`pair_coeff <pair_coeff>` command, after epsilon and sigma and before

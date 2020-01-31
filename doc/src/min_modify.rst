@@ -106,34 +106,31 @@ all atoms in the system:
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
-Keywords *alpha\_damp* and *discrete\_factor* only make sense when
-a :doc:`min_spin <min_spin>` command is declared.
-Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
-damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system.
-Keyword *discrete\_factor* defines a discretization factor for the
-adaptive timestep used in the *spin* minimization.
-See :doc:`min_spin <min_spin>` for more information about those
-quantities.
+Keywords *alpha\_damp* and *discrete\_factor* only make sense when a
+:doc:`min_spin <min_spin>` command is declared.  Keyword *alpha\_damp*
+defines an analog of a magnetic Gilbert damping. It defines a relaxation
+rate toward an equilibrium for a given magnetic system.  Keyword
+*discrete\_factor* defines a discretization factor for the adaptive
+timestep used in the *spin* minimization.  See :doc:`min_spin
+<min_spin>` for more information about those quantities.
 
-The choice of a line search algorithm for the *spin/cg* and
-*spin/lbfgs* styles can be specified via the *line* keyword.
-The *spin\_cubic* and  *spin\_none* only make sense when one of those 
-two minimization styles is declared.
-The *spin\_cubic* performs the line search based on a cubic interpolation
-of the energy along the search direction. The *spin\_none* keyword
-deactivates the line search procedure.
-The *spin\_none* is a default value for *line* keyword for both *spin/lbfgs*
-and *spin/cg*\ . Convergence of *spin/lbfgs* can be more robust if
-*spin\_cubic* line search is used.
+The choice of a line search algorithm for the *spin/cg* and *spin/lbfgs*
+styles can be specified via the *line* keyword.  The *spin\_cubic* and
+*spin\_none* options only make sense when one of those two minimization
+styles is declared.  The *spin\_cubic* option performs the line search
+based on a cubic interpolation of the energy along the search
+direction. The *spin\_none* option deactivates the line search
+procedure.  The *spin\_none* option is a default value for *line*
+keyword for both *spin/lbfgs* and *spin/cg*\ . Convergence of
+*spin/lbfgs* can be more robust if *spin\_cubic* line search is used.
 
 Restrictions
 """"""""""""
 
 
-For magnetic GNEB calculations, only *spin\_none* value for *line* keyword can be used
-when styles *spin/cg* and *spin/lbfgs* are employed.
-See :doc:`neb/spin <neb_spin>` for more explanation.
+For magnetic GNEB calculations, only the *spin\_none* value for *line* keyword can be used
+when minimization styles *spin/cg* and *spin/lbfgs* are employed.
+See :doc:`neb/spin <neb_spin>` for more explanations.
 
 Related commands
 """"""""""""""""

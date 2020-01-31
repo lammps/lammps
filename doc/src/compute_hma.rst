@@ -54,19 +54,22 @@ effects, smaller timestep inaccuracy, faster equilibration and shorter
 decorrelation time.
 
 HMA should not be used if atoms are expected to diffuse.  It is also
-restricted to simulations in the NVT ensemble.  While this compute may be
-used with any potential in LAMMPS, it will provide inaccurate results
+restricted to simulations in the NVT ensemble.  While this compute may
+be used with any potential in LAMMPS, it will provide inaccurate results
 for potentials that do not go to 0 at the truncation distance;
-:doc:`pair\_lj\_smooth\_linear <pair_lj_smooth_linear>` and Ewald summation should
-work fine, while :doc:`pair_lj <pair_lj>` will perform poorly unless
-the potential is shifted (via :doc:`pair_modify <pair_modify>` shift) or the cutoff is large.  Furthermore, computation of the heat capacity with
-this compute is restricted to those that implement the single\_hessian method
-in Pair.  Implementing single\_hessian in additional pair styles is simple.
-Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke (kofke at
-buffalo.edu) if your desired pair style does not have this method.  This is
-the list of pair styles that currently implement pair\_hessian:
+:doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>` and Ewald
+summation should work fine, while :doc:`pair_style lj/cut <pair_lj>`
+will perform poorly unless the potential is shifted (via
+:doc:`pair_modify <pair_modify>` shift) or the cutoff is large.
+Furthermore, computation of the heat capacity with this compute is
+restricted to those that implement the *single\_hessian* method in Pair.
+Implementing *single\_hessian* in additional pair styles is simple.
+Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke
+(kofke at buffalo.edu) if your desired pair style does not have this
+method.  This is the list of pair styles that currently implement
+*single\_hessian*:
 
-* :doc:`lj\_smooth\_linear <pair_lj_smooth_linear>`
+* :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>`
 
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble

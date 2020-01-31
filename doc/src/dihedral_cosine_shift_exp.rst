@@ -92,7 +92,7 @@ Related commands
 """"""""""""""""
 
 :doc:`dihedral_coeff <dihedral_coeff>`,
-:doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
+:doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none
 

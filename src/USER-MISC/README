@@ -26,6 +26,7 @@ angle_style dipole, Mario Orsi, orsimario at gmail.com, 10 Jan 12
 angle_style quartic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+bond_style special, David Nicholson, davidanich at gmail.com, 31 Jan 2020
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017

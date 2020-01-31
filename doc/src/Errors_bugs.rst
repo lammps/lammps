@@ -13,7 +13,7 @@ If you are confident that you have found a bug in LAMMPS, please follow the step
  * Check the `GitHub Issue page <gip_>`_
    if your issue has already been reported and if it is still open.
  * Check the `GitHub Pull Requests page <https://github.com/lammps/pulls>`_
-   if there is alread a fix for your bug pending.
+   if there is already a fix for your bug pending.
  * Check the `mailing list archives <http://lammps.sandia.gov/mail.html>`_
    to see if the issue has been discussed before.
 

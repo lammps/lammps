@@ -53,12 +53,12 @@ void BondSpecial::init_style()
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0)
     error->all(FLERR,"Invalid 1-2 setting for bond style special.");
 
-  if (force->special_angle != 1 && (force->special_lj[2] != 0.0 ||
-                                    force->special_coul[2] != 0.0))
+  if (force->special_angle != 1 && (force->special_lj[2] != 1.0 ||
+                                    force->special_coul[2] != 1.0))
     error->all(FLERR,"Invalid 1-3 setting for bond style special.");
 
-  if (force->special_dihedral != 1 && (force->special_lj[3] != 0.0 ||
-                                       force->special_coul[3] != 0.0))
+  if (force->special_dihedral != 1 && (force->special_lj[3] != 1.0 ||
+                                       force->special_coul[3] != 1.0))
     error->all(FLERR,"Invalid 1-4 setting for bond style special.");
 
 }

@@ -63,12 +63,12 @@ Bond style special must be used with zero factors for 1-2 special bonds.
 
 E: Invalid 1-3 setting for bond style special.
 
-Bond style special must be used with either zero factors for 1-3 special bonds
-or the angle keyword.
+Bond style special must be used with 1.0 factors for 1-3 special bonds or the
+angle keyword set to yes.
 
 E: Invalid 1-4 setting for bond style special.
 
-Bond style special must be used with either zero factors for 1-4 special bonds
-or the dihedral keyword.
+Bond style special must be used with 1.0 factors for 1-4 special bonds or the
+dihedral keyword set to yes.
 
 */

@@ -46,8 +46,8 @@ or :doc:`read_restart <read_restart>` commands:
 
 This style has strict requirements on the :doc:`special_bonds <special_bonds>`
 setting. 1-2 interactions must have weights of zero. 1-3 interactions must
-either have weights of zero or the *angle* setting must be turned on. 1-4
-interactions must have weights of zero or the *dihedral* setting must be turned
+either have weights of one or the *angle* setting must be turned on. 1-4
+interactions must have weights of one or the *dihedral* setting must be turned
 on. These requirements ensure that the new bonds created by this style do not
 create spurious 1-2, 1-3 or 1-4 interactions.
 

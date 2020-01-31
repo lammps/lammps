@@ -1,15 +1,24 @@
 if(PKG_KOKKOS)
-  set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
-  set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
-  add_definitions(-DLMP_KOKKOS)
-  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  # TODO: this option needs to be documented when this works with a
+  # regular release version of KOKKOS, and a version compatibility check
+  # of external KOKKOS lib versus what the KOKKOS package needs is required.
+  option(EXTERNAL_KOKKOS "Build against external kokkos library")
+  if(EXTERNAL_KOKKOS)
+    find_package(Kokkos REQUIRED)
+    list(APPEND LAMMPS_LINK_LIBS Kokkos::kokkos)
+  else()
+    set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
+    set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+    add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
 
-  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
-                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  include_directories(${Kokkos_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS kokkos)
+    set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
+                            ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
+                            ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
+                            ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+    include_directories(${Kokkos_INCLUDE_DIRS})
+    list(APPEND LAMMPS_LINK_LIBS kokkos)
+  endif()
+  add_definitions(-DLMP_KOKKOS)
 
   set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
   set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
@@ -30,7 +39,15 @@ if(PKG_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
   if(PKG_KSPACE)
-    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp)
+    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
+                                   ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
+                                   ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
+    if(KOKKOS_ENABLE_CUDA)
+      if(NOT ${FFT} STREQUAL "KISS")
+        add_definitions(-DFFT_CUFFT)
+        list(APPEND LAMMPS_LINK_LIBS cufft)
+      endif()
+    endif()
   endif()
 
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")

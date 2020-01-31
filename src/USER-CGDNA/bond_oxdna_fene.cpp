@@ -24,6 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -220,7 +221,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
       error->warning(FLERR,str,0);
-      if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
+      if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
     }
 
     fbond = -k[type]*rr0/rlogarg/Deltasq/r;
@@ -379,9 +380,9 @@ void BondOxdnaFene::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&Delta[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&Delta[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -420,7 +421,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
     error->warning(FLERR,str,0);
-    if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
+    if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
   }
 
   double eng = -0.5 * k[type]*log(rlogarg);

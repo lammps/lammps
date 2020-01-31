@@ -34,6 +34,7 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -673,7 +674,7 @@ double Comm::get_comm_cutoff()
   // cutoff was given and no pair style present. Otherwise print a
   // warning, if the estimated bond based cutoff is larger than what
   // is currently used.
-  
+
   if (!force->pair && (cutghostuser == 0.0)) {
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {
@@ -688,7 +689,7 @@ double Comm::get_comm_cutoff()
 
   // print warning if neighborlist cutoff overrides user cutoff
 
-  if (me == 0) {
+  if ((me == 0) && (update->setupflag == 1)) {
     if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
       char mesg[128];
       snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
@@ -982,6 +983,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
                                          "rendezvous:inbuf");
+    memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -1045,6 +1047,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
                                                "rendezvous:inbuf");
+  memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
                 inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);

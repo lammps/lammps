@@ -259,7 +259,10 @@ void PPPMDisp::init()
     if (logfile) fprintf(logfile,"PPPMDisp initialization ...\n");
   }
 
+  // error check
+
   triclinic_check();
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
   if (comm->style != 0)
@@ -279,6 +282,10 @@ void PPPMDisp::init()
     sprintf(str,"PPPMDisp coulomb order cannot be greater than %d",MAXORDER);
     error->all(FLERR,str);
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // free all arrays previously allocated
 
@@ -320,6 +327,8 @@ void PPPMDisp::init()
                mixflag == 1) && mixflag!= 2) { k = 1; break; }
           else if (ewald_mix==Pair::ARITHMETIC && mixflag!=2) { k = 2; break; }
           else if (mixflag == 2) { k = 3; break; }
+          else error->all(FLERR,"Unsupported mixing rule in kspace_style pppm/disp");
+          break;
         default:
           sprintf(str, "Unsupported order in kspace_style "
                   "pppm/disp, pair_style %s", force->pair_style);

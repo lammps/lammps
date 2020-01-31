@@ -24,6 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -182,10 +183,10 @@ void BondClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&k2[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&k3[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&k4[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k2[1],atom->nbondtypes,MPI_DOUBLE,0,world);

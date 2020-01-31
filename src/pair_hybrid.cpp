@@ -26,6 +26,8 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
+#include "utils.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,6 +41,10 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   outerflag = 0;
   respaflag = 0;
+
+  // assume pair hybrid always supports centroid atomic stress,
+  // so that cflag_atom gets set when needed
+  centroidstressflag = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,6 +164,27 @@ void PairHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_pair) n += atom->nghost;
+      if (styles[m]->centroidstressflag & 2) {
+        double **cvatom_substyle = styles[m]->cvatom;
+        for (i = 0; i < n; i++)
+          for (j = 0; j < 9; j++)
+            cvatom[i][j] += cvatom_substyle[i][j];
+      } else {
+        double **vatom_substyle = styles[m]->vatom;
+        for (i = 0; i < n; i++) {
+          for (j = 0; j < 6; j++) {
+            cvatom[i][j] += vatom_substyle[i][j];
+          }
+          for (j = 6; j < 9; j++) {
+            cvatom[i][j] += vatom_substyle[i][j-3];
+          }
+        }
+      }
+    }
+
   }
 
   delete [] saved_special;
@@ -361,6 +388,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
+    if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
   init_svector();
 }
@@ -681,7 +709,7 @@ void PairHybrid::write_restart(FILE *fp)
 void PairHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
@@ -704,32 +732,32 @@ void PairHybrid::read_restart(FILE *fp)
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
-  if (me == 0) fread(compute_tally,sizeof(int),nstyles,fp);
+  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,NULL,error);
   MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_lj[m] = new double[4];
-      if (me == 0) fread(special_lj[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_coul[m] = new double[4];
-      if (me == 0) fread(special_coul[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);
     }
   }
@@ -766,7 +794,6 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   double fone;
   fforce = 0.0;
   double esum = 0.0;
-  int n = 0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
@@ -832,14 +859,17 @@ void PairHybrid::modify_params(int narg, char **arg)
       iarg = 3;
     }
 
-    // if 2nd keyword (after pair) is special:
-    // invoke modify_special() for the sub-style
+    // keywords "special" and "compute/tally" have to be listed directly
+    // after "pair" but can be given multiple times
+
+again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
       if (narg < iarg+5)
         error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
+      goto again;
     }
 
     // if 2nd keyword (after pair) is compute/tally:
@@ -854,11 +884,13 @@ void PairHybrid::modify_params(int narg, char **arg)
         compute_tally[m] = 0;
       } else error->all(FLERR,"Illegal pair_modify compute/tally command");
       iarg += 2;
+      goto again;
     }
 
-    // apply the remaining keywords to the base pair style itself and the
-    // sub-style except for "pair" and "special".
-    // the former is important for some keywords like "tail" or "compute"
+    // apply the remaining keywords to the base pair style itself and
+    // the sub-style except for "pair" and "special" or "compute/tally"
+    // and their arguments. the former is important for some keywords
+    // like "tail" or "compute"
 
     if (narg-iarg > 0) {
       Pair::modify_params(narg-iarg,&arg[iarg]);
@@ -892,6 +924,12 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[1] = force->numeric(FLERR,arg[1]);
   special[2] = force->numeric(FLERR,arg[2]);
   special[3] = force->numeric(FLERR,arg[3]);
+
+  // have to cast to PairHybrid to work around C++ access restriction
+
+  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+    error->all(FLERR,"Pair_modify special is not compatible with "
+                     "suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];
@@ -1015,6 +1053,7 @@ double PairHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }

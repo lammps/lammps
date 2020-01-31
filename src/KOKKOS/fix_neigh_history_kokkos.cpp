@@ -105,12 +105,14 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::zero_partner_count_item(const int &i) const
 {
   d_npartner[i] = 0;
 }
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
 {
   const int i = d_ilist[ii];
@@ -122,21 +124,21 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
       j &= NEIGHMASK;
       int m = Kokkos::atomic_fetch_add(&d_npartner[i],1);
       if (m < maxpartner) {
-	d_partner(i,m) = tag[j];
-	for (int k = 0; k < dnum; k++)
-	  d_valuepartner(i,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
+        d_partner(i,m) = tag[j];
+        for (int k = 0; k < dnum; k++)
+          d_valuepartner(i,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
       } else {
-	d_resize() = 1;
+        d_resize() = 1;
       }
       if (j < nlocal_neigh) {
-	m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
-	if (m < maxpartner) {
-	  d_partner(j,m) = tag[i];
-	  for (int k = 0; k < dnum; k++)
-	    d_valuepartner(j,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
-	} else {
-	  d_resize() = 1;
-	}
+        m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
+        if (m < maxpartner) {
+          d_partner(j,m) = tag[i];
+          for (int k = 0; k < dnum; k++)
+            d_valuepartner(j,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
+        } else {
+          d_resize() = 1;
+        }
       }
     }
   }
@@ -205,22 +207,22 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
     if (rflag) {
       int jtag = tag(j);
       for (m = 0; m < np; m++)
-	if (d_partner(i, m) == jtag) break;
+        if (d_partner(i, m) == jtag) break;
       if (m < np) {
-	d_firstflag(i,jj) = 1;
-	for (int k = 0; k < dnum; k++) {
-	  d_firstvalue(i, dnum*jj+k) = d_valuepartner(i, dnum*m+k);
-	}
+        d_firstflag(i,jj) = 1;
+        for (int k = 0; k < dnum; k++) {
+          d_firstvalue(i, dnum*jj+k) = d_valuepartner(i, dnum*m+k);
+        }
       } else {
-	d_firstflag(i,jj) = 0;
-	for (int k = 0; k < dnum; k++) {
-	  d_firstvalue(i, dnum*jj+k) = 0;
-	}
+        d_firstflag(i,jj) = 0;
+        for (int k = 0; k < dnum; k++) {
+          d_firstvalue(i, dnum*jj+k) = 0;
+        }
       }
     } else {
       d_firstflag(i,jj) = 0;
       for (int k = 0; k < dnum; k++) {
-	d_firstvalue(i, dnum*jj+k) = 0;
+        d_firstvalue(i, dnum*jj+k) = 0;
       }
     }
   }

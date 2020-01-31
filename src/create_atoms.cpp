@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
+------------------------------------------------------------------------- */
+
 #include "create_atoms.h"
 #include <mpi.h>
 #include <cstring>
@@ -32,15 +36,19 @@
 #include "math_extra.h"
 #include "math_const.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define BIG 1.0e30
 #define EPSILON 1.0e-6
+#define LB_FACTOR 1.1
 
 enum{BOX,REGION,SINGLE,RANDOM};
 enum{ATOM,MOLECULE};
+enum{COUNT,INSERT,INSERT_SELECTED};
+enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,6 +58,9 @@ CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 void CreateAtoms::command(int narg, char **arg)
 {
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+
   if (domain->box_exist == 0)
     error->all(FLERR,"Create_atoms command before simulation box is defined");
   if (modify->nfix_restart_peratom)
@@ -107,6 +118,8 @@ void CreateAtoms::command(int narg, char **arg)
   varflag = 0;
   vstr = xstr = ystr = zstr = NULL;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
+  subsetflag = NONE;
+  int subsetseed;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -132,7 +145,7 @@ void CreateAtoms::command(int narg, char **arg)
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1) error->all(FLERR,"Molecule template ID for "
                                  "create_atoms does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+      if (atom->molecules[imol]->nset > 1 && me == 0)
         error->warning(FLERR,"Molecule template for "
                        "create_atoms has multiple molecules");
       mode = MOLECULE;
@@ -187,6 +200,22 @@ void CreateAtoms::command(int narg, char **arg)
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
       iarg += 5;
+    } else if (strcmp(arg[iarg],"ratio") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      subsetflag = RATIO;
+      subsetfrac = force->numeric(FLERR,arg[iarg+1]);
+      subsetseed = force->inumeric(FLERR,arg[iarg+2]);
+      if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
+        error->all(FLERR,"Illegal create_atoms command");
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"subset") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      subsetflag = SUBSET;
+      nsubset = force->bnumeric(FLERR,arg[iarg+1]);
+      subsetseed = force->inumeric(FLERR,arg[iarg+2]);
+      if (nsubset <= 0 || subsetseed <= 0)
+        error->all(FLERR,"Illegal create_atoms command");
+      iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
@@ -221,8 +250,11 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molecule random number generator, different for each proc
 
-    ranmol = new RanMars(lmp,molseed+comm->me);
+    ranmol = new RanMars(lmp,molseed+me);
   }
+
+  ranlatt = NULL;
+  if (subsetflag != NONE) ranlatt = new RanMars(lmp,subsetseed+me);
 
   // error check and further setup for variable test
 
@@ -512,6 +544,8 @@ void CreateAtoms::command(int narg, char **arg)
   // clean up
 
   delete ranmol;
+  delete ranlatt;
+
   if (domain->lattice) delete [] basistype;
   delete [] vstr;
   delete [] xstr;
@@ -536,7 +570,7 @@ void CreateAtoms::command(int narg, char **arg)
   MPI_Barrier(world);
   double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
+  if (me == 0) {
     if (screen) {
       fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
@@ -606,8 +640,11 @@ void CreateAtoms::add_random()
   double *boxlo,*boxhi;
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   RanPark *random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
   // in real units, even if triclinic
@@ -754,7 +791,6 @@ void CreateAtoms::add_lattice()
   //   which can lead to missing atoms in rare cases
   // extra decrement of lo if min < 0, since static_cast(-1.5) = -1
 
-  int ilo,ihi,jlo,jhi,klo,khi;
   ilo = static_cast<int> (xmin) - 1;
   jlo = static_cast<int> (ymin) - 1;
   klo = static_cast<int> (zmin) - 1;
@@ -766,31 +802,73 @@ void CreateAtoms::add_lattice()
   if (ymin < 0.0) jlo--;
   if (zmin < 0.0) klo--;
 
-  // iterate on 3d periodic lattice of unit cells using loop bounds
-  // iterate on nbasis atoms in each unit cell
-  // convert lattice coords to box coords
-  // add atom or molecule (on each basis point) if it meets all criteria
+  // count lattice sites on each proc
+
+  nlatt_overflow = 0;
+  loop_lattice(COUNT);
+
+  // nadd = # of atoms each proc will insert (estimated if subsetflag)
+
+  int overflow;
+  MPI_Allreduce(&nlatt_overflow,&overflow,1,MPI_INT,MPI_SUM,world);
+  if (overflow)
+    error->all(FLERR,"Create_atoms lattice size overflow on 1 or more procs");
+
+  bigint nadd;
+
+  if (subsetflag == NONE) {
+    if (nprocs == 1) nadd = nlatt;
+    else nadd = static_cast<bigint> (LB_FACTOR * nlatt);
+  } else {
+    bigint bnlatt = nlatt;
+    bigint bnlattall;
+    MPI_Allreduce(&bnlatt,&bnlattall,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    if (subsetflag == RATIO)
+      nsubset = static_cast<bigint> (subsetfrac * bnlattall);
+    if (nsubset > bnlattall)
+      error->all(FLERR,"Create_atoms subset size > # of lattice sites");
+    if (nprocs == 1) nadd = nsubset;
+    else nadd = static_cast<bigint> (LB_FACTOR * nsubset/bnlattall * nlatt);
+  }
+
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
+
+  bigint nbig = atom->avec->roundup(nadd + atom->nlocal);
+  int n = static_cast<int> (nbig);
+  atom->avec->grow(n);
+
+  // add atoms or molecules
+  // if no subset: add to all lattice sites
+  // if subset: count lattice sites, select random subset, then add
+
+  if (subsetflag == NONE) loop_lattice(INSERT);
+  else {
+    memory->create(flag,nlatt,"create_atoms:flag");
+    memory->create(next,nlatt,"create_atoms:next");
+    ranlatt->select_subset(nsubset,nlatt,flag,next);
+    loop_lattice(INSERT_SELECTED);
+    memory->destroy(flag);
+    memory->destroy(next);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   iterate on 3d periodic lattice of unit cells using loop bounds
+   iterate on nbasis atoms in each unit cell
+   convert lattice coords to box coords
+   check if lattice point meets all criteria to be added
+   perform action on atom or molecule (on each basis point) if meets all criteria
+   actions = add, count, add if flagged
+------------------------------------------------------------------------- */
+
+void CreateAtoms::loop_lattice(int action)
+{
+  int i,j,k,m;
 
   const double * const * const basis = domain->lattice->basis;
 
-  // rough estimate of total time used for create atoms.
-  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
-  double testimate = 2.5e-8/3600.0; // convert seconds to hours
-  testimate *= static_cast<double>(khi-klo+1);
-  testimate *= static_cast<double>(jhi-jlo+1);
-  testimate *= static_cast<double>(ihi-ilo+1);
-  testimate *= static_cast<double>(nbasis);
-  double maxestimate = 0.0;
-  MPI_Reduce(&testimate,&maxestimate,1,MPI_DOUBLE,MPI_MAX,0,world);
+  nlatt = 0;
 
-  if ((comm->me == 0) && (maxestimate > 0.01)) {
-    if (screen) fprintf(screen,"WARNING: create_atoms will take "
-                        "approx. %.2f hours to complete\n",maxestimate);
-    if (logfile) fprintf(logfile,"WARNING: create_atoms will take "
-                         "approx. %.2f hours to complete\n",maxestimate);
-  }
-
-  int i,j,k,m;
   for (k = klo; k <= khi; k++) {
     for (j = jlo; j <= jhi; j++) {
       for (i = ilo; i <= ihi; i++) {
@@ -826,18 +904,30 @@ void CreateAtoms::add_lattice()
               coord[1] < sublo[1] || coord[1] >= subhi[1] ||
               coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
 
-          // add the atom or entire molecule to my list of atoms
+          // this proc owns the lattice site
+          // perform action: add, just count, add if flagged
+          // add = add an atom or entire molecule to my list of atoms
 
-          if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
-          else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
-            add_molecule(x);
-          else add_molecule(x,quatone);
+          if (action == INSERT) {
+            if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
+            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+              add_molecule(x);
+            else add_molecule(x,quatone);
+          } else if (action == COUNT) {
+            if (nlatt == MAXSMALLINT) nlatt_overflow = 1;
+          } else if (action == INSERT_SELECTED && flag[nlatt]) {
+            if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
+            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+              add_molecule(x);
+            else add_molecule(x,quatone);
+          }
+
+          nlatt++;
         }
       }
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    add a randomly rotated molecule with its center at center

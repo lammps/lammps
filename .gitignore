@@ -26,6 +26,7 @@ vgcore.*
 .vagrant
 \#*#
 .#*
+.vscode
 
 .DS_Store
 .DS_Store?

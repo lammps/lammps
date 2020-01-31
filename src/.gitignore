@@ -27,8 +27,8 @@
 /*_ssa.h
 /*_ssa.cpp
 
-/kim_query.cpp
-/kim_query.h
+/kim_*.cpp
+/kim_*.h
 /pair_kim.cpp
 /pair_kim.h
 
@@ -55,6 +55,9 @@
 
 /fix_qeq*.cpp
 /fix_qeq*.h
+
+/fix_*cauchy.cpp
+/fix_*cauchy.h
 
 /compute_test_nbl.cpp
 /compute_test_nbl.h
@@ -116,6 +119,8 @@
 /compute_snad_atom.h
 /compute_snav_atom.cpp
 /compute_snav_atom.h
+/compute_snap.cpp
+/compute_snap.h
 /openmp_snap.h
 /pair_snap.cpp
 /pair_snap.h
@@ -161,6 +166,10 @@
 /fix_setforce_spin.h
 /min_spin.cpp
 /min_spin.h
+/min_spin_cg.cpp
+/min_spin_cg.h
+/min_spin_lbfgs.cpp
+/min_spin_lbfgs.h
 /neb_spin.cpp
 /neb_spin.h
 /pair_spin.cpp
@@ -276,6 +285,8 @@
 /bond_oxdna_fene.h
 /bond_oxdna2_fene.cpp
 /bond_oxdna2_fene.h
+/bond_oxrna2_fene.cpp
+/bond_oxrna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
 /bond_table.cpp
@@ -312,8 +323,14 @@
 /compute_fep.h
 /compute_force_tally.cpp
 /compute_force_tally.h
+/compute_gyration_shape.cpp
+/compute_gyration_shape.h
+/compute_gyration_shape_chunk.cpp
+/compute_gyration_shape_chunk.h
 /compute_heat_flux_tally.cpp
 /compute_heat_flux_tally.h
+/compute_hma.cpp
+/compute_hma.h
 /compute_ke_atom_eff.cpp
 /compute_ke_atom_eff.h
 /compute_ke_eff.cpp
@@ -326,6 +343,8 @@
 /compute_meso_rho_atom.h
 /compute_meso_t_atom.cpp
 /compute_meso_t_atom.h
+/compute_momentum.cpp
+/compute_momentum.h
 /compute_msd_nongauss.cpp
 /compute_msd_nongauss.h
 /compute_pe_tally.cpp
@@ -416,6 +435,8 @@
 /dump_custom_mpiio.h
 /dump_h5md.cpp
 /dump_h5md.h
+/dump_local_gz.cpp
+/dump_local_gz.h
 /dump_netcdf.cpp
 /dump_netcdf.h
 /dump_netcdf_mpiio.cpp
@@ -558,6 +579,8 @@
 /fix_nph_asphere.h
 /fix_npt_asphere.cpp
 /fix_npt_asphere.h
+/fix_npt_cauchy.cpp
+/fix_npt_cauchy.h
 /fix_nve_asphere.cpp
 /fix_nve_asphere.h
 /fix_nve_asphere_noforce.cpp
@@ -667,6 +690,8 @@
 /fix_spring_pull.h
 /fix_srd.cpp
 /fix_srd.h
+/fix_store_kim.cpp
+/fix_store_kim.h
 /fix_temp_rescale_eff.cpp
 /fix_temp_rescale_eff.h
 /fix_thermal_conductivity.cpp
@@ -689,6 +714,8 @@
 /fix_wall_ees.h
 /fix_wall_region_ees.cpp
 /fix_wall_region_ees.h
+/fix_wall_reflect_stochastic.cpp
+/fix_wall_reflect_stochastic.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
 /fix_wall_gran_region.cpp
@@ -837,6 +864,8 @@
 /pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
 /pair_lj_expand_coul_long.h
+/pair_local_density.cpp
+/pair_local_density.h
 /pair_edip.cpp
 /pair_edip.h
 /pair_edip_multi.cpp
@@ -962,6 +991,8 @@
 /pair_meam_spline.h
 /pair_meam_sw_spline.cpp
 /pair_meam_sw_spline.h
+/pair_mesocnt.cpp
+/pair_mesocnt.h
 /pair_mm3_switch3_coulgauss_long.cpp
 /pair_mm3_switch3_coulgauss_long.h
 /pair_morse_soft.cpp
@@ -978,6 +1009,8 @@
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
 /pair_oxdna2_*.h
+/pair_oxrna2_*.cpp
+/pair_oxrna2_*.h
 /mf_oxdna.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
@@ -1120,6 +1153,7 @@
 /remap_wrap.h
 /restart_mpiio.cpp
 /restart_mpiio.h
+/rigid_const.h
 /scafacos.cpp
 /scafacos.h
 /server.cpp
@@ -1140,6 +1174,8 @@
 /temper_grem.h
 /temper_npt.cpp
 /temper_npt.h
+/third_order.cpp
+/third_order.h
 /thr_data.cpp
 /thr_data.h
 /verlet_split.cpp

@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
           ANGMOM    = 1<<7,
           TORQUE    = 1<<8
     };
-    
+
     static const double TOLERANCE = 1.0e-6;
     static const double EPSILON   = 1.0e-7;
     static const double BIG       = 1.0e20;

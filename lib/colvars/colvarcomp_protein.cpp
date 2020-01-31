@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -29,6 +29,8 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   function_type = "alpha_angles";
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
+
+  colvarproxy *proxy = cvm::main()->proxy;
 
   std::string segment_id;
   get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
@@ -91,7 +93,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   {
     cvm::real r0;
     size_t en, ed;
-    get_keyval(conf, "hBondCutoff",   r0, (3.3 * cvm::unit_angstrom()));
+    get_keyval(conf, "hBondCutoff",   r0, (3.3 * proxy->angstrom_value));
     get_keyval(conf, "hBondExpNumer", en, 6);
     get_keyval(conf, "hBondExpDenom", ed, 8);
 

@@ -87,12 +87,11 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   // update xcm, vcm, quat, conjqm and angmom
   double akt=0.0, akr=0.0;
-  int ibody;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_r,scale_t,scale_v) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for default(none) shared(scale_r,scale_t,scale_v) schedule(static) reduction(+:akt,akr)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     double mbody[3],tbody[3],fquat[4];
     const double dtf2 = dtf * 2.0;
 
@@ -384,13 +383,25 @@ void FixRigidNHOMP::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
+
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
+#endif
+    for (ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += gvec[0]*masstotal[ibody];
+      fcm[ibody][1] += gvec[1]*masstotal[ibody];
+      fcm[ibody][2] += gvec[2]*masstotal[ibody];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixRigidNHOMP::final_integrate()
 {
-  int ibody;
   double scale_t[3],scale_r;
 
   // compute scale variables
@@ -422,9 +433,9 @@ void FixRigidNHOMP::final_integrate()
   const double dtf2 = dtf * 2.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for default(none) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     double mbody[3],tbody[3],fquat[4];
 
     // update vcm by 1/2 step
@@ -542,11 +553,10 @@ void FixRigidNHOMP::remap()
 
   if (allremap) domain->x2lamda(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
@@ -575,11 +585,10 @@ void FixRigidNHOMP::remap()
 
   if (allremap) domain->lamda2x(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }

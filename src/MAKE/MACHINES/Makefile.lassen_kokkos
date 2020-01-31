@@ -1,4 +1,4 @@
-# lassen_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc 7.3.1
+# lassen_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc
 
 SHELL = /bin/sh
 
@@ -44,9 +44,12 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC = -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.1/include
+MY_MPI_EXE = $(shell which mpicxx)
+MY_MPI_PATH = $(dir ${MY_MPI_EXE})
+
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I${MY_MPI_PATH}../include
 MPI_PATH = 
-MPI_LIB = -L/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.1/lib -lmpi_ibm
+MPI_LIB = -L${MY_MPI_PATH}../lib -lmpi_ibm
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -55,9 +58,9 @@ MPI_LIB = -L/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
+FFT_INC = -DFFT_CUFFT
 FFT_PATH = 
-FFT_LIB =	
+FFT_LIB = -lcufft
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

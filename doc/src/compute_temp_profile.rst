@@ -195,5 +195,3 @@ The option default is out = tensor.
 
 
 **(Evans)** Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).
-
-

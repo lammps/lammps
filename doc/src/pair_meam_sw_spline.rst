@@ -160,5 +160,3 @@ Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 The spline-based MEAM+SW format was first devised and used to develop
 potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 and Hyoungki Park at The Ohio State University.
-
-

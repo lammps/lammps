@@ -167,5 +167,3 @@ Related commands
 :doc:`message <message>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-

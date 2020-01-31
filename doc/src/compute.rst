@@ -332,5 +332,3 @@ Related commands
 :doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/histo <fix_ave_histo>`
 
 **Default:** none
-
-

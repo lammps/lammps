@@ -218,5 +218,3 @@ Related commands
 :doc:`fix srd <fix_srd>`
 
 **Default:** none
-
-

@@ -51,5 +51,3 @@ Related commands
 :doc:`pair_style zero <pair_zero>`
 
 **Default:** none
-
-

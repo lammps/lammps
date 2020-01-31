@@ -191,5 +191,3 @@ Related commands
 :doc:`fix property/atom <fix_property_atom>`
 
 **Default:** none
-
-

@@ -109,5 +109,3 @@ Related commands
 
 **(Los and Fasolino)** J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
 (2003).
-
-

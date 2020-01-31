@@ -160,5 +160,3 @@ Related commands
 
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
-
-

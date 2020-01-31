@@ -639,5 +639,3 @@ input scripts.
    multiple variable values if any of them start with a "-", e.g. a
    negative numeric value.  It is OK if the first value1 starts with a
    "-", since it is automatically skipped.
-
-

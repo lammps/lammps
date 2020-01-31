@@ -246,5 +246,3 @@ Related commands
 
 
 **(Rosenberger)** Rosenberger, Sanyal, Shell and van der Vegt,  Journal of Chemical Physics, 2019, 151 (4), 044111.
-
-

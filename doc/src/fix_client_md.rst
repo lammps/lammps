@@ -108,5 +108,3 @@ Related commands
 :doc:`message <message>`, :doc:`server <server>`
 
 **Default:** none
-
-

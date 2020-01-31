@@ -77,5 +77,3 @@ The patch files are posted on the `bug and feature page <bug_>`_ of the
 website, along with a list of changed files and details about what is
 in the new patch release.  Instructions for applying a patch file are
 on the :doc:`Install patch <Install_patch>` doc page.
-
-

@@ -33,5 +33,3 @@ Here is a brief description of the class methods in pair.h:
 +---------------------------------+-------------------------------------------------------------------+
 
 The inner/middle/outer routines are optional.
-
-

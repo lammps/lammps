@@ -336,5 +336,3 @@ Default
 """""""
 
 The default keyword values are ghost = no.
-
-

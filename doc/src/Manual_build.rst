@@ -134,5 +134,3 @@ For converting the generated ePUB file to a MOBI format file
 also need to have the 'ebook-convert' tool from the "calibre"
 software installed. `http://calibre-ebook.com/ <http://calibre-ebook.com/>`_
 You first create the ePUB file and then convert it with 'make mobi'
-
-

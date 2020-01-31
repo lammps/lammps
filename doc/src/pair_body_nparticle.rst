@@ -126,5 +126,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix rigid <fix_rigid>`
 
 **Default:** none
-
-

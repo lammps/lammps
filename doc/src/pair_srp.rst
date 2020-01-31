@@ -183,5 +183,3 @@ The default keyword value is exclude = yes.
 
 **(Sirk)** Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.
-
-

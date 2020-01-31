@@ -92,5 +92,3 @@ temperature compute is used for default thermodynamic output.
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
-
-

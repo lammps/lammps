@@ -202,5 +202,3 @@ Related commands
 
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143,
 124104 (2015).
-
-

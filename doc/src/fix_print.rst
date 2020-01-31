@@ -117,5 +117,3 @@ Default
 
 The option defaults are no file output, screen = yes, and title string
 as described above.
-
-

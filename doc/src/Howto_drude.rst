@@ -65,5 +65,3 @@ too close, which can cause numerical issues.
 
 
 **(Lamoureux and Roux)** G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)
-
-

@@ -127,5 +127,3 @@ Related commands
 
 
 **(Weeks)** "Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)"
-
-

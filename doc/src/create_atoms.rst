@@ -385,5 +385,3 @@ The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
 being created).  The other defaults are *remap* = no, *rotate* =
 random, and *units* = lattice.
-
-

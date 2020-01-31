@@ -700,5 +700,3 @@ The option defaults are as follows:
 * bound = lower and upper in all dimensions
 * pbc = no
 * units = lattice
-
-

@@ -175,5 +175,3 @@ Related commands
 :doc:`fix npt <fix_nh>`, :doc:`fix nve\_body <fix_nve_body>`, :doc:`fix nvt\_body <fix_nvt_body>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-

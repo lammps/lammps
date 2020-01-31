@@ -168,5 +168,3 @@ Default
 """""""
 
 The option defaults are compress = yes, bond = no, mol = no.
-
-

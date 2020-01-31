@@ -181,5 +181,3 @@ The option defaults are swap = 1.
 
 **(Zhang)** Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,
 109, 15060-15067 (2005).
-
-

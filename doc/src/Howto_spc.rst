@@ -50,5 +50,3 @@ Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki
 
 **(Berendsen)** Berendsen, Grigera, Straatsma, J Phys Chem, 91,
 6269-6271 (1987).
-
-

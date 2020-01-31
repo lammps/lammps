@@ -98,5 +98,3 @@ commands since the new data file lists the force field coefficients.
 Also, the :doc:`reset_timestep <reset_timestep>` command is used to tell
 LAMMPS the current timestep.  This value is stored in restart files,
 but not in data files.
-
-

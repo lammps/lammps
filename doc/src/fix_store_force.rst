@@ -74,5 +74,3 @@ Related commands
 :doc:`fix store\_state <fix_store_state>`
 
 **Default:** none
-
-

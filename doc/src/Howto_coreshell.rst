@@ -264,5 +264,3 @@ The additional section in the date file would be formatted like this:
 
 **(Fincham)** Fincham, Mackrodt and Mitchell, J Phys Condensed Matter,
 6, 393-404 (1994).
-
-

@@ -167,5 +167,3 @@ Default
 """""""
 
 The option defaults are error = hard and message = yes.
-
-

@@ -139,5 +139,3 @@ Related commands
 
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-

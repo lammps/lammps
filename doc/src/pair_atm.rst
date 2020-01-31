@@ -190,5 +190,3 @@ Related commands
 **(Axilrod)**
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);
 Muto, Nippon Sugaku-Buturigakkwaishi 17, 629 (1943).
-
-

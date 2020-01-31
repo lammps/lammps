@@ -89,5 +89,3 @@ Related commands
 :doc:`fix nve/spin <fix_nve_spin>`
 
 **Default:** none
-
-

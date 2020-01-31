@@ -213,5 +213,3 @@ Related commands
 
 
 **(Thole)** Chem Phys, 59, 341 (1981).
-
-

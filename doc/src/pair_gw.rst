@@ -138,5 +138,3 @@ Related commands
 
 **(Gao)** Gao and Weber, Nuclear Instruments and Methods in Physics
 Research B 191 (2012) 504.
-
-

@@ -252,5 +252,3 @@ J. Sci. Comput. 36 (2), 147-170, (2014).
 **(Negre2016)** C. F. A. Negre, S. M. Mniszewski, M. J. Cawkwell,
 N. Bock, M. E. Wall, and A. M. N. Niklasson, J. Chem. Theory Comp.,
 12, 3063 (2016).
-
-

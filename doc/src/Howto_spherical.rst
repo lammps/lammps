@@ -236,5 +236,3 @@ as single particles, though they can store internal state, such as a
 list of sub-particles.  Individual body particles are typically treated
 as rigid bodies, and their motion integrated with a command like :doc:`fix nve/body <fix_nve_body>`.  Interactions between pairs of body
 particles are computed via a command like :doc:`pair_style body/nparticle <pair_body_nparticle>`.
-
-

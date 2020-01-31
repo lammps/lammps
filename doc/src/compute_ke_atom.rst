@@ -53,5 +53,3 @@ Related commands
 :doc:`dump custom <dump>`
 
 **Default:** none
-
-

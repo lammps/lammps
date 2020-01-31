@@ -171,5 +171,3 @@ Related commands
 
 **(Bird)** G. A. Bird, "Molecular Gas Dynamics and the Direct Simulation
 of Gas Flows" (1994).
-
-

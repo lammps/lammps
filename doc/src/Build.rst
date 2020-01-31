@@ -21,5 +21,3 @@ as described on the :doc:`Install <Install>` doc page.
    Build_extras
    Build_windows
    Build_development
-
-

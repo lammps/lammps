@@ -103,5 +103,3 @@ Related commands
 :doc:`dump local <dump>`
 
 **Default:** none
-
-

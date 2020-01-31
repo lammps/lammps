@@ -34,7 +34,3 @@ snapshots.
 
 
 .. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
-
-
-
-

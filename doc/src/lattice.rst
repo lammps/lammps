@@ -328,5 +328,3 @@ Default
 For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,
 a2 = 0 1 0, and a3 = 0 0 1.
-
-

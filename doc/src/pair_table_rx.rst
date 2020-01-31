@@ -281,5 +281,3 @@ Related commands
 
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
-
-

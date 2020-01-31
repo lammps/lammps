@@ -253,5 +253,3 @@ Default
 
 The option defaults are com no, no bias, adof = dimensionality of the
 system (2 or 3), and cdof = 0.0.
-
-

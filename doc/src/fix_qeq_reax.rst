@@ -149,5 +149,3 @@ Related commands
 
 **(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
-
-

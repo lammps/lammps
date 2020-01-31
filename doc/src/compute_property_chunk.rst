@@ -122,5 +122,3 @@ Related commands
 :doc:`fix ave/chunk <fix_ave_chunk>`
 
 **Default:** none
-
-

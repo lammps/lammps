@@ -88,5 +88,3 @@ The mass assigned to any type or atom must be > 0.0.
 **Related commands:** none
 
 **Default:** none
-
-

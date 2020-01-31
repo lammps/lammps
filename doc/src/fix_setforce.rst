@@ -160,5 +160,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`, :doc:`fix aveforce <fix_aveforce>`
 
 **Default:** none
-
-

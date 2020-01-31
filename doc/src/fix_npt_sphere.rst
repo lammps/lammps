@@ -194,5 +194,3 @@ Related commands
 :doc:`fix npt <fix_nh>`, :doc:`fix nve\_sphere <fix_nve_sphere>`, :doc:`fix nvt\_sphere <fix_nvt_sphere>`, :doc:`fix npt\_asphere <fix_npt_asphere>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-

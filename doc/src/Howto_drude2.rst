@@ -535,5 +535,3 @@ NPT ensemble using Nose-Hoover thermostat:
 
 **(SWM4-NDP)** Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
 Let, 418, 245-249 (2006)
-
-

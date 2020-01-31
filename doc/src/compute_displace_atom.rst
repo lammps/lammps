@@ -153,5 +153,3 @@ Related commands
 :doc:`compute msd <compute_msd>`, :doc:`dump custom <dump>`, :doc:`fix store/state <fix_store_state>`
 
 **Default:** none
-
-

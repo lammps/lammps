@@ -71,5 +71,3 @@ Default
 """""""
 
 The default style is brick.
-
-

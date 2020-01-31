@@ -163,4 +163,3 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
-

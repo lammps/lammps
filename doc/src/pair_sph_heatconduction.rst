@@ -67,5 +67,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, pair\_sph/rhosum
 
 **Default:** none
-
-

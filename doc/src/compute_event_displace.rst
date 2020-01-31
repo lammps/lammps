@@ -69,5 +69,3 @@ Related commands
 :doc:`prd <prd>`, :doc:`tad <tad>`
 
 **Default:** none
-
-

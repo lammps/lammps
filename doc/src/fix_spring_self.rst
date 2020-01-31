@@ -89,5 +89,3 @@ Related commands
 :doc:`fix smd <fix_smd>`, :doc:`fix spring/rg <fix_spring_rg>`
 
 **Default:** none
-
-

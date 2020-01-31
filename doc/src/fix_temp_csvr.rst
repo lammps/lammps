@@ -191,5 +191,3 @@ Related commands
 
 
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)
-
-

@@ -333,5 +333,3 @@ mixing.  See the doc pages for individual pair styles for details.
 
 
 **(Sun)** Sun, J Phys Chem B, 102, 7338-7364 (1998).
-
-

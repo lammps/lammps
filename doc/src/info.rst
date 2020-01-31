@@ -128,5 +128,3 @@ Default
 The *out* option has the default *screen*\ .
 
 The *styles* option has the default *all*\ .
-
-

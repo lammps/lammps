@@ -251,5 +251,3 @@ Related commands
 
 
 **(Boone)** Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).
-
-

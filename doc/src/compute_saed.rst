@@ -207,5 +207,3 @@ Volume C: Mathematical and Chemical Tables, 554-95 (2004).
 
 **(Fox)** Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
 (1989).
-
-

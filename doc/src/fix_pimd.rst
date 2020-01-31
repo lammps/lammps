@@ -221,5 +221,3 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).
-
-

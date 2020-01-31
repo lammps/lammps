@@ -272,5 +272,3 @@ given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 **(Nicholson and Rutledge)** Nicholson and Rutledge, J Chem Phys, 145,
 244903 (2016).
-
-

@@ -93,5 +93,3 @@ Related commands
 :doc:`variable omega() function <variable>`
 
 **Default:** none
-
-

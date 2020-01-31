@@ -506,5 +506,3 @@ Related commands
 :doc:`read_data <read_data>`
 
 **Default:** none
-
-

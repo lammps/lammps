@@ -156,5 +156,3 @@ Related commands
 :doc:`variable <variable>`,
 
 **Default:** none
-
-

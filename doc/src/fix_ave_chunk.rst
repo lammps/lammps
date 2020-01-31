@@ -513,5 +513,3 @@ Default
 
 The option defaults are norm = all, ave = one, bias = none, no file output, and
 title 1,2,3 = strings as described above.
-
-

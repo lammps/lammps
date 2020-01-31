@@ -59,5 +59,3 @@ Related commands
 :doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-

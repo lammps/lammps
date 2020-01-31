@@ -133,5 +133,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth/linear <pair_lj_smooth_linear>`
 
 **Default:** none
-
-

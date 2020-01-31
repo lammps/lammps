@@ -144,5 +144,3 @@ coordinates for modelling activated processes", J Molecular Modeling,
 **(Schlitter2)** Schlitter and Klahn, "The free energy of a reaction
 coordinate at multiple constraints: a concise formulation", Molecular
 Physics, 101, 3439-3443 (2003).
-
-

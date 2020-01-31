@@ -158,5 +158,3 @@ Phillpot, Phys Rev B, 81, 125328 (2010).
 
 **(Rick\_and\_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
 101, 16141 (1994).
-
-

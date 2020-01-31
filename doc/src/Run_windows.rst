@@ -74,5 +74,3 @@ multi-threading, which can be combined with MPI using something like:
 .. parsed-literal::
 
    mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp
-
-

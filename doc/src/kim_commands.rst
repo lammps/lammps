@@ -913,5 +913,3 @@ doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-
 
 **(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
-
-

@@ -84,5 +84,3 @@ See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS through its library interface.
 Other examples in the COUPLE directory use coupling ideas discussed on
 the :doc:`Howto couple <Howto_couple>` doc page.
-
-

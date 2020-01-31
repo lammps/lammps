@@ -63,5 +63,3 @@ Related commands
 :doc:`compute ke/rigid <compute_ke_rigid>`
 
 **Default:** none
-
-

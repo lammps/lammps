@@ -93,5 +93,3 @@ Related commands
 :doc:`variable angmom() function <variable>`
 
 **Default:** none
-
-

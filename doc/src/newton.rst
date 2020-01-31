@@ -71,5 +71,3 @@ Default
 .. parsed-literal::
 
    newton on
-
-

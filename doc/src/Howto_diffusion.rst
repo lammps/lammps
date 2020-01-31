@@ -24,6 +24,3 @@ and thus extract D.
 
 
 ----------
-
-
-

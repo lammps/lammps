@@ -170,5 +170,3 @@ Related commands
 :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-

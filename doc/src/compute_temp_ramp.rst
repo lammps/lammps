@@ -118,5 +118,3 @@ Default
 """""""
 
 The option default is units = lattice.
-
-

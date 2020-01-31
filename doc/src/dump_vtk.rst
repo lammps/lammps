@@ -192,5 +192,3 @@ Default
 
 By default, files are written in ASCII format. If the file extension
 is not one of .vtk, .vtp or .vtu, the legacy VTK file format is used.
-
-

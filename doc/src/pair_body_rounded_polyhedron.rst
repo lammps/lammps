@@ -135,5 +135,3 @@ Related commands
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).
-
-

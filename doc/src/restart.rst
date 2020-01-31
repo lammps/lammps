@@ -197,5 +197,3 @@ Default
 .. parsed-literal::
 
    restart 0
-
-

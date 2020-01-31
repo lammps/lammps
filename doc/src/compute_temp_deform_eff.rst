@@ -73,5 +73,3 @@ Related commands
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
 **Default:** none
-
-

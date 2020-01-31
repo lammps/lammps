@@ -135,5 +135,3 @@ Related commands
 :doc:`fix nvt/sllod <fix_nvt_sllod>`
 
 **Default:** none
-
-

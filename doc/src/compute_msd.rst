@@ -122,5 +122,3 @@ Default
 """""""
 
 The option default are com = no, average = no.
-
-

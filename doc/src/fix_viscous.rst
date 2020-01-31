@@ -115,5 +115,3 @@ Related commands
 :doc:`fix langevin <fix_langevin>`
 
 **Default:** none
-
-

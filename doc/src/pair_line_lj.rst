@@ -152,5 +152,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style tri/lj <pair_tri_lj>`
 
 **Default:** none
-
-

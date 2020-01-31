@@ -299,5 +299,3 @@ Condens. Matter, 15, 5649(2003).
 
 
 **(Tersoff\_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
-
-

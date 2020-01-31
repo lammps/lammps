@@ -128,5 +128,3 @@ Default
 """""""
 
 The keyword defaults are pos = 0, vel = 0, units = lattice.
-
-

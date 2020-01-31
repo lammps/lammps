@@ -1474,5 +1474,3 @@ Related commands
 :doc:`temper <temper>`, :doc:`fix print <fix_print>`, :doc:`print <print>`
 
 **Default:** none
-
-

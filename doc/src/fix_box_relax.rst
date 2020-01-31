@@ -415,5 +415,3 @@ The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
 
 
 **(Parrinello1981)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
-
-

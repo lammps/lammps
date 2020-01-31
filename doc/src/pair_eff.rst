@@ -351,5 +351,3 @@ Dense Matter, Phys Rev Lett, 99:185003 (2007).
 Long-term Non-adiabatic Electron Molecular Dynamics for Describing
 Material Properties and Phenomena in Extreme Environments, J Comp
 Chem, 32, 497-512 (2011).
-
-

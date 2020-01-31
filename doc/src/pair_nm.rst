@@ -194,5 +194,3 @@ Related commands
 
 
 **(Clarke)** Clarke and Smith, J Chem Phys, 84, 2290 (1986).
-
-

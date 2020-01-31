@@ -320,5 +320,3 @@ is an equal probabilities for all molecules in the template.
 Additional option defaults are id = max, delta = 0.0, near = 0.0,
 attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0,
 and units = lattice.
-
-

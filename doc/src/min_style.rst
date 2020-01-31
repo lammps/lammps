@@ -163,5 +163,3 @@ Jonsson, Mills, Jacobsen.
 
 **(Bitzek)** Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
-
-

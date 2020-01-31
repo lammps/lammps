@@ -59,5 +59,3 @@ Related commands
 :doc:`dump custom <dump>` smd/hertz smd/tri\_surface
 
 **Default:** none
-
-

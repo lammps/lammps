@@ -59,5 +59,3 @@ Related commands
 :doc:`compute smd/tlsph/strain <compute_smd_tlsph_strain>`
 
 **Default:** none
-
-

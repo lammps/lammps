@@ -237,5 +237,3 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`
 
 **Default:** none
-
-

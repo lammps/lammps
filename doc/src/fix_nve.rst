@@ -83,5 +83,3 @@ Related commands
 :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`
 
 **Default:** none
-
-

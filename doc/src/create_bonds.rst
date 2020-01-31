@@ -232,5 +232,3 @@ Default
 """""""
 
 The keyword default is special = yes.
-
-

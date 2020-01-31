@@ -203,5 +203,3 @@ Related commands
 :doc:`server <server>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-

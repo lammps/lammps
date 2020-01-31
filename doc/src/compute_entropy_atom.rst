@@ -157,5 +157,3 @@ The default values for the optional keywords are avg = no and local = no.
 
 
 **(Nettleton)** Nettleton and Green, J Chem Phys, 29, 6 (1958).
-
-

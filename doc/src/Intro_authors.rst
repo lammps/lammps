@@ -62,5 +62,3 @@ version of LAMMPS were the following:
 * Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 * Steve Lustig (Dupont)
 * Jim Belak and Roy Pollock (LLNL)
-
-

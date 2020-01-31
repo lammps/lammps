@@ -136,5 +136,3 @@ Default
 """""""
 
 The option defaults are shift = fix group-ID, and units = lattice.
-
-

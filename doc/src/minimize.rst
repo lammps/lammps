@@ -337,5 +337,3 @@ Related commands
 :doc:`run_style <run_style>`
 
 **Default:** none
-
-

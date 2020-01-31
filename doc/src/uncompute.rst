@@ -39,5 +39,3 @@ Related commands
 :doc:`compute <compute>`
 
 **Default:** none
-
-

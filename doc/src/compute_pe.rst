@@ -90,5 +90,3 @@ Related commands
 :doc:`compute pe/atom <compute_pe_atom>`
 
 **Default:** none
-
-

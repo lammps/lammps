@@ -284,5 +284,3 @@ the PATH variable should be
    This should give you a jump start when trying to run LAMMPS on Windows.
    To become effective in this environment I encourage you to look into Linux
    tutorials explaining Bash and Basic Unix commands (e.g., `Linux Journey <https://linuxjourney.com>`_)
-
-

@@ -156,5 +156,3 @@ Related commands
 :doc:`atom_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-

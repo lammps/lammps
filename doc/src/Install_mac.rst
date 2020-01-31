@@ -46,6 +46,3 @@ up the Homebrew capability.
 
 
 .. _openkim: https://openkim.org
-
-
-

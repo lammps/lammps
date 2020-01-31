@@ -52,5 +52,3 @@ Related commands
 **(Los2017)** J. H. Los et al. "Extended Tersoff potential for boron nitride:
 Energetics and elastic properties of pristine and defective h-BN",
 Phys. Rev. B 96 (184108), 2017.
-
-

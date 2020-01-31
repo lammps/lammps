@@ -196,5 +196,3 @@ Related commands
 
 
 **(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
-
-

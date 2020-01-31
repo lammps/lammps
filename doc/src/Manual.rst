@@ -85,5 +85,3 @@ Indices and tables
 .. raw:: html
 
    </BODY>
-
-

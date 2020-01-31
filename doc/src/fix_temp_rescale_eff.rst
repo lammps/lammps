@@ -76,5 +76,3 @@ Related commands
 :doc:`fix temp rescale <fix_temp_rescale>`,
 
 **Default:** none
-
-

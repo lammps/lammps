@@ -217,5 +217,3 @@ Default
 """""""
 
 The keyword defaults are cutoff = 0.0 (use the pairwise force cutoff).
-
-

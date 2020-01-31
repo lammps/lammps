@@ -64,5 +64,3 @@ Related commands
 :doc:`smd/contact/radius <compute_smd_contact_radius>`
 
 **Default:** none
-
-

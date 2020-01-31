@@ -118,5 +118,3 @@ instances of LAMMPS to perform different calculations.
 (4) Couple LAMMPS with another code in a client/server mode.  This is
 described on the :doc:`Howto client/server <Howto_client_server>` doc
 page.
-
-

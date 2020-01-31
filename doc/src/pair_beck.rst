@@ -126,5 +126,3 @@ Related commands
 
 
 **(Beck)** Beck, Molecular Physics, 14, 311 (1968).
-
-

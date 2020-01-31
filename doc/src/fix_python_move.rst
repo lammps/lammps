@@ -110,5 +110,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix python/invoke <fix_python_invoke>`
 
 **Default:** none
-
-

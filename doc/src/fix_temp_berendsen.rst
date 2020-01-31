@@ -179,5 +179,3 @@ Related commands
 
 **(Berendsen)** Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
 Phys, 81, 3684 (1984).
-
-

@@ -84,5 +84,3 @@ Related commands
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-

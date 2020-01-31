@@ -169,5 +169,3 @@ Related commands
 .. _Henrich5:
 
 **(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
-
-

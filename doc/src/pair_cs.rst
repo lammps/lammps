@@ -211,5 +211,3 @@ Related commands
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-

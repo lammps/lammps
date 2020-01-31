@@ -174,5 +174,3 @@ A. Stesmans, Phys. Rev. B 85, 134301 (2012).
 
 **(Neyts)** E. C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320
 (2013).
-
-

@@ -281,5 +281,3 @@ Related commands
 :doc:`write_restart <write_restart>`, :doc:`restart <restart>`
 
 **Default:** none
-
-

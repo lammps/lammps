@@ -41,5 +41,3 @@ are for 2d models.
    and the *disc* option for the :doc:`fix nve/sphere <fix_nve_sphere>`,
    :doc:`fix nvt/sphere <fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere <fix_npt_sphere>`
    commands.
-
-

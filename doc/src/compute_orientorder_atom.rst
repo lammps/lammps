@@ -190,5 +190,3 @@ J. Chem. Phys. 138, 044501 (2013).
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).
-
-

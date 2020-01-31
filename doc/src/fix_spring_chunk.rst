@@ -92,5 +92,3 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`
 
 **Default:** none
-
-

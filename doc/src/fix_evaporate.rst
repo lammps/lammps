@@ -105,5 +105,3 @@ Default
 """""""
 
 The option defaults are molecule = no.
-
-

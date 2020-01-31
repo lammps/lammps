@@ -143,5 +143,3 @@ Default
 """""""
 
 dihedral\_style none
-
-

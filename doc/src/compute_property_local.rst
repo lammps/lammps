@@ -172,5 +172,3 @@ Default
 """""""
 
 The keyword default is cutoff = type.
-
-

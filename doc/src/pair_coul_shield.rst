@@ -112,5 +112,3 @@ Related commands
 
 
 **(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
-
-

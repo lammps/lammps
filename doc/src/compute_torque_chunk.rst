@@ -92,5 +92,3 @@ Related commands
 :doc:`variable torque() function <variable>`
 
 **Default:** none
-
-

@@ -154,5 +154,3 @@ Related commands
 
 **(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts, 
 Q31.013 (2008).
-
-

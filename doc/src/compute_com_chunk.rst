@@ -91,5 +91,3 @@ Related commands
 :doc:`compute com <compute_com>`
 
 **Default:** none
-
-

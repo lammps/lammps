@@ -145,5 +145,3 @@ The option defaults are dmax = 0.1, line = quadratic and norm = two.
 For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the
 option defaults are alpha\_damp = 1.0, discrete\_factor = 10.0,
 line = spin\_none, and norm = euclidean.
-
-

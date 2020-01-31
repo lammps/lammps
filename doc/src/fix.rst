@@ -407,5 +407,3 @@ Related commands
 :doc:`unfix <unfix>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-

@@ -89,5 +89,3 @@ Default
 """""""
 
 The option default is com = no.
-
-

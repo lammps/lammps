@@ -471,5 +471,3 @@ none
 
 **(Maras)** Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
 Comp Phys Comm, 205, 13-21 (2016)
-
-

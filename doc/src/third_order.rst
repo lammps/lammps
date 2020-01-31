@@ -72,5 +72,3 @@ Default
 """""""
 
 The default settings are file = "third\_order.dat", binary = no
-
-

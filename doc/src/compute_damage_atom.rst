@@ -65,5 +65,3 @@ Related commands
 :doc:`compute plasticity/atom <compute_plasticity_atom>`
 
 **Default:** none
-
-

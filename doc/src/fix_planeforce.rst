@@ -55,5 +55,3 @@ Related commands
 :doc:`fix lineforce <fix_lineforce>`
 
 **Default:** none
-
-

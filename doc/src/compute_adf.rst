@@ -227,5 +227,3 @@ Default
 """""""
 
 The keyword default is ordinate = degree.
-
-

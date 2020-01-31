@@ -166,5 +166,3 @@ The defaults are force \* on on on, and torque \* on on on.
 
 
 **(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
-
-

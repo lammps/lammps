@@ -249,5 +249,3 @@ Related commands
 :doc:`dump custom <dump>`, :doc:`dump local <dump>`
 
 **Default:** *neighbors* no, *peratom* yes
-
-

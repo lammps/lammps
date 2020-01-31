@@ -130,5 +130,3 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`compute reduce <compute_reduce>`
 
 **Default:** none
-
-

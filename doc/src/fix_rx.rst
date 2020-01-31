@@ -246,5 +246,3 @@ Related commands
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
 **Default:** none
-
-

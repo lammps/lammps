@@ -117,5 +117,3 @@ accessed using the returned index as
 
 Ivector or dvector are vectors of length Nlocal = # of owned atoms,
 which store the attributes of individual atoms.
-
-

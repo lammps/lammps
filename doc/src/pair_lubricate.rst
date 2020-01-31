@@ -251,5 +251,3 @@ his thesis for more details: A. Kumar, "Microscale Dynamics in
 Suspensions of Non-spherical Particles", Thesis, University of
 Illinois Urbana-Champaign,
 (2010). (`https://www.ideals.illinois.edu/handle/2142/16032 <https://www.ideals.illinois.edu/handle/2142/16032>`_)
-
-

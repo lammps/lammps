@@ -62,5 +62,3 @@ Related commands
 :doc:`compute erotate/rigid <compute_erotate_rigid>`
 
 **Default:** none
-
-

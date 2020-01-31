@@ -33,5 +33,3 @@ as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_, afte
    Modify_body
    Modify_thermo
    Modify_variable
-
-

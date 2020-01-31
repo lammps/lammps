@@ -55,5 +55,3 @@ Related commands
 :doc:`fix planeforce <fix_planeforce>`
 
 **Default:** none
-
-

@@ -64,5 +64,3 @@ Related commands
 
 
 **(Pedersen)** Pedersen, J. Chem. Phys., 139, 104102 (2013).
-
-

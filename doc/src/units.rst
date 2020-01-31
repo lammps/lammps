@@ -231,5 +231,3 @@ Default
 .. parsed-literal::
 
    units lj
-
-

@@ -560,5 +560,3 @@ Chem Theory Comput, 9, 5412 (2013).
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).
-
-

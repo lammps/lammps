@@ -89,5 +89,3 @@ processors it was run on.
 
 Some of the examples or benchmarks require LAMMPS to be built with
 optional packages.
-
-

@@ -223,5 +223,3 @@ Related commands
 
 
 **(Everaers)** Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).
-
-

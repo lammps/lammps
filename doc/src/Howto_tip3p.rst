@@ -74,5 +74,3 @@ Phys, 79, 926 (1983).
 
 
 **(Price)** Price and Brooks, J Chem Phys, 121, 10096 (2004).
-
-

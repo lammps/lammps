@@ -951,5 +951,3 @@ J Chem Phys, 116, 8649 (2002).
 
 
 **(Zhang)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).
-
-

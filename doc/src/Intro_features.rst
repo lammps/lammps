@@ -224,5 +224,3 @@ classical MD options:
 * :doc:`Lattice Boltzmann fluid <fix_lb_fluid>`
 * :doc:`targeted <fix_tmd>` and :doc:`steered <fix_smd>` molecular dynamics
 * :doc:`two-temperature electron model <fix_ttm>`
-
-

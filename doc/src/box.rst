@@ -69,5 +69,3 @@ Default
 """""""
 
 The default value is tilt = small.
-
-

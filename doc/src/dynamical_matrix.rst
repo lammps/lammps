@@ -81,5 +81,3 @@ Default
 """""""
 
 The default settings are file = "dynmat.dyn", binary = no
-
-

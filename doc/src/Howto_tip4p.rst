@@ -109,5 +109,3 @@ Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
-
-

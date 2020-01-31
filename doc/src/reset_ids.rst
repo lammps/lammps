@@ -62,5 +62,3 @@ Related commands
 :doc:`delete_atoms <delete_atoms>`
 
 **Default:** none
-
-

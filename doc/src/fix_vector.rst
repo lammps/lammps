@@ -174,5 +174,3 @@ Related commands
 :doc:`compute <compute>`, :doc:`variable <variable>`
 
 **Default:** none
-
-

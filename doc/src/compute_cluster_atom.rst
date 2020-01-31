@@ -110,5 +110,3 @@ Related commands
 :doc:`compute coord/atom <compute_coord_atom>`
 
 **Default:** none
-
-

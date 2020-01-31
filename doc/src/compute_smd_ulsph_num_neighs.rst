@@ -56,5 +56,3 @@ Related commands
 :doc:`compute smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>`
 
 **Default:** none
-
-

@@ -57,5 +57,3 @@ Related commands
 :doc:`compute smd/rho <compute_smd_rho>`
 
 **Default:** none
-
-

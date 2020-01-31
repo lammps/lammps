@@ -86,5 +86,3 @@ Related commands
 """"""""""""""""
 
 :doc:`python command <python>`
-
-

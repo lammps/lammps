@@ -101,5 +101,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-

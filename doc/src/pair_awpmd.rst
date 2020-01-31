@@ -133,5 +133,3 @@ Default
 
 These are the defaults for the pair\_style keywords: *hartree* for the
 initial wave function, *free* for the wave packet width.
-
-

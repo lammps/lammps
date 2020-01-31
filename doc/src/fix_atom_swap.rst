@@ -206,5 +206,3 @@ all atom types.
 
 **(Sadigh)** B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and
 L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).
-
-

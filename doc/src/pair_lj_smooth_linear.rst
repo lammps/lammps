@@ -126,5 +126,3 @@ Related commands
 
 
 **(Toxvaerd)** Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).
-
-

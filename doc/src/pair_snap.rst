@@ -245,5 +245,3 @@ Related commands
 
 
 **(Bartok2013)** Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).
-
-

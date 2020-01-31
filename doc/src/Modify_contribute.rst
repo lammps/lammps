@@ -196,5 +196,3 @@ Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the
 easier you make it for people to get started, e.g. by providing example
 scripts, the more likely it is that users will try out your new feature.
-
-

@@ -198,5 +198,3 @@ Related commands
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`compute reduce <compute_reduce>`, :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 
 **Default:** none
-
-

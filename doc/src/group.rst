@@ -321,5 +321,3 @@ Default
 """""""
 
 All atoms belong to the "all" group.
-
-

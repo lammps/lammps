@@ -247,5 +247,3 @@ Series, 46, 254 (2006).
 
 **(Oppelstrup)** Oppelstrup, unpublished, 2015.
 Oppelstrup and Moriarty, to be published.
-
-

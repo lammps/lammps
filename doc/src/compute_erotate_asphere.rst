@@ -75,5 +75,3 @@ particles.
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 **Default:** none
-
-

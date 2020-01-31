@@ -57,5 +57,3 @@ Related commands
 :doc:`fix nve <fix_nve>`
 
 **Default:** none
-
-

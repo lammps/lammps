@@ -133,5 +133,3 @@ Default
    timer normal nosync
    timer timeout off
    timer every 10
-
-

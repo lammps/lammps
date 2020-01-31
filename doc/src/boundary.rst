@@ -119,5 +119,3 @@ Default
 .. parsed-literal::
 
    boundary p p p
-
-

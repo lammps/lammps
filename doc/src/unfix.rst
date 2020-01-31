@@ -39,5 +39,3 @@ Related commands
 :doc:`fix <fix>`
 
 **Default:** none
-
-

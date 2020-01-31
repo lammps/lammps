@@ -28,5 +28,3 @@ hardware platforms.
    Speed_tips
    Speed_packages
    Speed_compare
-
-

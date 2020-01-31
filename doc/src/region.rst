@@ -428,5 +428,3 @@ Default
 
 The option defaults are side = in, units = lattice, and no move or
 rotation.
-
-

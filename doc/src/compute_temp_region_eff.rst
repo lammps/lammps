@@ -64,5 +64,3 @@ Related commands
 :doc:`compute temp/region <compute_temp_region>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-

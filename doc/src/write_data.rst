@@ -145,5 +145,3 @@ Default
 """""""
 
 The option defaults are pair = ii.
-
-

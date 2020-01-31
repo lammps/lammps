@@ -30,5 +30,3 @@ which auto-generates the interface code needed between Python and a
 set of C-style library functions.  Ctypes is part of standard Python
 for versions 2.5 and later.  You can check which version of Python you
 have by simply typing "python" at a shell prompt.
-
-

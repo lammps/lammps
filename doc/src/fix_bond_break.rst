@@ -156,5 +156,3 @@ Default
 """""""
 
 The option defaults are prob = 1.0.
-
-

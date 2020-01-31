@@ -62,5 +62,3 @@ Related commands
 :doc:`smd/adjust/dt <fix_smd_adjust_dt>`
 
 **Default:** none
-
-

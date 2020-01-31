@@ -49,5 +49,3 @@ Default
 """""""
 
 The default LAMMPS log file is named log.lammps
-
-

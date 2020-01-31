@@ -130,5 +130,3 @@ Related commands
 :doc:`message <message>`
 
 **Default:** none
-
-

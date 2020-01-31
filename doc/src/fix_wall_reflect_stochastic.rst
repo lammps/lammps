@@ -150,5 +150,3 @@ Stat. Phys. 1, 2, 101 (1971).
 
 **(To)** Q.D. To, V.H. Vu, G. Lauriat, and
 C. Leonard. J. Math. Phys. 56, 103101 (2015).
-
-

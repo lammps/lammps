@@ -281,5 +281,3 @@ Default
 The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
 no, bias = no, loop = all, and units = lattice.  The temp and rigid
 keywords are not defined by default.
-
-

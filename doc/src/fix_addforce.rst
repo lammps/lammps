@@ -199,5 +199,3 @@ Default
 """""""
 
 The option default for the every keyword is every = 1.
-
-

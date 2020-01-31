@@ -174,5 +174,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-

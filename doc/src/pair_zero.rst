@@ -92,5 +92,3 @@ Related commands
 :doc:`pair_style none <pair_none>`
 
 **Default:** none
-
-

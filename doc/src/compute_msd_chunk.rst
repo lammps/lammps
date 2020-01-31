@@ -130,5 +130,3 @@ Related commands
 :doc:`compute msd <compute_msd>`
 
 **Default:** none
-
-

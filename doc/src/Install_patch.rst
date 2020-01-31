@@ -61,5 +61,3 @@ up to date.
    sub-dir of src, then re-install the package.  The version in the src
    dir is merely a copy and will be wiped out if you type "make
    package-update".
-
-

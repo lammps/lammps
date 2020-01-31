@@ -59,5 +59,3 @@ Default
 .. parsed-literal::
 
    dimension 3
-
-

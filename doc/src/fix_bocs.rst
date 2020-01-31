@@ -133,5 +133,3 @@ paper by Dunn et. al. :ref:`(Dunn2) <bocs-Dunn2>` .
 
 
 **(Dunn2)** Dunn, Lebold, DeLyser, Rudzinski, and Noid, J. Phys. Chem. B, 122, 3363 (2018).
-
-

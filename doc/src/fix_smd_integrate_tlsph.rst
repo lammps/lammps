@@ -62,5 +62,3 @@ Related commands
 :doc:`smd/integrate\_ulsph <fix_smd_integrate_ulsph>`
 
 **Default:** none
-
-

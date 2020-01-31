@@ -94,5 +94,3 @@ Default
 """""""
 
 The option defaults are no file output, screen = yes, and universe = no.
-
-

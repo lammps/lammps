@@ -238,5 +238,3 @@ method*\ , `Computer Physics Communications [182](2):540-541 (2011). <http://dx.
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
 molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <http://dx.doi.org/10.1016/j.cpc.2011.04.019>`_
-
-

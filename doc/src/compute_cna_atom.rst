@@ -112,5 +112,3 @@ Related commands
 
 
 **(Tsuzuki)** Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007).
-
-

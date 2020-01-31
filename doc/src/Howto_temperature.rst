@@ -31,5 +31,3 @@ They both allow for velocity biases indirectly, via an optional extra
 argument which is another temperature compute that subtracts a
 velocity bias.  This allows the translational velocity of spherical or
 aspherical particles to be adjusted in prescribed ways.
-
-

@@ -91,5 +91,3 @@ Related commands
 :doc:`pair_style soft <pair_soft>`
 
 **Default:** none
-
-

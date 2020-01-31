@@ -224,5 +224,3 @@ Related commands
 :doc:`fix adapt <fix_adapt>`
 
 **Default:** none
-
-

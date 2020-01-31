@@ -121,5 +121,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style line/lj <pair_line_lj>`
 
 **Default:** none
-
-

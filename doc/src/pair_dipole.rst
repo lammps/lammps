@@ -314,5 +314,3 @@ Clarendon Press, Oxford, 1987.
 
 
 **(Price)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
-
-

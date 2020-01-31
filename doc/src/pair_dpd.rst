@@ -241,5 +241,3 @@ Comm, 184, 1119-1128 (2013).
 
 **(Phillips)** C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
 Phys Comm, 230, 7191-7201 (2011).
-
-

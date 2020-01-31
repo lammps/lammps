@@ -148,5 +148,3 @@ The default keyword settings are range off, max 4 12 36.
 
 **(Noid)** Noid, Chu, Ayton, Krishna, Izvekov, Voth, Das, Andersen, J
 Chem Phys 128, 134105 (2008).
-
-

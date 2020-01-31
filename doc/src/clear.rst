@@ -42,5 +42,3 @@ Restrictions
 **Related commands:** none
 
 **Default:** none
-
-

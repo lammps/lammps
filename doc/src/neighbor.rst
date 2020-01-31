@@ -88,5 +88,3 @@ Default
 | 0.001 bin for units = si, skin = 0.001 meters = 1.0 mm
 | 0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm 
 | 
-
-

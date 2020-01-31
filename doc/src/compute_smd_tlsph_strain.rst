@@ -61,5 +61,3 @@ Related commands
 :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`
 
 **Default:** none
-
-

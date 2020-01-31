@@ -87,5 +87,3 @@ settings may become outdated:
    make kokkos_omp      # build with the KOKKOS package for OpenMP
    make kokkos_cuda_mpi # build with the KOKKOS package for GPUs
    make kokkos_phi      # build with the KOKKOS package for KNLs
-
-

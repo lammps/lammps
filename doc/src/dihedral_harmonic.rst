@@ -100,5 +100,3 @@ Related commands
 :doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-

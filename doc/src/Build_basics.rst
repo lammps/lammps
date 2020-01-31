@@ -430,5 +430,3 @@ you want to copy files to is protected.
 There is no "install" option in the src/Makefile for LAMMPS.  If you
 wish to do this you will need to first build LAMMPS, then manually
 copy the desired LAMMPS files to the appropriate system directories.
-
-

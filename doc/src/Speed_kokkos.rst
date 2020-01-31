@@ -444,5 +444,3 @@ Restrictions
 
 Currently, there are no precision options with the KOKKOS package. All
 compilation and computation is performed in double precision.
-
-

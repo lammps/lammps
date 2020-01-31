@@ -636,5 +636,3 @@ Default
 """""""
 
 The option defaults are remap = x, flip = yes, and units = lattice.
-
-

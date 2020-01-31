@@ -82,5 +82,3 @@ Default
 """""""
 
 Zeros the total system linear momentum in each dimension.
-
-

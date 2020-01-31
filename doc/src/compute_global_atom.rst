@@ -243,5 +243,3 @@ Related commands
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`compute reduce <compute_reduce>`
 
 **Default:** none
-
-

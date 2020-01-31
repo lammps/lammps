@@ -74,5 +74,3 @@ and see one line of output for each processor you run on.
    both mpi4py and LAMMPS together, this is an issue you may need to
    address, e.g. by moving other MPI installations so that mpi4py finds
    the right one.
-
-

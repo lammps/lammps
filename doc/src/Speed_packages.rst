@@ -188,5 +188,3 @@ The individual accelerator package doc pages explain:
 * speed-ups to expect
 * guidelines for best performance
 * restrictions
-
-

@@ -100,5 +100,3 @@ functionality:
 
 
 **(Foo)** Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).
-
-

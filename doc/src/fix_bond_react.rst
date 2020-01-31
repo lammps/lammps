@@ -541,5 +541,3 @@ update\_edges = none
 
 
 **(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
-
-

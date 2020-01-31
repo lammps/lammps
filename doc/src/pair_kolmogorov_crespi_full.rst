@@ -165,5 +165,3 @@ Related commands
 
 
 **(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
-
-

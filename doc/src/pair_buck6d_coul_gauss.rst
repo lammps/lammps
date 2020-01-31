@@ -157,5 +157,3 @@ Related commands
 
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).
-
-

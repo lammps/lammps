@@ -89,5 +89,3 @@ Related commands
 
 
 **(Zhou)** Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).
-
-

@@ -103,5 +103,3 @@ Related commands
 :doc:`improper_style <improper_style>`
 
 **Default:** none
-
-

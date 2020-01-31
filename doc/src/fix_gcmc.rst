@@ -493,5 +493,3 @@ listed above.
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
-
-

@@ -208,5 +208,3 @@ Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
-
-

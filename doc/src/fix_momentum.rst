@@ -110,5 +110,3 @@ Related commands
 :doc:`fix recenter <fix_recenter>`, :doc:`velocity <velocity>`
 
 **Default:** none
-
-

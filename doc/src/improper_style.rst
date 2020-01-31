@@ -121,5 +121,3 @@ Default
 .. parsed-literal::
 
    improper_style none
-
-

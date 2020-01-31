@@ -163,5 +163,3 @@ With the "-i" flag, you will be left in the Python interpreter when
 the script finishes, so you can type subsequent commands.  As
 mentioned above, you can only run Python interactively when running
 Python on a single processor, not in parallel.
-
-

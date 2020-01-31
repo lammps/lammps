@@ -488,5 +488,3 @@ e.g. to Python.
 .. parsed-literal::
 
    LMP_INC = -DLAMMPS_EXCEPTIONS
-
-

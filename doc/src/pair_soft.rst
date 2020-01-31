@@ -151,5 +151,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/limit <fix_nve_limit>`, :doc:`fix adapt <fix_adapt>`
 
 **Default:** none
-
-

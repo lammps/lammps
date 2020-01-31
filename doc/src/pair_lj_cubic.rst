@@ -149,5 +149,3 @@ Related commands
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-

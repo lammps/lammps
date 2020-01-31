@@ -175,5 +175,3 @@ Related commands
 :doc:`variable <variable>`, :doc:`prd <prd>`, :doc:`neb <neb>`
 
 **Default:** none
-
-

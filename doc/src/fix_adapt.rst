@@ -383,5 +383,3 @@ Default
 """""""
 
 The option defaults are scale = no, reset = no.
-
-

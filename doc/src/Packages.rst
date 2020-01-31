@@ -18,5 +18,3 @@ LAMMPS build process.
    Packages_standard
    Packages_user
    Packages_details
-
-

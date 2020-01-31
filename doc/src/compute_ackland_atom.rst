@@ -97,5 +97,3 @@ The keyword *legacy* defaults to *no*\ .
 
 
 **(Ackland)** Ackland, Jones, Phys Rev B, 73, 054104 (2006).
-
-

@@ -45,5 +45,3 @@ Related commands
 :doc:`variable <variable>`, :doc:`jump <jump>`
 
 **Default:** none
-
-

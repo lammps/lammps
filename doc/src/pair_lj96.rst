@@ -119,5 +119,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-

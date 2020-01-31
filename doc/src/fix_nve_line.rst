@@ -58,5 +58,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
 **Default:** none
-
-

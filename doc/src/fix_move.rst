@@ -256,5 +256,3 @@ Related commands
 **Default:** none
 
 The option default is units = lattice.
-
-

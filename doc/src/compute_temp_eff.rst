@@ -101,5 +101,3 @@ Related commands
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-

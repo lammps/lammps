@@ -75,5 +75,3 @@ Related commands
 **(Mitchell)** Mitchell, "A non-local, ordinary-state-based
 viscoelasticity model for peridynamics", Sandia National Lab Report,
 8064:1-28 (2011).
-
-

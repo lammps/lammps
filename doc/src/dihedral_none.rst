@@ -39,5 +39,3 @@ Related commands
 :doc:`dihedral_style zero <dihedral_zero>`
 
 **Default:** none
-
-

@@ -25,5 +25,3 @@ causing the problem.
 .. note::
 
    this page needs to have GitHub issues info added
-
-

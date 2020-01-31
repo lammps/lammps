@@ -198,5 +198,3 @@ Related commands
 :doc:`dump local <dump>`, :doc:`compute reduce <compute_reduce>`
 
 **Default:** none
-
-

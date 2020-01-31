@@ -51,5 +51,3 @@ Restrictions
 :doc:`dihedral_style none <dihedral_none>`
 
 **Default:** none
-
-

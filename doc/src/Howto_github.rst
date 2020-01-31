@@ -492,5 +492,3 @@ and code checks to make sure they at the very least compile.
 
 A discussion of the LAMMPS developer GitHub workflow can be found in the file
 `doc/github-development-workflow.md <https://github.com/lammps/lammps/blob/master/doc/github-development-workflow.md>`_
-
-

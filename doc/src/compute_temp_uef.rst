@@ -55,5 +55,3 @@ Related commands
 :doc:`compute pressure/uef <compute_pressure_uef>`
 
 **Default:** none
-
-

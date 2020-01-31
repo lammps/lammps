@@ -169,5 +169,3 @@ Related commands
 
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-
-

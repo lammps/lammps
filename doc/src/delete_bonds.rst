@@ -161,5 +161,3 @@ Related commands
 :doc:`special_bonds <special_bonds>`, :doc:`fix shake <fix_shake>`
 
 **Default:** none
-
-

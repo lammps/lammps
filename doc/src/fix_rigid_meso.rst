@@ -389,5 +389,3 @@ torque. Also reinit = yes.
 
 **(Miller)** Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).
-
-

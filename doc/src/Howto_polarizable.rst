@@ -71,5 +71,3 @@ temperature is regulated using the velocities of the center of mass of
 core+shell (or Drude) pairs, but in the Drude model the actual
 relative core-Drude particle motion is thermostatted separately as
 well.
-
-

@@ -125,5 +125,3 @@ The option defaults are *alpha\_damp* = 1.0, *discrete\_factor* =
 
 
 **(Ivanov)** Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).
-
-

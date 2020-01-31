@@ -1438,5 +1438,3 @@ Default
 """""""
 
 The default for all the *extra* keywords is 0.
-
-

@@ -189,5 +189,3 @@ Related commands
 
 
 **(Mei)** Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)
-
-

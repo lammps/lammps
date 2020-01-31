@@ -253,5 +253,3 @@ Related commands
 
 
 **(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
-
-

@@ -79,5 +79,3 @@ Related commands
 :doc:`smd/tri\_surface <pair_smd_triangulated_surface>`
 
 **Default:** none
-
-

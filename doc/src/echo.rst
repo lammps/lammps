@@ -46,5 +46,3 @@ Default
 .. parsed-literal::
 
    echo log
-
-

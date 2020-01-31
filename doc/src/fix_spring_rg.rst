@@ -78,5 +78,3 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix smd <fix_smd>`
 
 **Default:** none
-
-

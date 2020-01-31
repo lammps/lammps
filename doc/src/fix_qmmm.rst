@@ -66,5 +66,3 @@ executable.  See the lib/qmmm/README file for details.
 **Related commands:** none
 
 **Default:** none
-
-

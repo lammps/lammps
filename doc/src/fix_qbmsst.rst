@@ -249,5 +249,3 @@ T\_init=300.0. e0, p0, and v0 are calculated on the first step.
 
 
 **(Qi)** Qi and Reed, J. Phys. Chem. A 116, 10451 (2012).
-
-

@@ -257,5 +257,3 @@ Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 
 
 **(Allen)** Allen and Germano, Mol Phys 104, 3225-3235 (2006).
-
-

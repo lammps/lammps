@@ -672,5 +672,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 **(Miller)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).
-
-

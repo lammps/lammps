@@ -14,5 +14,3 @@ These pages provide a brief introduction to LAMMPS.
    Intro_opensource
    Intro_authors
    Intro_website
-
-

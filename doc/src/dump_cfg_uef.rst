@@ -60,5 +60,3 @@ Related commands
 :doc:`fix nvt/uef <fix_nh_uef>`
 
 **Default:** none
-
-

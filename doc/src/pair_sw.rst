@@ -239,5 +239,3 @@ Related commands
 
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
-
-

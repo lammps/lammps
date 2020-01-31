@@ -42,5 +42,3 @@ interesting Python functions that can be called from a LAMMPS input
 script, that you think would be generally useful, please post them as
 a pull request to our `GitHub site <https://github.com/lammps/lammps>`_,
 and they can be added to the LAMMPS distribution or webpage.
-
-

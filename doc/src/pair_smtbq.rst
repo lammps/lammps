@@ -293,5 +293,3 @@ Phys, 110, 8254 (1999).
 
 **(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
-
-

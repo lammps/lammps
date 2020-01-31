@@ -55,5 +55,3 @@ Related commands
 :doc:`compute smd/vol <compute_smd_vol>`
 
 **Default:** none
-
-

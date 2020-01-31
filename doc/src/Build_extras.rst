@@ -1414,5 +1414,3 @@ the settings are not valid for your system, check if one of the other
 lib/vtk/Makefile.lammps.\* files is compatible and copy it to
 Makefile.lammps.  If none of the provided files work, you will need to
 edit the Makefile.lammps file.  See lib/vtk/README for details.
-
-

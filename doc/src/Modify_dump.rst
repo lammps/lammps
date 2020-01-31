@@ -30,5 +30,3 @@ new quantities to dump.
 Note that new keywords for atom properties are not typically
 added to the :doc:`dump custom <dump>` command.  Instead they are added
 to the :doc:`compute property/atom <compute_property_atom>` command.
-
-

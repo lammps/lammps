@@ -157,5 +157,3 @@ command-line option as their its option, where color is an integer
 label that will be used to distinguish one executable from another in
 the multiple executables that the mpirun command launches.  In this
 example the client was colored with a 0, and the server with a 1.
-
-

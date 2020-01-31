@@ -80,5 +80,3 @@ Default
 
 The option defaults are extra/dof = 2 or 3 for 2d or 3d systems and
 dynamic/dof = no.
-
-

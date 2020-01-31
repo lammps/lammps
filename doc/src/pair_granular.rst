@@ -871,5 +871,3 @@ Technology, 233, 30-46.
 
 
 **(Otis R. Walton)** Walton, O.R., Personal Communication
-
-

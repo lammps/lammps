@@ -180,5 +180,3 @@ molecule = off.
 
 
 Bogusz et al, J Chem Phys, 108, 7070 (1998)
-
-

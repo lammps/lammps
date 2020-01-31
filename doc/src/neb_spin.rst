@@ -417,5 +417,3 @@ none
 
 **(BessarabA)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).
-
-

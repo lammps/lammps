@@ -128,5 +128,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`kim_commands <kim_commands>`
 
 **Default:** none
-
-

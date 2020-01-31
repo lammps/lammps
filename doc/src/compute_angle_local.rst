@@ -151,5 +151,3 @@ Related commands
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
 **Default:** none
-
-

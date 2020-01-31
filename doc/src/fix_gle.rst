@@ -175,5 +175,3 @@ Related commands
 
 **(Ceriotti2)** Ceriotti, Bussi and Parrinello, Phys Rev Lett 103,
 030603 (2009)
-
-

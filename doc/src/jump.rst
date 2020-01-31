@@ -156,5 +156,3 @@ Related commands
 :doc:`next <next>`
 
 **Default:** none
-
-

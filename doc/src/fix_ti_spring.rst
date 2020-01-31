@@ -182,5 +182,3 @@ Science, 112, 333 (2016).
 
 
 **(de Koning)** de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
-
-

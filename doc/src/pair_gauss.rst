@@ -210,5 +210,3 @@ Related commands
 
 **(Jusufi)** Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).
-
-

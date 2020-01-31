@@ -132,5 +132,3 @@ Related commands
 :doc:`fix setforce <fix_setforce>`, :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-

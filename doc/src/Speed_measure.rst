@@ -44,5 +44,3 @@ reported times for "Communication" or "Other" may be higher than they
 really are, due to load-imbalance.  If this is an issue, you can
 uncomment the MPI\_Barrier() lines in src/timer.cpp, and re-compile
 LAMMPS, to obtain synchronized timings.
-
-

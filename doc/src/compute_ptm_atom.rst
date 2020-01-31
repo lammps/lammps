@@ -128,5 +128,3 @@ Related commands
 
 
 **(Larsen)** Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).
-
-

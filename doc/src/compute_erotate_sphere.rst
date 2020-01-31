@@ -64,5 +64,3 @@ Related commands
 :doc:`compute erotate/asphere <compute_erotate_asphere>`
 
 **Default:** none
-
-

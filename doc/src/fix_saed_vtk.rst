@@ -212,5 +212,3 @@ The option defaults are ave = one, start = 0, no file output.
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
-
-

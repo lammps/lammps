@@ -104,5 +104,3 @@ Related commands
 
 **(Destree)** M. Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert,
 J Chem Phys, 112, 9632 (2000).
-
-

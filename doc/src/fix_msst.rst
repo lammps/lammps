@@ -221,5 +221,3 @@ timestep.
 
 **(Goldman)** Goldman, Srinivasan, Hamel, Fried, Gaus, and Elstner,
 J. Phys. Chem. C, 117, 7885 (2013).
-
-

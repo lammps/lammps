@@ -342,5 +342,3 @@ The option defaults are *tail* = *no*\ , *volume* = *no*\ .
 
 **(AllenTildesley)** Allen and Tildesley, Computer Simulation of
 Liquids, Oxford University Press (1987)
-
-

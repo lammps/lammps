@@ -386,5 +386,3 @@ Related commands
 
 The option defaults are ave = one, type = auto, start = 0, no file
 output, title 1,2,3 = strings as described above, and prefactor = 1.0.
-
-

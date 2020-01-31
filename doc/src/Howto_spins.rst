@@ -66,5 +66,3 @@ magnetic spin, or the magnetic force acting on this spin.
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-

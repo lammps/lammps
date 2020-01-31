@@ -65,5 +65,3 @@ tlsph pair style.
 
 Default
 """""""
-
-

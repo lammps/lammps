@@ -726,5 +726,3 @@ Default
 
 The defaults for the *image* and *movie* styles are listed on the
 :doc:`dump image <dump_image>` doc page.
-
-

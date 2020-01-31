@@ -60,5 +60,3 @@ LAMMPS executable directly instead of having a separate tool.  A
 combination of the commands :doc:`read_restart <read_restart>` and
 :doc:`write_data <write_data>` can be used to the same effect.  For added
 convenience this conversion can also be triggered by :doc:`command line flags <Run_options>`
-
-

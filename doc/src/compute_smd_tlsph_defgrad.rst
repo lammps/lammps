@@ -60,5 +60,3 @@ Related commands
 :doc:`smd/hourglass/error <compute_smd_hourglass_error>`
 
 **Default:** none
-
-

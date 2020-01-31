@@ -278,5 +278,3 @@ Related commands
 
 
 **(Moore)** Moore, J Chem Phys, 144, 104501 (2016).
-
-

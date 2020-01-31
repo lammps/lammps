@@ -98,5 +98,3 @@ Related commands
 
 
 **(Guo)** Guo and Thirumalai, Journal of Molecular Biology, 263, 323-43 (1996).
-
-

@@ -281,5 +281,3 @@ F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
 
 **(Daw)** M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).
-
-

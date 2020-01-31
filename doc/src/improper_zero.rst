@@ -51,5 +51,3 @@ Restrictions
 :doc:`improper_style none <improper_none>`
 
 **Default:** none
-
-

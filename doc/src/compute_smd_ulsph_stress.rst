@@ -59,5 +59,3 @@ Related commands
 :doc:`compute smd/ulsph/strain <compute_smd_ulsph_strain>`, :doc:`compute smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` :doc:`compute smd/tlsph/stress <compute_smd_tlsph_stress>`
 
 **Default:** none
-
-

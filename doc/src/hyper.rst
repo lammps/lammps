@@ -212,5 +212,3 @@ The option defaults are min = 0.1 0.1 40 50 and time = steps.
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).
-
-

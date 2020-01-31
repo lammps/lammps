@@ -115,5 +115,3 @@ Related commands
 :doc:`pair_style reax/c <pair_reaxc>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
 **Default:** none
-
-

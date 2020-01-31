@@ -422,6 +422,3 @@ Related commands
 .. _pizza: http://pizza.sandia.gov
 
 **Default:** none
-
-
-

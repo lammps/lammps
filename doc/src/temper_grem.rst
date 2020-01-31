@@ -126,5 +126,3 @@ Related commands
 
 
 **(Kim)** Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).
-
-

@@ -290,5 +290,3 @@ For detailed exposition of the theory and algorithms please see:
 **(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.
 
 Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes " The finite element method ", Dover 2003, for the basics of FE simulation.
-
-

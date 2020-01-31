@@ -187,5 +187,3 @@ Related commands
 
 
 **(EDIP)** J F Justo et al, Phys Rev B 58, 2539 (1998).
-
-

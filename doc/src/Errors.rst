@@ -15,5 +15,3 @@ additional details for many of them.
    Errors_bugs
    Errors_messages
    Errors_warnings
-
-

@@ -65,5 +65,3 @@ Related commands
 :doc:`fix nve/noforce <fix_nve_noforce>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
 **Default:** none
-
-

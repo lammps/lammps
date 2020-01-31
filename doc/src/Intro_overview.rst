@@ -47,5 +47,3 @@ partition the simulation domain into small sub-domains of equal
 computational cost, one of which is assigned to each processor.
 Processors communicate and store "ghost" atom information for atoms
 that border their sub-domain.
-
-

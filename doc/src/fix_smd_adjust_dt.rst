@@ -67,5 +67,3 @@ Related commands
 :doc:`smd/tlsph\_dt <compute_smd_tlsph_dt>`
 
 **Default:** none
-
-

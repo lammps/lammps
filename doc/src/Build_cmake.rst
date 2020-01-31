@@ -238,5 +238,3 @@ enough version, you can download the latest version at
 `https://cmake.org/download/ <https://cmake.org/download/>`_.
 Instructions on how to install it on various platforms can be found
 `on this page <https://cmake.org/install/>`_.
-
-

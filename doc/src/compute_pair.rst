@@ -100,5 +100,3 @@ Default
 """""""
 
 The keyword defaults are *evalue* = *epair*\ , nsub = 0.
-
-

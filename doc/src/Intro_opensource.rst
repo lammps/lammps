@@ -42,5 +42,3 @@ of the GPL.
 (4) If you give LAMMPS files to someone else, the GPL LICENSE file and
 source file headers (including the copyright and GPL notices) should
 remain part of the code.
-
-

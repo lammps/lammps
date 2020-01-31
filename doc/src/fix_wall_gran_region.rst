@@ -243,5 +243,3 @@ Related commands
 :doc:`region <region>`
 
 **Default:** none
-
-

@@ -132,5 +132,3 @@ The option defaults are *cutoff* = pair style cutoff, *nnn* = 6, *degree* = 6
 
 
 **(Nelson)** Nelson, Halperin, Phys Rev B, 19, 2457 (1979).
-
-

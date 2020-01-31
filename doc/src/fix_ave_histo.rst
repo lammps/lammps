@@ -388,5 +388,3 @@ Related commands
 The option defaults are mode = scalar, kind = figured out from input
 arguments, ave = one, start = 0, no file output, beyond = ignore, and
 title 1,2,3 = strings as described above.
-
-

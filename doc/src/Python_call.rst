@@ -77,5 +77,3 @@ If you want to write Python code with callbacks to LAMMPS, then you
 must also follow the steps summarized in the :doc:`Python run <Python_run>` doc page.  I.e. you must build LAMMPS as a shared
 library and insure that Python can find the python/lammps.py file and
 the shared library.
-
-

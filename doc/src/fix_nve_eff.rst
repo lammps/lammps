@@ -53,5 +53,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix npt/eff <fix_nh_eff>`
 
 **Default:** none
-
-

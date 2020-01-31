@@ -32,5 +32,3 @@ this Intr are included in this list.
 * `Authors of LAMMPS <http://lammps.sandia.gov/authors.html>`_
 * `History of LAMMPS development <http://lammps.sandia.gov/history.html>`_
 * `Funding for LAMMPS <http://lammps.sandia.gov/funding.html>`_
-
-

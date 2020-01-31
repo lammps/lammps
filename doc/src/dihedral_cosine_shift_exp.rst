@@ -95,5 +95,3 @@ Related commands
 :doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none
-
-

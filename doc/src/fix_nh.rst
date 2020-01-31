@@ -736,5 +736,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-

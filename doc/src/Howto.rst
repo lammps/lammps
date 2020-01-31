@@ -99,5 +99,3 @@ Packages howto
    Howto_drude2
    Howto_manifold
    Howto_spins
-
-

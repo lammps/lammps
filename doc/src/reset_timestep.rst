@@ -65,5 +65,3 @@ Related commands
 :doc:`rerun <rerun>`
 
 **Default:** none
-
-

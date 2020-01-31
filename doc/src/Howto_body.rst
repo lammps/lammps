@@ -512,5 +512,3 @@ Particuology, 6, 455 (2008).
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).
-
-

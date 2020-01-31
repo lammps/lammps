@@ -119,5 +119,3 @@ Restrictions
 :doc:`compute gyration <compute_gyration>`
 
 **Default:** none
-
-

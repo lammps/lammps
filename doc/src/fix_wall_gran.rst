@@ -210,5 +210,3 @@ Related commands
 :doc:`pair_style granular <pair_granular>`
 
 **Default:** none
-
-

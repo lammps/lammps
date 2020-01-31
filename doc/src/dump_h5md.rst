@@ -151,5 +151,3 @@ Related commands
 efficient, and portable file format for molecular data,
 Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
 `[arXiv:1308.6382] <http://arxiv.org/abs/1308.6382/>`_.
-
-

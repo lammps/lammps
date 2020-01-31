@@ -152,5 +152,3 @@ Related commands
 **(Anderson)** Anderson, Mukherjee, Critchley, Ziegler, and Lipton
 "POEMS: Parallelizable Open-source Efficient Multibody Software ",
 Engineering With Computers (2006). (`link to paper <http://dx.doi.org/10.1007/s00366-006-0026-x>`_)
-
-

@@ -160,5 +160,3 @@ Related commands
 
 
 **(Freitas)** Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016).
-
-

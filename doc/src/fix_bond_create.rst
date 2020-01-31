@@ -258,5 +258,3 @@ Default
 
 The option defaults are iparam = (0,itype), jparam = (0,jtype), and
 prob = 1.0.
-
-

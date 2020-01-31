@@ -294,5 +294,3 @@ Related commands
 
 
 **(Miron)** R. A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
-
-

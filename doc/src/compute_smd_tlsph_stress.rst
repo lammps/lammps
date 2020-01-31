@@ -61,5 +61,3 @@ Related commands
 :doc:`compute smd/tlsph/strain <compute_smd_tlsph_strain>`, :doc:`cmopute smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
 
 **Default:** none
-
-

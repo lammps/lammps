@@ -357,5 +357,3 @@ Default
 .. parsed-literal::
 
    pair_style none
-
-

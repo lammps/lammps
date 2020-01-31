@@ -138,5 +138,3 @@ Default
 """""""
 
 The default path is ".". All other properties have to be specified.
-
-

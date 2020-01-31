@@ -142,5 +142,3 @@ Related commands
 :doc:`compute temp <compute_temp>`
 
 **Default:** none
-
-

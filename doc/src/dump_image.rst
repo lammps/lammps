@@ -746,5 +746,3 @@ The defaults for the keywords are as follows:
 * subbox no 0.0
 * shiny = 1.0
 * ssao = no
-
-

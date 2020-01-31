@@ -367,5 +367,3 @@ to rRESPA levels is as follows:
 
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).
-
-

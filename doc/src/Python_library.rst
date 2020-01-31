@@ -274,4 +274,3 @@ following steps:
 .. autoclass:: lammps.NeighList
    :members:
    :no-undoc-members:
-

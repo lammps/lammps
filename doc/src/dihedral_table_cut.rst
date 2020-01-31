@@ -229,5 +229,3 @@ Related commands
 
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
-
-

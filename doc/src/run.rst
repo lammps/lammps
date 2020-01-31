@@ -234,5 +234,3 @@ Default
 
 The option defaults are start = the current timestep, stop = current
 timestep + N, pre = yes, and post = yes.
-
-

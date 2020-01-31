@@ -53,5 +53,3 @@ or total Lagrangian SPH pair styles.
 
 Default
 """""""
-
-

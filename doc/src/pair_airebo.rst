@@ -286,5 +286,3 @@ Physics: Condensed Matter, 14, 783-802 (2002).
 
 
 **(O'Connor)** O'Connor et al., J. Chem. Phys. 142, 024903 (2015).
-
-

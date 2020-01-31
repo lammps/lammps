@@ -329,5 +329,3 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 
 **(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
-
-

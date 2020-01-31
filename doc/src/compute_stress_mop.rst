@@ -120,5 +120,3 @@ Related commands
 
 **(Todd)** B. D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids",
 Phys. Rev. E 52, 1627 (1995).
-
-

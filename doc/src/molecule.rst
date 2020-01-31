@@ -511,5 +511,3 @@ Default
 """""""
 
 The default keywords values are offset 0 0 0 0 0 and scale = 1.0.
-
-

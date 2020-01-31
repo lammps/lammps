@@ -232,5 +232,3 @@ Default
 The option defaults are first = 0, last = a huge value (effectively
 infinity), start = same as first, stop = same as last, every = 0, skip
 = 1;
-
-

@@ -173,5 +173,3 @@ The default value for the optional keyword is axes = no.
 
 
 **(Kelchner)** Kelchner, Plimpton, Hamilton, Phys Rev B, 58, 11085 (1998).
-
-

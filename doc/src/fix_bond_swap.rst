@@ -209,5 +209,3 @@ Related commands
 
 **(Sides)** Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42,
 199-208 (2004).
-
-

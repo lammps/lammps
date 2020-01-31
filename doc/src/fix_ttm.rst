@@ -376,5 +376,3 @@ Plasma Phys., 53, 129-139 (2013).
 
 **(Pisarev)** V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
 475401 (2014).
-
-

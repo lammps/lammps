@@ -330,5 +330,3 @@ DOI: 10.1063/1.4812366.
 
 **(Li2015\_JCP)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys,
 143: 014101 (2015).  DOI: 10.1063/1.4923254.
-
-

@@ -444,5 +444,3 @@ Default
 .. parsed-literal::
 
    thermo_style one
-
-

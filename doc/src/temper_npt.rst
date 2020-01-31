@@ -81,5 +81,3 @@ Related commands
 
 
 **(Mori)** Y. Mori, Y. Okamoto, J. Phys. Soc. Jpn., 7, 074003 (2010).
-
-

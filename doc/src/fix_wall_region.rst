@@ -225,5 +225,3 @@ Related commands
 :doc:`fix wall/gran <fix_wall_gran>`
 
 **Default:** none
-
-

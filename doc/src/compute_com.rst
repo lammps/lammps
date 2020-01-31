@@ -62,5 +62,3 @@ Related commands
 :doc:`compute com/chunk <compute_com_chunk>`
 
 **Default:** none
-
-

@@ -87,5 +87,3 @@ Related commands
 
 
 **(Morris)** Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
-
-

@@ -165,5 +165,3 @@ Related commands
 
 
 **(Brooks)** Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009).
-
-

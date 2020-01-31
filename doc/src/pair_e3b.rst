@@ -169,5 +169,3 @@ The option default for the *neigh* keyword is 10.
 
 
 **(Tainter 2015)** Tainter, Shi, and Skinner, 11, 2268 (2015)
-
-

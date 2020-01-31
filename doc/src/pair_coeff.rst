@@ -158,5 +158,3 @@ Related commands
 :doc:`pair_write <pair_write>`
 
 **Default:** none
-
-

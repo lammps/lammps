@@ -83,5 +83,3 @@ Related commands
 
 
 **(Barrett)** Barrett, Tschopp, El Kadiri, Scripta Mat. 66, p.666 (2012).
-
-

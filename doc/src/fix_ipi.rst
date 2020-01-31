@@ -110,5 +110,3 @@ Related commands
 
 **(IPI)**
 `http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
-
-

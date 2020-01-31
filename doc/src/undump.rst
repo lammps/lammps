@@ -38,5 +38,3 @@ Related commands
 :doc:`dump <dump>`
 
 **Default:** none
-
-

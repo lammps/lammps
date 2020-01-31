@@ -92,5 +92,3 @@ Related commands
 :doc:`variable inertia() function <variable>`
 
 **Default:** none
-
-

@@ -63,5 +63,3 @@ Related commands
 :doc:`compute temp/uef <compute_temp_uef>`
 
 **Default:** none
-
-

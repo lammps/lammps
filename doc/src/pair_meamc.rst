@@ -471,5 +471,3 @@ This report may be accessed on-line via `this link <sandreport_>`_.
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
 of Ions in Matter", Vol 1, 1985, Pergamon Press.
-
-

@@ -227,5 +227,3 @@ Default
 """""""
 
 The option defaults are side = out and units = lattice.
-
-

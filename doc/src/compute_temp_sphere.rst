@@ -152,5 +152,3 @@ Default
 """""""
 
 The option defaults are no bias and dof = all.
-
-

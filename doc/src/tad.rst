@@ -332,5 +332,3 @@ the :doc:`timestep <timestep>` command, and *neb\_log* = "none".
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).
-
-

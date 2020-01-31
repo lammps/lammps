@@ -133,7 +133,3 @@ The default options are plumedfile = NULL and outfile = NULL
 
 
 .. _plumedhome: http://www.plumed.org/
-
-
-
-

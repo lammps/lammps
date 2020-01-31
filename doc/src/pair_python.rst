@@ -248,5 +248,3 @@ Related commands
 :doc:`pair style table <pair_table>`
 
 **Default:** none
-
-

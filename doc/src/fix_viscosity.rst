@@ -184,5 +184,3 @@ The option defaults are swap = 1 and vtarget = INF.
 
 **(Maginn)** Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
 260, 218-231 (2007).
-
-

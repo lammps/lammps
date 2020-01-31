@@ -54,5 +54,3 @@ relative accuracy of slightly greater than 1e-5 and above.
    of energy and pressure as it does in forces, so some caution must be
    used if energy and/or pressure are quantities of interest, such as
    when using a barostat.
-
-

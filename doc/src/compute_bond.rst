@@ -55,5 +55,3 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pair <compute_pair>`
 
 **Default:** none
-
-

@@ -79,5 +79,3 @@ Related commands
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
 **Default:** none
-
-

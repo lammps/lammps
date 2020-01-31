@@ -69,5 +69,3 @@ Default
 .. parsed-literal::
 
    thermo 0
-
-

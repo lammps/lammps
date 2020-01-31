@@ -48,5 +48,3 @@ Default
 .. parsed-literal::
 
    dielectric 1.0
-
-

@@ -174,5 +174,3 @@ The option defaults are frozen = no, zero = no.
 
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).
-
-

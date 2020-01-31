@@ -378,5 +378,3 @@ Default
 
 The option defaults are Px Py Pz = \* \* \*, grid = onelevel, and map =
 cart.
-
-

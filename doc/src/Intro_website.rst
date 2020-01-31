@@ -5,6 +5,8 @@ The `LAMMPS website <lws_>`_ has a variety of additional info about
 LAMMPS, beyond what is in this manual.  Some of the other pages in
 this Intr are included in this list.
 
+.. _lws: http://lammps.sandia.gov
+
 * `Brief intro and recently added significant features <lws_>`_
 * `List of features <http://lammps.sandia.gov/features.html>`_
 * `List of non-features <http://lammps.sandia.gov/non_features.html>`_

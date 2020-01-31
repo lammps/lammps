@@ -69,6 +69,8 @@ unusual event).
    `developers <http://lammps.sandia.gov/authors.html>`_ with info about
    your package and we will post it there.
 
+.. _lws: http://lammps.sandia.gov
+
 The previous sections of this doc page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of
 one or more new class files which are invoked as a new style within a

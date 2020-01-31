@@ -27,7 +27,6 @@ standard or user packages:
 | :doc:`OPT Package <Speed_opt>`          | generic CPU optimizations                             |
 +-----------------------------------------+-------------------------------------------------------+
 
-
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -37,6 +36,8 @@ standard or user packages:
    Speed_kokkos
    Speed_omp
    Speed_opt
+
+.. _lc: Commands_all.html
 
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
@@ -188,3 +189,4 @@ The individual accelerator package doc pages explain:
 * speed-ups to expect
 * guidelines for best performance
 * restrictions
+

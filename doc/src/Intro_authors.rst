@@ -11,7 +11,7 @@ University:
 * Richard Berger, richard.berger at temple.edu
 
 .. _sjp: http://www.cs.sandia.gov/~sjplimp
-
+.. _lws: http://lammps.sandia.gov
 
 
 Past developers include Paul Crozier and Mark Stevens, both at Sandia,

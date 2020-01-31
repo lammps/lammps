@@ -14,10 +14,8 @@ The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
+.. _lws: http://lammps.sandia.gov
 .. _pizza: http://pizza.sandia.gov
-
-
-
 .. _python: http://www.python.org
 
 

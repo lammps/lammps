@@ -228,3 +228,4 @@ instructions.  See the :doc:`Packages\_details <Packages_details>` doc
 page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org
+.. _lws: http://lammps.sandia.gov

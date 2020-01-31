@@ -24,6 +24,8 @@ page gives those details.
    pair, bond, angle, etc correspond to commands with the same style name
    as contained in the file name.
 
+.. _lc: Commands_all.html
+
 +------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
 | :ref:`ASPHERE <PKG-ASPHERE>` | :ref:`BODY <PKG-BODY>`         | :ref:`CLASS2 <PKG-CLASS2>`     | :ref:`COLLOID <PKG-COLLOID>` | :ref:`COMPRESS <PKG-COMPRESS>` | :ref:`CORESHELL <PKG-CORESHELL>` |
 +------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
@@ -2418,20 +2420,9 @@ The expressions and their use are discussed in the following papers
 which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: http://dx.doi.org/10.1002/jcc.23877
-
-
-
 .. _vanduyfhuys2018: http://dx.doi.org/10.1002/jcc.25173
-
-
-
 .. _quickff: http://molmod.github.io/QuickFF
-
-
-
 .. _yaff: https://github.com/molmod/yaff
-
-
 
 **Author:** Steven Vandenbrande.
 

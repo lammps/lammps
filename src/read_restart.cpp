@@ -37,35 +37,9 @@
 #include "error.h"
 #include "utils.h"
 
+#include "lmp_restart.h"
+
 using namespace LAMMPS_NS;
-
-// same as write_restart.cpp
-
-#define MAGIC_STRING "LammpS RestartT"
-#define ENDIAN 0x0001
-#define ENDIANSWAP 0x1000
-#define VERSION_NUMERIC 0
-
-enum{VERSION,SMALLINT,TAGINT,BIGINT,
-     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
-     NEWTON_PAIR,NEWTON_BOND,
-     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
-     ATOM_STYLE,NATOMS,NTYPES,
-     NBONDS,NBONDTYPES,BOND_PER_ATOM,
-     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
-     SPECIAL_LJ,SPECIAL_COUL,
-     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN,TIMESTEP,
-     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
-     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
-
-#define LB_FACTOR 1.1
 
 /* ---------------------------------------------------------------------- */
 
@@ -146,15 +120,15 @@ void ReadRestart::command(int narg, char **arg)
     if (multiproc) delete [] hfile;
   }
 
-  // read magic string, endian flag, numeric version
+  // read magic string, endian flag, format revision
 
   magic_string();
   endian();
-  int incompatible = version_numeric();
+  format_revision();
 
   // read header info which creates simulation box
 
-  header(incompatible);
+  header();
   domain->box_exist = 1;
 
   // problem setup using info from header
@@ -681,7 +655,7 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
    read header of restart file
 ------------------------------------------------------------------------- */
 
-void ReadRestart::header(int incompatible)
+void ReadRestart::header()
 {
   int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
@@ -698,9 +672,19 @@ void ReadRestart::header(int incompatible)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (incompatible)
-        error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
+
+      // we have no forward compatibility, thus exit with error
+
+      if (revision > FORMAT_REVISION)
+        error->all(FLERR,"Restart file format revision incompatible "
+                   "with current LAMMPS version");
+
+      // warn when attempting to read older format revision
+
+      if ((me == 0) && (revision < FORMAT_REVISION))
+        error->warning(FLERR,"Old restart file format revision. "
+                       "Switching to compatibility mode.");
 
     // check lmptype.h sizes, error if different
 
@@ -1242,11 +1226,36 @@ void ReadRestart::endian()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int ReadRestart::version_numeric()
+void ReadRestart::format_revision()
 {
-  int vn = read_int();
-  if (vn != VERSION_NUMERIC) return 1;
-  return 0;
+  revision = read_int();
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void ReadRestart::check_eof_magic()
+{
+  // no check for revision 0 restart files
+  if (revision < 1) return;
+
+  int n = strlen(MAGIC_STRING) + 1;
+  char *str = new char[n];
+
+  // read magic string at end of file and restore file pointer
+
+  if (me == 0) {
+    long curpos = ftell(fp);
+    fseek(fp,(long)-n,SEEK_END);
+    fread(str,sizeof(char),n,fp);
+    fseek(fp,curpos,SEEK_SET);
+  }
+
+  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  if (strcmp(str,MAGIC_STRING) != 0)
+    error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
+
+  delete [] str;
 }
 
 /* ----------------------------------------------------------------------

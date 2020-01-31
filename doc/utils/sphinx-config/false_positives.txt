@@ -2050,6 +2050,7 @@ Nvidia
 nvk
 nvt
 Nwait
+nwchem
 nx
 Nx
 nxnodes

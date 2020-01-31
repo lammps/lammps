@@ -121,7 +121,7 @@ quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
 *spin/lbfgs* styles can be specified via the *line* keyword.  The
-*spin\_cubic* and *spin\_none* only make sense when one of those two
+*spin\_cubic* and *spin\_none* keywords only make sense when one of those two
 minimization styles is declared.  The *spin\_cubic* performs the line
 search based on a cubic interpolation of the energy along the search
 direction. The *spin\_none* keyword deactivates the line search
@@ -131,7 +131,7 @@ more robust if *spin\_cubic* line search is used.
 
 The Newton *integrator* used for *fire* minimization can be selected
 to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
-Verlet (\ *verlet*\ ).  *tmax* define the maximum value for the
+Verlet (\ *verlet*\ ).  *tmax* defines the maximum value for the
 adaptive timestep during a *fire* minimization. It is a multiplication
 factor applied to the current :doc:`timestep <timestep>` (not in time
 unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
@@ -165,7 +165,7 @@ Restrictions
 
 
 For magnetic GNEB calculations, only *spin\_none* value for *line*
-keyword can be used when styles *spin/cg* and *spin/lbfgs* are
+keyword can be used when minimization styles *spin/cg* and *spin/lbfgs* are
 employed.  See :doc:`neb/spin <neb_spin>` for more explanation.
 
 Related commands

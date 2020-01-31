@@ -87,7 +87,7 @@ commands)
 * water potentials: TIP3P, TIP4P, SPC
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
-* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim\_init, kim\_interactions, and kim\_query <kim_commands>` commands
+* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim_init, kim_interactions, and kim_query <kim_commands>` commands
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials
 

@@ -89,14 +89,14 @@ in the LAMMPS frame. Only when the positions and velocities are
 updated is the system rotated to the flow frame, and it is rotated
 back to the LAMMPS frame immediately afterwards. For this reason, all
 vector-valued quantities (except for the tensors from
-:doc:`compute\_pressure/uef <compute_pressure_uef>` and
-:doc:`compute\_temp/uef <compute_temp_uef>`) will be computed in the
+:doc:`compute pressure/uef <compute_pressure_uef>` and
+:doc:`compute temp/uef <compute_temp_uef>`) will be computed in the
 LAMMPS frame. Rotationally invariant scalar quantities like the
 temperature and hydrostatic pressure are frame-invariant and will be
 computed correctly. Additionally, the system is in the LAMMPS frame
 during all of the output steps, and therefore trajectory files made
 using the dump command will be in the LAMMPS frame unless the
-:doc:`dump\_cfg/uef <dump_cfg_uef>` command is used.
+:doc:`dump cfg/uef <dump_cfg_uef>` command is used.
 
 
 ----------

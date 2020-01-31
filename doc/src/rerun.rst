@@ -115,13 +115,13 @@ However if you specify a series of dump files in an incorrect order
 (with respect to the timesteps they contain), you may skip large
 numbers of snapshots
 
-Note that the dump files specified as part of the *dump* keyword can
-be parallel files, i.e. written as multiple files either per processor
+Note that the dump files specified as part of the *dump* keyword can be
+parallel files, i.e. written as multiple files either per processor
 and/or per snapshot.  If that is the case they will also be read in
 parallel which can make the rerun command operate dramatically faster
-for large systems.  See the doc page for the `read\_dump <read_dump>`_ and
-:doc:`dump <dump>` commands which describe how to read and write
-parallel dump files.
+for large systems.  See the doc page for the :doc:`read_dump
+<read_dump>` and :doc:`dump <dump>` commands which describe how to read
+and write parallel dump files.
 
 The *first*\ , *last*\ , *every*\ , *skip* keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until

@@ -154,15 +154,16 @@ corresponding manner.
 
 The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
-:doc:`pair_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
-*hooke*\ , *hooke/history*\ , or *hertz/history* for the former, and
-*granular* with all the possible options of the associated
+:doc:`pair_style gran/\* <pair_gran>` or the more general
+:doc:`pair_style granular <pair_granular>` commands.  Currently the
+options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+former, and *granular* with all the possible options of the associated
 *pair\_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
 corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
-:doc:`pair\_style\_granular <pair_granular>` doc pages, but the effective
-radius is calculated using the radius of the particle and the radius
-of curvature of the wall at the contact point.
+:doc:`pair_style granular <pair_granular>` doc pages, but the effective
+radius is calculated using the radius of the particle and the radius of
+curvature of the wall at the contact point.
 
 Specifically, delta = radius - r = overlap of particle with wall,
 m\_eff = mass of particle, and RiRj/Ri+Rj is the effective radius, with

@@ -41,7 +41,7 @@ direction of a screened dielectric atomic polarization (in eV).
 
 From this magneto-electric interaction, each spin i will be submitted
 to a magnetic torque omega, and its associated atom can be submitted to a
-force F for spin-lattice calculations (see :doc:`fix\_nve\_spin <fix_nve_spin>`),
+force F for spin-lattice calculations (see :doc:`fix nve/spin <fix_nve_spin>`),
 such as:
 
 .. image:: Eqs/pair_spin_me_forces.jpg
@@ -68,7 +68,7 @@ Related commands
 """"""""""""""""
 
 :doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
-:doc:`pair\_spin\_exchange <pair_spin_exchange>`, :doc:`pair_eam <pair_eam>`,
+:doc:`pair_style spin/exchange <pair_spin_exchange>`, :doc:`pair_eam <pair_eam>`,
 
 **Default:** none
 

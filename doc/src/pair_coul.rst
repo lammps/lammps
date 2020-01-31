@@ -392,7 +392,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair\_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
 
 **Default:** none
 

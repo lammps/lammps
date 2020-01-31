@@ -33,6 +33,7 @@ Commands :h1
    displace_atoms
    dump
    dump_adios
+   dump_cac_atom
    dump_cac_initial_nodes
    dump_cac_kinetic
    dump_cac_nodal_positions

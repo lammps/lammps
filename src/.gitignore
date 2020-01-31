@@ -168,6 +168,8 @@
 /compute_cac_ke_atom.h
 /compute_cac_quad_count.cpp
 /compute_cac_quad_count.h
+/dump_cac_atom.cpp
+/dump_cac_atom.h
 /dump_cac_initial_nodes.cpp
 /dump_cac_initial_nodes.h
 /dump_cac_kinetic.cpp
@@ -184,6 +186,8 @@
 /dump_cac_xyz.h
 /fix_cac_addforce.cpp
 /fix_cac_addforce.h
+/fix_cac_momentum.cpp
+/fix_cac_momentum.h
 /fix_cac_nve.cpp
 /fix_cac_nve.h
 /fix_cac_setforce.cpp
@@ -214,6 +218,10 @@
 /pair_cac_eam.h
 /pair_cac_eam_interp.cpp
 /pair_cac_eam_interp.h
+/pair_cac_eam_alloy.cpp
+/pair_cac_eam_alloy.h
+/pair_cac_eam_alloy_interp.cpp
+/pair_cac_eam_alloy_interp.h
 /pair_cac_lj.cpp
 /pair_cac_lj.h
 /pair_cac_sw.cpp

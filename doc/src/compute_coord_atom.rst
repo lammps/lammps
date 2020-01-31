@@ -157,6 +157,3 @@ group = all
 J. Chem. Phys. 104, 9932 (1996).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

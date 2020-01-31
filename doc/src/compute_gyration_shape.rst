@@ -106,6 +106,3 @@ Related commands
 **(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

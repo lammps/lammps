@@ -432,6 +432,3 @@ wish to do this you will need to first build LAMMPS, then manually
 copy the desired LAMMPS files to the appropriate system directories.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

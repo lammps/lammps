@@ -111,6 +111,3 @@ command before and redefined after the replicate command.
 **Default:** none
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

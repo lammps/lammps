@@ -44,6 +44,3 @@ Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
 up this Windows capability.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

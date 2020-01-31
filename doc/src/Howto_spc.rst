@@ -52,6 +52,3 @@ Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki
 6269-6271 (1987).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

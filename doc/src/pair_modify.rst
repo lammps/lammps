@@ -335,6 +335,3 @@ mixing.  See the doc pages for individual pair styles for details.
 **(Sun)** Sun, J Phys Chem B, 102, 7338-7364 (1998).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

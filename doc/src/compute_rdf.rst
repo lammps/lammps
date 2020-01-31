@@ -219,6 +219,3 @@ Default
 The keyword defaults are cutoff = 0.0 (use the pairwise force cutoff).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

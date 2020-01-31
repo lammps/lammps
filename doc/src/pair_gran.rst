@@ -310,6 +310,3 @@ E, 64, p 051302 (2001).
 **(Zhang)** Zhang and Makse, Phys Rev E, 72, p 011301 (2005).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -327,6 +327,3 @@ Default
 The option defaults are scale = no, reset = no, after = no.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

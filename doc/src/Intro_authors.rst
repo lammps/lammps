@@ -64,6 +64,3 @@ version of LAMMPS were the following:
 * Jim Belak and Roy Pollock (LLNL)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

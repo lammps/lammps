@@ -115,6 +115,3 @@ These reports require GCOVR to be installed. The easiest way to do this to insta
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

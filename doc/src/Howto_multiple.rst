@@ -98,6 +98,3 @@ partition.  When one finished, that partition would then start
 the 4th simulation, and so forth, until all 8 were completed.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

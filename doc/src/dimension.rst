@@ -61,6 +61,3 @@ Default
    dimension 3
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -182,6 +182,3 @@ no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
 cutoff = pairwise force cutoff + neighbor skin.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -23,6 +23,3 @@ first page of the :doc:`manual <Manual>`.
   describe the version you have, which may be older.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

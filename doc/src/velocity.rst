@@ -283,6 +283,3 @@ no, bias = no, loop = all, and units = lattice.  The temp and rigid
 keywords are not defined by default.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

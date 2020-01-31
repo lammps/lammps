@@ -162,6 +162,3 @@ potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 and Hyoungki Park at The Ohio State University.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

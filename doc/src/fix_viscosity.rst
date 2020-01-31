@@ -186,6 +186,3 @@ The option defaults are swap = 1 and vtarget = INF.
 260, 218-231 (2007).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

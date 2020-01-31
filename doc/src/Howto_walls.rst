@@ -71,6 +71,3 @@ command.  At some point we plan to allow regoin surfaces to be used as
 frictional walls, as well as triangulated surfaces.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -33,6 +33,3 @@ velocity bias.  This allows the translational velocity of spherical or
 aspherical particles to be adjusted in prescribed ways.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

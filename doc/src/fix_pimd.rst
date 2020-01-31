@@ -223,6 +223,3 @@ Path Integrals, McGraw-Hill, New York (1965).
 415 (1996).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

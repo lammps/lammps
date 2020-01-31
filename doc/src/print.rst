@@ -96,6 +96,3 @@ Default
 The option defaults are no file output, screen = yes, and universe = no.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

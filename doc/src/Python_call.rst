@@ -79,6 +79,3 @@ library and insure that Python can find the python/lammps.py file and
 the shared library.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

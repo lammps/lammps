@@ -86,6 +86,3 @@ Other examples in the COUPLE directory use coupling ideas discussed on
 the :doc:`Howto couple <Howto_couple>` doc page.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -260,6 +260,3 @@ Type "make package-diff" to list all differences between pairs of
 files in both the src dir and a package dir.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

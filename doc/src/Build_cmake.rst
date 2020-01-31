@@ -240,6 +240,3 @@ Instructions on how to install it on various platforms can be found
 `on this page <https://cmake.org/install/>`_.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

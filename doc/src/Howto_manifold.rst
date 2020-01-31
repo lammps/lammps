@@ -52,6 +52,3 @@ to the relevant fixes.
 preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

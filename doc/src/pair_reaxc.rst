@@ -396,6 +396,3 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 of Physical Chemistry A, 115, 11016-11022 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

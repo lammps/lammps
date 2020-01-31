@@ -63,6 +63,3 @@ re-define what pressure compute is used for default thermodynamic
 output.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

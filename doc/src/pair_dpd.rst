@@ -243,6 +243,3 @@ Comm, 184, 1119-1128 (2013).
 Phys Comm, 230, 7191-7201 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

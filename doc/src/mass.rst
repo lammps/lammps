@@ -90,6 +90,3 @@ The mass assigned to any type or atom must be > 0.0.
 **Default:** none
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

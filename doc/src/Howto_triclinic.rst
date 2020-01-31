@@ -1,17 +1,3 @@
-:doc:`Higher level section <Howto>` - `LAMMPS WWW Site <lws_>`_ - `LAMMPS Documentation <ld_>`_ - `LAMMPS Commands <lc_>`_ 
-
-.. _lws: http://lammps.sandia.gov
-
-
-
-.. _ld: Manual.html
-
-
-
-.. _lc: Commands\_all.html
-
-
-
 Triclinic (non-orthogonal) simulation boxes
 ===========================================
 

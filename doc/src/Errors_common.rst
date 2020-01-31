@@ -123,6 +123,3 @@ setting or two (usually via an environment variable) to enable
 buffering or boost the sizes of messages that can be buffered.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

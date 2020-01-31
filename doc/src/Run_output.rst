@@ -192,6 +192,3 @@ FFTs).  Thus you can estimate what fraction of your FFT time was spent
 in communication, roughly 75% in the example above.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

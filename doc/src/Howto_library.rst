@@ -247,6 +247,3 @@ assigned via the lammps\_scatter\_atoms() or lammps\_extract\_atom()
 functions.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

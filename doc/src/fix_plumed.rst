@@ -137,6 +137,3 @@ The default options are plumedfile = NULL and outfile = NULL
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

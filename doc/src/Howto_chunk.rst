@@ -214,6 +214,3 @@ on the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 command doc page.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

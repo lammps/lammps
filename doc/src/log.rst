@@ -51,6 +51,3 @@ Default
 The default LAMMPS log file is named log.lammps
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

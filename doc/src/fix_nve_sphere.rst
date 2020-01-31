@@ -141,6 +141,3 @@ Related commands
 5840 (1997).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

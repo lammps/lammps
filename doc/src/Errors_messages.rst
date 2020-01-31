@@ -8419,6 +8419,3 @@ keyword to allow for additional bonds to be formed
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

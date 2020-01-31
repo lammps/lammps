@@ -32,6 +32,3 @@ added to the :doc:`dump custom <dump>` command.  Instead they are added
 to the :doc:`compute property/atom <compute_property_atom>` command.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

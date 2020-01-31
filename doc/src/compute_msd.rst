@@ -124,6 +124,3 @@ Default
 The option default are com = no, average = no.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

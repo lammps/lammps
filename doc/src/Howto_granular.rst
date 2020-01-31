@@ -50,6 +50,3 @@ computations between frozen atoms by using this command:
    doc page, where 2d simulations are discussed.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

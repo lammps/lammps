@@ -592,6 +592,3 @@ Illinois at Urbana-Champaign, (2006).
 (2012).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

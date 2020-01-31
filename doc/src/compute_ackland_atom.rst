@@ -99,6 +99,3 @@ The keyword *legacy* defaults to *no*\ .
 **(Ackland)** Ackland, Jones, Phys Rev B, 73, 054104 (2006).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

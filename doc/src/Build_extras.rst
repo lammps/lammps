@@ -1416,6 +1416,3 @@ Makefile.lammps.  If none of the provided files work, you will need to
 edit the Makefile.lammps file.  See lib/vtk/README for details.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

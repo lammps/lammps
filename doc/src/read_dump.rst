@@ -420,6 +420,3 @@ no, add = no, scaled = no, wrapped = yes, and format = native.
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

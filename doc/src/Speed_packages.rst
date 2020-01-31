@@ -190,6 +190,3 @@ The individual accelerator package doc pages explain:
 * restrictions
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -156,6 +156,3 @@ Related commands
 Q31.013 (2008).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

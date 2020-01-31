@@ -370,6 +370,3 @@ output, format = %g, title 1,2,3 = strings as described above, and no
 off settings for any input values.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

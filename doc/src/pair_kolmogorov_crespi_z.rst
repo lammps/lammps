@@ -91,6 +91,3 @@ Related commands
 Physical Review Letters, 113, 135504 (2014)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

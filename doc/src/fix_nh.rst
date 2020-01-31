@@ -738,6 +738,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 5840 (1997).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

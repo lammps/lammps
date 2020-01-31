@@ -43,6 +43,3 @@ up the Conda capability.
 
 .. _mini_conda_install: https://docs.conda.io/en/latest/miniconda.html
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

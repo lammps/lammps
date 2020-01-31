@@ -46,6 +46,3 @@ uncomment the MPI\_Barrier() lines in src/timer.cpp, and re-compile
 LAMMPS, to obtain synchronized timings.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

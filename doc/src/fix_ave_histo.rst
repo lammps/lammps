@@ -390,6 +390,3 @@ arguments, ave = one, start = 0, no file output, beyond = ignore, and
 title 1,2,3 = strings as described above.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

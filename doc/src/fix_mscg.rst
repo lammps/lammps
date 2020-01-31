@@ -150,6 +150,3 @@ The default keyword settings are range off, max 4 12 36.
 Chem Phys 128, 134105 (2008).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

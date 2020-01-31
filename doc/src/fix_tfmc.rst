@@ -176,6 +176,3 @@ A. Stesmans, Phys. Rev. B 85, 134301 (2012).
 (2013).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -154,6 +154,3 @@ Related commands
 Engineering With Computers (2006). (`link to paper <http://dx.doi.org/10.1007/s00366-006-0026-x>`_)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

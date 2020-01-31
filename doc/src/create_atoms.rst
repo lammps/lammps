@@ -387,6 +387,3 @@ being created).  The other defaults are *remap* = no, *rotate* =
 random, and *units* = lattice.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

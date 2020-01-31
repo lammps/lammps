@@ -147,6 +147,3 @@ option defaults are alpha\_damp = 1.0, discrete\_factor = 10.0,
 line = spin\_none, and norm = euclidean.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

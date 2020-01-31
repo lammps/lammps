@@ -494,6 +494,3 @@ A discussion of the LAMMPS developer GitHub workflow can be found in the file
 `doc/github-development-workflow.md <https://github.com/lammps/lammps/blob/master/doc/github-development-workflow.md>`_
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -122,6 +122,3 @@ Related commands
 Phys. Rev. E 52, 1627 (1995).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

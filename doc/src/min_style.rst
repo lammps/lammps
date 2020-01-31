@@ -165,6 +165,3 @@ Jonsson, Mills, Jacobsen.
 97, 170201 (2006).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

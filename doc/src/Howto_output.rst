@@ -344,6 +344,3 @@ vector input could be a column of an array.
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

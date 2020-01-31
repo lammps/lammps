@@ -247,6 +247,3 @@ Comp. Mat. Science, 39, 457 (2007).
 **(Schelling)** Patrick K. Schelling, Comp. Mat. Science, 44, 274 (2008).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

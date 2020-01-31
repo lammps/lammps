@@ -205,6 +205,3 @@ The default is no limitation by region, and minneigh = 1.
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

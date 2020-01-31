@@ -136,6 +136,3 @@ software installed. `http://calibre-ebook.com/ <http://calibre-ebook.com/>`_
 You first create the ePUB file and then convert it with 'make mobi'
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

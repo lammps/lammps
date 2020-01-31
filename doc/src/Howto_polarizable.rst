@@ -73,6 +73,3 @@ relative core-Drude particle motion is thermostatted separately as
 well.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

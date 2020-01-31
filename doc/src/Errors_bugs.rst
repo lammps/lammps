@@ -27,6 +27,3 @@ causing the problem.
    this page needs to have GitHub issues info added
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

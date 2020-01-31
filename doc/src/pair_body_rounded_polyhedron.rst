@@ -137,6 +137,3 @@ Related commands
 Matter, 13, 1 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

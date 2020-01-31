@@ -295,6 +295,3 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 (1990).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

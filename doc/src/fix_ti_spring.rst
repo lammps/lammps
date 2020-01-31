@@ -184,6 +184,3 @@ Science, 112, 333 (2016).
 **(de Koning)** de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -237,6 +237,3 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 **(Kumar)** Kumar and Higdon, Phys Rev E, 82, 051401 (2010).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

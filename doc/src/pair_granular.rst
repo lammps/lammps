@@ -873,6 +873,3 @@ Technology, 233, 30-46.
 **(Otis R. Walton)** Walton, O.R., Personal Communication
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

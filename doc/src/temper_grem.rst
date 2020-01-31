@@ -128,6 +128,3 @@ Related commands
 **(Kim)** Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

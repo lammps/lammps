@@ -213,6 +213,3 @@ Related commands
 5, 1031-1038 (1993).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

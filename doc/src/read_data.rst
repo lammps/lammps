@@ -1440,6 +1440,3 @@ Default
 The default for all the *extra* keywords is 0.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

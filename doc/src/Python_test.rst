@@ -165,6 +165,3 @@ mentioned above, you can only run Python interactively when running
 Python on a single processor, not in parallel.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

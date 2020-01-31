@@ -353,6 +353,3 @@ Material Properties and Phenomena in Extreme Environments, J Comp
 Chem, 32, 497-512 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

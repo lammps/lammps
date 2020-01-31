@@ -130,6 +130,3 @@ Default
 The keyword defaults are pos = 0, vel = 0, units = lattice.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

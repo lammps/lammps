@@ -192,6 +192,3 @@ Axilrod and Teller, J Chem Phys, 11, 299 (1943);
 Muto, Nippon Sugaku-Buturigakkwaishi 17, 629 (1943).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

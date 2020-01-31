@@ -391,6 +391,3 @@ torque. Also reinit = yes.
 J Chem Phys, 116, 8649 (2002).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

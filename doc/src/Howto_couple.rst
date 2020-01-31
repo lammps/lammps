@@ -120,6 +120,3 @@ described on the :doc:`Howto client/server <Howto_client_server>` doc
 page.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

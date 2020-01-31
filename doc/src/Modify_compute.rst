@@ -57,6 +57,3 @@ compute\_vector or compute\_peratom methods. The USER-TALLY package
 provides *examples*\ \_compute\_tally.html for utilizing this mechanism.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

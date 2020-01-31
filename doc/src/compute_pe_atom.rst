@@ -118,6 +118,3 @@ Related commands
 **(Heyes)** Heyes, Phys Rev B 49, 755 (1994),
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

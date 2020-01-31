@@ -135,6 +135,3 @@ The option defaults are scale = 1.0 for all types and tally = no.
 **(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

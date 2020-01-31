@@ -137,6 +137,3 @@ Related commands
 **(Bussi)** G. Bussi, M. Parrinello, Phs. Rev. E 75, 056707 (2007)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -160,6 +160,3 @@ Phillpot, Phys Rev B, 81, 125328 (2010).
 101, 16141 (1994).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

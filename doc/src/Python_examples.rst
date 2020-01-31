@@ -111,6 +111,3 @@ different visualization package options.  Click to see larger images:
    :target: JPG/screenshot_vmd.jpg
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

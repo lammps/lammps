@@ -366,6 +366,3 @@ geom gaussian, and time = steps.
 Research 32, 321 (2002).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

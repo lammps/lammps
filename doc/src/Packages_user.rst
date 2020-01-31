@@ -115,6 +115,3 @@ package:
 .. _MOFplus: https://www.mofplus.org/content/show/MOF-FF
 .. _PLUMED: http://www.plumed.org
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

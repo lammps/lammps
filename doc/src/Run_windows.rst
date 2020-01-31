@@ -76,6 +76,3 @@ multi-threading, which can be combined with MPI using something like:
    mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

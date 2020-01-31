@@ -378,6 +378,3 @@ Plasma Phys., 53, 129-139 (2013).
 475401 (2014).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

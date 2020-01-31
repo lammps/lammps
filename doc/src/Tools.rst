@@ -743,6 +743,3 @@ See the README file for details.
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

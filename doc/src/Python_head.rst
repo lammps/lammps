@@ -44,6 +44,3 @@ a pull request to our `GitHub site <https://github.com/lammps/lammps>`_,
 and they can be added to the LAMMPS distribution or webpage.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

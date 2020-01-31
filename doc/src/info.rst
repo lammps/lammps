@@ -130,6 +130,3 @@ The *out* option has the default *screen*\ .
 The *styles* option has the default *all*\ .
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

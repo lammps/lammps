@@ -229,6 +229,3 @@ Default
 The option defaults are side = out and units = lattice.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

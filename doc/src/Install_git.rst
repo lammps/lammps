@@ -123,6 +123,3 @@ gmail.com) and Richard Berger (Temple U, richard.berger at
 temple.edu).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

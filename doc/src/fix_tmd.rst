@@ -146,6 +146,3 @@ coordinate at multiple constraints: a concise formulation", Molecular
 Physics, 101, 3439-3443 (2003).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -185,6 +185,3 @@ The default keyword value is exclude = yes.
 Chem Phys, 136 (13) 134903, 2012.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

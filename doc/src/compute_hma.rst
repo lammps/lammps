@@ -207,6 +207,3 @@ this compute.
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

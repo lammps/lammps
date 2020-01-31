@@ -119,6 +119,3 @@ Review Letters 104, 136403 (2010).
 (2010).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

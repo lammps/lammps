@@ -159,6 +159,3 @@ the multiple executables that the mpirun command launches.  In this
 example the client was colored with a 0, and the server with a 1.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

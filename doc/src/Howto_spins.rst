@@ -68,6 +68,3 @@ magnetic spin, or the magnetic force acting on this spin.
 Journal of Computational Physics, 372, 406-425, (2018).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

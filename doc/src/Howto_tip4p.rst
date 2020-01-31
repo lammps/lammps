@@ -111,6 +111,3 @@ Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki
 Phys, 79, 926 (1983).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

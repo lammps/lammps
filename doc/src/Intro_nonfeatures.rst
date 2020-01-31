@@ -82,6 +82,3 @@ Here are suggestions on how to perform these tasks:
   and is available for download from `this page <http://www.cs.sandia.gov/~sjplimp/download.html>`_.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

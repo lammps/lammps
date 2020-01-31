@@ -286,6 +286,3 @@ Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
 (for 2d), and id = max.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

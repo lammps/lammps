@@ -182,6 +182,3 @@ molecule = off.
 Bogusz et al, J Chem Phys, 108, 7070 (1998)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

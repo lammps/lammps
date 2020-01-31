@@ -152,6 +152,3 @@ Stat. Phys. 1, 2, 101 (1971).
 C. Leonard. J. Math. Phys. 56, 103101 (2015).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

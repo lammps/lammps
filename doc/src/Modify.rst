@@ -35,6 +35,3 @@ as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_, afte
    Modify_variable
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

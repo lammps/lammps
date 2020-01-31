@@ -22,6 +22,3 @@ class.  See region.h for details.
 +-------------------+---------------------------------------------------------------------+
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

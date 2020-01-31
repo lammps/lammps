@@ -70,6 +70,3 @@ system directory.  This is not needed if you set the LD\_LIBRARY\_PATH
 environment variable as described above.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

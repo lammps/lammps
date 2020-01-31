@@ -170,6 +170,3 @@ Default
 The option defaults are compress = yes, bond = no, mol = no.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

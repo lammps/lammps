@@ -225,6 +225,3 @@ Related commands
 **(Everaers)** Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

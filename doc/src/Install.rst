@@ -53,6 +53,3 @@ some of them if you download executables, as explained on the pages
 listed above.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

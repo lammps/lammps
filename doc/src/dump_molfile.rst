@@ -140,6 +140,3 @@ Default
 The default path is ".". All other properties have to be specified.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -266,6 +266,3 @@ The additional section in the date file would be formatted like this:
 6, 393-404 (1994).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

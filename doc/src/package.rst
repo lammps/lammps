@@ -684,6 +684,3 @@ is not used, you must invoke the package omp command in your input
 script or via the "-pk omp" :doc:`command-line switch <Run_options>`.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

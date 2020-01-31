@@ -106,6 +106,3 @@ Related commands
 J Chem Phys, 112, 9632 (2000).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

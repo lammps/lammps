@@ -108,6 +108,3 @@ Eur. Phys. J. B 15, 105-113, 2000.
 **Default:** types
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

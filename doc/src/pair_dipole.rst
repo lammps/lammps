@@ -316,6 +316,3 @@ Clarendon Press, Oxford, 1987.
 **(Price)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

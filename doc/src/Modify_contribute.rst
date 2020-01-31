@@ -198,6 +198,3 @@ easier you make it for people to get started, e.g. by providing example
 scripts, the more likely it is that users will try out your new feature.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

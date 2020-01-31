@@ -106,6 +106,3 @@ style build environment, but the LAMMPS code itself is not fully ported
 to support Visual C++. Volunteers to take on this task are welcome.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

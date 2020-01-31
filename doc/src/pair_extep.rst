@@ -54,6 +54,3 @@ Energetics and elastic properties of pristine and defective h-BN",
 Phys. Rev. B 96 (184108), 2017.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

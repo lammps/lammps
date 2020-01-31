@@ -128,6 +128,3 @@ Related commands
 **(Toxvaerd)** Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -226,6 +226,3 @@ file1:
         1.596820864092150   -1.785300000000000    0.798410432046075
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

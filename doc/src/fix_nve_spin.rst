@@ -108,6 +108,3 @@ The option default is lattice = moving.
 Journal of Computational Physics, 372, 406-425, (2018).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

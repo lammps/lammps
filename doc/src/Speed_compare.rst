@@ -96,6 +96,3 @@ section below for examples where this has been done.
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

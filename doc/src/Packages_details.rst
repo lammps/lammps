@@ -2448,6 +2448,3 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * examples/USER/yaff
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

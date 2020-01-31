@@ -210,6 +210,3 @@ Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

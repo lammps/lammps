@@ -254,6 +254,3 @@ N. Bock, M. E. Wall, and A. M. N. Niklasson, J. Chem. Theory Comp.,
 12, 3063 (2016).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

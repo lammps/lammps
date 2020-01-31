@@ -135,6 +135,3 @@ These are the defaults for the pair\_style keywords: *hartree* for the
 initial wave function, *free* for the wave packet width.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

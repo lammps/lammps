@@ -579,6 +579,3 @@ want to encourage people to write tutorial style IPython notebooks showcasing LA
 and maybe their latest research results.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

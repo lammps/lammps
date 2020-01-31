@@ -283,6 +283,3 @@ Related commands
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

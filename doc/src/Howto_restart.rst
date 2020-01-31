@@ -100,6 +100,3 @@ LAMMPS the current timestep.  This value is stored in restart files,
 but not in data files.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

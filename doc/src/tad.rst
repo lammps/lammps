@@ -334,6 +334,3 @@ the :doc:`timestep <timestep>` command, and *neb\_log* = "none".
 Research 32, 321 (2002).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

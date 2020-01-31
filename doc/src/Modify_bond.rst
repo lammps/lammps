@@ -36,6 +36,3 @@ for details and specific additional methods.
 +-----------------------+---------------------------------------------------------------------------+
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

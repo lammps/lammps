@@ -62,6 +62,3 @@ combination of the commands :doc:`read_restart <read_restart>` and
 convenience this conversion can also be triggered by :doc:`command line flags <Run_options>`
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

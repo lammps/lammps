@@ -410,6 +410,3 @@ The option defaults units = lattice, fld = no, and pbc = no.
 erratum in JCP 84, 2901 (1986).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

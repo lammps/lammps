@@ -202,6 +202,3 @@ isoenthalpic conditions using Shardlow-like splitting algorithms.",
 J. Chem. Phys., 135, 204105 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

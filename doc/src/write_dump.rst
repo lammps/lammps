@@ -100,6 +100,3 @@ The defaults are listed on the doc pages for the :doc:`dump <dump>` and
 commands.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

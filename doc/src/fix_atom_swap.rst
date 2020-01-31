@@ -208,6 +208,3 @@ all atom types.
 L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

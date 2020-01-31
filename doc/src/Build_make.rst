@@ -89,6 +89,3 @@ settings may become outdated:
    make kokkos_phi      # build with the KOKKOS package for KNLs
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

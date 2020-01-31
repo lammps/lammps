@@ -49,6 +49,3 @@ Processors communicate and store "ghost" atom information for atoms
 that border their sub-domain.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

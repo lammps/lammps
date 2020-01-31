@@ -286,6 +286,3 @@ the PATH variable should be
    tutorials explaining Bash and Basic Unix commands (e.g., `Linux Journey <https://linuxjourney.com>`_)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

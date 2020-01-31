@@ -76,6 +76,3 @@ and see one line of output for each processor you run on.
    the right one.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

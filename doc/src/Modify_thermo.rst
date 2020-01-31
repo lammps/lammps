@@ -27,6 +27,3 @@ be simpler to compute what you wish via one of those constructs, than
 by adding a new keyword to the thermo command.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

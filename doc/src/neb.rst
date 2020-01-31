@@ -473,6 +473,3 @@ none
 Comp Phys Comm, 205, 13-21 (2016)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

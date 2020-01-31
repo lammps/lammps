@@ -134,6 +134,3 @@ Related commands
 **Default:** none
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

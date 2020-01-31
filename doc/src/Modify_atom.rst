@@ -119,6 +119,3 @@ Ivector or dvector are vectors of length Nlocal = # of owned atoms,
 which store the attributes of individual atoms.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

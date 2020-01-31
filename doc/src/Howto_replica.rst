@@ -55,6 +55,3 @@ a multi-replica simulation on more replicas than you have
 physical processors.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

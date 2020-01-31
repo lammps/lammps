@@ -23,6 +23,3 @@ as described on the :doc:`Install <Install>` doc page.
    Build_development
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

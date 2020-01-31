@@ -232,6 +232,3 @@ page for more info on specific USER packages.
 
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

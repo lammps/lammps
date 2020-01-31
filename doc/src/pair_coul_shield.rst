@@ -114,6 +114,3 @@ Related commands
 **(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

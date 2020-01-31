@@ -702,6 +702,3 @@ The option defaults are as follows:
 * units = lattice
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

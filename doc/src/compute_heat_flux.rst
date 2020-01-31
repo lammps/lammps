@@ -253,6 +253,3 @@ Related commands
 **(Boone)** Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

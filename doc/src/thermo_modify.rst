@@ -195,6 +195,3 @@ are "one", "%8d", and "%12.8g".  For style "multi", the line and
 format defaults are "multi", "%8d", and "%14.4f".
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

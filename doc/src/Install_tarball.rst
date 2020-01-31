@@ -79,6 +79,3 @@ in the new patch release.  Instructions for applying a patch file are
 on the :doc:`Install patch <Install_patch>` doc page.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

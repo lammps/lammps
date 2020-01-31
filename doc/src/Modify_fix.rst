@@ -153,6 +153,3 @@ enables a fix to contribute values to thermodynamic output, as printed
 quantities and/or to be summed to the potential energy of the system.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

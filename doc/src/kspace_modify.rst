@@ -562,6 +562,3 @@ Chem Theory Comput, 9, 5412 (2013).
 9, 3527 (2013).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

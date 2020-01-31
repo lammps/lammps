@@ -157,6 +157,3 @@ Related commands
 **(Eike)** Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

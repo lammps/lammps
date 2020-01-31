@@ -249,6 +249,3 @@ Series, 46, 254 (2006).
 Oppelstrup and Moriarty, to be published.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

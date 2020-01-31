@@ -238,6 +238,3 @@ as rigid bodies, and their motion integrated with a command like :doc:`fix nve/b
 particles are computed via a command like :doc:`pair_style body/nparticle <pair_body_nparticle>`.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

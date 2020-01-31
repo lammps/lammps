@@ -44,6 +44,3 @@ source file headers (including the copyright and GPL notices) should
 remain part of the code.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

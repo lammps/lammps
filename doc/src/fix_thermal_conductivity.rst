@@ -183,6 +183,3 @@ The option defaults are swap = 1.
 109, 15060-15067 (2005).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

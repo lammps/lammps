@@ -344,6 +344,3 @@ The option defaults are *tail* = *no*\ , *volume* = *no*\ .
 Liquids, Oxford University Press (1987)
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

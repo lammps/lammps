@@ -146,6 +146,3 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 (1990).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

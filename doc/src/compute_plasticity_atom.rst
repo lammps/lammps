@@ -77,6 +77,3 @@ viscoelasticity model for peridynamics", Sandia National Lab Report,
 8064:1-28 (2011).
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -473,6 +473,3 @@ This report may be accessed on-line via `this link <sandreport_>`_.
 of Ions in Matter", Vol 1, 1985, Pergamon Press.
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

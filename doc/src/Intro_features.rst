@@ -226,6 +226,3 @@ classical MD options:
 * :doc:`two-temperature electron model <fix_ttm>`
 
 
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

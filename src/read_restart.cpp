@@ -37,7 +37,7 @@
 #include "error.h"
 #include "utils.h"
 
-#include "lmp_restart.h"
+#include "lmprestart.h"
 
 using namespace LAMMPS_NS;
 

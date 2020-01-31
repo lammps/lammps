@@ -221,6 +221,3 @@ Related commands
 :doc:`pair dpd/fdt <pair_dpd_fdt>`
 
 **Default:** none
-
-
-----------

@@ -85,6 +85,3 @@ Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
-
-
-----------

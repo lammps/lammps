@@ -62,6 +62,3 @@ Related commands
 :doc:`fix wall/reflect <fix_wall_reflect>` command
 
 **Default:** none
-
-
-----------

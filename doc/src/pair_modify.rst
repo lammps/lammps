@@ -59,12 +59,13 @@ Description
 
 Modify the parameters of the currently defined pair style.  If the
 pair style is :doc:`hybrid or hybrid/overlay <pair_hybrid>`, then the
-specified parameters are by default modified for all the hybrid sub-styles.  
+specified parameters are by default modified for all the hybrid sub-styles.
 
 .. note::
 
   The behavior for hybrid pair styles can be changed by using the *pair*
-  keyword, which allows to select a specific sub-style to apply a setting to.
+  keyword, which allows selection of a specific sub-style to apply all
+  remaining keywords to.
   The *special* and *compute/tally* keywords can **only** be
   used in conjunction with the *pair* keyword.  See further details about
   these 3 keywords below.
@@ -276,7 +277,7 @@ and *coul* settings to different values.
    command with weights like 1.0e-10 or 0.999999999 instead of 0.0 or 1.0,
    respectively, which enables to reset each them to any value between 0.0
    and 1.0 inclusively.  Otherwise you can set **all** global weights to
-   an arbitrary number outside of 0.0 or 1.0, like 0.5, and then you have
+   an arbitrary number between 0.0 or 1.0, like 0.5, and then you have
    to override **all** *special* settings for **all** sub-styles which use
    the 1-2, 1-3, and 1-4 exclusion weights in their force/energy computation.
 

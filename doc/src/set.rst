@@ -141,11 +141,11 @@ Description
 """""""""""
 
 Set one or more properties of one or more atoms.  Since atom
-properties are initially assigned by the :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>` or :doc:`create\_atoms <create_atoms>`
+properties are initially assigned by the :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>` or :doc:`create_atoms <create_atoms>`
 commands, this command changes those assignments.  This can be useful
 for overriding the default values assigned by the
-:doc:`create\_atoms <create_atoms>` command (e.g. charge = 0.0).  It can
+:doc:`create_atoms <create_atoms>` command (e.g. charge = 0.0).  It can
 be useful for altering pairwise and molecular force interactions,
 since force-field coefficients are defined in terms of types.  It can
 be used to change the labeling of atoms by atom type or molecule ID
@@ -204,7 +204,7 @@ the variable to reset a property for all atoms is to use style *atom*
 with *ID* = "\*"; this selects all atom IDs.
 
 Atom-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  They can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a time-dependent or
@@ -223,8 +223,8 @@ from a file.
 
 Keyword *type* sets the atom type for all selected atoms.  The
 specified value must be from 1 to ntypes, where ntypes was set by the
-:doc:`create\_box <create_box>` command or the *atom types* field in the
-header of the data file read by the :doc:`read\_data <read_data>`
+:doc:`create_box <create_box>` command or the *atom types* field in the
+header of the data file read by the :doc:`read_data <read_data>`
 command.
 
 Keyword *type/fraction* sets the atom type for a fraction of the
@@ -281,8 +281,8 @@ Keyword *quat* uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The
 particles must define a quaternion for their orientation
 (e.g. ellipsoids, triangles, body particles) as defined by the
-:doc:`atom\_style <atom_style>` command.  Note that particles defined by
-:doc:`atom\_style ellipsoid <atom_style>` have 3 shape parameters.  The 3
+:doc:`atom_style <atom_style>` command.  Note that particles defined by
+:doc:`atom_style ellipsoid <atom_style>` have 3 shape parameters.  The 3
 values must be non-zero for each particle set by this command.  They
 are used to specify the aspect ratios of an ellipsoidal particle,
 which is oriented by default with its x-axis along the simulation
@@ -298,7 +298,7 @@ ignored, since a rotation vector of (0,0,1) is the only valid choice.
 Keyword *quat/random* randomizes the orientation of the quaternion for
 the selected atoms.  The particles must define a quaternion for their
 orientation (e.g. ellipsoids, triangles, body particles) as defined by
-the :doc:`atom\_style <atom_style>` command.  Random numbers are used in
+the :doc:`atom_style <atom_style>` command.  Random numbers are used in
 such a way that the orientation of a particular atom is the same,
 regardless of how many processors are being used.  For 2d systems,
 only orientations in the xy plane are generated.  As with keyword
@@ -307,32 +307,32 @@ for each particle set by this command.  This keyword does not allow
 use of an atom-style variable.
 
 Keyword *diameter* sets the size of the selected atoms.  The particles
-must be finite-size spheres as defined by the :doc:`atom\_style sphere <atom_style>` command.  The diameter of a particle can be
+must be finite-size spheres as defined by the :doc:`atom_style sphere <atom_style>` command.  The diameter of a particle can be
 set to 0.0, which means they will be treated as point particles.  Note
 that this command does not adjust the particle mass, even if it was
-defined with a density, e.g. via the :doc:`read\_data <read_data>`
+defined with a density, e.g. via the :doc:`read_data <read_data>`
 command.
 
 Keyword *shape* sets the size and shape of the selected atoms.  The
-particles must be ellipsoids as defined by the :doc:`atom\_style ellipsoid <atom_style>` command.  The *Sx*\ , *Sy*\ , *Sz* settings are
+particles must be ellipsoids as defined by the :doc:`atom_style ellipsoid <atom_style>` command.  The *Sx*\ , *Sy*\ , *Sz* settings are
 the 3 diameters of the ellipsoid in each direction.  All 3 can be set
 to the same value, which means the ellipsoid is effectively a sphere.
 They can also all be set to 0.0 which means the particle will be
 treated as a point particle.  Note that this command does not adjust
 the particle mass, even if it was defined with a density, e.g. via the
-:doc:`read\_data <read_data>` command.
+:doc:`read_data <read_data>` command.
 
 Keyword *length* sets the length of selected atoms.  The particles
-must be line segments as defined by the :doc:`atom\_style line <atom_style>` command.  If the specified value is non-zero the
+must be line segments as defined by the :doc:`atom_style line <atom_style>` command.  If the specified value is non-zero the
 line segment is (re)set to a length = the specified value, centered
 around the particle position, with an orientation along the x-axis.
 If the specified value is 0.0, the particle will become a point
 particle.  Note that this command does not adjust the particle mass,
 even if it was defined with a density, e.g. via the
-:doc:`read\_data <read_data>` command.
+:doc:`read_data <read_data>` command.
 
 Keyword *tri* sets the size of selected atoms.  The particles must be
-triangles as defined by the :doc:`atom\_style tri <atom_style>` command.
+triangles as defined by the :doc:`atom_style tri <atom_style>` command.
 If the specified value is non-zero the triangle is (re)set to be an
 equilateral triangle in the xy plane with side length = the specified
 value, with a centroid at the particle position, with its base
@@ -340,38 +340,38 @@ parallel to the x axis, and the y-axis running from the center of the
 base to the top point of the triangle.  If the specified value is 0.0,
 the particle will become a point particle.  Note that this command
 does not adjust the particle mass, even if it was defined with a
-density, e.g. via the :doc:`read\_data <read_data>` command.
+density, e.g. via the :doc:`read_data <read_data>` command.
 
 Keyword *theta* sets the orientation of selected atoms.  The particles
-must be line segments as defined by the :doc:`atom\_style line <atom_style>` command.  The specified value is used to set the
+must be line segments as defined by the :doc:`atom_style line <atom_style>` command.  The specified value is used to set the
 orientation angle of the line segments with respect to the x axis.
 
 Keyword *theta/random* randomizes the orientation of theta for the
 selected atoms.  The particles must be line segments as defined by the
-:doc:`atom\_style line <atom_style>` command.  Random numbers are used in
+:doc:`atom_style line <atom_style>` command.  Random numbers are used in
 such a way that the orientation of a particular atom is the same,
 regardless of how many processors are being used.  This keyword does
 not allow use of an atom-style variable.
 
 Keyword *angmom* sets the angular momentum of selected atoms.  The
-particles must be ellipsoids as defined by the :doc:`atom\_style ellipsoid <atom_style>` command or triangles as defined by the
-:doc:`atom\_style tri <atom_style>` command.  The angular momentum vector
+particles must be ellipsoids as defined by the :doc:`atom_style ellipsoid <atom_style>` command or triangles as defined by the
+:doc:`atom_style tri <atom_style>` command.  The angular momentum vector
 of the particles is set to the 3 specified components.
 
 Keyword *omega* sets the angular velocity of selected atoms.  The
-particles must be spheres as defined by the "atom\_style sphere"_
-atom\_style.html command.  The angular velocity vector of the particles
-is set to the 3 specified components.
+particles must be spheres as defined by the
+:doc:`atom_style sphere <atom_style>` command.  The angular velocity
+vector of the particles is set to the 3 specified components.
 
 Keyword *mass* sets the mass of all selected particles.  The particles
 must have a per-atom mass attribute, as defined by the
-:doc:`atom\_style <atom_style>` command.  See the "mass" command for how
+:doc:`atom_style <atom_style>` command.  See the "mass" command for how
 to set mass values on a per-type basis.
 
 Keyword *density* or *density/disc* also sets the mass of all selected
 particles, but in a different way.  The particles must have a per-atom
-mass attribute, as defined by the :doc:`atom\_style <atom_style>`
-command.  If the atom has a radius attribute (see :doc:`atom\_style sphere <atom_style>`) and its radius is non-zero, its mass is set
+mass attribute, as defined by the :doc:`atom_style <atom_style>`
+command.  If the atom has a radius attribute (see :doc:`atom_style sphere <atom_style>`) and its radius is non-zero, its mass is set
 from the density and particle volume for 3d systems (the input density
 is assumed to be in mass/distance\^3 units).  For 2d, the default is
 for LAMMPS to model particles with a radius attribute as spheres.
@@ -380,16 +380,16 @@ modeled as 2d discs (circles).  Their mass is set from the density and
 particle area (the input density is assumed to be in mass/distance\^2
 units).
 
-If the atom has a shape attribute (see :doc:`atom\_style ellipsoid <atom_style>`) and its 3 shape parameters are non-zero,
+If the atom has a shape attribute (see :doc:`atom_style ellipsoid <atom_style>`) and its 3 shape parameters are non-zero,
 then its mass is set from the density and particle volume (the input
 density is assumed to be in mass/distance\^3 units).  The
 *density/disc* keyword has no effect; it does not (yet) treat 3d
 ellipsoids as 2d ellipses.
 
-If the atom has a length attribute (see :doc:`atom\_style line <atom_style>`) and its length is non-zero, then its mass is
+If the atom has a length attribute (see :doc:`atom_style line <atom_style>`) and its length is non-zero, then its mass is
 set from the density and line segment length (the input density is
 assumed to be in mass/distance units).  If the atom has an area
-attribute (see :doc:`atom\_style tri <atom_style>`) and its area is
+attribute (see :doc:`atom_style tri <atom_style>`) and its area is
 non-zero, then its mass is set from the density and triangle area (the
 input density is assumed to be in mass/distance\^2 units).
 
@@ -397,7 +397,7 @@ If none of these cases are valid, then the mass is set to the density
 value directly (the input density is assumed to be in mass units).
 
 Keyword *volume* sets the volume of all selected particles.
-Currently, only the :doc:`atom\_style peri <atom_style>` command defines
+Currently, only the :doc:`atom_style peri <atom_style>` command defines
 particles with a volume attribute.  Note that this command does not
 adjust the particle mass.
 
@@ -428,7 +428,7 @@ the specified value from 1 to nbondtypes (nangletypes, etc).  All
 atoms in a particular bond (angle, etc) must be selected atoms in
 order for the change to be made.  The value of nbondtype (nangletypes,
 etc) was set by the *bond types* (\ *angle types*\ , etc) field in the
-header of the data file read by the :doc:`read\_data <read_data>`
+header of the data file read by the :doc:`read_data <read_data>`
 command.  These keywords do not allow use of an atom-style variable.
 
 Keywords *meso/e*\ , *meso/cv*\ , and *meso/rho* set the energy, heat
@@ -463,13 +463,13 @@ temperature is set to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
 heat capacity of an eDPD particle as defined by the USER-MESO package.
-Currently, only :doc:`atom\_style edpd <atom_style>` defines particles
+Currently, only :doc:`atom_style edpd <atom_style>` defines particles
 with these attributes. The values for the temperature and heat
 capacity must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
 specified species as defined by the USER-MESO package. Currently, only
-:doc:`atom\_style tdpd <atom_style>` defines particles with this
+:doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom\_style command. The value
 for the chemical concentration must be >= 0.0.
@@ -485,7 +485,7 @@ Restrictions
 
 
 You cannot set an atom attribute (e.g. *mol* or *q* or *volume*\ ) if
-the :doc:`atom\_style <atom_style>` does not have that attribute.
+the :doc:`atom_style <atom_style>` does not have that attribute.
 
 This command requires inter-processor communication to coordinate the
 setting of bond types (angle types, etc).  This means that your system
@@ -502,12 +502,7 @@ coordinates outside the simulation box if they are ghost atoms.
 Related commands
 """"""""""""""""
 
-:doc:`create\_box <create_box>`, :doc:`create\_atoms <create_atoms>`,
-:doc:`read\_data <read_data>`
+:doc:`create_box <create_box>`, :doc:`create_atoms <create_atoms>`,
+:doc:`read_data <read_data>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

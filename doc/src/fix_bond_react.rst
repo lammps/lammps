@@ -248,7 +248,7 @@ A discussion of correctly handling this is also provided on the
    the existing system and reaction templates. As when inserting
    molecules, enough space for this increased topology/atom must be
    reserved by using the relevant "extra" keywords to the
-   :doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` commands.
+   :doc:`read_data <read_data>` or :doc:`create_box <create_box>` commands.
 
 The map file is a text document with the following format:
 
@@ -390,7 +390,7 @@ the activation energy (:doc:`units <units>` of energy), and *seed* is a
 random number seed. The temperature is defined as the instantaneous
 temperature averaged over all atoms in the reaction site, and is
 calculated in the same manner as for example
-:doc:`compute\_temp\_chunk <compute_temp_chunk>`. Currently, there are no
+:doc:`compute temp/chunk <compute_temp_chunk>`. Currently, there are no
 options for additional temperature averaging or velocity-biased
 temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the
@@ -492,7 +492,7 @@ local command.
 Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
 reaction name (react-ID). Additionally, internally-created per-atom
 properties are stored to allow for smooth restarts. None of the
-:doc:`fix\_modify <fix_modify>` options are relevant to this fix.
+:doc:`fix_modify <fix_modify>` options are relevant to this fix.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length 'number of react arguments', that
@@ -524,7 +524,7 @@ Related commands
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix bond/swap <fix_bond_swap>`,
-:doc:`dump local <dump>`, :doc:`special\_bonds <special_bonds>`
+:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`
 
 Default
 """""""
@@ -541,8 +541,3 @@ update\_edges = none
 
 
 **(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

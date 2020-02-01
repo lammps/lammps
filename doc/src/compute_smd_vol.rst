@@ -57,8 +57,3 @@ Related commands
 :doc:`compute smd/rho <compute_smd_rho>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

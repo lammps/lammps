@@ -51,9 +51,9 @@ the equilibrium bond lengths.
 See :ref:`(Sun) <angle-Sun>` for a description of the COMPASS class2 force field.
 
 Coefficients for the :math:`E_a`, :math:`E_{bb}`, and :math:`E_{ba}` formulas must be defined for
-each angle type via the :doc:`angle\_coeff <angle_coeff>` command as in
+each angle type via the :doc:`angle_coeff <angle_coeff>` command as in
 the example above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
 These are the 4 coefficients for the :math:`E_a` formula:
@@ -66,7 +66,7 @@ These are the 4 coefficients for the :math:`E_a` formula:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of the various :math:`K` are in per-radian.
 
-For the :math:`E_{bb}` formula, each line in a :doc:`angle\_coeff <angle_coeff>`
+For the :math:`E_{bb}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
 command in the input script lists 4 coefficients, the first of which
 is "bb" to indicate they are BondBond coefficients.  In a data file,
 these coefficients should be listed under a "BondBond Coeffs" heading
@@ -78,7 +78,7 @@ the angle type.
 * :math:`r_1` (distance)
 * :math:`r_2` (distance)
 
-For the :math:`E_{ba}` formula, each line in a :doc:`angle\_coeff <angle_coeff>`
+For the :math:`E_{ba}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
 command in the input script lists 5 coefficients, the first of which
 is "ba" to indicate they are BondAngle coefficients.  In a data file,
 these coefficients should be listed under a "BondAngle Coeffs" heading
@@ -154,7 +154,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none
 

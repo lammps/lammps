@@ -211,8 +211,3 @@ Lett, 103, 190601 (2009).
 
 
 **(Barrat)** Barrat and Rodney, J. Stat. Phys, 144, 679 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

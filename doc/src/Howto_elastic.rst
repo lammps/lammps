@@ -16,7 +16,7 @@ most 7\*6/2 = 21 distinct elements.
 
 At zero temperature, it is easy to estimate these derivatives by
 deforming the simulation box in one of the six directions using the
-:doc:`change\_box <change_box>` command and measuring the change in the
+:doc:`change_box <change_box>` command and measuring the change in the
 stress tensor. A general-purpose script that does this is given in the
 examples/elastic directory described on the :doc:`Examples <Examples>`
 doc page.
@@ -42,8 +42,3 @@ converge and requires careful post-processing :ref:`(Shinoda) <Shinoda1>`
 
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

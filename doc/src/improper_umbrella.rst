@@ -46,9 +46,9 @@ in between.
 See :ref:`(Mayo) <umbrella-Mayo>` for a description of the DREIDING force field.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * K (energy)
@@ -91,7 +91,7 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
 
@@ -105,8 +105,3 @@ Related commands
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

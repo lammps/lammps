@@ -118,7 +118,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
    :align: center
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
-of the :doc:`pair\_style colloid <pair_colloid>` potential:
+of the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. image:: Eqs/fix_wall_colloid.jpg
    :align: center
@@ -157,7 +157,7 @@ where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
 can specify formulas with various mathematical functions, and include
-:doc:`thermo\_style <thermo_style>` command keywords for the simulation
+:doc:`thermo_style <thermo_style>` command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.  See examples below.
 
@@ -213,7 +213,7 @@ specified as v\_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and
 the result becomes the current epsilon or sigma of the wall.
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent wall interaction.
 
@@ -247,7 +247,7 @@ define the lattice spacings.
 
 The *fld* keyword can be used with a *yes* setting to invoke the wall
 constraint before pairwise interactions are computed.  This allows an
-implicit FLD model using :doc:`pair\_style lubricateU <pair_lubricateU>`
+implicit FLD model using :doc:`pair_style lubricateU <pair_lubricateU>`
 to include the wall force in its calculations.  If the setting is
 *no*\ , wall forces are imposed after pairwise interactions, in the
 usual manner.
@@ -321,15 +321,15 @@ perturbation on the particles:
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interaction between
 atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -353,7 +353,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
    If you want the atom/wall interaction energy to be included in
    the total potential energy of the system (the quantity being
-   minimized), you MUST enable the :doc:`fix\_modify <fix_modify>` *energy*
+   minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
 
@@ -408,8 +408,3 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

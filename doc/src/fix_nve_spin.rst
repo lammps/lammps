@@ -82,7 +82,7 @@ instead of "array" is also valid.
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`, :doc:`fix nve <fix_nve>`
+:doc:`atom_style spin <atom_style>`, :doc:`fix nve <fix_nve>`
 
 Default
 """""""
@@ -106,8 +106,3 @@ The option default is lattice = moving.
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

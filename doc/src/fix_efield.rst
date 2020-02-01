@@ -58,7 +58,7 @@ gradients of the field are required for the force and torque on
 dipoles.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent E-field.
 
@@ -126,7 +126,7 @@ minimization will not converge properly.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential "energy" inferred by the added force due to
 the electric field to the system's potential energy as part of
 :doc:`thermodynamic output <thermo_style>`.  This is a fictitious
@@ -135,12 +135,12 @@ can include the forces added by this fix in a consistent manner.
 I.e. there is a decrease in potential energy when atoms move in the
 direction of the added force due to the electric field.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the added forces on atoms to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix adding its forces. Default is the outermost level.
 
@@ -164,7 +164,7 @@ the iteration count during the minimization.
    If you want the fictitious potential energy associated with the
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
-   :doc:`fix\_modify <fix_modify>` *energy* option for this fix.
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
 """"""""""""
@@ -179,8 +179,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

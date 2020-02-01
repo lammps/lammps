@@ -60,14 +60,14 @@ Restrictions
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-This command also requires use of the :doc:`atom\_style dpd <atom_style>`
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.
 
 Related commands
 """"""""""""""""
 
 :doc:`compute dpd/atom <compute_dpd_atom>`,
-:doc:`thermo\_style <thermo_style>`
+:doc:`thermo_style <thermo_style>`
 
 **Default:** none
 
@@ -83,8 +83,3 @@ Related commands
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

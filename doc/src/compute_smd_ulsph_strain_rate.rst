@@ -60,8 +60,3 @@ Related commands
 :doc:`compute smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

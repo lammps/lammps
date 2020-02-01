@@ -205,7 +205,7 @@ for the F(X) functions.
 
 **Mixing, shift, table tail correction, restart**\ :
 
-This pair styles does not support the :doc:`pair\_modify <pair_modify>`
+This pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write their information to :doc:`binary restart files <restart>`, since it is stored in potential files. Thus, you
@@ -238,7 +238,7 @@ files.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 
 ----------
@@ -281,8 +281,3 @@ F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
 
 **(Daw)** M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

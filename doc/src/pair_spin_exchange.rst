@@ -55,7 +55,7 @@ in :ref:`(Tranchida) <Tranchida3>`.
 
 From this exchange interaction, each spin :math:`i` will be submitted
 to a magnetic torque :math:`\vec{\omega}`, and its associated atom can be submitted to a
-force :math:`\vec{F}` for spin-lattice calculations (see :doc:`fix\_nve\_spin <fix_nve_spin>`),
+force :math:`\vec{F}` for spin-lattice calculations (see :doc:`fix nve/spin <fix_nve_spin>`),
 such as:
 
 .. math::
@@ -72,9 +72,9 @@ More details about the derivation of these torques/forces are reported in
 :ref:`(Tranchida) <Tranchida3>`.
 
 For the *spin/exchange* pair style, the following coefficients must be defined
-for each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command as in
+for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands, and
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands, and
 set in the following order:
 
 * :math:`R_c` (distance units)
@@ -104,8 +104,8 @@ atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` d
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_eam <pair_eam>`,
+:doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_eam <pair_eam>`,
 
 **Default:**
 

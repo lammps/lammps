@@ -74,11 +74,11 @@ will have the form:
    Fr is proportional to sqrt(Kb T m / (dt damp))
 
 Fc is the conservative force computed via the usual inter-particle
-interactions (:doc:`pair\_style <pair_style>`,
-:doc:`bond\_style <bond_style>`, etc).
+interactions (:doc:`pair_style <pair_style>`,
+:doc:`bond_style <bond_style>`, etc).
 
 The Ff and Fr terms are added by this fix on a per-particle basis.
-See the :doc:`pair\_style dpd/tstat <pair_dpd>` command for a
+See the :doc:`pair_style dpd/tstat <pair_dpd>` command for a
 thermostatting option that adds similar terms on a pairwise basis to
 pairs of interacting particles.
 
@@ -131,7 +131,7 @@ will be evaluated each timestep, and its value used to determine the
 target temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
@@ -145,7 +145,7 @@ with :doc:`compute commands <compute>` that remove a "bias" from the
 atom velocities.  E.g. removing the center-of-mass velocity from a
 group of atoms or removing the x-component of velocity from the
 calculation.  This is not done by default, but only if the
-:doc:`fix\_modify <fix_modify>` command is used to assign a temperature
+:doc:`fix_modify <fix_modify>` command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual :doc:`compute commands <compute>` to determine which ones
 include a bias.  In this case, the thermostat works in the following
@@ -304,13 +304,13 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Langevin thermostatting to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
 setting the *tally* keyword to *yes*\ .
@@ -337,7 +337,7 @@ with run\_style respa.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair\_style dpd/tstat <pair_dpd>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`
 
 Default
 """""""
@@ -379,8 +379,3 @@ types, tally = no, zero = no, gjf = no.
 
 
 **(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

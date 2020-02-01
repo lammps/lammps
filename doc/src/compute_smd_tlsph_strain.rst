@@ -61,8 +61,3 @@ Related commands
 :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -34,7 +34,7 @@ Description
 Specify the pairwise force field coefficients for one or more pairs of
 atom types.  The number and meaning of the coefficients depends on the
 pair style.  Pair coefficients can also be set in the data file read
-by the :doc:`read\_data <read_data>` command or in a restart file.
+by the :doc:`read_data <read_data>` command or in a restart file.
 
 I and J can be specified in one of two ways.  Explicit numeric values
 can be used for each, as in the 1st example above.  I <= J is
@@ -80,7 +80,7 @@ as
 For many potentials, if coefficients for type pairs with I != J are
 not set explicitly by a pair\_coeff command, the values are inferred
 from the I,I and J,J settings by mixing rules; see the
-:doc:`pair\_modify <pair_modify>` command for a discussion.  Details on
+:doc:`pair_modify <pair_modify>` command for a discussion.  Details on
 this option as it pertains to individual potentials are described on
 the doc page for the potential.
 
@@ -132,7 +132,7 @@ Windows:
 
 
 The alphabetic list of pair styles defined in LAMMPS is given on the
-:doc:`pair\_style <pair_style>` doc page.  They are also listed in more
+:doc:`pair_style <pair_style>` doc page.  They are also listed in more
 compact form on the :doc:`Commands pair <Commands_pair>` doc page.
 
 Click on the style to display the formula it computes and its
@@ -147,19 +147,14 @@ Restrictions
 
 
 This command must come after the simulation box is defined by a
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`, or
-:doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
+:doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style <pair_style>`, :doc:`pair\_modify <pair_modify>`,
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`,
-:doc:`pair\_write <pair_write>`
+:doc:`pair_style <pair_style>`, :doc:`pair_modify <pair_modify>`,
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`,
+:doc:`pair_write <pair_write>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -48,7 +48,7 @@ dihedrals, impropers.  This command is useful for deleting
 interactions that have been previously turned off by bond-breaking
 potentials.  It is also useful for turning off topology interactions
 between frozen or rigid atoms.  Pairwise interactions can be turned
-off via the :doc:`neigh\_modify exclude <neigh_modify>` command.  The
+off via the :doc:`neigh_modify exclude <neigh_modify>` command.  The
 :doc:`fix shake <fix_shake>` command also effectively turns off certain
 bond and angle interactions.
 
@@ -83,7 +83,7 @@ must also be of the specified type.  Styles *angle*\ , *dihedral*\ , and
 
 For style *bond*\ , you can set the type to 0 to delete bonds that have
 been previously broken by a bond-breaking potential (which sets the
-bond type to 0 when a bond is broken); e.g. see the :doc:`bond\_style quartic <bond_style>` command.
+bond type to 0 when a bond is broken); e.g. see the :doc:`bond_style quartic <bond_style>` command.
 
 For style *stats* no interactions are turned off (or on); the status
 of all interactions in the specified group is simply reported.  This
@@ -96,7 +96,7 @@ permanently remove the interaction.  E.g. a bond\_type of 2 is set to
 -2.  The neighbor list creation routines will not include such an
 interaction in their interaction lists.  The default is also to not
 alter the list of 1-2, 1-3, 1-4 neighbors computed by the
-:doc:`special\_bonds <special_bonds>` command and used to weight pairwise
+:doc:`special_bonds <special_bonds>` command and used to weight pairwise
 force and energy calculations.  This means that pairwise computations
 will proceed as if the bond (or angle, etc) were still turned on.
 
@@ -144,7 +144,7 @@ shared by multiple processors.  This means that your system must be
 ready to perform a simulation before using this command (force fields
 setup, atom masses set, etc).  Just as would be needed to run
 dynamics, the force field you define should define a cutoff
-(e.g. through a :doc:`pair\_style <pair_style>` command) which is long
+(e.g. through a :doc:`pair_style <pair_style>` command) which is long
 enough for a processor to acquire the ghost atoms its needs to compute
 bond, angle, etc interactions.
 
@@ -157,12 +157,7 @@ which case you probably should be recomputing the weighting list.
 Related commands
 """"""""""""""""
 
-:doc:`neigh\_modify <neigh_modify>` exclude,
-:doc:`special\_bonds <special_bonds>`, :doc:`fix shake <fix_shake>`
+:doc:`neigh_modify <neigh_modify>` exclude,
+:doc:`special_bonds <special_bonds>`, :doc:`fix shake <fix_shake>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -40,9 +40,9 @@ so as to balance secondary (largely driven by local interactions) and
 tertiary structure (driven by long-range interactions).
 
 The following coefficients must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * A (energy)
 * B (energy)
@@ -85,7 +85,7 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 
@@ -98,8 +98,3 @@ Related commands
 
 
 **(Guo)** Guo and Thirumalai, Journal of Molecular Biology, 263, 323-43 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

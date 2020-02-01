@@ -39,8 +39,8 @@ configuration should approximate a critical point for the objective
 function (see below), which may or may not be a local minimum.
 
 The minimization algorithm used is set by the
-:doc:`min\_style <min_style>` command.  Other options are set by the
-:doc:`min\_modify <min_modify>` command.  Minimize commands can be
+:doc:`min_style <min_style>` command.  Other options are set by the
+:doc:`min_modify <min_modify>` command.  Minimize commands can be
 interspersed with :doc:`run <run>` commands to alternate between
 relaxation and dynamics.  The minimizers bound the distance atoms move
 in one iteration, so that you can relax systems with highly overlapped
@@ -50,12 +50,14 @@ other.
 Alternate means of relaxing a system are to run dynamics with a small
 or :doc:`limited timestep <fix_nve_limit>`.  Or dynamics can be run
 using :doc:`fix viscous <fix_viscous>` to impose a damping force that
-slowly drains all kinetic energy from the system.  The :doc:`pair\_style soft <pair_soft>` potential can be used to un-overlap atoms while
+slowly drains all kinetic energy from the system.  The :doc:`pair_style soft <pair_soft>` potential can be used to un-overlap atoms while
 running dynamics.
+un-overlap atoms while running dynamics.
 
 Note that you can minimize some atoms in the system while holding the
-coordinates of other atoms fixed by applying :doc:`fix setforce <fix_setforce>` to the other atoms.  See a fuller
-discussion of using fixes while minimizing below.
+coordinates of other atoms fixed by applying :doc:`fix setforce
+<fix_setforce>` to the other atoms.  See a fuller discussion of using
+fixes while minimizing below.
 
 The :doc:`minimization styles <min_style>` *cg*\ , *sd*\ , and *hftn*
 involves an outer iteration loop which sets the search direction along
@@ -68,16 +70,16 @@ be more robust than previous line searches we've tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
-The :doc:`minimization styles <min_style>` *quickmin* and *fire* perform
-damped dynamics using an Euler integration step.  Thus they require a
-:doc:`timestep <timestep>` be defined.
+The :doc:`minimization styles <min_style>` *quickmin*\ , *fire* and
+*fire/old* perform damped dynamics using an Euler integration step.  Thus
+they require a :doc:`timestep <timestep>` be defined.
 
 .. note::
 
    The damped dynamic minimizers use whatever timestep you have
-   defined via the :doc:`timestep <timestep>` command.  Often they will
-   converge more quickly if you use a timestep about 10x larger than you
-   would normally use for dynamics simulations.
+   defined via the :doc:`timestep <timestep>` command.  Often they
+   will converge more quickly if you use a timestep about 10x larger
+   than you would normally use for dynamics simulations.
 
 
 ----------
@@ -90,13 +92,15 @@ coordinates:
 .. image:: Eqs/min_energy.jpg
    :align: center
 
-where the first term is the sum of all non-bonded :doc:`pairwise interactions <pair_style>` including :doc:`long-range Coulombic interactions <kspace_style>`, the 2nd through 5th terms are
-:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
-:doc:`dihedral <dihedral_style>`, and :doc:`improper <improper_style>`
-interactions respectively, and the last term is energy due to
-:doc:`fixes <fix>` which can act as constraints or apply force to atoms,
-such as through interaction with a wall.  See the discussion below about
-how fix commands affect minimization.
+where the first term is the sum of all non-bonded :doc:`pairwise
+interactions <pair_style>` including :doc:`long-range Coulombic
+interactions <kspace_style>`, the 2nd through 5th terms are :doc:`bond
+<bond_style>`, :doc:`angle <angle_style>`, :doc:`dihedral
+<dihedral_style>`, and :doc:`improper <improper_style>` interactions
+respectively, and the last term is energy due to :doc:`fixes <fix>`
+which can act as constraints or apply force to atoms, such as through
+interaction with a wall.  See the discussion below about how fix
+commands affect minimization.
 
 The starting point for the minimization is the current configuration
 of the atoms.
@@ -126,9 +130,9 @@ The minimization procedure stops if any of several criteria are met:
 .. note::
 
    You can also use the :doc:`fix halt <fix_halt>` command to specify
-   a general criterion for exiting a minimization, that is a calculation
-   performed on the state of the current system, as defined by an
-   :doc:`equal-style variable <variable>`.
+   a general criterion for exiting a minimization, that is a
+   calculation performed on the state of the current system, as
+   defined by an :doc:`equal-style variable <variable>`.
 
 For the first criterion, the specified energy tolerance *etol* is
 unitless; it is met when the energy change between successive
@@ -155,7 +159,7 @@ During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 
-Using the :doc:`thermo\_style custom <thermo_style>` command with the
+Using the :doc:`thermo_style custom <thermo_style>` command with the
 *fmax* or *fnorm* keywords can be useful for monitoring the progress
 of the minimization.  Note that these outputs will be calculated only
 from forces on the atoms, and will not include any extra degrees of
@@ -163,8 +167,8 @@ freedom, such as from the :doc:`fix box/relax <fix_box_relax>` command.
 
 Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
-information about the energy, force, final line search, and
-iteration counts.  An example is as follows:
+information about the energy, force, final line search, and iteration
+counts.  An example is as follows:
 
 
 .. parsed-literal::
@@ -228,14 +232,14 @@ The iterations and force evaluation values are what is checked by the
 
 Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the
-:doc:`pair\_modify <pair_modify>` command.  See the doc pages for
+:doc:`pair_modify <pair_modify>` command.  See the doc pages for
 individual :doc:`pair styles <pair_style>` for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
-long-range component are used (e.g. :doc:`pair\_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
-the cutoff (e.g. :doc:`pair\_style lj/charmm/coul/charmm <pair_charmm>`),
-as do the GROMACS potentials (e.g. :doc:`pair\_style lj/gromacs <pair_gromacs>`).
+long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
+the cutoff (e.g. :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`),
+as do the GROMACS potentials (e.g. :doc:`pair_style lj/gromacs <pair_gromacs>`).
 
-If a soft potential (:doc:`pair\_style soft <pair_soft>`) is used the
+If a soft potential (:doc:`pair_style soft <pair_soft>`) is used the
 Astop value is used for the prefactor (no time dependence).
 
 The :doc:`fix box/relax <fix_box_relax>` command can be used to apply an
@@ -266,7 +270,7 @@ that can be used include:
    Some fixes which are invoked during minimization have an
    associated potential energy.  For that energy to be included in the
    total potential energy of the system (the quantity being minimized),
-   you MUST enable the :doc:`fix\_modify <fix_modify>` *energy* option for
+   you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
    that fix.  The doc pages for individual :doc:`fix <fix>` commands
    specify if this should be done.
 
@@ -321,7 +325,7 @@ algorithm.
 is not an error to have it defined, but the energy minimization will
 not keep the defined body(s) rigid during the minimization.  Note that
 if bonds, angles, etc internal to a rigid body have been turned off
-(e.g. via :doc:`neigh\_modify exclude <neigh_modify>`), they will not
+(e.g. via :doc:`neigh_modify exclude <neigh_modify>`), they will not
 contribute to the potential energy which is probably not what is
 desired.
 
@@ -333,12 +337,7 @@ system will not fully relax.
 Related commands
 """"""""""""""""
 
-:doc:`min\_modify <min_modify>`, :doc:`min\_style <min_style>`,
-:doc:`run\_style <run_style>`
+:doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
+:doc:`run_style <run_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -76,7 +76,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
-:doc:`thermo\_style <thermo_style>`,
+:doc:`thermo_style <thermo_style>`,
 
 **Default:** none
 
@@ -89,8 +89,3 @@ Related commands
 
 
 **(Addington)** Addington, Long, Gubbins, J Chem Phys, 149, 084109 (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

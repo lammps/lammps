@@ -54,9 +54,9 @@ This potential is commonly used to study the shock mechanics of FCC
 solids, as in Ravelo et al. :ref:`(Ravelo) <Ravelo2>`.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the example above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the example above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -101,15 +101,15 @@ The default mix value is *geometric*\ .  See the "pair\_modify" command
 for details.
 
 The lj/cubic pair style does not support the
-:doc:`pair\_modify <pair_modify>` shift option,
+:doc:`pair_modify <pair_modify>` shift option,
 since pair interaction is already smoothed to 0.0 at the
 cutoff.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
 The lj/cubic pair style does not support the
-:doc:`pair\_modify <pair_modify>` tail option for adding long-range tail
+:doc:`pair_modify <pair_modify>` tail option for adding long-range tail
 corrections to energy and pressure, since there are no corrections for
 a potential that goes to 0.0 at the cutoff.
 
@@ -117,7 +117,7 @@ The lj/cubic pair style writes its information to :doc:`binary restart files <re
 not need to be specified in an input script that reads a restart file.
 
 The lj/cubic pair style can only be used via the *pair*
-keyword of the :doc:`run\_style respa <run_style>` command.  It does not
+keyword of the :doc:`run_style respa <run_style>` command.  It does not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -131,7 +131,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -149,8 +149,3 @@ Related commands
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

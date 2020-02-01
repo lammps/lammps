@@ -14,8 +14,3 @@ These pages provide a brief introduction to LAMMPS.
    Intro_opensource
    Intro_authors
    Intro_website
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

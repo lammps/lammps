@@ -58,6 +58,18 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   linestyle = 1;
   normstyle = TWO;
 
+  delaystep = 20;
+  dtgrow = 1.1;
+  dtshrink = 0.5;
+  alpha0 = 0.25;
+  alphashrink = 0.99;
+  tmax = 10.0;
+  tmin = 0.02;
+  integrator = 0;
+  halfstepback_flag = 1;
+  delaystep_start_flag = 1;
+  max_vdotf_negatif = 2000;
+
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = cvlist_atom = NULL;
 
@@ -184,6 +196,10 @@ void Min::init()
   neighbor->dist_check = 1;
 
   niter = neval = 0;
+
+  // store timestep size (important for variable timestep minimizer)
+
+  dtinit = update->dt;
 }
 
 /* ----------------------------------------------------------------------
@@ -473,6 +489,10 @@ void Min::cleanup()
 
   modify->delete_fix("MINIMIZE");
   domain->box_too_small_check();
+
+  // reset timestep size (important for variable timestep minimizer)
+
+  update->dt = dtinit;
 }
 
 /* ----------------------------------------------------------------------
@@ -657,6 +677,58 @@ void Min::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"delaystep") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      delaystep = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dtgrow") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      dtgrow = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dtshrink") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      dtshrink = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"alpha0") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      alpha0 = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"alphashrink") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      alphashrink = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tmax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      tmax = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tmin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      tmin = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"halfstepback") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) halfstepback_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) halfstepback_flag = 0;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"initialdelay") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) delaystep_start_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) delaystep_start_flag = 0;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vdfmax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"integrator") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
+      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = 1;
+      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
+      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
+      else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -999,6 +1071,7 @@ char *Min::stopstrings(int n)
                            "quadratic factors are zero",
                            "trust region too small",
                            "HFTN minimizer error",
-                           "walltime limit reached"};
+                           "walltime limit reached",
+                           "max iterations with v.f negative"};
   return (char *) strings[n];
 }

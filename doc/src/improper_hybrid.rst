@@ -32,7 +32,7 @@ example, impropers in a polymer flow (of improper type 1) could be
 computed with a *harmonic* potential and impropers in the wall
 boundary (of improper type 2) could be computed with a *cvff*
 potential.  The assignment of improper type to style is made via the
-:doc:`improper\_coeff <improper_coeff>` command or in the data file.
+:doc:`improper_coeff <improper_coeff>` command or in the data file.
 
 In the improper\_coeff command, the first coefficient sets the improper
 style and the remaining coefficients are those appropriate to that
@@ -73,11 +73,6 @@ restart file, you need to re-specify improper\_coeff commands.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6194,7 +6194,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -6209,7 +6209,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -6224,7 +6224,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -8415,10 +8415,3 @@ keyword to allow for additional bonds to be formed
 
 *Zero-length lattice orient vector*
    Self-explanatory.
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

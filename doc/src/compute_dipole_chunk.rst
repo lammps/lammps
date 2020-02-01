@@ -59,7 +59,7 @@ non-zero chunk IDs.
    dipole in "unwrapped" form, by using the image flags
    associated with each atom.  See the :doc:`dump custom <dump>` command
    for a discussion of "unwrapped" coordinates.  See the Atoms section of
-   the :doc:`read\_data <read_data>` command for a discussion of image flags
+   the :doc:`read_data <read_data>` command for a discussion of image flags
    and how they are set for each atom.  You can reset the image flags
    (e.g. to 0) before invoking this compute by using the :doc:`set image <set>` command.
 
@@ -96,8 +96,3 @@ Related commands
 :doc:`compute com/chunk <compute_com_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -40,9 +40,9 @@ and omega is the angle between the IL axis and the IJK plane:
 If all parameter (see below) is not zero, the all the three possible angles will taken in account.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * K (energy)
@@ -88,11 +88,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

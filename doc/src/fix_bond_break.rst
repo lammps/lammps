@@ -43,7 +43,7 @@ Break bonds between pairs of atoms as a simulation runs according to
 specified criteria.  This can be used to model the dissolution of a
 polymer network due to stretching of the simulation box or other
 deformations.  In this context, a bond means an interaction between a
-pair of atoms computed by the :doc:`bond\_style <bond_style>` command.
+pair of atoms computed by the :doc:`bond_style <bond_style>` command.
 Once the bond is broken it will be permanently deleted, as will all
 angle, dihedral, and improper interactions that bond is part of.
 
@@ -100,7 +100,7 @@ neighbor lists must be immediately updated on the same timestep.  This
 is to insure that any pairwise interactions that should be turned "on"
 due to a bond breaking, because they are no longer excluded by the
 presence of the bond and the settings of the
-:doc:`special\_bonds <special_bonds>` command, will be immediately
+:doc:`special_bonds <special_bonds>` command, will be immediately
 recognized.  All of these operations increase the cost of a timestep.
 Thus you should be cautious about invoking this fix too frequently.
 
@@ -123,7 +123,7 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
@@ -150,14 +150,9 @@ Related commands
 """"""""""""""""
 
 :doc:`fix bond/create <fix_bond_create>`, :doc:`fix bond/react <fix_bond_react>`, :doc:`fix bond/swap <fix_bond_swap>`,
-:doc:`dump local <dump>`, :doc:`special\_bonds <special_bonds>`
+:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`
 
 Default
 """""""
 
 The option defaults are prob = 1.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

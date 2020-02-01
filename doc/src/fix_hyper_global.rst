@@ -210,7 +210,7 @@ algorithm.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of the bias potential to the system's
 potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -294,8 +294,3 @@ Related commands
 
 
 **(Miron)** R. A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

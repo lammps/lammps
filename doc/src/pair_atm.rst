@@ -53,7 +53,7 @@ the same for all those permutations of the atom types of I,J,K
 and needs to be specified only once, as discussed below.
 
 The *atm* potential is typically used in combination with a two-body
-potential using the :doc:`pair\_style hybrid/overlay <pair_hybrid>`
+potential using the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command as in the example above.
 
 The potential for a triplet of atom is calculated only if all 3
@@ -63,9 +63,9 @@ cutoff\_triple\^3 is required, which excludes from calculation the
 triplets with small contribution to the interaction.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the restart files read by the
-:doc:`read\_restart <read_restart>` commands:
+:doc:`read_restart <read_restart>` commands:
 
 * K = atom type of the third atom (1 to Ntypes)
 * nu = prefactor (energy/distance\^9 units)
@@ -147,18 +147,18 @@ combinations, else an error will result.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair styles do not support the :doc:`pair\_modify <pair_modify>`
+This pair styles do not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 However, if the *atm* potential is used in combination with other
-potentials using the :doc:`pair\_style hybrid/overlay <pair_hybrid>`
+potentials using the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command then pair\_coeff commands need to be re-specified
 in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -175,7 +175,7 @@ if LAMMPS was built with that package.  See the :doc:`Build package <Build_packa
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -190,8 +190,3 @@ Related commands
 **(Axilrod)**
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);
 Muto, Nippon Sugaku-Buturigakkwaishi 17, 629 (1943).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

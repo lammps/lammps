@@ -53,7 +53,7 @@ Restrain the motion of the specified sets of atoms by making them part
 of a bond or angle or dihedral interaction whose strength can vary
 over time during a simulation.  This is functionally similar to
 creating a bond or angle or dihedral for the same atoms in a data
-file, as specified by the :doc:`read\_data <read_data>` command, albeit
+file, as specified by the :doc:`read_data <read_data>` command, albeit
 with a time-varying pre-factor coefficient, and except for exclusion
 rules, as explained below.
 
@@ -68,9 +68,9 @@ data file.
 
    Adding a bond/angle/dihedral with this command does not apply
    the exclusion rules and weighting factors specified by the
-   :doc:`special\_bonds <special_bonds>` command to atoms in the restraint
+   :doc:`special_bonds <special_bonds>` command to atoms in the restraint
    that are now bonded (1-2,1-3,1-4 neighbors) as a result.  If they are
-   close enough to interact in a :doc:`pair\_style <pair_style>` sense
+   close enough to interact in a :doc:`pair_style <pair_style>` sense
    (non-bonded interaction), then the bond/angle/dihedral restraint
    interaction will simply be superposed on top of that interaction.
 
@@ -131,7 +131,7 @@ as the following may be useful:
 
 
 The *bond* keyword applies a bond restraint to the specified atoms
-using the same functional form used by the :doc:`bond\_style harmonic <bond_harmonic>` command.  The potential associated with
+using the same functional form used by the :doc:`bond_style harmonic <bond_harmonic>` command.  The potential associated with
 the restraint is
 
 .. math::
@@ -152,7 +152,7 @@ is included in :math:`K`.
 
 
 The *angle* keyword applies an angle restraint to the specified atoms
-using the same functional form used by the :doc:`angle\_style harmonic <angle_harmonic>` command.  The potential associated with
+using the same functional form used by the :doc:`angle_style harmonic <angle_harmonic>` command.  The potential associated with
 the restraint is
 
 .. math::
@@ -173,7 +173,7 @@ factor is included in :math:`K`.
 
 The *dihedral* keyword applies a dihedral restraint to the specified
 atoms using a simplified form of the function used by the
-:doc:`dihedral\_style charmm <dihedral_charmm>` command.  The potential
+:doc:`dihedral_style charmm <dihedral_charmm>` command.  The potential
 associated with the restraint is
 
 .. math::
@@ -201,11 +201,11 @@ current dihedral angle :math:`\phi` is equal to :math:`\phi_0`.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential energy associated with this fix to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -214,7 +214,7 @@ integrator the fix is adding its forces. Default is the outermost level.
    If you want the fictitious potential energy associated with the
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
-   :doc:`fix\_modify <fix_modify>` *energy* option for this fix.
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 This fix computes a global scalar and a global vector of length 3,
 which can be accessed by various :doc:`output commands <Howto_output>`.

@@ -59,7 +59,7 @@ put back inside the face by the same delta, and the sign of the
 corresponding component of its velocity is flipped.
 
 When used in conjunction with :doc:`fix nve <fix_nve>` and
-:doc:`run\_style verlet <run_style>`, the resultant time-integration
+:doc:`run_style verlet <run_style>`, the resultant time-integration
 algorithm is equivalent to the primitive splitting algorithm (PSA)
 described by :ref:`Bond <Bond1>`.  Because each reflection event
 divides the corresponding timestep asymmetrically, energy conservation
@@ -83,7 +83,7 @@ where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
 can specify formulas with various mathematical functions, and include
-:doc:`thermo\_style <thermo_style>` command keywords for the simulation
+:doc:`thermo_style <thermo_style>` command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.
 
@@ -177,7 +177,7 @@ instructions on how to use the accelerated styles effectively.
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`.  None of the :doc:`fix\_modify <fix_modify>` options are
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.  No global or per-atom quantities are stored by
 this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -214,8 +214,3 @@ The default for the units keyword is lattice.
 
 
 **(Bond)** Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

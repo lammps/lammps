@@ -44,16 +44,11 @@ Restrictions
 
 
 This fix should be invoked before any other commands that implement
-the Drude oscillator model, such as :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair\_style thole <pair_thole>`.
+the Drude oscillator model, such as :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair_style thole <pair_thole>`.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair\_style thole <pair_thole>`
+:doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair_style thole <pair_thole>`
 
 **Default:** None
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

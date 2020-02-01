@@ -60,8 +60,3 @@ Related commands
 :doc:`smd/hourglass/error <compute_smd_hourglass_error>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

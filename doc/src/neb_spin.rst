@@ -171,8 +171,8 @@ For a *file-style* setting of *none*\ , no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
-dump file, via the :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>`, or :doc:`read\_dump <read_dump>`
+dump file, via the :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`read_dump <read_dump>`
 commands.  The replica-specific names of these files can be specified
 as in the discussion above for the *each* file-style.  Also see the
 section below for how a NEB calculation can produce restart files, so
@@ -192,9 +192,9 @@ that a long calculation can be restarted if needed.
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure.  To enable
 this, you must first define a
-:doc:`min\_style <min_style>`, using either the *spin*\ ,
+:doc:`min_style <min_style>`, using either the *spin*\ ,
 *spin/cg*\ , or *spin/lbfgs* style (see
-:doc:`min\_spin <min_spin>` for more information).  
+:doc:`min_spin <min_spin>` for more information).  
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 
@@ -253,7 +253,7 @@ profile of the transition along the MEP.
 ----------
 
 
-An atom map must be defined which it is not by default for :doc:`atom\_style atomic <atom_style>` problems.  The :doc:`atom\_modify map <atom_modify>` command can be used to do this.
+An atom map must be defined which it is not by default for :doc:`atom_style atomic <atom_style>` problems.  The :doc:`atom_modify map <atom_modify>` command can be used to do this.
 
 An initial value can be defined for the timestep. Although, the *spin*
 minimization algorithm is an adaptive timestep methodology, so that
@@ -389,8 +389,9 @@ This command can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-For magnetic GNEB calculations, only *spin\_none* value for *line* keyword can be used
-when styles *spin/cg* and *spin/lbfgs* are employed.
+For magnetic GNEB calculations, only the *spin\_none* value for the
+*line* keyword can be used when minimization styles *spin/cg* and
+*spin/lbfgs* are employed.
 
 
 ----------
@@ -416,8 +417,3 @@ none
 
 **(BessarabA)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

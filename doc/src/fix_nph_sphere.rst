@@ -90,11 +90,11 @@ IDs of the new computes are the fix-ID + underscore + "temp" or fix\_ID
 since pressure is computed for the entire system.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
@@ -122,12 +122,12 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the state of the Nose/Hoover barostat to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>`
+This fix writes the state of the Nose/Hoover barostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by this fix.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its thermostatting or barostatting procedure.  If you do this, note
@@ -136,7 +136,7 @@ consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Nose/Hoover barostatting to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -154,7 +154,7 @@ Restrictions
 
 
 This fix requires that atoms store torque and angular velocity (omega)
-and a radius as defined by the :doc:`atom\_style sphere <atom_style>`
+and a radius as defined by the :doc:`atom_style sphere <atom_style>`
 command.
 
 All particles in the group must be finite-size spheres.  They cannot
@@ -167,11 +167,6 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nph <fix_nh>`, :doc:`fix nve\_sphere <fix_nve_sphere>`, :doc:`fix nvt\_sphere <fix_nvt_sphere>`, :doc:`fix npt\_sphere <fix_npt_sphere>`,
-:doc:`fix\_modify <fix_modify>`
+:doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -211,12 +211,12 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to keeping the constraints to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial yes*
 
-No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to these fixes.  No global or per-atom quantities are
 stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
 with the *start/stop* keywords of the :doc:`run <run>` command.  These
@@ -263,8 +263,3 @@ J of Comp Phys, 23, 327-341 (1977).
 
 
 **(Andersen)** H. Andersen, J of Comp Phys, 52, 24-34 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

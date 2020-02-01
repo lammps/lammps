@@ -201,7 +201,7 @@ types (alpha, beta) and (beta, alpha) if need be (Here, the notation (alpha,
 beta) means that alpha is the central atom to which the LD potential is applied
 and beta is the neighbor atom which contributes to the LD potential on alpha).
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The local/density pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
@@ -222,7 +222,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -246,8 +246,3 @@ Related commands
 
 
 **(Rosenberger)** Rosenberger, Sanyal, Shell and van der Vegt,  Journal of Chemical Physics, 2019, 151 (4), 044111.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

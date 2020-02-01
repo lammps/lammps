@@ -86,8 +86,3 @@ Related commands
 :doc:`smd/wall\_surface <fix_smd_wall_surface>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

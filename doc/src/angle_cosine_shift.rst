@@ -39,9 +39,9 @@ between :math:`-U_{\text{min}}` and zero. In the neighborhood of the minimum
 the spring constant is :math:`\frac{U_{\text{min}}}{2}`.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`U_{\text{min}}` (energy)
 * :math:`\theta` (angle)
@@ -82,7 +82,7 @@ USER-MISC package.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`,
-:doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
+:doc:`angle_coeff <angle_coeff>`,
+:doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none

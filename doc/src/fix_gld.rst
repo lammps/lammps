@@ -137,7 +137,7 @@ do "exact" restarts with this fix, where the simulation continues on
 the same as if no restart had taken place. However, in a statistical
 sense, a restarted simulation should produce the same behavior.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.
 
@@ -158,7 +158,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix langevin <fix_langevin>`, :doc:`fix viscous <fix_viscous>`,
-:doc:`pair\_style dpd/tstat <pair_dpd>`
+:doc:`pair_style dpd/tstat <pair_dpd>`
 
 Default
 """""""
@@ -174,8 +174,3 @@ The option defaults are frozen = no, zero = no.
 
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

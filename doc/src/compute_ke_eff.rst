@@ -38,7 +38,7 @@ radial velocity of the electron, respectively.
 There is a subtle difference between the quantity calculated by this
 compute and the kinetic energy calculated by the *ke* or *etotal*
 keyword used in thermodynamic output, as specified by the
-:doc:`thermo\_style <thermo_style>` command.  For this compute, kinetic
+:doc:`thermo_style <thermo_style>` command.  For this compute, kinetic
 energy is "translational" and "radial" (only for electrons) kinetic
 energy, calculated by the simple formula above.  For thermodynamic
 output, the *ke* keyword infers kinetic energy from the temperature of
@@ -51,7 +51,7 @@ degrees of freedom.
 IMPRORTANT NOTE: The temperature in eFF models should be monitored via
 the :doc:`compute temp/eff <compute_temp_eff>` command, which can be
 printed with thermodynamic output by using the
-:doc:`thermo\_modify <thermo_modify>` command, as shown in the following
+:doc:`thermo_modify <thermo_modify>` command, as shown in the following
 example:
 
 
@@ -83,8 +83,3 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

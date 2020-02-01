@@ -54,7 +54,7 @@ command to specify them.
   Note that ADP potentials obtained from NIST must be converted
   into the extended DYNAMO *setfl* format discussed below.
 * The OpenKIM Project at https://openkim.org/browse/models/by-type provides
-  ADP potentials that can be used directly in LAMMPS with the :doc:`kim\_commands interface <kim_commands>`.
+  ADP potentials that can be used directly in LAMMPS with the :doc:`kim_commands interface <kim_commands>`.
 
 ----------
 
@@ -68,7 +68,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of extended *setfl* elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways to
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways to
 specify the path for the potential file.
 
 As an example, the potentials/AlCu.adp file, included in the
@@ -99,7 +99,7 @@ that will be used with other potentials.
 have an ".adp" suffix.  A DYNAMO *setfl* file extended for ADP is
 formatted as follows.  Basically it is the standard *setfl* format
 with additional tabulated functions u and w added to the file after
-the tabulated pair potentials.  See the :doc:`pair\_eam <pair_eam>`
+the tabulated pair potentials.  See the :doc:`pair_eam <pair_eam>`
 command for further details on the *setfl* format.
 
 * lines 1,2,3 = comments (ignored)
@@ -159,7 +159,7 @@ For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, no special mixing rules are needed, since
 the ADP potential files specify alloy interactions explicitly.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
@@ -167,7 +167,7 @@ Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -184,7 +184,7 @@ if LAMMPS was built with that package.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_eam <pair_eam>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_eam <pair_eam>`
 
 **Default:** none
 
@@ -204,8 +204,3 @@ Related commands
 
 
 **(Singh)** Singh and Warner, Acta Mater, 58, 5797-5805 (2010),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

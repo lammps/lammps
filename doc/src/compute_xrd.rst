@@ -271,8 +271,3 @@ Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 **(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

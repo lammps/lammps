@@ -90,7 +90,7 @@ and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 fo
 
    These pair styles have to be used together with the related oxDNA2 bond style
    *oxdna2/fene* for the connectivity of the phosphate backbone (see also documentation of
-   :doc:`bond\_style oxdna2/fene <bond_oxdna>`). Most of the coefficients
+   :doc:`bond_style oxdna2/fene <bond_oxdna>`). Most of the coefficients
    in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
    Exceptions are the first four coefficients after *oxdna2/stk* (seq=seqdep, T=0.1, xi=1.3523 and kappa=2.6717 in the above example),
    the first coefficient after *oxdna2/hbond* (seq=seqdep in the above example) and the three coefficients
@@ -124,9 +124,9 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`pair\_style oxdna/excv <pair_oxdna>`,
-:doc:`bond\_style oxrna2/fene <bond_oxdna>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`,
+:doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`,
+:doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 **Default:** none
@@ -153,8 +153,3 @@ Related commands
 .. _Ouldridge2:
 
 **(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

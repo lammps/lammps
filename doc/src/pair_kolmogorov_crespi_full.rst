@@ -134,13 +134,13 @@ units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_none <pair_none>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style drip <pair_drip>`,
-:doc:`pair\_style pair\_lebedeva\_z <pair_lebedeva_z>`,
-:doc:`pair\_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_none <pair_none>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style pair\_lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
 **Default:** tap\_flag = 0
 
@@ -165,8 +165,3 @@ Related commands
 
 
 **(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -18,8 +18,3 @@ LAMMPS build process.
    Packages_standard
    Packages_user
    Packages_details
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

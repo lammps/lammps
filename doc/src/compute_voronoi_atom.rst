@@ -178,8 +178,8 @@ Voro++ software in the src/VORONOI/README file.
    systems, but may lead to underestimation of Voronoi volumes in low
    density systems.  By default, the set of ghost atoms stored by each
    processor is determined by the cutoff used for
-   :doc:`pair\_style <pair_style>` interactions.  The cutoff can be set
-   explicitly via the :doc:`comm\_modify cutoff <comm_modify>` command.  The
+   :doc:`pair_style <pair_style>` interactions.  The cutoff can be set
+   explicitly via the :doc:`comm_modify cutoff <comm_modify>` command.  The
    Voronoi cells for atoms adjacent to empty regions will extend into
    those regions up to the communication cutoff in x, y, or z.  In that
    situation, an exterior face is created at the cutoff distance normal
@@ -198,7 +198,7 @@ Voro++ software in the src/VORONOI/README file.
    Voronoi cell can be obtained by dividing its volume by the z extent of
    the simulation box.  Note that you define the z extent of the
    simulation box for 2d simulations when using the
-   :doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` commands.
+   :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 
 **Output info:**
 
@@ -249,8 +249,3 @@ Related commands
 :doc:`dump custom <dump>`, :doc:`dump local <dump>`
 
 **Default:** *neighbors* no, *peratom* yes
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

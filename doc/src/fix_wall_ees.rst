@@ -116,7 +116,7 @@ This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms be ellipsoids as defined by the
-:doc:`atom\_style ellipsoid <atom_style>` command.
+:doc:`atom_style ellipsoid <atom_style>` command.
 
 Related commands
 """"""""""""""""
@@ -138,8 +138,3 @@ none
 
 
 **(Babadi)** Babadi and Ejtehadi, EPL, 77 (2007) 23002.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

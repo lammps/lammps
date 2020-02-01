@@ -249,7 +249,7 @@ well for many solid-state systems.
    atoms move (between quenched states) to be considered an "event".  It
    is an argument to the "compute event/displace" command used to detect
    events.  By default the ghost communication distance is set by the
-   pair\_style cutoff, which will typically be < *Dcut*\ .  The :doc:`comm\_modify cutoff <comm_modify>` command should be used to override the ghost
+   pair\_style cutoff, which will typically be < *Dcut*\ .  The :doc:`comm_modify cutoff <comm_modify>` command should be used to override the ghost
    cutoff explicitly, e.g.
 
 
@@ -378,7 +378,7 @@ enabled by these keywords.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of the bias potential to the system's potential
 energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -475,7 +475,7 @@ the communication cutoff for ghosts is too close to *Dcut* leading to
 many not-found ghost atoms before the next event.  This may lead to a
 reduced number of bonds being selected for biasing, since the code
 assumes those atoms are part of highly strained bonds.  As explained
-above, the :doc:`comm\_modify cutoff <comm_modify>` command can be used
+above, the :doc:`comm_modify cutoff <comm_modify>` command can be used
 to set a longer cutoff.
 
 For value 22, no two bonds should be biased if they are within a
@@ -570,8 +570,3 @@ default.
 
 
 **(Miron)** R. A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

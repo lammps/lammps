@@ -66,15 +66,15 @@ or 4 specified atoms.
 
 The new bond (angle, dihedral, improper) interactions will then be computed
 during a simulation by the bond (angle, dihedral, improper) potential defined by
-the :doc:`bond\_style <bond_style>`, :doc:`bond\_coeff <bond_coeff>`,
-:doc:`angle\_style <angle_style>`, :doc:`angle\_coeff <angle_coeff>`,
-:doc:`dihedral\_style <dihedral_style>`,
-:doc:`dihedral\_coeff <dihedral_coeff>`, :doc:`improper\_style <improper_style>`,
-:doc:`improper\_coeff <improper_coeff>` commands.
+the :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`,
+:doc:`angle_style <angle_style>`, :doc:`angle_coeff <angle_coeff>`,
+:doc:`dihedral_style <dihedral_style>`,
+:doc:`dihedral_coeff <dihedral_coeff>`, :doc:`improper_style <improper_style>`,
+:doc:`improper_coeff <improper_coeff>` commands.
 
 The *many* style is useful for adding bonds to a system, e.g. between
 nearest neighbors in a lattice of atoms, without having to enumerate
-all the bonds in the data file read by the :doc:`read\_data <read_data>`
+all the bonds in the data file read by the :doc:`read_data <read_data>`
 command.
 
 The *single* styles are useful for adding bonds, angles, dihedrals, impropers
@@ -97,10 +97,10 @@ data file for a complex system of molecules.
    bonds per atom are set to large enough values.  And similarly for
    angles, dihedrals and impropers.  Otherwise an error may occur when too many
    bonds (angles, dihedrals, impropers) are added to an atom.  If the
-   :doc:`read\_data <read_data>` command is used to define the system, these
+   :doc:`read_data <read_data>` command is used to define the system, these
    parameters can be set via the "bond types" and "extra bond per atom"
    fields in the header section of the data file.  If the
-   :doc:`create\_box <create_box>` command is used to define the system,
+   :doc:`create_box <create_box>` command is used to define the system,
    these 2 parameters can be set via its optional "bond/types" and
    "extra/bond/per/atom" arguments.  And similarly for angles, dihedrals and
    impropers.  See the doc pages for these 2 commands for details.
@@ -122,9 +122,9 @@ The following settings must have been made in an input script before
 this style is used:
 
 * special\_bonds weight for 1-2 interactions must be 0.0
-* a :doc:`pair\_style <pair_style>` must be defined
-* no :doc:`kspace\_style <kspace_style>` defined
-* minimum :doc:`pair\_style <pair_style>` cutoff + :doc:`neighbor <neighbor>` skin >= *rmax*
+* a :doc:`pair_style <pair_style>` must be defined
+* no :doc:`kspace_style <kspace_style>` defined
+* minimum :doc:`pair_style <pair_style>` cutoff + :doc:`neighbor <neighbor>` skin >= *rmax*
 
 These settings are required so that a neighbor list can be created to
 search for nearby atoms.  Pairs of atoms that are already bonded
@@ -134,8 +134,8 @@ a distance that encompasses the *rmax* for new bonds to create.
 
 An additional requirement for this style is that your system must be
 ready to perform a simulation.  This means, for example, that all
-:doc:`pair\_style <pair_style>` coefficients be set via the
-:doc:`pair\_coeff <pair_coeff>` command.  A :doc:`bond\_style <bond_style>`
+:doc:`pair_style <pair_style>` coefficients be set via the
+:doc:`pair_coeff <pair_coeff>` command.  A :doc:`bond_style <bond_style>`
 command and all bond coefficients must also be set, even if no bonds
 exist before this command is invoked.  This is because the building of
 neighbor list requires initialization and setup of a simulation,
@@ -143,7 +143,7 @@ similar to what a :doc:`run <run>` command would require.
 
 Note that you can change any of these settings after this command
 executes, e.g. if you wish to use long-range Coulombic interactions
-via the :doc:`kspace\_style <kspace_style>` command for your subsequent
+via the :doc:`kspace_style <kspace_style>` command for your subsequent
 simulation.
 
 
@@ -157,7 +157,7 @@ between 1 and the number of bond types defined.
 The *single/angle* style creates a single angle of type *atype*
 between three atoms with IDs *aatom1*\ , *aatom2*\ , and *aatom3*\ .  The
 ordering of the atoms is the same as in the *Angles* section of a data
-file read by the :doc:`read\_data <read_data>` command.  I.e. the 3 atoms are
+file read by the :doc:`read_data <read_data>` command.  I.e. the 3 atoms are
 ordered linearly within the angle; the central atom is *aatom2*\ .
 *Atype* must be a value between 1 and the number of angle types
 defined.
@@ -165,14 +165,14 @@ defined.
 The *single/dihedral* style creates a single dihedral of type *dtype*
 between four atoms with IDs *datom1*\ , *datom2*\ , *datom3*\ , and *datom4*\ .  The
 ordering of the atoms is the same as in the *Dihedrals* section of a data file
-read by the :doc:`read\_data <read_data>` command.  I.e. the 4 atoms are ordered
+read by the :doc:`read_data <read_data>` command.  I.e. the 4 atoms are ordered
 linearly within the dihedral.  *dtype* must be a value between 1 and
 the number of dihedral types defined.
 
 The *single/improper* style creates a single improper of type *itype*
 between four atoms with IDs *iatom1*\ , *iatom2*\ , *iatom3*\ , and *iatom4*\ .  The
 ordering of the atoms is the same as in the *Impropers* section of a data file
-read by the :doc:`read\_data <read_data>` command.  I.e. the 4 atoms are ordered
+read by the :doc:`read_data <read_data>` command.  I.e. the 4 atoms are ordered
 linearly within the improper.  *itype* must be a value between 1 and
 the number of improper types defined.
 
@@ -190,7 +190,7 @@ with the *many* style.
 This is an expensive operation since the bond topology for the system
 must be walked to find all 1-2, 1-3, 1-4 interactions to store in an
 internal list, which is used when pairwise interactions are weighted;
-see the :doc:`special\_bonds <special_bonds>` command for details.
+see the :doc:`special_bonds <special_bonds>` command for details.
 
 Thus if you are adding a few bonds or a large list of angles all at
 the same time, by using this command repeatedly, it is more efficient
@@ -221,19 +221,14 @@ Restrictions
 
 This command cannot be used with molecular systems defined using
 molecule template files via the :doc:`molecule <molecule>` and
-:doc:`atom\_style template <atom_style>` commands.
+:doc:`atom_style template <atom_style>` commands.
 
 Related commands
 """"""""""""""""
 
-:doc:`create\_atoms <create_atoms>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`create_atoms <create_atoms>`, :doc:`delete_bonds <delete_bonds>`
 
 Default
 """""""
 
 The keyword default is special = yes.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

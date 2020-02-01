@@ -116,8 +116,8 @@ Examples using *pair\_style reax/c* are provided in the examples/reax
 sub-directory.
 
 Use of this pair style requires that a charge be defined for every
-atom.  See the :doc:`atom\_style <atom_style>` and
-:doc:`read\_data <read_data>` commands for details on how to specify
+atom.  See the :doc:`atom_style <atom_style>` and
+:doc:`read_data <read_data>` commands for details on how to specify
 charges.
 
 The ReaxFF parameter files provided were created using a charge
@@ -309,7 +309,7 @@ angle\_info: 1 prints angles in the trajectory file (default = 0)
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -317,7 +317,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -362,7 +362,7 @@ appropriate units if your simulation doesn't use "real" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`, :doc:`fix reax/c/species <fix_reaxc_species>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
 Default
 """""""
@@ -394,8 +394,3 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 **(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,7 +1,7 @@
 Accelerator packages
 ====================
 
-Accelerated versions of various :doc:`pair\_style <pair_style>`,
+Accelerated versions of various :doc:`pair_style <pair_style>`,
 :doc:`fixes <fix>`, :doc:`computes <compute>`, and other commands have
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
@@ -27,7 +27,6 @@ standard or user packages:
 | :doc:`OPT Package <Speed_opt>`          | generic CPU optimizations                             |
 +-----------------------------------------+-------------------------------------------------------+
 
-
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -37,6 +36,8 @@ standard or user packages:
    Speed_kokkos
    Speed_omp
    Speed_opt
+
+.. _lc: Commands_all.html
 
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
@@ -62,13 +63,13 @@ the same, and the numerical results it produces should also be the
 same, except for precision and round-off effects.
 
 For example, all of these styles are accelerated variants of the
-Lennard-Jones :doc:`pair\_style lj/cut <pair_lj>`:
+Lennard-Jones :doc:`pair_style lj/cut <pair_lj>`:
 
-* :doc:`pair\_style lj/cut/gpu <pair_lj>`
-* :doc:`pair\_style lj/cut/intel <pair_lj>`
-* :doc:`pair\_style lj/cut/kk <pair_lj>`
-* :doc:`pair\_style lj/cut/omp <pair_lj>`
-* :doc:`pair\_style lj/cut/opt <pair_lj>`
+* :doc:`pair_style lj/cut/gpu <pair_lj>`
+* :doc:`pair_style lj/cut/intel <pair_lj>`
+* :doc:`pair_style lj/cut/kk <pair_lj>`
+* :doc:`pair_style lj/cut/omp <pair_lj>`
+* :doc:`pair_style lj/cut/opt <pair_lj>`
 
 To see what accelerate styles are currently available for a particular
 style, find the style name in the `Commands\_all <lc_>`_
@@ -189,7 +190,3 @@ The individual accelerator package doc pages explain:
 * guidelines for best performance
 * restrictions
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

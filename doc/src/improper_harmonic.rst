@@ -41,7 +41,7 @@ where X is the improper angle, X0 is its equilibrium value, and K is a
 prefactor.  Note that the usual 1/2 factor is included in K.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
-by the :doc:`read\_data <read_data>` command) are ordered I,J,K,L then X
+by the :doc:`read_data <read_data>` command) are ordered I,J,K,L then X
 is the angle between the plane of I,J,K and the plane of J,K,L.
 Alternatively, you can think of atoms J,K,L as being in a plane, and
 atom I above the plane, and X as a measure of how far out-of-plane I
@@ -53,9 +53,9 @@ linear dihedral.  Normally, the bonds I-J, I-K, I-L would exist for an
 improper to be defined between the 4 atoms.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * K (energy/radian\^2)
@@ -101,11 +101,6 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

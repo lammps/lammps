@@ -193,7 +193,7 @@ and Coulomb potentials modified by a soft core, with the functional form
 The *lj/class2/soft* style is a 9-6 potential with the exponent of the
 denominator of the first term in brackets taking the value 1.5 instead of 2
 (other details differ, see the form of the potential in
-:doc:`pair\_class2 <pair_class2>`).
+:doc:`pair_style lj/class2 <pair_class2>`).
 
 Coulomb interactions can also be damped with a soft core at short distance,
 
@@ -212,7 +212,7 @@ order to avoid singularities in potential energy and forces when sites are
 created or annihilated and can overlap :ref:`(Beutler) <Beutler>`.
 
 The parameters n, alpha\_LJ and alpha\_C are set in the
-:doc:`pair\_style <pair_style>` command, before the cutoffs.  Usual choices for the
+:doc:`pair_style <pair_style>` command, before the cutoffs.  Usual choices for the
 exponent are n = 2 or n = 1. For the remaining coefficients alpha\_LJ = 0.5 and
 alpha\_C = 10 Angstrom\^2 are appropriate choices. Plots of the 12/6 LJ and
 Coulomb terms are shown below, for lambda ranging from 1 to 0 every 0.1.
@@ -223,9 +223,9 @@ Coulomb terms are shown below, for lambda ranging from 1 to 0 every 0.1.
 
 For the *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* pair styles, as well
 as for the equivalent *class2* versions, the following coefficients must be
-defined for each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command as in the examples above, or in the data file or restart files read by
-the :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands, or
+the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands, or
 by mixing as described below:
 
 * epsilon (energy units)
@@ -246,31 +246,31 @@ specified.
 
 Style *lj/cut/tip4p/long/soft* implements a soft-core version of the TIP4P water
 model. The usage of the TIP4P pair style is documented in the
-:doc:`pair\_lj <pair_lj>` styles. In the soft version the parameters n, alpha\_LJ
-and alpha\_C are set in the :doc:`pair\_style <pair_style>` command, after the
+:doc:`pair_lj <pair_lj>` styles. In the soft version the parameters n, alpha\_LJ
+and alpha\_C are set in the :doc:`pair_style <pair_style>` command, after the
 specific parameters of the TIP4P water model and before the cutoffs. The
 activation parameter lambda is supplied as an argument of the
-:doc:`pair\_coeff <pair_coeff>` command, after epsilon and sigma and before the
+:doc:`pair_coeff <pair_coeff>` command, after epsilon and sigma and before the
 optional cutoffs.
 
 Style *lj/charmm/coul/long/soft* implements a soft-core version of the modified
 12-6 LJ potential used in CHARMM and documented in the
-:doc:`pair\_lj\_charmm <pair_charmm>` style. In the soft version the parameters n,
-alpha\_LJ and alpha\_C are set in the :doc:`pair\_style <pair_style>` command, before
+:doc:`pair_style lj/charmm/coul/long <pair_charmm>` style. In the soft version the parameters n,
+alpha\_LJ and alpha\_C are set in the :doc:`pair_style <pair_style>` command, before
 the global cutoffs. The activation parameter lambda is introduced as an argument
-of the :doc:`pair\_coeff <pair_coeff>` command, after epsilon and sigma and
+of the :doc:`pair_coeff <pair_coeff>` command, after epsilon and sigma and
 before the optional eps14 and sigma14.
 
 Style *lj/class2/soft* implements a soft-core version of the 9-6 potential in
-:doc:`pair\_class2 <pair_class2>`. In the soft version the parameters n, alpha\_LJ
-and alpha\_C are set in the :doc:`pair\_style <pair_style>` command, before the
+:doc:`pair_style lj/class2 <pair_class2>`. In the soft version the parameters n, alpha\_LJ
+and alpha\_C are set in the :doc:`pair_style <pair_style>` command, before the
 global cutoffs. The activation parameter lambda is introduced as an argument of
-the the :doc:`pair\_coeff <pair_coeff>` command, after epsilon and sigma and before
+the the :doc:`pair_coeff <pair_coeff>` command, after epsilon and sigma and before
 the optional cutoffs.
 
 The *coul/cut/soft*\ , *coul/long/soft* and *tip4p/long/soft* sub-styles
 are designed to be combined with other pair potentials via the
-:doc:`pair\_style hybrid/overlay <pair_hybrid>` command.  This is because
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command.  This is because
 they have no repulsive core.  Hence, if used by themselves, there will
 be no repulsion to keep two oppositely charged particles from
 overlapping each other. In this case, if lambda = 1, a singularity may
@@ -299,13 +299,13 @@ in several water models).
    related styles; use the lambda parameter instead to activate/deactivate
    interactions, or use epsilon = 0 and sigma = 1. Alternatively, when sites do not
    interact though the Lennard-Jones term the *coul/long/soft* or similar sub-style
-   can be used via the :doc:`pair\_style hybrid/overlay <pair_hybrid>` command.
+   can be used via the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.
 
 
 ----------
 
 
-The *morse/soft* variant modifies the :doc:`pair\_morse <pair_morse>` style at
+The *morse/soft* variant modifies the :doc:`pair_morse <pair_morse>` style at
 short range to have a soft core. The functional form differs from that of the
 *lj/soft* styles, and is instead given by:
 
@@ -357,20 +357,20 @@ distance for these pair style can be mixed.  The default mix value is
 *geometric* for 12-6 styles.
 
 The mixing rule for epsilon and sigma for *lj/class2/soft* 9-6 potentials is to use the
-*sixthpower* formulas. The :doc:`pair\_modify mix <pair_modify>` setting is thus
+*sixthpower* formulas. The :doc:`pair_modify mix <pair_modify>` setting is thus
 ignored for class2 potentials for epsilon and sigma. However it is still
-followed for mixing the cutoff distance. See the :doc:`pair\_modify <pair_modify>`
+followed for mixing the cutoff distance. See the :doc:`pair_modify <pair_modify>`
 command for details.
 
 The *morse/soft* pair style does not support mixing. Thus, coefficients for all
 LJ pairs must be specified explicitly.
 
-All of the pair styles with soft core support the :doc:`pair\_modify <pair_modify>`
+All of the pair styles with soft core support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the Lennard-Jones portion of the pair
 interaction.
 
 The different versions of the *lj/cut/soft* pair styles support the
-:doc:`pair\_modify <pair_modify>` tail option for adding a long-range tail
+:doc:`pair_modify <pair_modify>` tail option for adding a long-range tail
 correction to the energy and pressure for the Lennard-Jones portion of the pair
 interaction.
 
@@ -387,7 +387,7 @@ interaction.
    other approximations, namely that the system is homogeneous (local density equal
    the average density) beyond the cutoff.
 
-The *morse/soft* pair style does not support the :doc:`pair\_modify <pair_modify>`
+The *morse/soft* pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and pressure.
 
 All of these pair styles write information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need to be
@@ -411,7 +411,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
 **Default:** none
@@ -426,8 +426,3 @@ Related commands
 
 **(Beutler)** Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
 Phys Lett, 222, 529 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

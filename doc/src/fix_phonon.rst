@@ -164,7 +164,7 @@ corresponding reciprocal lattice.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix. You can use it to change the temperature compute from thermo\_temp
 to the one that reflects the true temperature of atoms in the group.
 
@@ -200,7 +200,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute msd <compute_msd>`,
-:doc:`dynamical\_matrix <dynamical_matrix>`
+:doc:`dynamical_matrix <dynamical_matrix>`
 
 Default
 """""""
@@ -238,8 +238,3 @@ method*\ , `Computer Physics Communications [182](2):540-541 (2011). <http://dx.
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
 molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <http://dx.doi.org/10.1016/j.cpc.2011.04.019>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

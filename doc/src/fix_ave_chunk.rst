@@ -102,7 +102,7 @@ Use one or more per-atom vectors as inputs every few timesteps, sum
 the values over the atoms in each chunk at each timestep, then average
 the per-chunk values over longer timescales.  The resulting chunk
 averages can be used by other :doc:`output commands <Howto_output>` such
-as :doc:`thermo\_style custom <thermo_style>`, and can also be written to
+as :doc:`thermo_style custom <thermo_style>`, and can also be written to
 a file.
 
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
@@ -474,7 +474,7 @@ dimensions.  Those values are always in distance :doc:`units <units>`.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
@@ -513,8 +513,3 @@ Default
 
 The option defaults are norm = all, ave = one, bias = none, no file output, and
 title 1,2,3 = strings as described above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

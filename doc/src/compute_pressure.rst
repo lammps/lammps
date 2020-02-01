@@ -156,7 +156,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
-:doc:`thermo\_style <thermo_style>`,
+:doc:`thermo_style <thermo_style>`,
 
 **Default:** none
 
@@ -169,8 +169,3 @@ Related commands
 
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

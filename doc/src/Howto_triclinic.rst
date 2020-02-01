@@ -1,17 +1,3 @@
-:doc:`Higher level section <Howto>` - `LAMMPS WWW Site <lws_>`_ - `LAMMPS Documentation <ld_>`_ - `LAMMPS Commands <lc_>`_ 
-
-.. _lws: http://lammps.sandia.gov
-
-
-
-.. _ld: Manual.html
-
-
-
-.. _lc: Commands\_all.html
-
-
-
 Triclinic (non-orthogonal) simulation boxes
 ===========================================
 
@@ -22,11 +8,11 @@ box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
 starting from the origin given by **a** = (xhi-xlo,0,0); **b** =
 (0,yhi-ylo,0); **c** = (0,0,zhi-zlo).  The 6 parameters
 (xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simulation box
-is created, e.g. by the :doc:`create\_box <create_box>` or
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+is created, e.g. by the :doc:`create_box <create_box>` or
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.  Additionally, LAMMPS defines box size parameters lx,ly,lz
 where lx = xhi-xlo, and similarly in the y and z dimensions.  The 6
-parameters, as well as lx,ly,lz, can be output via the :doc:`thermo\_style custom <thermo_style>` command.
+parameters, as well as lx,ly,lz, can be output via the :doc:`thermo_style custom <thermo_style>` command.
 
 LAMMPS also allows simulations to be performed in triclinic
 (non-orthogonal) simulation boxes shaped as a parallelepiped with
@@ -90,14 +76,14 @@ for details.
 
 The 9 parameters (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) are defined at the
 time the simulation box is created.  This happens in one of 3 ways.
-If the :doc:`create\_box <create_box>` command is used with a region of
+If the :doc:`create_box <create_box>` command is used with a region of
 style *prism*\ , then a triclinic box is setup.  See the
 :doc:`region <region>` command for details.  If the
-:doc:`read\_data <read_data>` command is used to define the simulation
+:doc:`read_data <read_data>` command is used to define the simulation
 box, and the header of the data file contains a line with the "xy xz
 yz" keyword, then a triclinic box is setup.  See the
-:doc:`read\_data <read_data>` command for details.  Finally, if the
-:doc:`read\_restart <read_restart>` command reads a restart file which
+:doc:`read_data <read_data>` command for details.  Finally, if the
+:doc:`read_restart <read_restart>` command reads a restart file which
 was written from a simulation using a triclinic box, then a triclinic
 box will be setup for the restarted simulation.
 
@@ -105,20 +91,20 @@ Note that you can define a triclinic box with all 3 tilt factors =
 0.0, so that it is initially orthogonal.  This is necessary if the box
 will become non-orthogonal, e.g. due to the :doc:`fix npt <fix_nh>` or
 :doc:`fix deform <fix_deform>` commands.  Alternatively, you can use the
-:doc:`change\_box <change_box>` command to convert a simulation box from
+:doc:`change_box <change_box>` command to convert a simulation box from
 orthogonal to triclinic and vice versa.
 
 As with orthogonal boxes, LAMMPS defines triclinic box size parameters
 lx,ly,lz where lx = xhi-xlo, and similarly in the y and z dimensions.
 The 9 parameters, as well as lx,ly,lz, can be output via the
-:doc:`thermo\_style custom <thermo_style>` command.
+:doc:`thermo_style custom <thermo_style>` command.
 
 To avoid extremely tilted boxes (which would be computationally
 inefficient), LAMMPS normally requires that no tilt factor can skew
 the box more than half the distance of the parallel box length, which
 is the 1st dimension in the tilt factor (x for xz).  This is required
 both when the simulation box is created, e.g. via the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` commands,
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands,
 as well as when the box shape changes dynamically during a simulation,
 e.g. via the :doc:`fix deform <fix_deform>` or :doc:`fix npt <fix_nh>`
 commands.
@@ -173,7 +159,7 @@ The inverse relationship can be written as follows:
 
 The values of *a*\ , *b*\ , *c* , *alpha*\ , *beta* , and *gamma* can be printed
 out or accessed by computes using the
-:doc:`thermo\_style custom <thermo_style>` keywords
+:doc:`thermo_style custom <thermo_style>` keywords
 *cella*\ , *cellb*\ , *cellc*\ , *cellalpha*\ , *cellbeta*\ , *cellgamma*\ ,
 respectively.
 
@@ -213,7 +199,7 @@ One use of triclinic simulation boxes is to model solid-state crystals
 with triclinic symmetry.  The :doc:`lattice <lattice>` command can be
 used with non-orthogonal basis vectors to define a lattice that will
 tile a triclinic simulation box via the
-:doc:`create\_atoms <create_atoms>` command.
+:doc:`create_atoms <create_atoms>` command.
 
 A second use is to run Parrinello-Rahman dynamics via the :doc:`fix npt <fix_nh>` command, which will adjust the xy, xz, yz tilt
 factors to compensate for off-diagonal components of the pressure
@@ -225,4 +211,3 @@ material.  The :doc:`fix deform <fix_deform>` command can be used for
 this purpose.  It allows dynamic control of the xy, xz, yz tilt
 factors as a simulation runs.  This is discussed in the next section
 on non-equilibrium MD (NEMD) simulations.
-

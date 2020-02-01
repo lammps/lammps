@@ -176,9 +176,9 @@ vector contains five values in this order:
 
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested. Here the
-:doc:`fix\_modify <fix_modify>` energy command is also enabled to allow
+:doc:`fix_modify <fix_modify>` energy command is also enabled to allow
 the thermo keyword *etotal* to print the quantity <i>etot</i>.  See
-also the :doc:`thermo\_style <thermo_style>` command.
+also the :doc:`thermo_style <thermo_style>` command.
 
 
 .. parsed-literal::
@@ -195,7 +195,7 @@ also the :doc:`thermo\_style <thermo_style>` command.
 The global scalar under the entry f\_fix\_id is the quantity of thermo
 energy as an extra part of <i>etot</i>. This global scalar and the
 vector of 5 quantities can be accessed by various :doc:`output commands <Howto_output>`. It is worth noting that the temp keyword
-under the :doc:`thermo\_style <thermo_style>` command print the
+under the :doc:`thermo_style <thermo_style>` command print the
 instantaneous classical temperature <i>T</i><sup>cl</sup> as described
 in the command :doc:`fix qtb <fix_qtb>`.
 
@@ -249,8 +249,3 @@ T\_init=300.0. e0, p0, and v0 are calculated on the first step.
 
 
 **(Qi)** Qi and Reed, J. Phys. Chem. A 116, 10451 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

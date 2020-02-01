@@ -90,7 +90,7 @@ temperature changes. Replicas are easily added where needed.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`thermo\_modify <thermo_modify>` *press* option is supported
+The :doc:`thermo_modify <thermo_modify>` *press* option is supported
 by this fix to add the rescaled kinetic pressure as part of
 :doc:`thermodynamic output <thermo_style>`.
 
@@ -104,7 +104,7 @@ LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 Related commands
 """"""""""""""""
 
-:doc:`temper/grem <temper_grem>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`thermo\_modify <thermo_modify>`
+:doc:`temper/grem <temper_grem>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`thermo_modify <thermo_modify>`
 
 **Default:** none
 
@@ -124,8 +124,3 @@ Related commands
 
 **(Malolepsza)** Malolepsza, Secor, Keyes, J Phys Chem B 119 (42),
 13379-13384 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

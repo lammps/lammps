@@ -100,7 +100,7 @@ default group "all" and the group specified in the fix deposit command
 
 If you are computing temperature values which include inserted
 particles, you will want to use the
-:doc:`compute\_modify <compute_modify>` dynamic option, which insures the
+:doc:`compute_modify <compute_modify>` dynamic option, which insures the
 current number of atoms is used as a normalizing factor each time the
 temperature is computed.
 
@@ -115,7 +115,7 @@ prevent this behavior.  Note that if a shrink-wrap boundary is used,
 it is OK to insert the new particle outside the box, however the box
 will immediately be expanded to include the new particle. When
 simulating a sputtering experiment it is probably more realistic to
-ignore those atoms using the :doc:`thermo\_modify <thermo_modify>`
+ignore those atoms using the :doc:`thermo_modify <thermo_modify>`
 command with the *lost ignore* option and a fixed
 :doc:`boundary <boundary>`.
 
@@ -272,7 +272,7 @@ units of distance or velocity.
 
    If you are monitoring the temperature of a system where the atom
    count is changing due to adding particles, you typically should use
-   the :doc:`compute\_modify dynamic yes <compute_modify>` command for the
+   the :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
@@ -280,17 +280,17 @@ units of distance or velocity.
 This fix writes the state of the deposition to :doc:`binary restart files <restart>`.  This includes information about how many
 particles have been deposited, the random number generator seed, the
 next timestep for deposition, etc.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
+:doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset\_timestep <reset_timestep>`.
+   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -320,8 +320,3 @@ is an equal probabilities for all molecules in the template.
 Additional option defaults are id = max, delta = 0.0, near = 0.0,
 attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0,
 and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

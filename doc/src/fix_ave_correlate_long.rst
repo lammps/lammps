@@ -155,8 +155,3 @@ follows: ncorr=20, nlen=16, ncount=2.
 
 **(Ramirez)** J. Ramirez, S.K. Sukumaran, B. Vorselaars and
 A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

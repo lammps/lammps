@@ -324,7 +324,7 @@ binary restart files, if requested, independent of the main LAMMPS
 :doc:`binary restart files <restart>`; no information about *lb\_fluid*
 is written to the main LAMMPS :doc:`binary restart files <restart>`.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -405,8 +405,3 @@ If walls are present, they are assumed to be stationary.
 
 
 **(Adhikari et al.)** Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

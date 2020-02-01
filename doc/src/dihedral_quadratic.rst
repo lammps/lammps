@@ -35,9 +35,9 @@ This dihedral potential can be used to keep a dihedral in a predefined
 value (cis=zero, right-hand convention is used).
 
 The following coefficients must be defined for each dihedral type via
-the :doc:`dihedral\_coeff <dihedral_coeff>` command as in the example
+the :doc:`dihedral_coeff <dihedral_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * K (energy/radian\^2)
@@ -80,11 +80,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

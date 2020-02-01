@@ -12,10 +12,10 @@ as spheres, ellipsoids, line segments, and triangles, but they are
 simpler entities that body particles.  See the :doc:`Howto spherical <Howto_spherical>` doc page for a general overview of all
 these particle types.
 
-Body particles are used via the :doc:`atom\_style body <atom_style>`
+Body particles are used via the :doc:`atom_style body <atom_style>`
 command.  It takes a body style as an argument.  The current body
 styles supported by LAMMPS are as follows.  The name in the first
-column is used as the *bstyle* argument for the :doc:`atom\_style body <atom_style>` command.
+column is used as the *bstyle* argument for the :doc:`atom_style body <atom_style>` command.
 
 +----------------------+---------------------------------------------------+
 | *nparticle*          | rigid body with N sub-particles                   |
@@ -129,7 +129,7 @@ arguments:
 The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.
 
-When the :doc:`read\_data <read_data>` command reads a data file for this
+When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
 
@@ -149,7 +149,7 @@ particle.
 The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
 sub-particles (x1 to zN) as 3N values.  These values can be listed on
-as many lines as you wish; see the :doc:`read\_data <read_data>` command
+as many lines as you wish; see the :doc:`read_data <read_data>` command
 for more details.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
@@ -163,7 +163,7 @@ center-of-mass position of the particle is specified by the x,y,z
 values in the *Atoms* section of the data file, as is the total mass
 of the body particle.
 
-The :doc:`pair\_style body/nparticle <pair_body_nparticle>` command can be used
+The :doc:`pair_style body/nparticle <pair_body_nparticle>` command can be used
 with this body style to compute body/body and body/non-body interactions.
 
 For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
@@ -217,7 +217,7 @@ this body style takes two additional arguments:
 The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.
 
-When the :doc:`read\_data <read_data>` command reads a data file for this
+When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
 
@@ -243,7 +243,7 @@ vertices (x1 to zN) as 3N values (with z = 0.0 for each), followed by
 followed by a single diameter value = the rounded diameter of the
 circle that surrounds each vertex. The diameter value can be different
 for each body particle. These floating-point values can be listed on
-as many lines as you wish; see the :doc:`read\_data <read_data>` command
+as many lines as you wish; see the :doc:`read_data <read_data>` command
 for more details.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
@@ -302,7 +302,7 @@ A disk, whose diameter is 3.0, mass 1.0, is specified as follows:
    0 0 0
    3.0
 
-The :doc:`pair\_style body/rounded/polygon <pair_body_rounded_polygon>`
+The :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 command can be used with this body style to compute body/body
 interactions.  The :doc:`fix wall/body/polygon <fix_wall_body_polygon>`
 command can be used with this body style to compute the interaction of
@@ -340,7 +340,7 @@ for this body style takes two additional arguments:
 The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.
 
-When the :doc:`read\_data <read_data>` command reads a data file for this
+When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
 
@@ -375,7 +375,7 @@ faces.  The last value is the diameter value = the rounded diameter of
 the sphere that surrounds each vertex. The diameter value can be
 different for each body particle. These floating-point values can be
 listed on as many lines as you wish; see the
-:doc:`read\_data <read_data>` command for more details.  Because the
+:doc:`read_data <read_data>` command for more details.  Because the
 maximum number of vertices per face is hard-coded to be 4
 (i.e. quadrilaterals), faces with more than 4 vertices need to be
 split into triangles or quadrilaterals.  For triangular faces, the
@@ -459,7 +459,7 @@ A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
    0 0 0
    3.0
 
-The :doc:`pair\_style body/rounded/polhedron <pair_body_rounded_polyhedron>` command can
+The :doc:`pair_style body/rounded/polhedron <pair_body_rounded_polyhedron>` command can
 be used with this body style to compute body/body interactions.  The
 :doc:`fix wall/body/polyhedron <fix_wall_body_polygon>` command can be
 used with this body style to compute the interaction of body particles
@@ -489,7 +489,7 @@ For images created by the :doc:`dump image <dump_image>` command, if the
 *body* keyword is set, then each body particle is drawn as a polygon
 consisting of N line segments.  Note that the line segments are drawn
 between the N vertices, which does not correspond exactly to the
-physical extent of the body (because the :doc:`pair\_style rounded/polygon <pair_body_rounded_polygon>` defines finite-size
+physical extent of the body (because the :doc:`pair_style rounded/polygon <pair_body_rounded_polygon>` defines finite-size
 spheres at those point and the line segments between the spheres are
 tangent to the spheres).  The drawn diameter of each line segment is
 determined by the *bflag1* parameter for the *body* keyword.  The
@@ -512,8 +512,3 @@ Particuology, 6, 455 (2008).
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

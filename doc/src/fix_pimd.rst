@@ -161,7 +161,7 @@ This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 A PIMD simulation can be initialized with a single data file read via
-the :doc:`read\_data <read_data>` command.  However, this means all
+the :doc:`read_data <read_data>` command.  However, this means all
 quasi-beads in a ring polymer will have identical positions and
 velocities, resulting in identical trajectories for all quasi-beads.
 To avoid this, users can simply initialize velocities with different
@@ -221,8 +221,3 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -70,8 +70,9 @@ in this pseudo code is a pointer to an instance of the CSlib.
 
 See the src/MESSAGE/server\_md.cpp and src/MESSAGE/fix\_client\_md.cpp
 files for details on how LAMMPS uses these messages.  See the
-examples/COUPLE/lammps\_vasp/vasp\_wrapper.py file for an example of how
-a quantum code (VASP) can use these messages.
+examples/COUPLE/lammps\_vasp/vasp\_wrap.py or
+examples/COUPLE/lammps\_nwchem/nwchem\_wrap.py files for examples of how
+a quantum code (VASP or NWChem) can use these messages.
 
 The following pseudo-code uses these values, defined as enums.
 

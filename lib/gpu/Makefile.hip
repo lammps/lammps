@@ -137,7 +137,7 @@ $(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(ALL_H)
 
 $(LIB_DIR)/libgpu.a: $(OBJS)
 	$(AR) -crs $@ $(OBJS)
-	echo "export HIP_PLATFORM := $(HIP_PLATFORM)\n$(HIP_LIBS_TARGET)" > 'Makefile.lammps'   
+	echo -e "export HIP_PLATFORM := $(HIP_PLATFORM)\n$(HIP_LIBS_TARGET)" > 'Makefile.lammps'   
 
 # test app building
 

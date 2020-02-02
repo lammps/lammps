@@ -146,31 +146,37 @@ examples. If you are uncertain, please ask.
   style you are adding to LAMMPS. For simplicity and convenience, the
   documentation of groups of closely related commands or styles may be
   combined into a single file.  This will be one file for a single-file
-  feature.  For a package, it might be several files.  These are simple
-  text files with a specific markup language, that are then auto-converted
-  to HTML and PDF. The tools for this conversion are included in the
-  source distribution, and the translation can be as simple as doing
+  feature.  For a package, it might be several files.  These are text
+  files with a .rst extension using the
+  :ref:`reStructuredText <https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html>`_ markup language, that are then converted to HTML
+  and PDF using the :ref:`Sphinx <https://sphinx-doc.org>`_ documentation
+  generator tool.   Running Sphinx with the included configuration
+  requires Python 3.x.  Configuration
+  settings and custom extensions for this conversion are included in
+  the source distribution, and missing python packages will be
+  transparently downloaded into a virtual environment via pip. Thus,
+  if your local system is missing required packages, you need access
+  to the internet. The translation can be as simple as doing
   "make html pdf" in the doc folder.
-  Thus the documentation source files must be in the same format and
-  style as other \*.txt files in the lammps/doc/src directory for similar
-  commands and styles; use one or more of them as a starting point.
-  A description of the markup can also be found in
-  lammps/doc/utils/txt2html/README.html
-  As appropriate, the text files can include links to equations
-  (see doc/Eqs/\*.tex for examples, we auto-create the associated JPG
-  files), or figures (see doc/JPG for examples), or even additional PDF
-  files with further details (see doc/PDF for examples).  The doc page
-  should also include literature citations as appropriate; see the
-  bottom of doc/fix\_nh.txt for examples and the earlier part of the same
-  file for how to format the cite itself.  The "Restrictions" section of
-  the doc page should indicate that your command is only available if
-  LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
-  See other user package doc files for examples of how to do this. The
-  prerequisite for building the HTML format files are Python 3.x and
-  virtualenv, the requirement for generating the PDF format manual
-  is the `htmldoc <http://www.htmldoc.org/>`_ software. Please run at least
-  "make html" and carefully inspect and proofread the resulting HTML format
-  doc page before submitting your code.
+  As appropriate, the text files can include inline mathematical
+  expression or figures (see doc/JPG for examples).  Additional PDF
+  files with further details (see doc/PDF for examples) may also be
+  included.  The doc page should also include literature citations as
+  appropriate; see the  bottom of doc/fix\_nh.rst for examples and
+  the earlier part of the same file for how to format the cite itself.
+  Citation labels must be unique across all .rst files.
+  The "Restrictions" section of the doc page should indicate if
+  your command is only available if LAMMPS is built with the
+  appropriate USER-MISC or USER-FOO package.
+  See other user package doc files for examples of how to do this.
+  Please run at least "make html" and carefully inspect and proofread
+  the resulting HTML format  doc page before submitting your code.
+  Upon submission of a pull request, checks for error free completion
+  of the HTML and PDF build will be performed and also a spell check,
+  a check for correct anchors and labels, and a check for completeness
+  of references all styles in their corresponding tables and lists is
+  run.  In case the spell check reports false positives they can be
+  added to the file doc/utils/sphinx-config/false_positives.txt
 * For a new package (or even a single command) you should include one or
   more example scripts demonstrating its use.  These should run in no
   more than a couple minutes, even on a single processor, and not require

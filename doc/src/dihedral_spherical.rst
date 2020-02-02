@@ -32,10 +32,10 @@ The *spherical* dihedral style uses the potential:
 
 .. math::
 
-  E(\phi,\theta_1,\theta_2) & = & \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
-  \Phi_{i}(\phi)        & = &  u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
-  \Theta_{1i}(\theta_1) & = &  v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
-  \Theta_{2i}(\theta_2) & = &  w_i - \mathrm{cos}((\theta_2-c_i)M_i)
+  E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
+  \Phi_{i}(\phi)        & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
+  \Theta_{1i}(\theta_1) & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
+  \Theta_{2i}(\theta_2) & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
 
 
 For this dihedral style, the energy can be any function that combines the

@@ -31,8 +31,10 @@ Description
 
 The *cvff* improper style uses the potential
 
-.. image:: Eqs/improper_cvff.jpg
-   :align: center
+.. math::
+
+   E = K [1 + d  \cos (n \phi) ] 
+
 
 where phi is the improper dihedral angle.
 
@@ -54,9 +56,9 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* d (+1 or -1)
-* n (0,1,2,3,4,6)
+* :math:`K` (energy)
+* :math:`d` (+1 or -1)
+* :math:`n` (0,1,2,3,4,6)
 
 
 ----------

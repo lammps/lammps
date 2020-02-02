@@ -34,18 +34,22 @@ Description
 
 The *harmonic* improper style uses the potential
 
-.. image:: Eqs/improper_harmonic.jpg
-   :align: center
+.. math::
 
-where X is the improper angle, X0 is its equilibrium value, and K is a
-prefactor.  Note that the usual 1/2 factor is included in K.
+  E = K (\chi - \chi_0)^2
+
+
+where :math:`\chi` is the improper angle, :math:`\chi_0` is its equilibrium
+value, and :math:`K` is a prefactor.  Note that the usual 1/2 factor is
+included in :math:`K`.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
-by the :doc:`read_data <read_data>` command) are ordered I,J,K,L then X
+by the :doc:`read_data <read_data>` command) are ordered I,J,K,L then
+:math:`\chi`
 is the angle between the plane of I,J,K and the plane of J,K,L.
 Alternatively, you can think of atoms J,K,L as being in a plane, and
-atom I above the plane, and X as a measure of how far out-of-plane I
-is with respect to the other 3 atoms.
+atom I above the plane, and :math:`\chi` as a measure of how far out-of-plane
+I is with respect to the other 3 atoms.
 
 Note that defining 4 atoms to interact in this way, does not mean that
 bonds necessarily exist between I-J, J-K, or K-L, as they would in a
@@ -58,10 +62,10 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy/radian\^2)
-* X0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\chi_0` (degrees)
 
-X0 is specified in degrees, but LAMMPS converts it to radians
+:math:`\chi_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian\^2.
 
 

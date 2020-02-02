@@ -30,18 +30,21 @@ The *umbrella* improper style uses the following potential, which is
 commonly referred to as a classic inversion and used in the
 :doc:`DREIDING <Howto_bioFF>` force field:
 
-.. image:: Eqs/improper_umbrella.jpg
-   :align: center
+.. math::
 
-where K is the force constant and omega is the angle between the IL
+  E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
+  E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
+
+
+where :math:`K` is the force constant and :math:`\omega` is the angle between the IL
 axis and the IJK plane:
 
 .. image:: JPG/umbrella.jpg
    :align: center
 
-If omega0 = 0 the potential term has a minimum for the planar
-structure.  Otherwise it has two minima at +/- omega0, with a barrier
-in between.
+If :math:`\omega_0 = 0` the potential term has a minimum for the planar
+structure.  Otherwise it has two minima at :math:`\omega +/- \omega_0`,
+with a barrier in between.
 
 See :ref:`(Mayo) <umbrella-Mayo>` for a description of the DREIDING force field.
 
@@ -51,8 +54,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* omega0 (degrees)
+* :math:`K` (energy)
+* :math:`\omega_0` (degrees)
 
 
 ----------

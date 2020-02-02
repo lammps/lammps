@@ -34,17 +34,19 @@ Description
 
 The *harmonic* dihedral style uses the potential
 
-.. image:: Eqs/dihedral_harmonic.jpg
-   :align: center
+.. math::
+
+  E = K [ 1 + d  \cos (n \phi) ]
+
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* K (energy)
-* d (+1 or -1)
-* n (integer >= 0)
+* :math:`K` (energy)
+* :math:`d` (+1 or -1)
+* :math:`n` (integer >= 0)
 
 .. note::
 
@@ -55,9 +57,9 @@ or :doc:`read_restart <read_restart>` commands:
 
 * The LAMMPS convention is that the trans position = 180 degrees, while
   in some force fields trans = 0 degrees.
-* Some force fields reverse the sign convention on *d*\ .
-* Some force fields let *n* be positive or negative which corresponds to
-  *d* = 1 or -1 for the harmonic style.
+* Some force fields reverse the sign convention on :math:`d`.
+* Some force fields let :math:`n` be positive or negative which corresponds to
+  :math:`d = 1` or :math:`d = -1` for the harmonic style.
 
 
 

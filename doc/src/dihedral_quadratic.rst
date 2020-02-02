@@ -28,8 +28,10 @@ Description
 
 The *quadratic* dihedral style uses the potential:
 
-.. image:: Eqs/dihedral_quadratic.jpg
-   :align: center
+.. math::
+
+  E = K (\phi - \phi_0)^2 
+
 
 This dihedral potential can be used to keep a dihedral in a predefined
 value (cis=zero, right-hand convention is used).
@@ -40,8 +42,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy/radian\^2)
-* phi0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\phi_0` (degrees)
 
 
 ----------

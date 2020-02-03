@@ -30,7 +30,11 @@ Syntax
        *none* arg = no argument all replicas assumed to already have
            their initial coords
 
-keyword = *verbose*
+* keyword = *verbose*
+
+  .. parsed-literal::
+
+       *verbose* = print supplemental information
 
 Examples
 """"""""
@@ -136,21 +140,27 @@ is assigned to be a fraction of the angular distance.
    The angular interpolation between the starting and final point
    is achieved using Rodrigues formula:
 
-.. image:: Eqs/neb_spin_rodrigues_formula.jpg
-   :align: center
+.. math::
 
-where m\_i\^I is the initial spin configuration for the spin i,
-omega\_i\^nu is a rotation angle defined as:
+    \vec{m}_i^{\nu} = \vec{m}_i^{I} \cos(\omega_i^{\nu})
+    + (\vec{k}_i \times \vec{m}_i^{I}) \sin(\omega_i^{\nu})
+    + (1.0-\cos(\omega_i^{\nu})) \vec{k}_i (\vec{k}_i\cdot
+    \vec{m}_i^{I})
 
-.. image:: Eqs/neb_spin_angle.jpg
-   :align: center
+where :math:`\vec{m}_i^I` is the initial spin configuration for
+spin i, :math:`\omega_i^{\nu}` is a rotation angle defined as:
 
-with nu the image number, Q the total number of images, and
-omega\_i the total rotation between the initial and final spins.
-k\_i defines a rotation axis such as:
+.. math::
 
-.. image:: Eqs/neb_spin_k.jpg
-   :align: center
+   \omega_i^{\nu} = (\nu - 1) \Delta \omega_i {\rm ~~and~~} \Delta \omega_i = \frac{\omega_i}{Q-1}
+
+with :math:`\nu` the image number, Q the total number of images, and
+:math:`\omega_i` the total rotation between the initial and final spins.
+:math:`\vec{k}_i` defines a rotation axis such as:
+
+.. math::
+
+   \vec{k}_i =  \frac{\vec{m}_i^I \times \vec{m}_i^F}{\left|\vec{m}_i^I \times \vec{m}_i^F\right|} 
 
 if the initial and final spins are not aligned.
 If the initial and final spins are aligned, then their cross
@@ -339,7 +349,7 @@ The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
 Supplementary information for all replicas can be printed out to the
-screen and master log.lammps file by adding the verbose keyword. This
+screen and master log.lammps file by adding the *verbose* keyword. This
 information include the following.
 The "GradVidottan" are the projections of the potential gradient for
 the replica i on its tangent vector (as detailed in Appendix D of
@@ -374,7 +384,7 @@ parameters.
 
 A c file script in provided in the tool/spin/interpolate\_gneb
 directory, that interpolates the MEP given the information provided
-by the verbose output option (as detailed in Appendix D of
+by the *verbose* output option (as detailed in Appendix D of
 :ref:`(BessarabA) <BessarabA>`).
 
 

@@ -90,21 +90,21 @@ The choice of a norm can be modified for the min styles *cg*\ , *sd*\
 *spin/lbfgs* using the *norm* keyword.  The default *two* norm computes 
 the 2-norm (Euclidean length) of the global force vector:
 
-.. image:: Eqs/norm_two.jpg
-   :align: center
+.. math::
+    || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
 
 The *max* norm computes the length of the 3-vector force 
 for each atom  (2-norm), and takes the maximum value of those across 
 all atoms
 
-.. image:: Eqs/norm_max.jpg
-   :align: center
+.. math::
+    || \vec{F} ||_{max} = {\rm max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
 
 The *inf* norm takes the maximum component across the forces of
 all atoms in the system:
 
-.. image:: Eqs/norm_inf.jpg
-   :align: center
+.. math::
+    || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.

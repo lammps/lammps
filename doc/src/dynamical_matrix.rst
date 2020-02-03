@@ -78,7 +78,7 @@ Related commands
 :doc:`fix phonon <fix_phonon>`
 
 :doc:`compute hma <compute_hma>` uses an analytic formulation of the
-Hessian provided by a pair_style's Pair::single\_hessian() funcion,
+Hessian provided by a pair_style's Pair::single\_hessian() function,
 if implemented.
 
 Default

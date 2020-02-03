@@ -106,6 +106,7 @@ to assist:
    -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
    -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
    -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
+   -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
    -D MKL_LIBRARIES=path
 
 **Makefile.machine settings**\ :
@@ -117,6 +118,7 @@ to assist:
                                  # default is KISS if not specified
    FFT_INC = -DFFT_SINGLE        # do not specify for double precision
    FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
+   FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
    FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
 
 # default is FFT\_PACK\_ARRAY if not specified
@@ -129,12 +131,15 @@ to assist:
    FFT_LIB =       -lfftw3             # FFTW3 double precision
    FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
    FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  # MKL with Intel compiler
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core     # MKL with GNU compier
+   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compier, serial interface
+   FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
+   FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
 As with CMake, you do not need to set paths in FFT\_INC or FFT\_PATH, if
-make can find the FFT header and library files.  You must specify
-FFT\_LIB with the appropriate FFT libraries to include in the link.
+the compiler can find the FFT header and library files in its default search path.
+You must specify FFT\_LIB with the appropriate FFT libraries to include in the link.
 
 **CMake and make info**\ :
 

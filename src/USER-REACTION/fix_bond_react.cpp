@@ -3184,6 +3184,9 @@ void FixBondReact::Constraints(char *line, int myrxn)
       tmp[7] = 182.0;
       sscanf(line,"%*s %lg %lg %lg %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],
                         &tmp[2],&tmp[3],&tmp[4],&tmp[5],&tmp[6],&tmp[7]);
+      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms ||
+          tmp[2] > onemol->natoms || tmp[3] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       constraints[nconstraints][2] = tmp[0];
       constraints[nconstraints][3] = tmp[1];
       constraints[nconstraints][4] = tmp[2];

@@ -92,6 +92,7 @@ examples. If you are uncertain, please ask.
   need to test compiling LAMMPS from scratch with -DLAMMPS\_BIGBIG
   set in addition to the default -DLAMMPS\_SMALLBIG setting. Your code
   will need to work correctly in serial and in parallel using MPI.
+
 * For consistency with the rest of LAMMPS and especially, if you want
   your contribution(s) to be added to main LAMMPS code or one of its
   standard packages, it needs to be written in a style compatible with
@@ -114,12 +115,14 @@ examples. If you are uncertain, please ask.
   structures, performs its operations, and is formatted similar to other
   LAMMPS source files, including the use of the error class for error
   and warning messages.
+
 * If you want your contribution to be added as a user-contributed
   feature, and it's a single file (actually a \*.cpp and \*.h file) it can
   rapidly be added to the USER-MISC directory.  Send us the one-line
   entry to add to the USER-MISC/README file in that dir, along with the
   2 source files.  You can do this multiple times if you wish to
   contribute several individual features.
+
 * If you want your contribution to be added as a user-contribution and
   it is several related features, it is probably best to make it a user
   package directory with a name like USER-FOO.  In addition to your new
@@ -132,7 +135,7 @@ examples. If you are uncertain, please ask.
   and Install.sh files in other USER directories as examples.  Send us a
   tarball of this USER-FOO directory.
 
-  Your new source files need to have the LAMMPS copyright, GPL notice,
+* Your new source files need to have the LAMMPS copyright, GPL notice,
   and your name and email address at the top, like other
   user-contributed LAMMPS source files.  They need to create a class
   that is inside the LAMMPS namespace.  If the file is for one of the
@@ -142,35 +145,43 @@ examples. If you are uncertain, please ask.
   same stylistic format and syntax as other LAMMPS files, though that
   would be nice for developers as well as users who try to read your
   code.
+
 * You **must** also create a **documentation** file for each new command or
   style you are adding to LAMMPS. For simplicity and convenience, the
   documentation of groups of closely related commands or styles may be
   combined into a single file.  This will be one file for a single-file
-  feature.  For a package, it might be several files.  These are simple
-  text files with a specific markup language, that are then auto-converted
-  to HTML and PDF. The tools for this conversion are included in the
-  source distribution, and the translation can be as simple as doing
+  feature.  For a package, it might be several files.  These are text
+  files with a .rst extension using the
+  `reStructuredText <rst_>`_ markup language, that are then converted to HTML
+  and PDF using the `Sphinx <sphinx_>`_ documentation
+  generator tool.   Running Sphinx with the included configuration
+  requires Python 3.x.  Configuration
+  settings and custom extensions for this conversion are included in
+  the source distribution, and missing python packages will be
+  transparently downloaded into a virtual environment via pip. Thus,
+  if your local system is missing required packages, you need access
+  to the internet. The translation can be as simple as doing
   "make html pdf" in the doc folder.
-  Thus the documentation source files must be in the same format and
-  style as other \*.txt files in the lammps/doc/src directory for similar
-  commands and styles; use one or more of them as a starting point.
-  A description of the markup can also be found in
-  lammps/doc/utils/txt2html/README.html
-  As appropriate, the text files can include links to equations
-  (see doc/Eqs/\*.tex for examples, we auto-create the associated JPG
-  files), or figures (see doc/JPG for examples), or even additional PDF
-  files with further details (see doc/PDF for examples).  The doc page
-  should also include literature citations as appropriate; see the
-  bottom of doc/fix\_nh.txt for examples and the earlier part of the same
-  file for how to format the cite itself.  The "Restrictions" section of
-  the doc page should indicate that your command is only available if
-  LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
-  See other user package doc files for examples of how to do this. The
-  prerequisite for building the HTML format files are Python 3.x and
-  virtualenv, the requirement for generating the PDF format manual
-  is the `htmldoc <http://www.htmldoc.org/>`_ software. Please run at least
-  "make html" and carefully inspect and proofread the resulting HTML format
-  doc page before submitting your code.
+  As appropriate, the text files can include inline mathematical
+  expression or figures (see doc/JPG for examples).  Additional PDF
+  files with further details (see doc/PDF for examples) may also be
+  included.  The doc page should also include literature citations as
+  appropriate; see the  bottom of doc/fix\_nh.rst for examples and
+  the earlier part of the same file for how to format the cite itself.
+  Citation labels must be unique across all .rst files.
+  The "Restrictions" section of the doc page should indicate if
+  your command is only available if LAMMPS is built with the
+  appropriate USER-MISC or USER-FOO package.
+  See other user package doc files for examples of how to do this.
+  Please run at least "make html" and carefully inspect and proofread
+  the resulting HTML format  doc page before submitting your code.
+  Upon submission of a pull request, checks for error free completion
+  of the HTML and PDF build will be performed and also a spell check,
+  a check for correct anchors and labels, and a check for completeness
+  of references all styles in their corresponding tables and lists is
+  run.  In case the spell check reports false positives they can be
+  added to the file doc/utils/sphinx-config/false_positives.txt
+
 * For a new package (or even a single command) you should include one or
   more example scripts demonstrating its use.  These should run in no
   more than a couple minutes, even on a single processor, and not require
@@ -178,6 +189,7 @@ examples. If you are uncertain, please ask.
   examples of input scripts other users provided for their packages.
   These example inputs are also required for validating memory accesses
   and testing for memory leaks with valgrind
+
 * If there is a paper of yours describing your feature (either the
   algorithm/science behind the feature itself, or its initial usage, or
   its implementation in LAMMPS), you can add the citation to the \*.cpp
@@ -198,3 +210,6 @@ Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the
 easier you make it for people to get started, e.g. by providing example
 scripts, the more likely it is that users will try out your new feature.
+
+.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
+.. _sphinx: https://sphinx-doc.org

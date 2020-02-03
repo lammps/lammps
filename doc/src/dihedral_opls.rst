@@ -36,8 +36,11 @@ Description
 
 The *opls* dihedral style uses the potential
 
-.. image:: Eqs/dihedral_opls.jpg
-   :align: center
+.. math::
+
+  E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
+      & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
+
 
 Note that the usual 1/2 factor is not included in the K values.
 
@@ -49,10 +52,10 @@ The following coefficients must be defined for each dihedral type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* K1 (energy)
-* K2 (energy)
-* K3 (energy)
-* K4 (energy)
+* :math:`K_1` (energy)
+* :math:`K_2` (energy)
+* :math:`K_3` (energy)
+* :math:`K_4` (energy)
 
 
 ----------

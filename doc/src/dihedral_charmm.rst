@@ -42,8 +42,10 @@ Description
 
 The *charmm* and *charmmfsw* dihedral styles use the potential
 
-.. image:: Eqs/dihedral_charmm.jpg
-   :align: center
+.. math::
+
+  E = K [ 1 + \cos (n \phi - d) ]
+
 
 See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM
 force field.  This dihedral style can also be used for the AMBER force
@@ -66,9 +68,9 @@ The following coefficients must be defined for each dihedral type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* K (energy)
-* n (integer >= 0)
-* d (integer value of degrees)
+* :math:`K` (energy)
+* :math:`n` (integer >= 0)
+* :math:`d` (integer value of degrees)
 * weighting factor (1.0, 0.5, or 0.0)
 
 The weighting factor is required to correct for double counting

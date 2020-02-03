@@ -634,6 +634,7 @@ dnf
 DNi
 Dobson
 Dodds
+docenv
 dodgerblue
 dof
 doi
@@ -2510,6 +2511,7 @@ Rr
 rRESPA
 Rspace
 rsq
+rst
 rstyle
 Rubensson
 Rubia

@@ -31,26 +31,26 @@ Description
 
 The *fourier* dihedral style uses the potential:
 
-.. image:: Eqs/dihedral_fourier.jpg
-   :align: center
+.. math::
+
+  E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
+
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* m (integer >=1)
-* K1 (energy)
-* n1 (integer >= 0)
-* d1 (degrees)
+* :math:`m` (integer >=1)
+* :math:`K_1` (energy)
+* :math:`n_1` (integer >= 0)
+* :math:`d_1` (degrees)
 * [...]
-* Km (energy)
-* nm (integer >= 0)
-* dm (degrees)
-
+* :math:`K_m` (energy)
+* :math:`n_m` (integer >= 0)
+* :math:`d_m` (degrees)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.

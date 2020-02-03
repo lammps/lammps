@@ -28,8 +28,10 @@ Description
 
 The *fourier* improper style uses the following potential:
 
-.. image:: Eqs/improper_fourier.jpg
-   :align: center
+.. math::
+
+   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ] 
+
 
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,
 and omega is the angle between the IL axis and the IJK plane:
@@ -45,10 +47,10 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* C0 (unitless)
-* C1 (unitless)
-* C2 (unitless)
+* :math:`K` (energy)
+* :math:`C_0` (unitless)
+* :math:`C_1` (unitless)
+* :math:`C_2` (unitless)
 * all  (0 or 1, optional)
 
 

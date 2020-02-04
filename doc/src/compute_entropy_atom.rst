@@ -53,27 +53,33 @@ information about the solid structure is required.
 This parameter for atom i is computed using the following formula from
 :ref:`(Piaggi) <Piaggi>` and :ref:`(Nettleton) <Nettleton>` ,
 
-.. image:: Eqs/pair_entropy.jpg
-   :align: center
+.. math::
+
+   s_S^i=-2\pi\rho k_B \int\limits_0^{r_m} \left [ g(r) \ln g(r) - g(r) + 1 \right ] r^2 dr
+
 
 where r is a distance, g(r) is the radial distribution function of atom
 i and rho is the density of the system. The g(r) computed for each
 atom i can be noisy and therefore it is smoothed using:
 
-.. image:: Eqs/pair_entropy2.jpg
-   :align: center
+.. math::
 
-where the sum in j goes through the neighbors of atom i, and sigma is a
-parameter to control the smoothing.
+   g_m^i(r) = \frac{1}{4 \pi \rho r^2} \sum\limits_{j} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-(r-r_{ij})^2/(2\sigma^2)}
 
-The input parameters are *sigma* the smoothing parameter, and the
-*cutoff* for the calculation of g(r).
+
+where the sum in j goes through the neighbors of atom i, and :math:`\sigma`
+is a parameter to control the smoothing.
+
+The input parameters are *sigma* the smoothing parameter :math:`\sigma`,
+and the *cutoff* for the calculation of g(r).
 
 If the keyword *avg* has the setting *yes*\ , then this compute also
 averages the parameter over the neighbors  of atom i according to:
 
-.. image:: Eqs/pair_entropy3.jpg
-   :align: center
+.. math::
+
+  \left< s_S^i \right>  = \frac{\sum_j s_S^j + s_S^i}{N + 1}
+
 
 where the sum j goes over the neighbors of atom i and N is the number
 of neighbors. This procedure provides a sharper distinction between

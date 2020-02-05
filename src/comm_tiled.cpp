@@ -287,7 +287,6 @@ void CommTiled::setup()
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
         if (idir == 0) grow_swap_recv(iswap+1,nprocmax[iswap]);
         else grow_swap_recv(iswap-1,nprocmax[iswap]);
-        
       }
 
       // overlap how has list of noverlap procs
@@ -372,11 +371,9 @@ void CommTiled::setup()
       }
       else{
         for (i = 0; i < noverlap; i++) {
-          
-          
         pbc_flag[iswap][i] = 0;
         pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
-          pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
+        pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
 
         (this->*box_other)(idim,idir,overlap[i],oboxlo,oboxhi);
 
@@ -849,7 +846,6 @@ void CommTiled::borders()
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
-  
   AtomVec *avec = atom->avec;
 
   // send/recv max one = max # of atoms in single send/recv for any swap
@@ -922,7 +918,7 @@ void CommTiled::borders()
 
       if (!bordergroup) {
         for (i = 0; i < nlast; i++) {
-          itype=type[i];    
+          itype=type[i];
           bbox = sendbox_multi[iswap][m][itype];
           xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
@@ -932,12 +928,11 @@ void CommTiled::borders()
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
             sendlist[iswap][m][ncount++] = i;
           }
-          
         }
       } else {
         ngroup = atom->nfirst;
         for (i = 0; i < ngroup; i++) {
-          itype=type[i];    
+          itype=type[i];
           bbox = sendbox_multi[iswap][m][itype];
           xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
@@ -949,7 +944,7 @@ void CommTiled::borders()
           }
         }
         for (i = atom->nlocal; i < nlast; i++) {
-           itype=type[i];    
+           itype=type[i];
            bbox = sendbox_multi[iswap][m][itype];
            xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
            xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];

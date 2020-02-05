@@ -852,12 +852,11 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
 template<class FunctorStyle>
 int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
     int team_size_max;
-    if (reduce_flag) {
-      EV_FLOAT ev;
-      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,ev,Kokkos::ParallelReduceTag());
-    } else {
+
+    if (reduce_flag)
+      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
+    else
       team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
-    }
 
 #ifdef KOKKOS_ENABLE_CUDA
     if(team_size*vector_length > team_size_max)

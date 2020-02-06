@@ -980,17 +980,9 @@ typedef struct ArrayTypes<LMPHostType> HAT;
 template<class DeviceType, class BufferView, class DualView>
 void buffer_view(BufferView &buf, DualView &view,
                  const size_t n0,
-                 const size_t n1 = 0,
-                 const size_t n2 = 0,
-                 const size_t n3 = 0,
-                 const size_t n4 = 0,
-                 const size_t n5 = 0,
-                 const size_t n6 = 0,
-                 const size_t n7 = 0) {
+                 const size_t n1) {
 
-  buf = BufferView(
-          view.template view<DeviceType>().data(),
-          n0,n1,n2,n3,n4,n5,n6,n7);
+  buf = BufferView(view.template view<DeviceType>().data(),n0,n1);
 
 }
 

@@ -60,6 +60,7 @@ OPT.
    * :doc:`buck/mdf <pair_mdf>`
    * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>`
    * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>`
+   * :doc:`cnt/tpm <pair_cnt_tpm>`
    * :doc:`colloid (go) <pair_colloid>`
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`

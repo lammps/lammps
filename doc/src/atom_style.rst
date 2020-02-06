@@ -88,6 +88,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *cnt*        | mass, radius, length, buckling, connections, tube id| Carbon nanotubes                     |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dpd*        | internal temperature and internal energies          | DPD particles                        |
@@ -124,6 +126,7 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *wavepacket* | charge, spin, eradius, etag, cs\_re, cs\_im         | AWPMD                                |
 +--------------+-----------------------------------------------------+--------------------------------------+
+
 
 .. note::
 
@@ -219,6 +222,10 @@ end points of the line segment).
 For the *tri* style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
+
+For the *cnt* style, the particles represent nodes of Carbon Nanotube
+segments, and each stores a per-particle mass, radius, segment
+length, tube id, buckling flag, and connections with neighbor nodes.
 
 The *template* style allows molecular topology (bonds,angles,etc) to be
 defined via a molecule template using the :doc:`molecule <molecule>`
@@ -350,6 +357,8 @@ The *spin* style is part of the SPIN package.
 
 The *wavepacket* style is part of the USER-AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
+
+The *cnt* style is part of the USER-CNT package.
 
 Related commands
 """"""""""""""""

@@ -39,6 +39,13 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`cluster/atom <compute_cluster_atom>`
    * :doc:`cna/atom <compute_cna_atom>`
    * :doc:`cnp/atom <compute_cnp_atom>`
+   * :doc:`cnt/Es <compute_cnt>`
+   * :doc:`cnt/Eb <compute_cnt>`
+   * :doc:`cnt/Et <compute_cnt>`
+   * :doc:`cnt/B <compute_cnt>`
+   * :doc:`cnt/Es_tot <compute_cnt>`
+   * :doc:`cnt/Eb_tot <compute_cnt>`
+   * :doc:`cnt/Et_tot <compute_cnt>`
    * :doc:`com <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
@@ -163,3 +170,4 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
+

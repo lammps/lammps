@@ -131,6 +131,7 @@ accelerated styles exist.
 * :doc:`buck/mdf <pair_mdf>` - Buckingham with a taper function
 * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with damped-shift-force model
 * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with long-range Coulombics
+* :doc:`cnt/tpm <pair_cnt_tpm>` - carbon nanotubes mesoscopic force field
 * :doc:`colloid <pair_colloid>` - integrated colloidal potential
 * :doc:`comb <pair_comb>` - charge-optimized many-body (COMB) potential
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
@@ -357,3 +358,8 @@ Default
 .. parsed-literal::
 
    pair_style none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Commands_all.html

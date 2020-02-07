@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -47,7 +47,7 @@ PairCNTTPM::PairCNTTPM(LAMMPS *lmp) : Pair(lmp) {
   TPMType = 0;      // Inter-tube segment-segment interaction
   tab_path = NULL;
   tab_path_length = 0;
-  
+
   eatom_s = NULL;
   eatom_b = NULL;
   eatom_t = NULL;
@@ -61,7 +61,7 @@ PairCNTTPM::~PairCNTTPM()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
-    
+
     memory->destroy(eatom_s);
     memory->destroy(eatom_b);
     memory->destroy(eatom_t);
@@ -153,7 +153,7 @@ void PairCNTTPM::compute(int eflag, int vflag){
     double* S1 = &(s_sort[9*idx_s0]);
     double* S2 = &(s_sort[9*idx_s1]);
     double R12 = r[s[0]]; if (R12 > Rmax) Rmax = R12;
-    if (std::abs(R12 - RT) > 1e-3) 
+    if (std::abs(R12 - RT) > 1e-3)
         error->all(FLERR,"Inconsistent input and potential table");
     //assume that the length of the segment is defined by the node with
     //smallest global id
@@ -162,7 +162,7 @@ void PairCNTTPM::compute(int eflag, int vflag){
 
     for (int nc = 0; nc < cntlist.get_nbs()[i].size(); nc++){
       //id of the beginning and end of the chain in the sorted representation
-      const array2003<int,2>& chain = cntlist.get_nbs()[i][nc]; 
+      const array2003<int,2>& chain = cntlist.get_nbs()[i][nc];
       int N = chain[1] - chain[0] + 1;  //number of elements in the chain
       int end1 = cntlist.get_idx(chain[0]);  //chain ends (real representation)
       int end2 = cntlist.get_idx(chain[1]);
@@ -178,8 +178,8 @@ void PairCNTTPM::compute(int eflag, int vflag){
 
       int Ee = 0;
       double* Xe = X; double* Fe = F; double* Se = S;
-      if (!E1 && cntlist.get_triplet(end1)[0] != CNTList::domain_end && 
-       cntlist.get_triplet(cntlist.get_triplet(end1)[0])[0] == 
+      if (!E1 && cntlist.get_triplet(end1)[0] != CNTList::domain_end &&
+       cntlist.get_triplet(cntlist.get_triplet(end1)[0])[0] ==
        CNTList::cnt_end){
         Ee = 1;
         int idx = cntlist.get_idxb(cntlist.get_triplet(end1)[0]);
@@ -187,8 +187,8 @@ void PairCNTTPM::compute(int eflag, int vflag){
         Fe = &(f_sort[3*idx]);
         Se = &(s_sort[9*idx]);
       }
-      else if (!E2 && cntlist.get_triplet(end2)[2] != CNTList::domain_end && 
-       cntlist.get_triplet(cntlist.get_triplet(end2)[2])[2] == 
+      else if (!E2 && cntlist.get_triplet(end2)[2] != CNTList::domain_end &&
+       cntlist.get_triplet(cntlist.get_triplet(end2)[2])[2] ==
        CNTList::cnt_end){
         Ee = 2;
         int idx = cntlist.get_idxb(cntlist.get_triplet(end2)[2]);
@@ -196,7 +196,7 @@ void PairCNTTPM::compute(int eflag, int vflag){
         Fe = &(f_sort[3*idx]);
         Se = &(s_sort[9*idx]);
       }
-            
+
       SegmentTubeForceField(U1t, U2t, Ut, F1, F2, F, Fe, S1, S2, S, Se, X1,
        X2, R12, N, X, Xe, BBF, R, E1, E2, Ee, TPMType);
     }

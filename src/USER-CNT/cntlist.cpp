@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -18,7 +18,7 @@
 #include <cmath>
 
 template<typename T>
-void vector_union(std::vector<T>& v1, std::vector<T>& v2, 
+void vector_union(std::vector<T>& v1, std::vector<T>& v2,
  std::vector<T>& merged) {
   std::sort(v1.begin(), v1.end());
   std::sort(v2.begin(), v2.end());
@@ -103,13 +103,13 @@ CNTList::CNTList(const Atom* atom, const NeighList* nblist, double rc2){
     if (chain_list[i][0] != cnt_end && chain_list[i][0] != domain_end &&
      g_id[i] < g_id[chain_list[i][0]]){
       array2003<int, 2> tmp_c;
-      tmp_c[0] = i; tmp_c[1] = chain_list[i][0]; 
+      tmp_c[0] = i; tmp_c[1] = chain_list[i][0];
       segments.push_back(tmp_c);
     }
     if (chain_list[i][1] != cnt_end && chain_list[i][1] != domain_end &&
      g_id[i] < g_id[chain_list[i][1]]){
       array2003<int, 2> tmp_c;
-       tmp_c[0] = i; tmp_c[1] = chain_list[i][1]; 
+       tmp_c[0] = i; tmp_c[1] = chain_list[i][1];
        segments.push_back(tmp_c);
     }
   }
@@ -146,22 +146,22 @@ CNTList::CNTList(const Atom* atom, const NeighList* nblist, double rc2){
     if (nnb > 0) {
       int idx_s = nb_list[0];
       for (int j = 0; j < nnb; j++) {
-        //if nodes are not continous in the sorted representation 
+        //if nodes are not continous in the sorted representation
         //or represent chain ends, create a new neighbor chain
         int idx_next = chain_list[index_list[nb_list[j]]][1];
-        if ((j == nnb - 1) || (nb_list[j] + 1 != nb_list[j+1]) || 
+        if ((j == nnb - 1) || (nb_list[j] + 1 != nb_list[j+1]) ||
          (idx_next == cnt_end) || (idx_next == domain_end)) {
           int idx_f = nb_list[j];
           array2003<int, 2> chain;
           chain[0] = idx_s;
           chain[1] = nb_list[j];
-          //make sure that segments having at least one node 
+          //make sure that segments having at least one node
           //in the neighbor list are included
           int idx0 = index_list[chain[0]]; // real id of the ends
           int idx1 = index_list[chain[1]];
           if (chain_list[idx0][0] != cnt_end &&
            chain_list[idx0][0] != domain_end) chain[0] -= 1;
-          if (chain_list[idx1][1] != cnt_end && 
+          if (chain_list[idx1][1] != cnt_end &&
            chain_list[idx1][1] != domain_end) chain[1] += 1;
           if(chain[0] != chain[1]) nb_chains[i].push_back(chain);
           idx_s = (j == nnb - 1) ? -1 : nb_list[j + 1];

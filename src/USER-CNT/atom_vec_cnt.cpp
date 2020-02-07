@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -84,7 +84,7 @@ void AtomVecCNT::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  
+
   rmass = atom->rmass;
   radius = atom->radius;
   length = atom->length;
@@ -109,7 +109,7 @@ void AtomVecCNT::copy(int i, int j, int delflag)
   v[j][0] = v[i][0];
   v[j][1] = v[i][1];
   v[j][2] = v[i][2];
-  
+
   rmass[j] = rmass[i];
   radius[j] = radius[i];
   length[j] = length[i];
@@ -304,7 +304,7 @@ int AtomVecCNT::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
-      
+
       buf[m++] = rmass[j];
       buf[m++] = radius[j];
       buf[m++] = length[j];
@@ -331,7 +331,7 @@ int AtomVecCNT::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
-      
+
       buf[m++] = rmass[j];
       buf[m++] = radius[j];
       buf[m++] = length[j];
@@ -861,10 +861,10 @@ void AtomVecCNT::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp, TAGINT_FORMAT " " TAGINT_FORMAT " %d "
-      TAGINT_FORMAT " " TAGINT_FORMAT 
+      TAGINT_FORMAT " " TAGINT_FORMAT
       " %-1.16e %-1.16e %-1.16e %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
       (tagint) ubuf(buf[i][0]).i, (tagint) ubuf(buf[i][1]).i,
-      (int) ubuf(buf[i][2]).i, (tagint) ubuf(buf[i][3]).i, 
+      (int) ubuf(buf[i][2]).i, (tagint) ubuf(buf[i][3]).i,
       (tagint) ubuf(buf[i][4]).i,
       buf[i][5], buf[i][6], buf[i][7], (int) ubuf(buf[i][8]).i,
       buf[i][9], buf[i][10], buf[i][11],
@@ -878,7 +878,7 @@ void AtomVecCNT::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecCNT::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT 
+  fprintf(fp," " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
     " %-1.16e %-1.16e %-1.16e %d",
     (tagint) ubuf(buf[0]).i, (tagint) ubuf(buf[1]).i, (tagint) ubuf(buf[2]).i,
     buf[3], buf[4], buf[5], (int)ubuf(buf[6]).i);

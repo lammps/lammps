@@ -1,7 +1,7 @@
 .. index:: pair\_style cnt/tpm
 
 pair\_style cnt/tpm command
-==========================
+============================
 
 Syntax
 """"""
@@ -34,8 +34,8 @@ simulations of interacting flexible nanotubes. The force field is based on the
 mesoscopic computational model suggested in Ref. :ref:`[1] <Srivastava>`.
 In this model, each nanotube is represented by a chain of mesoscopic elements
 in the form of stretchable cylindrical segments, where each segment consists
-of multiple atoms. Each nanotube is divided into segments by a sequent of nodes
-placed on the nanotube centerline. This sequence of nodes determines the
+of multiple atoms. Each nanotube is divided into segments by a sequence of
+nodes placed on the nanotube centerline. This sequence of nodes determines the
 spatial position of the cylindrical segments and defines the configuration of
 the entire tube.
 

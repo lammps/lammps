@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -80,7 +80,7 @@ void ComputeCNT_Es::compute_peratom()
 
   // clear local energy array
   for (i = 0; i < ntotal; i++) energy[i] = 0.0;
-  
+
   if (force->pair){
     try {
       PairCNTTPM* pair = dynamic_cast<PairCNTTPM*>(force->pair);

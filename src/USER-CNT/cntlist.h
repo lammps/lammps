@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -39,7 +39,7 @@ public:
   const std::vector<array2003<int,2> >& get_segments() const;
   //list of triplets
   const std::vector<array2003<int,3> >& get_triplets() const;
-  //list of neigbor chains [start,end] for segments 
+  //list of neigbor chains [start,end] for segments
   //(use idx() to get real indexes)
   const std::vector<std::vector<array2003<int,2> > >& get_nbs() const;
   //convert idx from sorted representation to real idx
@@ -67,7 +67,7 @@ private:
 
 //=============================================================================
 
-inline const std::vector<std::vector<array2003<int, 2> > > & CNTList::get_nbs() 
+inline const std::vector<std::vector<array2003<int, 2> > > & CNTList::get_nbs()
  const {
   return nb_chains;
 }

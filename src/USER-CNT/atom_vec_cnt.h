@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -43,8 +43,8 @@ class AtomVecCNT : public AtomVec {
   virtual int pack_border_vel(int, int *, double *, int, int *);
   virtual void unpack_border(int, int, double *);
   virtual void unpack_border_vel(int, int, double *);
-  int pack_border_hybrid(int, int *, double *); 
-  int unpack_border_hybrid(int, int, double *); 
+  int pack_border_hybrid(int, int *, double *);
+  int unpack_border_hybrid(int, int, double *);
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(double *);
   int size_restart();

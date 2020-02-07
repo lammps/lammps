@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -46,15 +46,15 @@ class PairCNTTPM : public Pair {
   double energy_b;  // accumulated energies for bending
   double energy_t;  // accumulated energies for tube-tube interaction
   double *eatom_s, *eatom_b, *eatom_t; // accumulated per-atom values
-  
+
  protected:
   int BendingMode, TPMType;
   char* tab_path;
   int tab_path_length;
-  
+
   double cut_global;
   double **cut;
-  
+
   virtual void allocate();
 };
 
@@ -91,7 +91,7 @@ Self-explanatory.
 
 E: Inconsistent input and potential table
 
-The tube diameter is inconsistent with the chirality specified 
+The tube diameter is inconsistent with the chirality specified
 during generation of the potential table.
 
 */

@@ -45,13 +45,16 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
 
-  if ( strcmp(arg[3],"x") == 0 )
+  if ( strcmp(arg[3],"x") == 0 ) {
     direction = 0;
-  else if ( strcmp(arg[3],"y") == 0 )
+    box_change |= BOX_CHANGE_X;
+  } else if ( strcmp(arg[3],"y") == 0 ) {
     direction = 1;
-  else if ( strcmp(arg[3],"z") == 0 )
+    box_change |= BOX_CHANGE_Y;
+  } else if ( strcmp(arg[3],"z") == 0 ) {
     direction = 2;
-  else {
+    box_change |= BOX_CHANGE_Z;
+  } else {
     error->all(FLERR,"Illegal fix qbmsst command");
   }
   velocity = atof(arg[4]);
@@ -64,7 +67,6 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   nevery = 1;
   restart_global = 1;
-  box_change_size = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;

@@ -163,7 +163,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
   // flag that I change the box here (in case of nvt)
 
-  box_change_shape = 1;
+  box_change |= BOX_CHANGE_SHAPE;
 
   // initialize the UEFBox class which computes the box at each step
 

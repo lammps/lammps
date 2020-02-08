@@ -244,7 +244,7 @@ void FixNHUef::init()
   for (int i=0; i < modify->nfix; i++)
   {
     if (strcmp(modify->fix[i]->id,id) != 0)
-      if (modify->fix[i]->box_change_shape != 0)
+      if ((modify->fix[i]->box_change & BOX_CHANGE_SHAPE) != 0)
         error->all(FLERR,"Can't use another fix which changes box shape with fix/nvt/npt/uef");
   }
 

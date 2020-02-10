@@ -75,8 +75,11 @@ html: $(ANCHORCHECK)
 	@rm -rf html/_sources
 	@rm -rf html/PDF
 	@rm -rf html/USER
+	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@cp -r src/USER html/USER
+	@mkdir -p html/JPG
+	@cp -v `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,'` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@rm -rf html/USER/.[sg]*
 	@rm -rf html/USER/*/.[sg]*

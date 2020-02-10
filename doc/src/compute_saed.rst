@@ -59,14 +59,14 @@ radiation of wavelength lambda.
 The electron diffraction intensity I at each reciprocal lattice point
 is computed from the structure factor F using the equations:
 
-.. image:: Eqs/compute_saed1.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/compute_saed2.jpg
-   :align: center
+  I = & \frac{F^{*}F}{N} \\
+  F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k} \cdot \mathbf{r}_j)
 
-Here, K is the location of the reciprocal lattice node, rj is the
-position of each atom, fj are atomic scattering factors.
+
+Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
+position of each atom, :math:`f_j` are atomic scattering factors.
 
 Diffraction intensities are calculated on a three-dimensional mesh of
 reciprocal lattice nodes. The mesh spacing is defined either (a)  by
@@ -119,33 +119,117 @@ for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
 :ref:`(Brown) <Brown>`:
 
-.. image:: Eqs/compute_saed3.jpg
-   :align: center
+.. math::
+
+  f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
+  a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
+
 
 Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
 type. Valid chemical symbols for compute saed are:
 
-H:       He:      Li:      Be:       B:
-C:        N:       O:       F:      Ne:
-Na:      Mg:      Al:      Si:       P:
-S:       Cl:      Ar:       K:      Ca:
-Sc:      Ti:       V:      Cr:      Mn:
-Fe:      Co:      Ni:      Cu:      Zn:
-Ga:      Ge:      As:      Se:      Br:
-Kr:      Rb:      Sr:       Y:      Zr:
-Nb:      Mo:      Tc:      Ru:      Rh:
-Pd:      Ag:      Cd:      In:      Sn:
-Sb:      Te:       I:      Xe:      Cs:
-Ba:      La:      Ce:      Pr:      Nd:
-Pm:      Sm:      Eu:      Gd:      Tb:
-Dy:      Ho:      Er:      Tm:      Yb:
-Lu:      Hf:      Ta:       W:      Re:
-Os:      Ir:      Pt:      Au:      Hg:
-Tl:      Pb:      Bi:      Po:      At:
-Rn:      Fr:      Ra:      Ac:      Th:
-Pa:       U:      Np:      Pu:      Am:
-Cm:      Bk:      Cf:tb(c=5,s=:)
+.. table_from_list::
+   :columns: 20
+
+   * H
+   * He
+   * Li
+   * Be
+   * B
+   * C
+   * N
+   * O
+   * F
+   * Ne
+   * Na
+   * Mg
+   * Al
+   * Si
+   * P
+   * S
+   * Cl
+   * Ar
+   * K
+   * Ca
+   * Sc
+   * Ti
+   * V
+   * Cr
+   * Mn
+   * Fe
+   * Co
+   * Ni
+   * Cu
+   * Zn
+   * Ga
+   * Ge
+   * As
+   * Se
+   * Br
+   * Kr
+   * Rb
+   * Sr
+   * Y
+   * Zr
+   * Nb
+   * Mo
+   * Tc
+   * Ru
+   * Rh
+   * Pd
+   * Ag
+   * Cd
+   * In
+   * Sn
+   * Sb
+   * Te
+   * I
+   * Xe
+   * Cs
+   * Ba
+   * La
+   * Ce
+   * Pr
+   * Nd
+   * Pm
+   * Sm
+   * Eu
+   * Gd
+   * Tb
+   * Dy
+   * Ho
+   * Er
+   * Tm
+   * Yb
+   * Lu
+   * Hf
+   * Ta
+   * W
+   * Re
+   * Os
+   * Ir
+   * Pt
+   * Au
+   * Hg
+   * Tl
+   * Pb
+   * Bi
+   * Po
+   * At
+   * Rn
+   * Fr
+   * Ra
+   * Ac
+   * Th
+   * Pa
+   * U
+   * Np
+   * Pu
+   * Am
+   * Cm
+   * Bk
+   * Cf
 
 If the *echo* keyword is specified, compute saed will provide extra
 reporting information to the screen.

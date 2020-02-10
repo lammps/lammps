@@ -1084,13 +1084,18 @@ void Set::setrandom(int keyword)
     ranmars->select_subset(nsubset,count,flag,work);
 
     // change types of selected atoms
+    // flag vecftor from select_subset() is only for eligible atoms
 
     count = 0;
-    for (i = 0; i < nlocal; i++)
-      if (select[i] && flag[i]) {
+    int eligible = 0;
+    for (i = 0; i < nlocal; i++) {
+      if (!select[i]) continue;
+      if (flag[eligible]) {
         atom->type[i] = newtype;
         count++;
       }
+      eligible++;
+    }
 
     // clean up
 

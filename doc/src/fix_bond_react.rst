@@ -374,8 +374,10 @@ reacting molecules.
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:
 
-.. image:: Eqs/fix_bond_react.jpg
-   :align: center
+.. math::
+
+   k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
+
 
 The Arrhenius constraint has the following syntax:
 
@@ -385,8 +387,8 @@ The Arrhenius constraint has the following syntax:
    arrhenius *A* *n* *E_a* *seed*
 
 where 'arrhenius' is the required keyword, *A* is the pre-exponential
-factor, *n* is the exponent of the temperature dependence, *E\_a* is
-the activation energy (:doc:`units <units>` of energy), and *seed* is a
+factor, *n* is the exponent of the temperature dependence, :math:`E_a`
+is the activation energy (:doc:`units <units>` of energy), and *seed* is a
 random number seed. The temperature is defined as the instantaneous
 temperature averaged over all atoms in the reaction site, and is
 calculated in the same manner as for example

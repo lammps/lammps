@@ -527,6 +527,11 @@ void Modify::thermo_energy_atom(int nlocal, double *energy)
 void Modify::post_run()
 {
   for (int i = 0; i < nfix; i++) fix[i]->post_run();
+
+  // must reset this to its default value, since computes may be added
+  // or removed between runs and with this change we will redirect any
+  // calls to addstep_compute() to addstep_compute_all() instead.
+  n_timeflag = -1;
 }
 
 /* ----------------------------------------------------------------------

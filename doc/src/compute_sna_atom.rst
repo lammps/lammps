@@ -251,7 +251,7 @@ ordered in which they are listed.
    file.  The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
-;line
+----------
 
 **Output info:**
 

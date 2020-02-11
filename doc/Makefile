@@ -79,7 +79,7 @@ html: $(ANCHORCHECK)
 	@cp -r src/PDF html/PDF
 	@cp -r src/USER html/USER
 	@mkdir -p html/JPG
-	@cp -v `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,'` html/JPG/
+	@cp `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@rm -rf html/USER/.[sg]*
 	@rm -rf html/USER/*/.[sg]*

@@ -50,6 +50,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+  n_timeflag = -1;
 
   fix = NULL;
   fmask = NULL;
@@ -1283,6 +1284,14 @@ void Modify::clearstep_compute()
 
 void Modify::addstep_compute(bigint newstep)
 {
+  // If we are called before the first run init, n_timeflag is not yet
+  // initialized, thus defer to addstep_compute_all() instead
+
+  if (n_timeflag < 0) {
+     addstep_compute_all(newstep);
+     return;
+  }
+
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked_flag)
       compute[list_timeflag[icompute]]->addstep(newstep);

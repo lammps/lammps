@@ -1,5 +1,4 @@
-LAMMPS (27 Nov 2018)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (4 Feb 2020)
 # Solvated 5-mer peptide
 
 units		real
@@ -39,6 +38,8 @@ read_data	data.peptide
   7 = max # of 1-3 neighbors
   14 = max # of 1-4 neighbors
   18 = max # of special neighbors
+  special bonds CPU = 0.000809431 secs
+  read_data CPU = 0.0102327 secs
 
 neighbor	2.0 bin
 neigh_modify	delay 5
@@ -66,6 +67,7 @@ fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
   6 = # of size 3 clusters
   3 = # of size 4 clusters
   640 = # of frozen angles
+  find clusters CPU = 0.000631809 secs
 
 #dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
 #dump_modify 1 sort id
@@ -77,13 +79,13 @@ variable        pe equal pe
 
 run		101
 PPPM initialization ...
-  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:332)
   G vector (1/distance) = 0.268725
   grid = 15 15 15
   stencil order = 5
   estimated absolute RMS force accuracy = 0.0228209
   estimated relative force accuracy = 6.87243e-05
-  using double precision FFTs
+  using double precision FFTW3
   3d grid and FFT values/proc = 10648 3375
 Neighbor list info ...
   update every 1 steps, delay 5 steps, check yes
@@ -106,7 +108,7 @@ SHAKE stats (type/ave/delta) on step 0
   14 0.96 0
   18 0.957206 4.37979e-05
   31 104.519 0.00396029
-Per MPI rank memory allocation (min/avg/max) = 18.74 | 18.74 | 18.74 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 19.07 | 19.07 | 19.07 Mbytes
 Step Temp TotEng PotEng KinEng E_pair E_bond f_2 
        0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152            0 
       10     276.9783   -5234.3057   -6348.6171    1114.3114   -6421.6171    17.024361   0.47785504 
@@ -129,22 +131,22 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.000760401
      100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404 0.0094784372 
      101    270.99811   -5235.8295    -6326.082    1090.2525   -6418.8974    17.285816  0.086681332 
-Loop time of 2.73445 on 1 procs for 101 steps with 2004 atoms
+Loop time of 2.69839 on 1 procs for 101 steps with 2004 atoms
 
-Performance: 6.383 ns/day, 3.760 hours/ns, 36.936 timesteps/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 6.468 ns/day, 3.711 hours/ns, 37.430 timesteps/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.2617     | 2.2617     | 2.2617     |   0.0 | 82.71
-Bond    | 0.0044148  | 0.0044148  | 0.0044148  |   0.0 |  0.16
-Kspace  | 0.17883    | 0.17883    | 0.17883    |   0.0 |  6.54
-Neigh   | 0.23945    | 0.23945    | 0.23945    |   0.0 |  8.76
-Comm    | 0.011672   | 0.011672   | 0.011672   |   0.0 |  0.43
-Output  | 0.00028348 | 0.00028348 | 0.00028348 |   0.0 |  0.01
-Modify  | 0.0365     | 0.0365     | 0.0365     |   0.0 |  1.33
-Other   |            | 0.001611   |            |       |  0.06
+Pair    | 2.2853     | 2.2853     | 2.2853     |   0.0 | 84.69
+Bond    | 0.0065637  | 0.0065637  | 0.0065637  |   0.0 |  0.24
+Kspace  | 0.14949    | 0.14949    | 0.14949    |   0.0 |  5.54
+Neigh   | 0.1938     | 0.1938     | 0.1938     |   0.0 |  7.18
+Comm    | 0.0096588  | 0.0096588  | 0.0096588  |   0.0 |  0.36
+Output  | 0.00039172 | 0.00039172 | 0.00039172 |   0.0 |  0.01
+Modify  | 0.050643   | 0.050643   | 0.050643   |   0.0 |  1.88
+Other   |            | 0.00258    |            |       |  0.10
 
 Nlocal:    2004 ave 2004 max 2004 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

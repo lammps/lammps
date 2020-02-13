@@ -56,9 +56,12 @@ int ReaderNative::read_time(bigint &ntimestep)
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
 
-  // skip over unit information, if present.
+  // skip over unit and time information, if present.
 
   if (strstr(line,"ITEM: UNITS") == line)
+    read_lines(2);
+
+  if (strstr(line,"ITEM: TIME") == line)
     read_lines(2);
 
   if (strstr(line,"ITEM: TIMESTEP") != line)

@@ -78,7 +78,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   int api_version;
   p->cmd("getApiVersion",&api_version);
-  if (api_version > 6)
+  if (api_version < 6)
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed");
 
   // If the -partition option is activated then enable

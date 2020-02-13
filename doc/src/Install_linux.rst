@@ -8,8 +8,8 @@ Binaries are available for different versions of Linux:
 | :ref:`Pre-built EPEL Linux executables (RHEL, CentOS) <epel>`
 | :ref:`Pre-built OpenSuse Linux executables <opensuse>`
 | :ref:`Gentoo Linux executable <gentoo>`
-| :ref:`Arch Linux build-script <arch>` 
-| 
+| :ref:`Arch Linux build-script <arch>`
+|
 
 
 ----------
@@ -132,11 +132,21 @@ mirrors. The "module load" command is needed once per (shell) session
 or shell terminal instance, unless it is automatically loaded from the
 shell profile.
 
+The LAMMPS binary is built with the :ref:`KIM package <kim>` which
+results in the above command also installing the `kim-api` binaries when LAMMPS
+is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
+can install the `openkim-models` package
+
+.. parsed-literal::
+
+   dnf install openkim-models
+
 Please use "lmp -help" to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
 
+.. _openkim: https://openkim.org
 
 ----------
 
@@ -146,7 +156,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
 Pre-built EPEL Linux executable
 ------------------------------------------
 
-Pre-built LAMMPS packages for stable releases are available
+Pre-built LAMMPS (and KIM) packages for stable releases are available
 in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedoraproject.org/wiki/EPEL>`_
 for use with Red Hat Enterprise Linux (RHEL) or CentOS version 7.x
 and compatible Linux distributions. Names of packages, executable,
@@ -186,6 +196,15 @@ is *lmp*\ . Thus to run an input in parallel on 2 CPUs you would do:
 
 Please use "lmp -help" to see which compilation options, packages,
 and styles are included in the binary.
+
+The LAMMPS binary is built with the :ref:`KIM package <kim>` which
+results in the above command also installing the `kim-api` binaries when LAMMPS
+is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
+can install the `openkim-models` package
+
+.. parsed-literal::
+
+   zypper install openkim-models
 
 Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
 

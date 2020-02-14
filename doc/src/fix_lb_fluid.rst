@@ -120,7 +120,7 @@ functions,
 .. math::
 
    \rho = & \displaystyle\sum\limits_{i} f_i \\
-   \rho u_{\alpha} = \displaystyle\sum\limits_{i} f_i e_{i\alpha}
+   \rho u_{\alpha} = & \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 Full details of the lattice-Boltzmann algorithm used can be found in
 :ref:`Mackay et al. <fluid-Mackay>`.

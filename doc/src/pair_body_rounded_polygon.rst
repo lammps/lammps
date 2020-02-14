@@ -115,7 +115,7 @@ or in the data file read by the :doc:`read_data <read_data>` command:
 * :math:`k_n` (energy/distance\^2 units)
 * :math:`k_{na}` (energy/distance\^2 units)
 
-Effectively, :math:`k_n` and :math:`k_na` are the slopes of the red lines in the plot
+Effectively, :math:`k_n` and :math:`k_{na}` are the slopes of the red lines in the plot
 above for force versus surface separation, for :math:`\delta_n < 0` and
 :math:`0 < \delta_n < r_c` respectively.
 

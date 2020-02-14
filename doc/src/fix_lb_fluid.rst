@@ -69,33 +69,42 @@ dependent force to the fluid.
 The lattice-Boltzmann algorithm solves for the fluid motion governed by
 the Navier Stokes equations,
 
-.. image:: Eqs/fix_lb_fluid_navierstokes.jpg
-   :align: center
+.. math::
+   
+   \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= & 0 \\
+   \partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = & \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
+
 
 with,
 
-.. image:: Eqs/fix_lb_fluid_viscosity.jpg
-   :align: center
+.. math::
 
-where rho is the fluid density, u is the local fluid velocity, sigma
-is the stress tensor, F is a local external force, and eta and Lambda
-are the shear and bulk viscosities respectively.  Here, we have
-implemented
+   \eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
 
-.. image:: Eqs/fix_lb_fluid_stress.jpg
-   :align: center
 
-with a\_0 set to 1/3 (dx/dt)\^2 by default.
+where :math:`\rho` is the fluid density, *u* is the local
+fluid velocity, :math:`\sigma` is the stress tensor, *F* is a local external
+force, and :math:`\eta` and :math:`\Lambda` are the shear and bulk viscosities
+respectively.  Here, we have implemented
+
+.. math::
+
+   \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
+
+
+with :math:`a_0` set to :math:`\frac{1}{3} \frac{dx}{dt}^2` by default.
 
 The algorithm involves tracking the time evolution of a set of partial
 distribution functions which evolve according to a velocity
 discretized version of the Boltzmann equation,
 
-.. image:: Eqs/fix_lb_fluid_boltzmann.jpg
-   :align: center
+.. math::
+
+   \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
+
 
 where the first term on the right hand side represents a single time
-relaxation towards the equilibrium distribution function, and tau is a
+relaxation towards the equilibrium distribution function, and :math:`\tau` is a
 parameter physically related to the viscosity.  On a technical note,
 we have implemented a 15 velocity model (D3Q15) as default; however,
 the user can switch to a 19 velocity model (D3Q19) through the use of
@@ -108,8 +117,10 @@ finite difference LB integrator is used.  If *LBtype* is set equal to
 Physical variables are then defined in terms of moments of the distribution
 functions,
 
-.. image:: Eqs/fix_lb_fluid_properties.jpg
-   :align: center
+.. math::
+
+   \rho = & \displaystyle\sum\limits_{i} f_i \\
+   \rho u_{\alpha} = \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 Full details of the lattice-Boltzmann algorithm used can be found in
 :ref:`Mackay et al. <fluid-Mackay>`.
@@ -119,12 +130,15 @@ through a velocity dependent force.  The contribution to the fluid
 force on a given lattice mesh site j due to MD particle alpha is
 calculated as:
 
-.. image:: Eqs/fix_lb_fluid_fluidforce.jpg
-   :align: center
+.. math::
 
-where v\_n is the velocity of the MD particle, u\_f is the fluid
+   {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
+
+
+where :math:`\mathbf{v}_n` is the velocity of the MD particle,
+:math:`\mathbf{u}_f` is the fluid
 velocity interpolated to the particle location, and gamma is the force
-coupling constant.  Zeta is a weight assigned to the grid point,
+coupling constant.  :math:`\zeta` is a weight assigned to the grid point,
 obtained by distributing the particle to the nearest lattice sites.
 For this, the user has the choice between a trilinear stencil, which
 provides a support of 8 lattice sites, or the immersed boundary method
@@ -135,20 +149,25 @@ to walls, due to its smaller support.  Therefore, by default, the
 Peskin stencil is used; however the user may switch to the trilinear
 stencil by specifying the keyword, *trilinear*\ .
 
-By default, the force coupling constant, gamma, is calculated according to
+By default, the force coupling constant, :math:`\gamma`, is calculated
+according to
 
-.. image:: Eqs/fix_lb_fluid_gammadefault.jpg
-   :align: center
+.. math::
 
-Here, m\_v is the mass of the MD particle, m\_u is a representative
-fluid mass at the particle location, and dt\_collision is a collision
-time, chosen such that tau/dt\_collision = 1 (see :ref:`Mackay and Denniston <Mackay2>` for full details).  In order to calculate m\_u, the
-fluid density is interpolated to the MD particle location, and
-multiplied by a volume, node\_area\*dx\_lb, where node\_area represents
-the portion of the surface area of the composite object associated
-with a given MD particle.  By default, node\_area is set equal to
-dx\_lb\*dx\_lb; however specific values for given atom types can be set
-using the *setArea* keyword.
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+
+
+Here, :math:`m_v` is the mass of the MD particle, :math:`m_u` is a
+representative fluid mass at the particle location, and :math:`\Delta
+t_{collision}` is a collision time, chosen such that
+:math:`\frac{\tau}{\Delta t_{collision}} = 1` (see :ref:`Mackay and
+Denniston <Mackay2>` for full details).  In order to calculate :math:`m_u`,
+the fluid density is interpolated to the MD particle location, and
+multiplied by a volume, node\_area\*dx\_lb, where node\_area
+represents the portion of the surface area of the composite object
+associated with a given MD particle.  By default, node\_area is set
+equal to dx\_lb\*dx\_lb; however specific values for given atom types
+can be set using the *setArea* keyword.
 
 The user also has the option of specifying their own value for the
 force coupling constant, for all the MD particles associated with the
@@ -364,8 +383,10 @@ Default
 
 By default, the force coupling constant is set according to
 
-.. image:: Eqs/fix_lb_fluid_gammadefault.jpg
-   :align: center
+.. math::
+
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+
 
 and an area of dx\_lb\^2 per node, used to calculate the fluid mass at
 the particle node location, is assumed.

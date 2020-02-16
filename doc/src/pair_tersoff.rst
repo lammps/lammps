@@ -50,12 +50,28 @@ Description
 The *tersoff* style computes a 3-body Tersoff potential
 :ref:`(Tersoff\_1) <Tersoff_11>` for the energy E of a system of atoms as
 
-.. image:: Eqs/pair_tersoff_1.jpg
-   :align: center
+.. math::
 
-where f\_R is a two-body term and f\_A includes three-body interactions.
-The summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = R + D.
+  E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+  V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+  f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+    1 & r < R - D \\
+    \frac{1}{2} - \frac{1}{2} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) &
+      R-D < r < R + D \\
+    0 & r > R + D
+    \end{array} \right. \\
+  f_R(r) & =  A \exp (-\lambda_1 r) \\
+  f_A(r) & =  -B \exp (-\lambda_2 r) \\
+  b_{ij} & =  \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
+  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+                   \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
+  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} - 
+                  \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
+
+
+where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
+interactions.  The summations in the formula are over all neighbors
+J and K of atom I within a cutoff distance = R + D.
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
@@ -104,22 +120,24 @@ above:
 * element 2 (the atom bonded to the center atom)
 * element 3 (the atom influencing the 1-2 bond in a bond-order sense)
 * m
-* gamma
-* lambda3 (1/distance units)
+* :math:`\gamma`
+* :math:`\lambda_3` (1/distance units)
 * c
 * d
-* costheta0 (can be a value < -1 or > 1)
+* :math:`\cos\theta_0` (can be a value < -1 or > 1)
 * n
-* beta
-* lambda2 (1/distance units)
+* :math:`\beta`
+* :math:`\lambda_2` (1/distance units)
 * B (energy units)
 * R (distance units)
 * D (distance units)
-* lambda1 (1/distance units)
+* :math:`\lambda_1` (1/distance units)
 * A (energy units)
 
-The n, beta, lambda2, B, lambda1, and A parameters are only used for
-two-body interactions.  The m, gamma, lambda3, c, d, and costheta0
+The n, :math:`\beta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A
+parameters are only used for
+two-body interactions.  The m, :math:`\gamma`, :math:`\lambda_3`, c, d,
+and :math:`\cos\theta_0`
 parameters are only used for three-body interactions. The R and D
 parameters are used for both two-body and three-body interactions. The
 non-annotated parameters are unitless.  The value of m must be 3 or 1.
@@ -149,7 +167,8 @@ SiCC entry.
 The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
-(n, beta, lambda2, B, lambda1, and A) in entries whose 2nd and 3rd
+(n, :math:`\beta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A)
+in entries whose 2nd and 3rd
 element are different (e.g. SiCSi) are not used for anything and can
 be set to 0.0 if desired.
 
@@ -165,16 +184,24 @@ it reduces to the form of :ref:`Albe et al. <Albe>` when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff\_2
-potential :ref:`(Tersoff\_2) <Tersoff_21>`. The *tersoff/table* style implements
+potential :ref:`(Tersoff\_2) <Tersoff_21>`.
+The *tersoff/table* style implements
 Tersoff\_2 parameterization only.
 
 LAMMPS parameter values for Tersoff\_2 can be obtained as follows:
-gamma\_ijk = omega\_ik, lambda3 = 0 and the value of
+:math:`\gamma_{ijk} = \omega_{ik}`, :math:`\lambda_3 = 0` and the value of
 m has no effect.  The parameters for species i and j can be calculated
 using the Tersoff\_2 mixing rules:
 
-.. image:: Eqs/pair_tersoff_2.jpg
-   :align: center
+.. math::
+
+   \lambda_1^{i,j} & = \frac{1}{2}(\lambda_1^i + \lambda_1^j)\\
+   \lambda_2^{i,j} & = \frac{1}{2}(\lambda_2^i + \lambda_2^j)\\
+   A_{i,j} & = (A_{i}A_{j})^{1/2}\\
+   B_{i,j} & = \chi_{ij}(B_{i}B_{j})^{1/2}\\
+   R_{i,j} & = (R_{i}R_{j})^{1/2}\\
+   S_{i,j} & = (S_{i}S_{j})^{1/2}
+
 
 Tersoff\_2 parameters R and S must be converted to the LAMMPS
 parameters R and D (R is different in both forms), using the following

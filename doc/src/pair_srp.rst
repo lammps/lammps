@@ -56,19 +56,25 @@ Bonds of specified type *btype* interact with one another through a
 bond-pairwise potential, such that the force on bond *i* due to bond
 *j* is as follows
 
-.. image:: Eqs/pair_srp1.jpg
-   :align: center
+.. math::
 
-where *r* and *rij* are the distance and unit vector between the two
-bonds.  Note that *btype* can be specified as an asterisk "\*", which
-case the interaction is applied to all bond types.  The *mid* option
-computes *r* and *rij* from the midpoint distance between bonds. The
-*min* option computes *r* and *rij* from the minimum distance between
-bonds. The force acting on a bond is mapped onto the two bond atoms
-according to the lever rule,
+   F^{SRP}_{ij} & = C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c
 
-.. image:: Eqs/pair_srp2.jpg
-   :align: center
+
+where *r* and :math:`\hat{r}_{ij}` are the distance and unit vector
+between the two bonds.  Note that *btype* can be specified as an
+asterisk "\*", which case the interaction is applied to all bond types.
+The *mid* option computes *r* and :math:`\hat{r}_{ij}` from the midpoint
+distance between bonds. The *min* option computes *r* and
+:math:`\hat{r}_{ij}` from the minimum distance between bonds. The force
+acting on a bond is mapped onto the two bond atoms according to the
+lever rule,
+
+.. math::
+
+   F_{i1}^{SRP} & = F^{SRP}_{ij}(L) \\
+   F_{i2}^{SRP} & = F^{SRP}_{ij}(1-L)  
+
 
 where *L* is the normalized distance from the atom to the point of
 closest approach of bond *i* and *j*\ . The *mid* option takes *L* as
@@ -80,7 +86,7 @@ the data file or restart file read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
 * *C* (force units)
-* *rc* (distance units)
+* :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global cutoff
 is used.
@@ -114,7 +120,7 @@ Pair style *srp* turns off normalization of thermodynamic properties
 by particle number, as if the command :doc:`thermo_modify norm no <thermo_modify>` had been issued.
 
 The pairwise energy associated with style *srp* is shifted to be zero
-at the cutoff distance *rc*\ .
+at the cutoff distance :math:`r_c`.
 
 
 ----------
@@ -127,7 +133,7 @@ This pair styles does not support mixing.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction. Note that as
 discussed above, the energy term is already shifted to be 0.0 at the
-cutoff distance *rc*\ .
+cutoff distance :math:`r_c`.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant for
 this pair style.

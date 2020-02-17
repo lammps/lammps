@@ -55,6 +55,7 @@ PairLJLongCoulLong::PairLJLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   ftable = NULL;
   fdisptable = NULL;
   qdist = 0.0;
+  cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------

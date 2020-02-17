@@ -259,7 +259,8 @@ void PairSpinNeel::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        // evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
         evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
@@ -365,65 +366,69 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double fmi[3],  double spi[3], double spj[3])
+void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
 
-  double gij, q1ij, q2ij, ra;
+  double qr,gr,g1r,q1r,q2r,ra;
   double pdx, pdy, pdz;
   double pq1x, pq1y, pq1z;
   double pq2x, pq2y, pq2z;
+  double eij_si,eij_sj,si_sj,eij_si_2,eij_sj_3,coeff1;
 
-  // pseudo-dipolar component
+  // compute Neel's functions
 
   ra = rsq/g3[itype][jtype]/g3[itype][jtype];
-  gij = 4.0*g1[itype][jtype]*ra;
-  gij *= (1.0-g2[itype][jtype]*ra);
-  gij *= exp(-ra);
-
-  double scalar_eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
-  double scalar_eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
-  double scalar_si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
-
-  double gij_eij_sj = gij*scalar_eij_sj;
-  double gij_3 = gij/3.0;
-  pdx = gij_eij_sj*eij[0] - gij_3*spj[0];
-  pdy = gij_eij_sj*eij[1] - gij_3*spj[1];
-  pdz = gij_eij_sj*eij[2] - gij_3*spj[2];
-
-  // pseudo-quadrupolar component
+  gr = 4.0*g1[itype][jtype]*ra;
+  gr *= (1.0-g2[itype][jtype]*ra);
+  gr *= exp(-ra);
 
   ra = rsq/q3[itype][jtype]/q3[itype][jtype];
-  q1ij = 4.0*q1[itype][jtype]*ra;
-  q1ij *= (1.0-q2[itype][jtype]*ra);
-  q1ij *= exp(-ra);
-  q2ij = (-2.0*q1ij/9.0);
+  qr = 4.0*q1[itype][jtype]*ra;
+  qr *= (1.0-q2[itype][jtype]*ra);
+  qr *= exp(-ra);
 
-  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
-  pq1x = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[0]/3.0;
-  pq1y = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[1]/3.0;
-  pq1z = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[2]/3.0;
+  g1r = (gr + 12.0*qr/35.0);
+  q1r = 9.0*qr/5.0;
+  q2r = -2.0*qr/5.0;
 
-  double pqt1 = (scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0);
-  pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
-  pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
-  pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
+  // pseudo-dipolar component
+  
+  eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
 
-  pq1x *= q1ij;
-  pq1y *= q1ij;
-  pq1z *= q1ij;
+  pdx = g1r*(eij_sj*eij[0] - spj[0]/3.0);
+  pdy = g1r*(eij_sj*eij[1] - spj[1]/3.0);
+  pdz = g1r*(eij_sj*eij[2] - spj[2]/3.0);
 
-  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-  pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
-  pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
-  pq2z = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[2] + scalar_eij_sj_3*eij[2];
+  // pseudo-quadrupolar components
 
-  pq2x *= q2ij;
-  pq2y *= q2ij;
-  pq2z *= q2ij;
+  eij_si_2 = eij_si*eij_si;
+  pq1x = -(eij_si_2 - si_sj/3.0)*spj[0]/3.0;
+  pq1y = -(eij_si_2 - si_sj/3.0)*spj[1]/3.0;
+  pq1z = -(eij_si_2 - si_sj/3.0)*spj[2]/3.0;
+
+  coeff1 = (eij_sj*eij_sj-si_sj/3.0);
+  pq1x += coeff1*(2.0*eij_si*eij[0] - spj[0]/3.0);
+  pq1y += coeff1*(2.0*eij_si*eij[1] - spj[1]/3.0);
+  pq1z += coeff1*(2.0*eij_si*eij[2] - spj[2]/3.0);
+
+  pq1x *= q1r;
+  pq1y *= q1r;
+  pq1z *= q1r;
+
+  eij_sj_3 = eij_sj*eij_sj*eij_sj;
+  pq2x = 3.0*eij_si_2*eij_sj*eij[0] + eij_sj_3*eij[0];
+  pq2y = 3.0*eij_si_2*eij_sj*eij[1] + eij_sj_3*eij[1];
+  pq2z = 3.0*eij_si_2*eij_sj*eij[2] + eij_sj_3*eij[2];
+
+  pq2x *= q2r;
+  pq2y *= q2r;
+  pq2z *= q2r;
 
   // adding three contributions
 
@@ -561,6 +566,50 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
   fi[0] = pdx + pq1x + pq2x;
   fi[1] = pdy + pq1y + pq2y;
   fi[2] = pdz + pq1z + pq2z;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3], double spi[3], double spj[3]) 
+{
+  int *type = atom->type;
+  int itype, jtype;
+  itype = type[i];
+  jtype = type[j];
+
+  double qr,gr,g1r,q1r,q2r,ra;
+  double epd,epq1,epq2;
+  double eij_si,eij_sj,si_sj;
+  double eij_si_2,eij_sj_2,eij_si_3,eij_sj_3;
+
+  // compute Neel's functions
+
+  ra = rsq/g3[itype][jtype]/g3[itype][jtype];
+  gr = 4.0*g1[itype][jtype]*ra;
+  gr *= (1.0-g2[itype][jtype]*ra);
+  gr *= exp(-ra);
+
+  ra = rsq/q3[itype][jtype]/q3[itype][jtype];
+  qr = 4.0*q1[itype][jtype]*ra;
+  qr *= (1.0-q2[itype][jtype]*ra);
+  qr *= exp(-ra);
+
+  g1r = (gr + 12.0*qr/35.0);
+  q1r = 9.0*qr/5.0;
+  q2r = -2.0*qr/5.0;
+
+  eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  epd = g1r*(eij_si*eij_sj-si_sj/3.0);
+  eij_si_2 = eij_si*eij_si;
+  eij_sj_2 = eij_sj*eij_sj;
+  epq1 = q1r*(eij_si_2-si_sj/3.0)*(eij_sj_2-si_sj/3.0);
+  eij_si_3 = eij_si*eij_si*eij_si;
+  eij_sj_3 = eij_sj*eij_sj*eij_sj;
+  epq2 = q2r*(eij_si*eij_sj_3+eij_sj*eij_si_3);
+
+  return (epd+epq1+epq2);
 }
 
 /* ----------------------------------------------------------------------

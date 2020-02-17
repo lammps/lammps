@@ -104,35 +104,58 @@ wall-particle interactions depends on the style.
 
 For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
 
-.. image:: Eqs/fix_wall_lj93.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+                       \left(\frac{\sigma}{r}\right)^3 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
-.. image:: Eqs/fix_wall_lj1043.jpg
-   :align: center
+.. math::
+
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+                       \left(\frac{\sigma}{r}\right)^4 -
+                       \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
+                       \qquad r < r_c
+
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
 of the :doc:`pair_style colloid <pair_colloid>` potential:
 
-.. image:: Eqs/fix_wall_colloid.jpg
-   :align: center
+.. math::
+
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
+    & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
+
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
 
-.. image:: Eqs/fix_wall_harmonic.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
+
 
 For style *wall/morse*\ , the energy E is given by a Morse potential:
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
+       \qquad r < r_c
+
 
 In all cases, *r* is the distance from the particle to the wall at
 position *coord*\ , and Rc is the *cutoff* distance at which the

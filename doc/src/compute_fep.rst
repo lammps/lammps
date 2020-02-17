@@ -79,10 +79,8 @@ reference and perturbed systems:
 
 .. math::
 
-   \begin{split}
    \lambda &= 0 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_0 \\
    \lambda &= 1 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_1
-   \end{split}
 
 It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
@@ -288,7 +286,6 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
    \Delta_0^1 A = - kT \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
    \frac{U(\lambda_{i+1}) - U(\lambda_i)}{kT} \right)
    \right>_{\lambda_i}}{\left< V \right>_{\lambda_i}}
-   
 
 ----------
 

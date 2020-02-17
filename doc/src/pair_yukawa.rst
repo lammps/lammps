@@ -38,10 +38,12 @@ Description
 
 Style *yukawa* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_yukawa.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff.
+   E = A \frac{e^{- \kappa r}}{r} \qquad r < r_c
+
+
+:math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

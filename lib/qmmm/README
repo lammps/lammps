@@ -32,9 +32,7 @@ and 4 manually, as outlined below.
 WARNING: This is experimental code under developement and is provided
 at this early stage to encourage others to write interfaces to other
 QM codes. Please test *very* carefully before using this software for
-production calculations. At the time of the last update of this README
-(July 2016) you have to download a QE snapshot (revision 12611) from
-the QE subversion repository.
+production calculations. 
 
 At this point, both mechanical and multipole based electrostatic
 coupling have been successfully tested on a cluster of water

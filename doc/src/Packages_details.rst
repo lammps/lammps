@@ -2121,7 +2121,7 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 .. _PKG-USER-REACTION:
 
 USER-REACTION package
-------------------
+---------------------
 
 **Contents:**
 

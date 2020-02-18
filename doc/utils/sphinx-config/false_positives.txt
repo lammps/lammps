@@ -613,6 +613,7 @@ dipolar
 dir
 Direc
 dirs
+disarmmd
 discoverable
 discretization
 discretized

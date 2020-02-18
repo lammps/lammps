@@ -50,9 +50,9 @@ eliminates the short-range singularity of the classical mono-polar
 electrostatic interaction expression :ref:`(Maaravi) <Maaravi1>`.
 
 The shielding parameter *lambda* (1/distance units) must be defined for
-each pair of atom types via the :doc:`pair\_coeff <pair_coeff>` command as
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as
 in the example above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands:
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 The global cutoff (r\_c) specified in the pair\_style command is used.
 
@@ -65,15 +65,15 @@ The global cutoff (r\_c) specified in the pair\_style command is used.
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
 
-The :doc:`pair\_modify <pair_modify>` *table* option is not relevant
+The :doc:`pair_modify <pair_modify>` *table* option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 *tail* option for adding long-range tail corrections to energy and
 pressure.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 Restrictions
@@ -86,8 +86,8 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`
 
 **Default:** tap\_flag = 1
 
@@ -112,8 +112,3 @@ Related commands
 
 
 **(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -39,7 +39,7 @@ enables the two codes to work in tandem to perform a simulation.
 When this command is invoked, LAMMPS will run in server mode in an
 endless loop, waiting for messages from the client code.  The client
 signals when it is done sending messages to LAMMPS, at which point the
-loop will exit, and the remainder of the LAMMPS script will be
+loop will exit, and the remainder of the LAMMPS input script will be
 processed.
 
 The *protocol* argument defines the format and content of messages
@@ -74,8 +74,3 @@ Related commands
 :doc:`message <message>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

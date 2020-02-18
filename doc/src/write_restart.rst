@@ -73,7 +73,7 @@ does not have to end in ".mpiio", just contain those characters.
 Unlike MPI-IO dump files, a particular restart file must be both
 written and read using MPI-IO.
 
-Restart files can be read by a :doc:`read\_restart <read_restart>`
+Restart files can be read by a :doc:`read_restart <read_restart>`
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the :doc:`-r command-line switch <Run_options>` to convert a restart file to a data file.
@@ -89,7 +89,7 @@ another machine.  In this case, you can use the :doc:`-r command-line switch <Ru
    commands may need to be re-specified in the new input script, in order
    to re-use that information. Details are usually given in the
    documentation of the respective command. Also, see the
-   :doc:`read\_restart <read_restart>` command for general information about
+   :doc:`read_restart <read_restart>` command for general information about
    what is stored in a restart file.
 
 
@@ -133,12 +133,7 @@ package must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`restart <restart>`, :doc:`read\_restart <read_restart>`,
-:doc:`write\_data <write_data>`
+:doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
+:doc:`write_data <write_data>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -154,7 +154,7 @@ many timesteps until the desired # of particles has been inserted.
 
    If you are monitoring the temperature of a system where the
    particle count is changing due to adding particles, you typically
-   should use the :doc:`compute\_modify dynamic yes <compute_modify>`
+   should use the :doc:`compute_modify dynamic yes <compute_modify>`
    command for the temperature compute you are using.
 
 
@@ -220,7 +220,7 @@ successively higher height over time.
 The *ignore* option is useful when running a simulation that used line
 segment (2d) or triangle (3d) particles, typically to define
 boundaries for spherical granular particles to interact with.  See the
-:doc:`atom\_style line or tri <atom_style>` command for details.  Lines
+:doc:`atom_style line or tri <atom_style>` command for details.  Lines
 and triangles store their size, and if the size is large it may
 overlap (in a spherical sense) with the insertion region, even if the
 line/triangle is oriented such that there is no actual overlap.  This
@@ -249,7 +249,7 @@ place.  However, in a statistical sense, a restarted simulation should
 produce the same behavior if you adjust the fix pour parameters
 appropriately.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -284,8 +284,3 @@ setting is defined.  If the *mol* keyword is used, the default for
 Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
 0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0 (for 3d), vel = 0.0 0.0 0.0
 (for 2d), and id = max.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -14,10 +14,8 @@ The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
+.. _lws: http://lammps.sandia.gov
 .. _pizza: http://pizza.sandia.gov
-
-
-
 .. _python: http://www.python.org
 
 
@@ -60,7 +58,7 @@ Post-processing tools
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
 | :ref:`amber2lmp <amber>` | :ref:`binary2txt <binary>` | :ref:`ch2lmp <charmm>` | :ref:`colvars <colvars>` | :ref:`eff <eff>`              | :ref:`fep <fep>`            |
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`lmp2arc <arc>`     | :ref:`lmp2cfg <cfg>`       | :ref:`matlab <matlab>` | :ref:`phonon <phonon>`   | :ref:`pymol\_asphere <pymol>` | :ref:`python <pythontools>` |
+| :ref:`lmp2arc <arc>`     | :ref:`lmp2cfg <cfg>`       | :ref:`matlab <matlab>` | :ref:`phonon <phonon>`   | :ref:`pymol_asphere <pymol>`  | :ref:`python <pythontools>` |
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
 | :ref:`reax <reax_tool>`  | :ref:`replica <replica>`   | :ref:`smd <smd>`       | :ref:`spin <spin>`       | :ref:`xmgrace <xmgrace>`      |                             |
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
@@ -268,7 +266,7 @@ eam database tool
 The tools/eam\_database directory contains a Fortran program that will
 generate EAM alloy setfl potential files for any combination of 16
 elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
-Zr.  The files can then be used with the :doc:`pair\_style eam/alloy <pair_eam>` command.
+Zr.  The files can then be used with the :doc:`pair_style eam/alloy <pair_eam>` command.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
 and is based on his paper:
@@ -288,7 +286,7 @@ eam generate tool
 The tools/eam\_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated :doc:`embedded atom method (EAM) <pair_eam>` setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
-:doc:`pair\_style eam/alloy <pair_eam>` command.
+:doc:`pair_style eam/alloy <pair_eam>` command.
 
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).
@@ -741,8 +739,3 @@ simulation.
 See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -42,17 +42,17 @@ velocity.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>`
+This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a :doc:`compute <compute>` you have
 defined to this fix which will be used in its thermostatting
 procedure.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Nose/Hoover thermostatting to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -79,7 +79,7 @@ equilibration.
 Related commands
 """"""""""""""""
 
-:doc:`fix nve/eff <fix_nve_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, :doc:`fix\_modify <fix_modify>`, :doc:`compute temp/deform/eff <compute_temp_deform_eff>`
+:doc:`fix nve/eff <fix_nve_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, :doc:`fix_modify <fix_modify>`, :doc:`compute temp/deform/eff <compute_temp_deform_eff>`
 
 Default
 """""""
@@ -96,8 +96,3 @@ Same as :doc:`fix nvt/eff <fix_nh_eff>`, except tchain = 1.
 
 **(Tuckerman)** Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

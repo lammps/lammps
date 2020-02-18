@@ -114,7 +114,7 @@ within the cutoff distance.
 
 The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
-the :doc:`pair\_coeff <pair_coeff>` command.  These are ASCII text files
+the :doc:`pair_coeff <pair_coeff>` command.  These are ASCII text files
 in a DYNAMO-style format which is described below.  DYNAMO was the
 original serial EAM MD code, written by the EAM originators.  Several
 DYNAMO potential files for different metals are included in the
@@ -185,7 +185,7 @@ Thus the following command
 
 will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
-1,2 and 2,1 are ignored).  See the :doc:`pair\_coeff <pair_coeff>` doc
+1,2 and 2,1 are ignored).  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
 In effect, this makes atom types 1 and 2 in LAMMPS be Cu atoms.
 Different single-element files can be assigned to different atom types
@@ -242,7 +242,7 @@ where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
 Style *eam/alloy* computes pairwise interactions using the same
 formula as style *eam*\ .  However the associated
-:doc:`pair\_coeff <pair_coeff>` command reads a DYNAMO *setfl* file
+:doc:`pair_coeff <pair_coeff>` command reads a DYNAMO *setfl* file
 instead of a *funcfl* file.  *Setfl* files can be used to model a
 single-element or alloy system.  In the alloy case, as explained
 above, *setfl* files contain explicit tabulated values for alloy
@@ -267,7 +267,7 @@ where N is the number of LAMMPS atom types:
 
 As an example, the potentials/NiAlH\_jea.eam.alloy file is a *setfl*
 file which has tabulated EAM values for 3 elements and their alloy
-interactions: Ni, Al, and H.  See the :doc:`pair\_coeff <pair_coeff>` doc
+interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
 be Ni, and the 4th to be Al, you would use the following pair\_coeff
@@ -380,7 +380,7 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
-The associated :doc:`pair\_coeff <pair_coeff>` command for style *eam/fs*
+The associated :doc:`pair_coeff <pair_coeff>` command for style *eam/fs*
 reads a DYNAMO *setfl* file that has been extended to include
 additional rho\_alpha\_beta arrays of tabulated values.  A discussion of
 how FS EAM differs from conventional EAM alloy potentials is given in
@@ -400,7 +400,7 @@ same as for style *eam/alloy*\ , e.g.
    pair_coeff \* \* NiAlH_jea.eam.fs Ni Ni Ni Al
 
 where there are N additional arguments after the filename, where N is
-the number of LAMMPS atom types.  See the :doc:`pair\_coeff <pair_coeff>`
+the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
 elements in the file, as described above for style *eam/alloy*\ .  As
@@ -477,7 +477,7 @@ two different element types, mixing is performed by LAMMPS as
 described above with the individual styles.  You never need to specify
 a pair\_coeff command with I != J arguments for the eam styles.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The eam pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
@@ -485,7 +485,7 @@ Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -502,7 +502,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -548,8 +548,3 @@ Materials Science & Engineering, 7, 075005 (2009).
 
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

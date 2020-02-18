@@ -66,7 +66,7 @@ isothermal-isobaric (NPT) ensemble.
 Related commands
 """"""""""""""""
 
-:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix\_npt <fix_nh>`
+:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix_npt <fix_nh>`
 
 **Default:** none
 
@@ -81,8 +81,3 @@ Related commands
 
 
 **(Mori)** Y. Mori, Y. Okamoto, J. Phys. Soc. Jpn., 7, 074003 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

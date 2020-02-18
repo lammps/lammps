@@ -11,26 +11,30 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
-  
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
+
   .. parsed-literal::
-  
+
        *none* value = none
        *ewald* value = accuracy
-         accuracy = desired relative error in forces
-       *ewald/disp* value = accuracy
-         accuracy = desired relative error in forces
-       *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
        *ewald/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/dipole/spin* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/disp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
        *pppm* value = accuracy
          accuracy = desired relative error in forces
        *pppm/cg* values = accuracy (smallq)
          accuracy = desired relative error in forces
          smallq = cutoff for charges to be considered (optional) (charge units)
+       *pppm/dipole* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/dipole/spin* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/disp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p* value = accuracy
@@ -41,21 +45,22 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/intel* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/intel* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/kk* value = accuracy
          accuracy = desired relative error in forces
        *pppm/omp* value = accuracy
          accuracy = desired relative error in forces
-       *pppm/cg/omp* value = accuracy
+       *pppm/cg/omp* values = accuracy (smallq)
          accuracy = desired relative error in forces
-       *pppm/disp/intel* value = accuracy
+         smallq = cutoff for charges to be considered (optional) (charge units)
+       *pppm/disp/omp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p/omp* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/tip4p/omp* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/stagger* value = accuracy
-         accuracy = desired relative error in forces
-       *pppm/dipole* value = accuracy
-         accuracy = desired relative error in forces
-       *pppm/dipole/spin* value = accuracy
          accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
@@ -207,7 +212,7 @@ that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
 
 For these styles, you will possibly want to adjust the default choice
-of parameters by using the :doc:`kspace\_modify <kspace_modify>` command.
+of parameters by using the :doc:`kspace_modify <kspace_modify>` command.
 This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
 calculations. When not making any settings, the simulation will stop
@@ -251,7 +256,7 @@ angstroms instead of 10 angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
 Currently calculation of the full pressure tensor in MSM is expensive.
-Using the :doc:`kspace\_modify <kspace_modify>` *pressure/scalar yes*
+Using the :doc:`kspace_modify <kspace_modify>` *pressure/scalar yes*
 command provides a less expensive way to compute the scalar pressure
 (Pxx + Pyy + Pzz)/3.0. The scalar pressure can be used, for example,
 to run an isotropic barostat. If the full pressure tensor is needed,
@@ -315,9 +320,9 @@ ScaFaCoS library the *accuracy* is treated as a tolerance level
 (either absolute or relative) for the chosen quantity, where the
 quantity can be either the Columic field values, the per-atom Columic
 energy or the total Columic energy.  To select from these options, see
-the :doc:`kspace\_modify scafacos accuracy <kspace_modify>` doc page.
+the :doc:`kspace_modify scafacos accuracy <kspace_modify>` doc page.
 
-The :doc:`kspace\_modify scafacos <kspace_modify>` command also explains
+The :doc:`kspace_modify scafacos <kspace_modify>` command also explains
 other ScaFaCoS options currently exposed to LAMMPS.
 
 
@@ -341,7 +346,7 @@ Note that style *pppm* only computes the grid size at the beginning of
 a simulation, so if the length or triclinic tilt of the simulation
 cell increases dramatically during the course of the simulation, the
 accuracy of the simulation may degrade.  Likewise, if the
-:doc:`kspace\_modify slab <kspace_modify>` option is used with
+:doc:`kspace_modify slab <kspace_modify>` option is used with
 shrink-wrap boundaries in the z-dimension, and the box size changes
 dramatically in z.  For example, for a triclinic system with all three
 tilt factors set to the maximum limit, the PPPM grid should be
@@ -354,7 +359,7 @@ works because the grid size is re-computed at the beginning of each
 run.  Another way to ensure the described accuracy requirement is met
 is to run a short simulation at the maximum expected tilt or length,
 note the required grid size, and then use the
-:doc:`kspace\_modify <kspace_modify>` *mesh* command to manually set the
+:doc:`kspace_modify <kspace_modify>` *mesh* command to manually set the
 PPPM grid size to this value for the long run.  The simulation then
 will be "too accurate" for some portion of the run.
 
@@ -373,7 +378,7 @@ or *ewald/dipole* are estimated using equations 33 and 46 of
 :ref:`(Wang) <Wang>`. The RMS force errors for *pppm/dipole* are estimated
 using the equations in :ref:`(Cerda) <Cerda2008>`.
 
-See the :doc:`kspace\_modify <kspace_modify>` command for additional
+See the :doc:`kspace_modify <kspace_modify>` command for additional
 options of the K-space solvers that can be set, including a *force*
 option for setting an absolute RMS error in forces, as opposed to a
 relative RMS error.
@@ -399,9 +404,9 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
-The *pppm/kk* style also performs charge assignment and force
-interpolation calculations on the GPU while the FFTs themselves are
-calculated on the CPU in non-threaded mode.
+The *pppm/kk* style performs charge assignment and force interpolation
+calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
+on the CPU when using OpenMP and FFTW3.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP, and OPT packages respectively.  They are only enabled if
@@ -436,7 +441,7 @@ the :doc:`boundary <boundary>` command).
 
 For Ewald and PPPM, a simulation must be 3d and periodic in all
 dimensions.  The only exception is if the slab option is set with
-:doc:`kspace\_modify <kspace_modify>`, in which case the xy dimensions
+:doc:`kspace_modify <kspace_modify>`, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
 
 The scafacos KSpace style will only be enabled if LAMMPS is built with
@@ -446,7 +451,7 @@ doc page for more info.
 The use of ScaFaCos in LAMMPS does not yet support molecular charged
 systems where the short-range Coulombic interactions between atoms in
 the same bond/angle/dihedral are weighted by the
-:doc:`special\_bonds <special_bonds>` command.  Likewise it does not
+:doc:`special_bonds <special_bonds>` command.  Likewise it does not
 support the "TIP4P water style" where a fictitious charge site is
 introduced in each water molecule.
 Finally, the methods *p3m* and *ewald* do not support computing the
@@ -455,7 +460,7 @@ virial, so this contribution is not included.
 Related commands
 """"""""""""""""
 
-:doc:`kspace\_modify <kspace_modify>`, :doc:`pair\_style lj/cut/coul/long <pair_lj>`, :doc:`pair\_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair\_style lj/long/coul/long <pair_lj_long>`, :doc:`pair\_style buck/coul/long <pair_buck>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
 
 Default
 """""""
@@ -585,8 +590,3 @@ Illinois at Urbana-Champaign, (2006).
 
 **(Who)** Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

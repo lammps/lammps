@@ -191,7 +191,7 @@ For each cations (metal):
 
 7) Charge initialization mode:
 
-* Keyword (\ *QInitMode*\ ) and initial oxygen charge (\ *Q<sub>init</sub>*\ ). If keyword = 'true', all oxygen charges are initially set equal to *Q<sub>init</sub>*\ . The charges on the cations are initially set in order to respect the neutrality of the box. If keyword = 'false', all atom charges are initially set equal to 0 if you use "create\_atom"#create\_atom command or the charge specified in the file structure using :doc:`read\_data <read_data>` command.
+* Keyword (\ *QInitMode*\ ) and initial oxygen charge (\ *Q<sub>init</sub>*\ ). If keyword = 'true', all oxygen charges are initially set equal to *Q<sub>init</sub>*\ . The charges on the cations are initially set in order to respect the neutrality of the box. If keyword = 'false', all atom charges are initially set equal to 0 if you use "create\_atom"#create\_atom command or the charge specified in the file structure using :doc:`read_data <read_data>` command.
 * Divided line
 
 8) Mode for the electronegativity equalization (Qeq) 
@@ -217,7 +217,7 @@ For each cations (metal):
 
 **Mixing, shift, table, tail correction, restart, rRESPA info:**
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -225,7 +225,7 @@ needs to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -293,8 +293,3 @@ Phys, 110, 8254 (1999).
 
 **(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

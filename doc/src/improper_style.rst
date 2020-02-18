@@ -29,7 +29,7 @@ Description
 Set the formula(s) LAMMPS uses to compute improper interactions
 between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of improper quadruplets is read in by a
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` command
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` command
 from a data or restart file.  Note that the ordering of the 4 atoms in
 an improper quadruplet determines the definition of the improper
 angle used in the formula for each style.  See the doc pages of
@@ -39,14 +39,14 @@ Hybrid models where impropers are computed using different improper
 potentials can be setup using the *hybrid* improper style.
 
 The coefficients associated with an improper style can be specified in
-a data or restart file or via the :doc:`improper\_coeff <improper_coeff>`
+a data or restart file or via the :doc:`improper_coeff <improper_coeff>`
 command.
 
 All improper potentials store their coefficient data in binary restart
 files which means improper\_style and
-:doc:`improper\_coeff <improper_coeff>` commands do not need to be
+:doc:`improper_coeff <improper_coeff>` commands do not need to be
 re-specified in an input script that restarts a simulation.  See the
-:doc:`read\_restart <read_restart>` command for details on how to do
+:doc:`read_restart <read_restart>` command for details on how to do
 this.  The one exception is that improper\_style *hybrid* only stores
 the list of sub-styles in the restart file; improper coefficients need
 to be re-specified.
@@ -54,7 +54,7 @@ to be re-specified.
 .. note::
 
    When both an improper and pair style is defined, the
-   :doc:`special\_bonds <special_bonds>` command often needs to be used to
+   :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
    exist between a group of 4 bonded atoms.
 
@@ -64,12 +64,12 @@ to be re-specified.
 
 Here is an alphabetic list of improper styles defined in LAMMPS.
 Click on the style to display the formula it computes and coefficients
-specified by the associated :doc:`improper\_coeff <improper_coeff>`
+specified by the associated :doc:`improper_coeff <improper_coeff>`
 command.
 
 Click on the style to display the formula it computes, any additional
 arguments specified in the improper\_style command, and coefficients
-specified by the associated :doc:`improper\_coeff <improper_coeff>`
+specified by the associated :doc:`improper_coeff <improper_coeff>`
 command.
 
 There are also additional accelerated pair styles included in the
@@ -112,7 +112,7 @@ individual improper potentials tell if it is part of a package.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 Default
 """""""
@@ -121,8 +121,3 @@ Default
 .. parsed-literal::
 
    improper_style none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

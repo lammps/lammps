@@ -24,8 +24,37 @@ atoms.  The quantum code computes energy and forces based on the
 coords.  It returns them as a message to LAMMPS, which completes the
 timestep.
 
+A more complex example is where LAMMPS is the client code and
+processes a series of data files, sending each configuration to a
+quantum code to compute energy and forces.  Or LAMMPS runs dynamics
+with an atomistic force field, but pauses every N steps to ask the
+quantum code to compute energy and forces.
+
 Alternate methods for code coupling with LAMMPS are described on
 the :doc:`Howto couple <Howto_couple>` doc page.
+
+The protocol for using LAMMPS as a client is to use these 3 commands
+in this order (other commands may come in between):
+
+* :doc:`message client <message>`  # initiate client/server interaction
+* :doc:`fix client/md <fix_client_md>`   # any client fix which makes specific requests to the server
+* :doc:`message quit <message>`    # terminate client/server interaction
+
+In between the two message commands, a client fix command and
+:doc:`unfix <unfix>` command can be used multiple times.  Similarly,
+this sequence of 3 commands can be repeated multiple times, assuming
+the server program operates in a similar fashion, to initiate and
+terminate client/server communication.
+
+The protocol for using LAMMPS as a server is to use these 2 commands
+in this order (other commands may come in between):
+
+* :doc:`message server <message>`  # initiate client/server interaction
+* :doc:`server md <server_md>`    # any server command which responds to specific requests from the client
+
+This sequence of 2 commands can be repeated multiple times, assuming
+the client program operates in a similar fashion, to initiate and
+terminate client/server communication.
 
 LAMMPS support for client/server coupling is in its :ref:`MESSAGE package <PKG-MESSAGE>` which implements several
 commands that enable LAMMPS to act as a client or server, as discussed
@@ -65,17 +94,23 @@ client or server code:
 * examples/message
 * examples/COUPLE/README
 * examples/COUPLE/lammps\_mc
+* examples/COUPLE/lammps\_nwchem
 * examples/COUPLE/lammps\_vasp
 
 The examples/message dir couples a client instance of LAMMPS to a
 server instance of LAMMPS.
 
-The lammps\_mc dir shows how to couple LAMMPS as a server to a simple
-Monte Carlo client code as the driver.
+The files in the *lammps\_mc* folder show how to couple LAMMPS as
+a server to a simple Monte Carlo client code as the driver.
 
-The lammps\_vasp dir shows how to couple LAMMPS as a client code
-running MD timestepping to VASP acting as a server providing quantum
-DFT forces, through a Python wrapper script on VASP.
+The files in the *lammps\_nwchem* folder show how to couple LAMMPS
+as a client code running MD timestepping to NWChem acting as a
+server providing quantum DFT forces, through a Python wrapper script
+on NWChem.
+
+The files in the *lammps\_vasp* folder show how to couple LAMMPS as
+a client code running MD timestepping to VASP acting as a server
+providing quantum DFT forces, through a Python wrapper script on VASP.
 
 Here is how to launch a client and server code together for any of the
 4 modes of message exchange that the :doc:`message <message>` command
@@ -128,8 +163,3 @@ command-line option as their its option, where color is an integer
 label that will be used to distinguish one executable from another in
 the multiple executables that the mpirun command launches.  In this
 example the client was colored with a 0, and the server with a 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -62,8 +62,3 @@ Related commands
 :doc:`smd/adjust/dt <fix_smd_adjust_dt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -69,7 +69,7 @@ displacement(s).  The scale factor implied by the *units* keyword will
 also be applied to the variable result.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Atom-style variables can specify the same formulas as
 equal-style variables but can also include per-atom values, such as
@@ -100,7 +100,7 @@ rotation axis is consistent with the right-hand rule: if your
 right-hand thumb points along *R*\ , then your fingers wrap around the
 axis in the direction of positive theta.
 
-If the defined :doc:`atom\_style <atom_style>` assigns an orientation to
+If the defined :doc:`atom_style <atom_style>` assigns an orientation to
 each atom (:doc:`atom styles <atom_style>` ellipsoid, line, tri, body),
 then that property is also updated appropriately to correspond to the
 atom's rotation.
@@ -125,7 +125,7 @@ define the lattice spacing.
    :doc:`boundary <boundary>` command) are enforced which may change the
    box size.  Other than this effect, this command does not change the
    size or shape of the simulation box.  See the
-   :doc:`change\_box <change_box>` command if that effect is desired.
+   :doc:`change_box <change_box>` command if that effect is desired.
 
 .. note::
 
@@ -153,15 +153,10 @@ the z-axis are allowed.
 Related commands
 """"""""""""""""
 
-:doc:`lattice <lattice>`, :doc:`change\_box <change_box>`,
+:doc:`lattice <lattice>`, :doc:`change_box <change_box>`,
 :doc:`fix move <fix_move>`
 
 Default
 """""""
 
 The option defaults are units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

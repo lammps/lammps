@@ -66,14 +66,9 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`fix phonon <fix_phonon>` :doc:`dynamical\_matrix <dynamical_matrix>`
+:doc:`fix phonon <fix_phonon>` :doc:`dynamical_matrix <dynamical_matrix>`
 
 Default
 """""""
 
 The default settings are file = "third\_order.dat", binary = no
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

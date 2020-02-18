@@ -41,7 +41,7 @@ Phi, F, G, U, rho, f, and g are represented by cubic splines.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
-:doc:`pair\_coeff <pair_coeff>` command.  Parameter files for different
+:doc:`pair_coeff <pair_coeff>` command.  Parameter files for different
 elements are included in the "potentials" directory of the LAMMPS
 distribution and have a ".meam.sw.spline" file suffix.  All of these
 files are parameterized in terms of LAMMPS :doc:`metal units <units>`.
@@ -64,7 +64,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of spline-based MEAM+SW elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.sw.spline file has values for Ti.
@@ -100,7 +100,7 @@ in the examples/USER/misc/meam\_sw\_spline directory.
 The pair style does not support multiple element types or mixing.
 It has been designed for pure elements only.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The *meam/sw/spline* pair style does not write its information to
@@ -109,7 +109,7 @@ potential parameter file.  Thus, you need to re-specify the pair\_style
 and pair\_coeff commands in an input script that reads a restart file.
 
 The *meam/sw/spline* pair style can only be used via the *pair*
-keyword of the :doc:`run\_style respa <run_style>` command.  They do not
+keyword of the :doc:`run_style respa <run_style>` command.  They do not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -130,8 +130,8 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style meam/c <pair_meamc>`,
-:doc:`pair\_style meam/spline <pair_meam_spline>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`,
+:doc:`pair_style meam/spline <pair_meam_spline>`
 
 **Default:** none
 
@@ -160,8 +160,3 @@ Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 The spline-based MEAM+SW format was first devised and used to develop
 potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 and Hyoungki Park at The Ohio State University.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

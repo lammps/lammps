@@ -144,7 +144,7 @@ insure this energy setting is used appropriately in a minimization.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the potential "energy" set by the external driver to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  This is a fictitious quantity but is
 needed so that the :doc:`minimize <minimize>` command can include the
@@ -152,7 +152,7 @@ forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
 added force.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interactions computed by the
 external program to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial yes*
 
@@ -171,7 +171,7 @@ invoked by the :doc:`minimize <minimize>` command.
    If you want the fictitious potential energy associated with the
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
-   :doc:`fix\_modify <fix_modify>` *energy* option for this fix.
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
 """"""""""""
@@ -180,8 +180,3 @@ Restrictions
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

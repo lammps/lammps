@@ -6,23 +6,16 @@ codes or calling LAMMPS as a library.  The examples are provided for
 demonstration purposes.  The physics they calculate is too simple to
 model a realistic problem.
 
-See these sections of the LAMMPS manaul for details:
+In many of the examples included here, LAMMPS must first be built as a
+library.
 
-2.5 Building LAMMPS as a library (doc/Section_start.html#start_5)
-6.10 Coupling LAMMPS to other codes (doc/Section_howto.html#howto_10)
-6.29 Using LAMMPS in client/server mode (doc/Section_howto.html#howto_29)
+See these sections of the LAMMPS manual for details:
 
-In all of the examples included here, LAMMPS must first be built as a
-library.  Basically, in the src dir you type one of
-
-make mode=lib machine
-make mode=shlib machine
-
-to create the static library liblammps_machine.a or the shared library
-liblammps_machine.so for your code to link against.  A soft link
-(liblammps.a or liblammps.so) is also created that points to the most
-recently built static or shared library.  Your code build can simply
-use the soft link if you prefer.
+Build LAMMPS as a library (doc/Build_basics.html)
+Link LAMMPS as a library to another code (doc/Build_link.html)
+Coupling LAMMPS to other codes (doc/Howto_couple.html)
+Using LAMMPS in client/server mode (doc/Howto_client_server.html)
+Library interface to LAMMPS (doc/Howto_library.html)
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the
@@ -36,10 +29,12 @@ simple		    simple example of driver code calling LAMMPS as a lib
 multiple	    example of driver code calling multiple instances of LAMMPS
 lammps_mc           client/server coupling of Monte Carlo client 
                       with LAMMPS server for energy evaluation
+lammps_nwchem       client/server coupling of LAMMPS client with 
+                      NWChem quantum DFT as server for quantum forces
 lammps_quest	    MD with quantum forces, coupling to Quest DFT code
 lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 		    coupling to SPPARKS kinetic MC code
-lammps_vasp         client/server coupling of LAMMPS client  with 
+lammps_vasp         client/server coupling of LAMMPS client with 
                       VASP quantum DFT as server for quantum forces
 library		    collection of useful inter-code communication routines
 fortran             a simple wrapper on the LAMMPS library API that

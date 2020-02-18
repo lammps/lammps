@@ -66,8 +66,3 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -28,8 +28,3 @@ hardware platforms.
    Speed_tips
    Speed_packages
    Speed_compare
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

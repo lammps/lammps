@@ -177,7 +177,7 @@ KIM package
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the :doc:`kim\_query <kim_commands>`
+use with LAMMPS. If you want to use the :doc:`kim_query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
@@ -203,7 +203,7 @@ inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG\_CONFIG\_PATH
 environment variable so that libkim-api can be found.
 
-For using KIM web queries.
+For using OpenKIM web queries in LAMMPS.
 
 If LMP\_DEBUG\_CURL is set, the libcurl verbose mode will be on, and any
 libcurl calls within the KIM web query display a lot of information about
@@ -350,10 +350,12 @@ For NVIDIA GPUs using CUDA:
    KOKKOS_DEVICES = Cuda
    KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
                                     # archGPU = GPU from list above
+   FFT_INC = -DFFT_CUFFT            # enable use of cuFFT (optional)
+   FFT_LIB = -lcufft                # link to cuFFT library
 
-For GPUs, you also need these 2 lines in your Makefile.machine before
-the CC line is defined, in this case for use with OpenMPI mpicxx.  The
-2 lines define a nvcc wrapper compiler, which will use nvcc for
+For GPUs, you also need the following 2 lines in your Makefile.machine
+before the CC line is defined, in this case for use with OpenMPI mpicxx.
+The 2 lines define a nvcc wrapper compiler, which will use nvcc for
 compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
 files.
 
@@ -878,6 +880,9 @@ USER-PLUMED package
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
 from LAMMPS using the generic `plumed installation instructions <plumedinstall_>`_.
+The USER-PLUMED package has been tested to work with Plumed versions
+2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
+with a different version of the Plumed kernel.
 
 
 PLUMED can be linked into MD codes in three different modes: static,
@@ -1412,8 +1417,3 @@ the settings are not valid for your system, check if one of the other
 lib/vtk/Makefile.lammps.\* files is compatible and copy it to
 Makefile.lammps.  If none of the provided files work, you will need to
 edit the Makefile.lammps file.  See lib/vtk/README for details.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

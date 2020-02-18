@@ -46,6 +46,7 @@ class FixIntel : public Fix {
   inline void min_setup(int in) { setup(in); }
   void setup_pre_reverse(int eflag = 0, int vflag = 0);
 
+  bool pair_hybrid_check();
   void pair_init_check(const bool cdmessage=false);
   void bond_init_check();
   void kspace_init_check();
@@ -53,6 +54,8 @@ class FixIntel : public Fix {
   void pre_reverse(int eflag = 0, int vflag = 0);
   inline void min_pre_reverse(int eflag = 0, int vflag = 0)
     { pre_reverse(eflag, vflag); }
+
+  void post_run() { _print_pkg_info = 1; }
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
@@ -83,13 +86,12 @@ class FixIntel : public Fix {
   }
   inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
-    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1)
+    if (force->kspace_match("^pppm/.*intel$", 0) && update->whichflag == 1)
       return _lrt;
     else return 0;
   }
   inline int pppm_table() {
-    if (force->kspace_match("pppm/intel", 0) ||
-        force->kspace_match("pppm/disp/intel",0))
+    if (force->kspace_match("^pppm/.*intel$", 0))
       return INTEL_P3M_TABLE;
     else return 0;
   }
@@ -101,7 +103,7 @@ class FixIntel : public Fix {
   IntelBuffers<double,double> *_double_buffers;
 
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
-  int _pair_intel_count, _pair_hybrid_flag;
+  int _pair_intel_count, _pair_hybrid_flag, _print_pkg_info;
   // These should be removed in subsequent update w/ simpler hybrid arch
   int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
 

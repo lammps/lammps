@@ -70,9 +70,9 @@ void EwaldDipoleSpin::init()
 
   spinflag = atom->sp?1:0;
 
-  triclinic_check();
-
   // no triclinic ewald spin (yet)
+
+  triclinic_check();
 
   triclinic = domain->triclinic;
   if (triclinic)
@@ -93,6 +93,10 @@ void EwaldDipoleSpin::init()
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDipoleSpin");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 

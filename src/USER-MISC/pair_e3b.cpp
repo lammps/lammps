@@ -539,7 +539,7 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
       bondL!=0.0 || rs!=0.0 || rc3!=0.0 || rc2!=0.0 )
     error->all(FLERR,"Preset keyword will overwrite another keyword setting");
 
-  double econv,lconv;
+  double econv=1.0,lconv=1.0;
   if (strcmp(update->unit_style,"real") == 0) {
     econv=1.0/4.184;
     lconv=1.0;

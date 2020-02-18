@@ -58,7 +58,7 @@ computation of the embedding and pair energies, as implemented in
 LAMMPS, are given in :ref:`(Gullet) <Gullet>` and references therein.
 
 The various parameters in the MEAM formulas are listed in two files
-which are specified by the :doc:`pair\_coeff <pair_coeff>` command.
+which are specified by the :doc:`pair_coeff <pair_coeff>` command.
 These are ASCII text files in a format consistent with other MD codes
 that implement MEAM potentials, such as the serial DYNAMO code and
 Warp.  Several MEAM potential files with parameters for different
@@ -81,7 +81,7 @@ command, where N is the number of LAMMPS atom types:
 * MEAM parameter file
 * N element names = mapping of MEAM elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential files.
 
 As an example, the potentials/library.meam file has generic MEAM
@@ -233,15 +233,20 @@ where
    Cmin(I,J,K) = Cmin screening parameter when I-J pair is screened
                  by K (I<=J); default = 2.0
    lattce(I,J) = lattice structure of I-J reference structure:
-                   dia = diamond (interlaced fcc for alloy)
                    fcc = face centered cubic
                    bcc = body centered cubic
-                   dim = dimer
-                   b1  = rock salt (NaCl structure)
                    hcp = hexagonal close-packed
+                   dim = dimer
+                   dia = diamond (interlaced fcc for alloy)
+                   dia3= diamond structure with primary 1NN and secondary 3NN interation
+                   b1  = rock salt (NaCl structure)
                    c11 = MoSi2 structure
                    l12 = Cu3Au structure (lower case L, followed by 12)
                    b2  = CsCl structure (interpenetrating simple cubic)
+                   ch4 = methane-like structure, only for binary system
+                   lin = linear structure (180 degree angle)
+                   zig = zigzag structure with a uniform angle
+                   tri = H2O-like structure that has an angle
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off
@@ -254,6 +259,8 @@ where
    zbl(I,J)    = blend the MEAM I-J pair potential with the ZBL potential for small
                  atom separations :ref:`(ZBL) <ZBL>`
                    default = 1
+   theta(I,J)  = angle between three atoms in line, zigzag, and trimer reference structures in degrees
+                   default = 180
    gsmooth_factor  = factor determining the length of the G-function smoothing
                      region; only significant for ibar=0 or ibar=4.
                          99.0 = short smoothing region, sharp step
@@ -375,7 +382,7 @@ two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
 specify a pair\_coeff command with I != J arguments for this style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -383,7 +390,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -408,8 +415,8 @@ limit on the number of atoms types.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style eam <pair_eam>`,
-:doc:`pair\_style meam/spline <pair_meam_spline>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style eam <pair_eam>`,
+:doc:`pair_style meam/spline <pair_meam_spline>`
 
 **Default:** none
 
@@ -464,8 +471,3 @@ This report may be accessed on-line via `this link <sandreport_>`_.
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
 of Ions in Matter", Vol 1, 1985, Pergamon Press.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

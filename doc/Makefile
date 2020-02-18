@@ -3,7 +3,6 @@
 SHELL         = /bin/bash
 BUILDDIR      = ${CURDIR}
 RSTDIR        = $(BUILDDIR)/src
-TXTDIR        = $(BUILDDIR)/txt
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
 ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
@@ -28,10 +27,8 @@ HAS_VIRTUALENV = YES
 endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
-OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check style_check
 
 # ------------------------------------------
 
@@ -46,6 +43,7 @@ help:
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
@@ -60,15 +58,16 @@ clean:
 clean-spelling:
 	rm -rf spelling
 
-rst: clean $(OBJECTS) $(ANCHORCHECK)
+rst: clean $(ANCHORCHECK)
 
-html: $(OBJECTS) $(ANCHORCHECK)
+html: $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -76,15 +75,18 @@ html: $(OBJECTS) $(ANCHORCHECK)
 	@rm -rf html/_sources
 	@rm -rf html/PDF
 	@rm -rf html/USER
+	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@cp -r src/USER html/USER
+	@mkdir -p html/JPG
+	@cp `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@rm -rf html/USER/.[sg]*
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
+spelling: utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
@@ -94,7 +96,7 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub: $(OBJECTS)
+epub:
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -113,7 +115,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: $(OBJECTS) $(ANCHORCHECK)
+pdf: $(ANCHORCHECK)
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -122,24 +124,27 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-                . $(VENV)/bin/activate ;\
-                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
-                echo "############################################" ;\
-                rst_anchor_check src/*.rst ;\
-                echo "############################################" ;\
-                deactivate ;\
+		. $(VENV)/bin/activate ;\
+		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		echo "############################################" ;\
+		rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		echo "############################################" ;\
+		deactivate ;\
 	)
 	@cd latex && \
-          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-	  mv temp Makefile && \
-	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  make && \
-	  make && \
-	  mv LAMMPS.pdf ../Manual.pdf && \
-	  cd ../;
+		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+		mv temp Makefile && \
+		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		make && \
+		make && \
+		make && \
+		mv LAMMPS.pdf ../Manual.pdf && \
+		cd ../;
 	@rm -rf latex/_sources
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
@@ -162,19 +167,18 @@ fetch:
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		rst_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
+		deactivate ;\
+	)
+
+style_check :
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-styles.py -s ../src -d src ;\
 		deactivate ;\
 	)
 
 # ------------------------------------------
-
-$(RSTDIR)/%.rst : $(TXTDIR)/%.txt $(TXT2RST)
-	@(\
-		mkdir -p $(RSTDIR) ; \
-		. $(VENV)/bin/activate ;\
-		txt2rst -v $< > $@ ;\
-		deactivate ;\
-	)
 
 $(VENV):
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi

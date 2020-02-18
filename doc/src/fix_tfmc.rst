@@ -126,7 +126,7 @@ rotational component of the tfMC displacements after every iteration.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
@@ -174,8 +174,3 @@ A. Stesmans, Phys. Rev. B 85, 134301 (2012).
 
 **(Neyts)** E. C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320
 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

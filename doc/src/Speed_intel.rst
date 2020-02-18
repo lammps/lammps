@@ -385,7 +385,7 @@ follow in the input script.
 
    The USER-INTEL package will perform better with modifications
    to the input script when :doc:`PPPM <kspace_style>` is used:
-   :doc:`kspace\_modify diff ad <kspace_modify>` should be added to the
+   :doc:`kspace_modify diff ad <kspace_modify>` should be added to the
    input script.
 
 Long-Range Thread (LRT) mode is an option to the :doc:`package intel <package>` command that can improve performance when using
@@ -537,7 +537,7 @@ supported with offload, however, the same effect can often be
 accomplished by setting cutoffs for excluded atom types to 0.  None of
 the pair styles in the USER-INTEL package currently support the
 "inner", "middle", "outer" options for rRESPA integration via the
-:doc:`run\_style respa <run_style>` command; only the "pair" option is
+:doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.
 
 **References:**
@@ -545,9 +545,3 @@ supported.
 * Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., "Optimizing Classical Molecular Dynamics in LAMMPS," in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.
 * Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. `Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. <http://dl.acm.org/citation.cfm?id=3014915>`_ 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).
 * Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101.
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

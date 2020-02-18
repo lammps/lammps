@@ -34,10 +34,3 @@ snapshots.
 
 
 .. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -37,8 +37,10 @@ of atoms via the :doc:`compute reduce <compute_reduce>` command.
 
 The pressure is computed by the formula
 
-.. image:: Eqs/pressure.jpg
-   :align: center
+.. math::
+
+   P = \frac{N k_B T}{V} + \frac{\sum_{i}^{N'} r_i \bullet f_i}{dV}
+
 
 where N is the number of atoms in the system (see discussion of DOF
 below), Kb is the Boltzmann constant, T is the temperature, d is the
@@ -62,8 +64,11 @@ ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 the first term uses components of the kinetic energy tensor and the
 second term uses components of the virial tensor:
 
-.. image:: Eqs/pressure_tensor.jpg
-   :align: center
+.. math::
+
+   P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} + 
+   \frac{\sum_{k}^{N'} r_{k_I} f_{k_J}}{V}
+
 
 If no extra keywords are listed, the entire equations above are
 calculated.  This includes a kinetic energy (temperature) term and the
@@ -156,7 +161,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
-:doc:`thermo\_style <thermo_style>`,
+:doc:`thermo_style <thermo_style>`,
 
 **Default:** none
 
@@ -169,8 +174,3 @@ Related commands
 
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

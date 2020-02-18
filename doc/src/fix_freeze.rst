@@ -64,7 +64,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global 3-vector of forces, which can be accessed
@@ -91,11 +91,6 @@ this fix is applied.
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style sphere <atom_style>`, :doc:`fix setforce <fix_setforce>`
+:doc:`atom_style sphere <atom_style>`, :doc:`fix setforce <fix_setforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

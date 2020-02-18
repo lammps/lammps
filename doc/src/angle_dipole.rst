@@ -79,9 +79,9 @@ where :math:`\vec{F_i}` and :math:`\vec{F_j}` are applied on atoms :math:`i`
 and :math:`j`, respectively.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy)
 * :math:`\gamma_0` (degrees)
@@ -136,7 +136,7 @@ This angle style should not be used with SHAKE.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`, :doc:`angle\_hybrid <angle_hybrid>`
+:doc:`angle_coeff <angle_coeff>`, :doc:`angle_hybrid <angle_hybrid>`
 
 **Default:** none
 

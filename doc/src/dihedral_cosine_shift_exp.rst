@@ -28,31 +28,34 @@ Description
 
 The *cosine/shift/exp* dihedral style uses the potential
 
-.. image:: Eqs/dihedral_cosine_shift_exp.jpg
-   :align: center
+.. math::
 
-where Umin, theta, and a are defined for each dihedral type.
+ E  =  -U_{min}\frac{e^{-a U(\theta,\theta_0)}-1}{e^a-1} \quad\mbox{with}\quad U(\theta,\theta_0)=-0.5 \left(1+\cos(\theta-\theta_0) \right)
 
-The potential is bounded between [-Umin:0] and the minimum is located
-at the angle theta0. The a parameter can be both positive or negative
+
+where :math:`U_{min}`, :math:`\theta`, and :math:`a` are defined for
+each dihedral type.
+
+The potential is bounded between :math:`\left[-U_{min}:0\right]` and the minimum is located
+at the angle :math:`\theta_0`. The a parameter can be both positive or negative
 and is used to control the spring constant at the equilibrium.
 
-The spring constant is given by k=a exp(a) Umin/ [2 (Exp(a)-1)].
-For a>3 k/Umin = a/2 to better than 5% relative error. For negative
+The spring constant is given by :math:`k=a e^a \frac{U_{min}}{2 \left(e^a-1\right)}`.
+For :math:`a>3` and  :math:`\frac{k}{U_{min}} = \frac{a}{2}` to better than 5% relative error. For negative
 values of the a parameter, the spring constant is essentially zero,
 and anharmonic terms takes over. The potential is furthermore well
-behaved in the limit a->0, where it has been implemented to linear
-order in a for a < 0.001.
+behaved in the limit :math:`a \rightarrow 0`, where it has been implemented to linear
+order in :math:`a` for :math:`a < 0.001`.
 
 The following coefficients must be defined for each dihedral type via
-the :doc:`dihedral\_coeff <dihedral_coeff>` command as in the example
+the :doc:`dihedral_coeff <dihedral_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* umin (energy)
-* theta (angle)
-* A (real number)
+* :math:`U_{min}` (energy)
+* :math:`\theta` (angle)
+* :math:`a` (real number)
 
 
 ----------
@@ -91,12 +94,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`,
-:doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
+:doc:`dihedral_coeff <dihedral_coeff>`,
+:doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

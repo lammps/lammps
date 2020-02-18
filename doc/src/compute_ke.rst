@@ -34,7 +34,7 @@ and v are the mass and velocity of the particle.
 There is a subtle difference between the quantity calculated by this
 compute and the kinetic energy calculated by the *ke* or *etotal*
 keyword used in thermodynamic output, as specified by the
-:doc:`thermo\_style <thermo_style>` command.  For this compute, kinetic
+:doc:`thermo_style <thermo_style>` command.  For this compute, kinetic
 energy is "translational" kinetic energy, calculated by the simple
 formula above.  For thermodynamic output, the *ke* keyword infers
 kinetic energy from the temperature of the system with 1/2 Kb T of
@@ -64,8 +64,3 @@ Related commands
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

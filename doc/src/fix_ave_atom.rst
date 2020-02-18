@@ -88,7 +88,7 @@ command creates a per-atom array with 6 columns:
 
    compute my_stress all stress/atom NULL
    fix 1 all ave/atom 10 20 1000 c_my_stress[\*]
-   fix 1 all ave/atom 10 20 1000 c_my_stress[1] c_my_stress[1] &
+   fix 1 all ave/atom 10 20 1000 c_my_stress[1] c_my_stress[2] &
                                  c_my_stress[3] c_my_stress[4] &
                                  c_my_stress[5] c_my_stress[6]
 
@@ -162,7 +162,7 @@ per-atom quantities to time average.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are
 stored by this fix for access by various :doc:`output commands <Howto_output>`.
 
@@ -187,8 +187,3 @@ Related commands
 :doc:`variable <variable>`,
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

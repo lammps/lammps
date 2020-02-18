@@ -110,12 +110,12 @@ group.
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
-simulation is restarted.  See the :doc:`read\_restart <read_restart>`
+simulation is restarted.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 If a single input is specified, this fix produces a per-atom vector.
@@ -141,8 +141,3 @@ Default
 """""""
 
 The option default is com = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -53,7 +53,7 @@ will be evaluated each timestep, and its value used to determine the
 force component.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent velocity field.
 
@@ -72,7 +72,7 @@ specified geometric :doc:`region <region>` in order to have its velocity set by 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 Currently, no part of USER-SMD supports restarting nor minimization
-None of the :doc:`fix\_modify <fix_modify>` options
+None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global 3-vector of forces, which can be accessed
@@ -93,8 +93,3 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

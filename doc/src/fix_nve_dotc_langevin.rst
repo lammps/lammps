@@ -68,8 +68,8 @@ The total force on each atom will have the form:
    Fr is proportional to sqrt(Kb T m / (dt damp))
 
 Fc is the conservative force computed via the usual inter-particle
-interactions (:doc:`pair\_style <pair_style>`,
-:doc:`bond\_style <bond_style>`, etc).
+interactions (:doc:`pair_style <pair_style>`,
+:doc:`bond_style <bond_style>`, etc).
 
 The Ff and Fr terms are implicitly taken into account by this fix
 on a per-particle basis.
@@ -146,7 +146,7 @@ See the :doc:`Build package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`fix nve <fix_nve>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/dot <fix_nve_dot>`, :doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_style oxdna/excv <pair_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`
+:doc:`fix nve <fix_nve>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/dot <fix_nve_dot>`, :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`
 
 **Default:** none
 
@@ -169,8 +169,3 @@ Related commands
 .. _Henrich5:
 
 **(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

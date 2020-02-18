@@ -52,9 +52,9 @@ phosphate backbone in the oxDNA/oxRNA force field for coarse-grained
 modelling of DNA/RNA.
 
 The following coefficients must be defined for the bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as given in the above example, or
+:doc:`bond_coeff <bond_coeff>` command as given in the above example, or
 in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * :math:`\epsilon` (energy)
@@ -68,7 +68,7 @@ commands:
    *oxdna/excv* , stacking *oxdna/stk* , cross-stacking *oxdna/xstk* and
    coaxial stacking interaction *oxdna/coaxstk* as well as
    hydrogen-bonding interaction *oxdna/hbond* (see also documentation of
-   :doc:`pair\_style oxdna/excv <pair_oxdna>`). For the oxDNA2
+   :doc:`pair_style oxdna/excv <pair_oxdna>`). For the oxDNA2
    :ref:`(Snodin) <Snodin0>` bond style the analogous pair styles 
    *oxdna2/excv* , *oxdna2/stk* , *oxdna2/xstk* , *oxdna2/coaxstk* ,
    *oxdna2/hbond* and an additional Debye-Hueckel pair style 
@@ -111,8 +111,8 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style oxdna/excv <pair_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`, 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`, 
+:doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 **Default:**
 

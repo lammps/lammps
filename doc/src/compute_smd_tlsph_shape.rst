@@ -64,8 +64,3 @@ Related commands
 :doc:`smd/contact/radius <compute_smd_contact_radius>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

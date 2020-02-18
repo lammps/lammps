@@ -32,12 +32,12 @@ Description
 
 Set the formula(s) LAMMPS uses to compute bond interactions between
 pairs of atoms.  In LAMMPS, a bond differs from a pairwise
-interaction, which are set via the :doc:`pair\_style <pair_style>`
+interaction, which are set via the :doc:`pair_style <pair_style>`
 command.  Bonds are defined between specified pairs of atoms and
 remain in force for the duration of the simulation (unless the bond
 breaks which is possible in some bond potentials).  The list of bonded
-atoms is read in by a :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` command from a data or restart file.
+atoms is read in by a :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command from a data or restart file.
 By contrast, pair potentials are typically defined between all pairs
 of atoms within a cutoff distance and the set of active interactions
 changes over time.
@@ -46,12 +46,12 @@ Hybrid models where bonds are computed using different bond potentials
 can be setup using the *hybrid* bond style.
 
 The coefficients associated with a bond style can be specified in a
-data or restart file or via the :doc:`bond\_coeff <bond_coeff>` command.
+data or restart file or via the :doc:`bond_coeff <bond_coeff>` command.
 
 All bond potentials store their coefficient data in binary restart
-files which means bond\_style and :doc:`bond\_coeff <bond_coeff>` commands
+files which means bond\_style and :doc:`bond_coeff <bond_coeff>` commands
 do not need to be re-specified in an input script that restarts a
-simulation.  See the :doc:`read\_restart <read_restart>` command for
+simulation.  See the :doc:`read_restart <read_restart>` command for
 details on how to do this.  The one exception is that bond\_style
 *hybrid* only stores the list of sub-styles in the restart file; bond
 coefficients need to be re-specified.
@@ -59,7 +59,7 @@ coefficients need to be re-specified.
 .. note::
 
    When both a bond and pair style is defined, the
-   :doc:`special\_bonds <special_bonds>` command often needs to be used to
+   :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
    exist between 2 bonded atoms.
 
@@ -100,6 +100,7 @@ accelerated styles exist.
 * :doc:`nonlinear <bond_nonlinear>` - nonlinear bond
 * :doc:`oxdna/fene <bond_oxdna>` - modified FENE bond suitable for DNA modeling
 * :doc:`oxdna2/fene <bond_oxdna>` - same as oxdna but used with different pair styles
+* :doc:`oxrna2/fene <bond_oxdna>` - modified FENE bond suitable for RNA modeling
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
 * :doc:`table <bond_table>` - tabulated by bond length
 
@@ -121,7 +122,7 @@ individual bond potentials tell if it is part of a package.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 Default
 """""""

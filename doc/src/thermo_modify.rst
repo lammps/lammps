@@ -49,7 +49,7 @@ by LAMMPS.
 .. note::
 
    These options apply to the currently defined thermo style.  When
-   you specify a :doc:`thermo\_style <thermo_style>` command, all
+   you specify a :doc:`thermo_style <thermo_style>` command, all
    thermodynamic settings are restored to their default values, including
    those previously reset by a thermo\_modify command.  Thus if your input
    script specifies a thermo\_style command, you should use the
@@ -86,12 +86,12 @@ different defaults for this setting (see below).  Even if *norm* is
 set to *yes*\ , a value is only normalized if it is an "extensive"
 quantity, meaning that it scales with the number of atoms in the
 system.  For the thermo keywords described by the doc page for the
-:doc:`thermo\_style <thermo_style>` command, all energy-related keywords
+:doc:`thermo_style <thermo_style>` command, all energy-related keywords
 are extensive, such as *pe* or *ebond* or *enthalpy*\ .  Other keywords
 such as *temp* or *press* are "intensive" meaning their value is
 independent (in a statistical sense) of the number of atoms in the
 system and thus are never normalized.  For thermodynamic output values
-extracted from fixes and computes in a :doc:`thermo\_style custom <thermo_style>` command, the doc page for the individual
+extracted from fixes and computes in a :doc:`thermo_style custom <thermo_style>` command, the doc page for the individual
 :doc:`fix <fix>` or :doc:`compute <compute>` lists whether the value is
 "extensive" or "intensive" and thus whether it is normalized.
 Thermodynamic output values calculated by a variable formula are
@@ -111,7 +111,7 @@ containing the timestep and CPU time.  This modify option overrides
 the *one* and *multi* thermo\_style settings.
 
 The *format* keyword can be used to change the default numeric format
-of any of quantities the :doc:`thermo\_style <thermo_style>` command
+of any of quantities the :doc:`thermo_style <thermo_style>` command
 outputs.  All the specified format strings are C-style formats,
 e.g. as used by the C/C++ printf() command.  The *line* keyword takes
 a single argument which is the format string for the entire line of
@@ -147,7 +147,7 @@ temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx", etc).
 The specified compute ID must have been previously defined by the user
 via the :doc:`compute <compute>` command and it must be a style of
 compute that calculates a temperature.  As described in the
-:doc:`thermo\_style <thermo_style>` command, thermo output uses a default
+:doc:`thermo_style <thermo_style>` command, thermo output uses a default
 compute for temperature with ID = *thermo\_temp*.  This option allows
 the user to override the default.
 
@@ -157,7 +157,7 @@ pressure ("press", "enthalpy", "pxx", etc).  The specified compute ID
 must have been previously defined by the user via the
 :doc:`compute <compute>` command and it must be a style of compute that
 calculates a pressure.  As described in the
-:doc:`thermo\_style <thermo_style>` command, thermo output uses a default
+:doc:`thermo_style <thermo_style>` command, thermo output uses a default
 compute for pressure with ID = *thermo\_press*.  This option allows the
 user to override the default.
 
@@ -180,7 +180,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`thermo <thermo>`, :doc:`thermo\_style <thermo_style>`
+:doc:`thermo <thermo>`, :doc:`thermo_style <thermo_style>`
 
 Default
 """""""
@@ -193,8 +193,3 @@ The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults
 are "one", "%8d", and "%12.8g".  For style "multi", the line and
 format defaults are "multi", "%8d", and "%14.4f".
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

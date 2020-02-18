@@ -44,13 +44,13 @@ in `this supplementary document <PDF/pair_resquared_extra.pdf>`_.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in
-order to integrate particle rotation.  Additionally, :doc:`atom\_style ellipsoid <atom_style>` should be used since it defines the
+order to integrate particle rotation.  Additionally, :doc:`atom_style ellipsoid <atom_style>` should be used since it defines the
 rotational state and the size and shape of each ellipsoidal particle.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A12 = Energy Prefactor/Hamaker constant (energy units)
@@ -113,7 +113,7 @@ When one of both of the interacting particles are ellipsoids, then
 *sigma* specifies the diameter of the continuous distribution of
 constituent particles within each ellipsoid used to model the
 RE-squared potential.  Note that this is a different meaning for
-*sigma* than the :doc:`pair\_style gayberne <pair_gayberne>` potential
+*sigma* than the :doc:`pair_style gayberne <pair_gayberne>` potential
 uses.
 
 The epsilon\_i and epsilon\_j coefficients are defined for atom types,
@@ -132,7 +132,7 @@ J, you should insure they are consistent with their values in other
 pair\_coeff commands.
 
 Note that if this potential is being used as a sub-style of
-:doc:`pair\_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
+:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
 setting made for RE-squared for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
@@ -188,16 +188,16 @@ equation for the Hamaker constant presented here.  Mixing of sigma and
 epsilon followed by calculation of the energy prefactors using the
 equations above is recommended.
 
-This pair styles supports the :doc:`pair\_modify <pair_modify>` shift
+This pair styles supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic
 dependence of the interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -205,8 +205,8 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords of the :doc:`run\_style command <run_style>`.
+:doc:`run_style respa <run_style>` command.  It does not support the
+*inner*\ , *middle*\ , *outer* keywords of the :doc:`run_style command <run_style>`.
 
 
 ----------
@@ -220,7 +220,7 @@ This style is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair style requires that atoms be ellipsoids as defined by the
-:doc:`atom\_style ellipsoid <atom_style>` command.
+:doc:`atom_style ellipsoid <atom_style>` command.
 
 Particles acted on by the potential can be finite-size aspherical or
 spherical particles, or point particles.  Spherical particles have all
@@ -233,8 +233,8 @@ less accurate when high-aspect ratio ellipsoids are used.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
-:doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair\_style gayberne <pair_gayberne>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
+:doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair_style gayberne <pair_gayberne>`
 
 **Default:** none
 
@@ -253,8 +253,3 @@ Related commands
 
 
 **(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

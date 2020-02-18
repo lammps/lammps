@@ -79,7 +79,7 @@ Use one or more global scalar values as inputs every few timesteps,
 calculate time correlations between them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
-:doc:`variables <variable>` or used by other :doc:`output commands <Howto_output>` such as :doc:`thermo\_style custom <thermo_style>`, and can also be written to a file.  See the
+:doc:`variables <variable>` or used by other :doc:`output commands <Howto_output>` such as :doc:`thermo_style custom <thermo_style>`, and can also be written to a file.  See the
 :doc:`fix ave/correlate/long <fix_ave_correlate_long>` command for an
 alternate method for computing correlation functions efficiently over
 very long time windows.
@@ -332,7 +332,7 @@ included in the variable formula or via the *prefactor* keyword.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
@@ -386,8 +386,3 @@ Related commands
 
 The option defaults are ave = one, type = auto, start = 0, no file
 output, title 1,2,3 = strings as described above, and prefactor = 1.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

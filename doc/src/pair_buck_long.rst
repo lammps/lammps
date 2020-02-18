@@ -70,16 +70,16 @@ potential.
 
 If *flag\_buck* is set to *long*\ , no cutoff is used on the Buckingham
 1/r\^6 dispersion term.  The long-range portion can be calculated by
-using the :doc:`kspace\_style ewald/disp or pppm/disp <kspace_style>`
+using the :doc:`kspace_style ewald/disp or pppm/disp <kspace_style>`
 commands.  The specified Buckingham cutoff then determines which
 portion of the Buckingham interactions are computed directly by the
 pair potential versus which part is computed in reciprocal space via
 the Kspace style.  If *flag\_buck* is set to *cut*\ , the Buckingham
-interactions are simply cutoff, as with :doc:`pair\_style buck <pair_buck>`.
+interactions are simply cutoff, as with :doc:`pair_style buck <pair_buck>`.
 
 If *flag\_coul* is set to *long*\ , no cutoff is used on the Coulombic
 interactions.  The long-range portion can calculated by using any of
-several :doc:`kspace\_style <kspace_style>` command options such as
+several :doc:`kspace_style <kspace_style>` command options such as
 *pppm* or *ewald*\ .  Note that if *flag\_buck* is also set to long, then
 the *ewald/disp* or *pppm/disp* Kspace style needs to be used to
 perform the long-range calculations for both the Buckingham and
@@ -87,9 +87,9 @@ Coulombic interactions.  If *flag\_coul* is set to *off*\ , Coulombic
 interactions are not computed.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (energy units)
@@ -143,15 +143,15 @@ instructions on how to use the accelerated styles effectively.
 This pair styles does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the exp() and 1/r\^6 portion of the pair
 interaction, assuming *flag\_buck* is *cut*\ .
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the Buckingham portion of the pair
 interaction.
 
-This pair style supports the :doc:`pair\_modify <pair_modify>` table and
+This pair style supports the :doc:`pair_modify <pair_modify>` table and
 table/disp options since they can tabulate the short-range portion of
 the long-range Coulombic and dispersion interactions.
 
@@ -159,9 +159,9 @@ This pair style write its information to :doc:`binary restart files <restart>`, 
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
-keywords of the :doc:`run\_style respa <run_style>` command, meaning the
+keywords of the :doc:`run_style respa <run_style>` command, meaning the
 pairwise forces can be partitioned by distance at different levels of
-the rRESPA hierarchy.  See the :doc:`run\_style <run_style>` command for
+the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
 
@@ -178,7 +178,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -192,8 +192,3 @@ Related commands
 
 **(Ismail)** Ismail, Tsige, In 't Veld, Grest, Molecular Physics
 (accepted) (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

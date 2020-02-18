@@ -115,9 +115,9 @@ is performed by quenching the system and comparing the resulting atom
 coordinates to the coordinates from the previous basin.
 
 A quench is an energy minimization and is performed by whichever
-algorithm has been defined by the :doc:`min\_style <min_style>` command.
+algorithm has been defined by the :doc:`min_style <min_style>` command.
 Minimization parameters may be set via the
-:doc:`min\_modify <min_modify>` command and by the *min* keyword of the
+:doc:`min_modify <min_modify>` command and by the *min* keyword of the
 hyper command.  The latter are the settings that would be used with
 the :doc:`minimize <minimize>` command.  Note that typically, you do not
 need to perform a highly-converged minimization to detect a transition
@@ -212,8 +212,3 @@ The option defaults are min = 0.1 0.1 40 50 and time = steps.
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

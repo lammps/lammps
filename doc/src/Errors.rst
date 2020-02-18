@@ -15,8 +15,3 @@ additional details for many of them.
    Errors_bugs
    Errors_messages
    Errors_warnings
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

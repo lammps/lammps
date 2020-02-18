@@ -91,11 +91,11 @@ Description
 
 This command defines a geometric region of space.  Various other
 commands use regions.  For example, the region can be filled with
-atoms via the :doc:`create\_atoms <create_atoms>` command.  Or a bounding
+atoms via the :doc:`create_atoms <create_atoms>` command.  Or a bounding
 box around the region, can be used to define the simulation box via
-the :doc:`create\_box <create_box>` command.  Or the atoms in the region
+the :doc:`create_box <create_box>` command.  Or the atoms in the region
 can be identified as a group via the :doc:`group <group>` command, or
-deleted via the :doc:`delete\_atoms <delete_atoms>` command.  Or the
+deleted via the :doc:`delete_atoms <delete_atoms>` command.  Or the
 surface of the region can be used as a boundary wall via the :doc:`fix wall/region <fix_wall_region>` command.
 
 Commands which use regions typically test whether an atom's position
@@ -127,8 +127,8 @@ box boundary; if the box changes size during a simulation, the region
 does not.  INF means a large negative or positive number (1.0e20), so
 it should encompass the simulation box even if it changes size.  If a
 region is defined before the simulation box has been created (via
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` commands), then an EDGE or INF
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands), then an EDGE or INF
 parameter cannot be used.  For a *prism* region, a non-zero tilt
 factor in any pair of dimensions cannot be used if both the lo/hi
 values in either of those dimensions are INF.  E.g. if the xy tilt is
@@ -176,7 +176,7 @@ and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
 transform it into the parallelepiped.
 
-A prism region that will be used with the :doc:`create\_box <create_box>`
+A prism region that will be used with the :doc:`create_box <create_box>`
 command to define a triclinic simulation box must have tilt factors
 (xy,xz,yz) that do not skew the box more than half the distance of
 corresponding the parallel box length.  For example, if xlo = 2 and
@@ -198,7 +198,7 @@ the cylinder axes can be a variable with the same kind of effect and
 requirements than for the radius.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius or have
 a time dependent position of the sphere or cylinder region.
@@ -285,12 +285,12 @@ three variables can be specified as NULL, in which case no
 displacement is calculated in that dimension.
 
 Note that equal-style variables can specify formulas with various
-mathematical functions, and include :doc:`thermo\_style <thermo_style>`
+mathematical functions, and include :doc:`thermo_style <thermo_style>`
 command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify a region displacement that
 change as a function of time or spans consecutive runs in a continuous
 fashion.  For the latter, see the *start* and *stop* keywords of the
-:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo\_style custom <thermo_style>` for details.
+:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for details.
 
 For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
@@ -420,16 +420,11 @@ parameters must be 0.0.
 Related commands
 """"""""""""""""
 
-:doc:`lattice <lattice>`, :doc:`create\_atoms <create_atoms>`,
-:doc:`delete\_atoms <delete_atoms>`, :doc:`group <group>`
+:doc:`lattice <lattice>`, :doc:`create_atoms <create_atoms>`,
+:doc:`delete_atoms <delete_atoms>`, :doc:`group <group>`
 
 Default
 """""""
 
 The option defaults are side = in, units = lattice, and no move or
 rotation.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

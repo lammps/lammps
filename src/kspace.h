@@ -95,6 +95,7 @@ class KSpace : protected Pointers {
 
   KSpace(class LAMMPS *);
   virtual ~KSpace();
+  void two_charge();
   void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);

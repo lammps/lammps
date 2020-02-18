@@ -74,7 +74,7 @@ no restriction to functionality by limiting the number of colvars fixes.
 The *input* keyword allows to specify a state file that would contain
 the restart information required in order to continue a calculation from
 a prerecorded state. Fix colvars records it state in :doc:`binary restart <restart>`
-files, so when using the :doc:`read\_restart <read_restart>` command,
+files, so when using the :doc:`read_restart <read_restart>` command,
 this is usually not needed.
 
 The *output* keyword allows to specify the output prefix. All output
@@ -103,7 +103,7 @@ This fix writes the current status of the colvars module into
 mode status file that is written by the colvars module itself and the
 kind of information in both files is identical.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change from the biasing force added by the fix
 to the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -155,8 +155,3 @@ and tstat = NULL.
 
 
 **(Fiorin)** Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

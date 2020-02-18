@@ -60,9 +60,9 @@ neighbor atom in each requested ADF.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses a neighbor list, it also means
    those pairs will not be included in the ADF. This does not apply when
@@ -72,7 +72,7 @@ neighbor atom in each requested ADF.
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
    use the :doc:`rerun <rerun>` command to compute the ADF for snapshots in
    the dump file.  The rerun script can use a
-   :doc:`special\_bonds <special_bonds>` command that includes all pairs in
+   :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
 .. note::
@@ -81,7 +81,7 @@ neighbor atom in each requested ADF.
    pair style is defined,  e.g. the :doc:`rerun <rerun>` command is being used to
    post-process a dump file of snapshots you must insure ghost atom information
    out to the largest value of *Router* + *skin* is communicated, via the
-   :doc:`comm\_modify cutoff <comm_modify>` command, else the ADF computation
+   :doc:`comm_modify cutoff <comm_modify>` command, else the ADF computation
    cannot be performed, and LAMMPS will give an error message.  The *skin* value
    is what is specified with the :doc:`neighbor <neighbor>` command.
 
@@ -221,14 +221,9 @@ your model.
 Related commands
 """"""""""""""""
 
-:doc:`compute rdf <compute_rdf>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`compute\_modify <compute_modify>`
+:doc:`compute rdf <compute_rdf>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`compute_modify <compute_modify>`
 
 Default
 """""""
 
 The keyword default is ordinate = degree.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

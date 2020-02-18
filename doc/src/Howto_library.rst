@@ -245,8 +245,3 @@ lammps\_reset\_box()) to restore a previously extracted and saved state
 of a simulation.  Additional properties for the new atoms can then be
 assigned via the lammps\_scatter\_atoms() or lammps\_extract\_atom()
 functions.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

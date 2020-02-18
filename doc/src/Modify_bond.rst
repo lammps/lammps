@@ -34,8 +34,3 @@ for details and specific additional methods.
 +-----------------------+---------------------------------------------------------------------------+
 | memory\_usage         | tally memory allocated by the style (optional)                            |
 +-----------------------+---------------------------------------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

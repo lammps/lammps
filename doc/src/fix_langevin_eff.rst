@@ -62,7 +62,7 @@ each atom will have the form:
    Fr is proportional to sqrt(Kb T m / (dt damp))
 
 Fc is the conservative force computed via the usual inter-particle
-interactions (:doc:`pair\_style <pair_style>`).
+interactions (:doc:`pair_style <pair_style>`).
 
 The Ff and Fr terms are added by this fix on a per-particle basis.
 
@@ -78,13 +78,13 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Langevin thermostatting to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
 setting the *tally* keyword to *yes*\ .
@@ -133,8 +133,3 @@ The option defaults are scale = 1.0 for all types and tally = no.
 
 
 **(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -53,8 +53,3 @@ or total Lagrangian SPH pair styles.
 
 Default
 """""""
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

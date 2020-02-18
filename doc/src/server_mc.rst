@@ -130,8 +130,3 @@ Related commands
 :doc:`message <message>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

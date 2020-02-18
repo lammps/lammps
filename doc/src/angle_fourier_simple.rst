@@ -33,9 +33,9 @@ The *fourier/simple* angle style uses the potential
 
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy)
 * :math:`c` (real)
@@ -78,6 +78,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none

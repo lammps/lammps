@@ -36,114 +36,124 @@ Description
 
 The *class2* dihedral style uses the potential
 
-.. image:: Eqs/dihedral_class2.jpg
-   :align: center
+.. math::
 
-where Ed is the dihedral term, Embt is a middle-bond-torsion term,
-Eebt is an end-bond-torsion term, Eat is an angle-torsion term, Eaat
-is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.
+  E = & E_d + E_{mbt} + E_{ebt} + E_{at} + E_{aat} + E_{bb13} \\
+  E_d  = & \sum_{n=1}^{3} K_n [ 1 - \cos (n \phi - \phi_n) ] \\
+  E_{mbt}  = & (r_{jk} - r_2) [ A_1 \cos (\phi) + A_2 \cos (2\phi) + A_3 \cos (3\phi) ] \\
+  E_{ebt}  = & (r_{ij} - r_1) [ B_1 \cos (\phi) + B_2 \cos (2\phi) + B_3 \cos (3\phi) ] + \\
+  &  (r_{kl} - r_3) [ C_1 \cos (\phi) + C_2 \cos (2\phi) + C_3 \cos (3\phi) ] \\
+  E_{at}  = & (\theta_{ijk} - \theta_1) [ D_1 \cos (\phi) + D_2 \cos (2\phi) + D_3 \cos (3\phi) ] + \\
+  & (\theta_{jkl} - \theta_2) [ E_1 \cos (\phi) + E_2 \cos (2\phi) + E_3 \cos (3\phi) ] \\
+  E_{aat}  = & M (\theta_{ijk} - \theta_1) (\theta_{jkl} - \theta_2) \cos (\phi) \\
+  E_{bb13}  = & N (r_{ij} - r_1) (r_{kl} - r_3)
 
-Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
-bond lengths.
+
+where :math:`E_d` is the dihedral term, :math:`E_{mbt}` is a middle-bond-torsion term,
+:math:`E_{ebt}` is an end-bond-torsion term, :math:`E_{at}` is an angle-torsion term, :math:`E_{aat}`
+is an angle-angle-torsion term, and :math:`E_{bb13}` is a bond-bond-13 term.
+
+:math:`\theta_1` and :math:`\theta_2` are equilibrium angles and :math:`r_1`, :math:`r_2`, and
+:math:`r_3` are equilibrium bond lengths.
 
 See :ref:`(Sun) <dihedral-Sun>` for a description of the COMPASS class2 force field.
 
-Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
-must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above,
-or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
-commands.
+Coefficients for the :math:`E_d`, :math:`E_{mbt}`, :math:`E_{ebt}`,
+:math:`E_{at}`, :math:`E_{aat}`, and :math:`E_{bb13}` formulas must be
+defined for each dihedral type via the :doc:`dihedral_coeff <dihedral_coeff>`
+command as in the example above, or in the data file
+or restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands.
 
-These are the 6 coefficients for the Ed formula:
+These are the 6 coefficients for the :math:`E_d` formula:
 
-* K1 (energy)
-* phi1 (degrees)
-* K2 (energy)
-* phi2 (degrees)
-* K3 (energy)
-* phi3 (degrees)
+* :math:`K_1` (energy)
+* :math:`\phi_1` (degrees)
+* :math:`K_2` (energy)
+* :math:`\phi_2` (degrees)
+* :math:`K_3` (energy)
+* :math:`phi_3` (degrees)
 
-For the Embt formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
-5 coefficients, the first of which is "mbt" to indicate they are
+For the :math:`E_{mbt}` formula, each line in a
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
+5 coefficients, the first of which is *mbt* to indicate they are
 MiddleBondTorsion coefficients.  In a data file, these coefficients
-should be listed under a "MiddleBondTorsion Coeffs" heading and you
-must leave out the "mbt", i.e. only list 4 coefficients after the
+should be listed under a *MiddleBondTorsion Coeffs* heading and you
+must leave out the *mbt*, i.e. only list 4 coefficients after the
 dihedral type.
 
-* mbt
-* A1 (energy/distance)
-* A2 (energy/distance)
-* A3 (energy/distance)
-* r2 (distance)
+* *mbt*
+* :math:`A_1` (energy/distance)
+* :math:`A_2` (energy/distance)
+* :math:`A_3` (energy/distance)
+* :math:`r_2` (distance)
 
-For the Eebt formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
-9 coefficients, the first of which is "ebt" to indicate they are
+For the :math:`E_{ebt}` formula, each line in a
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
+9 coefficients, the first of which is *ebt* to indicate they are
 EndBondTorsion coefficients.  In a data file, these coefficients
-should be listed under a "EndBondTorsion Coeffs" heading and you must
-leave out the "ebt", i.e. only list 8 coefficients after the dihedral
+should be listed under a *EndBondTorsion Coeffs* heading and you must
+leave out the *ebt*, i.e. only list 8 coefficients after the dihedral
 type.
 
-* ebt
-* B1 (energy/distance)
-* B2 (energy/distance)
-* B3 (energy/distance)
-* C1 (energy/distance)
-* C2 (energy/distance)
-* C3 (energy/distance)
-* r1 (distance)
-* r3 (distance)
+* *ebt*
+* :math:`B_1` (energy/distance)
+* :math:`B_2` (energy/distance)
+* :math:`B_3` (energy/distance)
+* :math:`C_1` (energy/distance)
+* :math:`C_2` (energy/distance)
+* :math:`C_3` (energy/distance)
+* :math:`r_1` (distance)
+* :math:`r_3` (distance)
 
-For the Eat formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
-9 coefficients, the first of which is "at" to indicate they are
+For the :math:`E_{at}` formula, each line in a
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
+9 coefficients, the first of which is *at* to indicate they are
 AngleTorsion coefficients.  In a data file, these coefficients should
-be listed under a "AngleTorsion Coeffs" heading and you must leave out
-the "at", i.e. only list 8 coefficients after the dihedral type.
+be listed under a *AngleTorsion Coeffs* heading and you must leave out
+the *at*, i.e. only list 8 coefficients after the dihedral type.
 
-* at
-* D1 (energy/radian)
-* D2 (energy/radian)
-* D3 (energy/radian)
-* E1 (energy/radian)
-* E2 (energy/radian)
-* E3 (energy/radian)
-* theta1 (degrees)
-* theta2 (degrees)
+* *at*
+* :math:`D_1` (energy/radian)
+* :math:`D_2` (energy/radian)
+* :math:`D_3` (energy/radian)
+* :math:`E_1` (energy/radian)
+* :math:`E_2` (energy/radian)
+* :math:`E_3` (energy/radian)
+* :math:`\theta_1` (degrees)
+* :math:`\theta_2` (degrees)
 
-Theta1 and theta2 are specified in degrees, but LAMMPS converts them
-to radians internally; hence the units of D and E are in
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
+them to radians internally; hence the units of :math:`D` and :math:`E` are in
 energy/radian.
 
-For the Eaat formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
-4 coefficients, the first of which is "aat" to indicate they are
+For the :math:`E_{aat}` formula, each line in a
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
+4 coefficients, the first of which is *aat* to indicate they are
 AngleAngleTorsion coefficients.  In a data file, these coefficients
-should be listed under a "AngleAngleTorsion Coeffs" heading and you
-must leave out the "aat", i.e. only list 3 coefficients after the
+should be listed under a *AngleAngleTorsion Coeffs* heading and you
+must leave out the *aat*, i.e. only list 3 coefficients after the
 dihedral type.
 
-* aat
-* M (energy/radian\^2)
-* theta1 (degrees)
-* theta2 (degrees)
+* *aat*
+* :math:`M` (energy/radian\^2)
+* :math:`\theta_1` (degrees)
+* :math:`\theta_2` (degrees)
 
-Theta1 and theta2 are specified in degrees, but LAMMPS converts them
-to radians internally; hence the units of M are in energy/radian\^2.
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
+them to radians internally; hence the units of M are in energy/radian\^2.
 
-For the Ebb13 formula, each line in a
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script lists
-4 coefficients, the first of which is "bb13" to indicate they are
+For the :math:`E_{bb13}` formula, each line in a
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
+4 coefficients, the first of which is *bb13* to indicate they are
 BondBond13 coefficients.  In a data file, these coefficients should be
-listed under a "BondBond13 Coeffs" heading and you must leave out the
-"bb13", i.e. only list 3 coefficients after the dihedral type.
+listed under a *BondBond13 Coeffs* heading and you must leave out the
+*bb13*, i.e. only list 3 coefficients after the dihedral type.
 
-* bb13
-* N (energy/distance\^2)
-* r1 (distance)
-* r3 (distance)
+* *bb13*
+* :math:`N` (energy/distance\^2)
+* :math:`r_1` (distance)
+* :math:`r_3` (distance)
 
 
 ----------
@@ -182,7 +192,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 
@@ -195,8 +205,3 @@ Related commands
 
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

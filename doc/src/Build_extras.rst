@@ -177,7 +177,7 @@ KIM package
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the :doc:`kim\_query <kim_commands>`
+use with LAMMPS. If you want to use the :doc:`kim_query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
@@ -880,6 +880,9 @@ USER-PLUMED package
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
 from LAMMPS using the generic `plumed installation instructions <plumedinstall_>`_.
+The USER-PLUMED package has been tested to work with Plumed versions
+2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
+with a different version of the Plumed kernel.
 
 
 PLUMED can be linked into MD codes in three different modes: static,
@@ -1414,8 +1417,3 @@ the settings are not valid for your system, check if one of the other
 lib/vtk/Makefile.lammps.\* files is compatible and copy it to
 Makefile.lammps.  If none of the provided files work, you will need to
 edit the Makefile.lammps file.  See lib/vtk/README for details.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

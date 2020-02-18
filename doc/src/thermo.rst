@@ -31,8 +31,8 @@ and end of a simulation.  A value of 0 will only print thermodynamics
 at the beginning and end.
 
 The content and format of what is printed is controlled by the
-:doc:`thermo\_style <thermo_style>` and
-:doc:`thermo\_modify <thermo_modify>` commands.
+:doc:`thermo_style <thermo_style>` and
+:doc:`thermo_modify <thermo_modify>` commands.
 
 Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v\_name, where
 name is the variable name.  In this case, the variable is evaluated at
@@ -60,7 +60,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`thermo\_style <thermo_style>`, :doc:`thermo\_modify <thermo_modify>`
+:doc:`thermo_style <thermo_style>`, :doc:`thermo_modify <thermo_modify>`
 
 Default
 """""""
@@ -69,8 +69,3 @@ Default
 .. parsed-literal::
 
    thermo 0
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

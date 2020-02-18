@@ -111,7 +111,7 @@ See the examples/USER/e3b directory for a complete example script.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.  Thus, you
@@ -143,7 +143,7 @@ The *preset* keyword currently only works with real, metal, si, and cgs :doc:`un
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`compute pair <compute_pair>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`compute pair <compute_pair>`
 
 Default
 """""""
@@ -169,8 +169,3 @@ The option default for the *neigh* keyword is 10.
 
 
 **(Tainter 2015)** Tainter, Shi, and Skinner, 11, 2268 (2015)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

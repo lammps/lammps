@@ -81,11 +81,11 @@ outer loop (largest) timestep, which is the same timestep that the
 
 Note that the cumulative simulation time (in time units), which
 accounts for changes in the timestep size as a simulation proceeds,
-can be accessed by the :doc:`thermo\_style time <thermo_style>` keyword.
+can be accessed by the :doc:`thermo_style time <thermo_style>` keyword.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -111,8 +111,3 @@ Default
 
 The option defaults are units = lattice, and no emax kinetic energy
 limit.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

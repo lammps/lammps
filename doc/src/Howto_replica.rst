@@ -9,7 +9,7 @@ periodically.
 These are the relevant commands:
 
 * :doc:`neb <neb>` for nudged elastic band calculations
-* :doc:`neb\_spin <neb_spin>` for magnetic nudged elastic band calculations
+* :doc:`neb_spin <neb_spin>` for magnetic nudged elastic band calculations
 * :doc:`prd <prd>` for parallel replica dynamics
 * :doc:`tad <tad>` for temperature accelerated dynamics
 * :doc:`temper <temper>` for parallel tempering
@@ -53,8 +53,3 @@ processors.  Thus the above commands could be run on a
 single-processor (or few-processor) desktop so that you can run
 a multi-replica simulation on more replicas than you have
 physical processors.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -63,7 +63,7 @@ atoms in the atomic pair.
 .. note::
 
    Even though the EIM potential is treating atoms as charged ions,
-   you should not use a LAMMPS :doc:`atom\_style <atom_style>` that stores a
+   you should not use a LAMMPS :doc:`atom_style <atom_style>` that stores a
    charge on each atom and thus requires you to assign a charge to each
    atom, e.g. the *charge* or *full* atom styles.  This is because the
    EIM potential infers the charge on an atom from the equation above for
@@ -74,7 +74,7 @@ atoms in the atomic pair.
 
 
 All the EIM parameters are listed in a potential file which is
-specified by the :doc:`pair\_coeff <pair_coeff>` command.  This is an
+specified by the :doc:`pair_coeff <pair_coeff>` command.  This is an
 ASCII text file in a format described below.  The "ffield.eim" file
 included in the "potentials" directory of the LAMMPS distribution
 currently includes nine elements Li, Na, K, Rb, Cs, F, Cl, Br, and I.
@@ -97,7 +97,7 @@ command, where N is the number of LAMMPS atom types:
 * EIM potential file
 * N element names = mapping of EIM elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example like one of those above, suppose you want to model a
@@ -183,7 +183,7 @@ LAMMPS was built with that package.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -197,8 +197,3 @@ Related commands
 
 **(Zhou)** Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

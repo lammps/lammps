@@ -39,7 +39,7 @@ Description
 
 Perform the charge equilibration (QEq) method as described in :ref:`(Rappe and Goddard) <Rappe2>` and formulated in :ref:`(Nakano) <Nakano2>`.  It is
 typically used in conjunction with the ReaxFF force field model as
-implemented in the :doc:`pair\_style reax/c <pair_reaxc>` command, but
+implemented in the :doc:`pair_style reax/c <pair_reaxc>` command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  The :doc:`fix qeq/comb <fix_qeq_comb>`
 command should be used to perform charge equilibration with the :doc:`COMB potential <pair_comb>`.  For more technical details about the
@@ -50,7 +50,7 @@ The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
 with their neighbors.  It requires some parameters for each atom type.
 If the *params* setting above is the word "reax/c", then these are
-extracted from the :doc:`pair\_style reax/c <pair_reaxc>` command and
+extracted from the :doc:`pair_style reax/c <pair_reaxc>` command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for *params*\ , then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
@@ -122,7 +122,7 @@ be used for periodic cell dimensions less than 10 angstroms.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style reax/c <pair_reaxc>`
+:doc:`pair_style reax/c <pair_reaxc>`
 
 **Default:** none
 
@@ -149,8 +149,3 @@ Related commands
 
 **(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

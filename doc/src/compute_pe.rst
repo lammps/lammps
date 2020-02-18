@@ -42,7 +42,7 @@ keywords were listed.  If any extra keywords are listed, then only
 those components are summed to compute the potential energy.
 
 The Kspace contribution requires 1 extra FFT each timestep the energy
-is calculated, if using the PPPM solver via the :doc:`kspace\_style pppm <kspace_style>` command.  Thus it can increase the cost of the
+is calculated, if using the PPPM solver via the :doc:`kspace_style pppm <kspace_style>` command.  Thus it can increase the cost of the
 PPPM calculation if it is needed on a large fraction of the simulation
 timesteps.
 
@@ -53,7 +53,7 @@ potential energy.
 
 .. note::
 
-   The :doc:`fix\_modify energy yes <fix_modify>` command must also be
+   The :doc:`fix_modify energy yes <fix_modify>` command must also be
    specified if a fix is to contribute potential energy to this command.
 
 A compute of this style with the ID of "thermo\_pe" is created when
@@ -90,8 +90,3 @@ Related commands
 :doc:`compute pe/atom <compute_pe_atom>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

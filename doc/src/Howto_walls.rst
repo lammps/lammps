@@ -11,8 +11,8 @@ tangential direction.
 
 Rough walls, built of particles, can be created in various ways.  The
 particles themselves can be generated like any other particle, via the
-:doc:`lattice <lattice>` and :doc:`create\_atoms <create_atoms>` commands,
-or read in via the :doc:`read\_data <read_data>` command.
+:doc:`lattice <lattice>` and :doc:`create_atoms <create_atoms>` commands,
+or read in via the :doc:`read_data <read_data>` command.
 
 Their motion can be constrained by many different commands, so that
 they do not move at all, move together as a group at constant velocity
@@ -34,7 +34,7 @@ the motion of individual particles can be specified with
 particle position.
 
 For rough walls, it may be useful to turn off pairwise interactions
-between wall particles via the :doc:`neigh\_modify exclude <neigh_modify>` command.
+between wall particles via the :doc:`neigh_modify exclude <neigh_modify>` command.
 
 Rough walls can also be created by specifying frozen particles that do
 not move and do not interact with mobile particles, and then tethering
@@ -47,11 +47,11 @@ granular particles; all the other commands create smooth walls.
 * :doc:`fix wall/reflect <fix_wall_reflect>` - reflective flat walls
 * :doc:`fix wall/lj93 <fix_wall>` - flat walls, with Lennard-Jones 9/3 potential
 * :doc:`fix wall/lj126 <fix_wall>` - flat walls, with Lennard-Jones 12/6 potential
-* :doc:`fix wall/colloid <fix_wall>` - flat walls, with :doc:`pair\_style colloid <pair_colloid>` potential
+* :doc:`fix wall/colloid <fix_wall>` - flat walls, with :doc:`pair_style colloid <pair_colloid>` potential
 * :doc:`fix wall/harmonic <fix_wall>` - flat walls, with repulsive harmonic spring potential
 * :doc:`fix wall/morse <fix_wall>` - flat walls, with Morse potential
 * :doc:`fix wall/region <fix_wall_region>` - use region surface as wall
-* :doc:`fix wall/gran <fix_wall_gran>` - flat or curved walls with :doc:`pair\_style granular <pair_gran>` potential
+* :doc:`fix wall/gran <fix_wall_gran>` - flat or curved walls with :doc:`pair_style granular <pair_gran>` potential
 
 The *lj93*\ , *lj126*\ , *colloid*\ , *harmonic*\ , and *morse* styles all
 allow the flat walls to move with a constant velocity, or oscillate in
@@ -69,8 +69,3 @@ The only frictional idealized walls currently in LAMMPS are flat or
 curved surfaces specified by the :doc:`fix wall/gran <fix_wall_gran>`
 command.  At some point we plan to allow regoin surfaces to be used as
 frictional walls, as well as triangulated surfaces.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -31,7 +31,7 @@ atoms, after subtracting out the center-of-mass velocity of the group.
 This is useful if the group is expected to have a non-zero net
 velocity for some reason.  A compute of this style can be used by any
 command that computes a temperature,
-e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 After the center-of-mass velocity has been subtracted from each atom,
 the temperature is calculated by the formula KE = dim/2 N k T, where
@@ -48,7 +48,7 @@ zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 The removal of the center-of-mass velocity by this fix is essentially
 computing the temperature after a "bias" has been removed from the
@@ -63,7 +63,7 @@ constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
@@ -93,8 +93,3 @@ Related commands
 :doc:`compute temp <compute_temp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

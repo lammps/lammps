@@ -59,7 +59,7 @@ rotational).
    use a combination of interaction potentials and fixes that induce no
    torque or otherwise constrain some of all of your particles so that
    this is not the case.  Then there are less dof and you should use the
-   :doc:`compute\_modify extra <compute_modify>` command to adjust the dof
+   :doc:`compute_modify extra <compute_modify>` command to adjust the dof
    accordingly.
 
 For example, an aspherical particle with all three of its shape
@@ -94,14 +94,14 @@ vector are ordered xx, yy, zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>`.  This means the
 temperature of groups of atoms that include these constraints will be
 computed correctly.  If needed, the subtracted degrees-of-freedom can
 be altered using the *extra* option of the
-:doc:`compute\_modify <compute_modify>` command.
+:doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
@@ -153,7 +153,7 @@ This compute is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This compute requires that atoms store angular momentum and a
-quaternion as defined by the :doc:`atom\_style ellipsoid <atom_style>`
+quaternion as defined by the :doc:`atom_style ellipsoid <atom_style>`
 command.
 
 All particles in the group must be finite-size.  They cannot be point
@@ -166,8 +166,3 @@ Related commands
 :doc:`compute temp <compute_temp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

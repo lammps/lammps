@@ -41,7 +41,7 @@ gyration.  It is designed for use with systems of
 :doc:`FENE <bond_fene>` or :doc:`harmonic <bond_harmonic>` bead-spring
 polymer chains where each polymer is a linear chain of monomers, but
 LAMMPS does not enforce this requirement, i.e. any
-:doc:`bond\_style <bond_style>` can be used.
+:doc:`bond_style <bond_style>` can be used.
 
 A schematic of the kinds of bond swaps that can occur is shown here:
 
@@ -86,7 +86,7 @@ by this processor on this timestep.
 The criterion for matching molecule IDs is how bond swaps performed by
 this fix conserve chain length.  To use this features you must setup
 the molecule IDs for your polymer chains in a certain way, typically
-in the data file, read by the :doc:`read\_data <read_data>` command.
+in the data file, read by the :doc:`read_data <read_data>` command.
 Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
 swaps will conserve chain length.  For a particular monomer there will
@@ -134,11 +134,11 @@ appended and the group for the new compute is "all", so that the
 temperature of the entire system is used.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* will have no
 effect on this fix.
 
@@ -157,7 +157,7 @@ each processor generates possible swaps independently of other
 processors.  Thus if you repeat the same simulation on a different number
 of processors, the specific swaps performed will be different.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a :doc:`compute <compute>` you have
 defined to this fix which will be used to compute the temperature for
 the Boltzmann criterion.
@@ -209,8 +209,3 @@ Related commands
 
 **(Sides)** Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42,
 199-208 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

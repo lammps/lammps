@@ -55,8 +55,3 @@ Related commands
 :doc:`compute smd/vol <compute_smd_vol>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

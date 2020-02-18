@@ -33,10 +33,14 @@ due to atoms passing through periodic boundaries.
 The three computed shape parameters are the asphericity, b, the acylindricity, c,
 and the relative shape anisotropy, k:
 
-.. image:: Eqs/compute_shape_parameters.jpg
-   :align: center
+.. math::
 
-where lx <= ly <= lz are the three eigenvalues of the gyration tensor. A general description 
+ c = & l_z - 0.5(l_y+l_x) \\
+ b = & l_y - l_x \\
+ k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2} 
+
+
+where :math:`l_x` <= :math:`l_y` <= :math:`l_z` are the three eigenvalues of the gyration tensor. A general description 
 of these parameters is provided in :ref:`(Mattice) <Mattice1>` while an application to polymer systems 
 can be found in :ref:`(Theodorou) <Theodorou1>`.
 The asphericity  is always non-negative and zero only when the three principal
@@ -57,7 +61,7 @@ is bounded between zero (if all points are spherically symmetric) and one
    The coordinates of an atom contribute to the gyration tensor in
    "unwrapped" form, by using the image flags associated with each atom.
    See the :doc:`dump custom <dump>` command for a discussion of "unwrapped"
-   coordinates. See the Atoms section of the :doc:`read\_data <read_data>`
+   coordinates. See the Atoms section of the :doc:`read_data <read_data>`
    command for a discussion of image flags and how they are set for each
    atom.  You can reset the image flags (e.g. to 0) before invoking this
    compute by using the :doc:`set image <set>` command.
@@ -104,8 +108,3 @@ Related commands
 
 
 **(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

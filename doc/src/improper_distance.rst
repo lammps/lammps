@@ -22,12 +22,14 @@ Description
 
 The *distance* improper style uses the potential
 
-.. image:: Eqs/improper_dist-1.jpg
-   :align: center
+.. math::
+
+   E = K_2 d^2 + K_4 d^4
+
 
 where d is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
-(listed in the data file read by the :doc:`read\_data <read_data>`
+(listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the I-atom is assumed to be the
 central atom.
 
@@ -43,8 +45,8 @@ The following coefficients must be defined for each improper type via
 the improper\_coeff command as in the example above, or in the data
 file or restart files read by the read\_data or read\_restart commands:
 
-* K\_2 (energy/distance\^2)
-* K\_4 (energy/distance\^4)
+* :math:`K_2` (energy/distance\^2)
+* :math:`K_4` (energy/distance\^4)
 
 
 ----------
@@ -61,11 +63,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

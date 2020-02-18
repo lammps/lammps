@@ -145,7 +145,7 @@ artifacts.
 
    The newer *charmmfsw* or *charmmfsh* styles were released in
    March 2017.  We recommend they be used instead of the older *charmm*
-   styles.  This includes the newer :doc:`dihedral\_style charmmfsw <dihedral_charmm>` command.  Eventually code from the new
+   styles.  This includes the newer :doc:`dihedral_style charmmfsw <dihedral_charmm>` command.  Eventually code from the new
    styles will propagate into the related pair styles (e.g. implicit,
    accelerator, free energy variants).
 
@@ -194,7 +194,7 @@ formulas as style *lj/charmm/coul/charmm* and style
 *lj/charmmfsw/coul/long* computes the same formulas as style
 *lj/charmmfsw/coul/charmmfsh*\ , except that an additional damping
 factor is applied to the Coulombic term, so it can be used in
-conjunction with the :doc:`kspace\_style <kspace_style>` command and its
+conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* or *msm* option.  Only one Coulombic cutoff is
 specified for these styles; if only 2 arguments are used in the
 pair\_style command, then the outer LJ cutoff is used as the single
@@ -204,9 +204,9 @@ directly; interactions outside that distance are computed in
 reciprocal space.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * epsilon (energy units)
@@ -260,16 +260,16 @@ usual settings for the CHARMM force field.  See the "pair\_modify"
 command for details.
 
 None of the *lj/charmm* or *lj/charmmfsw* pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option, since the Lennard-Jones
+:doc:`pair_modify <pair_modify>` shift option, since the Lennard-Jones
 portion of the pair interaction is smoothed to 0.0 at the cutoff.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* styles support
-the :doc:`pair\_modify <pair_modify>` table option since they can
+the :doc:`pair_modify <pair_modify>` table option since they can
 tabulate the short-range portion of the long-range Coulombic
 interaction.
 
 None of the *lj/charmm* or *lj/charmmfsw* pair styles support the
-:doc:`pair\_modify <pair_modify>` tail option for adding long-range tail
+:doc:`pair_modify <pair_modify>` tail option for adding long-range tail
 corrections to energy and pressure, since the Lennard-Jones portion of
 the pair interaction is smoothed to 0.0 at the cutoff.
 
@@ -280,10 +280,10 @@ that reads a restart file.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* pair styles
 support the use of the *inner*\ , *middle*\ , and *outer* keywords of the
-:doc:`run\_style respa <run_style>` command, meaning the pairwise forces
+:doc:`run_style respa <run_style>` command, meaning the pairwise forces
 can be partitioned by distance at different levels of the rRESPA
 hierarchy.  The other styles only support the *pair* keyword of
-run\_style respa.  See the :doc:`run\_style <run_style>` command for
+run\_style respa.  See the :doc:`run_style <run_style>` command for
 details.
 
 
@@ -303,7 +303,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -329,8 +329,3 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 
 **(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -38,12 +38,12 @@ the deterministic integration of the conservative force. Further
 details regarding the method are provided in :ref:`(Lisal) <Lisal>` and
 :ref:`(Larentzos1) <Larentzos1sh>`.
 
-The fix *shardlow* must be used with the :doc:`pair\_style dpd/fdt <pair_style>` or :doc:`pair\_style dpd/fdt/energy <pair_style>` command to properly initialize the
+The fix *shardlow* must be used with the :doc:`pair_style dpd/fdt <pair_style>` or :doc:`pair_style dpd/fdt/energy <pair_style>` command to properly initialize the
 fluctuation-dissipation theorem parameter(s) sigma (and kappa, if
 necessary).
 
 Note that numerous variants of DPD can be specified by choosing an
-appropriate combination of the integrator and :doc:`pair\_style dpd/fdt <pair_style>` command.  DPD under isothermal conditions can
+appropriate combination of the integrator and :doc:`pair_style dpd/fdt <pair_style>` command.  DPD under isothermal conditions can
 be specified by using fix *shardlow*\ , fix *nve* and pair\_style
 *dpd/fdt*\ .  DPD under isoenergetic conditions can be specified by
 using fix *shardlow*\ , fix *nve* and pair\_style *dpd/fdt/energy*\ .  DPD
@@ -100,7 +100,7 @@ requested.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style dpd/fdt <pair_dpd_fdt>`, :doc:`fix eos/cv <fix_eos_cv>`
+:doc:`pair_style dpd/fdt <pair_dpd_fdt>`, :doc:`fix eos/cv <fix_eos_cv>`
 
 **Default:** none
 
@@ -134,8 +134,3 @@ Algorithms", Comput. Phys. Commun., 185, 1987-1998 (2014).
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

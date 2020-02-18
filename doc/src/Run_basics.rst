@@ -89,8 +89,3 @@ processors it was run on.
 
 Some of the examples or benchmarks require LAMMPS to be built with
 optional packages.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

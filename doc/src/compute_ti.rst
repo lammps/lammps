@@ -54,7 +54,7 @@ described in :ref:`Eike <Eike>`.
 Typically this compute will be used in conjunction with the :doc:`fix adapt <fix_adapt>` command which can perform alchemical
 transformations by adjusting the strength of an interaction potential
 as a simulation runs, as defined by one or more
-:doc:`pair\_style <pair_style>` or :doc:`kspace\_style <kspace_style>`
+:doc:`pair_style <pair_style>` or :doc:`kspace_style <kspace_style>`
 commands.  This scaling is done via a prefactor on the energy, forces,
 virial calculated by the pair or K-Space style.  The prefactor is
 often a function of a *lambda* parameter which may be adjusted from 0
@@ -100,7 +100,7 @@ lambda.  Note that the *name1* variable is also typically given as an
 argument to the :doc:`fix adapt <fix_adapt>` command.
 
 An alchemical simulation may use several pair potentials together,
-invoked via the :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>`
+invoked via the :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>`
 command.  The total dUs/dlambda for the overall system is calculated
 as the sum of each contributing term as listed by the keywords in the
 compute ti command.  Individual pair potentials can be listed, which
@@ -155,8 +155,3 @@ Related commands
 
 
 **(Eike)** Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

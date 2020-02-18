@@ -56,7 +56,7 @@ pairwise neighbor list.  Info about an individual pairwise interaction
 will only be included if both atoms in the pair are in the specified
 compute group, and if the current pairwise distance is less than the
 force cutoff distance for that interaction, as defined by the
-:doc:`pair\_style <pair_style>` and :doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands.
 
 The value *dist* is the distance between the pair of atoms.
@@ -100,7 +100,7 @@ will be in whatever units the pair style defines.
 
 The optional *cutoff* keyword determines how the force cutoff distance
 for an interaction is determined.  For the default setting of *type*\ ,
-the pairwise cutoff defined by the :doc:`pair\_style <pair_style>`
+the pairwise cutoff defined by the :doc:`pair_style <pair_style>`
 command for the types of the two atoms is used.  For the *radius*
 setting, the sum of the radii of the two particles is used as a
 cutoff.  For example, this is appropriate for granular particles which
@@ -135,9 +135,9 @@ Here is an example of how to do this:
    specifically, this will be true of I,J pairs with a weighting factor
    of 0.0; pairs with a non-zero weighting factor are included.  The
    weighting factors for 1-2, 1-3, and 1-4 pairwise interactions are set
-   by the :doc:`special\_bonds <special_bonds>` command.  An exception is if
+   by the :doc:`special_bonds <special_bonds>` command.  An exception is if
    long-range Coulombics are being computed via the
-   :doc:`kspace\_style <kspace_style>` command, then atom pairs with
+   :doc:`kspace_style <kspace_style>` command, then atom pairs with
    weighting factors of zero are still included in the neighbor list, so
    that a portion of the long-range interaction contribution can be
    computed in the pair style.  Hence in that case, those atom pairs will
@@ -172,8 +172,3 @@ Default
 """""""
 
 The keyword default is cutoff = type.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

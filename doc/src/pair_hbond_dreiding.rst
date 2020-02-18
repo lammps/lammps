@@ -64,9 +64,9 @@ These 3-body interactions can be defined for pairs of acceptor and
 donor atoms, based on atom types.  For each donor/acceptor atom pair,
 the 3rd atom in the interaction is a hydrogen permanently bonded to
 the donor atom, e.g. in a bond list read in from a data file via the
-:doc:`read\_data <read_data>` command.  The atom types of possible
+:doc:`read_data <read_data>` command.  The atom types of possible
 hydrogen atoms for each donor/acceptor type pair are specified by the
-:doc:`pair\_coeff <pair_coeff>` command (see below).
+:doc:`pair_coeff <pair_coeff>` command (see below).
 
 Style *hbond/dreiding/lj* is the original DREIDING potential of
 :ref:`(Mayo) <pair-Mayo>`.  It uses a LJ 12/10 functional for the Donor-Acceptor
@@ -84,16 +84,16 @@ on the DREIDING force field.
 
    Because the Dreiding hydrogen bond potential is only one portion
    of an overall force field which typically includes other pairwise
-   interactions, it is common to use it as a sub-style in a :doc:`pair\_style hybrid/overlay <pair_hybrid>` command, where another pair style
+   interactions, it is common to use it as a sub-style in a :doc:`pair_style hybrid/overlay <pair_hybrid>` command, where another pair style
    provides the repulsive core interaction between pairs of atoms, e.g. a
    1/r\^12 Lennard-Jones repulsion.
 
 .. note::
 
-   When using the hbond/dreiding pair styles with :doc:`pair\_style hybrid/overlay <pair_hybrid>`, you should explicitly define pair
+   When using the hbond/dreiding pair styles with :doc:`pair_style hybrid/overlay <pair_hybrid>`, you should explicitly define pair
    interactions between the donor atom and acceptor atoms, (as well as
    between these atoms and ALL other atoms in your system).  Whenever
-   :doc:`pair\_style hybrid/overlay <pair_hybrid>` is used, ordinary mixing
+   :doc:`pair_style hybrid/overlay <pair_hybrid>` is used, ordinary mixing
    rules are not applied to atoms like the donor and acceptor atoms
    because they are typically referenced in multiple pair styles.
    Neglecting to do this can cause difficult-to-detect physics problems.
@@ -110,20 +110,20 @@ on the DREIDING force field.
 
 
 The following coefficients must be defined for pairs of eligible
-donor/acceptor types via the :doc:`pair\_coeff <pair_coeff>` command as
+donor/acceptor types via the :doc:`pair_coeff <pair_coeff>` command as
 in the examples above.
 
 .. note::
 
    Unlike other pair styles and their associated
-   :doc:`pair\_coeff <pair_coeff>` commands, you do not need to specify
+   :doc:`pair_coeff <pair_coeff>` commands, you do not need to specify
    pair\_coeff settings for all possible I,J type pairs.  Only I,J type
    pairs for atoms which act as joint donors/acceptors need to be
    specified; all other type pairs are assumed to be inactive.
 
 .. note::
 
-   A :doc:`pair\_coeff <pair_coeff>` command can be specified multiple
+   A :doc:`pair_coeff <pair_coeff>` command can be specified multiple
    times for the same donor/acceptor type pair.  This enables multiple
    hydrogen types to be assigned to the same donor/acceptor type pair.
    For other pair\_styles, if the pair\_coeff command is re-used for the
@@ -160,14 +160,14 @@ follows:
 A single hydrogen atom type K can be specified, or a wild-card asterisk
 can be used in place of or in conjunction with the K arguments to
 select multiple types as hydrogen atoms.  This takes the form
-"\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair\_coeff <pair_coeff>`
+"\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
 command doc page for details.
 
 If the donor flag is *i*\ , then the atom of type I in the pair\_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
 flag is *j*\ , then the atom of type J in the pair\_coeff command is
 treated as the donor and I is the donor.  This option is required
-because the :doc:`pair\_coeff <pair_coeff>` command requires that I <= J.
+because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
 Epsilon and sigma are settings for the hydrogen bond potential based
 on a Lennard-Jones functional form.  Note that sigma is defined as the
@@ -214,13 +214,13 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing. You must explicitly identify
 each donor/acceptor type pair.
 
-These styles do not support the :doc:`pair\_modify <pair_modify>` shift
+These styles do not support the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the interactions.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant for
+The :doc:`pair_modify <pair_modify>` table option is not relevant for
 these pair styles.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -228,7 +228,7 @@ These pair styles do not write their information to :doc:`binary restart files <
 re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 These pair styles tally a count of how many hydrogen bonding
@@ -258,7 +258,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -279,8 +279,3 @@ Related commands
 
 **(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

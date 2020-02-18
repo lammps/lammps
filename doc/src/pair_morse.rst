@@ -62,9 +62,9 @@ Style *morse* computes pairwise interactions with the formula
 Rc is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * D0 (energy units)
@@ -95,7 +95,7 @@ the *morse* and *morse/smooth/linear* styles.
 
 A version of the *morse* style with a soft core, *morse/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair\_fep\_soft <pair_fep_soft>` styles. The version with soft core is only
+the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is only
 available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 
@@ -129,13 +129,13 @@ instructions on how to use the accelerated styles effectively.
 None of these pair styles support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-All of these pair styles support the :doc:`pair\_modify <pair_modify>`
+All of these pair styles support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table options is not relevant for
+The :doc:`pair_modify <pair_modify>` table options is not relevant for
 the Morse pair styles.
 
-None of these pair styles support the :doc:`pair\_modify <pair_modify>`
+None of these pair styles support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -143,7 +143,7 @@ All of these pair styles write their information to :doc:`binary restart files <
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -160,11 +160,6 @@ built with the USER-MISC package.  See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

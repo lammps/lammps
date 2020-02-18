@@ -204,8 +204,8 @@ processors when ghost atom info is accumulated.
    large enough to span the distance between the atom that owns the body
    and every other atom in the body.  This distance value is printed out
    when the rigid bodies are defined.  If the
-   :doc:`pair\_style <pair_style>` cutoff plus neighbor skin does not span
-   this distance, then you should use the :doc:`comm\_modify cutoff <comm_modify>` command with a setting epsilon larger than
+   :doc:`pair_style <pair_style>` cutoff plus neighbor skin does not span
+   this distance, then you should use the :doc:`comm_modify cutoff <comm_modify>` command with a setting epsilon larger than
    the distance.
 
 Which of the two variants is faster for a particular problem is hard
@@ -254,7 +254,7 @@ differences may accumulate to produce divergent trajectories.
    could displace the atoms in a body or add a large velocity to each atom
    in a body to make it move in a desired direction before a 2nd run is
    performed, using the :doc:`set <set>` or
-   :doc:`displace\_atoms <displace_atoms>` or :doc:`velocity <velocity>`
+   :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
    of the body unless *reinit* is set to *yes*\ . With *reinit* set to *no*
    (or using the *infile* option, which implies *reinit* *no*\ ) the position
@@ -353,7 +353,7 @@ settings from the final keyword are used.
 
    For computational efficiency, you may wish to turn off pairwise
    and bond interactions within each rigid body, as they no longer
-   contribute to the motion.  The :doc:`neigh\_modify exclude <neigh_modify>` and :doc:`delete\_bonds <delete_bonds>`
+   contribute to the motion.  The :doc:`neigh_modify exclude <neigh_modify>` and :doc:`delete_bonds <delete_bonds>`
    commands are used to do this.  If the rigid bodies have strongly
    overlapping atoms, you may need to turn off these interactions to
    avoid numerical problems due to large equal/opposite intra-body forces
@@ -370,7 +370,7 @@ is more expensive.
 
 The constituent particles within a rigid body can be point particles
 (the default in LAMMPS) or finite-size particles, such as spheres or
-ellipsoids or line segments or triangles.  See the :doc:`atom\_style sphere and ellipsoid and line and tri <atom_style>` commands for more
+ellipsoids or line segments or triangles.  See the :doc:`atom_style sphere and ellipsoid and line and tri <atom_style>` commands for more
 details on these kinds of particles.  Finite-size particles contribute
 differently to the moment of inertia of a rigid body than do point
 particles.  Finite-size particles can also experience torque (e.g. due
@@ -380,7 +380,7 @@ orientation.  These contributions are accounted for by these fixes.
 Forces between particles within a body do not contribute to the
 external force or torque on the body.  Thus for computational
 efficiency, you may wish to turn off pairwise and bond interactions
-between particles within each rigid body.  The :doc:`neigh\_modify exclude <neigh_modify>` and :doc:`delete\_bonds <delete_bonds>`
+between particles within each rigid body.  The :doc:`neigh_modify exclude <neigh_modify>` and :doc:`delete_bonds <delete_bonds>`
 commands are used to do this.  For finite-size particles this also
 means the particles can be highly overlapped when creating the rigid
 body.
@@ -792,27 +792,27 @@ with rigid body information each time a restart file is written, as
 explained above for the *infile* keyword.  For the 2 NVT rigid styles,
 the state of the Nose/Hoover thermostat is written to :doc:`binary restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles, and
 the state of the Nose/Hoover barostat.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
+:doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by the 6
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by the 6
 NVT, NPT, NPH rigid styles to add the energy change induced by the
 thermostatting to the system's potential energy as part of
 :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to keeping the objects rigid to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial yes*
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by the 4 NPT and NPH rigid styles to change the computes
 used to calculate the instantaneous pressure tensor.  Note that the 2
 NVT rigid fixes do not use any external compute to compute
 instantaneous temperature.
 
-The :doc:`fix\_modify <fix_modify>` *bodyforces* option is supported by
+The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 all rigid styles to set whether per-body forces and torques are
 computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
@@ -906,7 +906,7 @@ example:
 Related commands
 """"""""""""""""
 
-:doc:`delete\_bonds <delete_bonds>`, :doc:`neigh\_modify <neigh_modify>`
+:doc:`delete_bonds <delete_bonds>`, :doc:`neigh_modify <neigh_modify>`
 exclude, :doc:`fix shake <fix_shake>`
 
 Default
@@ -951,8 +951,3 @@ J Chem Phys, 116, 8649 (2002).
 
 
 **(Zhang)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -136,4 +136,3 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
-

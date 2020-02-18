@@ -50,7 +50,7 @@ ADIOS-BP files are binary, portable and self-describing.
 **Use from write\_dump:**
 
 It is possible to use these dump styles with the
-:doc:`write\_dump <write_dump>` command.  In this case, the sub-intervals
+:doc:`write_dump <write_dump>` command.  In this case, the sub-intervals
 must not be set at all.  The write\_dump command can be used to
 create a new file at each individual dump.
 
@@ -84,13 +84,4 @@ See the :doc:`Build package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`

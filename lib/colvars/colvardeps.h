@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -219,7 +219,7 @@ public:
   /// Implements possible actions to be carried out
   /// when a given feature is enabled
   /// Base function does nothing, can be overloaded
-  virtual void do_feature_side_effects(int id) {}
+  virtual void do_feature_side_effects(int /* id */) {}
 
   // NOTE that all feature enums should start with f_*_active
   enum features_biases {
@@ -296,6 +296,10 @@ public:
     f_cv_lower_boundary,
     /// \brief An upper boundary is defined
     f_cv_upper_boundary,
+    /// \brief The lower boundary is not defined from user's choice
+    f_cv_hard_lower_boundary,
+    /// \brief The upper boundary is not defined from user's choice
+    f_cv_hard_upper_boundary,
     /// \brief Provide a discretization of the values of the colvar to
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)
@@ -310,6 +314,8 @@ public:
     f_cv_custom_function,
     /// \brief Colvar is periodic
     f_cv_periodic,
+    /// \brief The colvar has only one component
+    f_cv_single_cvc,
     /// \brief is scalar
     f_cv_scalar,
     f_cv_linear,
@@ -321,20 +327,40 @@ public:
   };
 
   enum features_cvc {
+    /// Computation of this CVC is enabled
     f_cvc_active,
+    /// This CVC computes a scalar value
     f_cvc_scalar,
+    /// Values of this CVC lie in a periodic interval
+    f_cvc_periodic,
+    /// This CVC provides a default value for the colvar's width
+    f_cvc_width,
+    /// This CVC provides a default value for the colvar's lower boundary
+    f_cvc_lower_boundary,
+    /// This CVC provides a default value for the colvar's upper boundary
+    f_cvc_upper_boundary,
+    /// CVC calculates atom gradients
     f_cvc_gradient,
-    /// \brief CVC calculates and stores explicit atom gradients
+    /// CVC calculates and stores explicit atom gradients
     f_cvc_explicit_gradient,
+    /// CVC calculates and stores inverse atom gradients (used for total force)
     f_cvc_inv_gradient,
-    /// \brief If enabled, calc_gradients() will call debug_gradients() for every group needed
-    f_cvc_debug_gradient,
+    /// CVC calculates the Jacobian term of the total-force expression
     f_cvc_Jacobian,
-    f_cvc_pbc_minimum_image,
+    /// The total force for this CVC will be computed from one group only
     f_cvc_one_site_total_force,
+    /// calc_gradients() will call debug_gradients() for every group needed
+    f_cvc_debug_gradient,
+    /// With PBCs, minimum-image convention will be used for distances
+    /// (does not affect the periodicity of CVC values, e.g. angles)
+    f_cvc_pbc_minimum_image,
+    /// This CVC is a function of centers of mass
     f_cvc_com_based,
+    /// This CVC can be computed in parallel
     f_cvc_scalable,
+    /// Centers-of-mass used in this CVC can be computed in parallel
     f_cvc_scalable_com,
+    /// Number of CVC features
     f_cvc_ntot
   };
 

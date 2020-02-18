@@ -1,13 +1,13 @@
-.. index:: pair\_style body/nparticle
+.. index:: pair_style body/nparticle
 
-pair\_style body/nparticle command
-==================================
+pair_style body/nparticle command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style body/nparticle cutoff
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style body/nparticle 3.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.5 2.5
 
 Description
@@ -67,20 +67,24 @@ The interaction between two sub-particles, or a sub-particle and point
 particle, or between two point particles is computed as a Lennard-Jones
 interaction, using the standard formula
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
 
-where Rc is the cutoff.  As explained above, an interaction involving
-one or two body sub-particles may be computed even for r > Rc.
+   E & = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < R_c \\
+
+
+where :math:`R_c` is the cutoff.  As explained above, an interaction involving
+one or two body sub-particles may be computed even for :math:`r > R_c`.
 
 For style *body*\ , the following coefficients must be defined for each
-pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command as in
+pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global cutoff
@@ -94,16 +98,16 @@ is used.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of this pair style can be mixed.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+default mix value is *geometric*\ .  See the :doc:`pair_modify <pair_modify>` command for
 details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -118,16 +122,11 @@ This style is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Defining particles to be bodies so they participate in body/body or
-body/particle interactions requires the use of the :doc:`atom\_style body <atom_style>` command.
+body/particle interactions requires the use of the :doc:`atom_style body <atom_style>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix rigid <fix_rigid>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix rigid <fix_rigid>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -89,14 +89,14 @@ in the LAMMPS frame. Only when the positions and velocities are
 updated is the system rotated to the flow frame, and it is rotated
 back to the LAMMPS frame immediately afterwards. For this reason, all
 vector-valued quantities (except for the tensors from
-:doc:`compute\_pressure/uef <compute_pressure_uef>` and
-:doc:`compute\_temp/uef <compute_temp_uef>`) will be computed in the
+:doc:`compute pressure/uef <compute_pressure_uef>` and
+:doc:`compute temp/uef <compute_temp_uef>`) will be computed in the
 LAMMPS frame. Rotationally invariant scalar quantities like the
 temperature and hydrostatic pressure are frame-invariant and will be
 computed correctly. Additionally, the system is in the LAMMPS frame
 during all of the output steps, and therefore trajectory files made
 using the dump command will be in the LAMMPS frame unless the
-:doc:`dump\_cfg/uef <dump_cfg_uef>` command is used.
+:doc:`dump cfg/uef <dump_cfg_uef>` command is used.
 
 
 ----------
@@ -187,7 +187,7 @@ or fix\_ID + underscore + "press".
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 The fix writes the state of all the thermostat and barostat variables,
-as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>` command
+as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -199,7 +199,7 @@ uninterrupted fashion.
    not contain the cumulative applied strain, will this keyword be
    necessary.
 
-This fix can be used with the :doc:`fix\_modify <fix_modify>` *temp* and
+This fix can be used with the :doc:`fix_modify <fix_modify>` *temp* and
 *press* options. The temperature and pressure computes used must be of
 type *temp/uef* and *pressure/uef*\ .
 
@@ -217,7 +217,7 @@ was built with that package. See the :doc:`Build package <Build_package>` doc pa
 Due to requirements of the boundary conditions, when the *strain*
 keyword is set to zero (or unset), the initial simulation box must be
 cubic and have style triclinic. If the box is initially of type ortho,
-use :doc:`change\_box <change_box>` before invoking the fix.
+use :doc:`change_box <change_box>` before invoking the fix.
 
 .. note::
 
@@ -272,8 +272,3 @@ given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 **(Nicholson and Rutledge)** Nicholson and Rutledge, J Chem Phys, 145,
 244903 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -89,7 +89,7 @@ Note that the number of atoms contributing to the temperature is
 calculated each time the temperature is evaluated since it is assumed
 the atoms may be dynamically assigned to chunks.  Thus there is no
 need to use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command for this compute style.
+:doc:`compute_modify <compute_modify>` command for this compute style.
 
 If any optional values are specified, then per-chunk quantities are
 also calculated and stored in a global array, as described below.
@@ -253,8 +253,3 @@ Default
 
 The option defaults are com no, no bias, adof = dimensionality of the
 system (2 or 3), and cdof = 0.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

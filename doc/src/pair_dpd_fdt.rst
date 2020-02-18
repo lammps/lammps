@@ -75,9 +75,9 @@ For style *dpd/fdt*\ , the fluctuation-dissipation theorem defines gamma
 to be set equal to sigma\*sigma/(2 T), where T is the set point
 temperature specified as a pair style parameter in the above examples.
 The following coefficients must be defined for each pair of atoms types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands:
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * A (force units)
 * sigma (force\*time\^(1/2) units)
@@ -108,9 +108,9 @@ variance that is used to compute the internal conductive energy. The
 fluctuation-dissipation theorem defines alpha\*alpha to be set
 equal to 2\*kB\*kappa, where kappa is the mesoparticle thermal
 conductivity parameter.   The following coefficients must be defined for
-each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command as in the examples above, or in the data file or restart files
-read by the :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+read by the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (force units)
@@ -174,17 +174,17 @@ These commands are part of the USER-DPD package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Pair styles *dpd/fdt* and *dpd/fdt/energy* require use of the
-:doc:`comm\_modify vel yes <comm_modify>` option so that velocities are
+:doc:`comm_modify vel yes <comm_modify>` option so that velocities are
 stored by ghost atoms.
 
-Pair style *dpd/fdt/energy* requires :doc:`atom\_style dpd <atom_style>`
+Pair style *dpd/fdt/energy* requires :doc:`atom_style dpd <atom_style>`
 to be used in order to properly account for the particle internal
 energies and temperatures.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
 
 **Default:** none
 
@@ -200,8 +200,3 @@ Related commands
 particle dynamics at isothermal, isobaric, isoenergetic, and
 isoenthalpic conditions using Shardlow-like splitting algorithms.",
 J. Chem. Phys., 135, 204105 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

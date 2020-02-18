@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -174,7 +174,7 @@ int colvarbias_restraint_k::change_configuration(std::string const &conf)
 
 
 
-colvarbias_restraint_moving::colvarbias_restraint_moving(char const *key)
+colvarbias_restraint_moving::colvarbias_restraint_moving(char const * /* key */)
 {
   target_nstages = 0;
   target_nsteps = 0L;

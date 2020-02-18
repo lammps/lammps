@@ -226,7 +226,7 @@ successive runs to run a simulation for any number of steps (ok, up to
 Related commands
 """"""""""""""""
 
-:doc:`minimize <minimize>`, :doc:`run\_style <run_style>`,
+:doc:`minimize <minimize>`, :doc:`run_style <run_style>`,
 :doc:`temper <temper>`, :doc:`fix halt <fix_halt>`
 
 Default
@@ -234,8 +234,3 @@ Default
 
 The option defaults are start = the current timestep, stop = current
 timestep + N, pre = yes, and post = yes.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

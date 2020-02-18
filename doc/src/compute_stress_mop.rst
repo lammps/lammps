@@ -67,7 +67,7 @@ configurational stress (conf), and/or total stress (total).
 NOTE 1: The configurational stress is computed considering all pairs of atoms where at least one atom belongs to group group-ID.
 
 NOTE 2: The local stress does not include any Lennard-Jones tail
-corrections to the pressure added by the :doc:`pair\_modify tail yes <pair_modify>` command, since those are contributions to the global system pressure.
+corrections to the pressure added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the global system pressure.
 
 **Output info:**
 
@@ -120,8 +120,3 @@ Related commands
 
 **(Todd)** B. D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids",
 Phys. Rev. E 52, 1627 (1995).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -18,7 +18,6 @@
 #include <mpi.h>
 #include "fftdata_kokkos.h"
 #include "remap.h"
-#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
@@ -27,12 +26,12 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct remap_plan_3d_kokkos {
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
-  typename AT::t_FFT_SCALAR_1d d_scratch;                  // scratch buffer for MPI recvs
-  void (*pack)(typename AT::t_FFT_SCALAR_1d_um, int, typename AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typename FFT_AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
+  typename FFT_AT::t_FFT_SCALAR_1d d_scratch;                  // scratch buffer for MPI recvs
+  void (*pack)(typename FFT_AT::t_FFT_SCALAR_1d_um, int, typename FFT_AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
                                     // which pack function to use
-  void (*unpack)(typename AT::t_FFT_SCALAR_1d_um, int, typename AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
+  void (*unpack)(typename FFT_AT::t_FFT_SCALAR_1d_um, int, typename FFT_AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
                                     // which unpack function to use
   int *send_offset;                 // extraction loc for each send
   int *send_size;                   // size of each send message
@@ -58,16 +57,16 @@ template<class DeviceType>
 class RemapKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
         int,int,int,int,int,int,int,int,int,int,int);
   ~RemapKokkos();
-  void perform(typename AT::t_FFT_SCALAR_1d, typename AT::t_FFT_SCALAR_1d, typename AT::t_FFT_SCALAR_1d);
+  void perform(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d);
 
   struct remap_plan_3d_kokkos<DeviceType> *plan;
 
-  void remap_3d_kokkos(typename AT::t_FFT_SCALAR_1d, typename AT::t_FFT_SCALAR_1d, typename AT::t_FFT_SCALAR_1d, struct remap_plan_3d_kokkos<DeviceType> *);
+  void remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, struct remap_plan_3d_kokkos<DeviceType> *);
   struct remap_plan_3d_kokkos<DeviceType> *remap_3d_create_plan_kokkos(MPI_Comm,
                                              int, int, int, int, int, int,
                                              int, int, int, int, int, int,

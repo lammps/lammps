@@ -114,10 +114,10 @@ unspecified parameters can also be controlled by a :doc:`fix npt <fix_nh>` or :d
 
 The size and shape of the simulation box at the beginning of the
 simulation run were either specified by the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` command used to setup the simulation
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command used to setup the simulation
 initially if it is the first run, or they are the values from the end
-of the previous run.  The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>` commands
+of the previous run.  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
 fix deform changes the xy,xz,yz tilt factors, then the simulation box
@@ -578,7 +578,7 @@ been previously used to define the lattice spacing.  Note that the
 units choice also affects the *vel* style parameters since it is
 defined in terms of distance/time.  Also note that the units keyword
 does not affect the *variable* style.  You should use the *xlat*\ ,
-*ylat*\ , *zlat* keywords of the :doc:`thermo\_style <thermo_style>`
+*ylat*\ , *zlat* keywords of the :doc:`thermo_style <thermo_style>`
 command if you want to include lattice spacings in a variable formula.
 
 
@@ -607,7 +607,7 @@ instructions on how to use the accelerated styles effectively.
 
 This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`
-command.  None of the :doc:`fix\_modify <fix_modify>` options are
+command.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.  No global or per-atom quantities are stored by
 this fix for access by various :doc:`output commands <Howto_output>`.
 
@@ -630,14 +630,9 @@ xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
 Related commands
 """"""""""""""""
 
-:doc:`change\_box <change_box>`
+:doc:`change_box <change_box>`
 
 Default
 """""""
 
 The option defaults are remap = x, flip = yes, and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

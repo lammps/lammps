@@ -79,8 +79,3 @@ Related commands
 :doc:`smd/tri\_surface <pair_smd_triangulated_surface>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

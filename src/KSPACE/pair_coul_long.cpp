@@ -46,6 +46,7 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
   ewaldflag = pppmflag = 1;
   ftable = NULL;
   qdist = 0.0;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

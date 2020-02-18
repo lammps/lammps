@@ -203,8 +203,3 @@ Related commands
 :doc:`server <server>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

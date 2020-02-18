@@ -27,7 +27,7 @@ Description
 Set the dimensionality of the simulation.  By default LAMMPS runs 3d
 simulations.  To run a 2d simulation, this command should be used
 prior to setting up a simulation box via the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` commands.
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 Restart files also store this setting.
 
 See the discussion on the :doc:`Howto 2d <Howto_2d>` doc page for
@@ -45,7 +45,7 @@ Restrictions
 
 
 This command must be used before the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""
@@ -59,8 +59,3 @@ Default
 .. parsed-literal::
 
    dimension 3
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

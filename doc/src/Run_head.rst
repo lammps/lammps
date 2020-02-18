@@ -14,8 +14,3 @@ they can contain.
    Run_options
    Run_output
    Run_windows
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

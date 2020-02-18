@@ -138,7 +138,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix nph <fix_nh>`, :doc:`fix npt <fix_nh>`,
-:doc:`fix\_modify <fix_modify>`, :doc:`run\_style <run_style>`
+:doc:`fix_modify <fix_modify>`, :doc:`run_style <run_style>`
 
 Default
 """""""
@@ -174,8 +174,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

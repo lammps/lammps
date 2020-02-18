@@ -122,7 +122,7 @@ Note coupling and post-processing can be combined in the same simulations using 
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix_modify <fix_modify>` options
 relevant to this fix are listed below.  No global scalar or vector or
 per-atom quantities are stored by this fix for access by various
 :doc:`output commands <Howto_output>`.  No parameter of this fix can be
@@ -141,99 +141,99 @@ Thermal and two\_temperature (coupling) types use a Verlet time-integration algo
 Related commands
 """"""""""""""""
 
-After specifying this fix in your input script, several other :doc:`fix\_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
+After specifying this fix in your input script, several other :doc:`fix_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
-fix\_modify commands for setup:
+*fix\_modify* commands for setup:
 
-* `fix\_modify AtC mesh create <USER/atc/man_mesh_create.html>`_
-* `fix\_modify AtC mesh quadrature <USER/atc/man_mesh_quadrature.html>`_
-* `fix\_modify AtC mesh read <USER/atc/man_mesh_read.html>`_
-* `fix\_modify AtC mesh write <USER/atc/man_mesh_write.html>`_
-* `fix\_modify AtC mesh create\_nodeset <USER/atc/man_mesh_create_nodeset.html>`_
-* `fix\_modify AtC mesh add\_to\_nodeset <USER/atc/man_mesh_add_to_nodeset.html>`_
-* `fix\_modify AtC mesh create\_faceset box <USER/atc/man_mesh_create_faceset_box.html>`_
-* `fix\_modify AtC mesh create\_faceset plane <USER/atc/man_mesh_create_faceset_plane.html>`_
-* `fix\_modify AtC mesh create\_elementset <USER/atc/man_mesh_create_elementset.html>`_
-* `fix\_modify AtC mesh delete\_elements <USER/atc/man_mesh_delete_elements.html>`_
-* `fix\_modify AtC mesh nodeset\_to\_elementset <USER/atc/man_mesh_nodeset_to_elementset.html>`_
-* `fix\_modify AtC boundary <USER/atc/man_boundary.html>`_
-* `fix\_modify AtC internal\_quadrature <USER/atc/man_internal_quadrature.html>`_
-* `fix\_modify AtC time\_integration (thermal) <USER/atc/man_thermal_time_integration.html>`_
-* `fix\_modify AtC time\_integration (momentum) <USER/atc/man_momentum_time_integration.html>`_
-* `fix\_modify AtC extrinsic electron\_integration <USER/atc/man_electron_integration.html>`_
-* `fix\_modify AtC internal\_element\_set <USER/atc/man_internal_element_set.html>`_
-* `fix\_modify AtC decomposition <USER/atc/man_decomposition.html>`_
+* `fix_modify AtC mesh create <USER/atc/man_mesh_create.html>`_
+* `fix_modify AtC mesh quadrature <USER/atc/man_mesh_quadrature.html>`_
+* `fix_modify AtC mesh read <USER/atc/man_mesh_read.html>`_
+* `fix_modify AtC mesh write <USER/atc/man_mesh_write.html>`_
+* `fix_modify AtC mesh create_nodeset <USER/atc/man_mesh_create_nodeset.html>`_
+* `fix_modify AtC mesh add_to_nodeset <USER/atc/man_mesh_add_to_nodeset.html>`_
+* `fix_modify AtC mesh create_faceset box <USER/atc/man_mesh_create_faceset_box.html>`_
+* `fix_modify AtC mesh create_faceset plane <USER/atc/man_mesh_create_faceset_plane.html>`_
+* `fix_modify AtC mesh create_elementset <USER/atc/man_mesh_create_elementset.html>`_
+* `fix_modify AtC mesh delete_elements <USER/atc/man_mesh_delete_elements.html>`_
+* `fix_modify AtC mesh nodeset_to_elementset <USER/atc/man_mesh_nodeset_to_elementset.html>`_
+* `fix_modify AtC boundary <USER/atc/man_boundary.html>`_
+* `fix_modify AtC internal_quadrature <USER/atc/man_internal_quadrature.html>`_
+* `fix_modify AtC time_integration (thermal) <USER/atc/man_thermal_time_integration.html>`_
+* `fix_modify AtC time_integration (momentum) <USER/atc/man_momentum_time_integration.html>`_
+* `fix_modify AtC extrinsic electron_integration <USER/atc/man_electron_integration.html>`_
+* `fix_modify AtC internal_element_set <USER/atc/man_internal_element_set.html>`_
+* `fix_modify AtC decomposition <USER/atc/man_decomposition.html>`_
 
-fix\_modify commands for boundary and initial conditions:
+*fix\_modify* commands for boundary and initial conditions:
 
-* `fix\_modify AtC initial <USER/atc/man_initial.html>`_
-* `fix\_modify AtC fix <USER/atc/man_fix_nodes.html>`_
-* `fix\_modify AtC unfix <USER/atc/man_unfix_nodes.html>`_
-* `fix\_modify AtC fix\_flux <USER/atc/man_fix_flux.html>`_
-* `fix\_modify AtC unfix\_flux <USER/atc/man_unfix_flux.html>`_
-* `fix\_modify AtC source <USER/atc/man_source.html>`_
-* `fix\_modify AtC remove\_source <USER/atc/man_remove_source.html>`_
+* `fix_modify AtC initial <USER/atc/man_initial.html>`_
+* `fix_modify AtC fix <USER/atc/man_fix_nodes.html>`_
+* `fix_modify AtC unfix <USER/atc/man_unfix_nodes.html>`_
+* `fix_modify AtC fix_flux <USER/atc/man_fix_flux.html>`_
+* `fix_modify AtC unfix_flux <USER/atc/man_unfix_flux.html>`_
+* `fix_modify AtC source <USER/atc/man_source.html>`_
+* `fix_modify AtC remove_source <USER/atc/man_remove_source.html>`_
 
-fix\_modify commands for control and filtering:
+*fix\_modify* commands for control and filtering:
 
-* `fix\_modify AtC control <USER/atc/man_control.html>`_
-* `fix\_modify AtC control thermal <USER/atc/man_control_thermal.html>`_
-* `fix\_modify AtC control thermal correction\_max\_iterations <USER/atc/man_control_thermal_correction_max_iterations.html>`_
-* `fix\_modify AtC control momentum <USER/atc/man_control_momentum.html>`_
-* `fix\_modify AtC control localized\_lambda <USER/atc/man_localized_lambda.html>`_
-* `fix\_modify AtC control lumped\_lambda\_solve <USER/atc/man_lumped_lambda_solve.html>`_
-* `fix\_modify AtC control mask\_direction <USER/atc/man_mask_direction.html>`_ control
-* `fix\_modify AtC filter <USER/atc/man_time_filter.html>`_
-* `fix\_modify AtC filter scale <USER/atc/man_filter_scale.html>`_
-* `fix\_modify AtC filter type <USER/atc/man_filter_type.html>`_
-* `fix\_modify AtC equilibrium\_start <USER/atc/man_equilibrium_start.html>`_
-* `fix\_modify AtC extrinsic exchange <USER/atc/man_extrinsic_exchange.html>`_
-* `fix\_modify AtC poisson\_solver <USER/atc/man_poisson_solver.html>`_
+* `fix_modify AtC control <USER/atc/man_control.html>`_
+* `fix_modify AtC control thermal <USER/atc/man_control_thermal.html>`_
+* `fix_modify AtC control thermal correction_max_iterations <USER/atc/man_control_thermal_correction_max_iterations.html>`_
+* `fix_modify AtC control momentum <USER/atc/man_control_momentum.html>`_
+* `fix_modify AtC control localized_lambda <USER/atc/man_localized_lambda.html>`_
+* `fix_modify AtC control lumped_lambda_solve <USER/atc/man_lumped_lambda_solve.html>`_
+* `fix_modify AtC control mask_direction <USER/atc/man_mask_direction.html>`_ control
+* `fix_modify AtC filter <USER/atc/man_time_filter.html>`_
+* `fix_modify AtC filter scale <USER/atc/man_filter_scale.html>`_
+* `fix_modify AtC filter type <USER/atc/man_filter_type.html>`_
+* `fix_modify AtC equilibrium_start <USER/atc/man_equilibrium_start.html>`_
+* `fix_modify AtC extrinsic exchange <USER/atc/man_extrinsic_exchange.html>`_
+* `fix_modify AtC poisson_solver <USER/atc/man_poisson_solver.html>`_
 
-fix\_modify commands for output:
+*fix\_modify* commands for output:
 
-* `fix\_modify AtC output <USER/atc/man_output.html>`_
-* `fix\_modify AtC output nodeset <USER/atc/man_output_nodeset.html>`_
-* `fix\_modify AtC output elementset <USER/atc/man_output_elementset.html>`_
-* `fix\_modify AtC output boundary\_integral <USER/atc/man_boundary_integral.html>`_
-* `fix\_modify AtC output contour\_integral <USER/atc/man_contour_integral.html>`_
-* `fix\_modify AtC mesh output <USER/atc/man_mesh_output.html>`_
-* `fix\_modify AtC write\_restart <USER/atc/man_write_restart.html>`_
-* `fix\_modify AtC read\_restart <USER/atc/man_read_restart.html>`_
+* `fix_modify AtC output <USER/atc/man_output.html>`_
+* `fix_modify AtC output nodeset <USER/atc/man_output_nodeset.html>`_
+* `fix_modify AtC output elementset <USER/atc/man_output_elementset.html>`_
+* `fix_modify AtC output boundary_integral <USER/atc/man_boundary_integral.html>`_
+* `fix_modify AtC output contour_integral <USER/atc/man_contour_integral.html>`_
+* `fix_modify AtC mesh output <USER/atc/man_mesh_output.html>`_
+* `fix_modify AtC write_restart <USER/atc/man_write_restart.html>`_
+* `fix_modify AtC read_restart <USER/atc/man_read_restart.html>`_
 
-fix\_modify commands for post-processing:
+*fix\_modify* commands for post-processing:
 
-* `fix\_modify AtC kernel <USER/atc/man_hardy_kernel.html>`_
-* `fix\_modify AtC fields <USER/atc/man_hardy_fields.html>`_
-* `fix\_modify AtC grdients <USER/atc/man_hardy_gradients.html>`_
-* `fix\_modify AtC rates <USER/atc/man_hardy_rates.html>`_
-* `fix\_modify AtC computes <USER/atc/man_hardy_computes.html>`_
-* `fix\_modify AtC on\_the\_fly <USER/atc/man_hardy_on_the_fly.html>`_
-* `fix\_modify AtC pair\_interactions/bond\_interactions <USER/atc/man_pair_interactions.html>`_
-* `fix\_modify AtC sample\_frequency <USER/atc/man_sample_frequency.html>`_
-* `fix\_modify AtC set <USER/atc/man_set.html>`_
+* `fix_modify AtC kernel <USER/atc/man_hardy_kernel.html>`_
+* `fix_modify AtC fields <USER/atc/man_hardy_fields.html>`_
+* `fix_modify AtC grdients <USER/atc/man_hardy_gradients.html>`_
+* `fix_modify AtC rates <USER/atc/man_hardy_rates.html>`_
+* `fix_modify AtC computes <USER/atc/man_hardy_computes.html>`_
+* `fix_modify AtC on_the_fly <USER/atc/man_hardy_on_the_fly.html>`_
+* `fix_modify AtC pair_interactions/bond_interactions <USER/atc/man_pair_interactions.html>`_
+* `fix_modify AtC sample_frequency <USER/atc/man_sample_frequency.html>`_
+* `fix_modify AtC set <USER/atc/man_set.html>`_
 
-miscellaneous fix\_modify commands:
+miscellaneous *fix\_modify* commands:
 
-* `fix\_modify AtC atom\_element\_map <USER/atc/man_atom_element_map.html>`_
-* `fix\_modify AtC atom\_weight <USER/atc/man_atom_weight.html>`_
-* `fix\_modify AtC write\_atom\_weights <USER/atc/man_write_atom_weights.html>`_
-* `fix\_modify AtC reset\_time <USER/atc/man_reset_time.html>`_
-* `fix\_modify AtC reset\_atomic\_reference\_positions <USER/atc/man_reset_atomic_reference_positions.html>`_
-* `fix\_modify AtC fe\_md\_boundary <USER/atc/man_fe_md_boundary.html>`_
-* `fix\_modify AtC boundary\_faceset <USER/atc/man_boundary_faceset.html>`_
-* `fix\_modify AtC consistent\_fe\_initialization <USER/atc/man_consistent_fe_initialization.html>`_
-* `fix\_modify AtC mass\_matrix <USER/atc/man_mass_matrix.html>`_
-* `fix\_modify AtC material <USER/atc/man_material.html>`_
-* `fix\_modify AtC atomic\_charge <USER/atc/man_atomic_charge.html>`_
-* `fix\_modify AtC source\_integration <USER/atc/man_source_integration.html>`_
-* `fix\_modify AtC temperature\_definition <USER/atc/man_temperature_definition.html>`_
-* `fix\_modify AtC track\_displacement <USER/atc/man_track_displacement.html>`_
-* `fix\_modify AtC boundary\_dynamics <USER/atc/man_boundary_dynamics.html>`_
-* `fix\_modify AtC add\_species <USER/atc/man_add_species.html>`_
-* `fix\_modify AtC add\_molecule <USER/atc/man_add_molecule.html>`_
-* `fix\_modify AtC remove\_species <USER/atc/man_remove_species.html>`_
-* `fix\_modify AtC remove\_molecule <USER/atc/man_remove_molecule.html>`_
+* `fix_modify AtC atom_element_map <USER/atc/man_atom_element_map.html>`_
+* `fix_modify AtC atom_weight <USER/atc/man_atom_weight.html>`_
+* `fix_modify AtC write_atom_weights <USER/atc/man_write_atom_weights.html>`_
+* `fix_modify AtC reset_time <USER/atc/man_reset_time.html>`_
+* `fix_modify AtC reset_atomic_reference_positions <USER/atc/man_reset_atomic_reference_positions.html>`_
+* `fix_modify AtC fe_md_boundary <USER/atc/man_fe_md_boundary.html>`_
+* `fix_modify AtC boundary_faceset <USER/atc/man_boundary_faceset.html>`_
+* `fix_modify AtC consistent_fe_initialization <USER/atc/man_consistent_fe_initialization.html>`_
+* `fix_modify AtC mass_matrix <USER/atc/man_mass_matrix.html>`_
+* `fix_modify AtC material <USER/atc/man_material.html>`_
+* `fix_modify AtC atomic_charge <USER/atc/man_atomic_charge.html>`_
+* `fix_modify AtC source_integration <USER/atc/man_source_integration.html>`_
+* `fix_modify AtC temperature_definition <USER/atc/man_temperature_definition.html>`_
+* `fix_modify AtC track_displacement <USER/atc/man_track_displacement.html>`_
+* `fix_modify AtC boundary_dynamics <USER/atc/man_boundary_dynamics.html>`_
+* `fix_modify AtC add_species <USER/atc/man_add_species.html>`_
+* `fix_modify AtC add_molecule <USER/atc/man_add_molecule.html>`_
+* `fix_modify AtC remove_species <USER/atc/man_remove_species.html>`_
+* `fix_modify AtC remove_molecule <USER/atc/man_remove_molecule.html>`_
 
 Note: a set of example input files with the attendant material files are included with this package
 
@@ -290,8 +290,3 @@ For detailed exposition of the theory and algorithms please see:
 **(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.
 
 Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes " The finite element method ", Dover 2003, for the basics of FE simulation.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

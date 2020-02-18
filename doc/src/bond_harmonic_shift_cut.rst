@@ -39,9 +39,9 @@ The bond potential is zero for distances :math:`r > r_c`. The potential is :math
 at :math:`r_0` and zero at :math:`r_c`. The spring constant is :math:`k = U_{\text{min}} / [ 2 (r_0-r_c)^2]`.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`U_{\text{min}}` (energy)
 * :math:`r_0` (distance)
@@ -84,8 +84,8 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`,
-:doc:`bond\_harmonic <bond_harmonic>`,
-:doc:`bond\_harmonic\_shift <bond_harmonic_shift>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`,
+:doc:`bond_harmonic <bond_harmonic>`,
+:doc:`bond_style harmonic/shift <bond_harmonic_shift>`
 
 **Default:** none

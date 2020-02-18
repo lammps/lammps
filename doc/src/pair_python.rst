@@ -38,7 +38,7 @@ interpreted language, however, the performance of this pair style is
 going to be significantly slower (often between 20x and 100x) than
 corresponding compiled code. This penalty can be significantly reduced
 through generating tabulations from the python code through the
-:doc:`pair\_write <pair_write>` command, which is supported by this style.
+:doc:`pair_write <pair_write>` command, which is supported by this style.
 
 Only a single pair\_coeff command is used with the *python* pair style
 which specifies a python class inside a python module or file that
@@ -177,7 +177,7 @@ the *LJCutMelt* example, here are the two functions:
    computation pair-wise interactions quite significantly. However, this
    can be largely worked around through using the python pair style not
    for the actual simulation, but to generate tabulated potentials on the
-   fly using the :doc:`pair\_write <pair_write>` command. Please see below
+   fly using the :doc:`pair_write <pair_write>` command. Please see below
    for an example LAMMPS input of how to build a table file:
 
 
@@ -219,7 +219,7 @@ energy computation can be correctly performed for all pairs of atom
 types as they are mapped to the atom type labels inside the python
 potential class.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -227,7 +227,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -244,12 +244,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_write <pair_write>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`,
 :doc:`pair style table <pair_table>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

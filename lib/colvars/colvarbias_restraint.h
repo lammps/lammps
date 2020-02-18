@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -26,10 +26,10 @@ public:
   virtual int update();
 
   /// Load new configuration - force constant and/or centers only
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   /// Calculate change in energy from using alternate configuration
-  virtual cvm::real energy_difference(std::string const &conf) { return 0.0; }
+  virtual cvm::real energy_difference(std::string const & /* conf */) { return 0.0; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -107,7 +107,7 @@ public:
   // Note: despite the diamond inheritance, most of this function gets only executed once
   virtual int init(std::string const &conf);
   virtual int update() { return COLVARS_OK; }
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -149,7 +149,7 @@ public:
   colvarbias_restraint_centers_moving(char const *key);
   virtual int init(std::string const &conf);
   virtual int update();
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -188,7 +188,7 @@ public:
   colvarbias_restraint_k_moving(char const *key);
   virtual int init(std::string const &conf);
   virtual int update();
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);

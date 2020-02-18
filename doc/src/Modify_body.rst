@@ -33,8 +33,3 @@ class.  See body.h for details.
 +----------------------+-----------------------------------------------------------+
 | unpack\_border\_body | unpacking of those attributes                             |
 +----------------------+-----------------------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

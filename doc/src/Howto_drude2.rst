@@ -159,7 +159,7 @@ DC-DP pairs and will treat DP as equivalent to their DC in the
 *special bonds* relations.  It may be necessary to extend the space
 for storing such special relations.  In this case extra space should
 be reserved by using the *extra/special/per/atom* keyword of either
-the :doc:`read\_data <read_data>` or :doc:`create\_box <create_box>`
+the :doc:`read_data <read_data>` or :doc:`create_box <create_box>`
 command.  With our phenol, there is 1 more special neighbor for which
 space is required.  Otherwise LAMMPS crashes and gives the required
 value.
@@ -535,8 +535,3 @@ NPT ensemble using Nose-Hoover thermostat:
 
 **(SWM4-NDP)** Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
 Let, 418, 245-249 (2006)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

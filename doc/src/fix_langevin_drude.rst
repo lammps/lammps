@@ -152,7 +152,7 @@ specify the Drude status of each atom type.
 .. note::
 
    Ghost atoms need to know their velocity for this fix to act
-   correctly.  You must use the :doc:`comm\_modify <comm_modify>` command to
+   correctly.  You must use the :doc:`comm_modify <comm_modify>` command to
    enable this, e.g.
 
 
@@ -174,7 +174,7 @@ the variable will be evaluated each timestep, and its value used to
 determine the target temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
@@ -182,7 +182,7 @@ Like other fixes that perform thermostatting, this fix can be used with
 :doc:`compute commands <compute>` that remove a "bias" from the atom
 velocities.  E.g. removing the center-of-mass velocity from a group of
 atoms.  This is not done by default, but only if the
-:doc:`fix\_modify <fix_modify>` command is used to assign a temperature
+:doc:`fix_modify <fix_modify>` command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual :doc:`compute commands <compute>` to determine which ones
 include a bias.  In this case, the thermostat works in the following
@@ -283,7 +283,7 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above. For consistency, the group used by the
@@ -302,7 +302,7 @@ Related commands
 :doc:`fix drude <fix_drude>`,
 :doc:`fix drude/transform <fix_drude_transform>`,
 :doc:`compute temp/drude <compute_temp_drude>`,
-:doc:`pair\_style thole <pair_thole>`
+:doc:`pair_style thole <pair_thole>`
 
 Default
 """""""
@@ -319,8 +319,3 @@ The option defaults are zero = no.
 
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

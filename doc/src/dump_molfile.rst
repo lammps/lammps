@@ -63,7 +63,7 @@ must be sorted, outside of the coordinates no change in atom properties
 The *format* keyword determines what format is used to write out the
 dump. For this to work, LAMMPS must be able to find and load a
 compatible molfile plugin that supports this format.  Settings made via
-the :doc:`dump\_modify <dump_modify>` command can alter per atom properties
+the :doc:`dump_modify <dump_modify>` command can alter per atom properties
 like element names.
 
 The *path* keyword determines which in directories. This is a "path"
@@ -71,7 +71,7 @@ like other search paths, i.e. it can contain multiple directories
 separated by a colon (or semi-colon on windows). This keyword is
 optional and default to ".", the current directory.
 
-The *unwrap* option of the :doc:`dump\_modify <dump_modify>` command allows
+The *unwrap* option of the :doc:`dump_modify <dump_modify>` command allows
 coordinates to be written "unwrapped" by the image flags for each atom.
 Unwrapped means that if the atom has passed through a periodic boundary
 one or more times, the value is printed for what the coordinate would be
@@ -88,10 +88,10 @@ timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
 if the current timestep is not a multiple of N.  This behavior can be
-changed via the :doc:`dump\_modify first <dump_modify>` command, which can
+changed via the :doc:`dump_modify first <dump_modify>` command, which can
 be useful if the dump command is invoked after a minimization ended on
 an arbitrary timestep.  N can be changed between runs by using the
-:doc:`dump\_modify every <dump_modify>` command. The :doc:`dump\_modify every <dump_modify>` command also allows a variable to be used to
+:doc:`dump_modify every <dump_modify>` command. The :doc:`dump_modify every <dump_modify>` command also allows a variable to be used to
 determine the sequence of timesteps on which dump files are written.
 
 
@@ -132,14 +132,9 @@ application itself.  The plugins are installed in the directory:
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump\_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
 Default
 """""""
 
 The default path is ".". All other properties have to be specified.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

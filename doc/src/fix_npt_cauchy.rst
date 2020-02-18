@@ -136,7 +136,7 @@ Other barostat-related keywords are *pchain*\ , *mtk*\ , *ploop*\ ,
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
-dimensions (x,y,z,xy,xz,yz).  The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>` commands
+dimensions (x,y,z,xy,xz,yz).  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 
@@ -411,12 +411,12 @@ commands for details.  Note that the IDs of the new computes are the
 fix-ID + underscore + "temp" or fix\_ID + underscore + "press".
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of these
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command.  Or you can print this
+:doc:`compute_modify <compute_modify>` command.  Or you can print this
 temperature or pressure during thermodynamic output via the
-:doc:`thermo\_style custom <thermo_style>` command using the appropriate
+:doc:`thermo_style custom <thermo_style>` command using the appropriate
 compute-ID.  It also means that changing attributes of *thermo\_temp*
 or *thermo\_press* will have no effect on this fix.
 
@@ -426,7 +426,7 @@ temperature after removing a "bias" from the atom velocities.
 E.g. removing the center-of-mass velocity from a group of atoms or
 only calculating temperature on the x-component of velocity or only
 calculating temperature for atoms in a geometric region.  This is not
-done by default, but only if the :doc:`fix\_modify <fix_modify>` command
+done by default, but only if the :doc:`fix_modify <fix_modify>` command
 is used to assign a temperature compute to this fix that includes such
 a bias term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
 this case, the thermostat works in the following manner: the current
@@ -444,8 +444,26 @@ with *respa*\ , LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
-.. image:: Eqs/fix_nh1.jpg
-   :align: center
+.. math::
+
+   \exp \left(\mathrm{i} L \Delta t \right) = & \hat{E}
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
+   &\times \left[ 
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \right]^n \\
+   &\times
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
+   &+ \mathcal{O} \left(\Delta t^3 \right)
 
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
@@ -476,11 +494,11 @@ of the underlying non-Hamiltonian equations of motion.
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
+:doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by this fix.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its thermostatting or barostatting procedure, as described above.
@@ -501,7 +519,7 @@ compute temperature on a subset of atoms.
    specified by the *press* keyword will be unaffected by the *temp*
    setting.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Nose/Hoover thermostatting
 and barostatting to the system's potential energy as part of
 :doc:`thermodynamic output <thermo_style>`.
@@ -565,8 +583,8 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
 simulation domain is triclinic and the 2nd dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
-barostatted for 2D simulations.  The :doc:`create\_box <create_box>`,
-:doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>`
+barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
+:doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
 commands specify whether the simulation box is orthogonal or
 non-orthogonal (triclinic) and explain the meaning of the xy,xz,yz
 tilt factors.
@@ -625,8 +643,8 @@ over time or the atom count becomes very small.
 Related commands
 """"""""""""""""
 
-:doc:`fix nve <fix_nve>`, :doc:`fix\_modify <fix_modify>`,
-:doc:`run\_style <run_style>`
+:doc:`fix nve <fix_nve>`, :doc:`fix_modify <fix_modify>`,
+:doc:`run_style <run_style>`
 
 Default
 """""""
@@ -672,8 +690,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 **(Miller)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

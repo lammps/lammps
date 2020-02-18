@@ -37,9 +37,9 @@ due to a polymer being stretched).  The :math:`\sigma` and :math:`\epsilon` used
 LJ portion of the formula are both set equal to 1.0 by LAMMPS.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^4)
 * :math:`B_1` (distance)
@@ -75,12 +75,12 @@ LAMMPS does the second task via a computational sleight-of-hand.  It
 subtracts the pairwise interaction as part of the bond computation.
 When the bond breaks, the subtraction stops.  For this to work, the
 pairwise interaction must always be computed by the
-:doc:`pair\_style <pair_style>` command, whether the bond is broken or
-not.  This means that :doc:`special\_bonds <special_bonds>` must be set
+:doc:`pair_style <pair_style>` command, whether the bond is broken or
+not.  This means that :doc:`special_bonds <special_bonds>` must be set
 to 1,1,1, as indicated as a restriction below.
 
 Note that when bonds are dumped to a file via the :doc:`dump local <dump>` command, bonds with type 0 are not included.  The
-:doc:`delete\_bonds <delete_bonds>` command can also be used to query the
+:doc:`delete_bonds <delete_bonds>` command can also be used to query the
 status of broken bonds or permanently delete them, e.g.:
 
 
@@ -123,13 +123,13 @@ This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
-The *quartic* style requires that :doc:`special\_bonds <special_bonds>`
+The *quartic* style requires that :doc:`special_bonds <special_bonds>`
 parameters be set to 1,1,1.  Three- and four-body interactions (angle,
 dihedral, etc) cannot be used with *quartic* bonds.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none

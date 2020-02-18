@@ -130,8 +130,3 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`compute reduce <compute_reduce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

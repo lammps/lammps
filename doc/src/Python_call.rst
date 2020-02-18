@@ -7,7 +7,7 @@ code directly from an input script:
 * :doc:`python <python>`
 * :doc:`variable python <variable>`
 * :doc:`fix python/invoke <fix_python_invoke>`
-* :doc:`pair\_style python <pair_python>`
+* :doc:`pair_style python <pair_python>`
 
 The :doc:`python <python>` command which can be used to define and
 execute a Python function that you write the code for.  The Python
@@ -51,7 +51,7 @@ and callbacks to LAMMPS.
 The :doc:`fix python/invoke <fix_python_invoke>` command can execute
 Python code at selected timesteps during a simulation run.
 
-The :doc:`pair\_style python <pair_python>` command allows you to define
+The :doc:`pair_style python <pair_python>` command allows you to define
 pairwise potentials as python code which encodes a single pairwise
 interaction.  This is useful for rapid development and debugging of a
 new potential.
@@ -77,8 +77,3 @@ If you want to write Python code with callbacks to LAMMPS, then you
 must also follow the steps summarized in the :doc:`Python run <Python_run>` doc page.  I.e. you must build LAMMPS as a shared
 library and insure that Python can find the python/lammps.py file and
 the shared library.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

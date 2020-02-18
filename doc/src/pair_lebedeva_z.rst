@@ -57,13 +57,13 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style none <pair_none>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style drip <pair_drip>`,
-:doc:`pair\_style ilp/graphene/hbd <pair_ilp_graphene_hbn>`,
-:doc:`pair\_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
-:doc:`pair\_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`.
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style none <pair_none>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style ilp/graphene/hbd <pair_ilp_graphene_hbn>`,
+:doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
+:doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`.
 
 **Default:** none
 
@@ -76,8 +76,3 @@ Related commands
 
 
 **(Lebedeva et al.)** I. V. Lebedeva, A. A. Knizhnik, A. M. Popov, Y. E. Lozovik, B. V. Potapkin, Phys. Rev. B, 84, 245437 (2011)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

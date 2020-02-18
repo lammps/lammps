@@ -18,7 +18,7 @@ the two simulations will rapidly diverge.  See the discussion of the
 *loop* option in the :doc:`velocity <velocity>` command for details and
 options that avoid this issue.
 
-Similarly, the :doc:`create\_atoms <create_atoms>` command generates a
+Similarly, the :doc:`create_atoms <create_atoms>` command generates a
 lattice of atoms.  For the same physical system, the ordering and
 numbering of atoms by atom ID may be different depending on the number
 of processors.
@@ -121,8 +121,3 @@ implementations handle buffering of messages.  If the code hangs
 without an error message, it may be that you need to specify an MPI
 setting or two (usually via an environment variable) to enable
 buffering or boost the sizes of messages that can be buffered.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

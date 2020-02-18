@@ -549,8 +549,3 @@ Related commands
 :doc:`shell <shell>`, :doc:`variable <variable>`, :doc:`fix python/invoke <fix_python_invoke>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

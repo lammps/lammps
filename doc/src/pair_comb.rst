@@ -112,7 +112,7 @@ file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
 directory pointed to by the environment variable LAMMPS\_POTENTIALS, as
-described on the :doc:`pair\_coeff <pair_coeff>` command doc page.
+described on the :doc:`pair_coeff <pair_coeff>` command doc page.
 
 Keyword *polar* indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
@@ -155,7 +155,7 @@ For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
 described above from values in the potential file.
 
-These pair styles does not support the :doc:`pair\_modify <pair_modify>`
+These pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 These pair styles do not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -163,7 +163,7 @@ need to re-specify the pair\_style, pair\_coeff, and :doc:`fix qeq/comb <fix_qeq
 restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -190,7 +190,7 @@ doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style <pair_style>`, :doc:`pair\_coeff <pair_coeff>`,
+:doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`fix qeq/comb <fix_qeq_comb>`
 
 **Default:** none
@@ -220,8 +220,3 @@ Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74,
 
 **(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

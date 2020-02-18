@@ -122,7 +122,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`run post no <run>`, :doc:`kspace\_modify fftbench <kspace_modify>`
+:doc:`run post no <run>`, :doc:`kspace_modify fftbench <kspace_modify>`
 
 Default
 """""""
@@ -133,8 +133,3 @@ Default
    timer normal nosync
    timer timeout off
    timer every 10
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

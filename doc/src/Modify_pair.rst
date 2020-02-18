@@ -33,8 +33,3 @@ Here is a brief description of the class methods in pair.h:
 +---------------------------------+-------------------------------------------------------------------+
 
 The inner/middle/outer routines are optional.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -39,7 +39,7 @@ Note that the resetting of IDs is not really a compression, where gaps
 in atom IDs are removed by decrementing atom IDs that are larger.
 Instead the IDs for all atoms are erased, and new IDs are assigned so
 that the atoms owned by an individual processor have consecutive IDs,
-as the :doc:`create\_atoms <create_atoms>` command explains.
+as the :doc:`create_atoms <create_atoms>` command explains.
 
 .. note::
 
@@ -47,7 +47,7 @@ as the :doc:`create\_atoms <create_atoms>` command explains.
    defined, an error about bond topology atom IDs not being found may
    result.  This is because the cutoff distance for ghost atom
    communication was not sufficient to find atoms in bonds, angles, etc
-   that are owned by other processors.  The :doc:`comm\_modify cutoff <comm_modify>` command can be used to correct this issue.
+   that are owned by other processors.  The :doc:`comm_modify cutoff <comm_modify>` command can be used to correct this issue.
    Or you can define a pair style before using this command.  If you do
    the former, you should unset the comm\_modify cutoff after using
    reset\_ids so that subsequent communication is not inefficient.
@@ -59,11 +59,6 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`delete\_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

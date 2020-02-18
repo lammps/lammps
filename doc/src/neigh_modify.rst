@@ -92,7 +92,7 @@ move far enough that the neighbor list should be rebuilt, e.g. running
 a simulation of a cold crystal.  Note that it is not that expensive to
 check if neighbor lists should be rebuilt.
 
-When the rRESPA integrator is used (see the :doc:`run\_style <run_style>`
+When the rRESPA integrator is used (see the :doc:`run_style <run_style>`
 command), the *every* and *delay* parameters refer to the longest
 (outermost) timestep.
 
@@ -107,7 +107,7 @@ nearby periodic images.  The only way this should happen is if the
 pairwise cutoff is so short that atoms that are part of the same
 interaction are not communicated as ghost atoms.  This is an unusual
 model (e.g. no pair interactions at all) and the problem can be fixed
-by use of the :doc:`comm\_modify cutoff <comm_modify>` command.  Note
+by use of the :doc:`comm_modify cutoff <comm_modify>` command.  Note
 that to save time, the default *cluster* setting is *no*\ , so that this
 check is not performed.
 
@@ -116,7 +116,7 @@ atoms in the specified group.  This can be useful for models where a
 large portion of the simulation is particles that do not interact with
 other particles or with each other via pairwise interactions.  The
 group specified with this option must also be specified via the
-:doc:`atom\_modify first <atom_modify>` command.  Note that specifying
+:doc:`atom_modify first <atom_modify>` command.  Note that specifying
 "all" as the group-ID effectively turns off the *include* option.
 
 The *exclude* option turns off pairwise interactions between certain
@@ -150,20 +150,20 @@ The other exclude options are more expensive if specified multiple
 times; they require one check for each time they have been specified.
 
 Note that the exclude options only affect pairwise interactions; see
-the :doc:`delete\_bonds <delete_bonds>` command for information on
+the :doc:`delete_bonds <delete_bonds>` command for information on
 turning off bond interactions.
 
 .. note::
 
    Excluding pairwise interactions will not work correctly when
    also using a long-range solver via the
-   :doc:`kspace\_style <kspace_style>` command.  LAMMPS will give a warning
+   :doc:`kspace_style <kspace_style>` command.  LAMMPS will give a warning
    to this effect.  This is because the short-range pairwise interaction
    needs to subtract off a term from the total energy for pairs whose
    short-range interaction is excluded, to compensate for how the
    long-range solver treats the interaction.  This is done correctly for
    pairwise interactions that are excluded (or weighted) via the
-   :doc:`special\_bonds <special_bonds>` command.  But it is not done for
+   :doc:`special_bonds <special_bonds>` command.  But it is not done for
    interactions that are excluded via these neigh\_modify exclude options.
 
 The *page* and *one* options affect how memory is allocated for the
@@ -219,7 +219,7 @@ space.
 Related commands
 """"""""""""""""
 
-:doc:`neighbor <neighbor>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`neighbor <neighbor>`, :doc:`delete_bonds <delete_bonds>`
 
 Default
 """""""
@@ -227,8 +227,3 @@ Default
 The option defaults are delay = 10, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
 exclude = none, page = 100000, one = 2000, and binsize = 0.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

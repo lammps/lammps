@@ -77,12 +77,12 @@ conditions for the simulation box, similar to the
 :doc:`boundary <boundary>` command.
 
 The size and shape of the initial simulation box are specified by the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` command used to setup the simulation.
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command used to setup the simulation.
 The size and shape may be altered by subsequent runs, e.g. by use of
 the :doc:`fix npt <fix_nh>` or :doc:`fix deform <fix_deform>` commands.
-The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and
-:doc:`read\_restart <read_restart>` commands also determine whether the
+The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
+:doc:`read_restart <read_restart>` commands also determine whether the
 simulation box is orthogonal or triclinic and their doc pages explain
 the meaning of the xy,xz,yz tilt factors.
 
@@ -108,7 +108,7 @@ new owning processors.
 
    This means that you cannot use the change\_box command to enlarge
    a shrink-wrapped box, e.g. to make room to insert more atoms via the
-   :doc:`create\_atoms <create_atoms>` command, because the simulation box
+   :doc:`create_atoms <create_atoms>` command, because the simulation box
    will be re-shrink-wrapped before the change\_box command completes.
    Instead you could do something like this, assuming the simulation box
    is non-periodic and atoms extend from 0 to 20 in all dimensions:
@@ -289,11 +289,11 @@ smaller.  See the :doc:`boundary <boundary>` command for more
 explanation of these style options.
 
 Note that the "boundary" command itself can only be used before the
-simulation box is defined via a :doc:`read\_data <read_data>` or
-:doc:`create\_box <create_box>` or :doc:`read\_restart <read_restart>`
+simulation box is defined via a :doc:`read_data <read_data>` or
+:doc:`create_box <create_box>` or :doc:`read_restart <read_restart>`
 command.  This command allows the boundary conditions to be changed
 later in your input script.  Also note that the
-:doc:`read\_restart <read_restart>` will change boundary conditions to
+:doc:`read_restart <read_restart>` will change boundary conditions to
 match what is stored in the restart file.  So if you wish to change
 them, you should use the change\_box command after the read\_restart
 command.
@@ -306,8 +306,8 @@ The *ortho* and *triclinic* keywords convert the simulation box to be
 orthogonal or triclinic (non-orthogonal).
 
 The simulation box is defined as either orthogonal or triclinic when
-it is created via the :doc:`create\_box <create_box>`,
-:doc:`read\_data <read_data>`, or :doc:`read\_restart <read_restart>`
+it is created via the :doc:`create_box <create_box>`,
+:doc:`read_data <read_data>`, or :doc:`read_restart <read_restart>`
 commands.
 
 These keywords allow you to toggle the existing simulation box from
@@ -380,8 +380,3 @@ Default
 """""""
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

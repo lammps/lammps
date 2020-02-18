@@ -30,11 +30,17 @@ The *spherical* dihedral style uses the potential:
 .. image:: JPG/dihedral_spherical_angles.jpg
    :align: center
 
-.. image:: Eqs/dihedral_spherical.jpg
-   :align: center
+.. math::
+
+  E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
+  \Phi_{i}(\phi)        & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
+  \Theta_{1i}(\theta_1) & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
+  \Theta_{2i}(\theta_2) & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
+
 
 For this dihedral style, the energy can be any function that combines the
-4-body dihedral-angle (phi) and the two 3-body bond-angles (theta1, theta2).
+4-body dihedral-angle (:math:`\phi`) and the two 3-body bond-angles
+(:math:`\theta_1`, :math:`\theta_2`).
 For this reason, there is usually no need to define 3-body "angle" forces
 separately for the atoms participating in these interactions.
 It is probably more efficient to incorporate 3-body angle forces into
@@ -44,40 +50,41 @@ parameters can prevent singularities that occur with traditional
 force-fields whenever theta1 or theta2 approach 0 or 180 degrees.
 
 The last example above corresponds to an interaction with a single energy
-minima located near phi=93.9, theta1=74.4, theta2=48.1 degrees, and it remains
-numerically stable at all angles (phi, theta1, theta2). In this example,
+minima located near :math:`\phi=93.9`, :math:`\theta_1=74.4`,
+:math:`\theta_2=48.1` degrees, and it remains numerically stable at all
+angles (:math:`\phi`, :math:`\theta_1`, :math:`\theta_2`). In this example,
 the coefficients 49.1, and 25.2 can be physically interpreted as the
 harmonic spring constants for theta1 and theta2 around their minima.
 The coefficient 69.3 is the harmonic spring constant for phi after
 division by sin(74.4)\*sin(48.1) (the minima positions for theta1 and theta2).
 
 The following coefficients must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above, or in
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
 the Dihedral Coeffs section of a data file read by the
-:doc:`read\_data <read_data>` command:
+:doc:`read_data <read_data>` command:
 
-* n (integer >= 1)
-* C1 (energy)
-* K1 (typically an integer)
-* a1 (degrees)
-* u1 (typically 0.0 or 1.0)
-* L1 (typically an integer)
-* b1 (degrees, typically 0.0 or 90.0)
-* v1 (typically 0.0 or 1.0)
-* M1 (typically an integer)
-* c1 (degrees, typically 0.0 or 90.0)
-* w1 (typically 0.0 or 1.0)
+* :math:`n` (integer >= 1)
+* :math:`C_1` (energy)
+* :math:`K_1` (typically an integer)
+* :math:`a_1` (degrees)
+* :math:`u_1` (typically 0.0 or 1.0)
+* :math:`L_1` (typically an integer)
+* :math:`b_1` (degrees, typically 0.0 or 90.0)
+* :math:`v_1` (typically 0.0 or 1.0)
+* :math:`M_1` (typically an integer)
+* :math:`c_1` (degrees, typically 0.0 or 90.0)
+* :math:`w_1` (typically 0.0 or 1.0)
 * [...]
-* Cn (energy)
-* Kn (typically an integer)
-* an (degrees)
-* un (typically 0.0 or 1.0)
-* Ln (typically an integer)
-* bn (degrees, typically 0.0 or 90.0)
-* vn (typically 0.0 or 1.0)
-* Mn (typically an integer)
-* cn (degrees, typically 0.0 or 90.0)
-* wn (typically 0.0 or 1.0)
+* :math:`C_n` (energy)
+* :math:`K_n` (typically an integer)
+* :math:`a_n` (degrees)
+* :math:`u_n` (typically 0.0 or 1.0)
+* :math:`L_n` (typically an integer)
+* :math:`b_n` (degrees, typically 0.0 or 90.0)
+* :math:`v_n` (typically 0.0 or 1.0)
+* :math:`M_n` (typically an integer)
+* :math:`c_n` (degrees, typically 0.0 or 90.0)
+* :math:`w_n` (typically 0.0 or 1.0)
 
 
 ----------
@@ -94,11 +101,6 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

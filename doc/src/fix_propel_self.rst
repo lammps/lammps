@@ -106,8 +106,3 @@ Eur. Phys. J. B 15, 105-113, 2000.
 **(Fily)** Y. Fily and M.C. Marchetti, Phys. Rev. Lett. 108, 235702, 2012.
 
 **Default:** types
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

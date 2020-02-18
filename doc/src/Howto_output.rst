@@ -88,21 +88,21 @@ Thermodynamic output
 ---------------------------------
 
 The frequency and format of thermodynamic output is set by the
-:doc:`thermo <thermo>`, :doc:`thermo\_style <thermo_style>`, and
-:doc:`thermo\_modify <thermo_modify>` commands.  The
-:doc:`thermo\_style <thermo_style>` command also specifies what values
+:doc:`thermo <thermo>`, :doc:`thermo_style <thermo_style>`, and
+:doc:`thermo_modify <thermo_modify>` commands.  The
+:doc:`thermo_style <thermo_style>` command also specifies what values
 are calculated and written out.  Pre-defined keywords can be specified
 (e.g. press, etotal, etc).  Three additional kinds of keywords can
 also be specified (c\_ID, f\_ID, v\_name), where a :doc:`compute <compute>`
 or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
 output.  In each case, the compute, fix, or variable must generate
-global values for input to the :doc:`thermo\_style custom <dump>`
+global values for input to the :doc:`thermo_style custom <dump>`
 command.
 
 Note that thermodynamic output values can be "extensive" or
 "intensive".  The former scale with the number of atoms in the system
 (e.g. total energy), the latter do not (e.g. temperature).  The
-setting for :doc:`thermo\_modify norm <thermo_modify>` determines whether
+setting for :doc:`thermo_modify norm <thermo_modify>` determines whether
 extensive quantities are normalized or not.  Computes and fixes
 produce either extensive or intensive values; see their individual doc
 pages for details.  :doc:`Equal-style variables <variable>` produce only
@@ -116,7 +116,7 @@ Dump file output
 ---------------------------
 
 Dump file output is specified by the :doc:`dump <dump>` and
-:doc:`dump\_modify <dump_modify>` commands.  There are several
+:doc:`dump_modify <dump_modify>` commands.  There are several
 pre-defined formats (dump atom, dump xtc, etc).
 
 There is also a :doc:`dump custom <dump>` format where the user
@@ -151,7 +151,7 @@ specifies one or more quantities as input.  These can be global
 :doc:`compute <compute>` values, global :doc:`fix <fix>` values, or
 :doc:`variables <variable>` of any style except the atom style which
 produces per-atom values.  Since a variable can refer to keywords used
-by the :doc:`thermo\_style custom <thermo_style>` command (like temp or
+by the :doc:`thermo_style custom <thermo_style>` command (like temp or
 press) and individual per-atom values, a wide variety of quantities
 can be time averaged and/or output in this way.  If the inputs are one
 or more scalar values, then the fix generate a global scalar or vector
@@ -304,7 +304,7 @@ vector input could be a column of an array.
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 | Command                                                | Input                                        | Output                                    |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
-| :doc:`thermo\_style custom <thermo_style>`             | global scalars                               | screen, log file                          |
+| :doc:`thermo_style custom <thermo_style>`              | global scalars                               | screen, log file                          |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 | :doc:`dump custom <dump>`                              | per-atom vectors                             | dump file                                 |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
@@ -342,8 +342,3 @@ vector input could be a column of an array.
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 | :doc:`fix store/state <fix_store_state>`               | per-atom vectors                             | per-atom vector/array                     |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

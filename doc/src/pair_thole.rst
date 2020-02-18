@@ -53,7 +53,7 @@ describes how to use the :doc:`thermalized Drude oscillator model <Howto_drude>`
 discussed on the :doc:`Howto polarizable <Howto_polarizable>` doc page.
 
 The *thole* pair style should be used as a sub-style within in the
-:doc:`pair\_hybrid/overlay <pair_hybrid>` command, in conjunction with a
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command, in conjunction with a
 main pair style including Coulomb interactions, i.e. any pair style
 containing *coul/cut* or *coul/long* in its style name.
 
@@ -103,14 +103,14 @@ is not applied to the full charge of the core particle :math:`q_i`, but
 only to the :math:`-q_{D,i}` part of it.
 
 The interactions between core charges are subject to the weighting
-factors set by the :doc:`special\_bonds <special_bonds>` command. The
+factors set by the :doc:`special_bonds <special_bonds>` command. The
 interactions between Drude particles and core charges or
 non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
 For pair\_style *thole*\ , the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
 * alpha (distance units\^3)
@@ -123,7 +123,7 @@ command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
 For pair style *lj/cut/thole/long*\ , the following coefficients must be
-defined for each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
 * epsilon (energy units)
@@ -194,7 +194,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`
-:doc:`pair\_style lj/cut/coul/long <pair_lj>`
+:doc:`pair_style lj/cut/coul/long <pair_lj>`
 
 **Default:** none
 
@@ -213,8 +213,3 @@ Related commands
 
 
 **(Thole)** Chem Phys, 59, 341 (1981).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

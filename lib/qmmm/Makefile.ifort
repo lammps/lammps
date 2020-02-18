@@ -3,7 +3,7 @@
 # this file will be copied to Makefile.lammps
 EXTRAMAKE = Makefile.lammps.empty
 
-# top level directory of Quantum ESPRESSO 6.4444 or later
+# top level directory of Quantum ESPRESSO 6.4 or later
 QETOPDIR=$(HOME)/compile/espresso
 
 # import compiler settings from Quantum ESPRESSO

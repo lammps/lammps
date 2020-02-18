@@ -3,13 +3,13 @@
 # this file will be copied to Makefile.lammps
 EXTRAMAKE = Makefile.lammps.empty
 
-# top level directory of Quantum ESPRESSO 5.4.1 or later
+# top level directory of Quantum ESPRESSO 6.4 or later
 QETOPDIR=$(HOME)/compile/espresso
 
 # import compiler settings from Quantum ESPRESSO
-sinclude $(QETOPDIR)/make.sys
+sinclude $(QETOPDIR)/make.inc
 
-# FLAGS for c++ OpenMPI 1.8.8 or later when QE was compiled with GNU Fortran 4.x
+# FLAGS for c++ OpenMPI 3.x.x  when QE was compiled with GNU Fortran 6.x or 7.x
 MPICXX=mpicxx
 MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g -fPIC\
 	-I../../src -I$(QETOPDIR)/COUPLE/include
@@ -24,13 +24,21 @@ $(QETOPDIR)/Modules/libqemod.a
 # part 2: lo-level libraries for all of Q-E
 LIBOBJS = \
 $(QETOPDIR)/FFTXlib/libqefft.a \
+$(QETOPDIR)/dft-d3/libdftd3qe.a  \
+$(QETOPDIR)/KS_Solvers/PPCG/libppcg.a  \
+$(QETOPDIR)/KS_Solvers/CG/libcg.a  \
+$(QETOPDIR)/KS_Solvers/Davidson/libdavid.a  \
+$(QETOPDIR)/UtilXlib/libutil.a   \
 $(QETOPDIR)/LAXlib/libqela.a   \
 $(QETOPDIR)/clib/clib.a   \
 $(QETOPDIR)/iotk/src/libiotk.a
+# foxlibs
+
+LIBS += -L${QETOPDIR}/FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -L${LAPACK_LIB} -L${BLAS_LIB} -llapack -lblas 
 
 # part 3: add-on libraries and main library for LAMMPS
 sinclude ../../src/Makefile.package
-LAMMPSCFG = openmpi-omp
+LAMMPSCFG = mpi
 LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
 
 # part 4: local QM/MM library and progams

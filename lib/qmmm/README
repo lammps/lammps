@@ -70,12 +70,7 @@ to confirm that the classical part of the code is set up correctly.
 
 Step 3)
 Build a standalone pw.x executable in the Quantum ESPRESSO directory
-and also make the "couple" target. At the time of this writing 
-(July 2016) you have to download a QE snapshot (revision 12611)
-from the SVN repository, since no official release with the
-completed QM/MM support code has been made available yet. The current
-plan is to have a usable QM/MM interface released with the next
-Quantum ESPRESSO release version 6.0. Building the standalone pw.x
+and also make the "couple" target. Building the standalone pw.x
 binary is also needed to confirm that corresponding QM input is
 working correctly and to run test calculations on QM atoms only.
 

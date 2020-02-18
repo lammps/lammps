@@ -605,8 +605,8 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   eij_si_2 = eij_si*eij_si;
   eij_sj_2 = eij_sj*eij_sj;
   epq1 = q1r*(eij_si_2-si_sj/3.0)*(eij_sj_2-si_sj/3.0);
-  eij_si_3 = eij_si*eij_si*eij_si;
-  eij_sj_3 = eij_sj*eij_sj*eij_sj;
+  eij_si_3 = eij_si*eij_si_2;
+  eij_sj_3 = eij_sj*eij_sj_2;
   epq2 = q2r*(eij_si*eij_sj_3+eij_sj*eij_si_3);
 
   return (epd+epq1+epq2);

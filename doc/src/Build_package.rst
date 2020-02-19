@@ -45,14 +45,14 @@ versus make.
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D PKG_NAME=value          # yes or no (default)
 
 Examples:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D PKG_MANYBODY=yes
    -D PKG_USER-INTEL=yes
@@ -74,7 +74,7 @@ once with CMake.
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/src
    make ps                    # check which packages are currently installed
@@ -85,7 +85,7 @@ once with CMake.
 Examples:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make no-rigid
    make yes-user-intel
@@ -172,7 +172,7 @@ one of them as a starting point and customize it to your needs.
 **Example:**
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    # build LAMMPS with most commonly used packages, but then remove
    # those requiring additional library or tools, but still enable

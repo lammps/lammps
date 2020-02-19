@@ -27,7 +27,7 @@ without MPI.  It can also be built with support for OpenMP threading
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D BUILD_MPI=value        # yes or no, default is yes if CMake finds MPI, else no
    -D BUILD_OMP=value        # yes or no (default)
@@ -41,17 +41,17 @@ lmp.  Using BUILD\_MPI=no will produce a serial executable.
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/src
    make mpi                # parallel build, produces lmp_mpi using Makefile.mpi
    make serial             # serial build, produces lmp_serial using Makefile/serial
-   make mybox          # uses Makefile.mybox to produce lmp_mybox
+   make mybox              # uses Makefile.mybox to produce lmp_mybox
 
 Serial build (see src/MAKE/Makefile.serial):
 
 
-.. parsed-literal::
+.. code-block:: make
 
    MPI_INC =       -I../STUBS
    MPI_PATH =      -L../STUBS
@@ -158,7 +158,7 @@ simply loading the appropriate module before building LAMMPS.
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D CMAKE_CXX_COMPILER=name            # name of C++ compiler
    -D CMAKE_C_COMPILER=name              # name of C compiler
@@ -179,31 +179,30 @@ in C or Fortran are built with a compiler consistent with the one used
 for all the C++ files:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   Building with GNU Compilers:
+   # Building with GNU Compilers:
    cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
-   Building with Intel Compilers:
+   # Building with Intel Compilers:
    cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
-   Building with LLVM/Clang Compilers:
+   # Building with LLVM/Clang Compilers:
    cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
 
 .. note::
 
-   When the cmake command completes, it prints info to the screen
-   as to which compilers it is using, and what flags will be used in the
-   compilation.  Note that if the top-level compiler is mpicxx, it is
-   simply a wrapper on a real compiler.  The underlying compiler info is
-   what will be listed in the CMake output.  You should check to insure
-   you are using the compiler and optimization flags are the ones you
-   want.
+   When the cmake command completes, it prints a summary to the screen
+   which compilers it is using and what flags and settings will be used
+   for the  compilation.  Note that if the top-level compiler is mpicxx,
+   it is  simply a wrapper on a real compiler.  The underlying compiler
+   info is what CMake will try to determine and report.  You should check
+   to confirm you are using the compiler and optimization flags you want.
 
 **Makefile.machine settings**\ :
 
 Parallel build (see src/MAKE/Makefile.mpi):
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    CC =            mpicxx
    CCFLAGS =       -g -O3
@@ -213,7 +212,7 @@ Parallel build (see src/MAKE/Makefile.mpi):
 Serial build (see src/MAKE/Makefile.serial):
 
 
-.. parsed-literal::
+.. code-block:: make
 
    CC =            g++
    CCFLAGS =       -g -O3
@@ -238,7 +237,7 @@ a variety of settings appropriate for your MPI installation.
    variants:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    Makefile.opt                   # OPT package
    Makefile.omp                   # USER-OMP package
@@ -268,7 +267,7 @@ running LAMMPS from Python via its library interface.
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D BUILD_EXE=value           # yes (default) or no
    -D BUILD_LIB=value           # yes or no (default)
@@ -285,7 +284,7 @@ libraries will be named liblammps\_name.a or liblammps\_name.so instead.
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/src
    make machine               # build LAMMPS executable lmp_machine
@@ -318,7 +317,7 @@ Argonne National Lab, as a shared library in the default
 
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    ./configure --enable-shared
    make
@@ -340,7 +339,7 @@ Build the LAMMPS documentation
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D BUILD_DOC=value       # yes or no (default)
 
@@ -352,7 +351,7 @@ the install.
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/doc
    make html       # html doc pages
@@ -383,7 +382,7 @@ using CMake or Make.
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D BUILD_TOOLS=value       # yes or no (default)
 
@@ -392,7 +391,7 @@ The generated binaries will also become part of the LAMMPS installation (see bel
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/tools
    make all              # build all binaries of tools
@@ -419,7 +418,7 @@ you want to copy files to is protected.
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
    make                        # perform make after CMake command

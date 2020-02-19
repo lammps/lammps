@@ -18,7 +18,7 @@ These commands perform a default LAMMPS build, producing the LAMMPS
 executable lmp\_serial or lmp\_mpi in lammps/src:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/src
    make serial     # build a serial LAMMPS executable
@@ -76,7 +76,7 @@ compilers, OS configurations, and LAMMPS itself keep changing, their
 settings may become outdated:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make mac             # build serial LAMMPS on a Mac
    make mac_mpi         # build parallel LAMMPS on a Mac

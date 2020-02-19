@@ -4,16 +4,15 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
-| :ref:`C++11 standard compliance test <cxx11>` when building all of LAMMPS
-| :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
-| :ref:`Size of LAMMPS data types <size>`
-| :ref:`Read or write compressed files <gzip>`
-| :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
-| :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
-| :ref:`Memory allocation alignment <align>`
-| :ref:`Workaround for long long integers <longlong>`
-| :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library 
-| 
+* :ref:`C++11 standard compliance <cxx11>` when building all of LAMMPS
+* :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
+* :ref:`Size of LAMMPS data types <size>`
+* :ref:`Read or write compressed files <gzip>`
+* :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
+* :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
+* :ref:`Memory allocation alignment <align>`
+* :ref:`Workaround for long long integers <longlong>`
+* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library  
 
 
 ----------
@@ -21,45 +20,16 @@ explain how to do this for building both with CMake and make.
 
 .. _cxx11:
 
-C++11 standard compliance test
+C++11 standard compliance
 ------------------------------------------
 
 The LAMMPS developers plan to transition to make the C++11 standard the
 minimum requirement for compiling LAMMPS.  Currently this only applies to
 some packages like KOKKOS while the rest aims to be compatible with the C++98
 standard.  Most currently used compilers are compatible with C++11; some need
-to set extra flags to switch.  To determine the impact of requiring C++11,
-we have added a simple compliance test to the source code, that will cause
-the compilation to abort, if C++11 compliance is not available or enabled.
-To bypass this check, you need to change a setting in the makefile or
-when calling CMake.
+to set extra flags to enable C++11 compliance.  Example for GNU c++:
 
-**CMake variable**\ :
-
-
-.. parsed-literal::
-
-   -D DISABLE_CXX11_REQUIREMENT=yes
-
-You can set additional C++ compiler flags (beyond those selected by CMake)
-through the CMAKE\_CXX\_FLAGS variable. Example for CentOS 7:
-
-
-.. parsed-literal::
-
-   -D CMAKE_CXX_FLAGS="-O3 -g -fopenmp -DNDEBUG -std=c++11"
-
-**Makefile.machine setting**\ to bypass the C++11 test and compile in C++98 mode:
-
-
-.. parsed-literal::
-
-   LMP_INC = -DLAMMPS_CXX98
-
-**Makefile.machine setting**\ to enable the C++11 with older (but not too old) GNU c++ (e.g. on CentOS 7):
-
-
-.. parsed-literal::
+.. code-block:: make
 
    CCFLAGS = -g -O3 -std=c++11
 
@@ -80,7 +50,7 @@ LAMMPS can use them if they are available on your system.
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
    -D FFT_SINGLE=value       # yes or no (default), no = double precision
@@ -100,7 +70,7 @@ used.  If CMake cannot detect the FFT library, you can set these variables
 to assist:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
    -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
@@ -112,7 +82,7 @@ to assist:
 **Makefile.machine settings**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                                  # default is KISS if not specified
@@ -124,7 +94,7 @@ to assist:
 # default is FFT\_PACK\_ARRAY if not specified
 
 
-.. parsed-literal::
+.. code-block:: make
 
    FFT_INC =       -I/usr/local/include
    FFT_PATH =      -L/usr/local/lib
@@ -190,7 +160,7 @@ For FFTW3, do the following, which should produce the additional
 library libfftw3f.a or libfftw3f.so.
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make clean
    ./configure --enable-single; make; make install
@@ -218,14 +188,14 @@ adequate.
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
 **Makefile.machine setting**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
@@ -296,7 +266,7 @@ following settings:
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D WITH_JPEG=value      # yes or no
                              # default = yes if CMake finds JPEG files, else no
@@ -310,7 +280,7 @@ the graphics header, library, executable files, you can set these
 variables:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
    -D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
@@ -323,7 +293,7 @@ variables:
 **Makefile.machine settings**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_JPEG
    LMP_INC = -DLAMMPS_PNG
@@ -367,7 +337,7 @@ gzip compression by several LAMMPS commands, including
 **CMake variables**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D WITH_GZIP=value       # yes or no
                             # default is yes if CMake can find gzip, else no
@@ -376,7 +346,7 @@ gzip compression by several LAMMPS commands, including
 **Makefile.machine setting**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_GZIP
 
@@ -416,7 +386,7 @@ aligned on 64-byte boundaries.
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
@@ -428,7 +398,7 @@ and this setting ignored.
 **Makefile.machine setting**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
 
@@ -455,14 +425,14 @@ those systems:
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
 **Makefile.machine setting**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
 
@@ -483,13 +453,13 @@ e.g. to Python.
 **CMake variable**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
 **Makefile.machine setting**\ :
 
 
-.. parsed-literal::
+.. code-block:: make
 
    LMP_INC = -DLAMMPS_EXCEPTIONS

@@ -269,11 +269,11 @@ following settings:
 .. code-block:: bash
 
    -D WITH_JPEG=value      # yes or no
-                             # default = yes if CMake finds JPEG files, else no
+                           # default = yes if CMake finds JPEG files, else no
    -D WITH_PNG=value       # yes or no
-                             # default = yes if CMake finds PNG and ZLIB files, else no
+                           # default = yes if CMake finds PNG and ZLIB files, else no
    -D WITH_FFMPEG=value    # yes or no
-                             # default = yes if CMake can find ffmpeg, else no
+                           # default = yes if CMake can find ffmpeg, else no
 
 Usually these settings are all that is needed.  If CMake cannot find
 the graphics header, library, executable files, you can set these

@@ -129,13 +129,13 @@ You can verify whether all required shared libraries are found with the
 .. code-block:: bash
 
    $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller 
-	linux-vdso.so.1 (0x00007ffe729e0000)
-	liblammps.so => /home/user/lammps/src/liblammps.so (0x00007fc91bb9e000)
-	libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fc91b984000)
-	libm.so.6 => /lib64/libm.so.6 (0x00007fc91b83e000)
-	libgcc_s.so.1 => /lib64/libgcc_s.so.1 (0x00007fc91b824000)
-	libc.so.6 => /lib64/libc.so.6 (0x00007fc91b65b000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007fc91c094000)
+        linux-vdso.so.1 (0x00007ffe729e0000)
+        liblammps.so => /home/user/lammps/src/liblammps.so (0x00007fc91bb9e000)
+        libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fc91b984000)
+        libm.so.6 => /lib64/libm.so.6 (0x00007fc91b83e000)
+        libgcc_s.so.1 => /lib64/libgcc_s.so.1 (0x00007fc91b824000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007fc91b65b000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fc91c094000)
 
 
 If a required library is missing, you would get a 'not found' entry:
@@ -143,13 +143,13 @@ If a required library is missing, you would get a 'not found' entry:
 .. code-block:: bash
 
    $  ldd caller 
-	linux-vdso.so.1 (0x00007ffd672fe000)
-	liblammps.so => not found
-	libstdc++.so.6 => /usr/lib64/libstdc++.so.6 (0x00007fb7c7e86000)
-	libm.so.6 => /usr/lib64/libm.so.6 (0x00007fb7c7d40000)
-	libgcc_s.so.1 => /usr/lib64/libgcc_s.so.1 (0x00007fb7c7d26000)
-	libc.so.6 => /usr/lib64/libc.so.6 (0x00007fb7c7b5d000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007fb7c80a2000)
+        linux-vdso.so.1 (0x00007ffd672fe000)
+        liblammps.so => not found
+        libstdc++.so.6 => /usr/lib64/libstdc++.so.6 (0x00007fb7c7e86000)
+        libm.so.6 => /usr/lib64/libm.so.6 (0x00007fb7c7d40000)
+        libgcc_s.so.1 => /usr/lib64/libgcc_s.so.1 (0x00007fb7c7d26000)
+        libc.so.6 => /usr/lib64/libc.so.6 (0x00007fb7c7b5d000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fb7c80a2000)
 
 
 ----------

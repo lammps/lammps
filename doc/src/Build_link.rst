@@ -25,7 +25,7 @@ The calling application can link to LAMMPS as a static library with
 a compilation and link command like this (assuming a code written in
 C in the file *caller.c*):
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpicc -c -O -I${HOME}/lammps/src caller.c
    mpicxx -o caller caller.o -L${HOME}/lammps/src -llammps
@@ -46,7 +46,7 @@ executable.  Assuming you have compiled LAMMPS using the conventional
 build system with "make serial" and also have the POEMS package
 installed, the command changes to:
 
-.. parsed-literal::
+.. code-block:: bash
 
    gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
    mpicxx -o caller caller.o -L${HOME}/lammps/src/../lib/poems \
@@ -55,13 +55,13 @@ installed, the command changes to:
 You can display the currently applied settings for the "serial" machine
 target by using the command:
 
-.. parsed-literal::
+.. code-block:: bash
 
    make mode=print serial
 
 Which should output something like:
 
-.. parsed-literal::
+.. code-block:: bash
 
    # Compiler: 
    CXX=g++
@@ -86,7 +86,7 @@ libraries need not to be specified when linking the calling
 executable.  So the example case from above of the serial version
 library with the POEMS package installed becomes:
 
-.. parsed-literal::
+.. code-block:: bash
 
    gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
    mpicxx -o caller caller.o -L${HOME}/lammps/src -llammps
@@ -97,7 +97,7 @@ system can find it.  This would be either a folder like "/usr/local/lib64"
 or "${HOME}/.local/lib64" or a folder pointed to by the LD\_LIBRARY\_PATH
 environment variable. You can type
 
-.. parsed-literal::
+.. code-block:: bash
 
    printenv LD_LIBRARY_PATH
 
@@ -110,7 +110,7 @@ version of the shared library is always available to programs that use it.
 For the Bourne or Korn shells (/bin/sh, /bin/ksh, /bin/bash etc.), you
 would add something like this to your ~/.profile file:
 
-.. parsed-literal::
+.. code-block:: bash
 
    LD_LIBRARY_PATH ${LD_LIBRARY_PATH-/usr/lib64}:${HOME}/lammps/src
    export LD_LIBRARY_PATH
@@ -119,14 +119,14 @@ For the csh or tcsh shells, you would equivalently add something like this
 to your ~/.cshrc file:
 
 
-.. parsed-literal::
+.. code-block:: csh
 
    setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${HOME}/lammps/src
 
 You can verify whether all required shared libraries are found with the
 `ldd` tool.  Example:
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller 
 	linux-vdso.so.1 (0x00007ffe729e0000)
@@ -140,7 +140,7 @@ You can verify whether all required shared libraries are found with the
 
 If a required library is missing, you would get a 'not found' entry:
 
-.. parsed-literal::
+.. code-block:: bash
 
    $  ldd caller 
 	linux-vdso.so.1 (0x00007ffd672fe000)

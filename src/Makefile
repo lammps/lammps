@@ -247,6 +247,11 @@ ifeq ($(mode),shlib)
 	@rm -f $(SHLINK)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
+ifeq ($(mode),print)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
+	  "EXE = ../$(SHLIB)" -f ../Makefile.print
+endif
 
 # Remove machine-specific object files
 

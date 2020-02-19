@@ -211,7 +211,7 @@ Related commands
 :doc:`fix drude <fix_drude>`,
 :doc:`fix langevin/drude <fix_langevin_drude>`,
 :doc:`compute temp/drude <compute_temp_drude>`,
-:doc:`pair\_style thole <pair_thole>`
+:doc:`pair_style thole <pair_thole>`
 
 **Default:** none
 
@@ -224,8 +224,3 @@ Related commands
 
 
 **(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

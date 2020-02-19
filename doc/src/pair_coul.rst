@@ -209,9 +209,9 @@ of the Streitz-Mintmire potential, as described in :ref:`this paper <Streitz2>`,
 as a Slater 1\ *s* orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
 which is a variable charge potential, style *coul/streitz* must be
-used with :doc:`pair\_style eam/alloy <pair_eam>` (or some other
+used with :doc:`pair_style eam/alloy <pair_eam>` (or some other
 short-range potential that has been parameterized appropriately) via
-the :doc:`pair\_style hybrid/overlay <pair_hybrid>` command.  Likewise,
+the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
 charge equilibration must be performed via the :doc:`fix qeq/slater <fix_qeq>` command. For example:
 
 
@@ -235,7 +235,7 @@ be computed via an Ewald summation.  For example:
    kspace_style ewald 1e-6
 
 Keyword *ewald* does not need a damping parameter, but a
-:doc:`kspace\_style <kspace_style>` must be defined, which can be style
+:doc:`kspace_style <kspace_style>` must be defined, which can be style
 *ewald* or *pppm*\ .  The Ewald method was used in Streitz and
 Mintmire's original paper, but a Wolf summation offers a speed-up in
 some cases.
@@ -264,7 +264,7 @@ Streitz-Mintmire parameterization for the material being modeled.
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
-:doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
@@ -303,16 +303,16 @@ your model.
 
 
 Note that these potentials are designed to be combined with other pair
-potentials via the :doc:`pair\_style hybrid/overlay <pair_hybrid>`
+potentials via the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command.  This is because they have no repulsive core.  Hence if they
 are used by themselves, there will be no repulsion to keep two
 oppositely charged particles from moving arbitrarily close to each
 other.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutoff (distance units)
@@ -358,14 +358,14 @@ For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
 See the "pair\_modify" command for details.
 
-The :doc:`pair\_modify <pair_modify>` shift option is not relevant
+The :doc:`pair_modify <pair_modify>` shift option is not relevant
 for these pair styles.
 
-The *coul/long* style supports the :doc:`pair\_modify <pair_modify>`
+The *coul/long* style supports the :doc:`pair_modify <pair_modify>`
 table option for tabulation of the short-range portion of the
 long-range Coulombic interaction.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -373,7 +373,7 @@ These pair styles write their information to :doc:`binary restart files <restart
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -392,7 +392,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace\_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
 
 **Default:** none
 
@@ -427,8 +427,3 @@ Phys, 110, 8254 (1999).
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

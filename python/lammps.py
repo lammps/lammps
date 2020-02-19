@@ -1029,10 +1029,19 @@ def get_thermo_data(output):
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
         elif in_run and len(columns) > 0:
-            values = [float(x) for x in line.split()]
+            items = line.split()
+            # Convert thermo output and store it.
+            # It must have the same number of columns and
+            # all of them must be convertable to floats.
+            # Otherwise we ignore the line
+            if len(items) == len(columns):
+                try:
+                    values = [float(x) for x in items]
+                    for i, col in enumerate(columns):
+                        current_run[col].append(values[i])
+                except ValueError:
+                  pass
 
-            for i, col in enumerate(columns):
-                current_run[col].append(values[i])
     return runs
 
 class PyLammps(object):

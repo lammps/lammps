@@ -87,7 +87,7 @@ commands)
 * water potentials: TIP3P, TIP4P, SPC
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
-* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim\_init, kim\_interactions, and kim\_query <kim_commands>` commands
+* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim_init, kim_interactions, and kim_query <kim_commands>` commands
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials
 
@@ -96,9 +96,9 @@ commands)
 Atom creation
 --------------------------
 
-(:doc:`read\_data <read_data>`, :doc:`lattice <lattice>`,
-:doc:`create\_atoms <create_atoms>`, :doc:`delete\_atoms <delete_atoms>`,
-:doc:`displace\_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
+(:doc:`read_data <read_data>`, :doc:`lattice <lattice>`,
+:doc:`create_atoms <create_atoms>`, :doc:`delete_atoms <delete_atoms>`,
+:doc:`displace_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
 
 * read in atom coords from files
 * create atoms on one or more lattices (e.g. grain boundaries)
@@ -133,7 +133,7 @@ Ensembles, constraints, and boundary conditions
 Integrators
 ---------------------------
 
-(:doc:`run <run>`, :doc:`run\_style <run_style>`, :doc:`minimize <minimize>` commands)
+(:doc:`run <run>`, :doc:`run_style <run_style>`, :doc:`minimize <minimize>` commands)
 
 * velocity-Verlet integrator
 * Brownian dynamics
@@ -224,8 +224,3 @@ classical MD options:
 * :doc:`Lattice Boltzmann fluid <fix_lb_fluid>`
 * :doc:`targeted <fix_tmd>` and :doc:`steered <fix_smd>` molecular dynamics
 * :doc:`two-temperature electron model <fix_ttm>`
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

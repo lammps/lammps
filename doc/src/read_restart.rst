@@ -44,7 +44,7 @@ changed by the :doc:`balance <balance>` or :doc:`fix balance <fix_balance>` comm
 .. note::
 
    Normally, restart files are written by the
-   :doc:`restart <restart>` or :doc:`write\_restart <write_restart>` commands
+   :doc:`restart <restart>` or :doc:`write_restart <write_restart>` commands
    so that all atoms in the restart file are inside the simulation box.
    If this is not the case, the read\_restart command will print an error
    that atoms were "lost" when the file is read.  This error should be
@@ -86,7 +86,7 @@ Because restart files are binary, they may not be portable to other
 machines.  In this case, you can use the :doc:`-restart command-line switch <Run_options>` to convert a restart file to a data file.
 
 Similar to how restart files are written (see the
-:doc:`write\_restart <write_restart>` and :doc:`restart <restart>`
+:doc:`write_restart <write_restart>` and :doc:`restart <restart>`
 commands), the restart filename can contain two wild-card characters.
 If a "\*" appears in the filename, the directory is searched for all
 filenames that match the pattern where "\*" is replaced with a timestep
@@ -98,7 +98,7 @@ the run command so it doesn't need to be changed either.
 
 If a "%" character appears in the restart filename, LAMMPS expects a
 set of multiple files to exist.  The :doc:`restart <restart>` and
-:doc:`write\_restart <write_restart>` commands explain how such sets are
+:doc:`write_restart <write_restart>` commands explain how such sets are
 created.  Read\_restart will first read a filename where "%" is
 replaced by "base".  This file tells LAMMPS how many processors
 created the set and how many files are in it.  Read\_restart then reads
@@ -110,7 +110,7 @@ processors that created the restart file.
 Note that P could be the total number of processors in the previous
 simulation, or some subset of those processors, if the *fileper* or
 *nfile* options were used when the restart file was written; see the
-:doc:`restart <restart>` and :doc:`write\_restart <write_restart>` commands
+:doc:`restart <restart>` and :doc:`write_restart <write_restart>` commands
 for details.  The processors in the current LAMMPS simulation share
 the work of reading these files; each reads a roughly equal subset of
 the files.  The number of processors which created the set can be
@@ -146,8 +146,8 @@ these settings after the restart file is read.
 
 * :doc:`units <units>`
 * :doc:`newton bond <newton>` (see discussion of newton command below)
-* :doc:`atom style <atom_style>` and :doc:`atom\_modify <atom_modify>` settings id, map, sort
-* :doc:`comm style <comm_style>` and :doc:`comm\_modify <comm_modify>` settings mode, cutoff, vel
+* :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>` settings id, map, sort
+* :doc:`comm style <comm_style>` and :doc:`comm_modify <comm_modify>` settings mode, cutoff, vel
 * :doc:`timestep <timestep>`
 * simulation box size and shape and :doc:`boundary <boundary>` settings
 * atom :doc:`group <group>` definitions
@@ -155,8 +155,8 @@ these settings after the restart file is read.
 * per-atom attributes including their group assignments and molecular topology attributes (bonds, angles, etc)
 * force field styles (:doc:`pair <pair_style>`, :doc:`bond <bond_style>`, :doc:`angle <angle_style>`, etc)
 * force field coefficients (:doc:`pair <pair_coeff>`, :doc:`bond <bond_coeff>`, :doc:`angle <angle_coeff>`, etc) in some cases (see below)
-* :doc:`pair\_modify <pair_modify>` settings, except the compute option
-* :doc:`special\_bonds <special_bonds>` settings
+* :doc:`pair_modify <pair_modify>` settings, except the compute option
+* :doc:`special_bonds <special_bonds>` settings
 
 Here is a list of information not stored in a restart file, which
 means you must re-issue these commands in your input script, after
@@ -167,8 +167,8 @@ reading the restart file.
 * :doc:`compute <compute>` commands (see below)
 * :doc:`variable <variable>` commands
 * :doc:`region <region>` commands
-* :doc:`neighbor list <neighbor>` criteria including :doc:`neigh\_modify <neigh_modify>` settings
-* :doc:`kspace\_style <kspace_style>` and :doc:`kspace\_modify <kspace_modify>` settings
+* :doc:`neighbor list <neighbor>` criteria including :doc:`neigh_modify <neigh_modify>` settings
+* :doc:`kspace_style <kspace_style>` and :doc:`kspace_modify <kspace_modify>` settings
 * info for :doc:`thermodynamic <thermo_style>`, :doc:`dump <dump>`, or :doc:`restart <restart>` output
 
 The :doc:`newton <newton>` command has two settings, one for pairwise
@@ -185,10 +185,10 @@ Note that some force field styles (pair, bond, angle, etc) do not
 store their coefficient info in restart files.  Typically these are
 many-body or tabulated potentials which read their parameters from
 separate files.  In these cases you will need to re-specify the
-:doc:`pair\_coeff <pair_coeff>`, :doc:`bond\_coeff <bond_coeff>`, etc
+:doc:`pair_coeff <pair_coeff>`, :doc:`bond_coeff <bond_coeff>`, etc
 commands in your restart input script.  The doc pages for individual
 force field styles mention if this is the case.  This is also true of
-:doc:`pair\_style hybrid <pair_hybrid>` (bond hybrid, angle hybrid, etc)
+:doc:`pair_style hybrid <pair_hybrid>` (bond hybrid, angle hybrid, etc)
 commands; they do not store coefficient info.
 
 As indicated in the above list, the :doc:`fixes <fix>` used for a
@@ -250,7 +250,7 @@ LAMMPS allows bond interactions (angle, etc) to be turned off or
 deleted in various ways, which can affect how their info is stored in
 a restart file.
 
-If bonds (angles, etc) have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete\_bonds <delete_bonds>` command,
+If bonds (angles, etc) have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>` command,
 their info will be written to a restart file as if they are turned on.
 This means they will need to be turned off again in a new run after
 the restart file is read.
@@ -277,12 +277,7 @@ package must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`read\_dump <read_dump>`,
-:doc:`write\_restart <write_restart>`, :doc:`restart <restart>`
+:doc:`read_data <read_data>`, :doc:`read_dump <read_dump>`,
+:doc:`write_restart <write_restart>`, :doc:`restart <restart>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

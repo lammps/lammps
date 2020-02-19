@@ -126,7 +126,7 @@ r\_ij to the distances between electrons.  For additional details see
 
 The overall electrostatics energy is given in Hartree units of energy
 by default and can be modified by an energy-conversion constant,
-according to the units chosen (see :doc:`electron\_units <units>`).  The
+according to the units chosen (see :doc:`electron_units <units>`).  The
 cutoff Rc, given in Bohrs (by default), truncates the interaction
 distance.  The recommended cutoff for this pair style should follow
 the minimum image criterion, i.e. half of the minimum unit cell
@@ -135,18 +135,18 @@ length.
 Style *eff/long* (not yet available) computes the same interactions as
 style *eff/cut* except that an additional damping factor is applied so
 it can be used in conjunction with the
-:doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-This potential is designed to be used with :doc:`atom\_style electron <atom_style>` definitions, in order to handle the
+This potential is designed to be used with :doc:`atom_style electron <atom_style>` definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutoff (distance units)
@@ -156,7 +156,7 @@ For *eff/cut*\ , the cutoff coefficient is optional.  If it is not used
 in the pair\_style command is used.
 
 For *eff/long* (not yet available) no cutoff will be specified for an
-individual I,J type pair via the :doc:`pair\_coeff <pair_coeff>` command.
+individual I,J type pair via the :doc:`pair_coeff <pair_coeff>` command.
 All type pairs use the same global cutoff specified in the pair\_style
 command.
 
@@ -283,14 +283,14 @@ For atom type pairs I,J and I != J, the cutoff distance for the
 *eff/cut* style can be mixed.  The default mix value is *geometric*\ .
 See the "pair\_modify" command for details.
 
-The :doc:`pair\_modify <pair_modify>` shift option is not relevant for
+The :doc:`pair_modify <pair_modify>` shift option is not relevant for
 these pair styles.
 
 The *eff/long* (not yet available) style supports the
-:doc:`pair\_modify <pair_modify>` table option for tabulation of the
+:doc:`pair_modify <pair_modify>` table option for tabulation of the
 short-range portion of the long-range Coulombic interaction.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -298,7 +298,7 @@ These pair styles write their information to :doc:`binary restart files <restart
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -316,16 +316,16 @@ more info.
 
 These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radial force, as defined by the
-:doc:`atom\_style <atom_style>`.  The *electron* atom style does all of
+:doc:`atom_style <atom_style>`.  The *electron* atom style does all of
 this.
 
-Thes pair styles require you to use the :doc:`comm\_modify vel yes <comm_modify>` command so that velocities are stored by ghost
+Thes pair styles require you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
 atoms.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 Default
 """""""
@@ -351,8 +351,3 @@ Dense Matter, Phys Rev Lett, 99:185003 (2007).
 Long-term Non-adiabatic Electron Molecular Dynamics for Describing
 Material Properties and Phenomena in Extreme Environments, J Comp
 Chem, 32, 497-512 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -40,7 +40,7 @@ file.
 
 The energy and force values are computed at distances from inner to
 outer for 2 interacting atoms of type itype and jtype, using the
-appropriate :doc:`pair\_coeff <pair_coeff>` coefficients.  If the style
+appropriate :doc:`pair_coeff <pair_coeff>` coefficients.  If the style
 is *r*\ , then N distances are used, evenly spaced in r; if the style is
 *rsq*\ , N distances are used, evenly spaced in r\^2.
 
@@ -49,7 +49,7 @@ values are computed at r = 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0.
 
 If the style is *bitmap*\ , then 2\^N values are written to the file in a
 format and order consistent with how they are read in by the
-:doc:`pair\_coeff <pair_coeff>` command for pair style *table*\ .  For
+:doc:`pair_coeff <pair_coeff>` command for pair style *table*\ .  For
 reasonable accuracy in a bitmapped table, choose N >= 12, an *inner*
 value that is smaller than the distance of closest approach of 2
 atoms, and an *outer* value <= cutoff of the potential.
@@ -59,7 +59,7 @@ of the pair of interacting atoms can optionally be specified.  If not
 specified, values of Qi = Qj = 1.0 are used.
 
 The file is written in the format used as input for the
-:doc:`pair\_style <pair_style>` *table* option with *keyword* as the
+:doc:`pair_style <pair_style>` *table* option with *keyword* as the
 section name.  Each line written to the file lists an index number
 (1-N), a distance (in distance units), an energy (in energy units),
 and a force (in force units).
@@ -80,12 +80,7 @@ pairwise portion of the potential, not the embedding portion.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style table <pair_table>`,
-:doc:`pair\_style <pair_style>`, :doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_style table <pair_table>`,
+:doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

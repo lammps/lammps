@@ -16,12 +16,14 @@
                         pak37@cam.ac.uk
 ------------------------------------------------------------------------- */
 
+#include "pair_mesocnt.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include "pair_mesocnt.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -125,11 +127,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
-  tagint *tag = atom->tag;
-  tagint *mol = atom->molecule;
-  int nlocal = atom->nlocal;
   int nbondlist = neighbor->nbondlist;
-  int newton_pair = force->newton_pair;
 
   // update bond neighbor list when necessary
 
@@ -435,7 +433,7 @@ void PairMesoCNT::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::settings(int narg, char **arg)
+void PairMesoCNT::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -519,7 +517,7 @@ void PairMesoCNT::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::init_one(int i, int j)
+double PairMesoCNT::init_one(int /* i */, int /* j */)
 {
   return cutoff;
 }
@@ -730,7 +728,7 @@ void PairMesoCNT::sort(int *list, int size)
 {
   int i,j,temp1,temp2;
   tagint *tag = atom->tag;
-  for (int i = 1; i < size; i++) {
+  for (i = 1; i < size; i++) {
     j = i;
     temp1 = list[j-1];
     temp2 = list[j];
@@ -1373,10 +1371,6 @@ double PairMesoCNT::dxspline(double x, double y,
   double xbar = x - xlo;
   double ybar = y - ylo;
 
-  double y0 = coeff[i][j][0][0]
-          + ybar*(coeff[i][j][0][1]
-          + ybar*(coeff[i][j][0][2]
-          + ybar*(coeff[i][j][0][3])));
   double y1 = coeff[i][j][1][0]
           + ybar*(coeff[i][j][1][1]
           + ybar*(coeff[i][j][1][2]

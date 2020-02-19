@@ -98,7 +98,7 @@ define the lattice spacings.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -128,8 +128,3 @@ Default
 """""""
 
 The keyword defaults are pos = 0, vel = 0, units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -30,7 +30,7 @@ Define a computation that calculates the temperature of a group of
 nuclei and electrons in the :doc:`electron force field <pair_eff>`
 model, within a geometric region using the electron force field.  A
 compute of this style can be used by commands that compute a
-temperature, e.g. :doc:`thermo\_modify <thermo_modify>`.
+temperature, e.g. :doc:`thermo_modify <thermo_modify>`.
 
 The operation of this compute is exactly like that described by the
 :doc:`compute temp/region <compute_temp_region>` command, except that
@@ -64,8 +64,3 @@ Related commands
 :doc:`compute temp/region <compute_temp_region>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

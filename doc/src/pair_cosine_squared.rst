@@ -94,7 +94,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -111,8 +111,8 @@ enabled if LAMMPS is build with that package.  See the :doc:`Build package <Buil
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style lj/cut <pair_lj>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style lj/cut <pair_lj>`
 
 **Default:** none
 
@@ -127,8 +127,3 @@ Related commands
 
 
 **(Weeks)** "Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)"
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

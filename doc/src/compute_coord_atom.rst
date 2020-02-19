@@ -101,16 +101,16 @@ too frequently.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included in the coordination count.  One way
    to get around this, is to write a dump file, and use the
    :doc:`rerun <rerun>` command to compute the coordination for snapshots
    in the dump file.  The rerun script can use a
-   :doc:`special\_bonds <special_bonds>` command that includes all pairs in
+   :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
 **Output info:**
@@ -155,8 +155,3 @@ group = all
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

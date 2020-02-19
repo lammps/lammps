@@ -115,8 +115,8 @@ Files in Ubuntu on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you launch "Bash on Ubuntu on Windows" you will start out in your Linux
-user home directory /home/\ **username**\ . You can access your Windows user directory
-using the /mnt/c/Users/\ **username** folder.
+user home directory /home/[username]\ . You can access your Windows user directory
+using the /mnt/c/Users/[username] folder.
 
 Download LAMMPS
 ^^^^^^^^^^^^^^^
@@ -284,8 +284,3 @@ the PATH variable should be
    This should give you a jump start when trying to run LAMMPS on Windows.
    To become effective in this environment I encourage you to look into Linux
    tutorials explaining Bash and Basic Unix commands (e.g., `Linux Journey <https://linuxjourney.com>`_)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

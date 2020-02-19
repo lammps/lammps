@@ -108,7 +108,7 @@ using the :doc:`change box <change_box>` command with its *ortho* and
    not make the lo/hi box dimensions (as defined in your
    :doc:`region <region>` command) radically smaller/larger than the extent
    of the atoms you eventually plan to create, e.g. via the
-   :doc:`create\_atoms <create_atoms>` command.  For example, if your atoms
+   :doc:`create_atoms <create_atoms>` command.  For example, if your atoms
    extend from 0 to 50, you should not specify the box bounds as -10000
    and 10000. This is because as described above, LAMMPS uses the
    specified box size to layout the 3d grid of processors.  A huge
@@ -128,13 +128,13 @@ bond (angle, dihedral, improper) interactions, or for molecules with
 special 1-2,1-3,1-4 neighbors to be added later.  These optional
 keywords serve the same purpose as the analogous keywords that can be
 used in a data file which are recognized by the
-:doc:`read\_data <read_data>` command when it sets up a system.
+:doc:`read_data <read_data>` command when it sets up a system.
 
 Note that if these keywords are not used, then the create\_box command
 creates an atomic (non-molecular) simulation that does not allow bonds
 between pairs of atoms to be defined, or a :doc:`bond potential <bond_style>` to be specified, or for molecules with
 special neighbors to be added to the system by commands such as
-:doc:`create\_atoms mol <create_atoms>`, :doc:`fix deposit <fix_deposit>`
+:doc:`create_atoms mol <create_atoms>`, :doc:`fix deposit <fix_deposit>`
 or :doc:`fix pour <fix_pour>`.
 
 As an example, see the examples/deposit/in.deposit.molecule script,
@@ -153,18 +153,13 @@ Restrictions
 """"""""""""
 
 
-An :doc:`atom\_style <atom_style>` and :doc:`region <region>` must have
+An :doc:`atom_style <atom_style>` and :doc:`region <region>` must have
 been previously defined to use this command.
 
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`create\_atoms <create_atoms>`,
+:doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

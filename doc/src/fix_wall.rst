@@ -104,35 +104,58 @@ wall-particle interactions depends on the style.
 
 For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
 
-.. image:: Eqs/fix_wall_lj93.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+                       \left(\frac{\sigma}{r}\right)^3 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
-.. image:: Eqs/fix_wall_lj1043.jpg
-   :align: center
+.. math::
+
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+                       \left(\frac{\sigma}{r}\right)^4 -
+                       \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
+                       \qquad r < r_c
+
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
-of the :doc:`pair\_style colloid <pair_colloid>` potential:
+of the :doc:`pair_style colloid <pair_colloid>` potential:
 
-.. image:: Eqs/fix_wall_colloid.jpg
-   :align: center
+.. math::
+
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
+    & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
+
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
 
-.. image:: Eqs/fix_wall_harmonic.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
+
 
 For style *wall/morse*\ , the energy E is given by a Morse potential:
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
+       \qquad r < r_c
+
 
 In all cases, *r* is the distance from the particle to the wall at
 position *coord*\ , and Rc is the *cutoff* distance at which the
@@ -157,7 +180,7 @@ where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
 can specify formulas with various mathematical functions, and include
-:doc:`thermo\_style <thermo_style>` command keywords for the simulation
+:doc:`thermo_style <thermo_style>` command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.  See examples below.
 
@@ -213,7 +236,7 @@ specified as v\_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and
 the result becomes the current epsilon or sigma of the wall.
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent wall interaction.
 
@@ -247,7 +270,7 @@ define the lattice spacings.
 
 The *fld* keyword can be used with a *yes* setting to invoke the wall
 constraint before pairwise interactions are computed.  This allows an
-implicit FLD model using :doc:`pair\_style lubricateU <pair_lubricateU>`
+implicit FLD model using :doc:`pair_style lubricateU <pair_lubricateU>`
 to include the wall force in its calculations.  If the setting is
 *no*\ , wall forces are imposed after pairwise interactions, in the
 usual manner.
@@ -321,15 +344,15 @@ perturbation on the particles:
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interaction between
 atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -353,7 +376,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
    If you want the atom/wall interaction energy to be included in
    the total potential energy of the system (the quantity being
-   minimized), you MUST enable the :doc:`fix\_modify <fix_modify>` *energy*
+   minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
 
@@ -408,8 +431,3 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

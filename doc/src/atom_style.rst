@@ -50,8 +50,8 @@ Description
 
 Define what style of atoms to use in a simulation.  This determines
 what attributes are associated with the atoms.  This command must be
-used before a simulation is setup via a :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>`, or :doc:`create\_box <create_box>`
+used before a simulation is setup via a :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
 command.
 
 .. note::
@@ -68,12 +68,12 @@ style more general than needed, though it may be slightly inefficient.
 The choice of style affects what quantities are stored by each atom,
 what quantities are communicated between processors to enable forces
 to be computed, and what quantities are listed in the data file read
-by the :doc:`read\_data <read_data>` command.
+by the :doc:`read_data <read_data>` command.
 
 These are the additional attributes of each style and the typical
 kinds of physical systems they are used to model.  All styles store
 coordinates, velocities, atom IDs and types.  See the
-:doc:`read\_data <read_data>`, :doc:`create\_atoms <create_atoms>`, and
+:doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`, and
 :doc:`set <set>` commands for info on how to set these various
 quantities.
 
@@ -173,7 +173,7 @@ per-particle mass and volume.
 
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
 Note that it is part of the USER-DPD package, and is not for use with
-the :doc:`pair\_style dpd or dpd/stat <pair_dpd>` commands, which can
+the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
 simply use atom\_style atomic.  Atom\_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
 energy (uCond), internal mechanical energy (uMech), and internal
@@ -240,7 +240,7 @@ can be advantageous for large-scale coarse-grained systems.
    another CO2, then you probably do not want each molecule file to
    define 2 atom types and a single bond type, because they will conflict
    with each other when a mixture system of H2O and CO2 molecules is
-   defined, e.g. by the :doc:`read\_data <read_data>` command.  Rather the
+   defined, e.g. by the :doc:`read_data <read_data>` command.  Rather the
    H2O molecule should define atom types 1 and 2, and bond type 1.  And
    the CO2 molecule should define atom types 3 and 4 (or atom types 3 and
    2 if a single oxygen type is desired), and bond type 2.
@@ -317,7 +317,7 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
 with a specific package, as listed below.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -354,7 +354,7 @@ The *wavepacket* style is part of the USER-AWPMD package for the
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`pair\_style <pair_style>`
+:doc:`read_data <read_data>`, :doc:`pair_style <pair_style>`
 
 Default
 """""""

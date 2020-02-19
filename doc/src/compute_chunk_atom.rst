@@ -247,7 +247,7 @@ assigned to the atom.
 
 The *type* style uses the atom type as the chunk ID.  *Nchunk* is set
 to the number of atom types defined for the simulation, e.g. via the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` commands.
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 
 
 ----------
@@ -700,8 +700,3 @@ The option defaults are as follows:
 * bound = lower and upper in all dimensions
 * pbc = no
 * units = lattice
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

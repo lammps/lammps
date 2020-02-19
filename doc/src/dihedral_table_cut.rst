@@ -33,7 +33,7 @@ The *table/cut* dihedral style creates interpolation tables of length
 file(s) as a function of the dihedral angle "phi".  In addition, an
 analytic cutoff that is quadratic in the bond-angle (theta) is applied
 in order to regularize the dihedral interaction.  The dihedral table
-files are read by the :doc:`dihedral\_coeff <dihedral_coeff>` command.
+files are read by the :doc:`dihedral_coeff <dihedral_coeff>` command.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and derivative values at each of
@@ -53,7 +53,7 @@ coefficients are chosen from this list, and a cubic polynomial is used
 to compute the energy and the derivative at this angle.
 
 The following coefficients must be defined for each dihedral type via
-the :doc:`dihedral\_coeff <dihedral_coeff>` command as in the example
+the :doc:`dihedral_coeff <dihedral_coeff>` command as in the example
 above.
 
 * style (aat)
@@ -66,18 +66,21 @@ above.
 The cutoff dihedral style uses a tabulated dihedral interaction with a
 cutoff function:
 
-.. image:: Eqs/dihedral_table_cut.jpg
-   :align: center
+.. math::
+
+        f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
+        f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
+
 
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.
 
-The cutoff angle1 specifies the angle (in degrees) below which the dihedral
+The cutoff :math:`\theta_1` specifies the angle (in degrees) below which the dihedral
 interaction is unmodified, i.e. the cutoff function is 1.
 
-The cutoff function is applied between angle1 and angle2, which is the angle at
-which the cutoff function drops to zero.  The value of zero effectively "turns
-off" the dihedral interaction.
+The cutoff function is applied between :math:`\theta_1` and :math:`\theta_2`, which is
+the angle at which the cutoff function drops to zero.  The value of zero effectively
+"turns off" the dihedral interaction.
 
 The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
@@ -121,7 +124,7 @@ A section begins with a non-blank line whose 1st character is not a
 between sections. The first line begins with a keyword which
 identifies the section. The line can contain additional text, but the
 initial text must match the argument specified in the
-:doc:`dihedral\_coeff <dihedral_coeff>` command. The next line lists (in
+:doc:`dihedral_coeff <dihedral_coeff>` command. The next line lists (in
 any order) one or more parameters for the table. Each parameter is a
 keyword followed by one or more numeric values.
 
@@ -150,7 +153,7 @@ strange numerical behavior can occur in the large remaining gap.
 
 The parameter "N" is required and its value is the number of table
 entries that follow. Note that this may be different than the N
-specified in the :doc:`dihedral\_style table <dihedral_style>` command.
+specified in the :doc:`dihedral_style table <dihedral_style>` command.
 Let *Ntable* is the number of table entries requested dihedral\_style
 command, and let *Nfile* be the parameter following "N" in the
 tabulated file ("30" in the sparse example above).  What LAMMPS does
@@ -220,7 +223,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`, :doc:`dihedral\_style table <dihedral_table>`
+:doc:`dihedral_coeff <dihedral_coeff>`, :doc:`dihedral_style table <dihedral_table>`
 
 **Default:** none
 
@@ -229,8 +232,3 @@ Related commands
 
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

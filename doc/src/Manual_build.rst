@@ -30,10 +30,11 @@ a. You can "fetch" the current HTML and PDF files from the LAMMPS web site.
    you update your local repository).
 
 b. You can build the HTML and PDF files yourself, by typing "make
-   html" followed by "make pdf".  Note that the PDF make requires the
-   HTML files already exist.  This requires various tools including
+   html" followed by "make pdf".  This requires various tools including
    Sphinx, which the build process will attempt to download and install
-   on your system, if not already available.  See more details below.
+   into a virtual environment in the folder doc/docenv, if not already
+   available.  See more details below.  To generate the PDF version of
+   the manual, additionally PDFLaTeX and several LaTeX packages are required.
 
 ----------
 
@@ -56,7 +57,7 @@ the doc dir.
    make clean        # remove intermediate RST files created by HTML build
    make clean-all    # remove entire build folder and any cached data
    make anchor_check # check for duplicate anchor labels
-   style_check       # check for complete and consistent style lists
+   make style_check  # check for complete and consistent style lists
    make spelling     # spell-check the manual
 
 
@@ -134,8 +135,3 @@ For converting the generated ePUB file to a MOBI format file
 also need to have the 'ebook-convert' tool from the "calibre"
 software installed. `http://calibre-ebook.com/ <http://calibre-ebook.com/>`_
 You first create the ePUB file and then convert it with 'make mobi'
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

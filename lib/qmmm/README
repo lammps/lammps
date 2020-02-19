@@ -4,7 +4,7 @@ Axel Kohlmeyer, akohlmey@gmail.com
 Temple University, Philadelphia and ICTP, Trieste
 
 with contributions by
-Carlo Cavazzoni & Mariella Ippolito
+Mariella Ippolito & Carlo Cavazzoni
 Cineca, Italy
 
 This library provides  the basic glue code to combine LAMMPS with the
@@ -32,9 +32,7 @@ and 4 manually, as outlined below.
 WARNING: This is experimental code under developement and is provided
 at this early stage to encourage others to write interfaces to other
 QM codes. Please test *very* carefully before using this software for
-production calculations. At the time of the last update of this README
-(July 2016) you have to download a QE snapshot (revision 12611) from
-the QE subversion repository.
+production calculations. 
 
 At this point, both mechanical and multipole based electrostatic
 coupling have been successfully tested on a cluster of water
@@ -70,12 +68,7 @@ to confirm that the classical part of the code is set up correctly.
 
 Step 3)
 Build a standalone pw.x executable in the Quantum ESPRESSO directory
-and also make the "couple" target. At the time of this writing 
-(July 2016) you have to download a QE snapshot (revision 12611)
-from the SVN repository, since no official release with the
-completed QM/MM support code has been made available yet. The current
-plan is to have a usable QM/MM interface released with the next
-Quantum ESPRESSO release version 6.0. Building the standalone pw.x
+and also make the "couple" target. Building the standalone pw.x
 binary is also needed to confirm that corresponding QM input is
 working correctly and to run test calculations on QM atoms only.
 

@@ -90,14 +90,14 @@ pair\_style lj/cut/coul/wolf/omp command
 pair\_style lj/cut/tip4p/cut command
 ====================================
 
-pair\_style lj/cut/tip4p/cut/gpu command
-========================================
-
 pair\_style lj/cut/tip4p/cut/omp command
 ========================================
 
 pair\_style lj/cut/tip4p/long command
 =====================================
+
+pair\_style lj/cut/tip4p/long/gpu command
+=========================================
 
 pair\_style lj/cut/tip4p/long/omp command
 =========================================
@@ -258,7 +258,7 @@ setting *alpha* to a small non-zero value.
 Styles *lj/cut/coul/long* and *lj/cut/coul/msm* compute the same
 Coulombic interactions as style *lj/cut/coul/cut* except that an
 additional damping factor is applied to the Coulombic term so it can
-be used in conjunction with the :doc:`kspace\_style <kspace_style>`
+be used in conjunction with the :doc:`kspace_style <kspace_style>`
 command and its *ewald* or *pppm* option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
@@ -314,9 +314,9 @@ your model.
 
 For all of the *lj/cut* pair styles, the following coefficients must
 be defined for each pair of atoms types via the
-:doc:`pair\_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands, or by mixing as
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands, or by mixing as
 described below:
 
 * epsilon (energy units)
@@ -348,7 +348,7 @@ pair\_style command.
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair\_fep\_soft <pair_fep_soft>` styles. The version with soft core is
+the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
 only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 
@@ -385,15 +385,15 @@ The default mix value is *geometric*\ .  See the "pair\_modify" command
 for details.
 
 All of the *lj/cut* pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the
+:doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
 The *lj/cut/coul/long* and *lj/cut/tip4p/long* pair styles support the
-:doc:`pair\_modify <pair_modify>` table option since they can tabulate
+:doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
 All of the *lj/cut* pair styles support the
-:doc:`pair\_modify <pair_modify>` tail option for adding a long-range
+:doc:`pair_modify <pair_modify>` tail option for adding a long-range
 tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
@@ -401,10 +401,10 @@ All of the *lj/cut* pair styles write their information to :doc:`binary restart 
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run\_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run\_style respa.
-See the :doc:`run\_style <run_style>` command for details.
+See the :doc:`run_style <run_style>` command for details.
 
 
 ----------
@@ -423,7 +423,7 @@ more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -444,8 +444,3 @@ Phys, 79, 926 (1983).
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

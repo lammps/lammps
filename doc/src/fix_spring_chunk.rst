@@ -54,11 +54,11 @@ atom.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy stored in all the springs to the system's potential
 energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -78,7 +78,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
    If you want the spring energies to be included in the total
    potential energy of the system (the quantity being minimized), you
-   MUST enable the :doc:`fix\_modify <fix_modify>` *energy* option for this
+   MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for this
    fix.
 
 Restrictions
@@ -92,8 +92,3 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

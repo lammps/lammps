@@ -38,7 +38,7 @@ enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
 freedom of the core/shell pairs to not be influenced by a thermostat.
 A compute of this style can be used by any command that computes a
-temperature via :doc:`fix\_modify <fix_modify>` e.g. :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+temperature via :doc:`fix_modify <fix_modify>` e.g. :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 Note that this compute does not require all ions to be polarized,
 hence defined as core/shell pairs.  One can mix core/shell pairs and
@@ -124,8 +124,3 @@ Related commands
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

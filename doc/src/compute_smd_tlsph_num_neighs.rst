@@ -57,8 +57,3 @@ Related commands
 :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

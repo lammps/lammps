@@ -5,11 +5,11 @@ LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
 | :ref:`C++11 standard compliance test <cxx11>` when building all of LAMMPS
-| :ref:`FFT library <fft>` for use with the :doc:`kspace\_style pppm <kspace_style>` command
+| :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
 | :ref:`Size of LAMMPS data types <size>`
 | :ref:`Read or write compressed files <gzip>`
 | :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
-| :ref:`Output of movie files <graphics>` via the :doc:`dump\_movie <dump_image>` command
+| :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
 | :ref:`Memory allocation alignment <align>`
 | :ref:`Workaround for long long integers <longlong>`
 | :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library 
@@ -49,13 +49,19 @@ through the CMAKE\_CXX\_FLAGS variable. Example for CentOS 7:
 
    -D CMAKE_CXX_FLAGS="-O3 -g -fopenmp -DNDEBUG -std=c++11"
 
-**Makefile.machine setting**\ :
+**Makefile.machine setting**\ to bypass the C++11 test and compile in C++98 mode:
 
 
 .. parsed-literal::
 
    LMP_INC = -DLAMMPS_CXX98
 
+**Makefile.machine setting**\ to enable the C++11 with older (but not too old) GNU c++ (e.g. on CentOS 7):
+
+
+.. parsed-literal::
+
+   CCFLAGS = -g -O3 -std=c++11
 
 ----------
 
@@ -66,7 +72,7 @@ FFT library
 ---------------------
 
 When the KSPACE package is included in a LAMMPS build, the
-:doc:`kspace\_style pppm <kspace_style>` command performs 3d FFTs which
+:doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
 require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
@@ -86,15 +92,21 @@ LAMMPS can use them if they are available on your system.
    an exception to the rule that all CMake variables can be specified
    with lower-case values.
 
-Usually these settings are all that is needed.  If CMake cannot find
-the FFT library, you can set these variables:
+Usually these settings are all that is needed.  If FFTW3 is selected,
+then CMake will try to detect, if threaded FFTW libraries are available
+and enable them by default.  This setting is independent of whether
+OpenMP threads are enabled and a packages like KOKKOS or USER-OMP is
+used.  If CMake cannot detect the FFT library, you can set these variables
+to assist:
 
 
 .. parsed-literal::
 
    -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
    -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
+   -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
    -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
+   -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
    -D MKL_LIBRARIES=path
 
 **Makefile.machine settings**\ :
@@ -105,6 +117,8 @@ the FFT library, you can set these variables:
    FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                                  # default is KISS if not specified
    FFT_INC = -DFFT_SINGLE        # do not specify for double precision
+   FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
+   FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
    FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
 
 # default is FFT\_PACK\_ARRAY if not specified
@@ -115,27 +129,34 @@ the FFT library, you can set these variables:
    FFT_INC =       -I/usr/local/include
    FFT_PATH =      -L/usr/local/lib
    FFT_LIB =       -lfftw3             # FFTW3 double precision
+   FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
    FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  # MKL with Intel compiler
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core     # MKL with GNU compier
+   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compier, serial interface
+   FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
+   FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
 As with CMake, you do not need to set paths in FFT\_INC or FFT\_PATH, if
-make can find the FFT header and library files.  You must specify
-FFT\_LIB with the appropriate FFT libraries to include in the link.
+the compiler can find the FFT header and library files in its default search path.
+You must specify FFT\_LIB with the appropriate FFT libraries to include in the link.
 
 **CMake and make info**\ :
 
 The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
-distribution.  It is portable across all platforms.  Depending on the
-size of the FFTs and the number of processors used, the other
-libraries listed here can be faster.
+distribution.  It is portable across all platforms.  Depending on the size
+of the FFTs and the number of processors used, the other libraries listed
+here can be faster.
 
 However, note that long-range Coulombics are only a portion of the
 per-timestep CPU cost, FFTs are only a portion of long-range
 Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
 communication can be costly).  A breakdown of these timings is printed
-to the screen at the end of a run using the :doc:`kspace\_style pppm <kspace_style>` command.  The :doc:`Run output <Run_output>`
-doc page gives more details.
+to the screen at the end of a run when using the
+:doc:`kspace_style pppm <kspace_style>` command. The :doc:`Run output <Run_output>`
+doc page gives more details.  A more detailed (and time consuming)
+report of the FFT performance is generated with the
+:doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
 FFTW is a fast, portable FFT library that should also work on any
 platform and can be faster than the KISS FFT library.  You can
@@ -166,7 +187,7 @@ When using -DFFT\_SINGLE with FFTW3 you may need to build the FFTW
 library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
-library libfftw3f.a
+library libfftw3f.a or libfftw3f.so.
 
 
 .. parsed-literal::
@@ -235,7 +256,7 @@ support 8-byte integers.  It allows for:
 
 Atom IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
-:doc:`atom\_modify id no <atom_modify>` command will turn them off.  Atom
+:doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
 angles, dihedrals, etc).  Thus if you model a molecular system with
 more than 2 billion atoms, you need the "bigbig" setting.
@@ -341,7 +362,7 @@ Read or write compressed files
 
 If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
-:doc:`read\_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
 
 **CMake variables**\ :
 
@@ -472,8 +493,3 @@ e.g. to Python.
 .. parsed-literal::
 
    LMP_INC = -DLAMMPS_EXCEPTIONS
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

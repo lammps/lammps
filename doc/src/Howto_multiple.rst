@@ -96,8 +96,3 @@ on the 3 partitions one after the other until all were finished.
 Initially, 3 simulations would be started simultaneously, one on each
 partition.  When one finished, that partition would then start
 the 4th simulation, and so forth, until all 8 were completed.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

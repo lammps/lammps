@@ -20,7 +20,12 @@ python module and the shared library into the python site-packages folders;
 either the system-wide ones, or the local users ones (in case of insufficient
 permissions for the global install). Python will then find the module
 and shared library file automatically. The exact location of these folders
-depends on your python version and your operating system.
+depends on your python version and your operating system. When using
+the CMake build system, you can set the python executable to use during
+the CMake configuration process.  Details are given in the build instructions
+for the :ref:`PYTHON <python>` package.  When using the conventional make
+system, you can override the python version to version x.y when calling
+make with PYTHON=pythonx.y.
 
 If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
@@ -63,8 +68,3 @@ the LAMMPS shared library (see :doc:`this section <Python_shlib>`), you will
 need to manually copy files like liblammps\_g++.so into the appropriate
 system directory.  This is not needed if you set the LD\_LIBRARY\_PATH
 environment variable as described above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

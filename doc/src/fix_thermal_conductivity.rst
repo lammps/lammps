@@ -115,7 +115,7 @@ fluid, in appropriate units.  See the :ref:`Muller-Plathe paper <Muller-Plathe1>
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -181,8 +181,3 @@ The option defaults are swap = 1.
 
 **(Zhang)** Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,
 109, 15060-15067 (2005).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -62,8 +62,11 @@ to identify potential structure matches.  Next, the deviation is computed betwee
 local structure (in the simulation) and a template of the ideal lattice structure.
 The deviation is calculated as:
 
-.. image:: Eqs/ptm_rmsd.jpg
-   :align: center
+.. math::
+
+   \text{RMSD}(\mathbf{u}, \mathbf{v}) = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
+   {\left|\left| s[\vec{u_i} - \overline{\mathbf{u}}] - \mathbf{Q} \vec{v_i} \right|\right|}^2}
+
 
 Here, u and v contain the coordinates of the local and ideal structures respectively,
 s is a scale factor, and Q is a rotation.  The best match is identified by the
@@ -128,8 +131,3 @@ Related commands
 
 
 **(Larsen)** Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

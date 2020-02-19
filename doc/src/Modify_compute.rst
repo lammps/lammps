@@ -55,8 +55,3 @@ each pair after force and energy has been computed for this pair. Then
 the tallied values are retrieved with the standard compute\_scalar or
 compute\_vector or compute\_peratom methods. The USER-TALLY package
 provides *examples*\ \_compute\_tally.html for utilizing this mechanism.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

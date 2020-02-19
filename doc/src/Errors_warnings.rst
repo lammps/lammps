@@ -118,10 +118,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost*
    The communication cutoff defaults to the maximum of what is inferred from
    pair and bond styles (will be zero, if none are defined) and what is specified
-   via :doc:`comm\_modify cutoff <comm_modify>` (defaults to 0.0).  If this results
+   via :doc:`comm_modify cutoff <comm_modify>` (defaults to 0.0).  If this results
    to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
    incorrect periodic images of atoms in interaction lists.  To avoid, either use
-   :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm\_modify cutoff <comm_modify>`.
+   :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm_modify cutoff <comm_modify>`.
 
 *Communication cutoff is too small for SNAP micro load balancing, increased to %lf*
    Self-explanatory.
@@ -683,6 +683,9 @@ This will most likely cause errors in kinetic fluctuations.
 *Slab correction not needed for MSM*
    Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.
 
+*Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword*
+   Self-explanatory.
+
 *System is not charge neutral, net charge = %g*
    The total charge on all atoms on the system is not 0.0.
    For some KSpace solvers this is only a warning.
@@ -793,10 +796,3 @@ This will most likely cause errors in kinetic fluctuations.
 
 *pair style reax is now deprecated and will soon be retired. Users should switch to pair\_style reax/c*
    Self-explanatory.
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

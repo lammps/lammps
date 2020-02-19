@@ -39,14 +39,14 @@ Description
 """""""""""
 
 Modify certain attributes of atoms defined and stored within LAMMPS,
-in addition to what is specified by the :doc:`atom\_style <atom_style>`
+in addition to what is specified by the :doc:`atom_style <atom_style>`
 command.  The *id* and *map* keywords must be specified before a
 simulation box is defined; other keywords can be specified any time.
 
 The *id* keyword determines whether non-zero atom IDs can be assigned
 to each atom.  If the value is *yes*\ , which is the default, IDs are
 assigned, whether you use the :doc:`create atoms <create_atoms>` or
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands to initialize atoms.  If the value is *no* the IDs for all
 atoms are assumed to be 0.
 
@@ -77,7 +77,7 @@ efficiently by creating a "map", which is either an *array* or *hash*
 table, as described below.
 
 When the *map* keyword is not specified in your input script, LAMMPS
-only creates a map for :doc:`atom\_styles <atom_style>` for molecular
+only creates a map for :doc:`atom_styles <atom_style>` for molecular
 systems which have permanent bonds (angles, etc).  No map is created
 for atomic systems, since it is normally not needed.  However some
 LAMMPS commands require a map, even for atomic systems, and will
@@ -103,7 +103,7 @@ of owned atoms.  This in only useful when the specified group is a
 small fraction of all the atoms, and there are other operations LAMMPS
 is performing that will be sped-up significantly by being able to loop
 over the smaller set of atoms.  Otherwise the reordering required by
-this option will be a net slow-down.  The :doc:`neigh\_modify include <neigh_modify>` and :doc:`comm\_modify group <comm_modify>`
+this option will be a net slow-down.  The :doc:`neigh_modify include <neigh_modify>` and :doc:`comm_modify group <comm_modify>`
 commands are two examples of commands that require this setting to
 work efficiently.  Several :doc:`fixes <fix>`, most notably time
 integration fixes like :doc:`fix nve <fix_nve>`, also take advantage of

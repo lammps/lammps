@@ -33,7 +33,7 @@ explained below.  Interactions between two line segments, each with N1
 and N2 spherical particles, are calculated as the pairwise sum of
 N1\*N2 Lennard-Jones interactions.  Interactions between a line segment
 with N spherical particles and a point particle are treated as the
-pairwise sum of N Lennard-Jones interactions.  See the :doc:`pair\_style lj/cut <pair_lj>` doc page for the definition of Lennard-Jones
+pairwise sum of N Lennard-Jones interactions.  See the :doc:`pair_style lj/cut <pair_lj>` doc page for the definition of Lennard-Jones
 interactions.
 
 The set of non-overlapping spherical sub-particles that represent a
@@ -79,9 +79,9 @@ the pair of particles to be included in the neighbor list.
    are using and the sub-particle cutoff settings.
 
 For style *line/lj*\ , the following coefficients must be defined for
-each pair of atom types via the :doc:`pair\_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above, or in the data file or restart files read by
-the :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * sizeI (distance units)
@@ -122,13 +122,13 @@ cutoff is used.
 For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -144,16 +144,11 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 Defining particles to be line segments so they participate in
 line/line or line/particle interactions requires the use the
-:doc:`atom\_style line <atom_style>` command.
+:doc:`atom_style line <atom_style>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style tri/lj <pair_tri_lj>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style tri/lj <pair_tri_lj>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

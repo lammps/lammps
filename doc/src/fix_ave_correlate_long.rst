@@ -70,11 +70,12 @@ Examples
 Description
 """""""""""
 
-This fix is similar in spirit and syntax to the :doc:`fix ave/correlate <fix_ave_correlate>`.  However, this fix allows the
-efficient calculation of time correlation functions on the fly over
-extremely long time windows without too much CPU overhead, using a
-multiple-tau method :ref:`(Ramirez) <Ramirez>` that decreases the resolution
-of the stored correlation function with time.
+This fix is similar in spirit and syntax to the :doc:`fix ave/correlate <fix_ave_correlate>`.
+However, this fix allows the efficient calculation of time correlation
+functions on-the-fly over extremely long time windows with little
+additional CPU overhead, using a multiple-tau method
+:ref:`(Ramirez) <Ramirez>` that decreases the resolution of the stored
+correlation function with time.  It is not a full drop-in replacement.
 
 The group specified with this command is ignored.  However, note that
 specified values may represent calculations performed by computes and
@@ -115,11 +116,13 @@ For the meaning of the additional optional keywords, see the :doc:`fix ave/corre
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-Since this fix in intended for the calculation of time correlation
-functions over very long MD simulations, the information about this
-fix is written automatically to binary restart files, so that the time
-correlation calculation can continue in subsequent simulations. None
-of the fix\_modify options are relevant to this fix.
+Contrary to doc:`fix ave/correlate <fix_ave_correlate>`_ this fix
+does **not** provide access to its internal data to various output
+options. Since this fix in intended for the calculation of time
+correlation functions over very long MD simulations, the information
+about this fix is written automatically to binary restart files, so
+that the time correlation calculation can continue in subsequent
+simulations. None of the fix\_modify options are relevant to this fix.
 
 No parameter of this fix can be used with the start/stop keywords of
 the run command. This fix is not invoked during energy minimization.
@@ -155,8 +158,3 @@ follows: ncorr=20, nlen=16, ncount=2.
 
 **(Ramirez)** J. Ramirez, S.K. Sukumaran, B. Vorselaars and
 A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

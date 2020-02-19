@@ -39,9 +39,9 @@ Note that the MM3 papers contains an error in Eq (1):
 (7/12)2.55 should be replaced with (7/12)2.55\^2
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^2)
 * :math:`r_0` (distance)
@@ -57,7 +57,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`
+:doc:`bond_coeff <bond_coeff>`
 
 **Default:** none
 

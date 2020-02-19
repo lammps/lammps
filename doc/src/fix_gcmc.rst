@@ -248,8 +248,10 @@ two groups: the default group "all" and the fix group
 The chemical potential is a user-specified input parameter defined
 as:
 
-.. image:: Eqs/fix_gcmc1.jpg
-   :align: center
+.. math::
+
+   \mu = \mu^{id} + \mu^{ex}
+
 
 The second term mu\_ex is the excess chemical potential due to
 energetic interactions and is formally zero for the fictitious gas
@@ -260,31 +262,35 @@ quite different.  The first term mu\_id is the ideal gas contribution
 to the chemical potential.  mu\_id can be related to the density or
 pressure of the fictitious gas reservoir by:
 
-.. image:: Eqs/fix_gcmc2.jpg
-   :align: center
+.. math::
 
-where k is Boltzman's constant,
-T is the user-specified temperature, rho is the number density,
-P is the pressure, and phi is the fugacity coefficient.
-The constant Lambda is required for dimensional consistency.
-For all unit styles except *lj* it is defined as the thermal
-de Broglie wavelength
+   \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
+             = & k T \ln{\frac{\phi P \Lambda^3}{k T}} 
 
-.. image:: Eqs/fix_gcmc3.jpg
-   :align: center
 
-where h is Planck's constant, and m is the mass of the exchanged atom
-or molecule.  For unit style *lj*\ , Lambda is simply set to the
-unity. Note that prior to March 2017, lambda for unit style *lj* was
-calculated using the above formula with h set to the rather specific
+where *k* is Boltzman's constant, *T* is the user-specified
+temperature, :math:`\rho` is the number density, *P* is the pressure,
+and :math:`\phi` is the fugacity coefficient.  The constant
+:math:`\Lambda` is required for dimensional consistency.  For all unit
+styles except *lj* it is defined as the thermal de Broglie wavelength
+
+.. math::
+
+   \Lambda = \sqrt{ \frac{h^2}{2 \pi m k T}}
+
+
+where *h* is Planck's constant, and *m* is the mass of the exchanged atom
+or molecule.  For unit style *lj*\ , :math:`\Lambda` is simply set to
+unity. Note that prior to March 2017, :math:`\Lambda` for unit style *lj*
+was calculated using the above formula with *h* set to the rather specific
 value of 0.18292026.  Chemical potential under the old definition can
 be converted to an equivalent value under the new definition by
-subtracting 3kTln(Lambda\_old).
+subtracting :math:`3 k T \ln(\Lambda_{old})`.
 
 As an alternative to specifying mu directly, the ideal gas reservoir
-can be defined by its pressure P using the *pressure* keyword, in
+can be defined by its pressure *P* using the *pressure* keyword, in
 which case the user-specified chemical potential is ignored. The user
-may also specify the fugacity coefficient phi using the
+may also specify the fugacity coefficient :math:`\phi` using the
 *fugacity\_coeff* keyword, which defaults to unity.
 
 The *full\_energy* option means that the fix calculates the total
@@ -322,7 +328,7 @@ this will ensure roughly the same behavior whether or not the
 *full\_energy* option is used.
 
 Inserted atoms and molecules are assigned random velocities based on
-the specified temperature T. Because the relative velocity of all
+the specified temperature *T*. Because the relative velocity of all
 atoms in the molecule is zero, this may result in inserted molecules
 that are systematically too cold. In addition, the intramolecular
 potential energy of the inserted molecule may cause the kinetic energy
@@ -343,7 +349,7 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 For that energy to be included in the total potential energy of the
 system (the quantity used when performing GCMC exchange and MC moves),
 you MUST enable
-the :doc:`fix\_modify <fix_modify>` *energy* option for that fix.  The
+the :doc:`fix_modify <fix_modify>` *energy* option for that fix.  The
 doc pages for individual :doc:`fix <fix>` commands specify if this
 should be done.
 
@@ -355,7 +361,7 @@ about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
-:doc:`compute\_modify dynamic/dof <compute_modify>` command to insure that the
+:doc:`compute_modify dynamic/dof <compute_modify>` command to insure that the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 
@@ -403,17 +409,17 @@ adds all inserted atoms of the specified type to the
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges,  the number
 of MC step attempts and successes etc.  See
-the :doc:`read\_restart <read_restart>` command for info on how to
+the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset\_timestep <reset_timestep>`.
+   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix computes a global vector of length 8, which can be accessed
@@ -471,7 +477,7 @@ Related commands
 :doc:`fix atom/swap <fix_atom_swap>`,
 :doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
-:doc:`delete\_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`
 
 Default
 """""""
@@ -493,8 +499,3 @@ listed above.
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

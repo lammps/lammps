@@ -119,7 +119,7 @@ The styles with *coul/cut* or *coul/long* or *coul/msm* add a
 Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
 For *buck/coul/long* and *buc/coul/msm*\ , an additional damping factor
 is applied to the Coulombic term so it can be used in conjunction with
-the :doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+the :doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 or *msm* option.  The Coulombic cutoff specified for this style means
 that pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
@@ -138,12 +138,12 @@ Note that these potentials are related to the :doc:`Born-Mayer-Huggins potential
    cutoff.  The additional Coulombic term can be cutoff or long-range (no
    cutoff) depending on whether the style name includes coul/cut or
    coul/long or coul/msm.  If you wish the C/r\^6 term to be long-range
-   (no cutoff), then see the :doc:`pair\_style buck/long/coul/long <pair_buck_long>` command.
+   (no cutoff), then see the :doc:`pair_style buck/long/coul/long <pair_buck_long>` command.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (energy units)
@@ -199,11 +199,11 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These styles support the :doc:`pair\_modify <pair_modify>` shift option
+These styles support the :doc:`pair_modify <pair_modify>` shift option
 for the energy of the exp() and 1/r\^6 portion of the pair interaction.
 
 The *buck/coul/long* pair style supports the
-:doc:`pair\_modify <pair_modify>` table option to tabulate the
+:doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair\_modify tail option for adding long-range
@@ -213,7 +213,7 @@ pair interaction.
 These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run\_style respa <run_style>` command.  They do not support the *inner*\ ,
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 Restrictions
@@ -226,7 +226,7 @@ only enabled if LAMMPS was built with that package.  See the :doc:`Build package
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style born <pair_born>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`
 
 **Default:** none
 
@@ -235,8 +235,3 @@ Related commands
 
 
 **(Khrapak)** Khrapak, Chaudhuri, and Morfill, J Chem Phys, 134, 054120 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

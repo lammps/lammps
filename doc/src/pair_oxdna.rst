@@ -82,7 +82,7 @@ for a detailed description of the oxDNA force field.
 
    These pair styles have to be used together with the related oxDNA bond style
    *oxdna/fene* for the connectivity of the phosphate backbone (see also documentation of
-   :doc:`bond\_style oxdna/fene <bond_oxdna>`). Most of the coefficients
+   :doc:`bond_style oxdna/fene <bond_oxdna>`). Most of the coefficients
    in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
    Exceptions are the first four coefficients after *oxdna/stk* (seq=seqdep, T=0.1, xi=1.3448 and kappa=2.6568 in the above example)
    and the first coefficient after *oxdna/hbond* (seq=seqdep in the above example).
@@ -118,9 +118,9 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`,
-:doc:`bond\_style oxrna2/fene <bond_oxdna>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`,
+:doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
+:doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
  
 **Default:** none
@@ -143,8 +143,3 @@ Related commands
 .. _Sulc1:
 
 **(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

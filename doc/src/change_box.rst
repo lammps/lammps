@@ -147,24 +147,40 @@ new owning processors.
 
 .. note::
 
-   The simulation box size/shape can be changed by arbitrarily
-   large amounts by this command.  This is not a problem, except that the
+   The simulation box size/shape can be changed by arbitrarily large
+   amounts by this command.  This is not a problem, except that the
    mapping of processors to the simulation box is not changed from its
    initial 3d configuration; see the :doc:`processors <processors>`
    command.  Thus, if the box size/shape changes dramatically, the
-   mapping of processors to the simulation box may not end up as optimal
-   as the initial mapping attempted to be.
+   mapping of processors to the simulation box may not end up as
+   optimal as the initial mapping attempted to be.  You may wish to
+   re-balance the atoms by using the :doc:`balance <balance>` command
+   if that is the case.
 
 .. note::
 
-   Because the keywords used in this command are applied one at a
-   time to the simulation box and the atoms in it, care must be taken
-   with triclinic cells to avoid exceeding the limits on skew after each
-   transformation in the sequence.  If skew is exceeded before the final
-   transformation this can be avoided by changing the order of the
-   sequence, or breaking the transformation into two or more smaller
-   transformations.  For more information on the allowed limits for box
-   skew see the discussion on triclinic boxes on :doc:`Howto triclinic <Howto_triclinic>` doc page.
+   You cannot use this command after reading a restart file (and
+   before a run is performed) if the restart file stored per-atom
+   information from a fix and any of the specified keywords change the
+   box size or shape or boundary conditions.  This is because atoms
+   may be moved to new processors and the restart info will not
+   migrate with them.  LAMMPS will generate an error if this could
+   happen.  Only the *ortho* and *triclinic* keywords do not trigger
+   this error.  One solution is to perform a "run 0" command before
+   using the change_box command.  This clears the per-atom restart
+   data, whether it has been re-assigned to a new fix or not.
+
+.. note::
+
+   Because the keywords used in this command are applied one at a time
+   to the simulation box and the atoms in it, care must be taken with
+   triclinic cells to avoid exceeding the limits on skew after each
+   transformation in the sequence.  If skew is exceeded before the
+   final transformation this can be avoided by changing the order of
+   the sequence, or breaking the transformation into two or more
+   smaller transformations.  For more information on the allowed
+   limits for box skew see the discussion on triclinic boxes on
+   :doc:`Howto triclinic <Howto_triclinic>` doc page.
 
 
 ----------

@@ -1191,9 +1191,9 @@ See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 .. parsed-literal::
 
-   CCFLAGS: -fopenmp               # for GNU Compilers
+   CCFLAGS: -fopenmp               # for GNU and CLang Compilers 
    CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
-   LINKFLAGS: -fopenmp             # for GNU Compilers
+   LINKFLAGS: -fopenmp             # for GNU and CLang Compilers
    LINKFLAGS: -qopenmp             # for Intel compilers on Linux
 
 For other platforms and compilers, please consult the documentation
@@ -1209,22 +1209,40 @@ how to address compatibility :ref:`issues with the 'default(none)' directive <de
 USER-QMMM package
 ---------------------------------
 
-.. note::
-
-   The LAMMPS executable these steps produce is not yet functional
-   for a QM/MM simulation.  You must also build Quantum ESPRESSO and
-   create a new executable (pwqmmm.x) which links LAMMPS and Quantum
-   ESPRESSO together.  These are steps 3 and 4 described in the
-   lib/qmmm/README file.  This requires a compatible Quantum espresso
-   and LAMMPS version.  The current interface and makefiles have
-   last been verified to work in February 2020 with Quantum Espresso
-   versions 6.3 to 6.5.
+For using LAMMPS to do QM/MM simulations via the USER-QMMM package you
+need to build LAMMPS as a library.  A LAMMPS executable with fix qmmm
+included can be built, but will not be able to do a QM/MM simulation
+on as such.  You must also build a QM code - currently only Quantum
+ESPRESSO (QE) is supported - and create a new executable which links
+LAMMPS and the QM code together.  Details are given in the
+lib/qmmm/README file.  It is also recommended to read the instructions
+for :doc:`linking with LAMMPS as a library <Build_link>` for
+background information.  This requires compatible Quantum Espresso
+and LAMMPS versions.  The current interface and makefiles have last
+been verified to work in February 2020 with Quantum Espresso versions
+6.3 to 6.5.
 
 **CMake build**\ :
 
-The CMake build system currently does not support building the full
-QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.
-You must use the traditional make build for this package.
+When using CMake, building a LAMMPS library is required and it is
+recommended to build a shared library, since any libraries built from
+the sources in the *lib* folder (including the essential libqmmm.a)
+are not included in the static LAMMPS library and (currently) not
+installed, while their code is included in the shared LAMMPS library.
+Thus a typical command line to configure building LAMMPS for USER-QMMM
+would be:
+
+.. code-block:: bash
+
+    cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM=yes \
+            -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
+
+After completing the LAMMPS build and also configuring and compiling
+Quantum ESPRESSO with external library support (via "make couple"),
+go back to the lib/qmmm folder and follow the instructions on the
+README file to build the combined LAMMPS/QE QM/MM executable
+(pwqmmm.x) in the lib/qmmm folder.  You need to make certain, that
+
 
 **Traditional make**\ :
 
@@ -1252,10 +1270,10 @@ a corresponding Makefile.lammps.machine file.
 
 You can then install QMMM package and build LAMMPS in the usual
 manner.  After completing the LAMMPS build and compiling Quantum
-ESPRESSO with external library support, go back to the lib/qmmm folder
-and follow the instructions on the README file to build the combined
-LAMMPS/QE QM/MM executable (pwqmmm.x) in the lib/qmmm folder.
-
+ESPRESSO with external library support (via "make couple"), go back to
+the lib/qmmm folder and follow the instructions in the README file to
+build the combined LAMMPS/QE QM/MM executable (pwqmmm.x) in the
+lib/qmmm folder.
 
 ----------
 

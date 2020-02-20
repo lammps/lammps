@@ -2018,27 +2018,33 @@ USER-QMMM package
 
 **Contents:**
 
-A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used in a
-QM/MM simulation, currently only in combination with the `Quantum ESPRESSO <espresso_>`_ package.
+A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
+the MM code in a QM/MM simulation.  This is currently only available
+in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
 .. _espresso: http://www.quantum-espresso.org
 
+To use this package you must have Quantum ESPRESSO (QE) available on
+your system and include its coupling library in the compilation and
+then compile LAMMPS as a library.  For QM/MM calculations you then
+build a custom binary with MPI support, that sets up 3 partitions with
+MPI sub-communicators (for inter- and intra-partition communication)
+and then calls the corresponding library interfaces on each partition
+(2x LAMMPS and 1x QE).
 
+The current implementation supports an ONIOM style mechanical coupling
+and a multi-pole based electrostatic coupling to the Quantum ESPRESSO
+plane wave DFT package.  The QM/MM interface has been written in a
+manner that coupling to other QM codes should be possible without
+changes to LAMMPS itself.
 
-To use this package you must have Quantum ESPRESSO available on your
-system.
+**Authors:** Axel Kohlmeyer (Temple U). Mariella Ippolito and Carlo Cavazzoni (CINECA, Italy)
 
-The current implementation only supports an ONIOM style mechanical
-coupling to the Quantum ESPRESSO plane wave DFT package.
-Electrostatic coupling is in preparation and the interface has been
-written in a manner that coupling to other QM codes should be possible
-without changes to LAMMPS itself.
-
-**Author:** Axel Kohlmeyer (Temple U).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-qmmm>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-qmmm>`
+on the :doc:`Build extras <Build_extras>` doc page.
 
 **Supporting info:**
 

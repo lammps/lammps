@@ -315,6 +315,7 @@ Caswell
 Cates
 cauchy
 cauchystat
+Cavazzoni
 Cavium
 Cawkwell
 cbecker
@@ -1238,6 +1239,7 @@ iostreams
 iparam
 ipi
 ipp
+Ippolito
 IPv
 IPython
 Isele
@@ -1617,6 +1619,7 @@ manybody
 MANYBODY
 Maras
 Marchetti
+Mariella
 Marrink
 Marroquin
 Marsaglia
@@ -2611,6 +2614,7 @@ Shenderova
 Shi
 Shiga
 Shinoda
+shlib
 shockvel
 si
 SiC

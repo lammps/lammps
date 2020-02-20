@@ -311,7 +311,7 @@ other.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
+above, or in the data or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
@@ -323,7 +323,7 @@ global value specified in the pair\_style command is used.
 
 For *coul/long* and *coul/msm* no cutoff can be specified for an
 individual I,J type pair via the pair\_coeff command.  All type pairs
-use the same global Coulombic cutoff specified in the pair\_style
+use the same global Coulomb cutoff specified in the pair\_style
 command.
 
 
@@ -372,8 +372,8 @@ pressure.
 These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style can only be used via the *pair* keyword of the
-:doc:`run_style respa <run_style>` command.  It does not support the
+These pair styles can only be used via the *pair* keyword of the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 

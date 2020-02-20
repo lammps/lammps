@@ -146,21 +146,15 @@ system. Using these files you can enable/disable portions of the
 available packages in LAMMPS. If you need a custom preset you can take
 one of them as a starting point and customize it to your needs.
 
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/all\_on.cmake  [OPTIONS] ../cmake | enable all packages                                       |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/all\_off.cmake [OPTIONS] ../cmake | disable all packages                                      |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  | enable just a few core packages                           |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  | enable most common packages                               |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  | disable packages that do require extra libraries or tools |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  | change settings to use the Clang compilers by default     |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/mingw.cmake [OPTIONS] ../cmake    | enable all packages compatible with MinGW compilers       |
-+-------------------------------------------------------------+-----------------------------------------------------------+
+.. code-block:: bash
+
+    cmake -C ../cmake/presets/all\_on.cmake  [OPTIONS] ../cmake  # enable all packages
+    cmake -C ../cmake/presets/all\_off.cmake [OPTIONS] ../cmake  # disable all packages
+    cmake -C ../cmake/presets/minimal.cmake  [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most common packages
+    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
+    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/mingw.cmake    [OPTIONS] ../cmake  # enable all packages compatible with MinGW compilers
 
 .. note::
 
@@ -200,27 +194,18 @@ Just type "make" in lammps/src to see a one-line summary.
 
 These commands install/un-install sets of packages:
 
-+-----------------------------------+-----------------------------------------------------+
-| make yes-all                      | install all packages                                |
-+-----------------------------------+-----------------------------------------------------+
-| make no-all                       | un-install all packages                             |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-standard or make yes-std | install standard packages                           |
-+-----------------------------------+-----------------------------------------------------+
-| make no-standard or make no-std   | un-install standard packages                        |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-user                     | install user packages                               |
-+-----------------------------------+-----------------------------------------------------+
-| make no-user                      | un-install user packages                            |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-lib                      | install packages that require extra libraries       |
-+-----------------------------------+-----------------------------------------------------+
-| make no-lib                       | un-install packages that require extra libraries    |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-ext                      | install packages that require external libraries    |
-+-----------------------------------+-----------------------------------------------------+
-| make no-ext                       | un-install packages that require external libraries |
-+-----------------------------------+-----------------------------------------------------+
+.. code-block:: bash
+
+    make yes-all                        # install all packages
+    make no-all                         # uninstall all packages
+    make yes-standard or make yes-std   # install standard packages
+    make no-standard or make no-std     # uninstall standard packages
+    make yes-user                       # install user packages
+    make no-user                        # uninstall user packages
+    make yes-lib                        # install packages that require extra libraries
+    make no-lib                         # uninstall packages that require extra libraries
+    make yes-ext                        # install packages that require external libraries
+    make no-ext                         # uninstall packages that require external libraries
 
 which install/un-install various sets of packages.  Typing "make
 package" will list all the these commands.

@@ -39,7 +39,7 @@ class FixNumDiff : public Fix {
   double memory_usage();
 
 protected:
-  int eflag,vflag;            // flags for energy/virial computation
+  int eflag;            // flags for energy/virial computation
   int external_force_clear;   // clear forces locally or externally
 
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
@@ -51,16 +51,15 @@ protected:
   double **local_forces;            // local forces from numerical difference (this might be usefull for debugging)
   double **global_forces;           // global forces from numerical difference
 
-  void update_force();
+  void update_force(int vflag);
   void force_clear();
-  virtual void openfile(const char* filename);
+  // virtual void openfile(const char* filename);
 
  private:
   void create_groupmap();
   void displace_atom(int local_idx, int direction, int magnitude);
-  void writeMatrix(double **dynmat);
-  void nd_force_clear(double **dynmat);
-  void calculateForces();
+  void nd_force_clear(double **forces);
+  void calculate_forces(int vflag);
 
   int ilevel_respa;
   double del;
@@ -71,6 +70,8 @@ protected:
   int scaleflag;
   int me;
   bigint *groupmap;
+  double **temp_f;
+  double *e;
 
   int compressed;            // 1 if dump file is written compressed, 0 no
   int binaryflag;            // 1 if dump file is written binary, 0 no

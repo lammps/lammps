@@ -613,6 +613,7 @@ dimgray
 dipolar
 dir
 Direc
+dirname
 dirs
 discoverable
 discretization

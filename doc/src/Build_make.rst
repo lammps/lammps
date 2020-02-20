@@ -7,15 +7,27 @@ src/MAKE/MACHINES, src/MAKE/OPTIONS, or src/MAKE/MINE directory (see
 below).  It can include various options for customizing your LAMMPS
 build with a number of global compilation options and features.
 
-To include LAMMPS packages (i.e. optional commands and styles) you
-must install them first, as discussed on the :doc:`Build package <Build_package>` doc page.  If the packages require
-provided or external libraries, you must build those libraries before
-building LAMMPS.  Building :doc:`LAMMPS with CMake <Build_cmake>` can
-automate all of this for many types of machines, especially
-workstations, desktops and laptops, so we suggest you try it first.
+Those makefiles are written for and tested with GNU make and may not
+be compatible with other make programs.  In most cases, if the "make"
+program is not GNU make, then it will be installed as "gmake".  If
+GNU make or a compatible make is not available, you may have to first
+install it.  These makefiles and the scripts they are calling expect
+a few additional tools to be available and functioning.
 
-These commands perform a default LAMMPS build, producing the LAMMPS
-executable lmp\_serial or lmp\_mpi in lammps/src:
+  * a Bourne shell compatible "Unix" shell program (often this is bash)
+  * a few shell utilities: ls, mv, ln, rm, grep, sed, tr, cat, touch, diff, dirname
+  * python (optional, required for "make lib-XXX" in the src folder)
+
+To include LAMMPS packages (i.e. optional commands and styles) you
+must enable them first, as discussed on the :doc:`Build package
+<Build_package>` doc page.  If a packages requires (provided or
+external) libraries, you must build those libraries before building
+LAMMPS.  Building :doc:`LAMMPS with CMake <Build_cmake>` can automate
+much of this for many types of machines, especially workstations,
+desktops and laptops, so we suggest you try it first.
+
+The commands below perform a default LAMMPS build, producing the LAMMPS
+executable lmp\_serial and lmp\_mpi in lammps/src:
 
 
 .. code-block:: bash
@@ -42,13 +54,15 @@ re-compiled.
 
 .. note::
 
-   When you build LAMMPS for the first time, a long list of \*.d
-   files will be printed out rapidly.  This is not an error; it is the
-   Makefile doing its normal creation of dependencies.
-
+   Before the actual compilation starts, LAMMPS will perform several
+   steps to collect information from the configuration and setup that
+   is then embedded into the executable.  When you build LAMMPS for
+   the first time, it will also compile a tool to quickly assemble
+   a list of dependencies, that are required for the make program to
+   correctly detect which parts need to be recompiled after changes
+   were made to the sources.
 
 ----------
-
 
 The lammps/src/MAKE tree contains all the Makefile.machine files
 included in the LAMMPS distribution.  Typing "make machine" uses

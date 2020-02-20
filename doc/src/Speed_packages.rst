@@ -146,7 +146,7 @@ details.
 Likewise, the bench directory has FERMI and KEPLER and PHI
 sub-directories with Make.py commands and input scripts for using all
 the accelerator packages on various machines.  See the README files in
-those dirs.
+those directories.
 
 As mentioned above, the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
 performance results for the various accelerator packages for several

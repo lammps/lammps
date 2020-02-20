@@ -9,10 +9,12 @@ build with a number of global compilation options and features.
 
 Those makefiles are written for and tested with GNU make and may not
 be compatible with other make programs.  In most cases, if the "make"
-program is not GNU make, then it will be installed as "gmake".  If
-GNU make or a compatible make is not available, you may have to first
-install it.  These makefiles and the scripts they are calling expect
-a few additional tools to be available and functioning.
+program is not GNU make, then there will be a GNU make program
+available under the name "gmake".  If GNU make or a compatible make is
+not available, you may have to first install it or switch to building
+with :doc:`CMake <Build_cmake>`.  The makefiles of the traditional
+make based build process and the scripts they are calling expect a few
+additional tools to be available and functioning.
 
   * a Bourne shell compatible "Unix" shell program (often this is bash)
   * a few shell utilities: ls, mv, ln, rm, grep, sed, tr, cat, touch, diff, dirname
@@ -21,14 +23,15 @@ a few additional tools to be available and functioning.
 To include LAMMPS packages (i.e. optional commands and styles) you
 must enable them first, as discussed on the :doc:`Build package
 <Build_package>` doc page.  If a packages requires (provided or
-external) libraries, you must build those libraries before building
-LAMMPS.  Building :doc:`LAMMPS with CMake <Build_cmake>` can automate
-much of this for many types of machines, especially workstations,
-desktops and laptops, so we suggest you try it first.
+external) libraries, you must configure and build those libraries
+**before** building LAMMPS itself and especially **before** enabling
+such a package with "make yes-<package>".  Building :doc:`LAMMPS
+with CMake <Build_cmake>` can automate much of this for many types of
+machines, especially workstations, desktops, and laptops, so we suggest
+you try it first when building LAMMPS in those cases.
 
 The commands below perform a default LAMMPS build, producing the LAMMPS
 executable lmp\_serial and lmp\_mpi in lammps/src:
-
 
 .. code-block:: bash
 
@@ -64,10 +67,11 @@ re-compiled.
 
 ----------
 
-The lammps/src/MAKE tree contains all the Makefile.machine files
-included in the LAMMPS distribution.  Typing "make machine" uses
-Makefile.machine.  Thus the "make serial" or "make mpi" lines above
-use Makefile.serial and Makefile.mpi.  Others are in these dirs:
+The lammps/src/MAKE tree contains the Makefile.machine files included
+in the LAMMPS distribution.  Typing "make machine" uses
+*Makefile.machine*\ .  Thus the "make serial" or "make mpi" lines above
+use Makefile.serial and Makefile.mpi, respectively.  Other makefiles
+are in these directories:
 
 
 .. parsed-literal::
@@ -78,7 +82,7 @@ use Makefile.serial and Makefile.mpi.  Others are in these dirs:
 
 Typing "make" lists all the available Makefile.machine files.  A file
 with the same name can appear in multiple folders (not a good idea).
-The order the dirs are searched is as follows: src/MAKE/MINE,
+The order the directories are searched is as follows: src/MAKE/MINE,
 src/MAKE, src/MAKE/OPTIONS, src/MAKE/MACHINES.  This gives preference
 to a customized file you put in src/MAKE/MINE.
 

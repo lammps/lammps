@@ -337,15 +337,15 @@ Python function is as follows:
      ...
 
 The function definition must include a variable (lmpptr in this case)
-which corresponds to SELF in the python command.  The first line of
-the function imports the Python module lammps.py in the python dir of
+which corresponds to SELF in the python command.  The first line of the
+function imports the Python module lammps.py in the python directory of
 the distribution.  The second line creates a Python object "lmp" which
-wraps the instance of LAMMPS that called the function.  The
-"ptr=lmpptr" argument is what makes that happen.  The third line
-invokes the command() function in the LAMMPS library interface.  It
-takes a single string argument which is a LAMMPS input script command
-for LAMMPS to execute, the same as if it appeared in your input
-script.  In this case, LAMMPS should output
+wraps the instance of LAMMPS that called the function.  The "ptr=lmpptr"
+argument is what makes that happen.  The third line invokes the
+command() function in the LAMMPS library interface.  It takes a single
+string argument which is a LAMMPS input script command for LAMMPS to
+execute, the same as if it appeared in your input script.  In this case,
+LAMMPS should output
 
 
 .. parsed-literal::

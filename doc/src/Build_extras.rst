@@ -1191,9 +1191,9 @@ See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 .. parsed-literal::
 
-   CCFLAGS: -fopenmp               # for GNU and CLang Compilers 
+   CCFLAGS: -fopenmp               # for GNU and Clang Compilers 
    CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
-   LINKFLAGS: -fopenmp             # for GNU and CLang Compilers
+   LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
    LINKFLAGS: -qopenmp             # for Intel compilers on Linux
 
 For other platforms and compilers, please consult the documentation

@@ -30,7 +30,6 @@ class FixNumDiff : public Fix {
   ~FixNumDiff();
   int setmask();
   void init();
-  void setup(int);
   void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
@@ -60,9 +59,11 @@ protected:
   void displace_atom(int local_idx, int direction, int magnitude);
   void nd_force_clear(double **forces);
   void calculate_forces(int vflag);
+  void compute_energy();
 
   int ilevel_respa;
   double del;
+  int nmax;
 
   int igroup,groupbit;
   bigint gcount;             // number of atoms in group
@@ -71,14 +72,7 @@ protected:
   int me;
   bigint *groupmap;
   double **temp_f;
-  double *e;
-
-  int compressed;            // 1 if dump file is written compressed, 0 no
-  int binaryflag;            // 1 if dump file is written binary, 0 no
-  int file_opened;           // 1 if openfile method has been called, 0 no
-  int file_flag;             // 1 custom file name, 0 dynmat.dat
-
-  FILE *fp;
+  double energy;
 
 };
 

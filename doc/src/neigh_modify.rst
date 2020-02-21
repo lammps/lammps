@@ -185,7 +185,7 @@ atom can have.
    because LAMMPS doesn't error check these limits for every pairwise
    interaction (too costly), but only after all the particle's neighbors
    have been found.  This problem usually means something is very wrong
-   with the way you've setup your problem (particle spacing, cutoff
+   with the way you have setup your problem (particle spacing, cutoff
    length, neighbor skin distance, etc).  If you really expect that many
    neighbors per particle, then boost the *one* and *page* settings
    accordingly.

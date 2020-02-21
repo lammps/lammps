@@ -98,7 +98,7 @@ on particle *i* due to contact with particle *j* is given by:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{ne, Hooke} = k_N \delta_{ij} \mathbf{n}\end{equation}
+   \mathbf{F}_{ne, Hooke} = k_N \delta_{ij} \mathbf{n}
 
 Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
 overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
@@ -112,7 +112,7 @@ For the *hertz* model, the normal component of force is given by:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{ne, Hertz} = k_N R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}\end{equation}
+   \mathbf{F}_{ne, Hertz} = k_N R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
 Here, :math:`R_{eff} = \frac{R_i R_j}{R_i + R_j}` is the effective
 radius, denoted for simplicity as *R* from here on.  For *hertz*\ , the
@@ -124,7 +124,7 @@ For the *hertz/material* model, the force is given by:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{ne, Hertz/material} = \frac{4}{3} E_{eff} R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}\end{equation}
+   \mathbf{F}_{ne, Hertz/material} = \frac{4}{3} E_{eff} R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
 Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}` is the effective Young's
 modulus, with :math:`\nu_i, \nu_j` the Poisson ratios of the particles of
@@ -139,7 +139,7 @@ is simply Hertz with an additional attractive cohesion term:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{ne, dmt} = \left(\frac{4}{3} E R^{1/2}\delta_{ij}^{3/2} - 4\pi\gamma R\right)\mathbf{n}\end{equation}
+   \mathbf{F}_{ne, dmt} = \left(\frac{4}{3} E R^{1/2}\delta_{ij}^{3/2} - 4\pi\gamma R\right)\mathbf{n}
 
 The *jkr* model is the :ref:`(Johnson-Kendall-Roberts) <JKR1971>` model,
 where the force is computed as:
@@ -147,8 +147,7 @@ where the force is computed as:
 
 .. math::
 
-   \begin{equation}\label{eq:force_jkr}
-   \mathbf{F}_{ne, jkr} = \left(\frac{4Ea^3}{3R} - 2\pi a^2\sqrt{\frac{4\gamma E}{\pi a}}\right)\mathbf{n}\end{equation}
+   \mathbf{F}_{ne, jkr} = \left(\frac{4Ea^3}{3R} - 2\pi a^2\sqrt{\frac{4\gamma E}{\pi a}}\right)\mathbf{n}
 
 Here, *a* is the radius of the contact zone, related to the overlap
 :math:`\delta` according to:
@@ -156,7 +155,7 @@ Here, *a* is the radius of the contact zone, related to the overlap
 
 .. math::
 
-   \begin{equation}\delta = a^2/R - 2\sqrt{\pi \gamma a/E}\end{equation}
+   \delta = a^2/R - 2\sqrt{\pi \gamma a/E}
 
 LAMMPS internally inverts the equation above to solve for *a* in terms
 of :math:`\delta`, then solves for the force in the previous
@@ -179,7 +178,7 @@ following general form:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}\end{equation}
+   \mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}
 
 Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n} \mathbf{n}` is the component of relative velocity along
 :math:`\mathbf{n}`.
@@ -208,7 +207,7 @@ user-specified damping coefficient in the *normal* model:
 
 .. math::
 
-   \begin{equation}\eta_n = \eta_{n0}\end{equation}
+   \eta_n = \eta_{n0}
 
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
 contact model, in units of *mass*\ /\ *time*\ .
@@ -218,7 +217,7 @@ For *damping mass\_velocity*, the normal damping is given by:
 
 .. math::
 
-   \begin{equation}\eta_n = \eta_{n0} m_{eff}\end{equation}
+   \eta_n = \eta_{n0} m_{eff}
 
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
 contact model, in units of *mass*\ /\ *time* and
@@ -233,7 +232,7 @@ damping is given by:
 
 .. math::
 
-   \begin{equation}\eta_n = \eta_{n0}\ a m_{eff}\end{equation}
+   \eta_n = \eta_{n0}\ a m_{eff}
 
 Here, *a* is the contact radius, given by :math:`a =\sqrt{R\delta}`
 for all models except *jkr*\ , for which it is given implicitly according
@@ -247,7 +246,7 @@ the normal model is interpreted as a restitution coefficient
 
 .. math::
 
-   \begin{equation}\eta_n = \alpha (m_{eff}k_n)^{1/2}\end{equation}
+   \eta_n = \alpha (m_{eff}k_n)^{1/2}
 
 For normal contact models based on material parameters, :math:`k_n = 4/3Ea`.  The parameter :math:`\alpha` is related to the restitution
 coefficient *e* according to:
@@ -255,7 +254,7 @@ coefficient *e* according to:
 
 .. math::
 
-   \begin{equation}\alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6\end{equation}
+   \alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
 
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
@@ -267,7 +266,7 @@ damping components:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_n = \mathbf{F}_{ne} + \mathbf{F}_{n,damp}\end{equation}
+   \mathbf{F}_n = \mathbf{F}_{ne} + \mathbf{F}_{n,damp}
 
 
 ----------
@@ -295,14 +294,14 @@ gran/hooke* style. The tangential force (\mathbf{F}\_t\) is given by:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_t =  -min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}\end{equation}
+   \mathbf{F}_t =  -min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 The tangential damping force :math:`\mathbf{F}_\mathrm{t,damp}` is given by:
 
 
 .. math::
 
-   \begin{equation}\mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}\end{equation}
+   \mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}
 
 The tangential damping prefactor :math:`\eta_t` is calculated by scaling
 the normal damping :math:`\eta_n` (see above):
@@ -310,7 +309,7 @@ the normal damping :math:`\eta_n` (see above):
 
 .. math::
 
-   \begin{equation}\eta_t = -x_{\gamma,t} \eta_n\end{equation}
+   \eta_t = -x_{\gamma,t} \eta_n
 
 The normal damping prefactor :math:`\eta_n` is determined by the choice
 of the *damping* keyword, as discussed above.  Thus, the *damping*
@@ -331,7 +330,7 @@ the normal force:
 
 .. math::
 
-   \begin{equation}F_{n0} = \|\mathbf{F}_n\|\end{equation}
+   F_{n0} = \|\mathbf{F}_n\|
 
 For cohesive models such as *jkr* and *dmt*\ , the critical force is
 adjusted so that the critical tangential force approaches :math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
@@ -341,7 +340,7 @@ form:
 
 .. math::
 
-   \begin{equation}F_{n0} = \|\mathbf{F}_ne + 2 F_{pulloff}\|\end{equation}
+   F_{n0} = \|\mathbf{F}_ne + 2 F_{pulloff}\|
 
 Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*\ , and
 :math:`F_{pulloff} = 4\pi \gamma R` for *dmt*\ .
@@ -356,7 +355,7 @@ For *tangential linear\_history*, the tangential force is given by:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}\end{equation}
+   \mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 Here, :math:`\mathbf{\xi}` is the tangential displacement accumulated
 during the entire duration of the contact:
@@ -364,7 +363,7 @@ during the entire duration of the contact:
 
 .. math::
 
-   \begin{equation}\mathbf{\xi} = \int_{t0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau\end{equation}
+   \mathbf{\xi} = \int_{t0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau
 
 This accumulated tangential displacement must be adjusted to account
 for changes in the frame of reference of the contacting pair of
@@ -386,8 +385,7 @@ work:
 
 .. math::
 
-   \begin{equation}\mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'}\| - \mathbf{n}\cdot\mathbf{\xi'}}
-   \label{eq:rotate_displacements}\end{equation}
+   \mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'}\| - \mathbf{n}\cdot\mathbf{\xi'}}
 
 Here, :math:`\mathbf{\xi'}` is the accumulated displacement prior to the
 current time step and :math:`\mathbf{\xi}` is the corrected
@@ -404,7 +402,7 @@ discussion):
 
 .. math::
 
-   \begin{equation}\mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}\right)\end{equation}
+   \mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}\right)
 
 The tangential force is added to the total normal force (elastic plus
 damping) to produce the total force on the particle. The tangential
@@ -414,12 +412,12 @@ overlap region) to induce a torque on each particle according to:
 
 .. math::
 
-   \begin{equation}\mathbf{\tau}_i = -(R_i - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t\end{equation}
+   \mathbf{\tau}_i = -(R_i - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
 
 
 .. math::
 
-   \begin{equation}\mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t\end{equation}
+   \mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
 
 For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution is used, which differs from the *linear\_history*
 option by an additional factor of *a*\ , the radius of the contact region. The tangential force is given by:
@@ -427,7 +425,7 @@ option by an additional factor of *a*\ , the radius of the contact region. The t
 
 .. math::
 
-   \begin{equation}\mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}\end{equation}
+   \mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 Here, *a* is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
 for all normal contact models, except for *jkr*\ , where it is given
@@ -443,7 +441,7 @@ case, mixing of the shear modulus for different particle types *i* and
 
 .. math::
 
-   \begin{equation}1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j\end{equation}
+   1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j
 
 The *mindlin\_rescale* option uses the same form as *mindlin*\ , but the
 magnitude of the tangential displacement is re-scaled as the contact
@@ -452,7 +450,7 @@ unloads, i.e. if :math:`a < a_{t_{n-1}}`:
 
 .. math::
 
-   \begin{equation}\mathbf{\xi} = \mathbf{\xi_{t_{n-1}}} \frac{a}{a_{t_{n-1}}}\end{equation}
+   \mathbf{\xi} = \mathbf{\xi_{t_{n-1}}} \frac{a}{a_{t_{n-1}}}
 
 Here, :math:`t_{n-1}` indicates the value at the previous time
 step. This rescaling accounts for the fact that a decrease in the
@@ -485,7 +483,7 @@ the tangential force:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{roll,0} =  k_{roll} \mathbf{\xi}_{roll}  - \gamma_{roll} \mathbf{v}_{roll}\end{equation}
+   \mathbf{F}_{roll,0} =  k_{roll} \mathbf{\xi}_{roll}  - \gamma_{roll} \mathbf{v}_{roll}
 
 Here, :math:`\mathbf{v}_{roll} = -R(\mathbf{\Omega}_i - \mathbf{\Omega}_j) \times \mathbf{n}` is the relative rolling
 velocity, as given in :ref:`Wang et al <Wang2015>` and
@@ -494,7 +492,7 @@ velocity, as given in :ref:`Wang et al <Wang2015>` and
 
 .. math::
 
-   \begin{equation}\mathbf{\xi}_{roll} = \int_{t_0}^t \mathbf{v}_{roll} (\tau) \mathrm{d} \tau\end{equation}
+   \mathbf{\xi}_{roll} = \int_{t_0}^t \mathbf{v}_{roll} (\tau) \mathrm{d} \tau
 
 A Coulomb friction criterion truncates the rolling pseudo-force if it
 exceeds a critical value:
@@ -502,7 +500,7 @@ exceeds a critical value:
 
 .. math::
 
-   \begin{equation}\mathbf{F}_{roll} =  min(\mu_{roll} F_{n,0}, \|\mathbf{F}_{roll,0}\|)\mathbf{k}\end{equation}
+   \mathbf{F}_{roll} =  min(\mu_{roll} F_{n,0}, \|\mathbf{F}_{roll,0}\|)\mathbf{k}
 
 Here, :math:`\mathbf{k} = \mathbf{v}_{roll}/\|\mathbf{v}_{roll}\|` is the direction of
 the pseudo-force.  As with tangential displacement, the rolling
@@ -519,12 +517,12 @@ opposite torque on each particle, according to:
 
 .. math::
 
-   \begin{equation}\tau_{roll,i} =  R_{eff} \mathbf{n} \times \mathbf{F}_{roll}\end{equation}
+   \tau_{roll,i} =  R_{eff} \mathbf{n} \times \mathbf{F}_{roll}
 
 
 .. math::
 
-   \begin{equation}\tau_{roll,j} =  -\tau_{roll,i}\end{equation}
+   \tau_{roll,j} =  -\tau_{roll,i}
 
 
 ----------
@@ -551,7 +549,7 @@ the most straightforward treatment:
 
 .. math::
 
-   \begin{equation}\tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}\end{equation}
+   \tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}
 
 Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` is the twisting angular displacement, and
 :math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` is the relative twisting angular velocity. The torque
@@ -560,7 +558,7 @@ is then truncated according to:
 
 .. math::
 
-   \begin{equation}\tau_{twist} = min(\mu_{twist} F_{n,0}, \tau_{twist,0})\end{equation}
+   \tau_{twist} = min(\mu_{twist} F_{n,0}, \tau_{twist,0})
 
 Similar to the sliding and rolling displacement, the angular
 displacement is rescaled so that it corresponds to the critical value
@@ -569,7 +567,7 @@ if the twisting torque exceeds this critical value:
 
 .. math::
 
-   \begin{equation}\xi_{twist} = \frac{1}{k_{twist}} (\mu_{twist} F_{n,0}sgn(\Omega_{twist}) - \gamma_{twist}\Omega_{twist})\end{equation}
+   \xi_{twist} = \frac{1}{k_{twist}} (\mu_{twist} F_{n,0}sgn(\Omega_{twist}) - \gamma_{twist}\Omega_{twist})
 
 For *twisting sds*\ , the coefficients :math:`k_{twist}, \gamma_{twist}`
 and :math:`\mu_{twist}` are simply the user input parameters that follow
@@ -582,29 +580,29 @@ sliding friction coefficients, as discussed in
 
 .. math::
 
-   \begin{equation}k_{twist} = 0.5k_ta^2\end{equation}
+   k_{twist} = 0.5k_ta^2
 
 
 .. math::
 
-   \begin{equation}\eta_{twist} = 0.5\eta_ta^2\end{equation}
+   \eta_{twist} = 0.5\eta_ta^2
 
 
 .. math::
 
-   \begin{equation}\mu_{twist} = \frac{2}{3}a\mu_t\end{equation}
+   \mu_{twist} = \frac{2}{3}a\mu_t
 
 Finally, the twisting torque on each particle is given by:
 
 
 .. math::
 
-   \begin{equation}\mathbf{\tau}_{twist,i} = \tau_{twist}\mathbf{n}\end{equation}
+   \mathbf{\tau}_{twist,i} = \tau_{twist}\mathbf{n}
 
 
 .. math::
 
-   \begin{equation}\mathbf{\tau}_{twist,j} = -\mathbf{\tau}_{twist,i}\end{equation}
+   \mathbf{\tau}_{twist,j} = -\mathbf{\tau}_{twist,i}
 
 
 ----------
@@ -690,7 +688,7 @@ models. In that case, the effective elastic modulus is computed as:
 
 .. math::
 
-   \begin{equation}E_{eff,ij} = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}\end{equation}
+   E_{eff,ij} = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}
 
 If the *i-j* coefficients :math:`E_{ij}` and :math:`\nu_{ij}` are
 explicitly specified, the effective modulus is computed as:
@@ -698,14 +696,14 @@ explicitly specified, the effective modulus is computed as:
 
 .. math::
 
-   \begin{equation}E_{eff,ij} = \left(\frac{1-\nu_{ij}^2}{E_{ij}} + \frac{1-\nu_{ij}^2}{E_{ij}}\right)^{-1}\end{equation}
+   E_{eff,ij} = \left(\frac{1-\nu_{ij}^2}{E_{ij}} + \frac{1-\nu_{ij}^2}{E_{ij}}\right)^{-1}
 
 or
 
 
 .. math::
 
-   \begin{equation}E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}\end{equation}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair\_style command does not need to be
 specified in an input script that reads a restart file.

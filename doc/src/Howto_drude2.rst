@@ -9,9 +9,7 @@ USER-DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
 
-
 ----------
-
 
 **Overview of Drude induced dipoles**
 
@@ -35,7 +33,7 @@ polarizability :math:`\alpha` by
 
 .. math::
 
-   \begin{equation} K_D = \frac 1 2\, \frac {q_D^2} \alpha\end{equation}
+   K_D = \frac 1 2\, \frac {q_D^2} \alpha
 
 Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
@@ -75,10 +73,7 @@ important features:
 #. The possibility to thermostat the additional degrees of freedom associated with the induced dipoles at very low temperature, in terms of the reduced coordinates of the Drude particles with respect to their cores. This makes the trajectory close to that of relaxed induced dipoles.
 #. The Drude dipoles on covalently bonded atoms interact too strongly due to the short distances, so an atom may capture the Drude particle (shell) of a neighbor, or the induced dipoles within the same molecule may align too much.  To avoid this, damping at short of the interactions between the point charges composing the induced dipole can be done by :ref:`Thole <Thole2>` functions.
 
-
-
 ----------
-
 
 **Preparation of the data file**
 

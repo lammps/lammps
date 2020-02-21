@@ -302,6 +302,16 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
+double FixPrecessionSpin::compute_zeeman_energy(double spi[4])
+{
+  double energy = 0.0;
+  double scalar = nhx*spi[0]+nhy*spi[1]+nhz*spi[2];
+  energy = hbar*H_field*spi[3]*scalar;
+  return energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];

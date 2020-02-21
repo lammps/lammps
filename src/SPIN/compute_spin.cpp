@@ -24,11 +24,15 @@
 #include "compute_spin.h"
 #include <mpi.h>
 #include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "error.h"
+#include "fix_precession_spin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
+#include "pair_spin.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -64,6 +68,50 @@ void ComputeSpin::init()
 {
   hbar = force->hplanck/MY_2PI;
   kb = force->boltz;
+
+  // init length of vector of ptrs to Pair/Spin styles
+
+  if (npairspin > 0) {
+    spin_pairs = new PairSpin*[npairspin];
+  }
+
+  // loop 2: fill vector with ptrs to Pair/Spin styles
+
+  int count = 0;
+  if (npairspin == 1) {
+    count = 1;
+    spin_pairs[0] = (PairSpin *) force->pair_match("spin",0,0);
+  } else if (npairspin > 1) {
+    for (int i = 0; i<npairs; i++) {
+      if (force->pair_match("spin",0,i)) {
+        spin_pairs[count] = (PairSpin *) force->pair_match("spin",0,i);
+        count++;
+      }
+    }
+  }
+
+  if (count != npairspin)
+    error->all(FLERR,"Incorrect number of spin pairs");
+
+  // set pair/spin and long/spin flags
+
+  if (npairspin >= 1) pair_spin_flag = 1;
+
+  for (int i = 0; i<npairs; i++) {
+    if (force->pair_match("spin/long",0,i)) {
+      long_spin_flag = 1;
+    }
+  }
+  
+  // ptrs FixPrecessionSpin classes
+
+  int iforce;
+  for (iforce = 0; iforce < modify->nfix; iforce++) {
+    if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+      precession_spin_flag = 1;
+      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,7 +152,24 @@ void ComputeSpin::compute_vector()
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
-        magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+        // magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+        
+        // update magnetic precession energies
+        
+        if (precession_spin_flag) {
+          magenergy -= lockprecessionspin->compute_zeeman_energy(sp[i]);
+          magenergy -= lockprecessionspin->compute_anisotropy_energy(sp[i]);
+          magenergy -= lockprecessionspin->compute_cubic_energy(sp[i]);
+        }
+        
+        // update magnetic pair interactions
+
+        if (pair_spin_flag) {
+          for (int k = 0; k < npairspin; k++) {
+            // spin_pairs[k]->compute_single_pair(i,fmi);
+          }
+        }
+
         tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
         ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
         tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
@@ -134,7 +199,8 @@ void ComputeSpin::compute_vector()
   vector[1] = magtot[1];
   vector[2] = magtot[2];
   vector[3] = magtot[3];
-  vector[4] = magenergytot*hbar;
+  // vector[4] = magenergytot*hbar;
+  vector[4] = magenergytot;
   vector[5] = spintemperature;
 
 }

@@ -317,7 +317,7 @@ supports the "popen" function in the standard runtime library.
 .. note::
 
    On some clusters with high-speed networks, using the fork()
-   library calls (required by popen()) can interfere with the fast
+   library call (required by popen()) can interfere with the fast
    communication library and lead to simulations using ffmpeg to hang or
    crash.
 
@@ -359,7 +359,7 @@ found by LAMMPS during a run.
 .. note::
 
    On some clusters with high-speed networks, using the fork()
-   library calls (required by popen()) can interfere with the fast
+   library call (required by popen()) can interfere with the fast
    communication library and lead to simulations using compressed output
    or input to hang or crash. For selected operations, compressed file
    I/O is also available using a compression library instead, which is

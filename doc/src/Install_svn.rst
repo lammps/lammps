@@ -85,10 +85,10 @@ after a patch has been installed.
 
 .. warning::
 
-   If you wish to edit/change a src file that is from a
-   package, you should edit the version of the file inside the package
-   sub-directory with src, then re-install the package.  The version in
-   the src dir is merely a copy and will be wiped out if you type "make
+   If you wish to edit/change a source file that is from a package, you
+   should edit the version of the file inside the package sub-directory
+   with src, then re-install the package.  The version in the src
+   directory is merely a copy and will be wiped out if you type "make
    package-update".
 
 The LAMMPS GitHub project is managed by Christoph Junghans (LANL,

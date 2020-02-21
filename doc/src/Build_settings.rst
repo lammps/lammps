@@ -307,7 +307,7 @@ As with CMake, you do not need to set JPG\_INC or JPG\_PATH, if make can
 find the graphics header and library files.  You must specify JPG\_LIB
 with a list of graphics libraries to include in the link.  You must
 insure ffmpeg is in a directory where LAMMPS can find it at runtime,
-i.e. a dir in your PATH environment variable.
+that is a directory in your PATH environment variable.
 
 **CMake and make info**\ :
 

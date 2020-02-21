@@ -1,5 +1,5 @@
-Download source via Git
-=======================
+Download the LAMMPS source with Git
+===================================
 
 All LAMMPS development is coordinated through the "LAMMPS GitHub
 site".  If you clone the LAMMPS repository onto your local machine, it
@@ -16,13 +16,12 @@ the public Git server for LAMMPS.
 
 .. warning::
 
-   As of Oct 2016, the official home of public LAMMPS
-   development is on GitHub.  The previously advertised LAMMPS git
-   repositories on git.lammps.org and bitbucket.org are now deprecated,
-   may not be up-to-date, and may go away at any time.
+   As of October 2016, the official home of public LAMMPS development is
+   on GitHub.  The previously advertised LAMMPS git repositories on
+   git.lammps.org and bitbucket.org are now deprecated, may not be
+   up-to-date, and may go away at any time.
 
-.. _git: http://git-scm.com
-
+.. _git: https://git-scm.com
 
 
 You can follow LAMMPS development on 3 different Git branches:
@@ -107,15 +106,15 @@ after a patch has been installed.
    If you wish to edit/change a src file that is from a
    package, you should edit the version of the file inside the package
    sub-directory with src, then re-install the package.  The version in
-   the src dir is merely a copy and will be wiped out if you type "make
+   the source directory is merely a copy and will be wiped out if you type "make
    package-update".
 
 .. warning::
 
    The GitHub servers support both the "git://" and
    "https://" access protocols for anonymous read-only access.  If you
-   have a correspondingly configured GitHub account, you may also use SSH
-   with "git@github.com:/lammps/lammps.git".
+   have a correspondingly configured GitHub account, you may also use
+   passwordless SSH access with the URL "git@github.com:lammps/lammps.git".
 
 The LAMMPS GitHub project is managed by Christoph Junghans (LANL,
 junghans at lanl.gov), Axel Kohlmeyer (Temple U, akohlmey at

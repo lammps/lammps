@@ -242,4 +242,4 @@ Type "make package-overwrite" to overwrite files in the package
 sub-directories with src files.
 
 Type "make package-diff" to list all differences between pairs of
-files in both the src dir and a package dir.
+files in both the source directory and the package directory.

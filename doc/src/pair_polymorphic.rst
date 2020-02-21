@@ -114,8 +114,8 @@ LAMMPS atom types:
 
 See the pair\_coeff doc page for alternate ways to specify the path for
 the potential file.  Several files for polymorphic potentials are
-included in the potentials dir of the LAMMPS distribution.  They have a
-"poly" suffix.
+included in the potentials directory of the LAMMPS distribution.  They
+have a "poly" suffix.
 
 As an example, imagine the SiC\_tersoff.polymorphic file has tabulated
 functions for Si-C tersoff potential. If your LAMMPS simulation has 4

@@ -56,8 +56,8 @@ up to date.
 
 .. warning::
 
-   If you wish to edit/change a src file that is from a
-   package, you should edit the version of the file inside the package
-   sub-dir of src, then re-install the package.  The version in the src
-   dir is merely a copy and will be wiped out if you type "make
-   package-update".
+   If you wish to edit/change a source file that is part of a package,
+   you should edit the version of the file inside the package folder in
+   src, and then re-install or update the package.  The version in the
+   src directory is merely a copy and will be wiped out when you type
+   "make package-update".

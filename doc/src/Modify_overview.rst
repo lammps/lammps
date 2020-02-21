@@ -10,15 +10,15 @@ computations are written in vanilla C-style code and operate on simple
 C-style data structures (vectors and arrays).
 
 Most of the new features described on the :doc:`Modify <Modify>` doc
-page require you to write a new C++ derived class (except for
-exceptions described below, where you can make small edits to existing
-files).  Creating a new class requires 2 files, a source code file
-(\*.cpp) and a header file (\*.h).  The derived class must provide
-certain methods to work as a new option.  Depending on how different
-your new feature is compared to existing features, you can either
-derive from the base class itself, or from a derived class that
-already exists.  Enabling LAMMPS to invoke the new class is as simple
-as putting the two source files in the src dir and re-building LAMMPS.
+page require you to write a new C++ derived class (except for exceptions
+described below, where you can make small edits to existing files).
+Creating a new class requires 2 files, a source code file (\*.cpp) and a
+header file (\*.h).  The derived class must provide certain methods to
+work as a new option.  Depending on how different your new feature is
+compared to existing features, you can either derive from the base class
+itself, or from a derived class that already exists.  Enabling LAMMPS to
+invoke the new class is as simple as putting the two source files in the
+src directory and re-building LAMMPS.
 
 The advantage of C++ and its object-orientation is that all the code
 and variables needed to define the new feature are in the 2 files you

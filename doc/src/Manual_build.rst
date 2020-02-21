@@ -22,25 +22,27 @@ If you downloaded LAMMPS from the public SVN or Git repositories, then
 the HTML and PDF files are not included.  Instead you need to create
 them, in one of two ways:
 
-a. You can "fetch" the current HTML and PDF files from the LAMMPS web site.
-   Just type "make fetch".  This should create a html\_www dir and
-   Manual\_www.pdf/Developer\_www.pdf files.  Note that if new LAMMPS features
-   have been added more recently than the date of your version, the fetched
-   documentation will include those changes (but your source code will not, unless
-   you update your local repository).
+a. You can "fetch" the current HTML and PDF files from the LAMMPS web
+   site.  Just type "make fetch".  This should download a html\_www
+   directory and Manual\_www.pdf/Developer\_www.pdf files.  Note that if
+   new LAMMPS features have been added more recently than the date of
+   your LAMMPS version, the fetched documentation will include those
+   changes (but your source code will not, unless you update your local
+   repository).
 
-b. You can build the HTML and PDF files yourself, by typing "make
-   html" followed by "make pdf".  This requires various tools including
+b. You can build the HTML and PDF files yourself, by typing "make html"
+   followed by "make pdf".  This requires various tools including
    Sphinx, which the build process will attempt to download and install
-   into a virtual environment in the folder doc/docenv, if not already
-   available.  See more details below.  To generate the PDF version of
-   the manual, additionally PDFLaTeX and several LaTeX packages are required.
+   automatically into a virtual environment in the folder doc/docenv, if
+   not already available.  See more details below.  To generate the PDF
+   version of the manual, additionally the PDFLaTeX software and several
+   LaTeX packages are required.
 
 ----------
 
 
 The generation of all documentation is managed by the Makefile in
-the doc dir.
+the doc directory.
 
 
 .. code-block:: bash
@@ -59,7 +61,6 @@ the doc dir.
    make anchor_check # check for duplicate anchor labels
    make style_check  # check for complete and consistent style lists
    make spelling     # spell-check the manual
-
 
 ----------
 
@@ -127,11 +128,14 @@ Installing prerequisites for epub build
 ePUB
 ----
 
-Same as for HTML. This uses the same tools and configuration
-files as the HTML tree.
+Same as for HTML. This uses mostly the same tools and configuration
+files as the HTML tree. In addition it uses LaTeX to convert embedded
+math expressions transparently into embedded images.
 
 For converting the generated ePUB file to a MOBI format file
-(for e-book readers like Kindle, that cannot read ePUB), you
+(for e-book readers, like Kindle, that cannot read ePUB), you
 also need to have the 'ebook-convert' tool from the "calibre"
 software installed. `http://calibre-ebook.com/ <http://calibre-ebook.com/>`_
 You first create the ePUB file and then convert it with 'make mobi'
+On the Kindle readers in particular, you also have support for
+PDF files, so you could download and view the PDF version as an alternative.

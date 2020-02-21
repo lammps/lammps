@@ -97,7 +97,7 @@ client or server code:
 * examples/COUPLE/lammps\_nwchem
 * examples/COUPLE/lammps\_vasp
 
-The examples/message dir couples a client instance of LAMMPS to a
+The examples/message directory couples a client instance of LAMMPS to a
 server instance of LAMMPS.
 
 The files in the *lammps\_mc* folder show how to couple LAMMPS as

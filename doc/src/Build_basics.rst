@@ -336,36 +336,57 @@ should be the file /usr/local/lib/libmpich.so.
 Build the LAMMPS documentation
 ----------------------------------------
 
-**CMake variable**\ :
+The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
+can be translated to different output format using the `Sphinx <sphinx_>`_
+document generator tool.  Currently the translation to HTML and PDF (via
+LaTeX) are supported.  For that to work a Python 3 interpreter and
+internet access is required.  For the documentation build a python
+based virtual environment is set up in the folder doc/docenv and various
+python packages are installed into that virtual environment via the pip
+tool.  The actual translation is then done via make commands.
 
+.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
+.. _sphinx: https://sphinx-doc.org
+
+**Documentation make option**\ :
+
+The following make commands can be issued in the doc folder of the
+LAMMPS source distribution.
 
 .. code-block:: bash
 
-   -D BUILD_DOC=value       # yes or no (default)
+  make html         # create HTML doc pages in html directory
+  make pdf          # create Developer.pdf and Manual.pdf in this directory
+  make fetch        # fetch HTML and PDF files from LAMMPS web site
+  make clean        # remove all intermediate files
+  make clean-all    # reset the entire doc build environment
+  make anchor_check # scan for duplicate anchor labels
+  make style_check  # check for complete and consistent style lists
+  make spelling     # spell-check the manual
 
-This will create the HTML doc pages within the CMake build directory.
-The reason to do this is if you want to "install" LAMMPS on a system
-after the CMake build via "make install", and include the doc pages in
-the install.
 
-**Traditional make**\ :
-
-
-.. code-block:: bash
-
-   cd lammps/doc
-   make html       # html doc pages
-   make pdf        # single Manual.pdf file
-
-This will create a lammps/doc/html dir with the HTML doc pages so that
-you can browse them locally on your system.  Type "make" from the
-lammps/doc dir to see other options.
+Thus "make html" will create a "doc/html" directory with the HTML format
+manual pages so that you can browse them with a web browser locally on
+your system.
 
 .. note::
 
    You can also download a tarball of the documentation for the
    current LAMMPS version (HTML and PDF files), from the website
    `download page <http://lammps.sandia.gov/download.html>`_.
+
+
+**CMake build option**\ :
+
+It is also possible to create the HTML version of the manual within
+the :doc:`CMake build directory <Build_cmake>`.  The reason for this
+option is to include the installation of the HTML manual pages into
+the "install" step when installing LAMMPS after the CMake build via
+"make install".
+
+.. code-block:: bash
+
+   -D BUILD_DOC=value       # yes or no (default)
 
 
 ----------

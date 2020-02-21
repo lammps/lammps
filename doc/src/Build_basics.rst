@@ -21,12 +21,14 @@ Serial vs parallel build
 
 LAMMPS is written to use the ubiquitous `MPI (Message Passing Interface)
 <https://en.wikipedia.org/wiki/Message_Passing_Interface>`_ library API
-for distributed memory parallel computation.  It is compatible with the
-MPI standard version 2.x and later.  LAMMPS can also be build into a
+for distributed memory parallel computation.  You need to have such a
+library installed for building and running LAMMPS in parallel using a
+domain decomposition parallelization.  It is compatible with the MPI
+standard version 2.x and later.  LAMMPS can also be built into a
 "serial" executable for use with a single processor using the bundled
 MPI STUBS library.
 
-Independent of the distributed memory MPI parallelization parts of
+Independent of the distributed memory MPI parallelization, parts of
 LAMMPS are also written with support for shared memory parallelization
 using the OpenMP threading standard. A more detailed discussion of that
 is below.

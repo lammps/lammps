@@ -14,7 +14,7 @@
 #include "fix_num_diff.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
+#include <cmath>
 #include "atom.h"
 #include "atom_masks.h"
 #include "update.h"
@@ -37,6 +37,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include <algorithm>
 
 //TODO: Add energy from potentials to single energy array and then reverse comm pack and unpack
 

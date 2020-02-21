@@ -56,8 +56,8 @@ If CMake cannot find the library, you can set these variables:
 
 **Traditional make**\ :
 
-If make cannot find the library, you can edit the
-lib/compress/Makefile.lammps file to specify the paths and library
+If make cannot find the library, you can edit the file
+lib/compress/Makefile.lammps to specify the paths and library
 name.
 
 
@@ -203,7 +203,7 @@ inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG\_CONFIG\_PATH
 environment variable so that libkim-api can be found.
 
-For using OpenKIM web queries in LAMMPS.
+*For using OpenKIM web queries in LAMMPS*\ :
 
 If LMP\_DEBUG\_CURL is set, the libcurl verbose mode will be on, and any
 libcurl calls within the KIM web query display a lot of information about
@@ -239,6 +239,13 @@ invoke the lib/kim/Install.py script with the specified args.
    make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
    make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
 
+Settings for OpenKIM web queries discussed above need to be applied by adding
+them to the LMP\_INC variable through editing the Makefile.machine you are
+using.  For example:
+
+.. code-block:: make
+
+   LMP_INC =       -DLMP_NO_SSL_CHECK
 
 ----------
 
@@ -858,8 +865,10 @@ core LAMMPS makefiles.
 
 Optional flags may be specified as environment variables:
 
-COLVARS\_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
-COLVARS\_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
+.. code-block:: bash
+
+    COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
+    COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
 
 The build should produce two files: the library lib/colvars/libcolvars.a
 (which also includes Lepton objects if enabled) and the specification file

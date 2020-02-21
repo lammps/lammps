@@ -446,9 +446,10 @@ Exception handling when using LAMMPS as a library
 ------------------------------------------------------------------
 
 This setting is useful when external codes drive LAMMPS as a library.
-With this option enabled LAMMPS errors do not kill the caller.
+With this option enabled, LAMMPS errors do not kill the calling code.
 Instead, the call stack is unwound and control returns to the caller,
-e.g. to Python.
+e.g. to Python. Of course the calling code has to be set up to
+*catch* exceptions from within LAMMPS.
 
 **CMake variable**\ :
 

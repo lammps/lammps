@@ -14,10 +14,13 @@ package.  In general there is no need to include a package if you
 never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
-"Unknown", it is often because the command is contained in a package,
-and your build did not include that package.  Running LAMMPS with the
-:doc:`-h command-line switch <Run_options>` will print all the included
-packages and commands for that executable.
+"unknown", it is often because the command is contained in a package,
+and your build did not include that package.  If the command or style
+*is* available in a package included in the LAMMPS distribution,
+the error message will indicate which package would be needed.
+Running LAMMPS with the :doc:`-h command-line switch <Run_options>`
+will print *all* optional commands and packages that were enabled
+when building that executable.
 
 For the majority of packages, if you follow the single step below to
 include it, you can then build LAMMPS exactly the same as you would
@@ -42,7 +45,7 @@ packages:
 The mechanism for including packages is simple but different for CMake
 versus make.
 
-**CMake variables**\ :
+**CMake build**\ :
 
 
 .. code-block:: bash
@@ -136,9 +139,10 @@ src directory.
 **CMake shortcuts for installing many packages**\ :
 
 Instead of specifying all the CMake options via the command-line,
-CMake allows initializing the variable cache using script files. These
-are regular CMake files which can manipulate and set variables, and
-can also contain control flow constructs.
+CMake allows initializing its settings cache using script files.
+These are regular CMake files which can manipulate and set CMake
+variables (which represent selected options), and can also contain
+control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
 "presets", similar to the options that exist for the Make based
@@ -148,17 +152,17 @@ one of them as a starting point and customize it to your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/all\_on.cmake  [OPTIONS] ../cmake  # enable all packages
-    cmake -C ../cmake/presets/all\_off.cmake [OPTIONS] ../cmake  # disable all packages
-    cmake -C ../cmake/presets/minimal.cmake  [OPTIONS] ../cmake  # enable just a few core packages
-    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most common packages
-    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
-    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
-    cmake -C ../cmake/presets/mingw.cmake    [OPTIONS] ../cmake  # enable all packages compatible with MinGW compilers
+    cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
+    cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
+    cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  # enable most common packages
+    cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
+    cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/mingw.cmake   [OPTIONS] ../cmake  # enable all packages compatible with MinGW compilers
 
 .. note::
 
-   Running cmake this way manipulates the variable cache in your
+   Running cmake this way manipulates the CMake settings cache in your
    current build directory. You can combine multiple presets and options
    in a single cmake run, or change settings incrementally by running
    cmake with new flags.
@@ -212,10 +216,12 @@ package" will list all the these commands.
 
 .. note::
 
-   Installing or un-installing a package works by simply copying
-   files back and forth between the main src directory and
-   sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
-   so that the files are included or excluded when LAMMPS is built.
+   Installing or un-installing a package for the make based build process
+   works by simply copying files back and forth between the main source
+   directory src and the sub-directories with the package name (e.g.
+   src/KSPACE, src/USER-ATC), so that the files are included or excluded
+   when LAMMPS is built.  Only source files in the src folder will be
+   compiled. 
 
 The following make commands help manage files that exist in both the
 src directory and in package sub-directories.  You do not normally

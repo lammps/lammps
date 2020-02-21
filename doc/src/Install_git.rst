@@ -114,7 +114,7 @@ after a patch has been installed.
    The GitHub servers support both the "git://" and
    "https://" access protocols for anonymous read-only access.  If you
    have a correspondingly configured GitHub account, you may also use
-   passwordless SSH access with the URL "git@github.com:lammps/lammps.git".
+   SSH access with the URL "git@github.com:lammps/lammps.git".
 
 The LAMMPS GitHub project is managed by Christoph Junghans (LANL,
 junghans at lanl.gov), Axel Kohlmeyer (Temple U, akohlmey at

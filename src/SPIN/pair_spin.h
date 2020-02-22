@@ -31,6 +31,10 @@ friend class FixNVESpin;
 
   virtual void compute(int, int) {}
   virtual void compute_single_pair(int, double *) {}
+  
+  // test emag list storing mag energies
+  int nlocal_max;                       // max value of nlocal (for size of lists)
+  double *emag;                         // energy list
 
  protected:
   double hbar;                          // Planck constant (eV.ps.rad-1)

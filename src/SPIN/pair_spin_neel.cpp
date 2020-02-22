@@ -54,6 +54,9 @@ PairSpinNeel::~PairSpinNeel()
     memory->destroy(q2);
     memory->destroy(q3);
     memory->destroy(cutsq); // to be deleted
+    
+    // test emag list storing mag energies
+    memory->destroy(emag);
   }
 }
 
@@ -190,6 +193,13 @@ void PairSpinNeel::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // test emag list storing mag energies
+  // checking size of emag
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+
   // computation of the neel interaction
   // loop over atoms and their neighbors
 
@@ -206,6 +216,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
 
+    // test emag list storing mag energies
+    emag[i] = 0.0;
+    
     // loop on neighbors
 
     for (jj = 0; jj < jnum; jj++) {
@@ -262,6 +275,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
         // evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
         evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
         evdwl *= 0.5*hbar;
+        emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,

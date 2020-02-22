@@ -69,6 +69,22 @@ void ComputeSpin::init()
   hbar = force->hplanck/MY_2PI;
   kb = force->boltz;
 
+  // loop 1: obtain # of Pairs, and # of Pair/Spin styles
+
+  if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
+    pair = force->pair_match("spin",0,0);
+    npairs = pair->instance_total;
+    npairspin = 1;
+  } else if (force->pair_match("spin",0,1)) { // more than one Pair/Spin style
+    pair = force->pair_match("spin",0,1);
+    npairs = pair->instance_total;
+    for (int i = 0; i<npairs; i++) {
+      if (force->pair_match("spin",0,i)) {
+        npairspin ++;
+      }
+    }
+  }
+
   // init length of vector of ptrs to Pair/Spin styles
 
   if (npairspin > 0) {
@@ -166,7 +182,7 @@ void ComputeSpin::compute_vector()
 
         if (pair_spin_flag) {
           for (int k = 0; k < npairspin; k++) {
-            // spin_pairs[k]->compute_single_pair(i,fmi);
+            magenergy += spin_pairs[k]->emag[i];
           }
         }
 

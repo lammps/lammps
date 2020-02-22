@@ -119,7 +119,7 @@ html-offline: $(ANCHORCHECK) $(MATHJAX)
 	@cp -r $(MATHJAX)/es5 html-offline/_static/mathjax/
 
 
-spelling: utils/sphinx-config/false_positives.txt
+spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
@@ -129,7 +129,7 @@ spelling: utils/sphinx-config/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub:
+epub: $(VENV)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -205,14 +205,14 @@ anchor_check : $(ANCHORCHECK)
 		deactivate ;\
 	)
 
-style_check :
+style_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		deactivate ;\
 	)
 
-package_check :
+package_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ;\
 		python utils/check-packages.py -s ../src -d src ;\

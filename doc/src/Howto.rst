@@ -42,7 +42,7 @@ Settings howto
 
 
 .. toctree::
-   :name: settings
+   :name: settings_howto
    :maxdepth: 1
 
    Howto_2d
@@ -58,7 +58,7 @@ Analysis howto
 
 
 .. toctree::
-   :name: analysis
+   :name: analysis_howto
    :maxdepth: 1
 
    Howto_output
@@ -74,7 +74,7 @@ Force fields howto
 
 
 .. toctree::
-   :name: force
+   :name: force_howto
    :maxdepth: 1
 
    Howto_bioFF
@@ -87,7 +87,7 @@ Packages howto
 
 
 .. toctree::
-   :name: packages
+   :name: packages_howto
    :maxdepth: 1
 
    Howto_spherical

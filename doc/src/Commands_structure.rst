@@ -10,7 +10,7 @@ A LAMMPS input script typically has 4 parts:
 
 1. :ref:`Initialization <init>`
 2. :ref:`System definition <system>` 
-3. :ref:`Settings <settings>`
+3. :ref:`Simulation settings <settings>`
 4. :ref:`Run a simulation <run>`
 
 The last 2 parts can be repeated as many times as desired.  I.e. run a
@@ -58,7 +58,7 @@ using the :doc:`replicate <replicate>` command.
 
 .. _settings:
 
-Settings
+Simulation settings
 ------------------------------
 
 Once atoms and molecular topology are defined, a variety of settings

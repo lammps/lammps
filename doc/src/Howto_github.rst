@@ -144,22 +144,23 @@ After everything is done, add the files to the branch and commit them:
 .. code-block:: bash
 
     $ git add doc/src/Howto_github.txt
-    $ git add doc/src/JPG/tutorial\*.png
+    $ git add doc/src/JPG/tutorial*.png
 
 .. warning::
 
-   Do not use *git commit -a* (or *git add -A*\ ).  The -a
-   flag (or -A flag) will automatically include \_all\\_ modified or new files
+   Do not use *git commit -a* (or *git add -A*\ ).  The -a flag (or -A
+   flag) will automatically include **all** modified **and** new files
    and that is rarely the behavior you want.  It can easily lead to
-   accidentally adding unrelated and unwanted changes into the repository.
-   Instead it is preferable to explicitly use *git add*\ , *git rm*\ , *git mv*
-   for adding, removing, renaming individual files, respectively, and then
-   *git commit* to finalize the commit.  Carefully check all pending
-   changes with *git status* before committing them.  If you find doing
-   this on the command line too tedious, consider using a GUI, for example
-   the one included in git distributions written in Tk, i.e. use *git gui*
-   (on some Linux distributions it may be required to install an additional
-   package to use it).
+   accidentally adding unrelated and unwanted changes into the
+   repository.  Instead it is preferable to explicitly use *git add*\ ,
+   *git rm*\ , *git mv* for adding, removing, renaming individual files,
+   respectively, and then *git commit* to finalize the commit.
+   Carefully check all pending changes with *git status* before
+   committing them.  If you find doing this on the command line too
+   tedious, consider using a GUI, for example the one included in git
+   distributions written in Tk, i.e. use *git gui* (on some Linux
+   distributions it may be required to install an additional package to
+   use it).
 
 After adding all files, the change set can be committed with some
 useful message that explains the change.
@@ -411,7 +412,7 @@ we need to pull Axel's change back into our branch, and merge them:
 .. code-block:: bash
 
     $ git add Howto_github.txt
-    $ git add JPG/tutorial_reverse_pull_request\*.png
+    $ git add JPG/tutorial_reverse_pull_request*.png
     $ git commit -m "Updated text and images on reverse pull requests"
     $ git pull
 

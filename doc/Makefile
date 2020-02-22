@@ -4,6 +4,7 @@ SHELL         = /bin/bash
 BUILDDIR      = ${CURDIR}
 RSTDIR        = $(BUILDDIR)/src
 VENV          = $(BUILDDIR)/docenv
+MATHJAX       = $(BUILDDIR)/mathjax
 TXT2RST       = $(VENV)/bin/txt2rst
 ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
 
@@ -28,37 +29,35 @@ endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
-.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check style_check
+.PHONY: help clean-all clean clean-spelling epub mobi rst html html-offline pdf spelling anchor_check style_check
 
 # ------------------------------------------
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       create HTML doc pages in html dir"
-	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
-	@echo "  epub       create ePUB format manual for e-book readers"
-	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
+	@echo "  html          create HTML doc pages in html dir"
+	@echo "  html-offline  create offline viewable HTML doc pages in html-offline dir"
+	@echo "  pdf           create Developer.pdf and Manual.pdf in this dir"
+	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
+	@echo "  epub          create ePUB format manual for e-book readers"
+	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
-	@echo "  clean      remove all intermediate RST files"
-	@echo "  clean-all  reset the entire build environment"
+	@echo "  clean         remove all intermediate RST files"
+	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
-	@echo "  spelling   spell-check the manual"
+	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
 
-clean:
-	rm -rf html epub latex
-	rm -rf spelling
+clean: clean-spelling
+	rm -rf html epub latex html-offline
 
 clean-spelling:
 	rm -rf spelling
-
-rst: clean $(ANCHORCHECK)
 
 html: $(ANCHORCHECK)
 	@(\
@@ -85,6 +84,37 @@ html: $(ANCHORCHECK)
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
+
+
+html-offline: $(ANCHORCHECK) $(MATHJAX)
+	@(\
+		. $(VENV)/bin/activate ;\
+		sphinx-build $(SPHINXEXTRA)  -D mathjax_path=mathjax/es5/tex-mml-chtml.js \
+			-b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html-offline ;\
+		echo "############################################" ;\
+		rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		echo "############################################" ;\
+		deactivate ;\
+	)
+	-rm html/searchindex.js
+	@rm -rf html-offline/_sources
+	@rm -rf html-offline/PDF
+	@rm -rf html-offline/USER
+	@rm -rf html-offline/JPG
+	@cp -r src/PDF html-offline/PDF
+	@cp -r src/USER html-offline/USER
+	@mkdir -p html-offline/JPG
+	@cp `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html-offline/JPG/
+	@rm -rf html-offline/PDF/.[sg]*
+	@rm -rf html-offline/USER/.[sg]*
+	@rm -rf html-offline/USER/*/.[sg]*
+	@rm -rf html-offline/USER/*/*.[sg]*
+	@echo "Build finished. The HTML pages are in doc/html-offline."
+	@mkdir -p html-offline/_static/mathjax
+	@cp -r $(MATHJAX)/es5 html-offline/_static/mathjax/
+
 
 spelling: utils/sphinx-config/false_positives.txt
 	@(\
@@ -189,6 +219,9 @@ $(VENV):
 		pip install Sphinx; \
 		deactivate;\
 	)
+
+$(MATHJAX):
+	@git clone https://github.com/mathjax/MathJax.git mathjax
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

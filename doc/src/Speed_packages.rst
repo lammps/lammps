@@ -37,8 +37,6 @@ standard or user packages:
    Speed_omp
    Speed_opt
 
-.. _lc: Commands_all.html
-
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
@@ -72,7 +70,7 @@ Lennard-Jones :doc:`pair_style lj/cut <pair_lj>`:
 * :doc:`pair_style lj/cut/opt <pair_lj>`
 
 To see what accelerate styles are currently available for a particular
-style, find the style name in the `Commands\_all <lc_>`_
+style, find the style name in the :doc:`Commands <Commands_all>`
 style pages (fix,compute,pair,etc) and see what suffixes are listed
 (g,i,k,o,t) with it.  The doc pages for individual commands
 (e.g. :doc:`pair lj/cut <pair_lj>` or :doc:`fix nve <fix_nve>`) also list

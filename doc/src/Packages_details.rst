@@ -24,8 +24,6 @@ page gives those details.
    pair, bond, angle, etc correspond to commands with the same style name
    as contained in the file name.
 
-.. _lc: Commands_all.html
-
 .. table_from_list::
    :columns: 6
 
@@ -338,7 +336,8 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`Section 2.6 -sf gpu <Run_options>`
 * :doc:`Section 2.6 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
-* `Commands all <lc_>`_ pages (pair,kspace) for styles followed by (g)
+* :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
+  for styles followed by (g)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
 
@@ -481,7 +480,9 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * :doc:`Section 2.6 -sf kk <Run_options>`
 * :doc:`Section 2.6 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (k)
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
+  :doc:`kspace <Commands_kspace>`) for styles followed by (k)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
 
@@ -517,7 +518,7 @@ different FFT options for your LAMPMS build.
 * :doc:`Howto tip4p <Howto_tip4p>`
 * :doc:`Howto spc <Howto_spc>`
 * :doc:`pair_style coul <pair_coul>`
-* :doc:`Commands pair <Commands_pair>` page for styles with "long" or "msm" in name
+* Search the :doc:`pair style <Commands_pair>` page for styles with "long" or "msm" in name
 * examples/peptide
 * bench/in.rhodo
 
@@ -578,7 +579,7 @@ A variety of many-body and bond-order potentials.  These include
 **Supporting info:**
 
 * src/MANYBODY: filenames -> commands
-* :doc:`Commands pair <Commands_pair>` page
+* :doc:`Pair style <Commands_pair>` page
 * examples/comb
 * examples/eim
 * examples/nb3d
@@ -803,7 +804,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`Speed packages <Speed_packages>`
 * :doc:`Speed opt <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
-* :doc:`Commands pair <Commands_pair>` for styles followed by (t)
+* Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
 
@@ -1641,7 +1642,8 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 * :doc:`Section 2.6 -sf intel <Run_options>`
 * :doc:`Section 2.6 -pk intel <Run_options>`
 * :doc:`package intel <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (i)
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/USER-INTEL/TEST
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
@@ -2001,7 +2003,9 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 * :doc:`Section 2.6 -sf omp <Run_options>`
 * :doc:`Section 2.6 -pk omp <Run_options>`
 * :doc:`package omp <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (o)
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
+  :doc:`kspace <Commands_kspace>`) for styles followed by (o)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
 

@@ -19,9 +19,9 @@ sub-directories and optionally 2 PDF files and 2 e-book format files:
 If you downloaded LAMMPS as a tarball from the web site, all these
 directories and files should be included.
 
-If you downloaded LAMMPS from the public git repository, then
-the HTML and PDF files are not included.  Instead you need to create
-them, in one of two ways:
+If you downloaded LAMMPS from the public git repository, then the HTML
+and PDF files are not included.  Instead you need to create them, in one
+of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
    site.  Just type "make fetch".  This should download a html\_www
@@ -41,10 +41,10 @@ b. You can build the HTML and PDF files yourself, by typing "make html"
    be able to view the math offline, some extra data and javascript code
    needs to be downloaded and the HTML generation needs to be changed to
    reference them.  When typing "make html-offline" this is done
-   automatically.  Same as for the sphinx tool, this download is
-   required only once. After that also the processing of the
-   documentation can be done without internet access.  To generate the
-   PDF version of the manual, additionally the PDFLaTeX software and
+   automatically.  Same as for the sphinx tool and its extensions, this
+   download is required only once.  After that also the processing of
+   the documentation can be done without internet access.  To generate
+   the PDF version of the manual, additionally the PDFLaTeX software and
    several LaTeX packages are required.
 
 ----------

@@ -26,35 +26,86 @@ page gives those details.
 
 .. _lc: Commands_all.html
 
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`ASPHERE <PKG-ASPHERE>` | :ref:`BODY <PKG-BODY>`         | :ref:`CLASS2 <PKG-CLASS2>`     | :ref:`COLLOID <PKG-COLLOID>` | :ref:`COMPRESS <PKG-COMPRESS>` | :ref:`CORESHELL <PKG-CORESHELL>` |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`DIPOLE <PKG-DIPOLE>`   | :ref:`GPU <PKG-GPU>`           | :ref:`GRANULAR <PKG-GRANULAR>` | :ref:`KIM <PKG-KIM>`         | :ref:`KOKKOS <PKG-KOKKOS>`     | :ref:`KSPACE <PKG-KSPACE>`       |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`LATTE <PKG-LATTE>`     | :ref:`MANYBODY <PKG-MANYBODY>` | :ref:`MC <PKG-MC>`             | :ref:`MESSAGE <PKG-MESSAGE>` | :ref:`MISC <PKG-MISC>`         | :ref:`MOLECULE <PKG-MOLECULE>`   |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`MPIIO <PKG-MPIIO>`     | :ref:`MSCG <PKG-MSCG>`         | :ref:`OPT <PKG-OPT>`           | :ref:`PERI <PKG-PERI>`       | :ref:`POEMS <PKG-POEMS>`       | :ref:`PYTHON <PKG-PYTHON>`       |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`QEQ <PKG-QEQ>`         | :ref:`REPLICA <PKG-REPLICA2>`  | :ref:`RIGID <PKG-RIGID>`       | :ref:`SHOCK <PKG-SHOCK>`     | :ref:`SNAP <PKG-SNAP>`         | :ref:`SPIN <PKG-SPIN>`           |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`SRD <PKG-SRD>`         | :ref:`VORONOI <PKG-VORONOI>`   |                                |                              |                                |                                  |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
+.. table_from_list::
+   :columns: 6
 
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-ADIOS <PKG-USER-ADIOS>`     | :ref:`USER-ATC <PKG-USER-ATC>`                 | :ref:`USER-AWPMD <PKG-USER-AWPMD>` | :ref:`USER-BOCS <PKG-USER-BOCS>`         | :ref:`USER-CGDNA <PKG-USER-CGDNA>`   | :ref:`USER-CGSDK <PKG-USER-CGSDK>` |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-COLVARS <PKG-USER-COLVARS>` | :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>` | :ref:`USER-DPD <PKG-USER-DPD>`     | :ref:`USER-DRUDE <PKG-USER-DRUDE>`       | :ref:`USER-EFF <PKG-USER-EFF>`       | :ref:`USER-FEP <PKG-USER-FEP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-H5MD <PKG-USER-H5MD>`       | :ref:`USER-INTEL <PKG-USER-INTEL>`             | :ref:`USER-LB <PKG-USER-LB>`       | :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>` | :ref:`USER-MEAMC <PKG-USER-MEAMC>`   | :ref:`USER-MESO <PKG-USER-MESO>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-MGPT <PKG-USER-MGPT>`       | :ref:`USER-MISC <PKG-USER-MISC>`               | :ref:`USER-MOFFF <PKG-USER-MOFFF>` | :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`   | :ref:`USER-NETCDF <PKG-USER-NETCDF>` | :ref:`USER-OMP <PKG-USER-OMP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-PHONON <PKG-USER-PHONON>`   | :ref:`USER-PLUMED <PKG-USER-PLUMED>`           | :ref:`USER-PTM <PKG-USER-PTM>`     | :ref:`USER-QMMM <PKG-USER-QMMM>`         | :ref:`USER-QTB <PKG-USER-QTB>`       | :ref:`USER-QUIP <PKG-USER-QUIP>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-REAXC <PKG-USER-REAXC>`     | :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`       | :ref:`USER-SDPD <PKG-USER-SDPD>`   | :ref:`USER-SMD <PKG-USER-SMD>`           | :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`   | :ref:`USER-SPH <PKG-USER-SPH>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-TALLY <PKG-USER-TALLY>`     | :ref:`USER-UEF <PKG-USER-UEF>`                 | :ref:`USER-VTK <PKG-USER-VTK>`     | :ref:`USER-YAFF <PKG-USER-YAFF>`         |                                      |                                    |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+   * :ref:`ASPHERE <PKG-ASPHERE>`
+   * :ref:`BODY <PKG-BODY>`
+   * :ref:`CLASS2 <PKG-CLASS2>`
+   * :ref:`COLLOID <PKG-COLLOID>`
+   * :ref:`COMPRESS <PKG-COMPRESS>`
+   * :ref:`CORESHELL <PKG-CORESHELL>`
+   * :ref:`DIPOLE <PKG-DIPOLE>`
+   * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`KIM <PKG-KIM>`
+   * :ref:`KOKKOS <PKG-KOKKOS>`
+   * :ref:`KSPACE <PKG-KSPACE>`
+   * :ref:`LATTE <PKG-LATTE>`
+   * :ref:`MANYBODY <PKG-MANYBODY>`
+   * :ref:`MC <PKG-MC>`
+   * :ref:`MESSAGE <PKG-MESSAGE>`
+   * :ref:`MISC <PKG-MISC>`
+   * :ref:`MOLECULE <PKG-MOLECULE>`
+   * :ref:`MPIIO <PKG-MPIIO>`
+   * :ref:`MSCG <PKG-MSCG>`
+   * :ref:`OPT <PKG-OPT>`
+   * :ref:`PERI <PKG-PERI>`
+   * :ref:`POEMS <PKG-POEMS>`
+   * :ref:`PYTHON <PKG-PYTHON>`
+   * :ref:`QEQ <PKG-QEQ>`
+   * :ref:`REPLICA <PKG-REPLICA>`
+   * :ref:`RIGID <PKG-RIGID>`
+   * :ref:`SHOCK <PKG-SHOCK>`
+   * :ref:`SNAP <PKG-SNAP>`
+   * :ref:`SPIN <PKG-SPIN>`
+   * :ref:`SRD <PKG-SRD>`
+   * :ref:`VORONOI <PKG-VORONOI>`
+
+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`USER-ADIOS <PKG-USER-ADIOS>`
+   * :ref:`USER-ATC <PKG-USER-ATC>`
+   * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
+   * :ref:`USER-BOCS <PKG-USER-BOCS>`
+   * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
+   * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
+   * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
+   * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
+   * :ref:`USER-DPD <PKG-USER-DPD>`
+   * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
+   * :ref:`USER-EFF <PKG-USER-EFF>`
+   * :ref:`USER-FEP <PKG-USER-FEP>`
+   * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`USER-INTEL <PKG-USER-INTEL>`
+   * :ref:`USER-LB <PKG-USER-LB>`
+   * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
+   * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
+   * :ref:`USER-MESO <PKG-USER-MESO>`
+   * :ref:`USER-MGPT <PKG-USER-MGPT>`
+   * :ref:`USER-MISC <PKG-USER-MISC>`
+   * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
+   * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
+   * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
+   * :ref:`USER-OMP <PKG-USER-OMP>`
+   * :ref:`USER-PHONON <PKG-USER-PHONON>`
+   * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
+   * :ref:`USER-PTM <PKG-USER-PTM>`
+   * :ref:`USER-QMMM <PKG-USER-QMMM>`
+   * :ref:`USER-QTB <PKG-USER-QTB>`
+   * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-REAXC <PKG-USER-REAXC>`
+   * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
+   * :ref:`USER-SDPD <PKG-USER-SDPD>`
+   * :ref:`USER-SMD <PKG-USER-SMD>`
+   * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
+   * :ref:`USER-SPH <PKG-USER-SPH>`
+   * :ref:`USER-TALLY <PKG-USER-TALLY>`
+   * :ref:`USER-UEF <PKG-USER-UEF>`
+   * :ref:`USER-VTK <PKG-USER-VTK>`
+   * :ref:`USER-YAFF <PKG-USER-YAFF>`
 
 
 ----------
@@ -880,7 +931,7 @@ part of their formulation.
 ----------
 
 
-.. _PKG-REPLICA2:
+.. _PKG-REPLICA:
 
 REPLICA package
 ---------------

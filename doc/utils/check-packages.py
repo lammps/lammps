@@ -76,6 +76,22 @@ for p in usrpkg:
     print("User package %s missing in Packages_user.rst"
           % p)
 
+fp = open(os.path.join(doc,'Packages_details.rst'))
+text = fp.read()
+fp.close()
+matches = re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`',text,re.MULTILINE)
+for p in stdpkg:
+  if not p in matches:
+    ++counter
+    print("Standard package %s missing in Packages_details.rst"
+          % p)
+matches = re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`',text,re.MULTILINE)
+for p in usrpkg:
+  if not p in matches:
+    ++counter
+    print("User package %s missing in Packages_details.rst"
+          % p)
+
 if counter:
     print("Found %d issue(s) with package lists" % counter)
 

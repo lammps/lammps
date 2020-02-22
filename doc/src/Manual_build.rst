@@ -19,7 +19,7 @@ sub-directories and optionally 2 PDF files and 2 e-book format files:
 If you downloaded LAMMPS as a tarball from the web site, all these
 directories and files should be included.
 
-If you downloaded LAMMPS from the public SVN or Git repositories, then
+If you downloaded LAMMPS from the public git repository, then
 the HTML and PDF files are not included.  Instead you need to create
 them, in one of two ways:
 

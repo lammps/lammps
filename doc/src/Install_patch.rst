@@ -2,9 +2,9 @@ Applying patches
 ================
 
 It is easy to stay current with the most recent LAMMPS patch releases
-if you use git or SVN to track LAMMPS development.  Instructions for
-how to stay current are on the :doc:`Install git <Install_git>` and
-:doc:`Install svn <Install_svn>` doc pages.
+if you use git to track the LAMMPS development.  Instructions for
+how to stay current are on the
+:doc:`Download the LAMMPS source with git <Install_git>` page.
 
 If you prefer to download a tarball, as described on the :doc:`Install git <Install_tarball>` doc page, you can stay current by
 downloading "patch files" when new patch releases are made.  A link to
@@ -15,9 +15,9 @@ LAMMPS directory.
 
 .. note::
 
-   You should not apply patch files to a local git or SVN repo of
-   LAMMPS, only to an unpacked tarball.  Use git and SVN commands to
-   update repo versions of LAMMPS.
+   You should not apply patch files to a local git checkout of
+   LAMMPS, only to an unpacked tarball.  Use git commands to
+   update such a version of the LAMMPS source code.
 
 Here are the steps to apply a patch file.  Note that if your version
 of LAMMPS is several patch releases behind, you need to apply all the

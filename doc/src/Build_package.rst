@@ -122,7 +122,7 @@ are already included.  Likewise, if a package is excluded, other files
 dependent on that package are also excluded.
 
 When you download a LAMMPS tarball or download LAMMPS source files
-from the Git or SVN repositories, no packages are pre-installed in the
+from the git repository, no packages are pre-installed in the
 src directory.
 
 .. note::

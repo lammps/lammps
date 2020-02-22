@@ -402,14 +402,15 @@ LAMMPS source distribution.
 
 .. code-block:: bash
 
-  make html         # create HTML doc pages in html directory
-  make pdf          # create Developer.pdf and Manual.pdf in this directory
-  make fetch        # fetch HTML and PDF files from LAMMPS web site
-  make clean        # remove all intermediate files
-  make clean-all    # reset the entire doc build environment
-  make anchor_check # scan for duplicate anchor labels
-  make style_check  # check for complete and consistent style lists
-  make spelling     # spell-check the manual
+  make html          # create HTML doc pages in html directory
+  make pdf           # create Developer.pdf and Manual.pdf in this directory
+  make fetch         # fetch HTML and PDF files from LAMMPS web site
+  make clean         # remove all intermediate files
+  make clean-all     # reset the entire doc build environment
+  make anchor_check  # scan for duplicate anchor labels
+  make style_check   # check for complete and consistent style lists
+  make package_check # check for complete and consistent package lists
+  make spelling      # spell-check the manual
 
 
 Thus "make html" will create a "doc/html" directory with the HTML format

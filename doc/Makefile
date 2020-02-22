@@ -46,6 +46,7 @@ help:
 	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
+	@echo "  package_check check for complete and consistent package lists"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -65,6 +66,7 @@ html: $(ANCHORCHECK)
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
@@ -93,6 +95,7 @@ html-offline: $(ANCHORCHECK) $(MATHJAX)
 			-b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html-offline ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
@@ -158,6 +161,7 @@ pdf: $(ANCHORCHECK)
 		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
@@ -205,6 +209,13 @@ style_check :
 	@(\
 		. $(VENV)/bin/activate ;\
 		python utils/check-styles.py -s ../src -d src ;\
+		deactivate ;\
+	)
+
+package_check :
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)
 

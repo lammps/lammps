@@ -58,19 +58,20 @@ the doc directory.
 
    Documentation Build Options:
 
-   make html         # generate HTML in html dir using Sphinx
-   make html-offline # generate offline viewable HTML in html-offline dir using Sphinx
-   make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
-                     #   in doc dir via htmldoc and pdflatex
-   make fetch        # fetch HTML doc pages and 2 PDF files from web site
-                     #   as a tarball and unpack into html dir and 2 PDFs
-   make epub         # generate LAMMPS.epub in ePUB format using Sphinx
-   make mobi         # generate LAMMPS.mobi in MOBI format using ebook-convert
-   make clean        # remove intermediate RST files created by HTML build
-   make clean-all    # remove entire build folder and any cached data
-   make anchor_check # check for duplicate anchor labels
-   make style_check  # check for complete and consistent style lists
-   make spelling     # spell-check the manual
+   make html          # generate HTML in html dir using Sphinx
+   make html-offline  # generate offline viewable HTML in html-offline dir using Sphinx
+   make pdf           # generate 2 PDF files (Manual.pdf,Developer.pdf)
+                      #   in doc dir via htmldoc and pdflatex
+   make fetch         # fetch HTML doc pages and 2 PDF files from web site
+                      #   as a tarball and unpack into html dir and 2 PDFs
+   make epub          # generate LAMMPS.epub in ePUB format using Sphinx
+   make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
+   make clean         # remove intermediate RST files created by HTML build
+   make clean-all     # remove entire build folder and any cached data
+   make anchor_check  # check for duplicate anchor labels
+   make style_check   # check for complete and consistent style lists
+   make package_check # check for complete and consistent package lists
+   make spelling      # spell-check the manual
 
 ----------
 

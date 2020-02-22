@@ -2,7 +2,7 @@ Applying patches
 ================
 
 It is easy to stay current with the most recent LAMMPS patch releases
-if you use Git or SVN to track LAMMPS development.  Instructions for
+if you use git or SVN to track LAMMPS development.  Instructions for
 how to stay current are on the :doc:`Install git <Install_git>` and
 :doc:`Install svn <Install_svn>` doc pages.
 
@@ -15,8 +15,8 @@ LAMMPS directory.
 
 .. note::
 
-   You should not apply patch files to a local Git or SVN repo of
-   LAMMPS, only to an unpacked tarball.  Use Git and SVN commands to
+   You should not apply patch files to a local git or SVN repo of
+   LAMMPS, only to an unpacked tarball.  Use git and SVN commands to
    update repo versions of LAMMPS.
 
 Here are the steps to apply a patch file.  Note that if your version
@@ -33,9 +33,9 @@ up to date.
   LAMMPS directory, where the redirected file is the name of the patch
   file.
   
-  .. parsed-literal::
+  .. code-block:: bash
   
-     patch -bp1 < patch.12Dec16
+     $ patch -bp1 < patch.12Dec16
 
 * A list of updated files print out to the screen.  The -b switch
   creates backup files of your originals (e.g. src/force.cpp.orig), so
@@ -47,10 +47,10 @@ up to date.
   command removes deprecated src files if any were removed by the patch
   from package sub-directories.
   
-  .. parsed-literal::
+  .. code-block:: bash
   
-     make purge
-     make package-update
+     $ make purge
+     $ make package-update
 
 * Re-build LAMMPS via the "make" command.
 

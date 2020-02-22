@@ -1,4 +1,4 @@
-Download the LAMMPS source with Git
+Download the LAMMPS source with git
 ===================================
 
 All LAMMPS development is coordinated through the "LAMMPS GitHub
@@ -11,32 +11,30 @@ has several advantages:
 * You can submit your new features back to GitHub for inclusion in
   LAMMPS.
 
-You must have `Git <git_>`_ installed on your system to communicate with
-the public Git server for LAMMPS.
+You must have `git <git_>`_ installed on your system to communicate with
+the public git server for LAMMPS.
 
 .. warning::
 
    As of October 2016, the official home of public LAMMPS development is
    on GitHub.  The previously advertised LAMMPS git repositories on
-   git.lammps.org and bitbucket.org are now deprecated, may not be
-   up-to-date, and may go away at any time.
+   git.lammps.org and bitbucket.org are now deprecated, and may go away at any time.
 
 .. _git: https://git-scm.com
 
-
-You can follow LAMMPS development on 3 different Git branches:
+You can follow LAMMPS development on 3 different git branches:
 
 * **stable**   :  this branch is updated with every stable release
 * **unstable** :  this branch is updated with every patch release
 * **master**   :  this branch continuously follows ongoing development
 
-To access the Git repositories on your box, use the clone command to
+To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   git clone -b unstable https://github.com/lammps/lammps.git mylammps
+   $ git clone -b unstable https://github.com/lammps/lammps.git mylammps
 
 where "mylammps" is the name of the directory you wish to create on
 your machine and "unstable" is one of the 3 branches listed above.
@@ -52,33 +50,32 @@ typing "make html" from the doc directory.
 
 After initial cloning, as bug fixes and new features are added to
 LAMMPS, as listed on :doc:`this page <Errors_bugs>`, you can stay
-up-to-date by typing the following Git commands from within the
+up-to-date by typing the following git commands from within the
 "mylammps" directory:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   git checkout unstable      # not needed if you always stay in this branch
-   git checkout stable        # use one of the 3 checkout commands
-   git checkout master
-   git pull
+   $ git checkout unstable      # not needed if you always stay in this branch
+   $ git checkout stable        # use one of the 3 checkout commands
+   $ git checkout master
+   $ git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
 directory structure.  It will also not change any existing LAMMPS
 files you have edited, unless those files have changed in the
-repository.  In that case, Git will attempt to merge the new
+repository.  In that case, git will attempt to merge the new
 repository file with your version of the file and tell you if there
-are any conflicts.  See the Git documentation for details.
+are any conflicts.  See the git documentation for details.
 
 If you want to access a particular previous release version of LAMMPS,
 you can instead "checkout" any version with a published tag. See the
-output of "git tag -l" for the list of tags.  The Git command to do
+output of "git tag -l" for the list of tags.  The git command to do
 this is as follows.
 
+.. code-block:: bash
 
-.. parsed-literal::
-
-   git checkout tagID
+   $ git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
 are discussed on :doc:`this page <Errors_bugs>`.  Note that this command
@@ -92,11 +89,11 @@ checkout"), you still need to re-build LAMMPS if any source files have
 changed.  To do this, you should cd to the src directory and type:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   make purge             # remove any deprecated src files
-   make package-update    # sync package files with src files
-   make foo               # re-build for your machine (mpi, serial, etc)
+   $ make purge             # remove any deprecated src files
+   $ make package-update    # sync package files with src files
+   $ make foo               # re-build for your machine (mpi, serial, etc)
 
 just as described on the :doc:`Install patch <Install_patch>` doc page,
 after a patch has been installed.

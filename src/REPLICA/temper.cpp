@@ -219,13 +219,12 @@ void Temper::command(int narg, char **arg)
 
     timer->init_timeout();
     update->integrate->run(nevery);
-    
+
     // check for timeout across all procs
+
     int my_timeout=0;
     int any_timeout=0;
-    if (timer->is_timeout()){
-      my_timeout=1;
-    }
+    if (timer->is_timeout()) my_timeout=1;
     MPI_Allreduce(&my_timeout, &any_timeout, 1, MPI_INT, MPI_SUM, universe->uworld);
     if (any_timeout) break;
 

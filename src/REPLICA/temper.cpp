@@ -226,7 +226,10 @@ void Temper::command(int narg, char **arg)
     int any_timeout=0;
     if (timer->is_timeout()) my_timeout=1;
     MPI_Allreduce(&my_timeout, &any_timeout, 1, MPI_INT, MPI_SUM, universe->uworld);
-    if (any_timeout) break;
+    if (any_timeout) {
+      timer->force_timeout();
+      break;
+    }
 
     // compute PE
     // notify compute it will be called at next swap

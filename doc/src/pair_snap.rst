@@ -38,12 +38,14 @@ In SNAP, the total energy is decomposed into a sum over
 atom energies. The energy of atom *i* is
 expressed as a weighted sum over bispectrum components.
 
-.. image:: Eqs/pair_snap.jpg
-   :align: center
+.. math::
 
-where *B\_k\^i* is the *k*\ -th bispectrum component of atom *i*\ ,
-and *beta\_k\^alpha\_i* is the corresponding linear coefficient
-that depends on *alpha\_i*, the SNAP element of atom *i*\ . The
+   E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i
+
+
+where :math:`B_k^i` is the *k*\ -th bispectrum component of atom *i*\ ,
+and :math:`\beta_k^{\alpha_i}` is the corresponding linear coefficient
+that depends on :math:\alpha_i`, the SNAP element of atom *i*\ . The
 number of bispectrum components used and their definitions
 depend on the value of *twojmax*
 defined in the SNAP parameter file described below.

@@ -70,8 +70,18 @@ Description
 The *lj/sdk* styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
 given by
 
-.. image:: Eqs/pair_cmm.jpg
-   :align: center
+.. math::
+
+ E = & \frac{27}{4} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right] 
+                       \qquad r < r_c \\
+ E = & \frac{3\sqrt{3}}{2} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^4 \right] 
+                       \qquad r < r_c \\
+ E = &  4 \epsilon  \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right] 
+                       \qquad r < r_c
+
 
 as required for the SDK Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>` and :ref:`(DeVane) <DeVane>`.  Rc is the cutoff.

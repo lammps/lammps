@@ -39,8 +39,11 @@ Description
 
 Style *soft* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_soft.jpg
-   :align: center
+.. math::
+
+   E = A \left[ 1 + \cos\left(\frac{\pi r}{r_c}\right) \right]
+   \qquad r < r_c
+
 
 It is useful for pushing apart overlapping atoms, since it does not
 blow up as r goes to 0.  A is a pre-factor that can be made to vary in

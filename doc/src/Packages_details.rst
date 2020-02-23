@@ -1223,11 +1223,10 @@ USER-CGDNA package
 
 **Contents:**
 
-Several pair styles, a bond style, and integration fixes for
-coarse-grained models of single- and double-stranded DNA based on the
-oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
-This includes Langevin-type rigid-body integrators with improved
-stability.
+Several pair styles, bond styles, and integration fixes for coarse-grained
+modelling of single- and double-stranded DNA and RNA based on the oxDNA and
+oxRNA model of Doye, Louis and Ouldridge. The package includes Langevin-type
+rigid-body integrators with improved stability.
 
 **Author:** Oliver Henrich (University of Strathclyde, Glasgow).
 
@@ -1237,8 +1236,10 @@ stability.
 * /src/USER-CGDNA/README
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`pair_style oxrna2/\* <pair_oxrna2>`
 * :doc:`bond_style oxdna/\* <bond_oxdna>`
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
+* :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 

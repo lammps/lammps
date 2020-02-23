@@ -37,7 +37,7 @@ The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
-* nu artificial viscosity (no units)
+* :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
 
 

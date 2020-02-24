@@ -31,7 +31,7 @@ Syntax
 * R\_1, R\_2,... = list of cutoff radii, one for each type (distance units)
 * w\_1, w\_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chunksize*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag*
   
   .. parsed-literal::
   
@@ -45,8 +45,6 @@ Syntax
        *quadraticflag* value = *0* or *1*
           *0* = do not generate quadratic terms
           *1* = generate quadratic terms
-       *chunksize* value = number of atoms in each loop pass (KOKKOS package only)
-
 
 Examples
 """"""""
@@ -236,14 +234,6 @@ of bispectrum components with itself.
 See section below on output for a
 detailed explanation of the number of quadratic terms and the
 ordered in which they are listed.
-
-The keyword *chunksize* is only applicable when using the
-KOKKOS package and is ignored otherwise. This keyword controls
-the number of atoms in each pass used to compute the bispectrum
-components and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the bispectrum calculation will be broken up
-into two passes.
 
 .. note::
 

@@ -105,9 +105,30 @@ H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu2O, TiN and hydrocarbons, are given in the
 following table:
 
-.. math::
++----+----+----+----+----+----+----+----+----+
+|    | O  | Cu | N  | C  | H  | Ti | Zn | Zr |
++----+----+----+----+----+----+----+----+----+
+| O  | F  | F  | F  | F  | F  | F  | F  | F  |
++----+----+----+----+----+----+----+----+----+
+| Cu | F  | F  | P  | F  | F  | P  | F  | P  |
++----+----+----+----+----+----+----+----+----+
+| N  | F  | P  | F  | M  | F  | P  | P  | P  |
++----+----+----+----+----+----+----+----+----+
+| C  | F  | F  | M  | F  | F  | M  | M  | M  |
++----+----+----+----+----+----+----+----+----+
+| H  | F  | F  | F  | F  | F  | M  | M  | F  |
++----+----+----+----+----+----+----+----+----+
+| Ti | F  | P  | P  | M  | M  | F  | P  | P  |
++----+----+----+----+----+----+----+----+----+
+| Zn | F  | F  | P  | M  | M  | P  | F  | P  |
++----+----+----+----+----+----+----+----+----+
+| Zr | F  | P  | P  | M  | F  | P  | P  | F  |
++----+----+----+----+----+----+----+----+----+
 
-   :align: center
+* F = Fully optimized
+* M = Only optimized for dimer molecule
+* P = in progress, but have it from mixing rule
+
 
 For style *comb3*\ , in addition to ffield.comb3, a special parameter
 file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be

@@ -46,15 +46,18 @@ the 12 December 2018 release.
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
 
-.. image:: Eqs/pair_meam.jpg
-   :align: center
+.. math::
 
-where F is the embedding energy which is a function of the atomic
-electron density rho, and phi is a pair potential interaction.  The
-pair interaction is summed over all neighbors J of atom I within the
-cutoff distance.  As with EAM, the multi-body nature of the MEAM
-potential is a result of the embedding energy term.  Details of the
-computation of the embedding and pair energies, as implemented in
+  E = \sum_i \left\{ F_i(\bar{\rho}_i)
+      + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
+
+
+where *F* is the embedding energy which is a function of the atomic
+electron density :math:`\rho`, and :math:`\phi` is a pair potential
+interaction.  The pair interaction is summed over all neighbors J of
+atom I within the cutoff distance.  As with EAM, the multi-body nature
+of the MEAM potential is a result of the embedding energy term.  Details
+of the computation of the embedding and pair energies, as implemented in
 LAMMPS, are given in :ref:`(Gullet) <Gullet>` and references therein.
 
 The various parameters in the MEAM formulas are listed in two files

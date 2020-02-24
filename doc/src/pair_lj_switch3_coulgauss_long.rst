@@ -40,26 +40,35 @@ Description
 The *lj/switch3/coulgauss* style evaluates the LJ
 vdW potential
 
-.. image:: Eqs/pair_lj_switch3.jpg
-   :align: center
+.. math::
+
+   E = 4\epsilon \left[ \left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^{6} \right]
 
 , which goes smoothly to zero at the cutoff r\_c as defined
 by the switching function
 
-.. image:: Eqs/pair_switch3.jpg
-   :align: center
+.. math::
+
+ S_3(r) = \left\lbrace \begin{array}{ll}
+                     1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
+                     3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
+                     0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
+                 \end{array} \right.
+
 
 where w is the width defined in the arguments. This potential
 is combined with Coulomb interaction between Gaussian charge densities:
 
-.. image:: Eqs/pair_coulgauss.jpg
-   :align: center
+.. math::
 
-where qi and qj are the
-charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, gamma\_i and gamma\_j
-are the widths of the Gaussian charge distribution and erf() is the error-function.
-This style has to be used in conjunction with the :doc:`kspace_style <kspace_style>` command
+   E = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
+
+where :math:`q_i` and :math:`q_j` are the charges on the 2 atoms,
+:math:`\epsilon` is the dielectric constant which can be set by the
+:doc:`dielectric <dielectric>` command, :math:`\gamma_i` and
+:math:`\gamma_j` are the widths of the Gaussian charge distribution and
+erf() is the error-function.  This style has to be used in conjunction
+with the :doc:`kspace_style <kspace_style>` command
 
 If one cutoff is specified it is used for both the vdW and Coulomb
 terms.  If two cutoffs are specified, the first is used as the cutoff
@@ -71,10 +80,9 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* epsilon (energy)
-* sigma (distance)
-* gamma (distance)
-
+* :math:`\epsilon` (energy)
+* :math:`\sigma` (distance)
+* :math:`\gamma` (distance)
 
 ----------
 

@@ -62,22 +62,34 @@ upon initialization.
 A system of a single atom type (e.g., LJ argon) with a single local density (LD)
 potential would have an energy given by:
 
-.. image:: Eqs/pair_local_density_energy.jpg
-   :align: center
+.. math::
 
-where rho\_i is the LD at atom i and F(rho) is similar in spirit to the 
-embedding function used in EAM potentials. The LD at atom i is given by the sum
+   U_{LD} = \sum_i F(\rho_i)
 
-.. image:: Eqs/pair_local_density_ld.jpg
-   :align: center
 
-where phi is an indicator function that is one at r=0 and zero beyond a cutoff 
-distance R2. The choice of the functional form of phi is somewhat arbitrary, 
-but the following piecewise cubic function has proven sufficiently general: 
-:ref:`(Sanyal1) <Sanyal1>`, :ref:`(Sanyal2) <Sanyal2>` :ref:`(Rosenberger) <Rosenberger>`
+where :math:`\rho_i` is the LD at atom *i* and :math:`F(\rho)` is
+similar in spirit to the embedding function used in EAM potentials. The
+LD at atom *i* is given by the sum
 
-.. image:: Eqs/pair_local_density_indicator_func.jpg
-   :align: center
+.. math::
+
+   \rho_i = \sum_{j \neq i} \varphi(r_{ij})
+
+
+where :math:`\varphi` is an indicator function that is one at r=0 and
+zero beyond a cutoff distance R2. The choice of the functional form of
+:math:`\varphi` is somewhat arbitrary, but the following piecewise cubic
+function has proven sufficiently general: :ref:`(Sanyal1) <Sanyal1>`,
+:ref:`(Sanyal2) <Sanyal2>` :ref:`(Rosenberger) <Rosenberger>`
+
+.. math::
+
+   \varphi(r) = 
+   \begin{cases}
+   1 & r \le R_1 \\
+   c_0 + c_2r^2 + c_4r^4 + c_6r^6  & r \in (R_1, R_2) \\
+   0 & r \ge R_2
+   \end{cases}
 
 The constants *c* are chosen so that the indicator function smoothly 
 interpolates between 1 and 0 between the distances R1 and R2, which are 
@@ -100,33 +112,37 @@ pair style. Please see :ref:`(Sanyal1) <Sanyal1>` for details of the derivation.
 
 The potential is easily generalized to systems involving multiple atom types:
 
-.. image:: Eqs/pair_local_density_energy_multi.jpg
-   :align: center
+.. math::
+
+   U_{LD} = \sum_i a_\alpha F(\rho_i)
+
 
 with the LD expressed as
 
-.. image:: Eqs/pair_local_density_ld_multi.jpg
-   :align: center
+.. math::
 
-where alpha gives the type of atom i, beta the type of atom j, and the 
-coefficients a and b filter for atom types as specified by the user. a is 
-called the central atom filter as it determines to which atoms the 
-potential applies; a\_alpha = 1 if the LD potential applies to atom type alpha 
-else zero. On the other hand, b is called the neighbor atom filter because it 
-specifies which atom types to use in the calculation of the LD; b\_beta = 1 if 
-atom type beta contributes to the LD and zero otherwise.
+   \rho_i = \sum_{j \neq i} b_\beta \varphi(r_{ij})
+
+
+where :math:`\alpha` gives the type of atom *i*\ , :math:`\beta` the
+type of atom *j*\ , and the coefficients *a* and *b* filter for atom
+types as specified by the user. *a* is called the central atom filter as
+it determines to which atoms the potential applies; :math:`a_{\alpha} =
+1` if the LD potential applies to atom type alpha else zero. On the
+other hand, *b* is called the neighbor atom filter because it specifies
+which atom types to use in the calculation of the LD; :math:`b_{\beta} =
+1` if atom type :math:`\beta` contributes to the LD and zero otherwise.
 
 .. note::
 
-   Note that the potentials need not be symmetric with respect to atom types, 
-   which is the reason for two distinct sets of coefficients a and b. An atom type 
-   may contribute to the LD but not the potential, or to the potential but not the 
-   LD. Such decisions are made by the user and should (ideally) be motivated on 
-   physical grounds for the problem at hand.
-
+   Note that the potentials need not be symmetric with respect to atom
+   types, which is the reason for two distinct sets of coefficients *a*
+   and *b*\ . An atom type may contribute to the LD but not the
+   potential, or to the potential but not the LD. Such decisions are
+   made by the user and should (ideally) be motivated on physical
+   grounds for the problem at hand.
 
 ----------
-
 
 **General form for implementation in LAMMPS:**
 
@@ -135,14 +151,18 @@ potentials, each with their own atom type filters, cutoffs, and embedding
 functions. The most general form of this potential as implemented in the 
 pair\_style local/density is:
 
-.. image:: Eqs/pair_local_density_energy_implement.jpg
-   :align: center
+.. math::
 
-where, k is an index that spans the (arbitrary) number of applied LD potentials 
-N\_LD. Each LD is calculated as before with:
+   U_{LD} = \sum_k U_{LD}^{(k)} = \sum_i \left[ \sum_k a_\alpha^{(k)} F^{(k)} \left(\rho_i^{(k)}\right) \right] 
 
-.. image:: Eqs/pair_local_density_ld_implement.jpg
-   :align: center
+
+where, *k* is an index that spans the (arbitrary) number of applied LD
+potentials N\_LD. Each LD is calculated as before with:
+
+.. math::
+
+   \rho_i^{(k)} = \sum_j b_\beta^{(k)} \varphi^{(k)} (r_{ij})
+
 
 The superscript on the indicator function phi simply indicates that it is 
 associated with specific values of the cutoff distances R1(k) and R2(k). In 
@@ -154,9 +174,7 @@ one must specify:
 * the neighbor type filter b(k), where k = 1,2,...N\_LD
 * the LD potential function F(k)(rho), typically as a table that is later spline-interpolated
 
-
 ----------
-
 
 **Tabulated input file format:**
 
@@ -189,9 +207,7 @@ Lines 5 to 9+N\_rho constitute the first block. Thus the input file is separated
 each specifying its own upper and lower cutoffs, central and neighbor atoms, 
 and potential.  In general, blank lines anywhere are ignored.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, info**\ :
 This pair style does not support automatic mixing. For atom type pairs alpha,

@@ -64,7 +64,7 @@ is combined with Coulomb interaction between Gaussian charge densities:
 
 .. math::
 
-  E & = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
+  E = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
 
 
 where :math:`q_i` and :math:`q_j` are the charges on the 2 atoms,

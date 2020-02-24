@@ -43,8 +43,16 @@ other types of interactions.
 The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball2>`
 
-.. image:: Eqs/pair_lubricate.jpg
-   :align: center
+.. math::
+
+   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
+   a_{sh} | (\omega_1 + \omega_2) \bullet 
+   (\mathbf{I} - \mathbf{nn}) - 2 \Omega_N |^2 - \\
+   &  a_{pu} | (\omega_1 - \omega_2) \bullet (\mathbf{I} - \mathbf{nn}) |^2 -
+   a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\
+   & \\
+   \Omega_N & = \mathbf{n} \times (v_1 - v_2) / r
+
 
 which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
@@ -75,13 +83,15 @@ The other component is due to the Fast Lubrication Dynamics (FLD)
 approximation, described in :ref:`(Kumar) <Kumar2>`.  The equation being
 solved to balance the forces and torques is
 
-.. image:: Eqs/fld2.jpg
-   :align: center
+.. math::
+
+   -R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}
+
 
 where U represents the velocities and angular velocities of the
-particles, U\^\ *infty* represents the velocities and the angular
-velocities of the undisturbed fluid, and E\^\ *infty* represents the rate
-of strain tensor of the undisturbed fluid flow with viscosity
+particles, :math:`U^{\infty}` represents the velocities and the angular
+velocities of the undisturbed fluid, and :math:`E^{\infty}` represents
+the rate of strain tensor of the undisturbed fluid flow with viscosity
 *mu*\ . Again, note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.  Volume fraction
 corrections to R\_FU are included if *flagVF* is set to 1 (default).

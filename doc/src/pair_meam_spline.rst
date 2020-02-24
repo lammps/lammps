@@ -32,27 +32,31 @@ using a variant of modified embedded-atom method (MEAM) potentials
 :ref:`(Lenosky) <Lenosky1>`.  For a single species ("old-style") MEAM,
 the total energy E is given by
 
-.. image:: Eqs/pair_meam_spline.jpg
-   :align: center
+.. math::
 
-where rho\_i is the density at atom I, theta\_jik is the angle between
-atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
-f, and g are represented by cubic splines.
+   E & =\sum_{i<j}\phi(r_{ij})+\sum_{i}U(n_{i}) \\
+   n_{i} & =\sum_{j}\rho(r_{ij})+\sum_{\substack{j<k,\\j,k\neq i}}f(r_{ij})f(r_{ik})g[\cos(\theta_{jik})]
+
+where :math:`\rho_i` is the density at atom I, :math:`\theta_{jik}` is
+the angle between atoms J, I, and K centered on atom I. The five
+functions :math:`\phi, U, \rho, f,` and *g* are represented by cubic splines.
 
 The *meam/spline* style also supports a new style multicomponent
 modified embedded-atom method (MEAM) potential :ref:`(Zhang) <Zhang4>`, where
 the total energy E is given by
 
-.. image:: Eqs/pair_meam_spline_multicomponent.jpg
-   :align: center
+.. math::
 
-where the five functions Phi, U, rho, f, and g depend on the chemistry
-of the atoms in the interaction.  In particular, if there are N different
-chemistries, there are N different U, rho, and f functions, while there
-are N(N+1)/2 different Phi and g functions.  The new style multicomponent
-MEAM potential files are indicated by the second line in the file starts
-with "meam/spline" followed by the number of elements and the name of each
-element.
+   E &= \sum_{i<j}\phi_{ij}(r_{ij})+\sum_{i}U_i(n_{i}) \\
+   n_{i} & = \sum_{j\ne i}\rho_j(r_{ij})+\sum_{\substack{j<k,\\j,k\neq i}}f_{j}(r_{ij})f_{k}(r_{ik})g_{jk}[\cos(\theta_{jik})]
+
+where the five functions :math:`\phi, U, \rho, f,` and *g* depend on the
+chemistry of the atoms in the interaction.  In particular, if there are
+N different chemistries, there are N different *U*\ , :math:`\rho`, and
+*f* functions, while there are N(N+1)/2 different :math:`\phi` and *g*
+functions.  The new style multicomponent MEAM potential files are
+indicated by the second line in the file starts with "meam/spline"
+followed by the number of elements and the name of each element.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the

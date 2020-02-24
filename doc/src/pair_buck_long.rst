@@ -50,13 +50,12 @@ Description
 The *buck/long/coul/long* style computes a Buckingham potential (exp/6
 instead of Lennard-Jones 12/6) and Coulombic potential, given by
 
-.. image:: Eqs/pair_buck.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+   E = & A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c \\
+   E = & \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-Rc is the cutoff.  If one cutoff is specified in the pair\_style
+:math:`r_c` is the cutoff.  If one cutoff is specified in the pair\_style
 command, it is used for both the Buckingham and Coulombic terms.  If
 two cutoffs are specified, they are used as cutoffs for the Buckingham
 and Coulombic terms respectively.

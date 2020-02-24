@@ -140,12 +140,14 @@ Description
 The *coul/cut* style computes the standard Coulombic interaction
 potential given by
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+.. math::
+
+  E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and epsilon is the dielectric constant which can be set
-by the :doc:`dielectric <dielectric>` command.  The cutoff Rc truncates
+the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
+by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 
 
@@ -155,10 +157,12 @@ the interaction distance.
 Style *coul/debye* adds an additional exp() damping factor to the
 Coulombic term, given by
 
-.. image:: Eqs/pair_debye.jpg
-   :align: center
+.. math::
 
-where kappa is the Debye length.  This potential is another way to
+  E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
+
+
+where :math:`\kappa` is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
 
 
@@ -168,10 +172,14 @@ mimic the screening effect of a polar solvent.
 Style *coul/dsf* computes Coulombic interactions via the damped
 shifted force model described in :ref:`Fennell <Fennell1>`, given by:
 
-.. image:: Eqs/pair_coul_dsf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter and erfc() is the
+  E = 
+  q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
+  \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
+
+
+where :math:`\alpha` is the damping parameter and erfc() is the
 complementary error-function. The potential corrects issues in the
 Wolf model (described below) to provide consistent forces and energies
 (the Wolf potential is not differentiable at the cutoff) and smooth
@@ -184,16 +192,21 @@ decay to zero.
 Style *coul/wolf* computes Coulombic interactions via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
-.. image:: Eqs/pair_coul_wolf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter, and erc() and erfc() are
+  E_i = \frac{1}{2} \sum_{j \neq i} 
+  \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
+  \frac{1}{2} \sum_{j \neq i} 
+  \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+
+
+where :math:`\alpha` is the damping parameter, and erc() and erfc() are
 error-function and complementary error-function terms.  This potential
 is essentially a short-range, spherically-truncated,
 charge-neutralized, shifted, pairwise *1/r* summation.  With a
 manipulation of adding and subtracting a self term (for i = j) to the
 first and second term on the right-hand-side, respectively, and a
-small enough *alpha* damping parameter, the second term shrinks and
+small enough :math:`\alpha` damping parameter, the second term shrinks and
 the potential becomes a rapidly-converging real-space summation.  With
 a long enough cutoff and small enough alpha parameter, the energy and
 forces calculated by the Wolf summation method approach those of the

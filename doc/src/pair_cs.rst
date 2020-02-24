@@ -138,12 +138,14 @@ is used to calculate the correction factor is extended by a minimal
 distance (r\_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
-.. image:: Eqs/pair_cs.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the core and shell, epsilon is the dielectric constant and r\_min is the
-minimal distance.
+   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the core and shell, epsilon is the dielectric
+constant and :math:`r_{min}` is the minimal distance.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of

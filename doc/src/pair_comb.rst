@@ -45,19 +45,20 @@ third-generation COMB potential.  These COMB potentials are described
 in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the total energy
 *E<sub>T</sub>* of a system of atoms is given by
 
-.. image:: Eqs/pair_comb1.jpg
-   :align: center
+.. math::
 
-where *E<sub>i</sub><sup>self</sup>* is the self-energy of atom *i*
-(including atomic ionization energies and electron affinities),
-*E<sub>ij</sub><sup>short</sup>* is the bond-order potential between
-atoms *i* and *j*\ ,
-*E<sub>ij</sub><sup>Coul</sup>* is the Coulomb interactions,
-*E<sup>polar</sup>* is the polarization term for organic systems
-(style *comb3* only),
-*E<sup>vdW</sup>* is the van der Waals energy (style *comb3* only),
-*E<sup>barr</sup>* is a charge barrier function, and
-*E<sup>corr</sup>* are angular correction terms.
+   E_T  = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
+          & E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})] 
+
+
+where :math:`E_i^{self}` is the self-energy of atom *i* (including
+atomic ionization energies and electron affinities),
+:math:`E_{ij}^{short}` is the bond-order potential between atoms *i* and
+*j*\ , :math:`E_{ij}^{Coul}` is the Coulomb interactions,
+:math:`E^{polar}` is the polarization term for organic systems (style
+*comb3* only), :math:`E^{vdW}` is the van der Waals energy (style
+*comb3* only), :math:`E^{barr}` is a charge barrier function, and
+:math:`E^{corr}` are angular correction terms.
 
 The COMB potentials (styles *comb* and *comb3*\ ) are variable charge
 potentials.  The equilibrium charge on each atom is calculated by the
@@ -75,8 +76,8 @@ needed elements.  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the potential file in the pair\_coeff
 command, where N is the number of LAMMPS atom types.
 
-For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
-HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
+For example, if your LAMMPS simulation of a Si/SiO2/
+HfO2 interface has 4 atom types, and you want the 1st and
 last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
 use the following pair\_coeff command:
 
@@ -101,10 +102,11 @@ Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
 *comb3*\ , the potential file *ffield.comb3* contains all
 currently-available 3rd generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
-example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
+example Cu2O, TiN and hydrocarbons, are given in the
 following table:
 
-.. image:: Eqs/pair_comb2.jpg
+.. math::
+
    :align: center
 
 For style *comb3*\ , in addition to ffield.comb3, a special parameter

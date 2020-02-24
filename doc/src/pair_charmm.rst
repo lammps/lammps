@@ -160,8 +160,21 @@ artifacts.
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.
 
-.. image:: Eqs/pair_charmm.jpg
-   :align: center
+.. math::
+
+ E = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\
+   = & S(r) * LJ(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
+   = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
+ E = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
+   = & S(r) * C(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
+   = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
+ LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+         \left(\frac{\sigma}{r}\right)^6 \right] \\
+ C(r) = & \frac{C q_i q_j}{ \epsilon r} \\
+ S(r) = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
+   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
+ { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
+
 
 where S(r) is the energy switching function mentioned above for the
 *charmm* styles.  See the :ref:`(Steinbach) <Steinbach>` paper for the
@@ -209,14 +222,13 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
-* epsilon\_14 (energy units)
-* sigma\_14 (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
+* :math:`\epsilon_{14}` (energy units)
+* :math:`\sigma_{14}` (distance units)
 
-Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum at 2\^(1/6)
-sigma.
+Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at :math:`2^{1/6} \sigma`.
 
 The latter 2 coefficients are optional.  If they are specified, they
 are used in the LJ formula between 2 atoms of these types which are

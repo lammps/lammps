@@ -82,10 +82,14 @@ Description
 
 The *lj/class2* styles compute a 6/9 Lennard-Jones potential given by
 
-.. image:: Eqs/pair_class2.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff.
+  E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 - 
+    3 \left(\frac{\sigma}{r}\right)^6 \right]
+  \qquad r < r_c
+
+
+:math:`r_c` is the cutoff.
 
 The *lj/class2/coul/cut* and *lj/class2/coul/long* styles add a
 Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
@@ -98,8 +102,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 
@@ -121,11 +125,12 @@ specified in the pair\_style command.
 
 
 If the pair\_coeff command is not used to define coefficients for a
-particular I != J type pair, the mixing rule for epsilon and sigma for
-all class2 potentials is to use the *sixthpower* formulas documented
-by the :doc:`pair_modify <pair_modify>` command.  The :doc:`pair_modify mix <pair_modify>` setting is thus ignored for class2 potentials
-for epsilon and sigma.  However it is still followed for mixing the
-cutoff distance.
+particular I != J type pair, the mixing rule for :math:`\epsilon` and
+:math:`\sigma` for all class2 potentials is to use the *sixthpower*
+formulas documented by the :doc:`pair_modify <pair_modify>` command.
+The :doc:`pair_modify mix <pair_modify>` setting is thus ignored for
+class2 potentials for epsilon and sigma.  However it is still followed
+for mixing the cutoff distance.
 
 
 ----------

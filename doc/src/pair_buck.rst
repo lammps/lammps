@@ -109,11 +109,13 @@ Description
 The *buck* style computes a Buckingham potential (exp/6 instead of
 Lennard-Jones 12/6) given by
 
-.. image:: Eqs/pair_buck.jpg
-   :align: center
+.. math::
 
-where rho is an ionic-pair dependent length parameter, and Rc is the
-cutoff on both terms.
+   E = A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c
+
+
+where :math:`\rho` is an ionic-pair dependent length parameter, and
+:math:`r_c` is the cutoff on both terms.
 
 The styles with *coul/cut* or *coul/long* or *coul/msm* add a
 Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
@@ -147,14 +149,14 @@ above, or in the data file or restart files read by the
 commands:
 
 * A (energy units)
-* rho (distance units)
+* :math:`\rho` (distance units)
 * C (energy-distance\^6 units)
 * cutoff (distance units)
 * cutoff2 (distance units)
 
-The second coefficient, rho, must be greater than zero.
-The coefficients A, rho, and C can be written as analytical expressions
-of epsilon and sigma, in analogy to the Lennard-Jones potential
+The second coefficient, :math:`\rho`, must be greater than zero.
+The coefficients A,:math:`\rho`, and C can be written as analytical expressions
+of :math:`\epsilon` and :math:`\sigma`, in analogy to the Lennard-Jones potential
 :ref:`(Khrapak) <Khrapak>`.
 
 The latter 2 coefficients are optional.  If not specified, the global

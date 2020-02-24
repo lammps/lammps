@@ -102,11 +102,15 @@ Description
 The *born* style computes the Born-Mayer-Huggins or Tosi/Fumi
 potential described in :ref:`(Fumi and Tosi) <FumiTosi>`, given by
 
-.. image:: Eqs/pair_born.jpg
-   :align: center
+.. math::
 
-where sigma is an interaction-dependent length parameter, rho is an
-ionic-pair dependent length parameter, and Rc is the cutoff.
+   E = A \exp \left(\frac{\sigma - r}{\rho} \right) - 
+   \frac{C}{r^6} + \frac{D}{r^8} \qquad r < r_c
+
+
+where :math:`\sigma` is an interaction-dependent length parameter,
+:math:`\rho` is an ionic-pair dependent length parameter, and
+:math:`r_c` is the cutoff.
 
 The styles with *coul/long* or *coul/msm* add a Coulombic term as
 described for the :doc:`lj/cut <pair_lj>` pair styles.  An additional
@@ -138,8 +142,8 @@ above, or in the data file or restart files read by the
 commands, or by mixing as described below:
 
 * A (energy units)
-* rho (distance units)
-* sigma (distance units)
+* :math:`\rho` (distance units)
+* :math:`\sigma` (distance units)
 * C (energy units \* distance units\^6)
 * D (energy units \* distance units\^8)
 * cutoff (distance units)

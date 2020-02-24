@@ -50,12 +50,14 @@ interactions following the MOF-FF force field after
 :ref:`(Schmid) <Schmid>`. The vdW term of the *buck6d* styles
 computes a dispersion damped Buckingham potential:
 
-.. image:: Eqs/pair_buck6d.jpg
-   :align: center
+.. math::
 
-where A and C are a force constant, kappa is an ionic-pair dependent
+  E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
+
+
+where A and C are a force constant, :math:`\kappa` is an ionic-pair dependent
 reciprocal length parameter, D is a dispersion correction parameter,
-and the cutoff Rc truncates the interaction distance.
+and the cutoff :math:`r_c` truncates the interaction distance.
 The first term in the potential corresponds to the Buckingham
 repulsion term and the second term to the dispersion attraction with
 a damping correction analog to the Grimme correction used in DFT.
@@ -78,14 +80,16 @@ distributions which effectively dampen electrostatic interactions
 for high charges at close distances.  The electrostatic potential
 is thus evaluated as:
 
-.. image:: Eqs/pair_coul_gauss.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the
-charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, alpha is
-ion pair dependent damping parameter and erf() is the error-function.
-The cutoff Rc truncates the interaction distance.
+  E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, epsilon is the dielectric constant which
+can be set by the :doc:`dielectric <dielectric>` command, alpha is ion
+pair dependent damping parameter and erf() is the error-function.  The
+cutoff Rc truncates the interaction distance.
 
 The style *buck6d/coul/gauss/dsf* computes the Coulomb interaction
 via the damped shifted force model described in :ref:`(Fennell) <Fennell>`
@@ -107,14 +111,14 @@ above, or in the data file or restart files read by the
 commands:
 
 * A (energy units)
-* rho (distance\^-1 units)
+* :math:`\rho` (distance\^-1 units)
 * C (energy-distance\^6 units)
 * D (distance\^14 units)
-* alpha (distance\^-1 units)
+* :math:`\alpha` (distance\^-1 units)
 * cutoff (distance units)
 
-The second coefficient, rho, must be greater than zero. The latter
-coefficient is optional.  If not specified, the global vdW cutoff
+The second coefficient, :math:`\rho`, must be greater than zero. The
+latter coefficient is optional.  If not specified, the global vdW cutoff
 is used.
 
 

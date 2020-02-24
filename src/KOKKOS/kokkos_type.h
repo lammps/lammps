@@ -1023,6 +1023,24 @@ struct params_lj_coul {
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
+// Pair SNAP
+
+typedef double SNAreal;
+
+//typedef struct { SNAreal re, im; } SNAcomplex;
+struct alignas(2*sizeof(SNAreal)) SNAcomplex{
+  SNAreal re, im;
+
+  KOKKOS_INLINE_FUNCTION
+  SNAcomplex() : re(0),im(0)
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  SNAcomplex(SNAreal real_in, SNAreal imag_in)
+      :re(real_in),im(imag_in)
+  {}
+};
+
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)

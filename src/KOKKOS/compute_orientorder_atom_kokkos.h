@@ -27,21 +27,6 @@ ComputeStyle(orientorder/atom/kk/host,ComputeOrientOrderAtomKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-typedef double SNAreal;
-
-struct alignas(2*sizeof(SNAreal)) SNAcomplex{
-  SNAreal re, im;
-
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex() : re(0),im(0)
-  {}
-
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex(SNAreal real_in, SNAreal imag_in)
-      :re(real_in),im(imag_in)
-  {}
-};
-
 struct TagComputeOrientOrderAtomNeigh{};
 struct TagComputeOrientOrderAtomSelect3{};
 struct TagComputeOrientOrderAtomBOOP1{};

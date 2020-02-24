@@ -25,30 +25,6 @@
 
 namespace LAMMPS_NS {
 
-typedef double SNAreal;
-
-//typedef struct { SNAreal re, im; } SNAcomplex;
-struct alignas(2*sizeof(SNAreal)) SNAcomplex{
-  SNAreal re, im;
-
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex() : re(0),im(0)
-  {}
-
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex(SNAreal real_in, SNAreal imag_in)
-      :re(real_in),im(imag_in)
-  {}
-};
-
-//struct SNAKK_ZINDICES {
-//  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
-//};
-//
-//struct SNAKK_BINDICES {
-//  int j1, j2, j;
-//};
-
 template<class DeviceType>
 class SNAKokkos {
 

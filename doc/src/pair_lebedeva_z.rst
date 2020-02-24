@@ -32,13 +32,20 @@ The *lebedeva/z* style computes the Lebedeva interaction
 potential as described in :ref:`(Lebedeva et al.) <Leb01>`. An important simplification is made,
 which is to take all normals along the z-axis.
 
-.. image:: Eqs/pair_lebedeva.png
-   :align: center
+.. math::
+
+   E       = & \frac{1}{2} \sum_i \sum_{i \neq j} V_{ij}\\
+   V_{ij}  = & B e^{-\alpha(r_{ij} - z_0)} \\
+             & + C(1 + D_1\rho^2_{ij} + D_2\rho^4_{ij} e^{-\lambda_1\rho^2_{ij}} e^{-\lambda_2 (z^2_{ij} - z^2_0)} \\
+             & - A \left(\frac{z_0}{r_ij}\right)^6 + A \left( \frac{z_0}{r_c} \right)^6 \\
+   \rho^2_{ij} = & x^2_{ij} + y^2_{ij} \qquad (\mathbf{n_i} \equiv \mathbf{\hat{z}})
+
+
 
 It is important to have a sufficiently large cutoff to ensure smooth forces.
 Energies are shifted so that they go continuously to zero at the cutoff assuming
-that the exponential part of *Vij* (first term) decays sufficiently fast.
-This shift is achieved by the last term in the equation for *Vij* above.
+that the exponential part of :math:`V_{ij}` (first term) decays sufficiently fast.
+This shift is achieved by the last term in the equation for :math:`V_{ij}` above.
 
 The parameter file (e.g. CC.Lebedeva), is intended for use with metal
 :doc:`units <units>`, with energies in meV. An additional parameter, *S*\ ,

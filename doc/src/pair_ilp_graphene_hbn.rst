@@ -40,13 +40,27 @@ potential (ILP) potential as described in :ref:`(Leven1) <Leven1>`,
 The normals are calculated in the way as described
 in :ref:`(Kolmogorov) <Kolmogorov2>`.
 
-.. image:: Eqs/pair_ilp_graphene_hbn.jpg
-   :align: center
+.. math::
 
-Where Tap(r\_ij) is the taper function which provides a continuous
-cutoff (up to third derivative) for interatomic separations larger than
-r\_c :ref:`(Maaravi) <Maaravi2>`. The definitions of each parameter in the above
-equation can be found in :ref:`(Leven1) <Leven1>` and :ref:`(Maaravi) <Maaravi2>`.
+  E  = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+  V_{ij}  = & {\rm Tap}(r_{ij})\left \{ e^{-\alpha (r_{ij}/\beta -1)} 
+               \left [ \epsilon + f(\rho_{ij}) + f(\rho_{ji})\right ] - 
+                \frac{1}{1+e^{-d\left [ \left ( r_{ij}/\left (s_R \cdot r^{eff} \right ) \right )-1 \right ]}}
+                \cdot \frac{C_6}{r^6_{ij}} \right \}\\
+  \rho_{ij}^2 = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_i)^2 \\
+  \rho_{ji}^2  = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_j)^2 \\
+  f(\rho)  = &  C e^{ -( \rho / \delta )^2 } \\
+  {\rm Tap}(r_{ij})  = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+                          70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
+                          84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
+                          35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
+
+
+Where :math:`\mathrm{Tap}(r_{ij})` is the taper function which provides
+a continuous cutoff (up to third derivative) for interatomic separations
+larger than :math:`r_c` :ref:`(Maaravi) <Maaravi2>`. The definitions of
+each parameter in the above equation can be found in :ref:`(Leven1)
+<Leven1>` and :ref:`(Maaravi) <Maaravi2>`.
 
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.

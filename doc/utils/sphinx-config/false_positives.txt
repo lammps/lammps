@@ -173,6 +173,7 @@ backcolor
 Baczewski
 Bagi
 Bagnold
+Bkappa
 Bal
 balancer
 Balankura
@@ -643,6 +644,7 @@ Donadio
 dotc
 Doty
 doxygen
+downarrow
 Doye
 dpd
 DPD
@@ -2696,6 +2698,7 @@ sqdistharm
 sqrt
 src
 srd
+sright
 Srinivasan
 Srolovitz
 srp
@@ -2968,6 +2971,7 @@ uInfParallel
 uk
 ul
 ulb
+Uleft
 uloop
 ulsph
 uMech
@@ -3000,6 +3004,7 @@ unsplit
 unstrained
 untar
 untilted
+uparrow
 upenn
 upto
 Urbakh

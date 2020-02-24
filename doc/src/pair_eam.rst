@@ -102,8 +102,11 @@ Style *eam* computes pairwise interactions for metals and metal alloys
 using embedded-atom method (EAM) potentials :ref:`(Daw) <Daw>`.  The total
 energy Ei of an atom I is given by
 
-.. image:: Eqs/pair_eam.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
+         \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
@@ -371,8 +374,12 @@ alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
 given by
 
-.. image:: Eqs/pair_eam_fs.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ 
+   \rho_{\alpha\beta} (r_{ij})\right) + 
+   \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,

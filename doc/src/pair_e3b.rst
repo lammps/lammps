@@ -57,8 +57,19 @@ Description
 
 The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :ref:`(Kumar 2008) <Kumar>`.
 
-.. image:: Eqs/e3b.jpg
-   :align: center
+.. math::
+
+   E =& E_2 \sum_{i,j}e^{-k_2 r_{ij}} + E_A \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type A}}} f(r_{ij})f(r_{k\ell}) + E_B \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type B}}} f(r_{ij})f(r_{k\ell}) + E_C \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type C}}} f(r_{ij})f(r_{k\ell}) \\
+   f(r) =& e^{-k_3 r}s(r) \\
+   s(r) =& \begin{cases}
+   1 & r<R_s \\
+   \displaystyle\frac{(R_f-r)^2(R_f-3R_s+2r)}{(R_f-R_s)^3} & R_s\leq r\leq R_f \\
+   0 & r>R_f\\
+   \end{cases}
+
 
 This potential was developed as a water model that includes the three-body cooperativity of hydrogen bonding explicitly.
 To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair\_style hybrid/overlay*.
@@ -103,7 +114,7 @@ If the neigh setting is too large, the pair style will use more memory than nece
 This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
 The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
-See the examples/USER/e3b directory for a complete example script.
+See the examples/USER/misc/e3b directory for a complete example script.
 
 
 ----------

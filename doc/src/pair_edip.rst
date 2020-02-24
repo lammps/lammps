@@ -37,15 +37,27 @@ potentials, while *edip/multi* supports multi-element EDIP runs.
 
 In EDIP, the energy E of a system of atoms is
 
-.. image:: Eqs/pair_edip.jpg
-   :align: center
+.. math::
 
-where phi2 is a two-body term and phi3 is a three-body term.  The
-summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = a.
-Both terms depend on the local environment of atom I through its
-effective coordination number defined by Z, which is unity for a
-cutoff distance < c and gently goes to 0 at distance = a.
+   E  = & \sum_{j \ne i} \phi_{2}(R_{ij}, Z_{i}) + \sum_{j \ne i} \sum_{k \ne i,k > j} \phi_{3}(R_{ij}, R_{ik}, Z_{i}) \\
+   \phi_{2}(r, Z)  = & A\left[\left(\frac{B}{r}\right)^{\rho} - e^{-\beta Z^2}\right]exp{\left(\frac{\sigma}{r-a}\right)} \\
+   \phi_{3}(R_{ij}, R_{ik}, Z_i)  = & exp{\left(\frac{\gamma}{R_{ij}-a}\right)}exp{\left(\frac{\gamma}{R_{ik}-a}\right)}h(cos\theta_{ijk},Z_i) \\
+   Z_i  = & \sum_{m \ne i} f(R_{im}) \qquad
+  f(r) = \begin{cases} 
+         1 & \quad r<c \\
+         \exp\left(\frac{\alpha}{1-x^{-3}}\right) & \quad c<r<a \\
+         0 & \quad r>a
+         \end{cases} \\
+  h(l,Z)  = & \lambda [(1-e^{-Q(Z)(l+\tau(Z))^2}) + \eta Q(Z)(l+\tau(Z))^2 ] \\
+  Q(Z)  = & Q_0 e^{-\mu Z} \qquad \tau(Z) = u_1 + u_2 (u_3 e^{-u_4 Z} - e^{-2u_4 Z})
+
+
+where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
+three-body term.  The summations in the formula are over all neighbors J
+and K of atom I within a cutoff distance = a.  Both terms depend on the
+local environment of atom I through its effective coordination number
+defined by Z, which is unity for a cutoff distance < c and gently goes
+to 0 at distance = a.
 
 Only a single pair\_coeff command is used with the *edip* style which
 specifies a EDIP potential file with parameters for all

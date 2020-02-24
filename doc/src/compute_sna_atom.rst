@@ -239,10 +239,11 @@ ordered in which they are listed.
 
 The keyword *chunksize* is only applicable when using the
 KOKKOS package and is ignored otherwise. This keyword controls
-the number of atoms in each pass used to compute the forces
-and is use to avoid running out of memory. For example if there
-are 4000 atoms in the simulation and the *chunksize* is set to
-2000, the force calculation will be broken up into two passes.
+the number of atoms in each pass used to compute the bispectrum
+components and is used to avoid running out of memory. For example
+if there are 4000 atoms in the simulation and the *chunksize*
+is set to 2000, the bispectrum calculation will be broken up
+into two passes.
 
 .. note::
 

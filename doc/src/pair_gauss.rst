@@ -44,11 +44,13 @@ Description
 
 Style *gauss* computes a tethering potential of the form
 
-.. image:: Eqs/pair_gauss.jpg
-   :align: center
+.. math::
+
+   E = - A \exp(-B r^2) \qquad r < r_c
+
 
 between an atom and its corresponding tether site which will typically
-be a frozen atom in the simulation.  Rc is the cutoff.
+be a frozen atom in the simulation.  :math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
@@ -66,17 +68,20 @@ is used.
 Style *gauss/cut* computes a generalized Gaussian interaction potential
 between pairs of particles:
 
-.. image:: Eqs/pair_gauss_cut.jpg
-   :align: center
+.. math::
 
-where H determines together with the standard deviation sigma\_h the
-peak height of the Gaussian function, and r\_mh the peak position.
-Examples of the use of the Gaussian potentials include implicit
-solvent simulations of salt ions :ref:`(Lenart) <Lenart2>` and of surfactants
-:ref:`(Jusufi) <Jusufi2>`.  In these instances the Gaussian potential mimics
-the hydration barrier between a pair of particles. The hydration
-barrier is located at r\_mh and has a width of sigma\_h. The prefactor
-determines the height of the potential barrier.
+   E = \frac{H}{\sigma_h\sqrt{2\pi}} \exp\left[-\frac{(r-r_{mh})^2}{2\sigma_h^2}\right]
+
+
+where H determines together with the standard deviation :math:`\sigma_h`
+the peak height of the Gaussian function, and :math:`r_{mh}` the peak
+position.  Examples of the use of the Gaussian potentials include
+implicit solvent simulations of salt ions :ref:`(Lenart) <Lenart2>` and
+of surfactants :ref:`(Jusufi) <Jusufi2>`.  In these instances the
+Gaussian potential mimics the hydration barrier between a pair of
+particles. The hydration barrier is located at :math:`r_{mh}` and has a
+width of :math:`\sigma_h`. The prefactor determines the height of the
+potential barrier.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the example above,
@@ -85,16 +90,14 @@ or in the data file or restart files read by the
 commands:
 
 * H (energy \* distance units)
-* r\_mh (distance units)
-* sigma\_h (distance units)
+* :math:`r_{mh}` (distance units)
+* :math:`\sigma_h` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional. If not specified, the global cutoff
 is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.

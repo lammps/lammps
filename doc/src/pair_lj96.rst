@@ -35,10 +35,14 @@ Description
 The *lj96/cut* style compute a 9/6 Lennard-Jones potential, instead
 of the standard 12/6 potential, given by
 
-.. image:: Eqs/pair_lj96.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff.
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
+
+:math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -46,8 +50,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global LJ

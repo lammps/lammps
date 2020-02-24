@@ -75,18 +75,25 @@ Examples
 Description
 """""""""""
 
-Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones and
-Coulombic potentials, given by
+Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones potential:
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c \\
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, epsilon is the dielectric constant which can be set by
-the :doc:`dielectric <dielectric>` command, and Rc is the cutoff.  If
+with :math:`\epsilon` and :math:`\sigma` being the usual Lennard-Jones
+potential parameters, plus the Coulomb potential, given by:
+
+.. math::
+
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j` are the charges on
+the 2 atoms, :math:`\epsilon` is the dielectric constant which can be set by
+the :doc:`dielectric <dielectric>` command, and :math:`r_c` is the cutoff.  If
 one cutoff is specified in the pair\_style command, it is used for both
 the LJ and Coulombic terms.  If two cutoffs are specified, they are
 used as cutoffs for the LJ and Coulombic terms respectively.
@@ -147,8 +154,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 

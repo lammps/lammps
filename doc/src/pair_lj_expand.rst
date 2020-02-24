@@ -51,35 +51,39 @@ delta which can be useful when particles are of different sizes, since
 it is different that using different sigma values in a standard LJ
 formula:
 
-.. image:: Eqs/pair_lj_expand.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff which does not include the delta distance.  I.e. the
-actual force cutoff is the sum of cutoff + delta.
+  E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
+    \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
+    \qquad r < r_c + \Delta
+
+
+:math:`r_c` is the cutoff which does not include the :math:`\Delta`
+distance.  I.e. the actual force cutoff is the sum of :math:`r_c +
+\Delta`.
 
 For all of the *lj/expand* pair styles, the following coefficients must
-be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read_data <read_data>`
-or :doc:`read_restart <read_restart>` commands, or by mixing as
-described below:
+be defined for each pair of atoms types via the :doc:`pair_coeff
+<pair_coeff>` command as in the examples above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands, or by mixing as described
+below:
 
-* epsilon (energy units)
-* sigma (distance units)
-* delta (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
+* :math:`\Delta` (distance units)
 * cutoff (distance units)
 
-The delta values can be positive or negative.  The last coefficient is
-optional.  If not specified, the global LJ cutoff is used.
+The :math:`\Delta` values can be positive or negative.  The last
+coefficient is optional.  If not specified, the global LJ cutoff is
+used.
 
 For *lj/expand/coul/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
 pair\_style command.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.

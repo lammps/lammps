@@ -211,39 +211,51 @@ Description
 The *lj/cut* styles compute the standard 12/6 Lennard-Jones potential,
 given by
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
 
 Rc is the cutoff.
 
 Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and epsilon is the dielectric constant which can be set
-by the :doc:`dielectric <dielectric>` command.  If one cutoff is
-specified in the pair\_style command, it is used for both the LJ and
-Coulombic terms.  If two cutoffs are specified, they are used as
-cutoffs for the LJ and Coulombic terms respectively.
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
+constant which can be set by the :doc:`dielectric <dielectric>` command.
+If one cutoff is specified in the pair\_style command, it is used for
+both the LJ and Coulombic terms.  If two cutoffs are specified, they are
+used as cutoffs for the LJ and Coulombic terms respectively.
 
 Style *lj/cut/coul/debye* adds an additional exp() damping factor
 to the Coulombic term, given by
 
-.. image:: Eqs/pair_debye.jpg
-   :align: center
+.. math::
 
-where kappa is the inverse of the Debye length.  This potential is
-another way to mimic the screening effect of a polar solvent.
+   E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
+
+
+where :math:`\kappa` is the inverse of the Debye length.  This potential
+is another way to mimic the screening effect of a polar solvent.
 
 Style *lj/cut/coul/dsf* computes the Coulombic term via the damped
 shifted force model described in :ref:`Fennell <Fennell2>`, given by:
 
-.. image:: Eqs/pair_coul_dsf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter and erfc() is the complementary
+  E = 
+   q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
+  \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
+
+
+where :math:`\alpha` is the damping parameter and erfc() is the complementary
 error-function. This potential is essentially a short-range,
 spherically-truncated, charge-neutralized, shifted, pairwise *1/r*
 summation.  The potential is based on Wolf summation, proposed as an
@@ -253,7 +265,7 @@ effectively short-ranged. In order for the electrostatic sum to be
 absolutely convergent, charge neutralization within the cutoff radius
 is enforced by shifting the potential through placement of image
 charges on the cutoff sphere. Convergence can often be improved by
-setting *alpha* to a small non-zero value.
+setting :math:`\alpha` to a small non-zero value.
 
 Styles *lj/cut/coul/long* and *lj/cut/coul/msm* compute the same
 Coulombic interactions as style *lj/cut/coul/cut* except that an
@@ -267,21 +279,26 @@ computed in reciprocal space.
 Style *coul/wolf* adds a Coulombic pairwise interaction via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
-.. image:: Eqs/pair_coul_wolf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter, and erfc() is the
-complementary error-function terms.  This potential
-is essentially a short-range, spherically-truncated,
-charge-neutralized, shifted, pairwise *1/r* summation.  With a
-manipulation of adding and subtracting a self term (for i = j) to the
-first and second term on the right-hand-side, respectively, and a
-small enough *alpha* damping parameter, the second term shrinks and
-the potential becomes a rapidly-converging real-space summation.  With
-a long enough cutoff and small enough alpha parameter, the energy and
-forces calculated by the Wolf summation method approach those of the
-Ewald sum.  So it is a means of getting effective long-range
-interactions with a short-range potential.
+  E_i = \frac{1}{2} \sum_{j \neq i} 
+  \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
+  \frac{1}{2} \sum_{j \neq i} 
+  \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+
+
+where :math:`\alpha` is the damping parameter, and erfc() is the
+complementary error-function terms.  This potential is essentially a
+short-range, spherically-truncated, charge-neutralized, shifted,
+pairwise *1/r* summation.  With a manipulation of adding and subtracting
+a self term (for i = j) to the first and second term on the
+right-hand-side, respectively, and a small enough :math:`\alpha` damping
+parameter, the second term shrinks and the potential becomes a
+rapidly-converging real-space summation.  With a long enough cutoff and
+small enough alpha parameter, the energy and forces calculated by the
+Wolf summation method approach those of the Ewald sum.  So it is a means
+of getting effective long-range interactions with a short-range
+potential.
 
 Styles *lj/cut/tip4p/cut* and *lj/cut/tip4p/long* implement the TIP4P
 water model of :ref:`(Jorgensen) <Jorgensen2>`, which introduces a massless
@@ -319,14 +336,13 @@ the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands, or by mixing as
 described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 
-Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum at 2\^(1/6)
-sigma.
+Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
 
 The latter 2 coefficients are optional.  If not specified, the global
 LJ and Coulombic cutoffs specified in the pair\_style command are used.
@@ -346,10 +362,12 @@ pair\_style command.
 ----------
 
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
-free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
-only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+A version of these styles with a soft core, *lj/cut/soft*\ , suitable
+for use in free energy calculations, is part of the USER-FEP package and
+is documented with the :doc:`pair_style */soft <pair_fep_soft>`
+styles. The version with soft core is only available if LAMMPS was built
+with that package. See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 
 ----------

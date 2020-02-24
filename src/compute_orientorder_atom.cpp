@@ -162,6 +162,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
+  if (copymode) return;
+
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(rlist);

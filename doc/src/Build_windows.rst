@@ -17,9 +17,9 @@ General remarks
 
 LAMMPS is developed and tested primarily on Linux machines.  The vast
 majority of HPC clusters and supercomputers today runs on Linux as well.
-Thus portability to other platforms is desired, but not always achieved.
+While portability to other platforms is desired, it is not always achieved.
 The LAMMPS developers strongly rely on LAMMPS users giving feedback and
-providing assistance in resolving portability issues. This particularly
+providing assistance in resolving portability issues. This is particularly
 true for compiling LAMMPS on Windows, since this platform has significant
 differences with some low-level functionality.
 
@@ -31,18 +31,20 @@ Running Linux on Windows
 So before trying to build LAMMPS on Windows, please consider if using
 the pre-compiled Windows binary packages are sufficient for your needs
 (as an aside, those packages themselves are build on a Linux machine
-using cross-compilers).  If it is necessary for your to compile LAMMPS
+using cross-compilers).  If it is necessary for you to compile LAMMPS
 on a Windows machine (e.g. because it is your main desktop), please also
-consider using a virtual machine software and run a Linux virtual machine,
-or - if have a recently updated Windows 10 installation - consider using
-the Windows subsystem for Linux, which allows to run a bash shell from
-Ubuntu and from there on, you can pretty much use that shell like you
-are running on an Ubuntu Linux machine (e.g. installing software via
-apt-get). For more details on that, please see :doc:`this tutorial <Howto_bash>`
+consider using a virtual machine software and compile and run LAMMPS in
+a Linux virtual machine, or - if you have a recently updated Windows 10
+installation - consider using the Windows subsystem for Linux.  This
+optional Windows feature allows you to run the bash shell from Ubuntu
+from within Windows and from there on, you can pretty much use that
+shell like you are running on an Ubuntu Linux machine (e.g. installing
+software via apt-get and more). For more details on that, please
+see :doc:`this tutorial <Howto_bash>`
 
 .. _gnu:
 
-Using GNU GCC ported to Windows
+Using a GNU GCC ported to Windows
 -----------------------------------------
 
 One option for compiling LAMMPS on Windows natively, that has been known
@@ -83,13 +85,13 @@ traditional build system, but CMake has also been successfully tested
 using the mingw32-cmake and mingw64-cmake wrappers that are bundled
 with the cross-compiler environment on Fedora machines. A CMake preset
 selecting all packages compatible with this cross-compilation build
-is provided. You likely need to disable the GPU package unless you
+is provided. You will likely need to disable the GPU package unless you
 download and install the contents of the pre-compiled `OpenCL ICD loader library <https://download.lammps.org/thirdparty/opencl-win-devel.tar.gz>`_
 into your MinGW64 cross-compiler environment. The cross-compilation
 currently will only produce non-MPI serial binaries.
 
-Please keep in mind, though, that this only applies to compiling LAMMPS.
-Whether the resulting binaries do work correctly is no tested by the
+Please keep in mind, though, that this only applies to **compiling** LAMMPS.
+Whether the resulting binaries do work correctly is not tested by the
 LAMMPS developers.  We instead rely on the feedback of the users
 of these pre-compiled LAMMPS packages for Windows.  We will try to resolve
 issues to the best of our abilities if we become aware of them. However

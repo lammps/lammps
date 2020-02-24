@@ -70,14 +70,17 @@ initial interactions of the atoms that will undergo perturbation, and
 a term :math:`U_1` corresponding to the final interactions of
 these atoms:
 
-.. image:: Eqs/compute_fep_u.jpg
-   :align: center
+.. math::
+
+   U(\lambda) = U_{\mathrm{bg}} + U_1(\lambda) + U_0(\lambda)
 
 A coupling parameter :math:`\lambda` varying from 0 to 1 connects the
 reference and perturbed systems:
 
-.. image:: Eqs/compute_fep_lambda.jpg
-   :align: center
+.. math::
+
+   \lambda &= 0 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_0 \\
+   \lambda &= 1 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_1
 
 It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
@@ -89,16 +92,22 @@ This command can be combined with :doc:`fix adapt <fix_adapt>` to
 perform multistage free-energy perturbation calculations along
 stepwise alchemical transformations during a simulation run:
 
-.. image:: Eqs/compute_fep_fep.jpg
-   :align: center
+.. math::
+
+   \Delta_0^1 A = \sum_{i=0}^{n-1} \Delta_{\lambda_i}^{\lambda_{i+1}} A = - kT
+   \sum_{i=0}^{n-1} \ln \left< \exp \left( - \frac{U(\lambda_{i+1}) -
+   U(\lambda_i)}{kT} \right) \right>_{\lambda_i}
 
 This compute is suitable for the finite-difference thermodynamic
 integration (FDTI) method :ref:`(Mezei) <Mezei>`, which is based on an
 evaluation of the numerical derivative of the free energy by a
 perturbation method using a very small :math:`\delta`:
 
-.. image:: Eqs/compute_fep_fdti.jpg
-   :align: center
+.. math::
+
+   \Delta_0^1 A = \int_{\lambda=0}^{\lambda=1} \left( \frac{\partial
+   A(\lambda)}{\partial\lambda} \right)_\lambda \mathrm{d}\lambda \approx
+   \sum_{i=0}^{n-1} w_i \frac{A(\lambda_{i} + \delta) - A(\lambda_i)}{\delta}
 
 where :math:`w_i` are weights of a numerical quadrature. The :doc:`fix adapt <fix_adapt>` command can be used to define the stages of
 :math:`\lambda` at which the derivative is calculated and averaged.
@@ -109,16 +118,23 @@ choosing a very small perturbation :math:`\delta` the thermodynamic
 integration method can be implemented using a numerical evaluation of
 the derivative of the potential energy with respect to :math:`\lambda`:
 
-.. image:: Eqs/compute_fep_ti.jpg
-   :align: center
+.. math::
+
+   \Delta_0^1 A = \int_{\lambda=0}^{\lambda=1} \left< \frac{\partial
+   U(\lambda)}{\partial\lambda} \right>_\lambda \mathrm{d}\lambda \approx
+   \sum_{i=0}^{n-1} w_i \left< \frac{U(\lambda_{i} + \delta) -
+   U(\lambda_i)}{\delta} \right>_{\lambda_i}
 
 Another technique to calculate free energy differences is the
 acceptance ratio method :ref:`(Bennet) <Bennet>`, which can be implemented
 by calculating the potential energy differences with :math:`\delta` = 1.0 on
 both the forward and reverse routes:
 
-.. image:: Eqs/compute_fep_bar.jpg
-   :align: center
+.. math::
+
+   \left< \frac{1}{1 + \exp\left[\left(U_1 - U_0 - \Delta_0^1A \right) /kT
+   \right]} \right>_0 = \left< \frac{1}{1 + \exp\left[\left(U_0 - U_1 +
+   \Delta_0^1A \right) /kT \right]} \right>_1
 
 The value of the free energy difference is determined by numerical
 root finding to establish the equality.
@@ -265,9 +281,11 @@ If the keyword *volume* = *yes*\ , then the Boltzmann term is multiplied
 by the volume so that correct ensemble averaging can be performed over
 trajectories during which the volume fluctuates or changes :ref:`(Allen and Tildesley) <AllenTildesley>`:
 
-.. image:: Eqs/compute_fep_vol.jpg
-   :align: center
+.. math::
 
+   \Delta_0^1 A = - kT \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
+   \frac{U(\lambda_{i+1}) - U(\lambda_i)}{kT} \right)
+   \right>_{\lambda_i}}{\left< V \right>_{\lambda_i}}
 
 ----------
 
@@ -314,31 +332,21 @@ The option defaults are *tail* = *no*\ , *volume* = *no*\ .
 
 .. _Pearlman:
 
-
-
 **(Pearlman)** Pearlman, J Chem Phys, 98, 1487 (1994)
 
 .. _Mezei:
-
-
 
 **(Mezei)** Mezei, J Chem Phys, 86, 7084 (1987)
 
 .. _Bennet:
 
-
-
 **(Bennet)** Bennet, J Comput Phys, 22, 245 (1976)
 
 .. _BoreschKarplus:
 
-
-
 **(BoreschKarplus)** Boresch and Karplus, J Phys Chem A, 103, 103 (1999)
 
 .. _AllenTildesley:
-
-
 
 **(AllenTildesley)** Allen and Tildesley, Computer Simulation of
 Liquids, Oxford University Press (1987)

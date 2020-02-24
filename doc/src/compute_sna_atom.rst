@@ -82,8 +82,10 @@ onto the 3-sphere, the surface of the unit ball in a four-dimensional
 space.  The radial distance *r* within *R\_ii'* is mapped on to a third
 polar angle *theta0* defined by,
 
-.. image:: Eqs/compute_sna_atom1.jpg
-   :align: center
+.. math::
+
+  \theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
+
 
 In this way, all possible neighbor positions are mapped on to a subset
 of the 3-sphere.  Points south of the latitude *theta0max=rfac0\*Pi*
@@ -101,8 +103,10 @@ radial distance. Expanding this density function as a generalized
 Fourier series in the basis functions, we can write each Fourier
 coefficient as
 
-.. image:: Eqs/compute_sna_atom2.jpg
-   :align: center
+.. math::
+
+  u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)} 
+
 
 The *w\_i'* neighbor weights are dimensionless numbers that are chosen
 to distinguish atoms of different types, while the central atom is
@@ -110,8 +114,11 @@ arbitrarily assigned a unit weight.  The function *fc(r)* ensures that
 the contribution of each neighbor atom goes smoothly to zero at
 *R\_ii'*:
 
-.. image:: Eqs/compute_sna_atom4.jpg
-   :align: center
+.. math::
+
+  f_c(r)   = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
+           = & 0,  r > R_{ii'}
+
 
 The expansion coefficients *u\^j\_m,m'* are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
@@ -119,8 +126,15 @@ under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
 real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
 
-.. image:: Eqs/compute_sna_atom3.jpg
-   :align: center
+.. math::
+
+   B_{j_1,j_2,j}  = 
+   \sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^j_{m,m'})^*
+   H {\scriptscriptstyle \begin{array}{l} {j} {m} {m'} \\
+        {j_1} {m_1} {m'_1} \\
+        {j_2} {m_2} {m'_2} \end{array}}
+        u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
+
 
 The constants *H\^jmm'\_j1m1m1'\_j2m2m2'* are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
@@ -138,8 +152,10 @@ atom.
 Compute *snad/atom* calculates the derivative of the bispectrum components
 summed separately for each atom type:
 
-.. image:: Eqs/compute_sna_atom5.jpg
-   :align: center
+.. math::
+
+   -\sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
+
 
 The sum is over all atoms *i'* of atom type *I*\ .  For each atom *i*\ ,
 this compute evaluates the above expression for each direction, each
@@ -149,8 +165,10 @@ for a detailed explanation.
 Compute *snav/atom* calculates the virial contribution due to the
 derivatives:
 
-.. image:: Eqs/compute_sna_atom6.jpg
-   :align: center
+.. math::
+
+  -{\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}
+
 
 Again, the sum is over all atoms *i'* of atom type *I*\ .  For each atom
 *i*\ , this compute evaluates the above expression for each of the six
@@ -233,7 +251,7 @@ ordered in which they are listed.
    file.  The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
-;line
+----------
 
 **Output info:**
 

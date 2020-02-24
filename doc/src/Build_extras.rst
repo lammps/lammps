@@ -880,6 +880,9 @@ USER-PLUMED package
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
 from LAMMPS using the generic `plumed installation instructions <plumedinstall_>`_.
+The USER-PLUMED package has been tested to work with Plumed versions
+2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
+with a different version of the Plumed kernel.
 
 
 PLUMED can be linked into MD codes in three different modes: static,
@@ -1212,13 +1215,10 @@ USER-QMMM package
    for a QM/MM simulation.  You must also build Quantum ESPRESSO and
    create a new executable (pwqmmm.x) which links LAMMPS and Quantum
    ESPRESSO together.  These are steps 3 and 4 described in the
-   lib/qmmm/README file.  Unfortunately, the Quantum ESPRESSO developers
-   have been breaking the interface that the QM/MM code in LAMMPS is using,
-   so that currently (Summer 2018) using this feature requires either
-   correcting the library interface feature in recent Quantum ESPRESSO
-   releases, or using an outdated version of QE. The last version of
-   Quantum ESPRESSO known to work with this QM/MM interface was version
-   5.4.1 from 2016.
+   lib/qmmm/README file.  This requires a compatible Quantum espresso
+   and LAMMPS version.  The current interface and makefiles have
+   last been verified to work in February 2020 with Quantum Espresso
+   versions 6.3 to 6.5.
 
 **CMake build**\ :
 

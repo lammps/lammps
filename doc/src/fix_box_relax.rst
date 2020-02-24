@@ -228,23 +228,28 @@ With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
 function then is:
 
-.. image:: Eqs/fix_box_relax1.jpg
-   :align: center
+.. math::
 
-where *U* is the system potential energy, *P*\ \_t is the desired
-hydrostatic pressure, *V* and *V*\ \_0 are the system and reference
-volumes, respectively.  *E*\ \_\ *strain* is the strain energy expression
+   E = U + P_t \left(V-V_0 \right) + E_{strain}
+
+
+where *U* is the system potential energy, :math:`P_t` is the desired
+hydrostatic pressure, :math:`V` and :math:`V_0` are the system and reference
+volumes, respectively.  :math:`E_{strain}` is the strain energy expression
 proposed by Parrinello and Rahman :ref:`(Parrinello1981) <Parrinello1981>`.
 Taking derivatives of *E* w.r.t. the box dimensions, and setting these
 to zero, we find that at the minimum of the objective function, the
 global system stress tensor **P** will satisfy the relation:
 
-.. image:: Eqs/fix_box_relax2.jpg
-   :align: center
+.. math::
 
-where **I** is the identity matrix, **h**\ \_0 is the box dimension tensor of
-the reference cell, and **h**\ \_0\ *d* is the diagonal part of
-**h**\ \_0. **S**\ \_\ *t* is a symmetric stress tensor that is chosen by LAMMPS
+   \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
+
+
+where **I** is the identity matrix, :math:`\mathbf{h_0}` is the box
+dimension tensor of the reference cell, and ::math:`\mathbf{h_{0d}}`
+is the diagonal part of :math:`\mathbf{h_0}`. :math:`\mathbf{S_t}`
+is a symmetric stress tensor that is chosen by LAMMPS
 so that the upper-triangular components of **P** equal the stress tensor
 specified by the user.
 

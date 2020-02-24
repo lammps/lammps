@@ -28,13 +28,6 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-// C++11 check
-#ifndef LAMMPS_CXX98
-#if __cplusplus <= 199711L
-  #error LAMMPS is planning to transition to C++11. To disable this error please use a C++11 compliant compiler, enable C++11 (or later) compliance, or define LAMMPS_CXX98 in your makefile
-#endif
-#endif
-
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif

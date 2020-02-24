@@ -28,16 +28,16 @@ class ComputeOrientOrderAtom : public Compute {
  public:
   ComputeOrientOrderAtom(class LAMMPS *, int, char **);
   ~ComputeOrientOrderAtom();
-  void init();
+  virtual void init();
   void init_list(int, class NeighList *);
-  void compute_peratom();
+  virtual void compute_peratom();
   double memory_usage();
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
   int nqlist;
 
- private:
+ protected:
   int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
   double *distsq;
@@ -59,7 +59,7 @@ class ComputeOrientOrderAtom : public Compute {
   static const int nmaxfactorial = 167;
   static const double nfac_table[];
   double factorial(int);
-  void init_clebsch_gordan();
+  virtual void init_clebsch_gordan();
   double *cglist;                      // Clebsch-Gordan coeffs
   int idxcg_max;
 };

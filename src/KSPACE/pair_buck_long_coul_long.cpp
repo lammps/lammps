@@ -52,6 +52,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = NULL;
   fdisptable = NULL;
+  cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------

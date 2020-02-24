@@ -235,7 +235,7 @@ that a particular atom is changed or not changed, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keywords *type/ratio* and *type/subset" also set the atom type for a
+Keywords *type/ratio* and *type/subset* also set the atom type for a
 fraction of the selected atoms.  The actual number of atoms changed
 will be exactly the requested number.  For *type/ratio* the specified
 fraction (0 <= *fraction* <= 1) determines the number.  For

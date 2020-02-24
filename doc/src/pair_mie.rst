@@ -32,14 +32,19 @@ Description
 
 The *mie/cut* style computes the Mie potential, given by
 
-.. image:: Eqs/pair_mie.jpg
-   :align: center
+.. math::
+
+ E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
+                       \qquad r < r_c
+
 
 Rc is the cutoff and C is a function that depends on the repulsive and
 attractive exponents, given by:
 
-.. image:: Eqs/pair_mie2.jpg
-   :align: center
+.. math::
+
+ C = \left(\frac{\gamma_{rep}}{\gamma_{rep}-\gamma_{att}}\right) \left(\frac{\gamma_{rep}}{\gamma_{att}}\right)^{\left(\frac{\gamma_{att}}{\gamma_{rep}-\gamma_{att}}\right)}
+
 
 Note that for 12/6 exponents, C is equal to 4 and the formula is the
 same as the standard Lennard-Jones potential.

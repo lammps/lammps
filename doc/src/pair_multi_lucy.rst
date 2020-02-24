@@ -30,29 +30,37 @@ Style *multi/lucy* computes a density-dependent force following from
 the many-body form described in :ref:`(Moore) <Moore1>` and
 :ref:`(Warren) <Warren1>` as
 
-.. image:: Eqs/pair_multi_lucy.jpg
-   :align: center
+.. math::
 
-which consists of a density-dependent function, A(rho), and a
-radial-dependent weight function, omegaDD(rij).  The radial-dependent
-weight function, omegaDD(rij), is taken as the Lucy function:
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
 
-.. image:: Eqs/pair_multi_lucy2.jpg
-   :align: center
+
+which consists of a density-dependent function, :math:`A(\rho)`, and a
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`, is taken
+as the Lucy function:
+
+.. math::
+
+   \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
+
 
 The density-dependent energy for a given particle is given by:
 
-.. image:: Eqs/pair_multi_lucy_energy.jpg
-   :align: center
+.. math::
+
+   u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
+
 
 See the supporting information of :ref:`(Brennan) <Brennan1>` or the
 publication by :ref:`(Moore) <Moore1>` for more details on the functional
 form.
 
-An interpolation table is used to evaluate the density-dependent
-energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
-pre-factor to the energy is computed after the interpolation, thus the
-Integral(A(rho)drho will have units of energy / length\^4.
+An interpolation table is used to evaluate the density-dependent energy
+(:math:`\int A(\rho') d\rho'`) and force (:math:`A(\rho')`).  Note that
+the pre-factor to the energy is computed after the interpolation, thus
+the :math:`\int A(\rho') d \rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting
 cubic splines to the file values and interpolating the
@@ -137,23 +145,24 @@ as-is to perform spline interpolation.  In this case, the table values
 can be spaced in *density* uniformly or however you wish to position table
 values in regions of large gradients.
 
-If used, the parameters "R" or "RSQ" are followed by 2 values *rlo*
-and *rhi*\ .  If specified, the density associated with each density-dependent
-energy and force value is computed from these 2 values (at high accuracy), rather
-than using the (low-accuracy) value listed in each line of the table.
-The density values in the table file are ignored in this case.
-For "R", distances uniformly spaced between *rlo* and *rhi* are
-computed; for "RSQ", squared distances uniformly spaced between
-*rlo\*rlo* and *rhi\*rhi* are computed.
+If used, the parameters "R" or "RSQ" are followed by 2 values *rlo* and
+*rhi*\ .  If specified, the density associated with each
+density-dependent energy and force value is computed from these 2 values
+(at high accuracy), rather than using the (low-accuracy) value listed in
+each line of the table.  The density values in the table file are
+ignored in this case.  For "R", distances uniformly spaced between *rlo*
+and *rhi* are computed; for "RSQ", squared distances uniformly spaced
+between *rlo\*rlo* and *rhi\*rhi* are computed.
 
 .. note::
 
-   If you use "R" or "RSQ", the tabulated distance values in the
-   file are effectively ignored, and replaced by new values as described
-   in the previous paragraph.  If the density value in the table is not
-   very close to the new value (i.e. round-off difference), then you will
-   be assigning density-dependent energy and force values to a different density,
-   which is probably not what you want.  LAMMPS will warn if this is occurring.
+   If you use "R" or "RSQ", the tabulated distance values in the file
+   are effectively ignored, and replaced by new values as described in
+   the previous paragraph.  If the density value in the table is not
+   very close to the new value (i.e. round-off difference), then you
+   will be assigning density-dependent energy and force values to a
+   different density, which is probably not what you want.  LAMMPS will
+   warn if this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is

@@ -49,7 +49,7 @@ Tait's equation of state:
 
 .. math::
 
-  p = B [(\frac{\rho}{\rho_0})^{\gamma} - 1]
+  p = B \left[(\frac{\rho}{\rho_0})^{\gamma} - 1\right]
 
 where :math:`\gamma = 7` and :math:`B = c_0^2 \rho_0 / \gamma`, with
 :math:`\rho_0` being the reference density and :math:`c_0` the reference

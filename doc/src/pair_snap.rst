@@ -139,7 +139,7 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*\ , *rmin0*\ ,
-*switchflag*\ , and *bzeroflag*\ .
+*switchflag*\ , *bzeroflag*\, and *chunksize*\.
 
 The default values for these keywords are
 
@@ -148,6 +148,7 @@ The default values for these keywords are
 * *switchflag* = 0
 * *bzeroflag* = 1
 * *quadraticflag* = 1
+* *chunksize* = 2000
 
 Detailed definitions for all the keywords are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term,

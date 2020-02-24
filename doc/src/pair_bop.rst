@@ -71,7 +71,7 @@ The detailed formulas for this potential are given in Ward
 The repulsive energy :math:`\phi_{ij}(r_{ij})` and the bond integrals
 :math:`\beta_{\sigma,ij}(r_{ij})` and :math:`\beta_{\phi,ij}(r_{ij})` are functions of the
 interatomic distance :math:`r_{ij}` between atom *i* and *j*\ .  Each of these
-potentials has a smooth cutoff at a radius of :math:`r_{cut,ij}.  These
+potentials has a smooth cutoff at a radius of :math:`r_{cut,ij}`.  These
 smooth cutoffs ensure stable behavior at situations with high sampling
 near the cutoff such as melts and surfaces.
 

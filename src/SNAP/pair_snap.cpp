@@ -635,6 +635,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
+  chunk_size = 2000;
 
   // open SNAP parameter file on proc 0
 
@@ -698,6 +699,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       bzeroflag = atoi(keyval);
     else if (strcmp(keywd,"quadraticflag") == 0)
       quadraticflag = atoi(keyval);
+    else if (strcmp(keywd,"chunksize") == 0)
+      chunk_size = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }

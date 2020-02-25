@@ -53,8 +53,7 @@ The colloid-colloid interaction energy is given by
   \right] \\
     & \\
     U_R = & \frac{A_{cc}}{37800}  \frac{\sigma^6}{r}
-    \left[ \frac{}{} \right. \\
-   &\qquad              \frac{r^2-7r\left(a_1+a_2\right)+6\left(a_1^2+7a_1a_2+a_2^2\right)}
+    \biggl[ \frac{r^2-7r\left(a_1+a_2\right)+6\left(a_1^2+7a_1a_2+a_2^2\right)}
   {\left(r-a_1-a_2\right)^7} \\
    &\qquad              +\frac{r^2+7r\left(a_1+a_2\right)+6\left(a_1^2+7a_1a_2+a_2^2\right)}
   {\left(r+a_1+a_2\right)^7}  \\
@@ -66,8 +65,8 @@ The colloid-colloid interaction energy is given by
   & \\
   U = & U_A + U_R, \qquad r < r_c
 
-where :math:`A_{cc}` is the Hamaker constant, a\_1 and a\_2 are the
-radii of the two colloidal particles, and Rc is the cutoff.  This
+where :math:`A_{cc}` is the Hamaker constant, :math:`a_1` and :math:`a_2` are the
+radii of the two colloidal particles, and :math:`r_c` is the cutoff.  This
 equation results from describing each colloidal particle as an
 integrated collection of Lennard-Jones particles of size sigma and is
 derived in :ref:`(Everaers) <Everaers1>`.
@@ -76,12 +75,12 @@ The colloid-solvent interaction energy is given by
 
 .. math::
 
-   U = & \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3} 
+   U = \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3} 
    \left[ 1 - \frac{\left(5 ~ a^6+45~a^4~r^2+63~a^2~r^4+15~r^6\right) \sigma^6}
    {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c 
 
-where :math:A_{cs}` is the Hamaker constant, a is the radius of the colloidal
-particle, and Rc is the cutoff.  This formula is derived from the
+where :math:A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
+particle, and :math:`r_c` is the cutoff.  This formula is derived from the
 colloid-colloid interaction, letting one of the particle sizes go to
 zero.
 
@@ -90,16 +89,16 @@ Lennard-Jones formula
 
 .. math::
 
-   U = & \frac{A_{ss}}{36} \left[ \left( \frac{\sigma}{r}
+   U = \frac{A_{ss}}{36} \left[ \left( \frac{\sigma}{r}
         \right)^{12} - \left( \frac{ \sigma}{r} \right)^6 \right], \quad
         r < r_c
 
 with :math:`A_{ss}` set appropriately, which results from letting both
 particle sizes go to zero.
 
-When used in combination with :doc:`pair_style yukawa/colloid <pair_colloid>`, the two terms become the so-called
-DLVO potential, which combines electrostatic repulsion and van der
-Waals attraction.
+When used in combination with :doc:`pair_style yukawa/colloid
+<pair_colloid>`, the two terms become the so-called DLVO potential,
+which combines electrostatic repulsion and van der Waals attraction.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

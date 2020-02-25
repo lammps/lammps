@@ -1,16 +1,16 @@
-.. index:: pair\_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/dsf
 
-pair\_style buck6d/coul/gauss/dsf command
+pair_style buck6d/coul/gauss/dsf command
+========================================
+
+pair_style buck6d/coul/gauss/long command
 =========================================
-
-pair\_style buck6d/coul/gauss/long command
-==========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -34,7 +34,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck6d/coul/gauss/dsf    0.9000    12.0000
    pair_coeff 1  1  1030.  3.061  457.179  4.521  0.608
@@ -52,7 +52,7 @@ computes a dispersion damped Buckingham potential:
 
 .. math::
 
-  E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
+   E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
 
 
 where A and C are a force constant, :math:`\kappa` is an ionic-pair dependent
@@ -82,7 +82,7 @@ is thus evaluated as:
 
 .. math::
 
-  E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
+   E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
 
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`

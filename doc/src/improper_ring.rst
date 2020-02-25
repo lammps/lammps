@@ -1,16 +1,16 @@
-.. index:: improper\_style ring
+.. index:: improper_style ring
 
-improper\_style ring command
-============================
+improper_style ring command
+===========================
 
-improper\_style ring/omp command
-================================
+improper_style ring/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
    improper_coeff 1 8000 70.5

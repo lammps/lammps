@@ -1,46 +1,46 @@
-.. index:: pair\_style born
+.. index:: pair_style born
 
-pair\_style born command
-========================
+pair_style born command
+=======================
 
-pair\_style born/omp command
-============================
+pair_style born/omp command
+===========================
 
-pair\_style born/gpu command
-============================
+pair_style born/gpu command
+===========================
 
-pair\_style born/coul/long command
-==================================
-
-pair\_style born/coul/long/gpu command
-======================================
-
-pair\_style born/coul/long/omp command
-======================================
-
-pair\_style born/coul/msm command
+pair_style born/coul/long command
 =================================
 
-pair\_style born/coul/msm/omp command
+pair_style born/coul/long/gpu command
 =====================================
 
-pair\_style born/coul/wolf command
-==================================
+pair_style born/coul/long/omp command
+=====================================
 
-pair\_style born/coul/wolf/gpu command
-======================================
+pair_style born/coul/msm command
+================================
 
-pair\_style born/coul/wolf/omp command
-======================================
+pair_style born/coul/msm/omp command
+====================================
 
-pair\_style born/coul/dsf command
+pair_style born/coul/wolf command
 =================================
+
+pair_style born/coul/wolf/gpu command
+=====================================
+
+pair_style born/coul/wolf/omp command
+=====================================
+
+pair_style born/coul/dsf command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -71,29 +71,29 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style born 10.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/long 10.0
    pair_style born/coul/long 10.0 8.
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/msm 10.0
    pair_style born/coul/msm 10.0 8.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/wolf 0.25 10.0
    pair_style born/coul/wolf 0.25 10.0 9.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/dsf 0.1 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
 Description

@@ -1,13 +1,13 @@
-.. index:: neigh\_modify
+.. index:: neigh_modify
 
-neigh\_modify command
-=====================
+neigh_modify command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify keyword values ...
 
@@ -55,7 +55,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify every 2 delay 10 check yes page 100000
    neigh_modify exclude type 2 3

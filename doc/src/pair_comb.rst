@@ -1,22 +1,25 @@
-.. index:: pair\_style comb
+.. index:: pair_style comb
 
-pair\_style comb command
+pair_style comb command
+=======================
+
+pair_style comb/omp command
+===========================
+
+pair_style comb3 command
 ========================
-
-pair\_style comb/omp command
-============================
-
-pair\_style comb3 command
-=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style comb
    pair_style comb3 keyword
+
+
+.. parsed-literal::
 
    keyword = *polar*
      *polar* value = *polar_on* or *polar_off* = whether or not to include atomic polarization
@@ -27,14 +30,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style comb
-   pair_coeff \* \* ../potentials/ffield.comb Si
-   pair_coeff \* \* ../potentials/ffield.comb Hf Si O
+   pair_coeff * * ../potentials/ffield.comb Si
+   pair_coeff * * ../potentials/ffield.comb Hf Si O
 
    pair_style comb3 polar_off
-   pair_coeff \* \* ../potentials/ffield.comb3 O Cu N C O
+   pair_coeff * * ../potentials/ffield.comb3 O Cu N C O
 
 Description
 """""""""""
@@ -82,9 +85,9 @@ last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
 use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* ../potentials/ffield.comb Si Hf O Si
+   pair_coeff * * ../potentials/ffield.comb Si Hf O Si
 
 The first two arguments must be \* \* so as to span all LAMMPS atom
 types.  The first and last Si arguments map LAMMPS atom types 1 and 4

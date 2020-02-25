@@ -1,16 +1,16 @@
-.. index:: dihedral\_style multi/harmonic
+.. index:: dihedral_style multi/harmonic
 
-dihedral\_style multi/harmonic command
-======================================
+dihedral_style multi/harmonic command
+=====================================
 
-dihedral\_style multi/harmonic/omp command
-==========================================
+dihedral_style multi/harmonic/omp command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style multi/harmonic
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style multi/harmonic
    dihedral_coeff 1 20 20 20 20 20
@@ -30,7 +30,7 @@ The *multi/harmonic* dihedral style uses the potential
 
 .. math::
 
-  E = \sum_{n=1,5} A_n  \cos^{n-1}(\phi)
+   E = \sum_{n=1,5} A_n  \cos^{n-1}(\phi)
 
 
 The following coefficients must be defined for each dihedral type via the

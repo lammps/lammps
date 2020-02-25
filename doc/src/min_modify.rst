@@ -1,13 +1,13 @@
-.. index:: min\_modify
+.. index:: min_modify
 
-min\_modify command
-===================
+min_modify command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_modify keyword values ...
 
@@ -39,7 +39,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_modify dmax 0.2
    min_modify integrator verlet tmax 4
@@ -91,20 +91,23 @@ The choice of a norm can be modified for the min styles *cg*\ , *sd*\
 the 2-norm (Euclidean length) of the global force vector:
 
 .. math::
-    || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
+
+   || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
 
 The *max* norm computes the length of the 3-vector force 
 for each atom  (2-norm), and takes the maximum value of those across 
 all atoms
 
 .. math::
-    || \vec{F} ||_{max} = {\rm max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
+
+   || \vec{F} ||_{max} = {\rm max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
 
 The *inf* norm takes the maximum component across the forces of
 all atoms in the system:
 
 .. math::
-    || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
+
+   || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
@@ -155,8 +158,9 @@ The :doc:`min_style <min_style>` *fire* is an optimized implementation of
 :doc:`min_style <min_style>` *fire/old*. It can however behave similarly 
 to the *fire/old* style by using the following set of parameters:
 
-.. parsed-literal::
-  min_modify integrator eulerexplicit tmax 10.0 tmin 0.0 delaystep 5 &
+.. code-block:: LAMMPS
+
+   min_modify integrator eulerexplicit tmax 10.0 tmin 0.0 delaystep 5 &
              dtgrow 1.1 dtshrink 0.5 alpha0 0.1 alphashrink 0.99 &
              vdfmax 100000 halfstepback no initialdelay no
 

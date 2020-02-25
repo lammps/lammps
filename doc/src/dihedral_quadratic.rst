@@ -1,16 +1,16 @@
-.. index:: dihedral\_style quadratic
+.. index:: dihedral_style quadratic
 
-dihedral\_style quadratic command
-=================================
+dihedral_style quadratic command
+================================
 
-dihedral\_style quadratic/omp command
-=====================================
+dihedral_style quadratic/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style quadratic
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style quadratic
    dihedral_coeff 100.0 80.0
@@ -30,7 +30,7 @@ The *quadratic* dihedral style uses the potential:
 
 .. math::
 
-  E = K (\phi - \phi_0)^2 
+   E = K (\phi - \phi_0)^2 
 
 
 This dihedral potential can be used to keep a dihedral in a predefined

@@ -1,13 +1,13 @@
-.. index:: dynamical\_matrix
+.. index:: dynamical_matrix
 
-dynamical\_matrix command
-=========================
+dynamical_matrix command
+========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dynamical_matrix group-ID style gamma args keyword value ...
 
@@ -28,7 +28,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dynamical_matrix 1 regular 0.000001
    dynamical_matrix 1 eskm 0.000001

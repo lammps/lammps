@@ -1,61 +1,61 @@
-.. index:: pair\_style buck
+.. index:: pair_style buck
 
-pair\_style buck command
+pair_style buck command
 ========================
 
-pair\_style buck/gpu command
+pair_style buck/gpu command
 ============================
 
-pair\_style buck/intel command
+pair_style buck/intel command
 ==============================
 
-pair\_style buck/kk command
+pair_style buck/kk command
 ===========================
 
-pair\_style buck/omp command
+pair_style buck/omp command
 ============================
 
-pair\_style buck/coul/cut command
+pair_style buck/coul/cut command
 =================================
 
-pair\_style buck/coul/cut/gpu command
+pair_style buck/coul/cut/gpu command
 =====================================
 
-pair\_style buck/coul/cut/intel command
+pair_style buck/coul/cut/intel command
 =======================================
 
-pair\_style buck/coul/cut/kk command
+pair_style buck/coul/cut/kk command
 ====================================
 
-pair\_style buck/coul/cut/omp command
+pair_style buck/coul/cut/omp command
 =====================================
 
-pair\_style buck/coul/long command
+pair_style buck/coul/long command
 ==================================
 
-pair\_style buck/coul/long/gpu command
+pair_style buck/coul/long/gpu command
 ======================================
 
-pair\_style buck/coul/long/intel command
+pair_style buck/coul/long/intel command
 ========================================
 
-pair\_style buck/coul/long/kk command
+pair_style buck/coul/long/kk command
 =====================================
 
-pair\_style buck/coul/long/omp command
+pair_style buck/coul/long/omp command
 ======================================
 
-pair\_style buck/coul/msm command
+pair_style buck/coul/msm command
 =================================
 
-pair\_style buck/coul/msm/omp command
+pair_style buck/coul/msm/omp command
 =====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -81,26 +81,26 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck 2.5
-   pair_coeff \* \* 100.0 1.5 200.0
-   pair_coeff \* \* 100.0 1.5 200.0 3.0
+   pair_coeff * * 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0 3.0
 
    pair_style buck/coul/cut 10.0
    pair_style buck/coul/cut 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0 8.0
 
    pair_style buck/coul/long 10.0
    pair_style buck/coul/long 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
 
    pair_style buck/coul/msm 10.0
    pair_style buck/coul/msm 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
 
 Description

@@ -1,13 +1,13 @@
-.. index:: min\_style
+.. index:: min_style
 
-min\_style command
-==================
+min_style command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style style
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
    min_style spin
@@ -148,7 +148,8 @@ instructions on how to use the accelerated styles effectively.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -159,7 +160,7 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
 

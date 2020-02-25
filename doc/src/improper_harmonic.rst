@@ -1,22 +1,22 @@
-.. index:: improper\_style harmonic
+.. index:: improper_style harmonic
 
-improper\_style harmonic command
-================================
+improper_style harmonic command
+===============================
 
-improper\_style harmonic/intel command
-======================================
+improper_style harmonic/intel command
+=====================================
 
-improper\_style harmonic/kk command
+improper_style harmonic/kk command
+==================================
+
+improper_style harmonic/omp command
 ===================================
-
-improper\_style harmonic/omp command
-====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style harmonic
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style harmonic
    improper_coeff 1 100.0 0
@@ -36,7 +36,7 @@ The *harmonic* improper style uses the potential
 
 .. math::
 
-  E = K (\chi - \chi_0)^2
+   E = K (\chi - \chi_0)^2
 
 
 where :math:`\chi` is the improper angle, :math:`\chi_0` is its equilibrium

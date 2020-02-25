@@ -1,13 +1,13 @@
-.. index:: pair\_style bop
+.. index:: pair_style bop
 
-pair\_style bop command
-=======================
+pair_style bop command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style bop keyword ...
 
@@ -24,12 +24,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style bop
-   pair_coeff \* \* ../potentials/CdTe_bop Cd Te
+   pair_coeff * * ../potentials/CdTe_bop Cd Te
    pair_style bop save
-   pair_coeff \* \* ../potentials/CdTe.bop.table Cd Te Te
+   pair_coeff * * ../potentials/CdTe.bop.table Cd Te Te
    comm_modify cutoff 14.70
 
 Description

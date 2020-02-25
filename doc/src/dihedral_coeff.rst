@@ -1,13 +1,13 @@
-.. index:: dihedral\_coeff
+.. index:: dihedral_coeff
 
-dihedral\_coeff command
-=======================
+dihedral_coeff command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_coeff N args
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_coeff 1 80.0 1 3
-   dihedral_coeff \* 80.0 1 3 0.5
-   dihedral_coeff 2\* 80.0 1 3 0.5
+   dihedral_coeff * 80.0 1 3 0.5
+   dihedral_coeff 2* 80.0 1 3 0.5
 
 Description
 """""""""""
@@ -46,9 +46,9 @@ for the same dihedral type.  For example, these commands set the coeffs
 for all dihedral types, then overwrite the coeffs for just dihedral type 2:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   dihedral_coeff \* 80.0 1 3
+   dihedral_coeff * 80.0 1 3
    dihedral_coeff 2 200.0 1 3
 
 A line in a data file that specifies dihedral coefficients uses the exact

@@ -367,30 +367,12 @@ double PairThole::single(int i, int j, int itype, int jtype,
 {
   double r2inv,rinv,r,phicoul;
   double qi,qj,factor_f,factor_e,dcoul,asr,exp_asr;
-  int di, dj;
-
-  int *drudetype = fix_drude->drudetype;
-  tagint *drudeid = fix_drude->drudeid;
-  int *type = atom->type;
-
-  // only on core-drude pair, but not on the same pair
-  if (drudetype[type[i]] == NOPOL_TYPE || drudetype[type[j]] == NOPOL_TYPE ||
-      j == i)
-    return 0.0;
-
-  // get dq of the core via the drude charge
-  if (drudetype[type[i]] == DRUDE_TYPE)
-    qi = atom->q[i];
-  else {
-    di = domain->closest_image(i, atom->map(drudeid[i]));
-    qi = -atom->q[di];
-  }
-  if (drudetype[type[j]] == DRUDE_TYPE)
-    qj = atom->q[j];
-  else {
-    dj = domain->closest_image(j, atom->map(drudeid[j]));
-    qj = -atom->q[dj];
-  }
+   
+  // single() has no information about topology or Drude particles.
+  // Charges qi and qj are defined by the user (or 1.0 by defaut)
+  
+  qi = atom->q[i];
+  qj = atom->q[j];
 
   r2inv = 1.0/rsq;
   fforce = phicoul = 0.0;

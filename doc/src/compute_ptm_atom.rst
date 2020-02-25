@@ -15,7 +15,7 @@ Syntax
 * ptm/atom = style name of this compute command
 * structures = structure types to search for
 * threshold = lattice distortion threshold (RMSD)
-* group2-ID determines which group are used for neighbor selection (optional, default "all")
+* group2-ID determines which groups are used for neighbor selection (optional, default "all")
 
 Examples
 """"""""

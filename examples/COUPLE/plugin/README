@@ -1,21 +1,22 @@
-This directory has a simple C code that shows how
-LAMMPS can be linked to a driver application as a library. The purpose
-is to illustrate how another code could perform computations while
-using LAMMPS to perform MD on all or a subset of the processors, or
-how an umbrella code or script could call both LAMMPS and some other
-code to perform a coupled calculation.
+This directory has a simple C code that shows how LAMMPS can be included
+in an application as a shared library loaded at runtime. The code is
+essentially the same as in the "simple" example that links to LAMMPS
+either with a static or shared library. The purpose is to illustrate
+how another code could be built without having a LAMMPS library present
+and then load the (separately compiled) shared library.
 
 simple.c           is the C driver
 liblammpsplugin.c  is the LAMMPS library plugin loader
 
-The 3 codes do the same thing, so you can compare them to see how to
-drive LAMMPS from each language.  See lammps/python/example/simple.py
-to do something similar from Python.  The Fortran driver requires an
-additional wrapper library that interfaces the C interface of the
-LAMMPS library to Fortran and also translates the MPI communicator
-from Fortran to C.
+You can then build the driver executable codes with a compile line
+like below.
 
-First build LAMMPS as a library (see examples/COUPLE/README), e.g. 
+mpicc -c -O -Wall -g -I$HOME/lammps/src liblammpsplugin.c
+mpicc -c -O -Wall -g simple.c
+mpicc simple.o liblammsplugin.o -ldl -o simpleC
+
+You also need to build LAMMPS as a shared library
+(see examples/COUPLE/README), e.g. 
 
 cd $HOME/lammps/src
 make mode=shlib mpi
@@ -27,15 +28,6 @@ mkdir build-shared
 cd build-shared
 cmake -D BUILD_LIB=on -D BUILD_SHARED_LIBS=on ../cmake
 make
-
-You can then build any of the driver codes with compile lines like
-these, which include paths to the LAMMPS library interface, and
-linking with FFTW (only needed if you built LAMMPS as a library with
-its PPPM solver).
-
-mpicc -c simple.c
-mpicc simple.o -llammps -lfftw -o simpleC
-
 
 You then run simpleC on a parallel machine
 on some number of processors Q with 3 arguments:
@@ -66,5 +58,6 @@ of LAMMPS through the function pointers in the liblammpsplugin_t struct.
 This has the benefit that your binary is not linked to liblammps.so directly
 and thus you can change the name of the shared library (e.g. to have 
 different variants compiled, or to load a different LAMMPS versions without
-having to update your executable).
+having to update your executable). The shared library still has to be
+compatible with the compilation settings the plugin code.
 

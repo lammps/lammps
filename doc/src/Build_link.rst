@@ -52,7 +52,7 @@ link the coupled executable are then:
 .. code-block:: bash
 
    mpicc -c -O $(pkgconf liblammps --cflags) caller.c
-   mpicxx -o caller caller.o -$(pkgconf --libs)
+   mpicxx -o caller caller.o -$(pkgconf liblammps --libs)
 
 
 *Traditional make*\ :
@@ -100,7 +100,7 @@ change to:
 .. code-block:: bash
 
    gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
-   g++ -o caller caller.o -L${HOME}/lammps/src/../lib/poems \
+   g++ -o caller caller.o -L${HOME}/lammps/lib/poems \
      -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src -llammps -lpoems -lmpi_stubs 
 
 Note, that you need to link with "g++" instead of "gcc", since LAMMPS

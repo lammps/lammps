@@ -9,6 +9,8 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+
+   Fix_num_diff was created by Charles Sievers (UC Davis)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS

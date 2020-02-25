@@ -102,8 +102,8 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   t_sna_2i_lr_um d_nearest_um;
   t_sna_3d_lr_um d_rlist_um;
 
-  tdual_sna_2d_lr k_qnarray;
-  t_sna_2d_lr d_qnarray;
+  DAT::tdual_float_2d k_qnarray;
+  typename AT::t_float_2d d_qnarray;
   t_sna_3c d_qnm;
 
   KOKKOS_INLINE_FUNCTION

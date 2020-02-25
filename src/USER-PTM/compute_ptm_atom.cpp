@@ -168,6 +168,8 @@ typedef struct
   int **firstneigh;
   int *ilist;
   int nlocal;
+  int *mask;
+  int groupbit;
 
 } ptmnbrdata_t;
 
@@ -184,6 +186,8 @@ static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
 static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, int num, size_t* nbr_indices, int32_t* numbers, double (*nbr_pos)[3])
 {
   ptmnbrdata_t* data = (ptmnbrdata_t*)vdata;
+  int *mask = data->mask;
+  int groupbit = data->groupbit;
 
   double **x = data->x;
   double *pos = x[atom_index];
@@ -203,6 +207,9 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
+    if (!(mask[j] & groupbit))
+      continue;
+
     j &= NEIGHMASK;
     if (j == atom_index)
       continue;
@@ -265,7 +272,7 @@ void ComputePTMAtom::compute_peratom() {
 
   double **x = atom->x;
   int *mask = atom->mask;
-  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal};
+  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal, mask, groupbit};
 
   for (int ii = 0; ii < inum; ii++) {
 

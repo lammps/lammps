@@ -1,0 +1,28 @@
+# Numerical difference calculation of error in forces
+
+units   	metal
+atom_style      full
+
+boundary 	p p p
+read_data argon.lmp
+
+include ff-argon.lmp
+
+velocity all create 10 2357 mom yes dist gaussian
+
+neighbor 1 bin
+
+timestep 0.001
+
+fix numdiff all numdiff 200 0.0001
+fix nve all nve
+
+variable errx atom fx-f_numdiff[1]
+variable erry atom fy-f_numdiff[2]
+variable errz atom fz-f_numdiff[3]
+
+dump forces all custom 200 force_error.dump v_errx v_erry v_errz
+thermo 200
+run 2000
+
+

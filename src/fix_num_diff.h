@@ -30,12 +30,13 @@ class FixNumDiff : public Fix {
   ~FixNumDiff();
   int setmask();
   void init();
-  void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_array(int, int);
   double memory_usage();
+  int pack_exchange(int i, double *buf);
+  int unpack_exchange(int nlocal, double *buf);
 
 protected:
   int eflag;            // flags for energy/virial computation
@@ -47,17 +48,15 @@ protected:
   int pair_compute_flag;            // 0 if pair->compute is skipped
   int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
-  double **local_forces;            // local forces from numerical difference (this might be usefull for debugging)
-  double **global_forces;           // global forces from numerical difference
+  double **numdiff_forces;            // local forces from numerical difference (this might be usefull for debugging)
 
-  void update_force(int vflag);
-  void force_clear();
+  void update_energy(int vflag);
+  void force_clear(double **forces);
   // virtual void openfile(const char* filename);
 
  private:
   void create_groupmap();
   void displace_atom(int local_idx, int direction, int magnitude);
-  void nd_force_clear(double **forces);
   void calculate_forces(int vflag);
   void compute_energy();
 
@@ -65,14 +64,15 @@ protected:
   double del;
   int nmax;
 
-  int igroup,groupbit;
-  bigint gcount;             // number of atoms in group
-  bigint flen;             // rank of dynamical matrix
   int scaleflag;
   int me;
-  bigint *groupmap;
   double **temp_f;
+  double **temp_x;
   double energy;
+  int maxatom1;
+
+  char *id_pe;
+  class Compute *pe;
 
 };
 

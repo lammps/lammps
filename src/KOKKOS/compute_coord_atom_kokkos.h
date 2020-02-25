@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(orientorder/atom/kk,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(orientorder/atom/kk/device,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(orientorder/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>)
+ComputeStyle(coord/atom/kk,ComputeCoordAtomKokkos<LMPDeviceType>)
+ComputeStyle(coord/atom/kk/device,ComputeCoordAtomKokkos<LMPDeviceType>)
+ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>)
 
 #else
 

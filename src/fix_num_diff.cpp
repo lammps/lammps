@@ -79,7 +79,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   char **newarg = new char*[10];
   newarg[0] = id_pe;
-  newarg[1] = group->names[igroup];
+  newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
   newarg[3] = (char *) "pair";
   newarg[4] = (char *) "bond";
@@ -208,7 +208,7 @@ void FixNumDiff::calculate_forces(int vflag)
 
   for (bigint i=1; i<=natoms; i++){
     local_idx = atom->map(i);
-    if (mask[local_idx] && groupbit) flag = 1;
+    if (mask[local_idx] & groupbit) flag = 1;
     else flag = 0;
     MPI_Allreduce(&flag, &allflag,1, MPI_INT, MPI_SUM,world);
     if (!allflag) continue;

@@ -9,12 +9,13 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID ptm/atom structures threshold
+   compute ID group-ID ptm/atom structures threshold group2-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * ptm/atom = style name of this compute command
 * structures = structure types to search for
 * threshold = lattice distortion threshold (RMSD)
+* group2-ID determines which group are used for neighbor selection (optional, default "all")
 
 Examples
 """"""""
@@ -22,8 +23,8 @@ Examples
 
 .. parsed-literal::
 
-   compute 1 all ptm/atom default 0.1
-   compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15
+   compute 1 all ptm/atom default 0.1 all
+   compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15 all
    compute 1 all ptm/atom all 0
 
 Description

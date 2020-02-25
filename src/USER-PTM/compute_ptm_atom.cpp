@@ -33,6 +33,7 @@ under
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
+#include "group.h"
 
 #include "ptm_functions.h"
 
@@ -61,7 +62,7 @@ static const char cite_user_ptm_package[] =
 
 ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
     : Compute(lmp, narg, arg), list(NULL), output(NULL) {
-  if (narg != 5)
+  if (narg < 5)
     error->all(FLERR, "Illegal compute ptm/atom command");
 
   char *structures = arg[3];
@@ -122,6 +123,14 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   if (rmsd_threshold == 0)
     rmsd_threshold = INFINITY;
 
+  char* group_name = (char *)"all";
+  if (narg > 5) {
+    group_name = arg[5];
+  }
+  int igroup = group->find(group_name);
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
+  group2bit = group->bitmask[igroup];
+
   peratom_flag = 1;
   size_peratom_cols = NUM_COLUMNS;
   create_attribute = 1;
@@ -169,7 +178,7 @@ typedef struct
   int *ilist;
   int nlocal;
   int *mask;
-  int groupbit;
+  int group2bit;
 
 } ptmnbrdata_t;
 
@@ -187,7 +196,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 {
   ptmnbrdata_t* data = (ptmnbrdata_t*)vdata;
   int *mask = data->mask;
-  int groupbit = data->groupbit;
+  int group2bit = data->group2bit;
 
   double **x = data->x;
   double *pos = x[atom_index];
@@ -207,7 +216,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
-    if (!(mask[j] & groupbit))
+    if (!(mask[j] & group2bit))
       continue;
 
     j &= NEIGHMASK;
@@ -272,7 +281,7 @@ void ComputePTMAtom::compute_peratom() {
 
   double **x = atom->x;
   int *mask = atom->mask;
-  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal, mask, groupbit};
+  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal, mask, group2bit};
 
   for (int ii = 0; ii < inum; ii++) {
 

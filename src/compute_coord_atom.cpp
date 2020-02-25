@@ -119,6 +119,8 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
+  if (copymode) return;
+
   delete [] group2;
   delete [] typelo;
   delete [] typehi;

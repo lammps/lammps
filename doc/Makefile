@@ -29,14 +29,13 @@ endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html html-offline pdf spelling anchor_check style_check
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check
 
 # ------------------------------------------
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html          create HTML doc pages in html dir"
-	@echo "  html-offline  create offline viewable HTML doc pages in html-offline dir"
 	@echo "  pdf           create Developer.pdf and Manual.pdf in this dir"
 	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"
@@ -55,12 +54,12 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
 
 clean: clean-spelling
-	rm -rf html epub latex html-offline
+	rm -rf html epub latex
 
 clean-spelling:
 	rm -rf spelling
 
-html: $(ANCHORCHECK)
+html: $(ANCHORCHECK) $(MATHJAX)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
@@ -85,39 +84,9 @@ html: $(ANCHORCHECK)
 	@rm -rf html/USER/.[sg]*
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
+	@mkdir -p html/_static/mathjax
+	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
 	@echo "Build finished. The HTML pages are in doc/html."
-
-
-html-offline: $(ANCHORCHECK) $(MATHJAX)
-	@(\
-		. $(VENV)/bin/activate ;\
-		sphinx-build $(SPHINXEXTRA)  -D mathjax_path=mathjax/es5/tex-mml-chtml.js \
-			-b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html-offline ;\
-		echo "############################################" ;\
-		rst_anchor_check src/*.rst ;\
-		python utils/check-packages.py -s ../src -d src ;\
-		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
-		python utils/check-styles.py -s ../src -d src ;\
-		echo "############################################" ;\
-		deactivate ;\
-	)
-	-rm html/searchindex.js
-	@rm -rf html-offline/_sources
-	@rm -rf html-offline/PDF
-	@rm -rf html-offline/USER
-	@rm -rf html-offline/JPG
-	@cp -r src/PDF html-offline/PDF
-	@cp -r src/USER html-offline/USER
-	@mkdir -p html-offline/JPG
-	@cp `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html-offline/JPG/
-	@rm -rf html-offline/PDF/.[sg]*
-	@rm -rf html-offline/USER/.[sg]*
-	@rm -rf html-offline/USER/*/.[sg]*
-	@rm -rf html-offline/USER/*/*.[sg]*
-	@echo "Build finished. The HTML pages are in doc/html-offline."
-	@mkdir -p html-offline/_static/mathjax
-	@cp -r $(MATHJAX)/es5 html-offline/_static/mathjax/
-
 
 spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
@@ -232,7 +201,7 @@ $(VENV):
 	)
 
 $(MATHJAX):
-	@git clone https://github.com/mathjax/MathJax.git mathjax
+	@git clone --depth 1 https://github.com/mathjax/MathJax.git mathjax
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

@@ -1638,6 +1638,7 @@ Masuhiro
 Matchett
 Materias
 mathbf
+mathjax
 matlab
 matplotlib
 Matsubara

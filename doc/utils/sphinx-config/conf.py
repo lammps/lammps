@@ -210,6 +210,9 @@ if 'epub' in sys.argv:
 else:
   html_math_renderer = 'mathjax'
 
+# use relative path for mathjax, so it is looked for in the
+# html tree and the manual becomes readable when offline 
+mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {

@@ -9,7 +9,6 @@ sub-directories and optionally 2 PDF files and 2 e-book format files:
 
    src             # content files for LAMMPS documentation
    html            # HTML version of the LAMMPS manual (see html/Manual.html)
-   html-offline    # Offline viewable HTML version of the LAMMPS manual (see html/Manual.html)
    tools           # tools and settings for building the documentation
    Manual.pdf      # large PDF version of entire manual
    Developer.pdf   # small PDF with info about how LAMMPS is structured
@@ -31,21 +30,16 @@ a. You can "fetch" the current HTML and PDF files from the LAMMPS web
    changes (but your source code will not, unless you update your local
    repository).
 
-b. You can build the HTML and PDF files yourself, by typing "make html"
-   or "make html-offline" followed by "make pdf".  This requires various
-   tools including Sphinx, which the build process will attempt to
-   download and install automatically into a virtual environment in the
-   folder doc/docenv, if not already available. This download is
-   required only once.  The default HTML version in the html folder
-   requires internet access to view the embedded math expressions.  To
-   be able to view the math offline, some extra data and javascript code
-   needs to be downloaded and the HTML generation needs to be changed to
-   reference them.  When typing "make html-offline" this is done
-   automatically.  Same as for the sphinx tool and its extensions, this
-   download is required only once.  After that also the processing of
-   the documentation can be done without internet access.  To generate
-   the PDF version of the manual, additionally the PDFLaTeX software and
-   several LaTeX packages are required.
+b. You can build the HTML or PDF files yourself, by typing "make html"
+   or "make pdf".  This requires various tools including Sphinx, git,
+   and the MathJax javascript library, which the build process will attempt
+   to download automatically into a virtual environment in the folder
+   doc/docenv and the folder mathjax, respectively, if not already available.
+   This download is required only once, unless you type "make clean-all".
+   After that, viewing and  processing of the documentation can be done
+   without internet access.  To generate the PDF version of the manual,
+   the PDFLaTeX software and several LaTeX packages are required as well.
+   However, those cannot be installed automatically at the moment.
 
 ----------
 
@@ -59,7 +53,6 @@ the doc directory.
    Documentation Build Options:
 
    make html          # generate HTML in html dir using Sphinx
-   make html-offline  # generate offline viewable HTML in html-offline dir using Sphinx
    make pdf           # generate 2 PDF files (Manual.pdf,Developer.pdf)
                       #   in doc dir via htmldoc and pdflatex
    make fetch         # fetch HTML doc pages and 2 PDF files from web site

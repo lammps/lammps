@@ -54,6 +54,7 @@ using namespace MathConst;
 PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  single_enable = 0;
   writedata = 1;
   ftable = NULL;
   qdist = 0.0;

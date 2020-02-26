@@ -70,6 +70,8 @@ examples/COUPLE/README for more details:
 
 * simple: simple driver programs in C++ and C which invoke LAMMPS as a
   library
+* plugin: simple driver program in C which invokes LAMMPS as a plugin
+  from a shared library.
 * lammps\_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
   MD with quantum forces calculated by a density functional code
 * lammps\_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple

@@ -1,13 +1,13 @@
-.. index:: pair\_style eff/cut
+.. index:: pair_style eff/cut
 
-pair\_style eff/cut command
-===========================
+pair_style eff/cut command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut cutoff keyword args ...
 
@@ -29,13 +29,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut 39.7
    pair_style eff/cut 40.0 limit/eradius
    pair_style eff/cut 40.0 limit/eradius pressure/evirials
    pair_style eff/cut 40.0 ecp 1 Si 3 C
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 20.0
    pair_coeff 1 s 0.320852 2.283269 0.814857
    pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621
@@ -100,7 +100,7 @@ given as,
 
 .. math::
 
-U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
+   U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
 
 The individual terms are defined as follows:
 
@@ -224,6 +224,7 @@ representations, after the "ecp" keyword.
    electrons (i.e. Pauli repulsion) with one of the functional forms:
 
 .. math::
+
    E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
    E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 
 

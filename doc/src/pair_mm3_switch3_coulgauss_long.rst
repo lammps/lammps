@@ -1,13 +1,13 @@
-.. index:: pair\_style mm3/switch3/coulgauss/long
+.. index:: pair_style mm3/switch3/coulgauss/long
 
-pair\_style mm3/switch3/coulgauss/long command
+pair_style mm3/switch3/coulgauss/long command
 ==============================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -26,7 +26,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mm3/switch3/coulgauss/long    12.0 3.0
    pair_coeff 1  0.2 2.5 1.2
@@ -42,9 +42,9 @@ vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 
 .. math::
 
-  E & = \epsilon_{ij} \left[ -2.25 \left(\frac{r_{v,ij}}{r_{ij}}\right)^6 + 1.84(10)^5 \exp\left[-12.0 r_{ij}/r_{v,ij}\right] \right] S_3(r_{ij}) \\
-  r_{v,ij} & =  r_{v,i} + r_{v,j} \\ 
-  \epsilon_{ij} & = \sqrt{\epsilon_i \epsilon_j}
+   E & = \epsilon_{ij} \left[ -2.25 \left(\frac{r_{v,ij}}{r_{ij}}\right)^6 + 1.84(10)^5 \exp\left[-12.0 r_{ij}/r_{v,ij}\right] \right] S_3(r_{ij}) \\
+   r_{v,ij} & =  r_{v,i} + r_{v,j} \\ 
+   \epsilon_{ij} & = \sqrt{\epsilon_i \epsilon_j}
 
 
 , which goes smoothly to zero at the cutoff r\_c as defined
@@ -52,11 +52,11 @@ by the switching function
 
 .. math::
 
- S_3(r) = \left\lbrace \begin{array}{ll}
-                     1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
-                     3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
-                     0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
-                 \end{array} \right.
+   S_3(r) = \left\lbrace \begin{array}{ll}
+                       1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
+                       3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
+                       0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
+                   \end{array} \right.
 
 
 where w is the width defined in the arguments. This potential
@@ -64,7 +64,7 @@ is combined with Coulomb interaction between Gaussian charge densities:
 
 .. math::
 
-  E = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
+   E = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
 
 
 where :math:`q_i` and :math:`q_j` are the charges on the 2 atoms,

@@ -1,19 +1,19 @@
-.. index:: pair\_style dpd/fdt
+.. index:: pair_style dpd/fdt
 
-pair\_style dpd/fdt command
-===========================
+pair_style dpd/fdt command
+==========================
 
-pair\_style dpd/fdt/energy command
-==================================
+pair_style dpd/fdt/energy command
+=================================
 
-pair\_style dpd/fdt/energy/kk command
-=====================================
+pair_style dpd/fdt/energy/kk command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -35,13 +35,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd/fdt 300.0 2.5 34387
-   pair_coeff \* \* 3.0 1.0 2.5
+   pair_coeff * * 3.0 1.0 2.5
 
    pair_style dpd/fdt/energy 2.5 34387
-   pair_coeff \* \* 3.0 1.0 0.1 2.5
+   pair_coeff * * 3.0 1.0 0.1 2.5
 
 Description
 """""""""""
@@ -107,18 +107,18 @@ energies are computed within style *dpd/fdt/energy* as:
 .. math::
 
    du_{i}^{cond}  = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
-  du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} - 
-  \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} - 
-  \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2} 
+   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} - 
+   \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} - 
+   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2} 
 
 
 where
 
 .. math::
 
-  \alpha_{ij}^{2}  = & 2k_{B}\kappa_{ij} \\
-  \sigma^{2}_{ij}  = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
-  \Theta_{ij}^{-1}  = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}})
+   \alpha_{ij}^{2}  = & 2k_{B}\kappa_{ij} \\
+   \sigma^{2}_{ij}  = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
+   \Theta_{ij}^{-1}  = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}})
 
 
 :math:`\zeta_ij^q` is a second Gaussian random number with zero mean and unit

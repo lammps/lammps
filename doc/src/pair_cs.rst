@@ -1,40 +1,40 @@
-.. index:: pair\_style born/coul/dsf/cs
+.. index:: pair_style born/coul/dsf/cs
 
-pair\_style born/coul/dsf/cs command
+pair_style born/coul/dsf/cs command
 ====================================
 
-pair\_style born/coul/long/cs command
+pair_style born/coul/long/cs command
 =====================================
 
-pair\_style born/coul/long/cs/gpu command
+pair_style born/coul/long/cs/gpu command
 =========================================
 
-pair\_style born/coul/wolf/cs command
+pair_style born/coul/wolf/cs command
 =====================================
 
-pair\_style born/coul/wolf/cs/gpu command
+pair_style born/coul/wolf/cs/gpu command
 =========================================
 
-pair\_style buck/coul/long/cs command
+pair_style buck/coul/long/cs command
 =====================================
 
-pair\_style coul/long/cs command
+pair_style coul/long/cs command
 ================================
 
-pair\_style coul/long/cs/gpu command
+pair_style coul/long/cs/gpu command
 ====================================
 
-pair\_style coul/wolf/cs command
+pair_style coul/wolf/cs command
 ================================
 
-pair\_style lj/cut/coul/long/cs command
+pair_style lj/cut/coul/long/cs command
 =======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -71,33 +71,33 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style born/coul/dsf/cs 0.1 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style born/coul/long/cs 10.0 8.0
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/wolf/cs 0.25 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style buck/coul/long/cs 10.0
    pair_style buck/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
 
    pair_style coul/long/cs 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/wolf/cs 0.2 9.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style lj/cut/coul/long/cs 10.0
    pair_style lj/cut/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description

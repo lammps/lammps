@@ -1,22 +1,22 @@
-.. index:: pair\_style lubricate
+.. index:: pair_style lubricate
 
-pair\_style lubricate command
-=============================
+pair_style lubricate command
+============================
 
-pair\_style lubricate/omp command
+pair_style lubricate/omp command
+================================
+
+pair_style lubricate/poly command
 =================================
 
-pair\_style lubricate/poly command
-==================================
-
-pair\_style lubricate/poly/omp command
-======================================
+pair_style lubricate/poly/omp command
+=====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF
 
@@ -32,16 +32,16 @@ Syntax
 **Examples:** (all assume radius = 1)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lubricate 1.5 1 1 2.01 2.5
    pair_coeff 1 1 2.05 2.8
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style lubricate 1.5 1 1 2.01 2.5
-   pair_coeff \* \*
+   pair_coeff * *
    variable mu equal ramp(1,2)
-   fix 1 all adapt 1 pair lubricate mu \* \* v_mu
+   fix 1 all adapt 1 pair lubricate mu * * v_mu
 
 Description
 """""""""""

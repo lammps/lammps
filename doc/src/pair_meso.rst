@@ -1,22 +1,22 @@
-.. index:: pair\_style edpd
+.. index:: pair_style edpd
 
-pair\_style edpd command
-========================
+pair_style edpd command
+=======================
 
-pair\_style mdpd command
-========================
+pair_style mdpd command
+=======================
 
-pair\_style mdpd/rhosum command
-===============================
+pair_style mdpd/rhosum command
+==============================
 
-pair\_style tdpd command
-========================
+pair_style tdpd command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -44,10 +44,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style edpd 1.58 9872598
-   pair_coeff \* \* 18.75 4.5 0.41 1.58 1.42E-5 2.0 1.58
+   pair_coeff * * 18.75 4.5 0.41 1.58 1.42E-5 2.0 1.58
    pair_coeff 1 1 18.75 4.5 0.41 1.58 1.42E-5 2.0 1.58 power 10.54 -3.66 3.44 -4.10
    pair_coeff 1 1 18.75 4.5 0.41 1.58 1.42E-5 2.0 1.58 power 10.54 -3.66 3.44 -4.10 kappa -0.44 -3.21 5.04 0.00
 
@@ -56,7 +56,7 @@ Examples
    pair_coeff 1 1 mdpd -40.0 25.0 18.0 1.0 0.75
 
    pair_style tdpd 1.0 1.58 935662
-   pair_coeff \* \* 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0
+   pair_coeff * * 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0
    pair_coeff 1 1 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0 3.0 1.0E-5 2.0
 
 Description
@@ -207,10 +207,10 @@ by
 
 .. math::
 
-  Q_{ij}^D & = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right) \\
-  Q_{ij}^R & = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij} \\
-  w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power\_{cc}} \\
-  \epsilon_{ij}^2 & = m_s^2\kappa_{ij}\rho
+   Q_{ij}^D & = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right) \\
+   Q_{ij}^R & = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij} \\
+   w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power\_{cc}} \\
+   \epsilon_{ij}^2 & = m_s^2\kappa_{ij}\rho
 
 where the parameters kappa and epsilon determine the strength of the
 Fickian and random fluxes. :math:`m_s` is the mass of a single solute

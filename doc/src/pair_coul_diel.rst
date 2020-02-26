@@ -1,16 +1,16 @@
-.. index:: pair\_style coul/diel
+.. index:: pair_style coul/diel
 
-pair\_style coul/diel command
-=============================
+pair_style coul/diel command
+============================
 
-pair\_style coul/diel/omp command
-=================================
+pair_style coul/diel/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/diel cutoff
 
@@ -20,7 +20,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/diel 3.5
    pair_coeff 1 4 78. 1.375 0.112

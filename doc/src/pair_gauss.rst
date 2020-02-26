@@ -1,25 +1,25 @@
-.. index:: pair\_style gauss
+.. index:: pair_style gauss
 
-pair\_style gauss command
-=========================
+pair_style gauss command
+========================
 
-pair\_style gauss/gpu command
-=============================
+pair_style gauss/gpu command
+============================
 
-pair\_style gauss/omp command
-=============================
+pair_style gauss/omp command
+============================
 
-pair\_style gauss/cut command
-=============================
+pair_style gauss/cut command
+============================
 
-pair\_style gauss/cut/omp command
-=================================
+pair_style gauss/cut/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style gauss cutoff
    pair_style gauss/cut cutoff
@@ -30,10 +30,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style gauss 12.0
-   pair_coeff \* \* 1.0 0.9
+   pair_coeff * * 1.0 0.9
    pair_coeff 1 4 1.0 0.9 10.0
 
    pair_style gauss/cut 3.5
@@ -175,7 +175,7 @@ To print this quantity to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute gauss all pair gauss
    variable occ equal c_gauss[1]

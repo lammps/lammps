@@ -1,115 +1,115 @@
-.. index:: pair\_style lj/cut
+.. index:: pair_style lj/cut
 
-pair\_style lj/cut command
-==========================
+pair_style lj/cut command
+=========================
 
-pair\_style lj/cut/gpu command
-==============================
-
-pair\_style lj/cut/intel command
-================================
-
-pair\_style lj/cut/kk command
+pair_style lj/cut/gpu command
 =============================
 
-pair\_style lj/cut/opt command
-==============================
+pair_style lj/cut/intel command
+===============================
 
-pair\_style lj/cut/omp command
-==============================
+pair_style lj/cut/kk command
+============================
 
-pair\_style lj/cut/coul/cut command
-===================================
+pair_style lj/cut/opt command
+=============================
 
-pair\_style lj/cut/coul/cut/gpu command
-=======================================
+pair_style lj/cut/omp command
+=============================
 
-pair\_style lj/cut/coul/cut/kk command
+pair_style lj/cut/coul/cut command
+==================================
+
+pair_style lj/cut/coul/cut/gpu command
 ======================================
 
-pair\_style lj/cut/coul/cut/omp command
-=======================================
-
-pair\_style lj/cut/coul/debye command
+pair_style lj/cut/coul/cut/kk command
 =====================================
 
-pair\_style lj/cut/coul/debye/gpu command
-=========================================
-
-pair\_style lj/cut/coul/debye/kk command
-========================================
-
-pair\_style lj/cut/coul/debye/omp command
-=========================================
-
-pair\_style lj/cut/coul/dsf command
-===================================
-
-pair\_style lj/cut/coul/dsf/gpu command
-=======================================
-
-pair\_style lj/cut/coul/dsf/kk command
+pair_style lj/cut/coul/cut/omp command
 ======================================
 
-pair\_style lj/cut/coul/dsf/omp command
-=======================================
-
-pair\_style lj/cut/coul/long command
+pair_style lj/cut/coul/debye command
 ====================================
 
-pair\_style lj/cut/coul/long/gpu command
+pair_style lj/cut/coul/debye/gpu command
 ========================================
 
-pair\_style lj/cut/coul/long/kk command
+pair_style lj/cut/coul/debye/kk command
 =======================================
 
-pair\_style lj/cut/coul/long/intel command
-==========================================
-
-pair\_style lj/cut/coul/long/opt command
+pair_style lj/cut/coul/debye/omp command
 ========================================
 
-pair\_style lj/cut/coul/long/omp command
-========================================
+pair_style lj/cut/coul/dsf command
+==================================
 
-pair\_style lj/cut/coul/msm command
-===================================
+pair_style lj/cut/coul/dsf/gpu command
+======================================
 
-pair\_style lj/cut/coul/msm/gpu command
-=======================================
-
-pair\_style lj/cut/coul/msm/omp command
-=======================================
-
-pair\_style lj/cut/coul/wolf command
-====================================
-
-pair\_style lj/cut/coul/wolf/omp command
-========================================
-
-pair\_style lj/cut/tip4p/cut command
-====================================
-
-pair\_style lj/cut/tip4p/cut/omp command
-========================================
-
-pair\_style lj/cut/tip4p/long command
+pair_style lj/cut/coul/dsf/kk command
 =====================================
 
-pair\_style lj/cut/tip4p/long/gpu command
+pair_style lj/cut/coul/dsf/omp command
+======================================
+
+pair_style lj/cut/coul/long command
+===================================
+
+pair_style lj/cut/coul/long/gpu command
+=======================================
+
+pair_style lj/cut/coul/long/kk command
+======================================
+
+pair_style lj/cut/coul/long/intel command
 =========================================
 
-pair\_style lj/cut/tip4p/long/omp command
-=========================================
+pair_style lj/cut/coul/long/opt command
+=======================================
 
-pair\_style lj/cut/tip4p/long/opt command
-=========================================
+pair_style lj/cut/coul/long/omp command
+=======================================
+
+pair_style lj/cut/coul/msm command
+==================================
+
+pair_style lj/cut/coul/msm/gpu command
+======================================
+
+pair_style lj/cut/coul/msm/omp command
+======================================
+
+pair_style lj/cut/coul/wolf command
+===================================
+
+pair_style lj/cut/coul/wolf/omp command
+=======================================
+
+pair_style lj/cut/tip4p/cut command
+===================================
+
+pair_style lj/cut/tip4p/cut/omp command
+=======================================
+
+pair_style lj/cut/tip4p/long command
+====================================
+
+pair_style lj/cut/tip4p/long/gpu command
+========================================
+
+pair_style lj/cut/tip4p/long/omp command
+========================================
+
+pair_style lj/cut/tip4p/long/opt command
+========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -159,50 +159,50 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 1.1 2.8
 
    pair_style lj/cut/coul/cut 10.0
    pair_style lj/cut/coul/cut 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
    pair_coeff 1 1 100.0 3.5 9.0 9.0
 
    pair_style lj/cut/coul/debye 1.5 3.0
    pair_style lj/cut/coul/debye 1.5 2.5 5.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.5 2.5
    pair_coeff 1 1 1.0 1.5 2.5 5.0
 
    pair_style lj/cut/coul/dsf 0.05 2.5 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
 
    pair_style lj/cut/coul/long 10.0
    pair_style lj/cut/coul/long 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/coul/msm 10.0
    pair_style lj/cut/coul/msm 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0
    pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/coul/wolf 0.2 5. 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
 
    pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0
    pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description
@@ -250,9 +250,9 @@ shifted force model described in :ref:`Fennell <Fennell2>`, given by:
 
 .. math::
 
-  E = 
-   q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
-  \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
+   E = 
+    q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
 
 
 where :math:`\alpha` is the damping parameter and erfc() is the complementary
@@ -281,10 +281,10 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
 .. math::
 
-  E_i = \frac{1}{2} \sum_{j \neq i} 
-  \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
-  \frac{1}{2} \sum_{j \neq i} 
-  \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+   E_i = \frac{1}{2} \sum_{j \neq i} 
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
+   \frac{1}{2} \sum_{j \neq i} 
+   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 
 where :math:`\alpha` is the damping parameter, and erfc() is the

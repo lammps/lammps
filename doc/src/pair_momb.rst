@@ -1,13 +1,13 @@
-.. index:: pair\_style momb
+.. index:: pair_style momb
 
-pair\_style momb command
-========================
+pair_style momb command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style momb cutoff s6 d
 
@@ -19,7 +19,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style momb 12.0 0.75 20.0
    pair_style hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 momb 12.0 0.75 20.0 morse 5.5

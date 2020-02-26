@@ -1,19 +1,19 @@
-.. index:: pair\_style lj/mdf
+.. index:: pair_style lj/mdf
 
-pair\_style lj/mdf command
-==========================
+pair_style lj/mdf command
+=========================
 
-pair\_style buck/mdf command
-============================
+pair_style buck/mdf command
+===========================
 
-pair\_style lennard/mdf command
-===============================
+pair_style lennard/mdf command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -38,18 +38,18 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/mdf 2.5 3.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.1 2.8 3.0 3.2
 
    pair_style buck 2.5 3.0
-   pair_coeff \* \* 100.0 1.5 200.0
-   pair_coeff \* \* 100.0 1.5 200.0 3.0 3.5
+   pair_coeff * * 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0 3.0 3.5
 
    pair_style lennard/mdf 2.5 3.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1021760.3664 2120.317338 3.0 3.2
 
 Description

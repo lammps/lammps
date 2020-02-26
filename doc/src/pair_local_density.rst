@@ -1,13 +1,13 @@
-.. index:: pair\_style local/density
+.. index:: pair_style local/density
 
-pair\_style local/density command
-=================================
+pair_style local/density command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style arg
 
@@ -18,12 +18,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style local/density benzene_water.localdensity.table
 
    pair_style hybrid/overlay table spline 500 local/density 
-   pair_coeff \* \* local/density  benzene_water.localdensity.table
+   pair_coeff * * local/density  benzene_water.localdensity.table
 
 Description
 """""""""""

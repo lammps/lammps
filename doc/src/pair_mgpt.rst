@@ -1,13 +1,13 @@
-.. index:: pair\_style mgpt
+.. index:: pair_style mgpt
 
-pair\_style mgpt command
-========================
+pair_style mgpt command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
 
@@ -15,14 +15,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
-   pair_coeff \* \* Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
+   pair_coeff * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
    cp ~/lammps/potentials/Ta6.8x.mgpt.parmin parmin
    cp ~/lammps/potentials/Ta6.8x.mgpt.potin potin
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 1234 precision double
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 12
+   pair_coeff * * parmin potin Omega volpress yes nbody 1234 precision double
+   pair_coeff * * parmin potin Omega volpress yes nbody 12
 
 Description
 """""""""""

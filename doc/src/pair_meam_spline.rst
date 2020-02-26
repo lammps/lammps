@@ -1,16 +1,16 @@
-.. index:: pair\_style meam/spline
+.. index:: pair_style meam/spline
 
-pair\_style meam/spline command
-===============================
+pair_style meam/spline command
+==============================
 
-pair\_style meam/spline/omp command
-===================================
+pair_style meam/spline/omp command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/spline
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code:: LAMMPS
 
    pair_style meam/spline
-   pair_coeff \* \* Ti.meam.spline Ti
-   pair_coeff \* \* Ti.meam.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.spline Ti
+   pair_coeff * * Ti.meam.spline Ti Ti Ti
 
 Description
 """""""""""
@@ -92,9 +92,9 @@ treated with this potentials, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Ti.meam.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.spline Ti Ti Ti
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
@@ -109,9 +109,9 @@ An example with a two component spline (new style) is TiO.meam.spline, where
 the command
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* TiO.meam.spline Ti O
+   pair_coeff * * TiO.meam.spline Ti O
 
 will map the 1st atom type to Ti and the second atom type to O. Note
 in this case that the species names need to match exactly with the

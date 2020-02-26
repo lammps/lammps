@@ -1,16 +1,16 @@
-.. index:: pair\_style eim
+.. index:: pair_style eim
 
-pair\_style eim command
-=======================
+pair_style eim command
+======================
 
-pair\_style eim/omp command
-===========================
+pair_style eim/omp command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -20,12 +20,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eim
-   pair_coeff \* \* Na Cl ../potentials/ffield.eim Na Cl
-   pair_coeff \* \* Na Cl ffield.eim  Na Na Na Cl
-   pair_coeff \* \* Na Cl ../potentials/ffield.eim Cl NULL Na
+   pair_coeff * * Na Cl ../potentials/ffield.eim Na Cl
+   pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
+   pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na
 
 Description
 """""""""""
@@ -118,9 +118,9 @@ types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
 use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Na Cl ffield.eim Na Na Na Cl
+   pair_coeff * * Na Cl ffield.eim Na Na Na Cl
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments

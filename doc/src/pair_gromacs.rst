@@ -1,31 +1,31 @@
-.. index:: pair\_style lj/gromacs
+.. index:: pair_style lj/gromacs
 
-pair\_style lj/gromacs command
-==============================
+pair_style lj/gromacs command
+=============================
 
-pair\_style lj/gromacs/gpu command
-==================================
-
-pair\_style lj/gromacs/kk command
+pair_style lj/gromacs/gpu command
 =================================
 
-pair\_style lj/gromacs/omp command
-==================================
+pair_style lj/gromacs/kk command
+================================
 
-pair\_style lj/gromacs/coul/gromacs command
-===========================================
+pair_style lj/gromacs/omp command
+=================================
 
-pair\_style lj/gromacs/coul/gromacs/kk command
+pair_style lj/gromacs/coul/gromacs command
+==========================================
+
+pair_style lj/gromacs/coul/gromacs/kk command
+=============================================
+
+pair_style lj/gromacs/coul/gromacs/omp command
 ==============================================
-
-pair\_style lj/gromacs/coul/gromacs/omp command
-===============================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -45,15 +45,15 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/gromacs 9.0 12.0
-   pair_coeff \* \* 100.0 2.0
+   pair_coeff * * 100.0 2.0
    pair_coeff 2 2 100.0 2.0 8.0 10.0
 
    pair_style lj/gromacs/coul/gromacs 9.0 12.0
    pair_style lj/gromacs/coul/gromacs 8.0 10.0 7.0 9.0
-   pair_coeff \* \* 100.0 2.0
+   pair_coeff * * 100.0 2.0
 
 Description
 """""""""""

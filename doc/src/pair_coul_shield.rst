@@ -1,13 +1,13 @@
-.. index:: pair\_style coul/shield
+.. index:: pair_style coul/shield
 
-pair\_style coul/shield command
-===============================
+pair_style coul/shield command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/shield cutoff tap_flag
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/shield 16.0 1
    pair_coeff 1 2 0.70
@@ -41,9 +41,9 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
 
 .. math::
 
-   E     = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\
-  {\rm Tap}(r_{ij}) = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+   E      = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\
+   {\rm Tap}(r_{ij}) = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
                           70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
                           84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
                           35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1

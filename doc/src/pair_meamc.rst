@@ -1,27 +1,24 @@
-.. index:: pair\_style meam/c
+.. index:: pair_style meam/c
 
-pair\_style meam/c command
-==========================
+pair_style meam/c command
+=========================
 
 Syntax
 """"""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_style style
-
-style = *meam/c*
+   pair_style meam/c
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/c
-   pair_coeff \* \* ../potentials/library.meam Si ../potentials/si.meam Si
-   pair_coeff \* \* ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
+   pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
+   pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 
 Description
 """""""""""
@@ -48,8 +45,8 @@ given by:
 
 .. math::
 
-  E = \sum_i \left\{ F_i(\bar{\rho}_i)
-      + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
+   E = \sum_i \left\{ F_i(\bar{\rho}_i)
+       + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
 
 
 where *F* is the embedding energy which is a function of the atomic
@@ -94,9 +91,9 @@ LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The two filenames are for the library and parameter file respectively.
@@ -204,9 +201,9 @@ MEAM library file numbered in the order of how those elements were
 selected starting from 1. Thus for the example given below
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 an index of 1 would refer to Si and an index of 2 to C.
 

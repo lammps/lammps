@@ -1,16 +1,16 @@
-.. index:: pair\_style lj/smooth/linear
+.. index:: pair_style lj/smooth/linear
 
-pair\_style lj/smooth/linear command
-====================================
+pair_style lj/smooth/linear command
+===================================
 
-pair\_style lj/smooth/linear/omp command
-========================================
+pair_style lj/smooth/linear/omp command
+=======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear cutoff
 
@@ -20,10 +20,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear 2.5
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 0.3 3.0 9.0
 
 Description

@@ -1,13 +1,13 @@
-.. index:: pair\_style lebedeva/z
+.. index:: pair_style lebedeva/z
 
-pair\_style lebedeva/z command
-==============================
+pair_style lebedeva/z command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style [hybrid/overlay ...] lebedeva/z cutoff
 
@@ -15,14 +15,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay lebedeva/z 20.0
-   pair_coeff \* \* none
+   pair_coeff * * none
    pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C
 
    pair_style hybrid/overlay rebo lebedeva/z 14.0
-   pair_coeff \* \* rebo        CH.rebo       C C
+   pair_coeff * * rebo        CH.rebo       C C
    pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C
 
 Description

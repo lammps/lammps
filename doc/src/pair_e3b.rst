@@ -1,21 +1,21 @@
-.. index:: pair\_style e3b
+.. index:: pair_style e3b
 
-pair\_style e3b command
-=======================
+pair_style e3b command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style e3b Otype
 
 * Otype = atom type for oxygen
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* keyword
+   pair_coeff * * keyword
 
 * one or more keyword/value pairs must be appended.
 * keyword = *preset* or *Ea* or *Eb* or *Ec* or *E2* or *K3* or *K2* or *Rs* or *Rc3* or *Rc2* or *bondL* or *neigh*
@@ -44,13 +44,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style e3b 1
-   pair_coeff \* \* Ea 35.85 Eb -240.2 Ec 449.3 E2 108269.9 K3 1.907 K2 4.872 Rc3 5.2 Rc2 5.2 Rs 5.0 bondL 0.9572
+   pair_coeff * * Ea 35.85 Eb -240.2 Ec 449.3 E2 108269.9 K3 1.907 K2 4.872 Rc3 5.2 Rc2 5.2 Rs 5.0 bondL 0.9572
 
    pair_style hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.15 8.5
-   pair_coeff \* \* e3b preset 2011
+   pair_coeff * * e3b preset 2011
 
 Description
 """""""""""

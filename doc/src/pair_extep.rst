@@ -1,13 +1,13 @@
-.. index:: pair\_style extep
+.. index:: pair_style extep
 
-pair\_style extep command
-=========================
+pair_style extep command
+========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style extep
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style extep
-   pair_coeff \* \* BN.extep B N
+   pair_coeff * * BN.extep B N
 
 Description
 """""""""""
@@ -32,7 +32,7 @@ interactions as described in :ref:`(Los2017) <Los2017>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

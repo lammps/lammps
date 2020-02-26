@@ -1,28 +1,28 @@
-.. index:: pair\_style lj/expand
+.. index:: pair_style lj/expand
 
-pair\_style lj/expand command
-=============================
+pair_style lj/expand command
+============================
 
-pair\_style lj/expand/gpu command
-=================================
-
-pair\_style lj/expand/kk command
+pair_style lj/expand/gpu command
 ================================
 
-pair\_style lj/expand/omp command
-=================================
+pair_style lj/expand/kk command
+===============================
 
-pair\_style lj/expand/coul/long command
-=======================================
+pair_style lj/expand/omp command
+================================
 
-pair\_style lj/expand/coul/long/gpu command
-===========================================
+pair_style lj/expand/coul/long command
+======================================
+
+pair_style lj/expand/coul/long/gpu command
+==========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/expand cutoff
 
@@ -32,15 +32,15 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/expand 2.5
-   pair_coeff \* \* 1.0 1.0 0.5
+   pair_coeff * * 1.0 1.0 0.5
    pair_coeff 1 1 1.0 1.0 -0.2 2.0
 
    pair_style lj/expand/coul/long 2.5
    pair_style lj/expand/coul/long 2.5 4.0
-   pair_coeff \* \* 1.0 1.0 0.5
+   pair_coeff * * 1.0 1.0 0.5
    pair_coeff 1 1 1.0 1.0 -0.2 3.0
 
 Description
@@ -53,9 +53,9 @@ formula:
 
 .. math::
 
-  E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
-    \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
-    \qquad r < r_c + \Delta
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
+     \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
+     \qquad r < r_c + \Delta
 
 
 :math:`r_c` is the cutoff which does not include the :math:`\Delta`
@@ -139,7 +139,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

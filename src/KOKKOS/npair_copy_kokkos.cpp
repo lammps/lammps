@@ -34,7 +34,7 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
 
   if (list->kokkos) {
     if (!listcopy->kokkos)
-      error->all(FLERR,"Cannot copy non-Kokkos neighbor list to Kokkos neigh list");
+      error->all(FLERR,"Cannot copy non-Kokkos neighbor list to Kokkos neighbor list");
     copy_to_kokkos(list);
   } else {
     if (!listcopy->kokkos)

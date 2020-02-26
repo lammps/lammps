@@ -62,7 +62,7 @@ static const char cite_user_ptm_package[] =
 
 ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
     : Compute(lmp, narg, arg), list(NULL), output(NULL) {
-  if (narg < 5)
+  if (narg < 5 || narg > 6)
     error->all(FLERR, "Illegal compute ptm/atom command");
 
   char *structures = arg[3];
@@ -282,6 +282,10 @@ void ComputePTMAtom::compute_peratom() {
   double **x = atom->x;
   int *mask = atom->mask;
   ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal, mask, group2bit};
+
+  // zero output
+
+  memset(output,0,nmax*NUM_COLUMNS*sizeof(double));
 
   for (int ii = 0; ii < inum; ii++) {
 

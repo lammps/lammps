@@ -45,11 +45,16 @@ using namespace MathConst;
 #define B4       -5.80844129e-3
 #define B5        1.14652755e-1
 
+#define EPSILON 1.0e-20
+#define EPS_EWALD 1.0e-6
+#define EPS_EWALD_SQR 1.0e-12
+
 /* ---------------------------------------------------------------------- */
 
 PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  single_enable = 0;
   writedata = 1;
   ftable = NULL;
   qdist = 0.0;
@@ -149,21 +154,23 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+         rsq += EPSILON; // Add Epsilon for case: r = 0; DC-DP 1-1 interaction must be removed by special bond;
+         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
           qj = q[j];
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * r;
+            grij = g_ewald * (r + EPS_EWALD);
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
             u = 1. - t;
             erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/r;
+            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -579,100 +586,8 @@ void PairLJCutTholeLong::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
-                                 double rsq, double factor_coul,
-                                 double factor_lj, double &fforce)
-{
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor,u;
-  double fraction,table,forcecoul,forcelj,phicoul,philj;
-  int itable;
-  double factor_f,factor_e;
-  double dqi,dqj,dcoul,asr,exp_asr;
-  int di, dj, di_closest;
-
-  int *drudetype = fix_drude->drudetype;
-  tagint *drudeid = fix_drude->drudeid;
-  int *type = atom->type;
-
-  r2inv = 1.0/rsq;
-  if (rsq < cut_coulsq) {
-    r = sqrt(rsq);
-    if (!ncoultablebits || rsq <= tabinnersq) {
-      grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      u = 1. - t;
-      erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-    } else {
-      union_int_float_t rsq_lookup_single;
-      rsq_lookup_single.f = rsq;
-      itable = rsq_lookup_single.i & ncoulmask;
-      itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
-      table = ftable[itable] + fraction*dftable[itable];
-      forcecoul = atom->q[i]*atom->q[j] * table;
-      if (factor_coul < 1.0) {
-        table = ctable[itable] + fraction*dctable[itable];
-        prefactor = atom->q[i]*atom->q[j] * table;
-        forcecoul -= (1.0-factor_coul)*prefactor;
-      }
-    }
-    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE) {
-      di = atom->map(drudeid[i]);
-      di_closest = domain->closest_image(i, di);
-      if (j != di_closest){
-        if (drudetype[i] == CORE_TYPE) dqi = -atom->q[di];
-        else if (drudetype[i] == DRUDE_TYPE) dqi = atom->q[i];
-        else dqi = 0.0;
-        if (drudetype[j] == CORE_TYPE) {
-          dj = atom->map(drudeid[j]);
-          dqj = -atom->q[dj];
-        } else if (drudetype[j] == DRUDE_TYPE) dqj = atom->q[j];
-        else dqj = 0.0;
-        asr = ascreen[itype][jtype] * r;
-        exp_asr = exp(-asr);
-        dcoul = force->qqrd2e * dqi * dqj / r;
-        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr))))
-            - factor_coul;
-        forcecoul += factor_f * dcoul;
-        factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
-      }
-    }
-  } else forcecoul = 0.0;
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  } else forcelj = 0.0;
-
-  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-
-  double eng = 0.0;
-  if (rsq < cut_coulsq) {
-    if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc;
-    else {
-      table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
-    }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE &&
-        di_closest != j)
-      phicoul += factor_e * dcoul;
-    eng += phicoul;
-  }
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    eng += factor_lj*philj;
-  }
-
-  return eng;
-}
+// No point in having single() since it  has no information about topology or Drude particles.
+// Charges qi and qj are defined by the user (or 1.0 by defaut)
 
 /* ---------------------------------------------------------------------- */
 

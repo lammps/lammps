@@ -519,6 +519,8 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 #endif
 
   list->k_ilist.template modify<DeviceType>();
+  list->k_numneigh.template modify<DeviceType>();
+  list->k_neighbors.template modify<DeviceType>();
 }
 
 

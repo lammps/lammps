@@ -122,7 +122,7 @@ protected:
   t_dbvec dbvec;
   SNAKokkos<DeviceType> snaKK;
 
-  int inum,max_neighs,chunk_offset;
+  int inum,max_neighs,chunk_size,chunk_offset;
 
   int eflag,vflag;
 

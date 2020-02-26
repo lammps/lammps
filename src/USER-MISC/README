@@ -77,6 +77,8 @@ pair_style buck/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style cosine/squared, Eugen Rozic, eugen.rozic.17 at ucl.ac.uk, 9 Aug 19
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style coul/shield, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
+pair_style coul/slater/cut, Evangelos Voyiatzis, evoyiatzis at gmail.com, 26 February 2020
+pair_style coul/slater/long, Evangelos Voyiatzis, evoyiatzis at gmail.com, 26 February 2020
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
 pair_style e3b, Steven Strong (U Chicago), stevene.strong at gmail dot com, 16 Apr 19
 pair_style drip, Mingjian Wen, University of Minnesota, wenxx151 at umn.edu, 17 Apr 19

@@ -1,0 +1,1 @@
+ ~/lammps/src/lmp_serial -in in.quincke -var fp 85 -var rho 0.60 -var alpha 0.0 -var seed 12345 -var a1 0.0 -var a2 0.0 -var a3 0.0 -var a4 0.0 -var dt 0.00001

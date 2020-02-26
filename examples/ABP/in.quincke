@@ -1,0 +1,126 @@
+# 2d Quincke model
+log             log_${fp}_${rho}
+units           lj
+atom_style      hybrid dipole sphere
+dimension       2
+newton off
+
+
+
+# creates the initial configuration as a square lattice of size 100*100 with number density rho. 
+
+lattice         sq ${rho}
+region          box block -50 50 -50 50 -0.2 0.2
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+velocity        all create 1.0 1 loop geom
+
+#read_restart     ${restart}
+reset_timestep  0
+
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+#compute         nb all coord/atom cutoff 1.3
+
+if "${a4} == 0" then &
+"variable     yukawa_cut equal 0.0" &
+else &
+"variable     yukawa_cut equal 5.0"    
+
+if "${a1} == 0 && ${a2} == 0 && ${a3} == 0" then &
+"variable     q_cut equal 0.0" &
+"variable     q_cut2 equal 0.0" &
+else &
+"variable     q_cut equal 3.0" &
+"variable     q_cut2 equal 1.4" &
+
+if "${yukawa_cut} == 0 && ${q_cut} == 0" then &
+"variable     cutoff equal 1.1224" &
+else &
+"variable     cutoff equal 1.5" &
+
+
+pair_style hybrid/overlay lj/cut 2.5  quincke ${q_cut} ${fp} ${alpha} ${q_cut2} yukawa2 0.34 ${yukawa_cut}
+pair_coeff * * lj/cut  1.0 1.0 1.1224
+pair_coeff * * quincke ${a1} ${a2} ${a3}
+pair_coeff * * yukawa2  -${a4}
+pair_modify pair lj/cut shift yes
+pair_modify pair yukawa2 shift yes
+
+
+
+compute      d  all property/atom  mux muy 
+
+fix         1 all bd/euler 1.0 1.0 1.0 ${seed}
+fix         2 all enforce2d
+
+
+# dipole and hexatic order analysis
+compute  ch1 all chunk/atom type 
+compute  dipole all dipole/chunk ch1
+compute  psi6 all hexorder/atom cutoff ${cutoff}
+variable psi6 atom sqrt(c_psi6[1]*c_psi6[1]+c_psi6[2]*c_psi6[2])
+compute  psi6avg all reduce ave v_psi6
+
+
+
+# cluster analysis
+compute         c1  all cluster/atom ${cutoff}
+compute         maxcluid all reduce max c_c1
+compute         cc1 all chunk/atom c_c1 compress yes
+compute         csize all property/chunk cc1 count
+#fix            fixns all ave/histo 100 1 100000 0.5 600.5 600 c_csize mode vector ave running beyond ignore file ns.histo
+
+variable         s   equal ave(c_csize) 
+variable         s2  equal avesq(c_csize)
+variable         meanS equal "v_s2 / v_s"
+variable         smax  equal max(c_csize)
+variable         smin  equal min(c_csize)
+
+
+thermo_style    custom step temp epair c_dipole[1][4] c_psi6avg v_meanS v_s v_s2 v_smax v_smin
+
+#equilibration
+timestep        0.0000000001 #${dt}
+thermo          500
+run             5000
+reset_timestep  0
+
+
+#initialisation for the main run
+
+# MSD and D
+compute         mymsdd  all msd
+variable        twopoint equal c_mymsdd[4]/4/(step*dt+1.0e-6)
+fix             msdv all vector 1 c_mymsdd[4]
+variable        Diff equal slope(f_msdv)/4/(1*dt)
+
+
+thermo_style    custom step temp epair c_mymsdd[4] v_Diff c_dipole[1][4] c_psi6avg v_meanS v_s v_s2 v_smax v_smin
+
+
+# write trajectory and thermo in a log-scale frequency
+dump            1 all custom 200000 dump_${fp}_${rho}.lammpstrj id type x y xu yu mux muy fx fy tqz v_psi6 c_psi6[1] c_psi6[2] c_c1  
+variable        d equal logfreq2(10,18,10)
+dump_modify     1 every v_d first yes sort id
+
+
+variable        w equal logfreq2(10,36,10)
+write_restart   restart_${fp}_${rho}
+timestep        ${dt}
+thermo          v_w
+
+
+dump            2 all movie  5000 movie_${fp}_${rho}.mpg v_psi6 type zoom 1.6 adiam 1.0 size 480 480
+dump_modify     2 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
+
+
+# main run
+run             20000000 every 500000 &
+                "write_restart   restart_${fp}_${rho}"  &
+                "write_data      lastconf_${fp}_${rho}"  
+
+

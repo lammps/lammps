@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
+#include <cstring>
 #include <mpi.h>
 #include <memory.h>
 #include "atom.h"
@@ -31,7 +32,6 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -9,8 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
-   Fix_num_diff was created by Charles Sievers (UC Davis)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -35,47 +33,28 @@ class FixNumDiff : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-  double compute_array(int, int);
   double memory_usage();
-  int pack_exchange(int i, double *buf);
-  int unpack_exchange(int nlocal, double *buf);
 
-protected:
-  int eflag;            // flags for energy/virial computation
-  int external_force_clear;   // clear forces locally or externally
-
-  int triclinic;              // 0 if domain is orthog, 1 if triclinic
-  int pairflag;
+private:
+  double delta;
+  int maxatom;
+  int ilevel_respa;
 
   int pair_compute_flag;            // 0 if pair->compute is skipped
   int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
-  double **numdiff_forces;            // local forces from numerical difference (this might be usefull for debugging)
-
-  void update_energy(int vflag);
-  void force_clear(double **forces);
-  // virtual void openfile(const char* filename);
-
- private:
-  void create_groupmap();
-  void displace_atom(int local_idx, int direction, int magnitude);
-  void calculate_forces(int vflag);
-  void compute_energy();
-
-  int ilevel_respa;
-  double del;
-  int nmax;
-
-  int scaleflag;
-  int me;
-  double **temp_f;
-  double **temp_x;
-  double energy;
-  int maxatom1;
-
   char *id_pe;
   class Compute *pe;
 
+  double **numdiff_forces;          // finite diff forces
+  double **temp_f;                  // original forces
+  double **temp_x;                  // original coords
+
+  double update_energy(int vflag);
+  void force_clear(double **forces);
+  void create_groupmap();
+  void displace_atom(int local_idx, int direction, int magnitude);
+  void calculate_forces(int vflag);
 };
 
 }

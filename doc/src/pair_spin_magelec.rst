@@ -1,13 +1,13 @@
-.. index:: pair\_style spin/magelec
+.. index:: pair_style spin/magelec
 
-pair\_style spin/magelec command
+pair_style spin/magelec command
 ================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/magelec cutoff
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/magelec 4.5
    pair_coeff \* \* magelec 4.5 0.00109 1.0 1.0 1.0

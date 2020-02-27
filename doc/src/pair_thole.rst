@@ -1,19 +1,19 @@
-.. index:: pair\_style thole
+.. index:: pair_style thole
 
-pair\_style thole command
-=========================
+pair_style thole command
+========================
 
-pair\_style lj/cut/thole/long command
-=====================================
+pair_style lj/cut/thole/long command
+====================================
 
-pair\_style lj/cut/thole/long/omp command
-=========================================
+pair_style lj/cut/thole/long/omp command
+========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -35,12 +35,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay ... thole 2.6 12.0
    pair_coeff 1 1 thole 1.0
    pair_coeff 1 2 thole 1.0 2.6 10.0
-   pair_coeff \* 2 thole 1.0 2.6
+   pair_coeff * 2 thole 1.0 2.6
 
    pair_style lj/cut/thole/long 2.6 12.0
 

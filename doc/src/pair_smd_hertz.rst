@@ -1,21 +1,23 @@
-.. index:: pair\_style smd/hertz
+.. index:: pair_style smd/hertz
 
-pair\_style smd/hertz command
-=============================
+pair_style smd/hertz command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/hertz scale_factor
 
 Examples
 """"""""
 
-pair\_style smd/hertz 1.0
-pair\_coeff 1 1 <contact\_stiffness>
+.. code-block:: LAMMPS
+
+   pair_style smd/hertz 1.0
+   pair_coeff 1 1 <contact_stiffness>
 
 Description
 """""""""""

@@ -1,28 +1,28 @@
-.. index:: pair\_style tersoff/mod
+.. index:: pair_style tersoff/mod
 
-pair\_style tersoff/mod command
-===============================
+pair_style tersoff/mod command
+==============================
 
-pair\_style tersoff/mod/c command
-=================================
+pair_style tersoff/mod/c command
+================================
 
-pair\_style tersoff/mod/gpu command
-===================================
-
-pair\_style tersoff/mod/kk command
+pair_style tersoff/mod/gpu command
 ==================================
 
-pair\_style tersoff/mod/omp command
-===================================
+pair_style tersoff/mod/kk command
+=================================
 
-pair\_style tersoff/mod/c/omp command
-=====================================
+pair_style tersoff/mod/omp command
+==================================
+
+pair_style tersoff/mod/c/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
 
@@ -31,14 +31,13 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
-   pair_coeff \* \* Si.tersoff.mod Si Si
+   pair_coeff * * Si.tersoff.mod Si Si
 
    pair_style tersoff/mod/c
-   pair_coeff \* \* Si.tersoff.modc Si Si
+   pair_coeff * * Si.tersoff.modc Si Si
 
 Description
 """""""""""
@@ -51,22 +50,22 @@ E of a system of atoms as
 
 .. math::
 
-  E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
-  f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
-    1 & r < R - D \\
-    \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
-      R-D < r < R + D \\
-    0 & r > R + D
-    \end{array} \right. \\
-  f_R(r) & = A \exp (-\lambda_1 r) \\
-  f_A(r) & = -B \exp (-\lambda_2 r) \\
-  b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
-                   \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
-  g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
-  g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
-  g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+     1 & r < R - D \\
+     \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
+       R-D < r < R + D \\
+     0 & r > R + D
+     \end{array} \right. \\
+   f_R(r) & = A \exp (-\lambda_1 r) \\
+   f_A(r) & = -B \exp (-\lambda_2 r) \\
+   b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
+   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+                    \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
+   g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
+   g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
+   g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
 
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body interactions.
@@ -77,7 +76,7 @@ formulation of the V\_ij term, where it contains an additional c0 term.
 
 .. math::
 
-  V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
+   V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
 
 
 The modified cutoff function :math:`f_C` proposed by :ref:`(Murty) <Murty>` and
@@ -105,9 +104,9 @@ If your LAMMPS simulation has 3 Si atoms types, you would use the following
 pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Si.tersoff_mod Si Si Si
+   pair_coeff * * Si.tersoff_mod Si Si Si
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element

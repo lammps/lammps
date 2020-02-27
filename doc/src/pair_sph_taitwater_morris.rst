@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/taitwater/morris
+.. index:: pair_style sph/taitwater/morris
 
-pair\_style sph/taitwater/morris command
-========================================
+pair_style sph/taitwater/morris command
+=======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/taitwater/morris
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/taitwater/morris
-   pair_coeff \* \* 1000.0 1430.0 1.0 2.4
+   pair_coeff * * 1000.0 1430.0 1.0 2.4
 
 Description
 """""""""""
@@ -28,7 +28,7 @@ particles according to Tait's equation of state:
 
 .. math::
 
-  p = B \biggl[\left(\frac{\rho}{\rho_0}\right)^{\gamma} - 1\biggr]
+   p = B \biggl[\left(\frac{\rho}{\rho_0}\right)^{\gamma} - 1\biggr]
 
 
 where :math:`\gamma = 7` and :math:`B = c_0^2 \rho_0 / \gamma`, with

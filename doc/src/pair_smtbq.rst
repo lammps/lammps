@@ -1,13 +1,13 @@
-.. index:: pair\_style smtbq
+.. index:: pair_style smtbq
 
-pair\_style smtbq command
-=========================
+pair_style smtbq command
+========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smtbq
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smtbq
-   pair_coeff \* \* ffield.smtbq.Al2O3 O Al
+   pair_coeff * * ffield.smtbq.Al2O3 O Al
 
 Description
 """""""""""
@@ -58,9 +58,9 @@ atom type 1 has to be oxygen and atom type 2 Ti. The following
 pair\_coeff command should then be used:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
+   pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
 
 The electrostatic part of the energy consists of two components 
 

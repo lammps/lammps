@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/lj
+.. index:: pair_style sph/lj
 
-pair\_style sph/lj command
-==========================
+pair_style sph/lj command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/lj
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/lj
-   pair_coeff \* \* 1.0 2.4
+   pair_coeff * * 1.0 2.4
 
 Description
 """""""""""

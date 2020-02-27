@@ -1,16 +1,16 @@
-.. index:: pair\_style snap
+.. index:: pair_style snap
 
-pair\_style snap command
-========================
+pair_style snap command
+=======================
 
-pair\_style snap/kk command
-===========================
+pair_style snap/kk command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style snap
 
@@ -18,10 +18,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style snap
-   pair_coeff \* \* InP.snapcoeff InP.snapparam In In P P
+   pair_coeff * * InP.snapcoeff InP.snapparam In In P P
 
 Description
 """""""""""
@@ -71,9 +71,9 @@ types, with the first two being indium and the 3rd and 4th being
 phophorous, the pair\_coeff command would look like this:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* snap InP.snapcoeff InP.snapparam In In P P
+   pair_coeff * * snap InP.snapcoeff InP.snapparam In In P P
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The two filenames are for the coefficient and parameter files, respectively.
@@ -106,16 +106,16 @@ combines the *snap* and *zbl* pair styles. It is invoked
 by the following commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-           variable zblcutinner equal 4
-           variable zblcutouter equal 4.8
-           variable zblz equal 73
-           pair_style hybrid/overlay &
-           zbl ${zblcutinner} ${zblcutouter} snap
-           pair_coeff \* \* zbl 0.0
-           pair_coeff 1 1 zbl ${zblz}
-           pair_coeff \* \* snap Ta06A.snapcoeff Ta06A.snapparam Ta
+   variable zblcutinner equal 4
+   variable zblcutouter equal 4.8
+   variable zblz equal 73
+   pair_style hybrid/overlay &
+   zbl ${zblcutinner} ${zblcutouter} snap
+   pair_coeff \* \* zbl 0.0
+   pair_coeff 1 1 zbl ${zblz}
+   pair_coeff \* \* snap Ta06A.snapcoeff Ta06A.snapparam Ta
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the :doc:`include <include>`

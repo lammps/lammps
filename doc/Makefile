@@ -71,7 +71,6 @@ html: $(ANCHORCHECK) $(MATHJAX)
 		echo "############################################" ;\
 		deactivate ;\
 	)
-	-rm html/searchindex.js
 	@rm -rf html/_sources
 	@rm -rf html/PDF
 	@rm -rf html/USER

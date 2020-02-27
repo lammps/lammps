@@ -98,7 +98,7 @@ Installing prerequisite packages
 First upgrade all existing packages using
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    sudo apt update
    sudo apt upgrade -y
@@ -107,7 +107,7 @@ Next install the following packages, which include compilers and libraries
 needed for various LAMMPS features:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
@@ -127,7 +127,7 @@ Option 1: Downloading LAMMPS tarball using wget
 """""""""""""""""""""""""""""""""""""""""""""""
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    wget http://lammps.sandia.gov/tars/lammps-stable.tar.gz
    tar xvzf lammps-stable.tar.gz
@@ -137,7 +137,7 @@ Option 2: Obtaining LAMMPS code from GitHub
 """""""""""""""""""""""""""""""""""""""""""
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    git clone https://github.com/lammps/lammps.git
    cd lammps
@@ -151,7 +151,7 @@ Compiling serial version
 """"""""""""""""""""""""
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd src/
    make -j 4 serial
@@ -162,7 +162,7 @@ Compiling MPI version
 """""""""""""""""""""
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd src/
    make -j 4 mpi
@@ -176,14 +176,14 @@ This will create an executable called lmp\_mpi in the src/ directory
 Finally, please note the absolute path of your src folder. You can get this using
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    pwd
 
 or
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    echo $PWD
 
@@ -191,7 +191,7 @@ To run any examples you need the location of the executable. For now, let us
 save this location in a temporary variable
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    LAMMPS_DIR=$PWD
 
@@ -206,7 +206,7 @@ Once compiled you can execute some of the LAMMPS examples. Switch into the
 examples/melt folder
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd ../examples/melt
 
@@ -215,14 +215,14 @@ version is $LAMMPS\_DIR/lmp\_mpi. You can run the melt example with either
 version as follows:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $LAMMPS_DIR/lmp_serial -in in.melt
 
 or
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 4 $LAMMPS_DIR/lmp_mpi -in in.melt
 
@@ -236,21 +236,21 @@ You can avoid having to type the full path of your LAMMPS binary by adding its
 parent folder to the PATH environment variable as follows:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    export PATH=$LAMMPS_DIR:$PATH
 
 Input scripts can then be run like this:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_serial -in in.melt
 
 or
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 4 lmp_mpi -in in.melt
 
@@ -259,7 +259,7 @@ To persist this setting edit the $HOME/.bashrc file using your favorite editor
 and add this line
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    export PATH=/full/path/to/your/lammps/src:$PATH
 
@@ -268,14 +268,14 @@ and add this line
 For an executable lmp\_serial with a full path
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    /home/richard/lammps/src/lmp_serial
 
 the PATH variable should be
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    export PATH=/home/richard/lammps/src:$PATH
 

@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/idealgas
+.. index:: pair_style sph/idealgas
 
-pair\_style sph/idealgas command
-================================
+pair_style sph/idealgas command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/idealgas
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/idealgas
-   pair_coeff \* \* 1.0 2.4
+   pair_coeff * * 1.0 2.4
 
 Description
 """""""""""
@@ -28,7 +28,7 @@ according to the ideal gas equation of state:
 
 .. math::
 
-  p = (\gamma - 1) \rho e
+   p = (\gamma - 1) \rho e
 
 
 where :math:`\gamma = 1.4` is the heat capacity ratio, :math:`\rho` is

@@ -1,12 +1,14 @@
-.. index:: pair\_style srp
+.. index:: pair_style srp
 
-pair\_style srp command
-=======================
+pair_style srp command
+======================
 
 Syntax
 """"""
 
-pair\_style srp cutoff btype dist keyword value ...
+.. code-block:: LAMMPS
+
+   pair_style srp cutoff btype dist keyword value ...
 
 * cutoff = global cutoff for SRP interactions (distance units)
 * btype = bond type to apply SRP interactions to (can be wildcard, see below)
@@ -25,7 +27,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 mid exclude yes
    pair_coeff 1 1 dpd 60.0 4.5 1.0

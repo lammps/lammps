@@ -1,19 +1,19 @@
-.. index:: pair\_style resquared
+.. index:: pair_style resquared
 
-pair\_style resquared command
-=============================
+pair_style resquared command
+============================
 
-pair\_style resquared/gpu command
-=================================
+pair_style resquared/gpu command
+================================
 
-pair\_style resquared/omp command
-=================================
+pair_style resquared/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style resquared cutoff
 
@@ -23,10 +23,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style resquared 10.0
-   pair_coeff \* \* 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
+   pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
 
 Description
 """""""""""

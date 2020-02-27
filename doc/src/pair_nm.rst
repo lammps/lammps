@@ -1,28 +1,28 @@
-.. index:: pair\_style nm/cut
+.. index:: pair_style nm/cut
 
-pair\_style nm/cut command
-==========================
+pair_style nm/cut command
+=========================
 
-pair\_style nm/cut/coul/cut command
+pair_style nm/cut/coul/cut command
+==================================
+
+pair_style nm/cut/coul/long command
 ===================================
 
-pair\_style nm/cut/coul/long command
-====================================
+pair_style nm/cut/omp command
+=============================
 
-pair\_style nm/cut/omp command
-==============================
+pair_style nm/cut/coul/cut/omp command
+======================================
 
-pair\_style nm/cut/coul/cut/omp command
+pair_style nm/cut/coul/long/omp command
 =======================================
-
-pair\_style nm/cut/coul/long/omp command
-========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -46,18 +46,18 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style nm/cut 12.0
-   pair_coeff \* \* 0.01 5.4 8.0 7.0
+   pair_coeff * * 0.01 5.4 8.0 7.0
    pair_coeff 1 1 0.01 4.4 7.0 6.0
 
    pair_style nm/cut/coul/cut 12.0 15.0
-   pair_coeff \* \* 0.01 5.4 8.0 7.0
+   pair_coeff * * 0.01 5.4 8.0 7.0
    pair_coeff 1 1 0.01 4.4 7.0 6.0
 
    pair_style nm/cut/coul/long 12.0 15.0
-   pair_coeff \* \* 0.01 5.4 8.0 7.0
+   pair_coeff * * 0.01 5.4 8.0 7.0
    pair_coeff 1 1 0.01 4.4 7.0 6.0
 
 Description

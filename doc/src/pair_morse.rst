@@ -1,31 +1,31 @@
-.. index:: pair\_style morse
+.. index:: pair_style morse
 
-pair\_style morse command
-=========================
+pair_style morse command
+========================
 
-pair\_style morse/gpu command
-=============================
-
-pair\_style morse/omp command
-=============================
-
-pair\_style morse/opt command
-=============================
-
-pair\_style morse/smooth/linear command
-=======================================
-
-pair\_style morse/smooth/linear/omp command
-===========================================
-
-pair\_style morse/kk command
+pair_style morse/gpu command
 ============================
+
+pair_style morse/omp command
+============================
+
+pair_style morse/opt command
+============================
+
+pair_style morse/smooth/linear command
+======================================
+
+pair_style morse/smooth/linear/omp command
+==========================================
+
+pair_style morse/kk command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -44,11 +44,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style morse 2.5
    pair_style morse/smooth/linear 2.5
-   pair_coeff \* \* 100.0 2.0 1.5
+   pair_coeff * * 100.0 2.0 1.5
    pair_coeff 1 1 100.0 2.0 1.5 3.0
 
 Description

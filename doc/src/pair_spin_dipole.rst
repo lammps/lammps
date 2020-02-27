@@ -1,16 +1,16 @@
-.. index:: pair\_style spin/dipole/cut
+.. index:: pair_style spin/dipole/cut
 
-pair\_style spin/dipole/cut command
+pair_style spin/dipole/cut command
+==================================
+
+pair_style spin/dipole/long command
 ===================================
-
-pair\_style spin/dipole/long command
-====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/dipole/cut cutoff
    pair_style spin/dipole/long cutoff
@@ -22,15 +22,14 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/dipole/cut 10.0
-   pair_coeff \* \* 10.0
+   pair_coeff * * 10.0
    pair_coeff 2 3 8.0
 
    pair_style spin/dipole/long 9.0
-   pair_coeff \* \* 10.0
+   pair_coeff * * 10.0
    pair_coeff 2 3 6.0
 
 Description

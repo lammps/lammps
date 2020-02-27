@@ -1,13 +1,13 @@
-.. index:: pair\_style multi/lucy
+.. index:: pair_style multi/lucy
 
-pair\_style multi/lucy command
-==============================
+pair_style multi/lucy command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy style N keyword ...
 
@@ -18,10 +18,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy linear 1000
-   pair_coeff \* \* multibody.table ENTRY1 7.0
+   pair_coeff * * multibody.table ENTRY1 7.0
 
 Description
 """""""""""

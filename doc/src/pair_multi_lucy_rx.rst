@@ -1,16 +1,16 @@
-.. index:: pair\_style multi/lucy/rx
+.. index:: pair_style multi/lucy/rx
 
-pair\_style multi/lucy/rx command
-=================================
+pair_style multi/lucy/rx command
+================================
 
-pair\_style multi/lucy/rx/kk command
-====================================
+pair_style multi/lucy/rx/kk command
+===================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx style N keyword ...
 
@@ -22,13 +22,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx linear 1000
    pair_style multi/lucy/rx linear 1000 fractional
    pair_style multi/lucy/rx linear 1000 molecular
-   pair_coeff \* \* multibody.table ENTRY1 h2o h2o 7.0
-   pair_coeff \* \* multibody.table ENTRY1 h2o 1fluid 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0
 
 Description
 """""""""""

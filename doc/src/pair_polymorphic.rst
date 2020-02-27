@@ -1,13 +1,13 @@
-.. index:: pair\_style polymorphic
+.. index:: pair_style polymorphic
 
-pair\_style polymorphic command
-===============================
+pair_style polymorphic command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style polymorphic
 
@@ -17,13 +17,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style polymorphic
-   pair_coeff \* \* TlBr_msw.polymorphic Tl Br
-   pair_coeff \* \* AlCu_eam.polymorphic Al Cu
-   pair_coeff \* \* GaN_tersoff.polymorphic Ga N
-   pair_coeff \* \* GaN_sw.polymorphic GaN
+   pair_coeff * * TlBr_msw.polymorphic Tl Br
+   pair_coeff * * AlCu_eam.polymorphic Al Cu
+   pair_coeff * * GaN_tersoff.polymorphic Ga N
+   pair_coeff * * GaN_sw.polymorphic GaN
 
 Description
 """""""""""

@@ -1,13 +1,12 @@
-.. index:: pair\_style spin/dmi
+.. index:: pair_style spin/dmi
 
-pair\_style spin/dmi command
-============================
+pair_style spin/dmi command
+===========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/dmi cutoff
 
@@ -17,11 +16,10 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style spin/dmi 4.0
-   pair_coeff \* \* dmi 2.6 0.001 1.0 0.0 0.0
+   pair_coeff * * dmi 2.6 0.001 1.0 0.0 0.0
    pair_coeff 1 2 dmi 4.0 0.00109 0.0 0.0 1.0
 
 Description

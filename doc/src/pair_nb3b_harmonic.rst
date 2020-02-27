@@ -1,13 +1,13 @@
-.. index:: pair\_style nb3b/harmonic
+.. index:: pair_style nb3b/harmonic
 
-pair\_style nb3b/harmonic command
-=================================
+pair_style nb3b/harmonic command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style nb3b/harmonic
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style nb3b/harmonic
-   pair_coeff \* \* MgOH.nb3bharmonic Mg O H
+   pair_coeff * * MgOH.nb3bharmonic Mg O H
 
 Description
 """""""""""
@@ -54,9 +54,9 @@ want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.nb3b.harmonic Si Si Si C
+   pair_coeff * * SiC.nb3b.harmonic Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si

@@ -1,13 +1,12 @@
-.. index:: pair\_style sdpd/taitwater/isothermal
+.. index:: pair_style sdpd/taitwater/isothermal
 
-pair\_style sdpd/taitwater/isothermal command
-=============================================
+pair_style sdpd/taitwater/isothermal command
+============================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sdpd/taitwater/isothermal temperature viscosity seed
 
@@ -18,11 +17,10 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sdpd/taitwater/isothermal 300. 1. 28681
-   pair_coeff \* \* 1000.0 1430.0 2.4
+   pair_coeff * * 1000.0 1430.0 2.4
 
 Description
 """""""""""

@@ -125,9 +125,9 @@ functions,
 Full details of the lattice-Boltzmann algorithm used can be found in
 :ref:`Mackay et al. <fluid-Mackay>`.
 
-The fluid is coupled to the MD particles described by *group-ID*
-through a velocity dependent force.  The contribution to the fluid
-force on a given lattice mesh site j due to MD particle alpha is
+The fluid is coupled to the MD particles described by *group-ID* through
+a velocity dependent force.  The contribution to the fluid force on a
+given lattice mesh site j due to MD particle :math:`\alpha` is
 calculated as:
 
 .. math::

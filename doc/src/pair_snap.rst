@@ -113,9 +113,9 @@ by the following commands:
    variable zblz equal 73
    pair_style hybrid/overlay &
    zbl ${zblcutinner} ${zblcutouter} snap
-   pair_coeff \* \* zbl 0.0
+   pair_coeff * * zbl 0.0
    pair_coeff 1 1 zbl ${zblz}
-   pair_coeff \* \* snap Ta06A.snapcoeff Ta06A.snapparam Ta
+   pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the :doc:`include <include>`
@@ -164,8 +164,7 @@ into two passes.
 Detailed definitions for all the other keywords 
 are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page. 
 
-If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term,
-0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
+If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term, 0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
 The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
 for each element, the upper-triangular elements of alpha.
 

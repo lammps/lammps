@@ -88,14 +88,14 @@ and three-body coefficients in the formula above:
 * B (distance units)
 * cutoffA (distance units)
 * cutoffC (distance units)
-* alpha
-* beta
-* eta
-* gamma (distance units)
-* lambda (energy units)
-* mu
-* tho
-* sigma (distance units)
+* :math:`\alpha`
+* :math:`\beta`
+* :math:`\eta`
+* :math:`\gamma` (distance units)
+* :math:`lambda` (energy units)
+* :math:`\mu`
+* :math:`\tau`
+* :math:`\sigma` (distance units)
 * Q0
 * u1
 * u2

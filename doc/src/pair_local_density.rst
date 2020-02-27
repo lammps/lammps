@@ -128,7 +128,7 @@ where :math:`\alpha` gives the type of atom *i*\ , :math:`\beta` the
 type of atom *j*\ , and the coefficients *a* and *b* filter for atom
 types as specified by the user. *a* is called the central atom filter as
 it determines to which atoms the potential applies; :math:`a_{\alpha} =
-1` if the LD potential applies to atom type alpha else zero. On the
+1` if the LD potential applies to atom type :math:`\alpha` else zero. On the
 other hand, *b* is called the neighbor atom filter because it specifies
 which atom types to use in the calculation of the LD; :math:`b_{\beta} =
 1` if atom type :math:`\beta` contributes to the LD and zero otherwise.
@@ -210,12 +210,15 @@ and potential.  In general, blank lines anywhere are ignored.
 ----------
 
 **Mixing, shift, table, tail correction, restart, info**\ :
-This pair style does not support automatic mixing. For atom type pairs alpha,
-beta and alpha != beta, even if LD potentials of type (alpha, alpha) and 
-(beta, beta) are provided, you will need to explicitly provide LD potential 
-types (alpha, beta) and (beta, alpha) if need be (Here, the notation (alpha,
-beta) means that alpha is the central atom to which the LD potential is applied
-and beta is the neighbor atom which contributes to the LD potential on alpha).
+This pair style does not support automatic mixing. For atom type pairs
+:math:`\alpha`, :math:`\beta` and :math:`\alpha` != :math:`\beta`, even
+if LD potentials of type (:math:`\alpha`, :math:`\alpha`) and
+(:math:`\beta`, :math:`\beta`) are provided, you will need to explicitly
+provide LD potential types (:math:`\alpha`, :math:`\beta`) and
+(:math:`\beta`, :math:`\alpha`) if need be (Here, the notation
+(:math:`\alpha`, :math:`\beta`) means that :math:`\alpha` is the central
+atom to which the LD potential is applied and :math:`\beta` is the
+neighbor atom which contributes to the LD potential on :math:`\alpha`).
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.

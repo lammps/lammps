@@ -45,12 +45,12 @@ Examples
    fix 1 all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 seed 35082 f_max 0.3 N_f 100 eta 1 beta 400 T_init 110 (liquid methane modeled with the REAX force field, real units)
    fix 2 all qbmsst z 72 q 40 tscale 0.05 damp 1 seed 47508 f_max 120.0 N_f 100 eta 1.0 beta 500 T_init 300 (quartz modeled with the BKS force field, metal units)
 
-Two example input scripts are given, including shocked alpha quartz
-and shocked liquid methane. The input script first equilibrate an
-initial state with the quantum thermal bath at the target temperature
-and then apply the qbmsst to simulate shock compression with quantum
-nuclear correction.  The following two figures plot related quantities
-for shocked alpha quartz.
+Two example input scripts are given, including shocked
+:math:`\alpha-\mathrm{quartz}` and shocked liquid methane.
+The input script first equilibrate an initial state with the quantum
+thermal bath at the target temperature and then apply the qbmsst to
+simulate shock compression with quantum nuclear correction.  The
+following two figures plot related quantities for shocked alpha quartz.
 
 .. image:: JPG/qbmsst_init.jpg
    :align: center

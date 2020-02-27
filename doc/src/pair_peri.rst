@@ -91,11 +91,11 @@ For the *peri/pmb* style:
 * c (energy/distance/volume\^2 units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 
 C is the effectively a spring constant for Peridynamic bonds, the
 horizon is a cutoff distance for truncating interactions, and s00 and
-alpha are used as a bond breaking criteria.  The units of c are such
+:math:`\alpha` are used as a bond breaking criteria.  The units of c are such
 that c/distance = stiffness/volume\^2, where stiffness is
 energy/distance\^2 and volume is distance\^3.  See the users guide for
 more details.
@@ -106,10 +106,10 @@ For the *peri/lps* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 
 K is the bulk modulus and G is the shear modulus.  The horizon is a
-cutoff distance for truncating interactions, and s00 and alpha are
+cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
 used as a bond breaking criteria. See the users guide for more
 details.
 
@@ -119,12 +119,12 @@ For the *peri/ves* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 * m\_lambdai (unitless)
 * m\_taubi (unitless)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
-cutoff distance for truncating interactions, and s00 and alpha are
+cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
 used as a bond breaking criteria. m\_lambdai and m\_taubi are the
 viscoelastic relaxation parameter and time constant,
 respectively. m\_lambdai varies within zero to one. For very small
@@ -138,11 +138,11 @@ For the *peri/eps* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 * m\_yield\_stress (force/area units)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
-cutoff distance and s00 and alpha are used as a bond breaking
+cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m\_yield\_stress is the yield stress of the material. For
 details please see the description in "(Mtchell2011a)".
 

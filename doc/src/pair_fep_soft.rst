@@ -1,70 +1,70 @@
-.. index:: pair\_style lj/cut/soft
+.. index:: pair_style lj/cut/soft
 
-pair\_style lj/cut/soft command
-===============================
+pair_style lj/cut/soft command
+==============================
 
-pair\_style lj/cut/soft/omp command
-===================================
-
-pair\_style lj/cut/coul/cut/soft command
-========================================
-
-pair\_style lj/cut/coul/cut/soft/omp command
-============================================
-
-pair\_style lj/cut/coul/long/soft command
-=========================================
-
-pair\_style lj/cut/coul/long/soft/omp command
-=============================================
-
-pair\_style lj/cut/tip4p/long/soft command
-==========================================
-
-pair\_style lj/cut/tip4p/long/soft/omp command
-==============================================
-
-pair\_style lj/charmm/coul/long/soft command
-============================================
-
-pair\_style lj/charmm/coul/long/soft/omp command
-================================================
-
-pair\_style lj/class2/soft command
+pair_style lj/cut/soft/omp command
 ==================================
 
-pair\_style lj/class2/coul/cut/soft command
-===========================================
-
-pair\_style lj/class2/coul/long/soft command
-============================================
-
-pair\_style coul/cut/soft command
-=================================
-
-pair\_style coul/cut/soft/omp command
-=====================================
-
-pair\_style coul/long/soft command
-==================================
-
-pair\_style coul/long/soft/omp command
-======================================
-
-pair\_style tip4p/long/soft command
-===================================
-
-pair\_style tip4p/long/soft/omp command
+pair_style lj/cut/coul/cut/soft command
 =======================================
 
-pair\_style morse/soft command
+pair_style lj/cut/coul/cut/soft/omp command
+===========================================
+
+pair_style lj/cut/coul/long/soft command
+========================================
+
+pair_style lj/cut/coul/long/soft/omp command
+============================================
+
+pair_style lj/cut/tip4p/long/soft command
+==========================================
+
+pair_style lj/cut/tip4p/long/soft/omp command
+==============================================
+
+pair_style lj/charmm/coul/long/soft command
+============================================
+
+pair_style lj/charmm/coul/long/soft/omp command
+================================================
+
+pair_style lj/class2/soft command
+==================================
+
+pair_style lj/class2/coul/cut/soft command
+===========================================
+
+pair_style lj/class2/coul/long/soft command
+============================================
+
+pair_style coul/cut/soft command
+=================================
+
+pair_style coul/cut/soft/omp command
+=====================================
+
+pair_style coul/long/soft command
+==================================
+
+pair_style coul/long/soft/omp command
+======================================
+
+pair_style tip4p/long/soft command
+===================================
+
+pair_style tip4p/long/soft/omp command
+=======================================
+
+pair_style morse/soft command
 ==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -128,50 +128,50 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/soft 2.0 0.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 1.0 9.5
 
    pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5
 
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
 
    pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
    pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
-   pair_coeff \* \* 0.155 3.1536 1.0
+   pair_coeff * * 0.155 3.1536 1.0
    pair_coeff 1 1 0.155 3.1536 1.0 9.5
 
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 1.0 0.14 3.1
 
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
 
    pair_style coul/long/soft 1.0 10.0 9.5
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 9.5
 
    pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 9.5
 
    pair_style morse/soft 4 0.9 10.0
-   pair_coeff \* \* 100.0 2.0 1.5 1.0
+   pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
 Description

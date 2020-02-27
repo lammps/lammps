@@ -1,16 +1,16 @@
-.. index:: pair\_style buck/long/coul/long
+.. index:: pair_style buck/long/coul/long
 
-pair\_style buck/long/coul/long command
+pair_style buck/long/coul/long command
 =======================================
 
-pair\_style buck/long/coul/long/omp command
+pair_style buck/long/coul/long/omp command
 ===========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
 
@@ -36,12 +36,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck/long/coul/long cut off 2.5
    pair_style buck/long/coul/long cut long 2.5 4.0
    pair_style buck/long/coul/long long long 4.0
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 3 4
 
 Description

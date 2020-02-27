@@ -1,19 +1,18 @@
-.. index:: delete\_bonds
+.. index:: delete_bonds
 
-delete\_bonds command
-=====================
+delete_bonds command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_bonds group-ID style arg keyword ...
 
 * group-ID = group ID
-* style = *multi* or *atom* or *bond* or *angle* or *dihedral* or
-          *improper* or *stats*
+* style = *multi* or *atom* or *bond* or *angle* or *dihedral* or *improper* or *stats*
   
   .. parsed-literal::
   
@@ -33,11 +32,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_bonds frozen multi remove
    delete_bonds all atom 4 special
-   delete_bonds all bond 0\*3 special
+   delete_bonds all bond 0*3 special
    delete_bonds all stats
 
 Description

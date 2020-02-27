@@ -1,22 +1,22 @@
-.. index:: pair\_style hbond/dreiding/lj
+.. index:: pair_style hbond/dreiding/lj
 
-pair\_style hbond/dreiding/lj command
-=====================================
+pair_style hbond/dreiding/lj command
+====================================
 
-pair\_style hbond/dreiding/lj/omp command
-=========================================
-
-pair\_style hbond/dreiding/morse command
+pair_style hbond/dreiding/lj/omp command
 ========================================
 
-pair\_style hbond/dreiding/morse/omp command
-============================================
+pair_style hbond/dreiding/morse command
+=======================================
+
+pair_style hbond/dreiding/morse/omp command
+===========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
 
@@ -31,7 +31,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90
    pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
@@ -253,7 +253,7 @@ To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute hb all pair hbond/dreiding/lj
    variable n_hbond equal c_hb[1] #number hbonds

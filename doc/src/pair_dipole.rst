@@ -1,37 +1,37 @@
-.. index:: pair\_style lj/cut/dipole/cut
+.. index:: pair_style lj/cut/dipole/cut
 
-pair\_style lj/cut/dipole/cut command
-=====================================
+pair_style lj/cut/dipole/cut command
+====================================
 
-pair\_style lj/cut/dipole/cut/gpu command
-=========================================
+pair_style lj/cut/dipole/cut/gpu command
+========================================
 
-pair\_style lj/cut/dipole/cut/omp command
-=========================================
+pair_style lj/cut/dipole/cut/omp command
+========================================
 
-pair\_style lj/sf/dipole/sf command
-===================================
+pair_style lj/sf/dipole/sf command
+==================================
 
-pair\_style lj/sf/dipole/sf/gpu command
-=======================================
-
-pair\_style lj/sf/dipole/sf/omp command
-=======================================
-
-pair\_style lj/cut/dipole/long command
+pair_style lj/sf/dipole/sf/gpu command
 ======================================
 
-pair\_style lj/cut/dipole/long/gpu command
-==========================================
+pair_style lj/sf/dipole/sf/omp command
+======================================
 
-pair\_style lj/long/dipole/long command
-=======================================
+pair_style lj/cut/dipole/long command
+=====================================
+
+pair_style lj/cut/dipole/long/gpu command
+=========================================
+
+pair_style lj/long/dipole/long command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/dipole/cut cutoff (cutoff2)
    pair_style lj/sf/dipole/sf cutoff (cutoff2)
@@ -61,23 +61,23 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/dipole/cut 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0
 
    pair_style lj/sf/dipole/sf 9.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
    pair_coeff 2 3 1.0 1.0 2.5 4.0
 
    pair_style lj/cut/dipole/long 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0
 
    pair_style lj/long/dipole/long long long 3.5 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0
 
 Description

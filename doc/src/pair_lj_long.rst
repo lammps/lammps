@@ -1,28 +1,28 @@
-.. index:: pair\_style lj/long/coul/long
+.. index:: pair_style lj/long/coul/long
 
-pair\_style lj/long/coul/long command
+pair_style lj/long/coul/long command
+====================================
+
+pair_style lj/long/coul/long/intel command
+==========================================
+
+pair_style lj/long/coul/long/omp command
+========================================
+
+pair_style lj/long/coul/long/opt command
+========================================
+
+pair_style lj/long/tip4p/long command
 =====================================
 
-pair\_style lj/long/coul/long/intel command
-===========================================
-
-pair\_style lj/long/coul/long/omp command
+pair_style lj/long/tip4p/long/omp command
 =========================================
-
-pair\_style lj/long/coul/long/opt command
-=========================================
-
-pair\_style lj/long/tip4p/long command
-======================================
-
-pair\_style lj/long/tip4p/long/omp command
-==========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -59,17 +59,17 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/long/coul/long cut off 2.5
    pair_style lj/long/coul/long cut long 2.5 4.0
    pair_style lj/long/coul/long long long 2.5 4.0
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 3 4
 
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description

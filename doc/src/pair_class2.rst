@@ -1,43 +1,43 @@
-.. index:: pair\_style lj/class2
+.. index:: pair_style lj/class2
 
-pair\_style lj/class2 command
-=============================
+pair_style lj/class2 command
+============================
 
-pair\_style lj/class2/gpu command
-=================================
-
-pair\_style lj/class2/kk command
+pair_style lj/class2/gpu command
 ================================
 
-pair\_style lj/class2/omp command
-=================================
+pair_style lj/class2/kk command
+===============================
 
-pair\_style lj/class2/coul/cut command
-======================================
+pair_style lj/class2/omp command
+================================
 
-pair\_style lj/class2/coul/cut/kk command
+pair_style lj/class2/coul/cut command
+=====================================
+
+pair_style lj/class2/coul/cut/kk command
+========================================
+
+pair_style lj/class2/coul/cut/omp command
 =========================================
 
-pair\_style lj/class2/coul/cut/omp command
+pair_style lj/class2/coul/long command
+======================================
+
+pair_style lj/class2/coul/long/gpu command
 ==========================================
 
-pair\_style lj/class2/coul/long command
-=======================================
+pair_style lj/class2/coul/long/kk command
+=========================================
 
-pair\_style lj/class2/coul/long/gpu command
-===========================================
-
-pair\_style lj/class2/coul/long/kk command
+pair_style lj/class2/coul/long/omp command
 ==========================================
-
-pair\_style lj/class2/coul/long/omp command
-===========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -60,7 +60,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/class2 10.0
    pair_coeff \* \* 100.0 2.5
@@ -84,9 +84,9 @@ The *lj/class2* styles compute a 6/9 Lennard-Jones potential given by
 
 .. math::
 
-  E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 - 
-    3 \left(\frac{\sigma}{r}\right)^6 \right]
-  \qquad r < r_c
+   E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 - 
+     3 \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_c
 
 
 :math:`r_c` is the cutoff.

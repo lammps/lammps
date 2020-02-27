@@ -1,22 +1,22 @@
-.. index:: pair\_style gayberne
+.. index:: pair_style gayberne
 
-pair\_style gayberne command
-============================
+pair_style gayberne command
+===========================
 
-pair\_style gayberne/gpu command
-================================
+pair_style gayberne/gpu command
+===============================
 
-pair\_style gayberne/intel command
-==================================
+pair_style gayberne/intel command
+=================================
 
-pair\_style gayberne/omp command
-================================
+pair_style gayberne/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style gayberne gamma upsilon mu cutoff
 
@@ -29,10 +29,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style gayberne 1.0 1.0 1.0 10.0
-   pair_coeff \* \* 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0
+   pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0
 
 Description
 """""""""""

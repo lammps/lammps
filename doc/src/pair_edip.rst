@@ -1,19 +1,19 @@
-.. index:: pair\_style edip
+.. index:: pair_style edip
 
-pair\_style edip command
-========================
+pair_style edip command
+=======================
 
-pair\_style edip/omp command
-============================
+pair_style edip/omp command
+===========================
 
-pair\_style edip/multi command
-==============================
+pair_style edip/multi command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -22,8 +22,10 @@ Syntax
 Examples
 """"""""
 
-pair\_style edip
-pair\_coeff \* \* Si.edip Si
+.. code-block:: LAMMPS
+
+   pair_style edip
+   pair_coeff * * Si.edip Si
 
 Description
 """""""""""
@@ -43,13 +45,13 @@ In EDIP, the energy E of a system of atoms is
    \phi_{2}(r, Z)  = & A\left[\left(\frac{B}{r}\right)^{\rho} - e^{-\beta Z^2}\right]exp{\left(\frac{\sigma}{r-a}\right)} \\
    \phi_{3}(R_{ij}, R_{ik}, Z_i)  = & exp{\left(\frac{\gamma}{R_{ij}-a}\right)}exp{\left(\frac{\gamma}{R_{ik}-a}\right)}h(cos\theta_{ijk},Z_i) \\
    Z_i  = & \sum_{m \ne i} f(R_{im}) \qquad
-  f(r) = \begin{cases} 
-         1 & \quad r<c \\
-         \exp\left(\frac{\alpha}{1-x^{-3}}\right) & \quad c<r<a \\
-         0 & \quad r>a
-         \end{cases} \\
-  h(l,Z)  = & \lambda [(1-e^{-Q(Z)(l+\tau(Z))^2}) + \eta Q(Z)(l+\tau(Z))^2 ] \\
-  Q(Z)  = & Q_0 e^{-\mu Z} \qquad \tau(Z) = u_1 + u_2 (u_3 e^{-u_4 Z} - e^{-2u_4 Z})
+   f(r) = \begin{cases} 
+          1 & \quad r<c \\
+          \exp\left(\frac{\alpha}{1-x^{-3}}\right) & \quad c<r<a \\
+          0 & \quad r>a
+          \end{cases} \\
+   h(l,Z)  = & \lambda [(1-e^{-Q(Z)(l+\tau(Z))^2}) + \eta Q(Z)(l+\tau(Z))^2 ] \\
+   Q(Z)  = & Q_0 e^{-\mu Z} \qquad \tau(Z) = u_1 + u_2 (u_3 e^{-u_4 Z} - e^{-2u_4 Z})
 
 
 where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a

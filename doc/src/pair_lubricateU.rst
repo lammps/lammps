@@ -1,16 +1,16 @@
-.. index:: pair\_style lubricateU
+.. index:: pair_style lubricateU
 
-pair\_style lubricateU command
-==============================
+pair_style lubricateU command
+=============================
 
-pair\_style lubricateU/poly command
-===================================
+pair_style lubricateU/poly command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style mu flaglog cutinner cutoff gdot flagHI flagVF
 
@@ -26,11 +26,11 @@ Syntax
 **Examples:** (all assume radius = 1)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lubricateU 1.5 1 2.01 2.5 0.01 1 1
    pair_coeff 1 1 2.05 2.8
-   pair_coeff \* \*
+   pair_coeff * *
 
 Description
 """""""""""

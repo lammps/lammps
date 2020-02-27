@@ -1,31 +1,31 @@
-.. index:: pair\_style gran/hooke
+.. index:: pair_style gran/hooke
 
-pair\_style gran/hooke command
-==============================
+pair_style gran/hooke command
+=============================
 
-pair\_style gran/hooke/omp command
-==================================
+pair_style gran/hooke/omp command
+=================================
 
-pair\_style gran/hooke/history command
-======================================
+pair_style gran/hooke/history command
+=====================================
 
-pair\_style gran/hooke/history/omp command
-==========================================
-
-pair\_style gran/hooke/history/kk command
+pair_style gran/hooke/history/omp command
 =========================================
 
-pair\_style gran/hertz/history command
-======================================
+pair_style gran/hooke/history/kk command
+========================================
 
-pair\_style gran/hertz/history/omp command
-==========================================
+pair_style gran/hertz/history command
+=====================================
+
+pair_style gran/hertz/history/omp command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style Kn Kt gamma_n gamma_t xmu dampflag
 
@@ -53,7 +53,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
    pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
@@ -204,9 +204,9 @@ However you must still use the :doc:`pair_coeff <pair_coeff>` for all
 pairs of granular atom types.  For example the command
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \*
+   pair_coeff * *
 
 should be used if all atoms in the simulation interact via a granular
 potential (i.e. one of the pair styles above is used).  If a granular

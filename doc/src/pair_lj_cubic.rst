@@ -1,19 +1,19 @@
-.. index:: pair\_style lj/cubic
+.. index:: pair_style lj/cubic
 
-pair\_style lj/cubic command
-============================
+pair_style lj/cubic command
+===========================
 
-pair\_style lj/cubic/gpu command
-================================
+pair_style lj/cubic/gpu command
+===============================
 
-pair\_style lj/cubic/omp command
-================================
+pair_style lj/cubic/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
 
@@ -21,10 +21,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
-   pair_coeff \* \* 1.0 0.8908987
+   pair_coeff * * 1.0 0.8908987
 
 Description
 """""""""""

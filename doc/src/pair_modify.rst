@@ -1,13 +1,13 @@
-.. index:: pair\_modify
+.. index:: pair_modify
 
-pair\_modify command
-====================
+pair_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify keyword values ...
 
@@ -44,7 +44,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify shift yes mix geometric
    pair_modify tail yes
@@ -63,12 +63,12 @@ specified parameters are by default modified for all the hybrid sub-styles.
 
 .. note::
 
-  The behavior for hybrid pair styles can be changed by using the *pair*
-  keyword, which allows selection of a specific sub-style to apply all
-  remaining keywords to.
-  The *special* and *compute/tally* keywords can **only** be
-  used in conjunction with the *pair* keyword.  See further details about
-  these 3 keywords below.
+   The behavior for hybrid pair styles can be changed by using the *pair*
+   keyword, which allows selection of a specific sub-style to apply all
+   remaining keywords to.
+   The *special* and *compute/tally* keywords can **only** be
+   used in conjunction with the *pair* keyword.  See further details about
+   these 3 keywords below.
 
 The *mix* keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not

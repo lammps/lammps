@@ -1,13 +1,13 @@
-.. index:: pair\_style granular
+.. index:: pair_style granular
 
-pair\_style granular command
-============================
+pair_style granular command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style granular cutoff
 
@@ -17,22 +17,22 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style granular
-   pair_coeff \* \* hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping mass_velocity
+   pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping mass_velocity
 
    pair_style granular
-   pair_coeff \* \* hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
+   pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
 
    pair_style granular
-   pair_coeff \* \* hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4
 
    pair_style granular
-   pair_coeff \* \* hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji
+   pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji
 
    pair_style granular
-   pair_coeff 1 \* jkr 1000.0 500.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+   pair_coeff 1 * jkr 1000.0 500.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
    pair_coeff 2 2 hertz 200.0 100.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall
 
    pair_style granular

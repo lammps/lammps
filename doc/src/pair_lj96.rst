@@ -1,19 +1,19 @@
-.. index:: pair\_style lj96/cut
+.. index:: pair_style lj96/cut
 
-pair\_style lj96/cut command
-============================
+pair_style lj96/cut command
+===========================
 
-pair\_style lj96/cut/gpu command
-================================
+pair_style lj96/cut/gpu command
+===============================
 
-pair\_style lj96/cut/omp command
-================================
+pair_style lj96/cut/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj96/cut cutoff
 
@@ -23,10 +23,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj96/cut 2.5
-   pair_coeff \* \* 1.0 1.0 4.0
+   pair_coeff * * 1.0 1.0 4.0
    pair_coeff 1 1 1.0 1.0
 
 Description
@@ -115,7 +115,7 @@ details.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -1,31 +1,31 @@
-.. index:: pair\_style dpd
+.. index:: pair_style dpd
 
-pair\_style dpd command
-=======================
+pair_style dpd command
+======================
 
-pair\_style dpd/gpu command
-===========================
+pair_style dpd/gpu command
+==========================
 
-pair\_style dpd/intel command
-=============================
+pair_style dpd/intel command
+============================
 
-pair\_style dpd/omp command
-===========================
+pair_style dpd/omp command
+==========================
 
-pair\_style dpd/tstat command
-=============================
+pair_style dpd/tstat command
+============================
 
-pair\_style dpd/tstat/gpu command
-=================================
+pair_style dpd/tstat/gpu command
+================================
 
-pair\_style dpd/tstat/omp command
-=================================
+pair_style dpd/tstat/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd T cutoff seed
    pair_style dpd/tstat Tstart Tstop cutoff seed
@@ -39,14 +39,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd 1.0 2.5 34387
-   pair_coeff \* \* 3.0 1.0
+   pair_coeff * * 3.0 1.0
    pair_coeff 1 1 3.0 1.0 1.0
 
    pair_style dpd/tstat 1.0 1.0 2.5 34387
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 1.0
 
 Description

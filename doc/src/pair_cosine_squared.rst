@@ -1,20 +1,20 @@
-.. index:: pair\_style cosine/squared
+.. index:: pair_style cosine/squared
 
-pair\_style cosine/squared command
-==================================
+pair_style cosine/squared command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style cosine/squared cutoff
 
 * cutoff = global cutoff for cosine-squared interactions (distance units)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff i j eps sigma
    pair_coeff i j eps sigma cutoff
@@ -31,7 +31,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
    pair_coeff \* \* 1.0 1.3

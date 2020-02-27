@@ -1,13 +1,13 @@
-.. index:: pair\_style meam/sw/spline
+.. index:: pair_style meam/sw/spline
 
-pair\_style meam/sw/spline command
-==================================
+pair_style meam/sw/spline command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
 
@@ -15,11 +15,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
-   pair_coeff \* \* Ti.meam.sw.spline Ti
-   pair_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.sw.spline Ti
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
 Description
 """""""""""

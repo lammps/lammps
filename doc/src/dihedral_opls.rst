@@ -1,22 +1,22 @@
-.. index:: dihedral\_style opls
+.. index:: dihedral_style opls
 
-dihedral\_style opls command
-============================
+dihedral_style opls command
+===========================
 
-dihedral\_style opls/intel command
-==================================
+dihedral_style opls/intel command
+=================================
 
-dihedral\_style opls/kk command
+dihedral_style opls/kk command
+==============================
+
+dihedral_style opls/omp command
 ===============================
-
-dihedral\_style opls/omp command
-================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
    dihedral_coeff 1 1.740 -0.157 0.279 0.00   # CT-CT-CT-CT
@@ -38,8 +38,8 @@ The *opls* dihedral style uses the potential
 
 .. math::
 
-  E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
-      & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
+   E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
+       & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
 
 
 Note that the usual 1/2 factor is not included in the K values.

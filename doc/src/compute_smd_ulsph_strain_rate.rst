@@ -7,7 +7,7 @@ Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/strain/rate
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/ulsph/strain/rate
 

@@ -1,16 +1,16 @@
-.. index:: pair\_style exp6/rx
+.. index:: pair_style exp6/rx
 
-pair\_style exp6/rx command
-===========================
+pair_style exp6/rx command
+==========================
 
-pair\_style exp6/rx/kk command
-==============================
+pair_style exp6/rx/kk command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style exp6/rx cutoff ...
 
@@ -21,16 +21,16 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style exp6/rx 10.0
    pair_style exp6/rx 10.0 fractional
    pair_style exp6/rx 10.0 molecular
-   pair_coeff \* \* exp6.params h2o h2o exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params h2o 1fluid exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid none 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid polynomial filename 10.0
+   pair_coeff * * exp6.params h2o h2o exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params h2o 1fluid exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid none 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid polynomial filename 10.0
 
 Description
 """""""""""

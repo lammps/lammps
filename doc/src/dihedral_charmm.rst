@@ -1,25 +1,25 @@
-.. index:: dihedral\_style charmm
+.. index:: dihedral_style charmm
 
-dihedral\_style charmm command
-==============================
+dihedral_style charmm command
+=============================
 
-dihedral\_style charmm/intel command
-====================================
+dihedral_style charmm/intel command
+===================================
 
-dihedral\_style charmm/kk command
+dihedral_style charmm/kk command
+================================
+
+dihedral_style charmm/omp command
 =================================
 
-dihedral\_style charmm/omp command
-==================================
-
-dihedral\_style charmmfsw command
-=================================
+dihedral_style charmmfsw command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style style
 
@@ -29,7 +29,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style charmm
    dihedral_style charmmfsw
@@ -44,7 +44,7 @@ The *charmm* and *charmmfsw* dihedral styles use the potential
 
 .. math::
 
-  E = K [ 1 + \cos (n \phi - d) ]
+   E = K [ 1 + \cos (n \phi - d) ]
 
 
 See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM

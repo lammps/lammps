@@ -1,13 +1,13 @@
-.. index:: pair\_style lj/switch3/coulgauss/long
+.. index:: pair_style lj/switch3/coulgauss/long
 
-pair\_style lj/switch3/coulgauss/long command
-=============================================
+pair_style lj/switch3/coulgauss/long command
+============================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -26,7 +26,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/switch3/coulgauss/long    12.0 3.0
    pair_coeff 1  0.2 2.5 1.2

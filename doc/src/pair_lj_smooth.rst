@@ -1,16 +1,16 @@
-.. index:: pair\_style lj/smooth
+.. index:: pair_style lj/smooth
 
-pair\_style lj/smooth command
-=============================
+pair_style lj/smooth command
+============================
 
-pair\_style lj/smooth/omp command
-=================================
+pair_style lj/smooth/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth Rin Rc
 
@@ -21,10 +21,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth 8.0 10.0
-   pair_coeff \* \* 10.0 1.5
+   pair_coeff * * 10.0 1.5
    pair_coeff 1 1 20.0 1.3 7.0 9.0
 
 Description
@@ -35,10 +35,10 @@ applied between the inner and outer cutoff.
 
 .. math::
 
- E & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_{in} \\
- F & =  C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
+   E & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right]
+                         \qquad r < r_{in} \\
+   F & =  C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
                        \qquad r_{in} < r < r_c
 
 
@@ -131,7 +131,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

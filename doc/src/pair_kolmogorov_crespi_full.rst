@@ -1,13 +1,13 @@
-.. index:: pair\_style kolmogorov/crespi/full
+.. index:: pair_style kolmogorov/crespi/full
 
-pair\_style kolmogorov/crespi/full command
-==========================================
+pair_style kolmogorov/crespi/full command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag
 
@@ -18,15 +18,15 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay kolmogorov/crespi/full 20.0 0
-   pair_coeff \* \* none
-   pair_coeff \* \* kolmogorov/crespi/full  CH.KC   C C
+   pair_coeff * * none
+   pair_coeff * * kolmogorov/crespi/full  CH.KC   C C
 
    pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0 1
-   pair_coeff \* \* rebo                    CH.rebo      C H
-   pair_coeff \* \* kolmogorov/crespi/full  CH_taper.KC  C H
+   pair_coeff * * rebo                    CH.rebo      C H
+   pair_coeff * * kolmogorov/crespi/full  CH_taper.KC  C H
 
 Description
 """""""""""
@@ -100,7 +100,7 @@ To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 0 all pair kolmogorov/crespi/full
    variable Evdw  equal c_0[1]

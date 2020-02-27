@@ -1,19 +1,19 @@
-.. index:: pair\_style colloid
+.. index:: pair_style colloid
 
-pair\_style colloid command
-===========================
+pair_style colloid command
+==========================
 
-pair\_style colloid/gpu command
-===============================
+pair_style colloid/gpu command
+==============================
 
-pair\_style colloid/omp command
-===============================
+pair_style colloid/omp command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style colloid cutoff
 
@@ -23,10 +23,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style colloid 10.0
-   pair_coeff \* \*  25 1.0 10.0 10.0
+   pair_coeff * *  25 1.0 10.0 10.0
    pair_coeff 1 1 144 1.0 0.0 0.0 3.0
    pair_coeff 1 2  75.398 1.0 0.0 10.0 9.0
    pair_coeff 2 2  39.478 1.0 10.0 10.0 25.0

@@ -1,13 +1,13 @@
-.. index:: pair\_style line/lj
+.. index:: pair_style line/lj
 
-pair\_style line/lj command
-===========================
+pair_style line/lj command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj cutoff
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj 3.0
-   pair_coeff \* \* 1.0 1.0 1.0 0.8 1.12
+   pair_coeff * * 1.0 1.0 1.0 0.8 1.12
    pair_coeff 1 2 1.0 2.0 1.0 1.5 1.12 5.0
    pair_coeff 1 2 1.0 0.0 1.0 1.0 2.5
 

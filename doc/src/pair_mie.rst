@@ -1,16 +1,16 @@
-.. index:: pair\_style mie/cut
+.. index:: pair_style mie/cut
 
-pair\_style mie/cut command
-===========================
+pair_style mie/cut command
+==========================
 
-pair\_style mie/cut/gpu command
-===============================
+pair_style mie/cut/gpu command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mie/cut cutoff
 
@@ -20,7 +20,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mie/cut 10.0
    pair_coeff 1 1 0.72 3.40 23.00 6.66
@@ -34,8 +34,8 @@ The *mie/cut* style computes the Mie potential, given by
 
 .. math::
 
- E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
-                       \qquad r < r_c
+   E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
+                         \qquad r < r_c
 
 
 Rc is the cutoff and C is a function that depends on the repulsive and
@@ -43,7 +43,7 @@ attractive exponents, given by:
 
 .. math::
 
- C = \left(\frac{\gamma_{rep}}{\gamma_{rep}-\gamma_{att}}\right) \left(\frac{\gamma_{rep}}{\gamma_{att}}\right)^{\left(\frac{\gamma_{att}}{\gamma_{rep}-\gamma_{att}}\right)}
+   C = \left(\frac{\gamma_{rep}}{\gamma_{rep}-\gamma_{att}}\right) \left(\frac{\gamma_{rep}}{\gamma_{att}}\right)^{\left(\frac{\gamma_{att}}{\gamma_{rep}-\gamma_{att}}\right)}
 
 
 Note that for 12/6 exponents, C is equal to 4 and the formula is the
@@ -99,7 +99,7 @@ details.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -239,18 +239,17 @@ Atom IDs in molecule templates range from 1 to the number of atoms in the templa
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
 
 This means an atom which changes type or connectivity during the
-reaction is too close to an 'edge' atom defined in the superimpose
-file. This could cause incorrect assignment of bonds, angle, etc.
-Generally, this means you must include more atoms in your templates,
-such that there are at least two atoms between each atom involved in
-the reaction and an edge atom.
+reaction is too close to an 'edge' atom defined in the map file. This
+could cause incorrect assignment of bonds, angle, etc. Generally, this
+means you must include more atoms in your templates, such that there
+are at least two atoms between each atom involved in the reaction and
+an edge atom.
 
 E: Bond/react: Fix bond/react needs ghost atoms from farther away
 
-This is because a processor needs to superimpose the entire unreacted
-molecule template onto simulation atoms it knows about. The
-comm_modify cutoff command can be used to extend the communication
-range.
+This is because a processor needs to map the entire unreacted molecule
+template onto simulation atoms it knows about. The comm_modify cutoff
+command can be used to extend the communication range.
 
 E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
 

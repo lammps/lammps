@@ -15,7 +15,7 @@
    Contributing author: Charles Sievers (UC Davis)
 ------------------------------------------------------------------------- */
 
-#include "fix_num_diff.h"
+#include "fix_numdiff.h"
 #include <mpi.h>
 #include <memory.h>
 #include "atom.h"
@@ -41,7 +41,7 @@ using namespace FixConst;
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), numdiff_forces(NULL), temp_f(NULL), 
-  temp_x(NULL), id_pe(NULL)
+  id_pe(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 
@@ -69,9 +69,9 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
   numdiff_forces = NULL;
-  temp_x = NULL;
   temp_f = NULL;
   array_atom = NULL;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +80,6 @@ FixNumDiff::~FixNumDiff()
 {
   memory->destroy(numdiff_forces);
   memory->destroy(temp_f);
-  memory->destroy(temp_x);
 
   modify->delete_compute(id_pe);
   delete [] id_pe;
@@ -123,6 +122,15 @@ void FixNumDiff::init()
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
+
+  if (atom->nmax > maxatom) {
+    memory->destroy(numdiff_forces);
+    memory->destroy(temp_f);
+    maxatom = atom->nmax;
+    memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
+    memory->create(temp_f,maxatom,3,"numdiff:temp_f");
+    array_atom = numdiff_forces;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,24 +168,22 @@ void FixNumDiff::calculate_forces(int vflag)
   if (atom->nmax > maxatom) {
     memory->destroy(numdiff_forces);
     memory->destroy(temp_f);
-    memory->destroy(temp_x);
     maxatom = atom->nmax;
     memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
     memory->create(temp_f,maxatom,3,"numdiff:temp_f");
-    memory->create(temp_x,maxatom,3,"numdiff:temp_x");
     array_atom = numdiff_forces;
   }
 
-  // store copy of current coords and forces for owned and ghost atoms
+  // store copy of current forces for owned and ghost atoms
 
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+  double position;
 
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) {
-      temp_x[i][j] = x[i][j];
       temp_f[i][j] = f[i][j];
     }
 
@@ -200,6 +206,7 @@ void FixNumDiff::calculate_forces(int vflag)
     if (!allflag) continue;
 
     for (int idim = 0; idim < dimension; idim++) {
+      position = x[ilocal][idim];
       displace_atom(ilocal,idim,1);
       energy = update_energy(vflag);
       if (ilocal >= 0 && ilocal < nlocal)
@@ -212,22 +219,14 @@ void FixNumDiff::calculate_forces(int vflag)
         numdiff_forces[ilocal][idim] *= denominator;
       }
 
-      // NOTE: will this introduce round-off in subsequent per-atom forces?
-      // maybe better to restore original coord here?
-      // in which case, replace displace_atom with something like
-      // reset_atom_coord(ilocal,idim,newcoord)
-      // in all 3 invocations in this method?
-      // then don't need to restore original coords at end, just forces
-
-      displace_atom(ilocal,idim,1);
+      reset_atom_position(ilocal, idim, position);
     }
   }
 
-  // restore original coords and forces for owned and ghost atoms
+  // restore original forces for owned and ghost atoms
 
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) {
-      x[i][j] = temp_x[i][j];
       f[i][j] = temp_f[i][j];
     }
 }
@@ -252,6 +251,25 @@ void FixNumDiff::displace_atom(int ilocal, int idim, int magnitude)
 }
 
 /* ----------------------------------------------------------------------
+   reset coord of all owned and ghost copies of ilocal (moved atom)
+---------------------------------------------------------------------- */
+
+void FixNumDiff::reset_atom_position(int ilocal, int idim, double position)
+{
+  if (ilocal < 0) return;
+
+  double **x = atom->x;
+  int *sametag = atom->sametag;
+  int j = ilocal;
+  x[ilocal][idim] = position;
+
+  while (sametag[j] >= 0) {
+    j = sametag[j];
+    x[j][idim] = position;
+  }
+}
+
+/* ----------------------------------------------------------------------
    evaluate potential energy and forces
    same logic as in Verlet
 ------------------------------------------------------------------------- */
@@ -261,9 +279,7 @@ double FixNumDiff::update_energy(int vflag)
   force_clear(atom->f);
 
   int eflag = 1;
-  int vvflag = 0;  // NOTE:
-                   // I think we just want to disable virial comp here ?
-                   // else we will be changing what the pair style stores ?
+  int vvflag = 0;
 
   if (pair_compute_flag) force->pair->compute(eflag,vvflag);
 
@@ -298,6 +314,6 @@ void FixNumDiff::force_clear(double **forces)
 double FixNumDiff::memory_usage()
 {
   bigint bytes = 0.0;
-  bytes += 3 * maxatom*3 * sizeof(double);
+  bytes += 2 * maxatom*3 * sizeof(double);
   return bytes;
 }

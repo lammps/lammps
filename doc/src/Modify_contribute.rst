@@ -77,15 +77,16 @@ one or more new class files which are invoked as a new style within a
 LAMMPS input script.  If designed correctly, these additions typically
 do not require changes to the main core of LAMMPS; they are simply
 add-on files.  If you think your new feature requires non-trivial
-changes in core LAMMPS files, you'll need to `communicate with the developers <http://lammps.sandia.gov/authors.html>`_, since we may or may
-not want to make those changes.  An example of a trivial change is
-making a parent-class method "virtual" when you derive a new child
-class from it.
+changes in core LAMMPS files, you should `communicate with the
+developers <http://lammps.sandia.gov/authors.html>`_, since we may or
+may not want to include those changes for some reason.  An example of a
+trivial change is making a parent-class method "virtual" when you derive
+a new child class from it.
 
 Here is a checklist of steps you need to follow to submit a single file
 or user package for our consideration.  Following these steps will save
-both you and us time. See existing files in packages in the src dir for
-examples. If you are uncertain, please ask.
+both you and us time. Please have a look at the existing files in
+packages in the src directory for examples. If you are uncertain, please ask.
 
 * All source files you provide must compile with the most current
   version of LAMMPS with multiple configurations. In particular you
@@ -146,41 +147,39 @@ examples. If you are uncertain, please ask.
   would be nice for developers as well as users who try to read your
   code.
 
-* You **must** also create a **documentation** file for each new command or
-  style you are adding to LAMMPS. For simplicity and convenience, the
+* You **must** also create a **documentation** file for each new command
+  or style you are adding to LAMMPS. For simplicity and convenience, the
   documentation of groups of closely related commands or styles may be
   combined into a single file.  This will be one file for a single-file
   feature.  For a package, it might be several files.  These are text
-  files with a .rst extension using the
-  `reStructuredText <rst_>`_ markup language, that are then converted to HTML
-  and PDF using the `Sphinx <sphinx_>`_ documentation
-  generator tool.   Running Sphinx with the included configuration
-  requires Python 3.x.  Configuration
-  settings and custom extensions for this conversion are included in
-  the source distribution, and missing python packages will be
-  transparently downloaded into a virtual environment via pip. Thus,
-  if your local system is missing required packages, you need access
-  to the internet. The translation can be as simple as doing
-  "make html pdf" in the doc folder.
-  As appropriate, the text files can include inline mathematical
-  expression or figures (see doc/JPG for examples).  Additional PDF
-  files with further details (see doc/PDF for examples) may also be
-  included.  The doc page should also include literature citations as
-  appropriate; see the  bottom of doc/fix\_nh.rst for examples and
-  the earlier part of the same file for how to format the cite itself.
-  Citation labels must be unique across all .rst files.
-  The "Restrictions" section of the doc page should indicate if
-  your command is only available if LAMMPS is built with the
-  appropriate USER-MISC or USER-FOO package.
-  See other user package doc files for examples of how to do this.
-  Please run at least "make html" and carefully inspect and proofread
-  the resulting HTML format  doc page before submitting your code.
-  Upon submission of a pull request, checks for error free completion
-  of the HTML and PDF build will be performed and also a spell check,
-  a check for correct anchors and labels, and a check for completeness
-  of references all styles in their corresponding tables and lists is
-  run.  In case the spell check reports false positives they can be
-  added to the file doc/utils/sphinx-config/false_positives.txt
+  files with a .rst extension using the `reStructuredText <rst_>`_
+  markup language, that are then converted to HTML and PDF using the
+  `Sphinx <sphinx_>`_ documentation generator tool.  Running Sphinx with
+  the included configuration requires Python 3.x.  Configuration
+  settings and custom extensions for this conversion are included in the
+  source distribution, and missing python packages will be transparently
+  downloaded into a virtual environment via pip. Thus, if your local
+  system is missing required packages, you need access to the
+  internet. The translation can be as simple as doing "make html pdf" in
+  the doc folder.  As appropriate, the text files can include inline
+  mathematical expression or figures (see doc/JPG for examples).
+  Additional PDF files with further details (see doc/PDF for examples)
+  may also be included.  The doc page should also include literature
+  citations as appropriate; see the bottom of doc/fix\_nh.rst for
+  examples and the earlier part of the same file for how to format the
+  cite itself.  Citation labels must be unique across all .rst files.
+  The "Restrictions" section of the doc page should indicate if your
+  command is only available if LAMMPS is built with the appropriate
+  USER-MISC or USER-FOO package.  See other user package doc files for
+  examples of how to do this.  Please run at least "make html" and "make
+  spelling" and carefully inspect and proofread the resulting HTML
+  format doc page before submitting your code.  Upon submission of a
+  pull request, checks for error free completion of the HTML and PDF
+  build will be performed and also a spell check, a check for correct
+  anchors and labels, and a check for completeness of references all
+  styles in their corresponding tables and lists is run.  In case the
+  spell check reports false positives they can be added to the file
+  doc/utils/sphinx-config/false_positives.txt
 
 * For a new package (or even a single command) you should include one or
   more example scripts demonstrating its use.  These should run in no

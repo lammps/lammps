@@ -1,18 +1,20 @@
-.. index:: improper\_style distance
+.. index:: improper_style distance
 
-improper\_style distance command
-================================
+improper_style distance command
+===============================
 
 Syntax
 """"""
 
-improper\_style distance
+.. code-block:: LAMMPS
+
+   improper_style distance
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style distance
    improper_coeff 1 80.0 100.0
@@ -27,7 +29,7 @@ The *distance* improper style uses the potential
    E = K_2 d^2 + K_4 d^4
 
 
-where d is the distance between the central atom and the plane formed
+where :math:`d` is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
 (listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the I-atom is assumed to be the

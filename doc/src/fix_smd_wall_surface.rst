@@ -1,13 +1,13 @@
-.. index:: fix smd/wall\_surface
+.. index:: fix smd/wall_surface
 
-fix smd/wall\_surface command
-=============================
+fix smd/wall_surface command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/wall_surface arg type mol-ID
 
@@ -26,7 +26,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix stl_surf all smd/wall_surface tool.stl 2 65535
 

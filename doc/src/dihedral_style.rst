@@ -1,13 +1,13 @@
-.. index:: dihedral\_style
+.. index:: dihedral_style
 
-dihedral\_style command
-=======================
+dihedral_style command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style style
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style harmonic
    dihedral_style multi/harmonic

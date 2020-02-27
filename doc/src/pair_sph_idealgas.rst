@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/idealgas
+.. index:: pair_style sph/idealgas
 
-pair\_style sph/idealgas command
-================================
+pair_style sph/idealgas command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/idealgas
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/idealgas
-   pair_coeff \* \* 1.0 2.4
+   pair_coeff * * 1.0 2.4
 
 Description
 """""""""""
@@ -26,13 +26,15 @@ Description
 The sph/idealgas style computes pressure forces between particles
 according to the ideal gas equation of state:
 
-.. image:: Eqs/pair_sph_ideal.jpg
-   :align: center
+.. math::
 
-where gamma = 1.4 is the heat capacity ratio, rho is the local
-density, and e is the internal energy per unit mass.  This pair style
-also computes Monaghan's artificial viscosity to prevent particles
-from interpenetrating :ref:`(Monaghan) <ideal-Monoghan>`.
+   p = (\gamma - 1) \rho e
+
+
+where :math:`\gamma = 1.4` is the heat capacity ratio, :math:`\rho` is
+the local density, and e is the internal energy per unit mass.  This
+pair style also computes Monaghan's artificial viscosity to prevent
+particles from interpenetrating :ref:`(Monaghan) <ideal-Monoghan>`.
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
@@ -41,7 +43,7 @@ The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
-* nu artificial viscosity (no units)
+* :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
 
 

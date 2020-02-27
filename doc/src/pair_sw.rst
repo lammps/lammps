@@ -1,37 +1,36 @@
-.. index:: pair\_style sw
+.. index:: pair_style sw
 
-pair\_style sw command
-======================
+pair_style sw command
+=====================
 
-pair\_style sw/gpu command
-==========================
-
-pair\_style sw/intel command
-============================
-
-pair\_style sw/kk command
+pair_style sw/gpu command
 =========================
 
-pair\_style sw/omp command
-==========================
+pair_style sw/intel command
+===========================
+
+pair_style sw/kk command
+========================
+
+pair_style sw/omp command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sw
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sw
-   pair_coeff \* \* si.sw Si
-   pair_coeff \* \* GaN.sw Ga N Ga
+   pair_coeff * * si.sw Si
+   pair_coeff * * GaN.sw Ga N Ga
 
 Description
 """""""""""
@@ -74,10 +73,9 @@ Si and C.  If your LAMMPS simulation has 4 atoms types and you want
 the 1st 3 to be Si, and the 4th to be C, you would use the following
 pair\_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* SiC.sw Si Si Si C
+   pair_coeff * * SiC.sw Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si

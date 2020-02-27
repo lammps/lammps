@@ -49,12 +49,12 @@ by the equations
 
 .. math::
 
-   \begin{equation} \frac {dq}{dt} = \frac{p}{m}, \end{equation}
+    \frac {dq}{dt} = \frac{p}{m},
 
 
 .. math::
 
-   \begin{equation} \frac {dp}{dt} = -\gamma p + W + F, \end{equation}
+   \frac {dp}{dt} = -\gamma p + W + F,
 
 where :math:`F` is the physical force, :math:`\gamma` is the friction coefficient, and :math:`W` is a
 Gaussian random force.

@@ -36,7 +36,6 @@ Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Com
 every LAMMPS command.
 
 .. _lws: http://lammps.sandia.gov
-.. _lc: Commands_all.html
 
 .. toctree::
    :maxdepth: 2

@@ -1,31 +1,30 @@
-.. index:: pair\_style tersoff
+.. index:: pair_style tersoff
 
-pair\_style tersoff command
-===========================
+pair_style tersoff command
+==========================
 
-pair\_style tersoff/table command
-=================================
+pair_style tersoff/table command
+================================
 
-pair\_style tersoff/gpu command
-===============================
-
-pair\_style tersoff/intel command
-=================================
-
-pair\_style tersoff/kk command
+pair_style tersoff/gpu command
 ==============================
 
-pair\_style tersoff/omp command
-===============================
+pair_style tersoff/intel command
+================================
 
-pair\_style tersoff/table/omp command
-=====================================
+pair_style tersoff/kk command
+=============================
+
+pair_style tersoff/omp command
+==============================
+
+pair_style tersoff/table/omp command
+====================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -35,14 +34,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff
-   pair_coeff \* \* Si.tersoff Si
-   pair_coeff \* \* SiC.tersoff Si C Si
+   pair_coeff * * Si.tersoff Si
+   pair_coeff * * SiC.tersoff Si C Si
 
    pair_style tersoff/table
-   pair_coeff \* \* SiCGe.tersoff Si(D)
+   pair_coeff * * SiCGe.tersoff Si(D)
 
 Description
 """""""""""
@@ -97,9 +96,9 @@ and C.  If your LAMMPS simulation has 4 atoms types and you want the
 pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.tersoff Si Si Si C
+   pair_coeff * * SiC.tersoff Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si

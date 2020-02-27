@@ -14,10 +14,13 @@ package.  In general there is no need to include a package if you
 never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
-"Unknown", it is often because the command is contained in a package,
-and your build did not include that package.  Running LAMMPS with the
-:doc:`-h command-line switch <Run_options>` will print all the included
-packages and commands for that executable.
+"unknown", it is often because the command is contained in a package,
+and your build did not include that package.  If the command or style
+*is* available in a package included in the LAMMPS distribution,
+the error message will indicate which package would be needed.
+Running LAMMPS with the :doc:`-h command-line switch <Run_options>`
+will print *all* optional commands and packages that were enabled
+when building that executable.
 
 For the majority of packages, if you follow the single step below to
 include it, you can then build LAMMPS exactly the same as you would
@@ -42,17 +45,17 @@ packages:
 The mechanism for including packages is simple but different for CMake
 versus make.
 
-**CMake variables**\ :
+**CMake build**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D PKG_NAME=value          # yes or no (default)
 
 Examples:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D PKG_MANYBODY=yes
    -D PKG_USER-INTEL=yes
@@ -74,7 +77,7 @@ once with CMake.
 **Traditional make**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps/src
    make ps                    # check which packages are currently installed
@@ -85,7 +88,7 @@ once with CMake.
 Examples:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make no-rigid
    make yes-user-intel
@@ -119,7 +122,7 @@ are already included.  Likewise, if a package is excluded, other files
 dependent on that package are also excluded.
 
 When you download a LAMMPS tarball or download LAMMPS source files
-from the Git or SVN repositories, no packages are pre-installed in the
+from the git repository, no packages are pre-installed in the
 src directory.
 
 .. note::
@@ -136,9 +139,10 @@ src directory.
 **CMake shortcuts for installing many packages**\ :
 
 Instead of specifying all the CMake options via the command-line,
-CMake allows initializing the variable cache using script files. These
-are regular CMake files which can manipulate and set variables, and
-can also contain control flow constructs.
+CMake allows initializing its settings cache using script files.
+These are regular CMake files which can manipulate and set CMake
+variables (which represent selected options), and can also contain
+control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
 "presets", similar to the options that exist for the Make based
@@ -146,25 +150,19 @@ system. Using these files you can enable/disable portions of the
 available packages in LAMMPS. If you need a custom preset you can take
 one of them as a starting point and customize it to your needs.
 
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/all\_on.cmake  [OPTIONS] ../cmake | enable all packages                                       |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/all\_off.cmake [OPTIONS] ../cmake | disable all packages                                      |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  | enable just a few core packages                           |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  | enable most common packages                               |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  | disable packages that do require extra libraries or tools |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  | change settings to use the Clang compilers by default     |
-+-------------------------------------------------------------+-----------------------------------------------------------+
-| cmake -C ../cmake/presets/mingw.cmake [OPTIONS] ../cmake    | enable all packages compatible with MinGW compilers       |
-+-------------------------------------------------------------+-----------------------------------------------------------+
+.. code-block:: bash
+
+    cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
+    cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
+    cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  # enable most common packages
+    cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
+    cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/mingw.cmake   [OPTIONS] ../cmake  # enable all packages compatible with MinGW compilers
 
 .. note::
 
-   Running cmake this way manipulates the variable cache in your
+   Running cmake this way manipulates the CMake settings cache in your
    current build directory. You can combine multiple presets and options
    in a single cmake run, or change settings incrementally by running
    cmake with new flags.
@@ -172,7 +170,7 @@ one of them as a starting point and customize it to your needs.
 **Example:**
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    # build LAMMPS with most commonly used packages, but then remove
    # those requiring additional library or tools, but still enable
@@ -200,37 +198,30 @@ Just type "make" in lammps/src to see a one-line summary.
 
 These commands install/un-install sets of packages:
 
-+-----------------------------------+-----------------------------------------------------+
-| make yes-all                      | install all packages                                |
-+-----------------------------------+-----------------------------------------------------+
-| make no-all                       | un-install all packages                             |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-standard or make yes-std | install standard packages                           |
-+-----------------------------------+-----------------------------------------------------+
-| make no-standard or make no-std   | un-install standard packages                        |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-user                     | install user packages                               |
-+-----------------------------------+-----------------------------------------------------+
-| make no-user                      | un-install user packages                            |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-lib                      | install packages that require extra libraries       |
-+-----------------------------------+-----------------------------------------------------+
-| make no-lib                       | un-install packages that require extra libraries    |
-+-----------------------------------+-----------------------------------------------------+
-| make yes-ext                      | install packages that require external libraries    |
-+-----------------------------------+-----------------------------------------------------+
-| make no-ext                       | un-install packages that require external libraries |
-+-----------------------------------+-----------------------------------------------------+
+.. code-block:: bash
+
+    make yes-all                        # install all packages
+    make no-all                         # uninstall all packages
+    make yes-standard or make yes-std   # install standard packages
+    make no-standard or make no-std     # uninstall standard packages
+    make yes-user                       # install user packages
+    make no-user                        # uninstall user packages
+    make yes-lib                        # install packages that require extra libraries
+    make no-lib                         # uninstall packages that require extra libraries
+    make yes-ext                        # install packages that require external libraries
+    make no-ext                         # uninstall packages that require external libraries
 
 which install/un-install various sets of packages.  Typing "make
 package" will list all the these commands.
 
 .. note::
 
-   Installing or un-installing a package works by simply copying
-   files back and forth between the main src directory and
-   sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
-   so that the files are included or excluded when LAMMPS is built.
+   Installing or un-installing a package for the make based build process
+   works by simply copying files back and forth between the main source
+   directory src and the sub-directories with the package name (e.g.
+   src/KSPACE, src/USER-ATC), so that the files are included or excluded
+   when LAMMPS is built.  Only source files in the src folder will be
+   compiled. 
 
 The following make commands help manage files that exist in both the
 src directory and in package sub-directories.  You do not normally
@@ -257,4 +248,4 @@ Type "make package-overwrite" to overwrite files in the package
 sub-directories with src files.
 
 Type "make package-diff" to list all differences between pairs of
-files in both the src dir and a package dir.
+files in both the source directory and the package directory.

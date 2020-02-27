@@ -1,31 +1,31 @@
-.. index:: pair\_style morse
+.. index:: pair_style morse
 
-pair\_style morse command
-=========================
+pair_style morse command
+========================
 
-pair\_style morse/gpu command
-=============================
-
-pair\_style morse/omp command
-=============================
-
-pair\_style morse/opt command
-=============================
-
-pair\_style morse/smooth/linear command
-=======================================
-
-pair\_style morse/smooth/linear/omp command
-===========================================
-
-pair\_style morse/kk command
+pair_style morse/gpu command
 ============================
+
+pair_style morse/omp command
+============================
+
+pair_style morse/opt command
+============================
+
+pair_style morse/smooth/linear command
+======================================
+
+pair_style morse/smooth/linear/omp command
+==========================================
+
+pair_style morse/kk command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -44,11 +44,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style morse 2.5
    pair_style morse/smooth/linear 2.5
-   pair_coeff \* \* 100.0 2.0 1.5
+   pair_coeff * * 100.0 2.0 1.5
    pair_coeff 1 1 100.0 2.0 1.5 3.0
 
 Description
@@ -56,8 +56,11 @@ Description
 
 Style *morse* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
+       \qquad r < r_c
+
 
 Rc is the cutoff.
 
@@ -83,8 +86,11 @@ The *morse/smooth/linear* variant is similar to the lj/smooth/linear
 variant in that it adds to the potential a shift and a linear term
 so that both, potential energy and force, go to zero at the cut-off:
 
-.. image:: Eqs/pair_morse_smooth_linear.jpg
-   :align: center
+.. math::
+
+   \phi\left(r\right) & =  D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c \\
+   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c 
+
 
 The syntax of the pair\_style and pair\_coeff commands are the same for
 the *morse* and *morse/smooth/linear* styles.
@@ -93,10 +99,12 @@ the *morse* and *morse/smooth/linear* styles.
 ----------
 
 
-A version of the *morse* style with a soft core, *morse/soft*\ , suitable for use in
-free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is only
-available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+A version of the *morse* style with a soft core, *morse/soft*\ ,
+suitable for use in free energy calculations, is part of the USER-FEP
+package and is documented with the :doc:`pair_style */soft
+<pair_fep_soft>` styles. The version with soft core is only available if
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 
 ----------

@@ -9,7 +9,7 @@ nodal points, compute a FE solution, and return interpolated forces on
 MD atoms.
 
 LAMMPS can be coupled to other codes in at least 4 ways.  Each has
-advantages and disadvantages, which you'll have to think about in the
+advantages and disadvantages, which you will have to think about in the
 context of your application.
 
 

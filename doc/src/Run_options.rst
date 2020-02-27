@@ -26,10 +26,10 @@ letter abbreviation can be used:
 For example, the lmp\_mpi executable might be launched as follows:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
-   mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
+   $ mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
+   $ mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
 
 
 ----------
@@ -438,7 +438,7 @@ is the same operation as if the following 2-line input script were
 run:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_restart restartfile [remap]
    write_data datafile keyword value ...
@@ -483,7 +483,7 @@ is the same operation as if the following 2-line input script were
 run:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_restart restartfile [remap]
    write_dump group-ID dumpstyle dumpfile arg1 arg2 ...
@@ -506,8 +506,7 @@ dump file to still be produced.
 
 The syntax following restartfile (or remap), namely
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group-ID dumpstyle dumpfile arg1 arg2 ...
 

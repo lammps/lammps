@@ -92,7 +92,7 @@ These tools were written by Keir Novik while he was at Queen Mary
 University of London.  Keir is no longer there and cannot support
 these tools which are out-of-date with respect to the current LAMMPS
 version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you'll need to experiment with them and make
+these tools at Sandia, you will need to experiment with them and make
 necessary modifications yourself.
 
 

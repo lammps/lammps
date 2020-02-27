@@ -80,7 +80,7 @@ A detailed description of this method can be found in (:ref:`Moustafa <hma-Moust
 
 .. math::
 
-   \begin{equation}\left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>\end{equation}
+   \left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>
 
 where :math:`N` is the number of atoms in the system, :math:`k_B` is Boltzmann's
 constant, :math:`T` is the temperature, :math:`d` is the
@@ -93,7 +93,7 @@ The pressure is computed by the formula:
 
 .. math::
 
-   \begin{equation}\left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>\end{equation}
+   \left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>
 
 where :math:`\rho` is the number density of the system, :math:`\Delta \hat P` is the
 difference between the harmonic and lattice pressure, :math:`P_{vir}` is
@@ -108,9 +108,9 @@ pressure and harmonic pressure.
 
 .. math::
 
-   \begin{equation}\left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
+   \left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
    U_{HMA}^2 \right> - \left<U_{HMA}\right>^2 \right) + \frac{1}{4 T}
-   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>\end{equation}
+   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
 
 where :math:`\Phi` is the Hessian matrix. The compute hma command
 computes the full expression for :math:`C_V` except for the

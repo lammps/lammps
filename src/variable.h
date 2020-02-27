@@ -14,6 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
+#include <stdlib.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -86,35 +87,28 @@ class Variable : protected Pointers {
     int nvector;           // length of array for vector-style variable
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values needed for gmask,rmask,grmask
+    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
     int nextra;            // # of additional args beyond first 2
     Tree *first,*second;   // ptrs further down tree for first 2 args
     Tree **extra;          // ptrs further down tree for nextra args
-
-    Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
-      selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL) {}
   };
 
   int compute_python(int);
   void remove(int);
   void grow();
   void copy(int, char **, char **);
-  double evaluate(char *, Tree **, int);
+  double evaluate(char *, Tree **);
   double collapse_tree(Tree *);
   double eval_tree(Tree *, int);
   int size_tree_vector(Tree *);
   int compare_tree_vector(int, int);
   void free_tree(Tree *);
-  int find_matching_paren(char *, int, char *&, int);
-  int math_function(char *, char *, Tree **, Tree **,
-                    int &, double *, int &, int);
-  int group_function(char *, char *, Tree **, Tree **,
-                     int &, double *, int &, int);
-  int region_function(char *, int);
+  int find_matching_paren(char *, int, char *&);
+  int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+  int region_function(char *);
   int special_function(char *, char *, Tree **, Tree **,
-                       int &, double *, int &, int);
+                       int &, double *, int &);
   void peratom2global(int, char *, double *, int, tagint,
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
@@ -123,7 +117,6 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int, int global=1);
   void print_tree(Tree *, int);
 };
 
@@ -191,34 +184,136 @@ E: LAMMPS is not built with Python embedded
 This is done by including the PYTHON package before LAMMPS is built.
 This is required to use python-style variables.
 
-E: Variable name '%s' must have only alphanumeric characters or underscore
+E: Variable name must be alphanumeric or underscore characters
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Invalid variable '%s' in next command
+E: Invalid variable in next command
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: All variables in next command must have same style
+E: All variables in next command must be same style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
 
-E: Incorrect conversion in format string
-
-A format style variable was not using either a %f, a %g, or a %e conversion.
-
 E: Next command must list all universe and uloop variables
 
 This is to insure they stay in sync.
 
-E: Python variable '%s' does not match Python function
+E: Variable has circular dependency
 
-UNDOCUMENTED
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by variable "a".  Circular dependencies with
+longer chains of dependence are also not allowed.
+
+E: Python variable does not match Python function
+
+This matching is defined by the python-style variable and the python
+command.
+
+E: Python variable has no function
+
+No python command was used to define the function associated with the
+python-style variable.
+
+E: Invalid syntax in variable formula
+
+Self-explanatory.
+
+E: Variable evaluation before simulation box is defined
+
+Cannot evaluate a compute or fix or atom-based value in a variable
+before the simulation has been setup.
+
+E: Invalid compute ID in variable formula
+
+The compute is not recognized.
+
+E: Compute used in variable between runs is not current
+
+Computes cannot be invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run in
+order for their value(s) to be accessed.  See the doc page for the
+variable command for more info.
+
+E: Variable formula compute vector is accessed out-of-range
+
+Self-explanatory.
+
+E: Variable formula compute array is accessed out-of-range
+
+Self-explanatory.
+
+E: Per-atom compute in equal-style variable formula
+
+Equal-style variables cannot use per-atom quantities.
+
+E: Mismatched compute in variable formula
+
+A compute is referenced incorrectly or a compute that produces per-atom
+values is used in an equal-style variable formula.
+
+E: Invalid fix ID in variable formula
+
+The fix is not recognized.
+
+E: Fix in variable not computed at compatible time
+
+Fixes generate their values on specific timesteps.  The variable is
+requesting the values on a non-allowed timestep.
+
+E: Variable formula fix vector is accessed out-of-range
+
+Self-explanatory.
+
+E: Variable formula fix array is accessed out-of-range
+
+Self-explanatory.
+
+E: Per-atom fix in equal-style variable formula
+
+Equal-style variables cannot use per-atom quantities.
+
+E: Mismatched fix in variable formula
+
+A fix is referenced incorrectly or a fix that produces per-atom
+values is used in an equal-style variable formula.
+
+E: Invalid variable name in variable formula
+
+Variable name is not recognized.
+
+E: Invalid variable evaluation in variable formula
+
+A variable used in a formula could not be evaluated.
+
+E: Atom-style variable in equal-style variable formula
+
+Atom-style variables generate one value per atom which is not allowed
+in an equal-style variable.
+
+E: Atomfile-style variable in equal-style variable formula
+
+Self-explanatory.
+
+E: Mismatched variable in variable formula
+
+A variable is referenced incorrectly or an atom-style variable that
+produces per-atom values is used in an equal-style variable
+formula.
+
+E: Invalid math/group/special function in variable formula
+
+Self-explanatory.
+
+E: Invalid thermo keyword in variable formula
+
+The keyword is not recognized.
 
 E: Divide by 0 in variable formula
 
@@ -269,15 +364,75 @@ E: Empty brackets in variable
 There is no variable syntax that uses empty brackets.  Check
 the variable doc page.
 
-E: Invalid variable name in variable formula
-
-Variable name is not recognized.
-
-E: Invalid variable evaluation in variable formula
-
-A variable used in a formula could not be evaluated.
-
 E: Index between variable brackets must be positive
+
+Self-explanatory.
+
+E: Cannot use ramp in variable formula between runs
+
+This is because the ramp() function is time dependent.
+
+E: Cannot use vdisplace in variable formula between runs
+
+This is a function of elapsed time.
+
+E: Cannot use swiggle in variable formula between runs
+
+This is a function of elapsed time.
+
+E: Cannot use cwiggle in variable formula between runs
+
+This is a function of elapsed time.
+
+E: Group ID in variable formula does not exist
+
+Self-explanatory.
+
+E: Invalid group function in variable formula
+
+Group function is not recognized.
+
+E: Region ID in variable formula does not exist
+
+Self-explanatory.
+
+E: Invalid special function in variable formula
+
+Self-explanatory.
+
+E: Gmask function in equal-style variable formula
+
+Gmask is per-atom operation.
+
+E: Rmask function in equal-style variable formula
+
+Rmask is per-atom operation.
+
+E: Grmask function in equal-style variable formula
+
+Grmask is per-atom operation.
+
+E: Variable ID in variable formula does not exist
+
+Self-explanatory.
+
+E: Atomfile variable in equal-style variable formula
+
+Self-explanatory.
+
+E: Invalid variable style in special function next
+
+Only file-style or atomfile-style variables can be used with next().
+
+E: Invalid is_active() function in variable formula
+
+Self-explanatory.
+
+E: Invalid is_available() function in variable formula
+
+Self-explanatory.
+
+E: Invalid is_defined() function in variable formula
 
 Self-explanatory.
 
@@ -323,188 +478,6 @@ E: Cannot use atomfile-style variable unless atom map exists
 Self-explanatory.  See the atom_modify command to create a map.
 
 E: Invalid atom ID in variable file
-
-Self-explanatory.
-
-U: Variable name must be alphanumeric or underscore characters
-
-Self-explanatory.
-
-U: Invalid variable in next command
-
-Self-explanatory.
-
-U: All variables in next command must be same style
-
-Self-explanatory.
-
-U: Variable has circular dependency
-
-A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by variable "a".  Circular dependencies with
-longer chains of dependence are also not allowed.
-
-U: Python variable does not match Python function
-
-This matching is defined by the python-style variable and the python
-command.
-
-U: Python variable has no function
-
-No python command was used to define the function associated with the
-python-style variable.
-
-U: Invalid syntax in variable formula
-
-Self-explanatory.
-
-U: Variable evaluation before simulation box is defined
-
-Cannot evaluate a compute or fix or atom-based value in a variable
-before the simulation has been setup.
-
-U: Invalid compute ID in variable formula
-
-The compute is not recognized.
-
-U: Compute used in variable between runs is not current
-
-Computes cannot be invoked by a variable in between runs.  Thus they
-must have been evaluated on the last timestep of the previous run in
-order for their value(s) to be accessed.  See the doc page for the
-variable command for more info.
-
-U: Variable formula compute vector is accessed out-of-range
-
-Self-explanatory.
-
-U: Variable formula compute array is accessed out-of-range
-
-Self-explanatory.
-
-U: Per-atom compute in equal-style variable formula
-
-Equal-style variables cannot use per-atom quantities.
-
-U: Mismatched compute in variable formula
-
-A compute is referenced incorrectly or a compute that produces per-atom
-values is used in an equal-style variable formula.
-
-U: Invalid fix ID in variable formula
-
-The fix is not recognized.
-
-U: Fix in variable not computed at compatible time
-
-Fixes generate their values on specific timesteps.  The variable is
-requesting the values on a non-allowed timestep.
-
-U: Variable formula fix vector is accessed out-of-range
-
-Self-explanatory.
-
-U: Variable formula fix array is accessed out-of-range
-
-Self-explanatory.
-
-U: Per-atom fix in equal-style variable formula
-
-Equal-style variables cannot use per-atom quantities.
-
-U: Mismatched fix in variable formula
-
-A fix is referenced incorrectly or a fix that produces per-atom
-values is used in an equal-style variable formula.
-
-U: Atom-style variable in equal-style variable formula
-
-Atom-style variables generate one value per atom which is not allowed
-in an equal-style variable.
-
-U: Atomfile-style variable in equal-style variable formula
-
-Self-explanatory.
-
-U: Mismatched variable in variable formula
-
-A variable is referenced incorrectly or an atom-style variable that
-produces per-atom values is used in an equal-style variable
-formula.
-
-U: Invalid math/group/special function in variable formula
-
-Self-explanatory.
-
-U: Invalid thermo keyword in variable formula
-
-The keyword is not recognized.
-
-U: Cannot use ramp in variable formula between runs
-
-This is because the ramp() function is time dependent.
-
-U: Cannot use vdisplace in variable formula between runs
-
-This is a function of elapsed time.
-
-U: Cannot use swiggle in variable formula between runs
-
-This is a function of elapsed time.
-
-U: Cannot use cwiggle in variable formula between runs
-
-This is a function of elapsed time.
-
-U: Group ID in variable formula does not exist
-
-Self-explanatory.
-
-U: Invalid group function in variable formula
-
-Group function is not recognized.
-
-U: Region ID in variable formula does not exist
-
-Self-explanatory.
-
-U: Invalid special function in variable formula
-
-Self-explanatory.
-
-U: Gmask function in equal-style variable formula
-
-Gmask is per-atom operation.
-
-U: Rmask function in equal-style variable formula
-
-Rmask is per-atom operation.
-
-U: Grmask function in equal-style variable formula
-
-Grmask is per-atom operation.
-
-U: Variable ID in variable formula does not exist
-
-Self-explanatory.
-
-U: Atomfile variable in equal-style variable formula
-
-Self-explanatory.
-
-U: Invalid variable style in special function next
-
-Only file-style or atomfile-style variables can be used with next().
-
-U: Invalid is_active() function in variable formula
-
-Self-explanatory.
-
-U: Invalid is_available() function in variable formula
-
-Self-explanatory.
-
-U: Invalid is_defined() function in variable formula
 
 Self-explanatory.
 

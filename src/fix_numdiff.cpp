@@ -176,11 +176,9 @@ void FixNumDiff::calculate_forces(int vflag)
 
   // store copy of current forces for owned and ghost atoms
 
-  double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  double position;
 
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) {
@@ -206,7 +204,6 @@ void FixNumDiff::calculate_forces(int vflag)
     if (!allflag) continue;
 
     for (int idim = 0; idim < dimension; idim++) {
-      position = x[ilocal][idim];
       displace_atom(ilocal,idim,1);
       energy = update_energy(vflag);
       if (ilocal >= 0 && ilocal < nlocal)
@@ -219,7 +216,7 @@ void FixNumDiff::calculate_forces(int vflag)
         numdiff_forces[ilocal][idim] *= denominator;
       }
 
-      reset_atom_position(ilocal, idim, position);
+      reset_atom_position(ilocal, idim);
     }
   }
 
@@ -242,10 +239,12 @@ void FixNumDiff::displace_atom(int ilocal, int idim, int magnitude)
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
+  if (magnitude == 1) position = x[ilocal][idim];
   x[ilocal][idim] += delta*magnitude;
 
   while (sametag[j] >= 0) {
     j = sametag[j];
+    if (magnitude == 1 && x[j][idim] != position) image = x[j][idim];
     x[j][idim] += delta*magnitude;
   }
 }
@@ -254,7 +253,7 @@ void FixNumDiff::displace_atom(int ilocal, int idim, int magnitude)
    reset coord of all owned and ghost copies of ilocal (moved atom)
 ---------------------------------------------------------------------- */
 
-void FixNumDiff::reset_atom_position(int ilocal, int idim, double position)
+void FixNumDiff::reset_atom_position(int ilocal, int idim)
 {
   if (ilocal < 0) return;
 
@@ -265,7 +264,8 @@ void FixNumDiff::reset_atom_position(int ilocal, int idim, double position)
 
   while (sametag[j] >= 0) {
     j = sametag[j];
-    x[j][idim] = position;
+    if (abs(x[j][idim]-position) < abs(x[j][idim]-image)) x[j][idim] = position;
+    else x[j][idim] = image;
   }
 }
 

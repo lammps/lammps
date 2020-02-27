@@ -49,11 +49,14 @@ private:
   double **numdiff_forces;          // finite diff forces
   double **temp_f;                  // original forces
 
+  double position;
+  double image;
+
   double update_energy(int vflag);
   void force_clear(double **forces);
   void create_groupmap();
   void displace_atom(int local_idx, int direction, int magnitude);
-  void reset_atom_position(int local_idx, int direction, double position);
+  void reset_atom_position(int local_idx, int direction);
   void calculate_forces(int vflag);
 };
 

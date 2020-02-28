@@ -1,0 +1,3 @@
+Python script generate_multiarray_cpp.py  generates the C++ code for the multidimensional arrays up to DIMMAX = 7
+Usage:
+ python generate_multiarray_cpp.py > multiarray_auto.h

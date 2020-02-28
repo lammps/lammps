@@ -170,13 +170,15 @@ function(DetectBuildSystemConflict lammps_src_dir)
     foreach(SRC_FILE ${ARGV})
         get_filename_component(FILENAME ${SRC_FILE} NAME)
         if(EXISTS ${lammps_src_dir}/${FILENAME})
+            #message(FATAL_ERROR ")
             message(FATAL_ERROR "\n########################################################################\n"
-                                  "Found package(s) installed by the make-based build system\n"
-                                  "\n"
-                                  "Please run\n"
-                                  "make -C ${lammps_src_dir} no-all purge\n"
-                                  "to uninstall\n"
-                                  "########################################################################")
+                    "Found package(s) installed by the make-based build system\n"
+                    "\n"
+                    "Please run\n"
+                    "make -C ${lammps_src_dir} no-all purge\n"
+                    "to uninstall\n"
+                    "Exist file ${lammps_src_dir}/${FILENAME}\n"
+                    "########################################################################")
         endif()
     endforeach()
   endif()

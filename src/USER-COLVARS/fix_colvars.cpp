@@ -502,7 +502,7 @@ int FixColvars::modify_param(int narg, char **arg)
     if (me == 0) {
       if (! proxy)
         error->one(FLERR,"Cannot use fix_modify before initialization");
-      proxy->add_config_file(arg[1]);
+      return proxy->add_config_file(arg[1]) == COLVARS_OK ? 0 : 2;
     }
     return 2;
   } else if (strcmp(arg[0],"config") == 0) {
@@ -510,8 +510,16 @@ int FixColvars::modify_param(int narg, char **arg)
     if (me == 0) {
       if (! proxy)
         error->one(FLERR,"Cannot use fix_modify before initialization");
-      std::string conf(arg[1]);
-      proxy->add_config_string(conf);
+      std::string const conf(arg[1]);
+      return proxy->add_config_string(conf) == COLVARS_OK ? 0 : 2;
+    }
+    return 2;
+  } else if (strcmp(arg[0],"load") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (me == 0) {
+      if (! proxy)
+        error->one(FLERR,"Cannot use fix_modify before initialization");
+      return proxy->read_state_file(arg[1]) == COLVARS_OK ? 0 : 2;
     }
     return 2;
   }

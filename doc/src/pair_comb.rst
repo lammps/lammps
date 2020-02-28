@@ -45,8 +45,8 @@ Description
 Style *comb* computes the second-generation variable charge COMB
 (Charge-Optimized Many-Body) potential.  Style *comb3* computes the
 third-generation COMB potential.  These COMB potentials are described
-in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the total energy
-*E<sub>T</sub>* of a system of atoms is given by
+in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the
+total energy :math:`E_T` of a system of atoms is given by
 
 .. math::
 

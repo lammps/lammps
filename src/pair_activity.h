@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(quincke,PairQuincke)
+PairStyle(activity,PairActivity)
 
 #else
 
-#ifndef LMP_PAIR_QUINCKE_H
-#define LMP_PAIR_QUINCKE_H
+#ifndef LMP_PAIR_ACTIVITY_H
+#define LMP_PAIR_ACTIVITY_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairQuincke : public Pair {
+class PairActivity : public Pair {
  public:
-  PairQuincke(class LAMMPS *);
-  virtual ~PairQuincke();
+  PairActivity(class LAMMPS *);
+  virtual ~PairActivity();
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -43,17 +43,8 @@ class PairQuincke : public Pair {
 
  protected:
   double cut_global, nb_cut_global;
-  //double kappa;
-  //double **rad;
-  double **cut,**a1,**a2,**a3, **offset;
-  double **nb_cut, **nb_cutsq;
-  int    *nbvec;
-  double nb_alpha, activity;
-  // density flag sets density-dependent activity terms, which are not
-  // implemented typically.
-  int density_flag;  
-  //char *id_coord;
-  //double *cvec;
+  double **cut,**offset;
+  double activity;
 
   void allocate();
 };

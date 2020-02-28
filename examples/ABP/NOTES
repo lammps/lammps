@@ -1,0 +1,1 @@
+../../lmp -in in.quincke -var fp 85 -var rho 0.60 -var seed 12345 -var dt 0.00001

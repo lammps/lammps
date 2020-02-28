@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
+#include <cstring>
 #include <mpi.h>
 #include <string.h>
 #include "atom.h"

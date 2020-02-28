@@ -47,17 +47,14 @@ private:
   class Compute *pe;
 
   double **numdiff_forces;          // finite diff forces
+  double **temp_x;                  // original coords
   double **temp_f;                  // original forces
 
-  double position;
-  double image;
-
-  double update_energy(int vflag);
-  void force_clear(double **forces);
-  void create_groupmap();
-  void displace_atom(int local_idx, int direction, int magnitude);
-  void reset_atom_position(int local_idx, int direction);
-  void calculate_forces(int vflag);
+  void calculate_forces();
+  void displace_atoms(int, int, int);
+  void restore_atoms(int, int);
+  double update_energy();
+  void force_clear(double **);
 };
 
 }

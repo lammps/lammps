@@ -17,7 +17,7 @@
 
 #include "fix_numdiff.h"
 #include <mpi.h>
-#include <memory.h>
+#include <string.h>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -31,6 +31,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -51,7 +52,8 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = force->inumeric(FLERR,arg[3]);
   delta = force->numeric(FLERR,arg[4]);
-  if (nevery <= 0 || delta <= 0.0) error->all(FLERR,"Illegal fix numdiff command");
+  if (nevery <= 0 || delta <= 0.0) 
+    error->all(FLERR,"Illegal fix numdiff command");
 
   int n = strlen(id) + 6;
   id_pe = new char[n];
@@ -67,9 +69,9 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
   numdiff_forces = NULL;
+  temp_x = NULL;
   temp_f = NULL;
   array_atom = NULL;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,6 +79,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 FixNumDiff::~FixNumDiff()
 {
   memory->destroy(numdiff_forces);
+  memory->destroy(temp_x);
   memory->destroy(temp_f);
 
   modify->delete_compute(id_pe);
@@ -102,7 +105,8 @@ void FixNumDiff::init()
 {
   // require consecutive atom IDs
 
-  if (!atom->tag_enable || !atom->tag_consecutive()) error->all(FLERR,"Fix numdiff requires consecutive atom IDs");
+  if (!atom->tag_enable || !atom->tag_consecutive()) 
+    error->all(FLERR,"Fix numdiff requires consecutive atom IDs");
 
   // check for PE compute
 
@@ -119,15 +123,6 @@ void FixNumDiff::init()
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
-
-  if (atom->nmax > maxatom) {
-    memory->destroy(numdiff_forces);
-    memory->destroy(temp_f);
-    maxatom = atom->nmax;
-    memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
-    memory->create(temp_f,maxatom,3,"numdiff:temp_f");
-    array_atom = numdiff_forces;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,7 +131,7 @@ void FixNumDiff::post_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  calculate_forces(vflag);
+  calculate_forces();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,37 +149,46 @@ void FixNumDiff::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   create dynamical matrix
+   compute finite difference forces
 ------------------------------------------------------------------------- */
 
-void FixNumDiff::calculate_forces(int vflag)
+void FixNumDiff::calculate_forces()
 {
   int i,j,ilocal;
   double energy;
 
-  if (atom->nmax > maxatom) {
+  // grow arrays if necessary
+
+  if (atom->nlocal + atom->nghost > maxatom) {
     memory->destroy(numdiff_forces);
+    memory->destroy(temp_x);
     memory->destroy(temp_f);
     maxatom = atom->nmax;
     memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
+    memory->create(temp_x,maxatom,3,"numdiff:temp_x");
     memory->create(temp_f,maxatom,3,"numdiff:temp_f");
     array_atom = numdiff_forces;
   }
 
   // store copy of current forces for owned and ghost atoms
 
+  double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) {
+      temp_x[i][j] = x[i][j];
       temp_f[i][j] = f[i][j];
     }
 
   // initialize numerical forces to zero
 
   force_clear(numdiff_forces);
+
+  // loop over all atoms in system
+  // compute a finite difference force in each dimension
 
   int flag,allflag;
   double denominator = 0.5 / delta;
@@ -201,19 +205,19 @@ void FixNumDiff::calculate_forces(int vflag)
     if (!allflag) continue;
 
     for (int idim = 0; idim < dimension; idim++) {
-      displace_atom(ilocal,idim,1);
-      energy = update_energy(vflag);
+      displace_atoms(ilocal,idim,1);
+      energy = update_energy();
       if (ilocal >= 0 && ilocal < nlocal)
         numdiff_forces[ilocal][idim] -= energy;
 
-      displace_atom(ilocal,idim,-2);
-      energy = update_energy(vflag);
+      displace_atoms(ilocal,idim,-2);
+      energy = update_energy();
       if (ilocal >= 0 && ilocal < nlocal) {
         numdiff_forces[ilocal][idim] += energy;
         numdiff_forces[ilocal][idim] *= denominator;
       }
 
-      reset_atom_position(ilocal, idim);
+      restore_atoms(ilocal,idim);
     }
   }
 
@@ -226,43 +230,40 @@ void FixNumDiff::calculate_forces(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   displace coord of all owned and ghost copies of ilocal
+   displace position of all owned and ghost copies of ilocal
 ---------------------------------------------------------------------- */
 
-void FixNumDiff::displace_atom(int ilocal, int idim, int magnitude)
+void FixNumDiff::displace_atoms(int ilocal, int idim, int magnitude)
 {
   if (ilocal < 0) return;
 
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
-  if (magnitude == 1) position = x[ilocal][idim];
   x[ilocal][idim] += delta*magnitude;
 
   while (sametag[j] >= 0) {
     j = sametag[j];
-    if (magnitude == 1 && x[j][idim] != position) image = x[j][idim];
     x[j][idim] += delta*magnitude;
   }
 }
 
 /* ----------------------------------------------------------------------
-   reset coord of all owned and ghost copies of ilocal (moved atom)
+   restore position of all owned and ghost copies of ilocal
 ---------------------------------------------------------------------- */
 
-void FixNumDiff::reset_atom_position(int ilocal, int idim)
+void FixNumDiff::restore_atoms(int ilocal, int idim)
 {
   if (ilocal < 0) return;
 
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
-  x[ilocal][idim] = position;
+  x[ilocal][idim] = temp_x[ilocal][idim];
 
   while (sametag[j] >= 0) {
     j = sametag[j];
-    if (abs(x[j][idim]-position) < abs(x[j][idim]-image)) x[j][idim] = position;
-    else x[j][idim] = image;
+    x[j][idim] = temp_x[j][idim];
   }
 }
 
@@ -271,23 +272,22 @@ void FixNumDiff::reset_atom_position(int ilocal, int idim)
    same logic as in Verlet
 ------------------------------------------------------------------------- */
 
-double FixNumDiff::update_energy(int vflag)
+double FixNumDiff::update_energy()
 {
   force_clear(atom->f);
 
   int eflag = 1;
-  int vvflag = 0;
 
-  if (pair_compute_flag) force->pair->compute(eflag,vvflag);
+  if (pair_compute_flag) force->pair->compute(eflag,0);
 
   if (atom->molecular) {
-    if (force->bond) force->bond->compute(eflag,vvflag);
-    if (force->angle) force->angle->compute(eflag,vvflag);
-    if (force->dihedral) force->dihedral->compute(eflag,vvflag);
-    if (force->improper) force->improper->compute(eflag,vvflag);
+    if (force->bond) force->bond->compute(eflag,0);
+    if (force->angle) force->angle->compute(eflag,0);
+    if (force->dihedral) force->dihedral->compute(eflag,0);
+    if (force->improper) force->improper->compute(eflag,0);
   }
 
-  if (kspace_compute_flag) force->kspace->compute(eflag,vvflag);
+  if (kspace_compute_flag) force->kspace->compute(eflag,0);
 
   double energy = pe->compute_scalar();
   return energy;
@@ -311,6 +311,6 @@ void FixNumDiff::force_clear(double **forces)
 double FixNumDiff::memory_usage()
 {
   bigint bytes = 0.0;
-  bytes += 2 * maxatom*3 * sizeof(double);
+  bytes += 3 * maxatom*3 * sizeof(double);
   return bytes;
 }

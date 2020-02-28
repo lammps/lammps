@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
-#include <cstring>
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"

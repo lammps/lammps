@@ -57,13 +57,13 @@ is often not simple to do.
 
 For style *lj*\ , all quantities are unitless.  Without loss of
 generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
-:math:`\epsilon`, and the Boltzmann constant :math:`k_B = 1`.
-The masses, distances,
-energies you specify are multiples of these fundamental values.  The
-formulas relating the reduced or unitless quantity (with an asterisk)
-to the same quantity with units is also given.  Thus you can use the
-mass & sigma & epsilon values for a specific material and convert the
-results from a unitless LJ simulation into physical quantities.
+:math:`\epsilon`, and the Boltzmann constant :math:`k_B = 1`.  The
+masses, distances, energies you specify are multiples of these
+fundamental values.  The formulas relating the reduced or unitless
+quantity (with an asterisk) to the same quantity with units is also
+given.  Thus you can use the mass & :math:`\sigma` & :math:`\epsilon`
+values for a specific material and convert the results from a unitless
+LJ simulation into physical quantities.
 
 * mass = mass or *m*
 * distance = :math:`\sigma`, where :math:`x^* = \frac{x}{\sigma}`

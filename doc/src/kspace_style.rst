@@ -229,7 +229,7 @@ parameters and how to choose them is described in
 
    All of the PPPM styles can be used with single-precision FFTs by
    using the compiler switch -DFFT\_SINGLE for the FFT\_INC setting in your
-   lo-level Makefile.  This setting also changes some of the PPPM
+   low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
    fields to particles) to be performed in single precision.  This option
    can speed-up long-range calculations, particularly in parallel or on
@@ -397,7 +397,7 @@ produce the same results, except for round-off and precision issues.
 More specifically, the *pppm/gpu* style performs charge assignment and
 force interpolation calculations on the GPU.  These processes are
 performed either in single or double precision, depending on whether
-the -DFFT\_SINGLE setting was specified in your lo-level Makefile, as
+the -DFFT\_SINGLE setting was specified in your low-level Makefile, as
 discussed above.  The FFTs themselves are still calculated on the CPU.
 If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other

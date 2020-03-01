@@ -118,18 +118,18 @@ term, see :ref:`(Qi) <Qi>`, and :math:`E^{tot}_0 = e0` is the
 initial total energy.
 
 The *eta* (:math:`\eta`) parameter is a unitless coupling constant
-between the shock system and the quantum thermal bath. A small *eta*
+between the shock system and the quantum thermal bath. A small :math:`\eta`
 value cannot adjust the quantum temperature fast enough during the
-temperature ramping period of shock compression while large *eta*
-leads to big temperature oscillation. A value of *eta* between 0.3 and
+temperature ramping period of shock compression while large :math:`\eta`
+leads to big temperature oscillation. A value of :math:`\eta` between 0.3 and
 1 is usually appropriate for simulating most systems under shock
-compression. We observe that different values of *eta* lead to almost
+compression. We observe that different values of :math:`\eta` lead to almost
 the same final thermodynamic state behind the shock, as expected.
 
 The quantum temperature is updated every *beta* (:math:`\beta`) steps
-with an integration time interval *beta* times longer than the
+with an integration time interval :math:`\beta` times longer than the
 simulation time step. In that case, :math:`E^{tot}` is taken as its
-average over the past *beta* steps. The temperature of the quantum
+average over the past :math:`\beta` steps. The temperature of the quantum
 thermal bath :math:`T^{qm}` changes dynamically according to
 the following equation where :math:`\Delta_t` is the MD time step and
 :math:`\gamma` is the friction constant which is equal to the inverse

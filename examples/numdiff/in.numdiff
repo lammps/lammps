@@ -21,8 +21,8 @@ variable errx atom fx-f_numdiff[1]
 variable erry atom fy-f_numdiff[2]
 variable errz atom fz-f_numdiff[3]
 
+write_dump all custom tmp.error f_numdiff[1] f_numdiff[2] f_numdiff[3]
+
 dump forces all custom 200 force_error.dump v_errx v_erry v_errz
 thermo 200
 run 2000
-
-

@@ -71,7 +71,13 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   numdiff_forces = NULL;
   temp_x = NULL;
   temp_f = NULL;
-  array_atom = NULL;
+
+  // perform initial allocation of atom-based arrays
+  // zero numdiff_forces since dump may access it on timestep 0
+  // zero numdiff_forces since a variable may access it before first run
+
+  reallocate();
+  force_clear(numdiff_forces);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,6 +133,26 @@ void FixNumDiff::init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixNumDiff::setup(int vflag)
+{
+  if (strstr(update->integrate_style,"verlet"))
+    post_force(vflag);
+  else {
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNumDiff::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixNumDiff::post_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
@@ -159,16 +185,7 @@ void FixNumDiff::calculate_forces()
 
   // grow arrays if necessary
 
-  if (atom->nlocal + atom->nghost > maxatom) {
-    memory->destroy(numdiff_forces);
-    memory->destroy(temp_x);
-    memory->destroy(temp_f);
-    maxatom = atom->nmax;
-    memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
-    memory->create(temp_x,maxatom,3,"numdiff:temp_x");
-    memory->create(temp_f,maxatom,3,"numdiff:temp_f");
-    array_atom = numdiff_forces;
-  }
+  if (atom->nlocal + atom->nghost > maxatom) reallocate();
 
   // store copy of current forces for owned and ghost atoms
 
@@ -302,6 +319,22 @@ void FixNumDiff::force_clear(double **forces)
   size_t nbytes = sizeof(double) * atom->nlocal;
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
   if (nbytes) memset(&forces[0][0],0,3*nbytes);
+}
+
+/* ----------------------------------------------------------------------
+   reallocated local per-atoms arrays
+------------------------------------------------------------------------- */
+
+void FixNumDiff::reallocate()
+{
+  memory->destroy(numdiff_forces);
+  memory->destroy(temp_x);
+  memory->destroy(temp_f);
+  maxatom = atom->nmax;
+  memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
+  memory->create(temp_x,maxatom,3,"numdiff:temp_x");
+  memory->create(temp_f,maxatom,3,"numdiff:temp_f");
+  array_atom = numdiff_forces;
 }
 
 /* ----------------------------------------------------------------------

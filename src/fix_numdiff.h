@@ -30,6 +30,8 @@ class FixNumDiff : public Fix {
   ~FixNumDiff();
   int setmask();
   void init();
+  void setup(int);
+  void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
@@ -55,6 +57,7 @@ private:
   void restore_atoms(int, int);
   double update_energy();
   void force_clear(double **);
+  void reallocate();
 };
 
 }

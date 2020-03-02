@@ -1,19 +1,19 @@
-.. index:: pair\_style thole
+.. index:: pair_style thole
 
-pair\_style thole command
-=========================
+pair_style thole command
+========================
 
-pair\_style lj/cut/thole/long command
-=====================================
+pair_style lj/cut/thole/long command
+====================================
 
-pair\_style lj/cut/thole/long/omp command
-=========================================
+pair_style lj/cut/thole/long/omp command
+========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -35,12 +35,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay ... thole 2.6 12.0
    pair_coeff 1 1 thole 1.0
    pair_coeff 1 2 thole 1.0 2.6 10.0
-   pair_coeff \* 2 thole 1.0 2.6
+   pair_coeff * 2 thole 1.0 2.6
 
    pair_style lj/cut/thole/long 2.6 12.0
 
@@ -73,9 +73,9 @@ short distances by a function
 
 .. math::
 
-   \begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
+   T_{ij}(r_{ij}) = 1 - \left( 1 +
    \frac{s_{ij} r_{ij} }{2} \right)
-   \exp \left( - s_{ij} r_{ij} \right) \end{equation}
+   \exp \left( - s_{ij} r_{ij} \right)
 
 This function results from an adaptation to point charges
 :ref:`(Noskov) <Noskov1>` of the dipole screening scheme originally proposed
@@ -90,9 +90,9 @@ between the atom-specific values.
 
 .. math::
 
-   \begin{equation} s_{ij} = \frac{ a_{ij} }{
+   s_{ij} = \frac{ a_{ij} }{
    (\alpha_{ij})^{1/3} } = \frac{ (a_i + a_j)/2 }{
-   [(\alpha_i\alpha_j)^{1/2}]^{1/3} } \end{equation}
+   [(\alpha_i\alpha_j)^{1/2}]^{1/3} }
 
 The damping function is only applied to the interactions between the
 point charges representing the induced dipoles on polarizable sites,
@@ -168,12 +168,12 @@ are defined using
 
 .. math::
 
-   \begin{equation} \alpha_{ij} = \sqrt{\alpha_i\alpha_j}\end{equation}
+   \alpha_{ij} = \sqrt{\alpha_i\alpha_j}
 
 
 .. math::
 
-   \begin{equation} a_{ij} = \frac 1 2 (a_i + a_j)\end{equation}
+   a_{ij} = \frac 1 2 (a_i + a_j)
 
 Restrictions
 """"""""""""

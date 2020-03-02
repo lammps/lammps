@@ -1,22 +1,22 @@
-.. index:: pair\_style tersoff/zbl
+.. index:: pair_style tersoff/zbl
 
-pair\_style tersoff/zbl command
-===============================
+pair_style tersoff/zbl command
+==============================
 
-pair\_style tersoff/zbl/gpu command
-===================================
-
-pair\_style tersoff/zbl/kk command
+pair_style tersoff/zbl/gpu command
 ==================================
 
-pair\_style tersoff/zbl/omp command
-===================================
+pair_style tersoff/zbl/kk command
+=================================
+
+pair_style tersoff/zbl/omp command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/zbl
 
@@ -24,10 +24,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/zbl
-   pair_coeff \* \* SiC.tersoff.zbl Si C Si
+   pair_coeff * * SiC.tersoff.zbl Si C Si
 
 Description
 """""""""""
@@ -106,9 +106,9 @@ want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.tersoff Si Si Si C
+   pair_coeff * * SiC.tersoff Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si

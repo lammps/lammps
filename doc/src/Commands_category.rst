@@ -7,6 +7,7 @@ alphabetically.  Style options for entries like fix, compute, pair etc.
 have their own pages where they are listed alphabetically.
 
 Initialization:
+------------------------------
 
 * :doc:`newton <newton>`,
 * :doc:`package <package>`,
@@ -15,6 +16,7 @@ Initialization:
 * :doc:`units <units>`
 
 Setup simulation box:
+------------------------------
 
 * :doc:`boundary <boundary>`,
 * :doc:`box <box>`,
@@ -25,6 +27,7 @@ Setup simulation box:
 * :doc:`region <region>`
 
 Setup atoms:
+------------------------------
 
 * :doc:`atom_modify <atom_modify>`,
 * :doc:`atom_style <atom_style>`,
@@ -45,6 +48,7 @@ Setup atoms:
 * :doc:`velocity <velocity>`
 
 Force fields:
+------------------------------
 
 * :doc:`angle_coeff <angle_coeff>`,
 * :doc:`angle_style <angle_style>`,
@@ -65,6 +69,7 @@ Force fields:
 * :doc:`special_bonds <special_bonds>`
 
 Settings:
+------------------------------
 
 * :doc:`comm_modify <comm_modify>`,
 * :doc:`comm_style <comm_style>`,
@@ -80,6 +85,7 @@ Settings:
 * :doc:`timestep <timestep>`
 
 Operations within timestepping (fixes) and diagnostics (computes):
+------------------------------------------------------------------------------------------
 
 * :doc:`compute <compute>`,
 * :doc:`compute_modify <compute_modify>`,
@@ -89,6 +95,7 @@ Operations within timestepping (fixes) and diagnostics (computes):
 * :doc:`unfix <unfix>`
 
 Output:
+------------------------------
 
 * :doc:`dump image <dump_image>`,
 * :doc:`dump movie <dump_image>`,
@@ -105,6 +112,7 @@ Output:
 * :doc:`write_restart <write_restart>`
 
 Actions:
+------------------------------
 
 * :doc:`minimize <minimize>`,
 * :doc:`neb <neb>`,
@@ -116,6 +124,7 @@ Actions:
 * :doc:`temper <temper>`
 
 Input script control:
+------------------------------
 
 * :doc:`clear <clear>`,
 * :doc:`echo <echo>`,

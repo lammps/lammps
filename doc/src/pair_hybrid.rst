@@ -1,22 +1,22 @@
-.. index:: pair\_style hybrid
+.. index:: pair_style hybrid
 
-pair\_style hybrid command
-==========================
+pair_style hybrid command
+=========================
 
-pair\_style hybrid/kk command
-=============================
+pair_style hybrid/kk command
+============================
 
-pair\_style hybrid/overlay command
-==================================
+pair_style hybrid/overlay command
+=================================
 
-pair\_style hybrid/overlay/kk command
-=====================================
+pair_style hybrid/overlay/kk command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid style1 args style2 args ...
    pair_style hybrid/overlay style1 args style2 args ...
@@ -27,16 +27,16 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid lj/cut/coul/cut 10.0 eam lj/cut 5.0
-   pair_coeff 1\*2 1\*2 eam niu3
+   pair_coeff 1*2 1*2 eam niu3
    pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-   pair_coeff 1\*2 3 lj/cut 0.5 1.2
+   pair_coeff 1*2 3 lj/cut 0.5 1.2
 
    pair_style hybrid/overlay lj/cut 2.5 coul/long 2.0
-   pair_coeff \* \* lj/cut 1.0 1.0
-   pair_coeff \* \* coul/long
+   pair_coeff * * lj/cut 1.0 1.0
+   pair_coeff * * coul/long
 
 Description
 """""""""""
@@ -101,12 +101,12 @@ are Ni atoms, type 3 are LJ atoms with charges.  The following
 commands would set up a hybrid simulation:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
-   pair_coeff \* \* eam/alloy nialhjea Ni Ni NULL
+   pair_coeff * * eam/alloy nialhjea Ni Ni NULL
    pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-   pair_coeff 1\*2 3 lj/cut 0.8 1.3
+   pair_coeff 1*2 3 lj/cut 0.8 1.3
 
 As an example of using the same pair style multiple times, consider a
 simulation with 2 atom types.  Type 1 is Si, type 2 is C.  The
@@ -114,11 +114,11 @@ following commands would model the Si atoms with Tersoff, the C atoms
 with Tersoff, and the cross-interactions with Lennard-Jones:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid lj/cut 2.5 tersoff tersoff
-   pair_coeff \* \* tersoff 1 Si.tersoff Si NULL
-   pair_coeff \* \* tersoff 2 C.tersoff NULL C
+   pair_coeff * * tersoff 1 Si.tersoff Si NULL
+   pair_coeff * * tersoff 2 C.tersoff NULL C
    pair_coeff 1 2 lj/cut 1.0 1.5
 
 If pair coefficients are specified in the data file read via the
@@ -159,14 +159,14 @@ normal usage of the pair\_coeff command.  E.g. these two sets of
 commands are the same:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 2 2 1.5 0.8
 
    pair_style hybrid/overlay lj/cut 2.5
-   pair_coeff \* \* lj/cut 1.0 1.0
+   pair_coeff * * lj/cut 1.0 1.0
    pair_coeff 2 2 lj/cut 1.5 0.8
 
 Coefficients must be defined for each pair of atoms types via the
@@ -190,7 +190,7 @@ LJ potential).  Or, for *hybrid* and *hybrid/overlay* simulations, you
 can use this form of the pair\_coeff command in your input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff        2 3 none
 
@@ -230,7 +230,7 @@ setting sets the 1-4 interactions to non-zero scaling factors and
 then overrides them with 0.0 only for CHARMM:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds amber
    pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
@@ -239,7 +239,7 @@ then overrides them with 0.0 only for CHARMM:
 The this input achieves the same effect:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds 0.0 0.0 0.1
    pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
@@ -254,7 +254,7 @@ interactions have been set to 0. Note the global settings are
 effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds lj/coul 1e-20 1e-20 0.5
    pair_hybrid tersoff lj/cut/coul/long 12.0
@@ -323,14 +323,14 @@ surface, but not between surfaces.  Then either of these two command
 sequences would implement that model:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid tersoff
-   pair_coeff \* \* tersoff SiC.tersoff C C
+   pair_coeff * * tersoff SiC.tersoff C C
    pair_coeff 1 2 none
 
    pair_style tersoff
-   pair_coeff \* \* SiC.tersoff C C
+   pair_coeff * * SiC.tersoff C C
    neigh_modify exclude type 1 2
 
 Either way, only neighbor lists with 1-1 or 2-2 interactions would be
@@ -344,11 +344,11 @@ interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay tersoff airebo 3.0
-   pair_coeff \* \* tersoff SiC.tersoff.custom Si C
-   pair_coeff \* \* airebo CH.airebo NULL C
+   pair_coeff * * tersoff SiC.tersoff.custom Si C
+   pair_coeff * * airebo CH.airebo NULL C
 
 Note that to prevent the Tersoff potential from computing C/C
 interactions, you would need to modify the SiC.tersoff file to turn
@@ -436,4 +436,5 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+**Default:**
+none

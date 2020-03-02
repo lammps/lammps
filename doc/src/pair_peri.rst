@@ -1,28 +1,28 @@
-.. index:: pair\_style peri/pmb
+.. index:: pair_style peri/pmb
 
-pair\_style peri/pmb command
-============================
+pair_style peri/pmb command
+===========================
 
-pair\_style peri/pmb/omp command
-================================
+pair_style peri/pmb/omp command
+===============================
 
-pair\_style peri/lps command
-============================
+pair_style peri/lps command
+===========================
 
-pair\_style peri/lps/omp command
-================================
+pair_style peri/lps/omp command
+===============================
 
-pair\_style peri/ves command
-============================
+pair_style peri/ves command
+===========================
 
-pair\_style peri/eps command
-============================
+pair_style peri/eps command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -32,19 +32,19 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style peri/pmb
-   pair_coeff \* \* 1.6863e22 0.0015001 0.0005 0.25
+   pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25
 
    pair_style peri/lps
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25
 
    pair_style peri/ves
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001
 
    pair_style peri/eps
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43
 
 Description
 """""""""""

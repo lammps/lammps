@@ -151,7 +151,7 @@ properties:
 (1) Average velocity in each of 1000 2d spatial bins:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.01 units reduced
    fix 1 all ave/chunk 100 10 1000 cc1 vx vy file tmp.out
@@ -160,7 +160,7 @@ properties:
 velocity:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.1 units reduced
    compute vbias all temp/profile 1 0 0 y 10
@@ -169,16 +169,16 @@ velocity:
 (3) Center of mass of each molecule:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all com/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
 (4) Total force on each molecule and ave/max across all molecules:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
@@ -190,7 +190,7 @@ velocity:
 (5) Histogram of cluster sizes:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cluster all cluster/atom 1.0
    compute cc1 all chunk/atom c_cluster compress yes

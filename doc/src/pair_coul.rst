@@ -1,88 +1,88 @@
-.. index:: pair\_style coul/cut
+.. index:: pair_style coul/cut
 
-pair\_style coul/cut command
-============================
+pair_style coul/cut command
+===========================
 
-pair\_style coul/cut/gpu command
-================================
-
-pair\_style coul/cut/kk command
+pair_style coul/cut/gpu command
 ===============================
 
-pair\_style coul/cut/omp command
-================================
-
-pair\_style coul/debye command
+pair_style coul/cut/kk command
 ==============================
 
-pair\_style coul/debye/gpu command
-==================================
-
-pair\_style coul/debye/kk command
-=================================
-
-pair\_style coul/debye/omp command
-==================================
-
-pair\_style coul/dsf command
-============================
-
-pair\_style coul/dsf/gpu command
-================================
-
-pair\_style coul/dsf/kk command
+pair_style coul/cut/omp command
 ===============================
 
-pair\_style coul/dsf/omp command
-================================
-
-pair\_style coul/long command
+pair_style coul/debye command
 =============================
 
-pair\_style coul/long/omp command
+pair_style coul/debye/gpu command
 =================================
 
-pair\_style coul/long/gpu command
+pair_style coul/debye/kk command
+================================
+
+pair_style coul/debye/omp command
 =================================
 
-pair\_style coul/long/kk command
-================================
+pair_style coul/dsf command
+===========================
 
-pair\_style coul/msm command
-============================
+pair_style coul/dsf/gpu command
+===============================
 
-pair\_style coul/msm/omp command
-================================
-
-pair\_style coul/streitz command
-================================
-
-pair\_style coul/wolf command
-=============================
-
-pair\_style coul/wolf/kk command
-================================
-
-pair\_style coul/wolf/omp command
-=================================
-
-pair\_style tip4p/cut command
-=============================
-
-pair\_style tip4p/long command
+pair_style coul/dsf/kk command
 ==============================
 
-pair\_style tip4p/cut/omp command
-=================================
+pair_style coul/dsf/omp command
+===============================
 
-pair\_style tip4p/long/omp command
-==================================
+pair_style coul/long command
+============================
+
+pair_style coul/long/omp command
+================================
+
+pair_style coul/long/gpu command
+================================
+
+pair_style coul/long/kk command
+===============================
+
+pair_style coul/msm command
+===========================
+
+pair_style coul/msm/omp command
+===============================
+
+pair_style coul/streitz command
+===============================
+
+pair_style coul/wolf command
+============================
+
+pair_style coul/wolf/kk command
+===============================
+
+pair_style coul/wolf/omp command
+================================
+
+pair_style tip4p/cut command
+============================
+
+pair_style tip4p/long command
+=============================
+
+pair_style tip4p/cut/omp command
+================================
+
+pair_style tip4p/long/omp command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
@@ -102,37 +102,37 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/cut 2.5
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 3.5
 
    pair_style coul/debye 1.4 3.0
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 3.5
 
    pair_style coul/dsf 0.05 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/long 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/msm 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/wolf 0.2 9.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/streitz 12.0 ewald
    pair_style coul/streitz 12.0 wolf 0.30
-   pair_coeff \* \* AlO.streitz Al O
+   pair_coeff * * AlO.streitz Al O
 
    pair_style tip4p/cut 1 2 7 8 0.15 12.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style tip4p/long 1 2 7 8 0.15 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
 Description
 """""""""""
@@ -140,12 +140,14 @@ Description
 The *coul/cut* style computes the standard Coulombic interaction
 potential given by
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+.. math::
+
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and epsilon is the dielectric constant which can be set
-by the :doc:`dielectric <dielectric>` command.  The cutoff Rc truncates
+the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
+by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 
 
@@ -155,10 +157,12 @@ the interaction distance.
 Style *coul/debye* adds an additional exp() damping factor to the
 Coulombic term, given by
 
-.. image:: Eqs/pair_debye.jpg
-   :align: center
+.. math::
 
-where kappa is the Debye length.  This potential is another way to
+   E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
+
+
+where :math:`\kappa` is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
 
 
@@ -168,10 +172,13 @@ mimic the screening effect of a polar solvent.
 Style *coul/dsf* computes Coulombic interactions via the damped
 shifted force model described in :ref:`Fennell <Fennell1>`, given by:
 
-.. image:: Eqs/pair_coul_dsf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter and erfc() is the
+   E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
+
+
+where :math:`\alpha` is the damping parameter and erfc() is the
 complementary error-function. The potential corrects issues in the
 Wolf model (described below) to provide consistent forces and energies
 (the Wolf potential is not differentiable at the cutoff) and smooth
@@ -184,16 +191,21 @@ decay to zero.
 Style *coul/wolf* computes Coulombic interactions via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
-.. image:: Eqs/pair_coul_wolf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter, and erc() and erfc() are
+   E_i = \frac{1}{2} \sum_{j \neq i} 
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
+   \frac{1}{2} \sum_{j \neq i} 
+   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+
+
+where :math:`\alpha` is the damping parameter, and erc() and erfc() are
 error-function and complementary error-function terms.  This potential
 is essentially a short-range, spherically-truncated,
 charge-neutralized, shifted, pairwise *1/r* summation.  With a
 manipulation of adding and subtracting a self term (for i = j) to the
 first and second term on the right-hand-side, respectively, and a
-small enough *alpha* damping parameter, the second term shrinks and
+small enough :math:`\alpha` damping parameter, the second term shrinks and
 the potential becomes a rapidly-converging real-space summation.  With
 a long enough cutoff and small enough alpha parameter, the energy and
 forces calculated by the Wolf summation method approach those of the
@@ -215,11 +227,11 @@ the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
 charge equilibration must be performed via the :doc:`fix qeq/slater <fix_qeq>` command. For example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
-   pair_coeff \* \* coul/streitz AlO.streitz Al O
-   pair_coeff \* \* eam/alloy AlO.eam.alloy Al O
+   pair_coeff * * coul/streitz AlO.streitz Al O
+   pair_coeff * * eam/alloy AlO.eam.alloy Al O
    fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz
 
 The keyword *wolf* in the coul/streitz command denotes computing
@@ -229,7 +241,7 @@ coul/wolf potential above.  Alternatively, Coulombic interactions can
 be computed via an Ewald summation.  For example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
    kspace_style ewald 1e-6
@@ -311,7 +323,7 @@ other.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
+above, or in the data or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
@@ -323,7 +335,7 @@ global value specified in the pair\_style command is used.
 
 For *coul/long* and *coul/msm* no cutoff can be specified for an
 individual I,J type pair via the pair\_coeff command.  All type pairs
-use the same global Coulombic cutoff specified in the pair\_style
+use the same global Coulomb cutoff specified in the pair\_style
 command.
 
 
@@ -372,8 +384,8 @@ pressure.
 These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style can only be used via the *pair* keyword of the
-:doc:`run_style respa <run_style>` command.  It does not support the
+These pair styles can only be used via the *pair* keyword of the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 

@@ -1,7 +1,7 @@
-.. index:: pair\_style spin/exchange
+.. index:: pair_style spin/exchange
 
-pair\_style spin/exchange command
-=================================
+pair_style spin/exchange command
+================================
 
 Syntax
 """"""

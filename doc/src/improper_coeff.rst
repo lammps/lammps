@@ -1,13 +1,13 @@
-.. index:: improper\_coeff
+.. index:: improper_coeff
 
-improper\_coeff command
-=======================
+improper_coeff command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_coeff N args
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_coeff 1 300.0 0.0
-   improper_coeff \* 80.2 -1 2
-   improper_coeff \*4 80.2 -1 2
+   improper_coeff * 80.2 -1 2
+   improper_coeff *4 80.2 -1 2
 
 Description
 """""""""""
@@ -48,9 +48,9 @@ the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   improper_coeff \* 300.0 0.0
+   improper_coeff * 300.0 0.0
    improper_coeff 2 50.0 0.0
 
 A line in a data file that specifies improper coefficients uses the

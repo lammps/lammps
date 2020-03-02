@@ -198,7 +198,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_ninside = Kokkos::View<int*, DeviceType>("PairSNAPKokkos:ninside",inum);
   }
 
-  int chunk_size = MIN(2000,inum);
+  chunk_size = MIN(chunksize,inum); // "chunksize" variable is set by user
   chunk_offset = 0;
 
   snaKK.grow_rij(chunk_size,max_neighs);
@@ -221,7 +221,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for("PreUi",policy_preui,*this);
 
     //ComputeUi
-    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi> policy_ui(((inum+team_size-1)/team_size)*max_neighs,team_size,vector_length);
+    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi> policy_ui(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
     Kokkos::parallel_for("ComputeUi",policy_ui,*this);
 
     //Ulisttot transpose
@@ -253,11 +253,11 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for("ComputeYi",policy_yi,*this);
 
     //ComputeDuidrj
-    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj> policy_duidrj(((inum+team_size-1)/team_size)*max_neighs,team_size,vector_length);
+    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj> policy_duidrj(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
     Kokkos::parallel_for("ComputeDuidrj",policy_duidrj,*this);
 
     //ComputeDeidrj
-    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj> policy_deidrj(((inum+team_size-1)/team_size)*max_neighs,team_size,vector_length);
+    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj> policy_deidrj(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
     Kokkos::parallel_for("ComputeDeidrj",policy_deidrj,*this);
 
     //ComputeForce
@@ -514,11 +514,12 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
-  if (ii >= inum) return;
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() %
+           ((chunk_size+team.team_size()-1)/team.team_size()));
+  if (ii >= chunk_size) return;
 
   // Extract the neighbor number
-  const int jj = team.league_rank() / ((inum+team.team_size()-1)/team.team_size());
+  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
 
@@ -560,11 +561,12 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDuidrj,const type
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
-  if (ii >= inum) return;
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() %
+           ((chunk_size+team.team_size()-1)/team.team_size()));
+  if (ii >= chunk_size) return;
 
   // Extract the neighbor number
-  const int jj = team.league_rank() / ((inum+team.team_size()-1)/team.team_size());
+  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
 
@@ -577,11 +579,12 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrj,const type
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
-  if (ii >= inum) return;
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() %
+           ((chunk_size+team.team_size()-1)/team.team_size()));
+  if (ii >= chunk_size) return;
 
   // Extract the neighbor number
-  const int jj = team.league_rank() / ((inum+team.team_size()-1)/team.team_size());
+  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
 

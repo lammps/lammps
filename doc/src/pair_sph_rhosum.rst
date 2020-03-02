@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/rhosum
+.. index:: pair_style sph/rhosum
 
-pair\_style sph/rhosum command
-==============================
+pair_style sph/rhosum command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/rhosum Nstep
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/rhosum 10
-   pair_coeff \* \* 2.4
+   pair_coeff * * 2.4
 
 Description
 """""""""""

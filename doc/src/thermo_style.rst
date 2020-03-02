@@ -1,13 +1,12 @@
-.. index:: thermo\_style
+.. index:: thermo_style
 
-thermo\_style command
-=====================
+thermo_style command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style style args
 
@@ -89,13 +88,12 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style multi
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
-   thermo_style custom step temp etotal c_myTemp[\*] v_abc
+   thermo_style custom step temp etotal c_myTemp[*] v_abc
 
 Description
 """""""""""
@@ -155,7 +153,7 @@ default this is done by using a *temperature* compute which is created
 when LAMMPS starts up, as if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
@@ -174,7 +172,7 @@ using a *pressure* compute which is created when LAMMPS starts up, as
 if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 
@@ -193,7 +191,7 @@ be computed: "pe", "etotal", "ebond", etc.  This is done by using a
 command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
@@ -286,7 +284,7 @@ if the timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
 
@@ -337,10 +335,10 @@ are equivalent, since the :doc:`compute temp <compute_temp>` command
 creates a global vector with 6 values.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp
-   thermo_style custom step temp etotal c_myTemp[\*]
+   thermo_style custom step temp etotal c_myTemp[*]
    thermo_style custom step temp etotal &
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
@@ -441,6 +439,6 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style one

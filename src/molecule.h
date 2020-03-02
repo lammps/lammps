@@ -30,7 +30,7 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
-  int ntypes;
+  int ntypes,nmolecules;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nibody,ndbody;
 
@@ -41,7 +41,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined in file, 0 if not
 
-  int xflag,typeflag,qflag,radiusflag,rmassflag;
+  int xflag,typeflag,moleculeflag,qflag,radiusflag,rmassflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
@@ -59,6 +59,7 @@ class Molecule : protected Pointers {
 
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
+  tagint *molecule;    // molecule of each atom
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
@@ -131,6 +132,7 @@ class Molecule : protected Pointers {
   void read(int);
   void coords(char *);
   void types(char *);
+  void molecules(char *);
   void charges(char *);
   void diameters(char *);
   void masses(char *);

@@ -146,19 +146,19 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"Read molecule %s:\n"
+      fprintf(screen,"Read molecule template %s:\n  %d molecules\n"
               "  %d atoms with max type %d\n  %d bonds with max type %d\n"
               "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
               "  %d impropers with max type %d\n",
-              id,natoms,ntypes,
+              id,nmolecules,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
     if (logfile)
-      fprintf(logfile,"Read molecule %s:\n"
+      fprintf(logfile,"Read molecule template %s:\n  %d molecules\n"
               "  %d atoms with max type %d\n  %d bonds with max type %d\n"
               "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
               "  %d impropers with max type %d\n",
-              id,natoms,ntypes,
+              id,nmolecules,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
   }
@@ -519,6 +519,10 @@ void Molecule::read(int flag)
       typeflag = 1;
       if (flag) types(line);
       else skip_lines(natoms,line);
+    } else if (strcmp(keyword,"Molecules") == 0) {
+      moleculeflag = 1;
+      if (flag) molecules(line);
+      else skip_lines(natoms,line);
     } else if (strcmp(keyword,"Charges") == 0) {
       qflag = 1;
       if (flag) charges(line);
@@ -692,6 +696,29 @@ void Molecule::types(char *line)
 
   for (int i = 0; i < natoms; i++)
     ntypes = MAX(ntypes,type[i]);
+}
+
+/* ----------------------------------------------------------------------
+   read molecules from file
+   set nmolecules = max of any molecule type
+------------------------------------------------------------------------- */
+
+void Molecule::molecules(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    if (2 != sscanf(line,"%d %d",&tmp,&molecule[i]))
+      error->all(FLERR,"Invalid Molecules section in molecule file");
+    // molecule[i] += moffset; // placeholder for possible molecule offset
+  }
+
+  for (int i = 0; i < natoms; i++)
+    if (molecule[i] <= 0)
+      error->all(FLERR,"Invalid molecule ID in molecule file");
+
+  for (int i = 0; i < natoms; i++)
+    nmolecules = MAX(nmolecules,molecule[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1432,13 +1459,14 @@ void Molecule::initialize()
   natoms = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   ntypes = 0;
+  nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nibody = ndbody = 0;
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;
 
-  xflag = typeflag = qflag = radiusflag = rmassflag = 0;
+  xflag = typeflag = moleculeflag = qflag = radiusflag = rmassflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
@@ -1493,6 +1521,7 @@ void Molecule::allocate()
 {
   if (xflag) memory->create(x,natoms,3,"molecule:x");
   if (typeflag) memory->create(type,natoms,"molecule:type");
+  if (moleculeflag) memory->create(molecule,natoms,"molecule:molecule");
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");

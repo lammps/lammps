@@ -5,7 +5,7 @@
 #ifndef ACE_MULTIARRAY_H
 #define ACE_MULTIARRAY_H
 
-#include "multiarray2dlm.h"
-#include "multiarray_auto.h"
+#include "ace_array2dlm.h"
+#include "ace_arraynd.h"
 
 #endif //ACE_MULTIARRAY_H

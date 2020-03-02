@@ -1,14 +1,14 @@
-#ifndef ACE_FAST_SPHERICAL_H
-#define ACE_FAST_SPHERICAL_H
+#ifndef ACE_ACE_SPHERICAL_CART_H
+#define ACE_ACE_SPHERICAL_CART_H
 
 #include <cmath>
 
 #include "ace_types.h"
-#include "complex.h"
+#include "ace_complex.h"
 #include "ace_utils.h"
 
-#include "USER-PACE/include/multiarray/multiarray2dlm.h"
-#include "USER-PACE/include/multiarray/multiarray_auto.h"
+#include "multiarray/ace_array2dlm.h"
+#include "multiarray/ace_arraynd.h"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ The value that corresponds to a particular l, m configuration can be accessed th
 \code ylm[at(l,m)] \endcode \n
 which can access the (m+(l*(l+1))/2) value from the one dimensional array.
 */
-class FastSHarmonics {
+class ACECartesianSphericalHarmonics {
 public:
 
     /**
@@ -35,13 +35,13 @@ public:
     */
     LS_TYPE lmax;
 
-    FastSHarmonics() = default;
+    ACECartesianSphericalHarmonics() = default;
 
-    explicit FastSHarmonics(LS_TYPE lmax);
+    explicit ACECartesianSphericalHarmonics(LS_TYPE lmax);
 
     void init(LS_TYPE lm);
 
-    ~FastSHarmonics();
+    ~ACECartesianSphericalHarmonics();
 
     void pre_compute();
 
@@ -49,16 +49,16 @@ public:
 
     void compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry, DOUBLE_TYPE rz, LS_TYPE lmaxi);
 
-    Array2DLM <DOUBLE_TYPE> alm;
-    Array2DLM <DOUBLE_TYPE> blm;
-    Array1D <DOUBLE_TYPE> cl;
-    Array1D <DOUBLE_TYPE> dl;
+    Array2DLM<DOUBLE_TYPE> alm;
+    Array2DLM<DOUBLE_TYPE> blm;
+    Array1D<DOUBLE_TYPE> cl;
+    Array1D<DOUBLE_TYPE> dl;
 
-    Array2DLM <DOUBLE_TYPE> plm;
-    Array2DLM <DOUBLE_TYPE> dplm;
+    Array2DLM<DOUBLE_TYPE> plm;
+    Array2DLM<DOUBLE_TYPE> dplm;
 
-    Array2DLM <Complex> ylm;
-    Array2DLM <Dycomponent> dylm;
+    Array2DLM<ACEComplex> ylm;
+    Array2DLM<Dycomponent> dylm;
 
 };
 

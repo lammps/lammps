@@ -1,5 +1,4 @@
-#include <cmath>
-#include "basis.h"
+#include "ace_c_basis.h"
 
 using namespace std;
 
@@ -80,8 +79,8 @@ void ACEBasisSet::_copy_scalar_memory(const ACEBasisSet &other) {
 }
 
 void ACEBasisSet::_copy_dynamic_memory(const ACEBasisSet &other) {//allocate new memory
-    basis = new C_tilde_B_basis_function *[nelements];
-    basis_rank1 = new C_tilde_B_basis_function *[nelements];
+    basis = new ACECTildeBasisFunction *[nelements];
+    basis_rank1 = new ACECTildeBasisFunction *[nelements];
 
     total_basis_size = new SHORT_INT_TYPE[nelements];
     total_basis_size_rank1 = new SHORT_INT_TYPE[nelements];
@@ -91,14 +90,14 @@ void ACEBasisSet::_copy_dynamic_memory(const ACEBasisSet &other) {//allocate new
     //copy
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         total_basis_size_rank1[mu] = other.total_basis_size_rank1[mu];
-        basis_rank1[mu] = new C_tilde_B_basis_function[total_basis_size_rank1[mu]];
+        basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
 
         for (size_t i = 0; i < total_basis_size_rank1[mu]; i++) {
             basis_rank1[mu][i] = other.basis_rank1[mu][i];
         }
 
         total_basis_size[mu] = other.total_basis_size[mu];
-        basis[mu] = new C_tilde_B_basis_function[total_basis_size[mu]];
+        basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
         for (size_t i = 0; i < total_basis_size[mu]; i++) {
             basis[mu][i] = other.basis[mu][i];
         }
@@ -167,7 +166,7 @@ void ACEBasisSet::pack_flatten_basis() {
         if (total_basis_size_rank1[mu] > 0) {
             rank_array_total_size_rank1 += total_basis_size_rank1[mu];
 
-            C_tilde_B_basis_function &func = basis_rank1[mu][0];
+            ACECTildeBasisFunction &func = basis_rank1[mu][0];
             coeff_array_total_size_rank1 += total_basis_size_rank1[mu] * func.ndensity;
         }
     }
@@ -189,13 +188,13 @@ void ACEBasisSet::pack_flatten_basis() {
         cur_ms_size = 0;
         cur_ms_rank_size = 0;
         for (int func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
-            C_tilde_B_basis_function &func = basis[mu][func_ind];
+            ACECTildeBasisFunction &func = basis[mu][func_ind];
             rank_array_total_size += func.rank;
-            ms_array_total_size += func.rank * func.num_of_ms_combinations;
-            coeff_array_total_size += func.ndensity * func.num_of_ms_combinations;
+            ms_array_total_size += func.rank * func.num_ms_combs;
+            coeff_array_total_size += func.ndensity * func.num_ms_combs;
 
-            cur_ms_size += func.num_of_ms_combinations;
-            cur_ms_rank_size += func.rank * func.num_of_ms_combinations;
+            cur_ms_size += func.num_ms_combs;
+            cur_ms_rank_size += func.rank * func.num_ms_combs;
         }
 
         if (cur_ms_size > max_B_array_size)
@@ -220,7 +219,7 @@ void ACEBasisSet::pack_flatten_basis() {
     full_ms = new MS_TYPE[ms_array_total_size];
 
     //TODO: allocate dB, Theta, B
-    //Complex** dB = new Complex*[ms_array_total_size];
+    //ACEComplex** dB = new ACEComplex*[ms_array_total_size];
 
     //3. copy the values from private C_tilde_B_basis_function arrays to new contigous space
     //4. clean private memory
@@ -233,7 +232,7 @@ void ACEBasisSet::pack_flatten_basis() {
 
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         for (int func_ind_r1 = 0; func_ind_r1 < total_basis_size_rank1[mu]; ++func_ind_r1) {
-            C_tilde_B_basis_function &func = basis_rank1[mu][func_ind_r1];
+            ACECTildeBasisFunction &func = basis_rank1[mu][func_ind_r1];
 
             //copy values ns from c_tilde_basis_function private memory to contigous memory part
             full_ns_rank1[rank_array_ind_rank1] = func.ns[0];
@@ -250,24 +249,24 @@ void ACEBasisSet::pack_flatten_basis() {
 
 
             //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            memcpy(&full_ms_rank1[ms_array_ind_rank1], func.ms,
-                   func.num_of_ms_combinations *
+            memcpy(&full_ms_rank1[ms_array_ind_rank1], func.ms_combs,
+                   func.num_ms_combs *
                    func.rank * sizeof(MS_TYPE));
 
-            //release memory of each C_tilde_basis_function if it is not proxy
+            //release memory of each ACECTildeBasisFunction if it is not proxy
             func._clean();
 
             func.ns = &full_ns_rank1[rank_array_ind_rank1];
             func.ls = &full_ls_rank1[rank_array_ind_rank1];
             func.mus = &full_Xs_rank1[rank_array_ind_rank1];
             func.ctildes = &full_c_tildes_rank1[coeff_array_ind_rank1];
-            func.ms = &full_ms_rank1[ms_array_ind_rank1];
+            func.ms_combs = &full_ms_rank1[ms_array_ind_rank1];
             func.is_proxy = true;
 
             rank_array_ind_rank1 += func.rank;
             ms_array_ind_rank1 += func.rank *
-                                  func.num_of_ms_combinations;
-            coeff_array_ind_rank1 += func.num_of_ms_combinations * func.ndensity;
+                                  func.num_ms_combs;
+            coeff_array_ind_rank1 += func.num_ms_combs * func.ndensity;
 
             func_ind_r1++;
         }
@@ -281,7 +280,7 @@ void ACEBasisSet::pack_flatten_basis() {
 
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         for (int func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
-            C_tilde_B_basis_function &func = basis[mu][func_ind];
+            ACECTildeBasisFunction &func = basis[mu][func_ind];
 
             //copy values ns from c_tilde_basis_function private memory to contigous memory part
             memcpy(&full_ns[rank_array_ind], func.ns,
@@ -295,35 +294,35 @@ void ACEBasisSet::pack_flatten_basis() {
 
             //copy values ctildes from c_tilde_basis_function private memory to contigous memory part
             memcpy(&full_c_tildes[coeff_array_ind], func.ctildes,
-                   func.num_of_ms_combinations * func.ndensity * sizeof(DOUBLE_TYPE));
+                   func.num_ms_combs * func.ndensity * sizeof(DOUBLE_TYPE));
 
 
             //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            memcpy(&full_ms[ms_array_ind], func.ms,
-                   func.num_of_ms_combinations *
+            memcpy(&full_ms[ms_array_ind], func.ms_combs,
+                   func.num_ms_combs *
                    func.rank * sizeof(MS_TYPE));
 
-            //release memory of each C_tilde_basis_function if it is not proxy
+            //release memory of each ACECTildeBasisFunction if it is not proxy
             func._clean();
 
             func.ns = &full_ns[rank_array_ind];
             func.ls = &full_ls[rank_array_ind];
             func.mus = &full_Xs[rank_array_ind];
             func.ctildes = &full_c_tildes[coeff_array_ind];
-            func.ms = &full_ms[ms_array_ind];
+            func.ms_combs = &full_ms[ms_array_ind];
             func.is_proxy = true;
 
             rank_array_ind += func.rank;
             ms_array_ind += func.rank *
-                            func.num_of_ms_combinations;
-            coeff_array_ind += func.num_of_ms_combinations * func.ndensity;
+                            func.num_ms_combs;
+            coeff_array_ind += func.num_ms_combs * func.ndensity;
 
             func_ind++;
         }
     }
 }
 
-void fwrite_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
+void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     RANK_TYPE r;
     fprintf(fptr, "ctilde_basis_func: ");
     fprintf(fptr, "rank=%d ndens=%d mu0=%d ", func.rank, func.ndensity, func.mu0);
@@ -343,12 +342,12 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
         fprintf(fptr, " %d ", func.ls[r]);
     fprintf(fptr, ")\n");
 
-    fprintf(fptr, "num_ms=%d\n", func.num_of_ms_combinations);
+    fprintf(fptr, "num_ms=%d\n", func.num_ms_combs);
 
-    for (int m_ind = 0; m_ind < func.num_of_ms_combinations; m_ind++) {
+    for (int m_ind = 0; m_ind < func.num_ms_combs; m_ind++) {
         fprintf(fptr, "<");
         for (r = 0; r < func.rank; ++r)
-            fprintf(fptr, " %d ", func.ms[m_ind * func.rank + r]);
+            fprintf(fptr, " %d ", func.ms_combs[m_ind * func.rank + r]);
         fprintf(fptr, ">: ");
         for (DENSITY_TYPE p = 0; p < func.ndensity; p++)
             fprintf(fptr, " %.18f ", func.ctildes[m_ind * func.ndensity + p]);
@@ -448,7 +447,7 @@ void ACEBasisSet::save(string filename) {
     fclose(fptr);
 }
 
-void fread_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
+void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     RANK_TYPE r;
     int res;
     char buf[3][128];
@@ -508,12 +507,12 @@ void fread_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
         printf("Error while reading file");
         exit(EXIT_FAILURE);
     }
-    func.num_of_ms_combinations = (SHORT_INT_TYPE) stoi(buf[0]);
+    func.num_ms_combs = (SHORT_INT_TYPE) stoi(buf[0]);
 
-    func.ms = new MS_TYPE[func.rank * func.num_of_ms_combinations];
-    func.ctildes = new DOUBLE_TYPE[func.ndensity * func.num_of_ms_combinations];
+    func.ms_combs = new MS_TYPE[func.rank * func.num_ms_combs];
+    func.ctildes = new DOUBLE_TYPE[func.ndensity * func.num_ms_combs];
 
-    for (int m_ind = 0; m_ind < func.num_of_ms_combinations; m_ind++) {
+    for (int m_ind = 0; m_ind < func.num_ms_combs; m_ind++) {
         res = fscanf(fptr, " <");
         for (r = 0; r < func.rank; ++r) {
             res = fscanf(fptr, "%s", buf[0]);
@@ -521,7 +520,7 @@ void fread_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
                 printf("Error while reading file");
                 exit(EXIT_FAILURE);
             }
-            func.ms[m_ind * func.rank + r] = stoi(buf[0]);
+            func.ms_combs[m_ind * func.rank + r] = stoi(buf[0]);
         }
         res = fscanf(fptr, " >:");
         for (DENSITY_TYPE p = 0; p < func.ndensity; p++) {
@@ -535,8 +534,12 @@ void fread_c_tilde_b_basis_func(FILE *fptr, C_tilde_B_basis_function &func) {
     }
 }
 
-void ACEBasisSet::load(FILE *fptr) {
+void ACEBasisSet::load(string filename) {
+    int res;
+    FILE *fptr;
     char buffer[1024];
+    fptr = fopen(filename.c_str(), "r");
+
     res = fscanf(fptr, "lmax=%s", buffer);
     if (res != 1) {
         printf("Error while reading file");
@@ -614,6 +617,7 @@ void ACEBasisSet::load(FILE *fptr) {
                           ntot,
                           nelements,
                           cutoff);
+
 
 
     for (int i = 0; i < parameters.size(); ++i) {
@@ -711,7 +715,7 @@ void ACEBasisSet::load(FILE *fptr) {
 
     //read total_basis_size_rank1
     total_basis_size_rank1 = new SHORT_INT_TYPE[nelements];
-    basis_rank1 = new C_tilde_B_basis_function *[nelements];
+    basis_rank1 = new ACECTildeBasisFunction *[nelements];
     res = fscanf(fptr, " total_basis_size_rank1: ");
 
 
@@ -723,7 +727,7 @@ void ACEBasisSet::load(FILE *fptr) {
         }
         total_basis_size_rank1[mu] = stoi(buffer);
         //printf("total_basis_size[%d] = %d\n", mu, total_basis_size_rank1[mu]);
-        basis_rank1[mu] = new C_tilde_B_basis_function[total_basis_size_rank1[mu]];
+        basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
     }
 
     for (SPECIES_TYPE mu = 0; mu < nelements; mu++)
@@ -735,7 +739,7 @@ void ACEBasisSet::load(FILE *fptr) {
     //read total_basis_size
     res = fscanf(fptr, " total_basis_size: ");
     total_basis_size = new SHORT_INT_TYPE[nelements];
-    basis = new C_tilde_B_basis_function *[nelements];
+    basis = new ACECTildeBasisFunction *[nelements];
 
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         res = fscanf(fptr, "%s", buffer);
@@ -744,7 +748,7 @@ void ACEBasisSet::load(FILE *fptr) {
             exit(EXIT_FAILURE);
         }
         total_basis_size[mu] = stoi(buffer);
-        basis[mu] = new C_tilde_B_basis_function[total_basis_size[mu]];
+        basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
     }
 
     for (SPECIES_TYPE mu = 0; mu < nelements; mu++)
@@ -753,15 +757,8 @@ void ACEBasisSet::load(FILE *fptr) {
             //print_C_tilde_B_basis_function(basis[mu][func_ind]);
         }
 
-    pack_flatten_basis();
-}
-
-void ACEBasisSet::load(string filename) {
-    int res;
-    FILE *fptr;
-    fptr = fopen(filename.c_str(), "r");
-    load(fptr);
     fclose(fptr);
 
+    pack_flatten_basis();
 }
 

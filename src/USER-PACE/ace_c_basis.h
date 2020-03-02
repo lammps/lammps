@@ -1,12 +1,12 @@
-#ifndef ACE_BASIS_H
-#define ACE_BASIS_H
+#ifndef ACE_ACE_C_BASIS_H
+#define ACE_ACE_C_BASIS_H
 
 #include <vector>
 
 #include "ace_types.h"
-#include "radial.h"
-#include "fast_spherical.h"
-#include "basisfunction.h"
+#include "ace_radial.h"
+#include "ace_spherical_cart.h"
+#include "ace_c_basisfunction.h"
 
 
 class ACEBasisSet {
@@ -61,15 +61,15 @@ public:
     SHORT_INT_TYPE *total_basis_size = nullptr, *total_basis_size_rank1 = nullptr;
 
     //[mu][func_ind]
-    C_tilde_B_basis_function **basis_rank1 = nullptr;
-    C_tilde_B_basis_function **basis = nullptr;
+    ACECTildeBasisFunction **basis_rank1 = nullptr;
+    ACECTildeBasisFunction **basis = nullptr;
 
     // maximum over elements array size for B[func_ind][ms_ind] and dB[func_ind][ms_ind][r]
     size_t max_B_array_size = 0;
     size_t max_dB_array_size = 0;
 
-    RFunctions radial_functions;
-    FastSHarmonics spherical_harmonics;
+    ACERadialFunctions radial_functions;
+    ACECartesianSphericalHarmonics spherical_harmonics;
 
     SHORT_INT_TYPE num_ctilde_max;
     SHORT_INT_TYPE num_ms_combinations_max;
@@ -87,12 +87,11 @@ public:
     void FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value, Array1D<DOUBLE_TYPE> &derivatives,
                                    DENSITY_TYPE ndensity);
 
+    //TODO: implement write basis to file
     void save(string filename);
 
     void load(string filename);
 
-    void load(FILE *fptr);
-
 };
 
-#endif //ACE_BASIS_H
+#endif //ACE_ACE_C_BASIS_H

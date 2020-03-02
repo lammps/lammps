@@ -2,26 +2,26 @@
 // Created by lysogy36 on 31.01.20.
 //
 
-#ifndef ACE_ATOMIC_ENVIRONMENT_H
-#define ACE_ATOMIC_ENVIRONMENT_H
+#ifndef ACE_ACE_ATOMS_H
+#define ACE_ACE_ATOMS_H
 
 #include <cmath>
 
 #include "ace_types.h"
-#include "multiarray_auto.h"
+#include "multiarray/ace_arraynd.h"
 
 #define sqr(x) (x)*(x)
 
-struct AtomicEnvironment {
+struct ACEAtomicEnvironment {
     int n_atoms_tot;
     DOUBLE_TYPE **x = nullptr;
     SPECIES_TYPE *species_type = nullptr;
     int *num_neighbours = nullptr;
     int **neighbour_list = nullptr;
 
-    AtomicEnvironment() = default;
+    ACEAtomicEnvironment() = default;
 
-    AtomicEnvironment(int n_atoms) {
+    ACEAtomicEnvironment(int n_atoms) {
         n_atoms_tot = n_atoms;
         x = new DOUBLE_TYPE *[n_atoms_tot];
         for (int i = 0; i < n_atoms_tot; i++) {
@@ -96,7 +96,7 @@ struct AtomicEnvironment {
 
     }
 
-    void _copy_from(const AtomicEnvironment &other) {
+    void _copy_from(const ACEAtomicEnvironment &other) {
         n_atoms_tot = other.n_atoms_tot;
 
         x = new DOUBLE_TYPE *[n_atoms_tot];
@@ -124,36 +124,36 @@ struct AtomicEnvironment {
         }
     }
 
-    AtomicEnvironment(const AtomicEnvironment &other) {
+    ACEAtomicEnvironment(const ACEAtomicEnvironment &other) {
         _copy_from(other);
     }
 
-    AtomicEnvironment &operator=(const AtomicEnvironment &other) {
+    ACEAtomicEnvironment &operator=(const ACEAtomicEnvironment &other) {
         _clean();
         _copy_from(other);
         return *this;
     }
 
-    ~AtomicEnvironment() {
+    ~ACEAtomicEnvironment() {
         _clean();
     }
 
 };
 
-AtomicEnvironment create_linear_chain(int n, int axis = 2);
+ACEAtomicEnvironment create_linear_chain(int n, int axis = 2);
 
-AtomicEnvironment create_cube(const DOUBLE_TYPE dr, const DOUBLE_TYPE cube_side_length);
+ACEAtomicEnvironment create_cube(const DOUBLE_TYPE dr, const DOUBLE_TYPE cube_side_length);
 
-AtomicEnvironment create_bcc(const DOUBLE_TYPE lat);
+ACEAtomicEnvironment create_bcc(const DOUBLE_TYPE lat);
 
-AtomicEnvironment
-create_supercell(AtomicEnvironment &simple_cell, DOUBLE_TYPE lx, DOUBLE_TYPE ly, DOUBLE_TYPE lz, int nx, int ny,
+ACEAtomicEnvironment
+create_supercell(ACEAtomicEnvironment &simple_cell, DOUBLE_TYPE lx, DOUBLE_TYPE ly, DOUBLE_TYPE lz, int nx, int ny,
                  int nz);
 
 typedef Array2D<DOUBLE_TYPE> Matrix;
 
 Matrix rotation_matrix(DOUBLE_TYPE theta, DOUBLE_TYPE theta1, DOUBLE_TYPE theta2);
 
-void rotate_structure(AtomicEnvironment &env, Matrix &rotation_matrix);
+void rotate_structure(ACEAtomicEnvironment &env, Matrix &rotation_matrix);
 
-#endif //ACE_ATOMIC_ENVIRONMENT_H
+#endif //ACE_ACE_ATOMS_H

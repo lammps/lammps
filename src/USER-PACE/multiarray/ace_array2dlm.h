@@ -1,14 +1,14 @@
 //
 // Created by Yury Lysogorskiy on 11.01.20.
 //
-#ifndef ACE_MULTIARRAY2DLM_H
-#define ACE_MULTIARRAY2DLM_H
+#ifndef ACE_ACE_ARRAY2DLM_H
+#define ACE_ACE_ARRAY2DLM_H
 
 #include <string>
 
 #include "ace_types.h"
-#include "contigous_array_nd.h"
-#include "multiarray_auto.h"
+#include "ace_contigous_array.h"
+#include "ace_arraynd.h"
 
 using namespace std;
 
@@ -352,4 +352,4 @@ public:
     }
 };
 
-#endif //ACE_MULTIARRAY2DLM_H
+#endif //ACE_ACE_ARRAY2DLM_H

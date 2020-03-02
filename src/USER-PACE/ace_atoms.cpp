@@ -2,18 +2,18 @@
 // Created by lysogy36 on 31.01.20.
 //
 #include "ace_types.h"
-#include "atomic_environment.h"
-#include "multiarray_auto.h"
+#include "ace_atoms.h"
+#include "multiarray/ace_arraynd.h"
 
 
-AtomicEnvironment create_cube(const DOUBLE_TYPE dr, const DOUBLE_TYPE cube_side_length) {
+ACEAtomicEnvironment create_cube(const DOUBLE_TYPE dr, const DOUBLE_TYPE cube_side_length) {
     int n_atoms = 0;
     for (DOUBLE_TYPE x = -cube_side_length / 2; x <= cube_side_length / 2 + dr / 2; x += dr)
         for (DOUBLE_TYPE y = -cube_side_length / 2; y <= cube_side_length / 2 + dr / 2; y += dr)
             for (DOUBLE_TYPE z = -cube_side_length / 2; z <= cube_side_length / 2 + dr / 2; z += dr)
                 n_atoms++;
 
-    AtomicEnvironment a(n_atoms);
+    ACEAtomicEnvironment a(n_atoms);
     int i = 0;
     for (DOUBLE_TYPE x = -cube_side_length / 2; x <= cube_side_length / 2 + dr / 2; x += dr)
         for (DOUBLE_TYPE y = -cube_side_length / 2; y <= cube_side_length / 2 + dr / 2; y += dr)
@@ -30,8 +30,8 @@ AtomicEnvironment create_cube(const DOUBLE_TYPE dr, const DOUBLE_TYPE cube_side_
 
 }
 
-AtomicEnvironment create_linear_chain(const int n, const int axis) {
-    AtomicEnvironment a(n);
+ACEAtomicEnvironment create_linear_chain(const int n, const int axis) {
+    ACEAtomicEnvironment a(n);
     for (int i = 0; i < a.n_atoms_tot; i++) {
         //a.x[i] = new DOUBLE_TYPE[3];
         a.x[i][0] = 0;
@@ -45,11 +45,11 @@ AtomicEnvironment create_linear_chain(const int n, const int axis) {
     return a;
 }
 
-AtomicEnvironment
-create_supercell(AtomicEnvironment &simple_cell, DOUBLE_TYPE lx, DOUBLE_TYPE ly, DOUBLE_TYPE lz, int nx, int ny,
+ACEAtomicEnvironment
+create_supercell(ACEAtomicEnvironment &simple_cell, DOUBLE_TYPE lx, DOUBLE_TYPE ly, DOUBLE_TYPE lz, int nx, int ny,
                  int nz) {
     int number_of_cells = nx * ny * nz;
-    AtomicEnvironment a(simple_cell.n_atoms_tot * number_of_cells);
+    ACEAtomicEnvironment a(simple_cell.n_atoms_tot * number_of_cells);
 
     int at_i = 0;
     for (int ix = 0; ix < nx; ix++)
@@ -66,8 +66,8 @@ create_supercell(AtomicEnvironment &simple_cell, DOUBLE_TYPE lx, DOUBLE_TYPE ly,
     return a;
 }
 
-AtomicEnvironment create_bcc(const DOUBLE_TYPE lat) {
-    AtomicEnvironment a(9);
+ACEAtomicEnvironment create_bcc(const DOUBLE_TYPE lat) {
+    ACEAtomicEnvironment a(9);
 
     a.x[0][0] = -lat / 2.;
     a.x[0][1] = -lat / 2.;
@@ -156,7 +156,7 @@ Matrix rotation_matrix(DOUBLE_TYPE theta, DOUBLE_TYPE theta1, DOUBLE_TYPE theta2
 }
 
 
-void rotate_structure(AtomicEnvironment &env, Matrix &rotation_matrix) {
+void rotate_structure(ACEAtomicEnvironment &env, Matrix &rotation_matrix) {
     int nat, i, j, k;
 
     for (nat = 0; nat < env.n_atoms_tot; nat++) {

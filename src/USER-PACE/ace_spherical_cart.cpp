@@ -1,5 +1,6 @@
 #include <cmath>
-#include "fast_spherical.h"
+
+#include "ace_spherical_cart.h"
 
 
 /**
@@ -11,11 +12,11 @@ The value of lmax
 
 @returns None
 */
-FastSHarmonics::FastSHarmonics(LS_TYPE lm) {
+ACECartesianSphericalHarmonics::ACECartesianSphericalHarmonics(LS_TYPE lm) {
     init(lm);
 }
 
-void FastSHarmonics::init(LS_TYPE lm) {
+void ACECartesianSphericalHarmonics::init(LS_TYPE lm) {
     lmax = lm;
 
     alm.init(lmax, "alm");
@@ -39,7 +40,7 @@ Destructor for SHarmonics. Frees the memory of all the arrays.
 
 @returns None
 */
-FastSHarmonics::~FastSHarmonics() {}
+ACECartesianSphericalHarmonics::~ACECartesianSphericalHarmonics() {}
 
 
 /**
@@ -49,7 +50,7 @@ Precomputes the value of \f$ a_{lm}, b_{lm} \f$ values.
 
 @returns None
 */
-void FastSHarmonics::pre_compute() {
+void ACECartesianSphericalHarmonics::pre_compute() {
 
     DOUBLE_TYPE a, b;
     DOUBLE_TYPE lsq, ld, l1, l2;
@@ -86,7 +87,7 @@ and its derivatives upto the lmax specified, which is a member of the class.
 
 @returns None
 */
-void FastSHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
+void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
 
@@ -131,9 +132,9 @@ void FastSHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 Function that computes \f$ Y_{lm} \f$ for the corresponding lmax value
 Input is the bond-directon vector \f$ \hat{r}_x, \hat{r}_y, \hat{r}_z \f$
 
-Each \f$ Y_{lm} \f$ value is a Complex object with real and imaginary parts. This function also
+Each \f$ Y_{lm} \f$ value is a ACEComplex object with real and imaginary parts. This function also
 finds the derivatives, which are stored in the Dycomponent class, with each component being a
-Complex object.
+ACEComplex object.
 
 @param rx, DOUBLE_TYPE
 @param ry, DOUBLE_TYPE
@@ -142,17 +143,17 @@ Complex object.
 
 @returns None
 */
-void FastSHarmonics::compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry, DOUBLE_TYPE rz, LS_TYPE lmaxi) {
+void ACECartesianSphericalHarmonics::compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry, DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
 
     DOUBLE_TYPE real;
     DOUBLE_TYPE img;
     MS_TYPE m;
-    Complex phase;
-    Complex phasem, mphasem1;
-    Complex dyx, dyy, dyz;
-    Complex rdy;
+    ACEComplex phase;
+    ACEComplex phasem, mphasem1;
+    ACEComplex dyx, dyy, dyz;
+    ACEComplex rdy;
 
     phase.real = rx;
     phase.img = ry;

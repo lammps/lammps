@@ -2,22 +2,23 @@
 #define ACE_RADIAL_FUNCTIONS_H
 
 #include "ace_types.h"
-#include "multiarray_auto.h"
+#include "multiarray/ace_arraynd.h"
 
 using namespace std;
 
 /**
 Class to store radial functions and their associated functions. \n
 */
-class RFunctions {
+class ACERadialFunctions {
 public:
-    RFunctions() = default;
+    ACERadialFunctions() = default;
 
-    RFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff);
+    ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+                       DOUBLE_TYPE cutoff);
 
     void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff);
 
-    ~RFunctions();
+    ~ACERadialFunctions();
 
     void calcCheb(NS_TYPE n, DOUBLE_TYPE x);
 

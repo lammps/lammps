@@ -13,6 +13,7 @@ PairStyle(ace,PairPACE)
 #define LMP_PAIR_TERSOFF_H
 
 #include "pair.h"
+#include "ace.h"
 
 namespace LAMMPS_NS {
 
@@ -30,12 +31,14 @@ namespace LAMMPS_NS {
 
         virtual void init_style();
 
-        double init_one(int, int);
+//        double init_one(int, int);
 
-        virtual double memory_usage();
+        // virtual double memory_usage();
 
     protected:
-        class ACE *aceptr;
+        ACEBasisSet *basis_set = nullptr;
+
+        ACE *ace = nullptr;
 
         char *potential_file_name;
 

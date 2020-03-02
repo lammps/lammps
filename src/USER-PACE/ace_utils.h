@@ -2,8 +2,8 @@
 // Created by lysogy36 on 27.02.20.
 //
 
-#ifndef ACE_UTILS_H
-#define ACE_UTILS_H
+#ifndef ACE_ACE_UTILS_H
+#define ACE_ACE_UTILS_H
 
 const DOUBLE_TYPE pi = 4.0 * atan(1.0);
 
@@ -20,4 +20,4 @@ inline double absolute_relative_error(double x, double y, double zero_threshold 
     else return 2 * abs(x - y) / (abs(x) + abs(y));
 }
 
-#endif //ACE_UTILS_H
+#endif //ACE_ACE_UTILS_H

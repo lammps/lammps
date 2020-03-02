@@ -6,7 +6,7 @@
 #define ACE_TYPES_H
 
 typedef char RANK_TYPE;
-typedef char SPECIES_TYPE;
+typedef int SPECIES_TYPE;
 typedef short int NS_TYPE;
 typedef short int LS_TYPE;
 

@@ -1,0 +1,58 @@
+# Al with pACE
+
+# ---------- Initialize Simulation ---------------------
+clear
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+atom_modify map array
+
+# ---------- Create structure ---------------------
+lattice 	fcc 4.0
+region	box block 0 3 0 3 0 3 units lattice
+create_box	1 box
+
+lattice	fcc 4.0 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+create_atoms 1 box
+replicate 1 1 1
+
+# --------- Mass -------------------
+# mass in grams/mole for units metal
+mass * 28.0855
+
+# ----------Potential ---------------------
+#pair_style rcut xcfunctional smear
+#pair_coeff * * * element1 element2 ...
+pair_style pace
+pair_coeff * * Al.pbe.in-rank6.ace Al
+
+
+# ----------- Neighborlist ----------------------
+neighbor 0.3 bin
+neigh_modify check yes
+
+# ---------- Properties ---------------------
+compute eng all pe/atom
+compute eatoms all reduce sum c_eng
+
+# ---------- Minimization ---------------------
+reset_timestep 0
+fix 1 all box/relax iso 0.0 vmax 0.001
+thermo 10
+thermo_style custom step pe lx ly lz press pxx pyy pzz c_eatoms
+run 0
+#min_style cg
+#minimize 1e-25 1e-25 5000 10000
+
+variable natoms equal "count(all)"
+variable teng equal "c_eatoms"
+variable length equal "lx"
+variable ecoh equal "v_teng/v_natoms"
+
+print "Total energy (eV) = ${teng};"
+print "Number of atoms = ${natoms};"
+print "Lattice constant (Angstoms) = ${length};"
+print "Cohesive energy (eV) = ${ecoh};"
+
+print "All done!"

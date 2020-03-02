@@ -1,22 +1,22 @@
 #include <cmath>
 
-#include "radial.h"
+#include "ace_radial.h"
 #include "ace_utils.h"
 
 /**
-Constructor for RFunctions.
+Constructor for ACERadialFunctions.
 
 @param None
 
 @returns None
 */
-RFunctions::RFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
-                       DOUBLE_TYPE cutoff) {
+ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+                                       DOUBLE_TYPE cutoff) {
     init(nradb, lmax, nradial, ntot, nelements, cutoff);
 }
 
-void RFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
-                      DOUBLE_TYPE cutoff) {
+void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+                              DOUBLE_TYPE cutoff) {
     int s;
     this->nradbase = nradb;
     this->lmax = lmax;
@@ -31,8 +31,9 @@ void RFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SP
     f1g.init(nradbase + 1, "f1g");
     f1gd1.init(nradbase + 1, "f1gd1");
 
-    fr.init(lmax + 1, nradbase, "fr");
-    dfr.init(lmax + 1, nradbase, "dfr");
+    fr.init(nradbase, lmax + 1, "fr");
+    dfr.init(nradbase, lmax + 1, "dfr");
+
     f1f.init(lmax + 1, nradbase, "f1f");
     f1fd1.init(lmax + 1, nradbase, "f1fd1");
 
@@ -61,13 +62,13 @@ void RFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SP
 }
 
 /**
-Destructor for RFunctions.
+Destructor for ACERadialFunctions.
 
 @param None
 
 @returns None
 */
-RFunctions::~RFunctions() {
+ACERadialFunctions::~ACERadialFunctions() {
 }
 
 /**
@@ -78,7 +79,7 @@ Function that computes Chebyshev polynomials of first and second kind
 
 @returns cheb1, dcheb1
 */
-void RFunctions::calcCheb(NS_TYPE n, DOUBLE_TYPE x) {
+void ACERadialFunctions::calcCheb(NS_TYPE n, DOUBLE_TYPE x) {
     if (n < 0) {
         fprintf(stderr, "The order n of the polynomials should be positive %d\n", n);
         exit(EXIT_FAILURE);
@@ -113,7 +114,7 @@ Function that computes radial basis.
 
 @returns gr, dgr
 */
-void RFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE r_c, DOUBLE_TYPE d_r_c, DOUBLE_TYPE r) {
+void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE r_c, DOUBLE_TYPE d_r_c, DOUBLE_TYPE r) {
     /*lam is given by the formula (24), that contains r_c */
     DOUBLE_TYPE x1, x2, x, dx;
     DOUBLE_TYPE env, denv, fcut, dfcut;
@@ -172,18 +173,18 @@ Function that computes radial functions.
 
 @returns fr, dfr
 */
-void RFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
+void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
     DOUBLE_TYPE frval, dfrval;
-    for (LS_TYPE l = 0; l <= lmax; l++) {
-        for (NS_TYPE nr = 0; nr < nradial; nr++) {
+    for (NS_TYPE nr = 0; nr < nradial; nr++) {
+        for (LS_TYPE l = 0; l <= lmax; l++) {
             frval = 0.0;
             dfrval = 0.0;
             for (NS_TYPE idx = 0; idx < nradbase; idx++) {
                 frval += crad(elei, elej, l, nr, idx) * gr(idx);
                 dfrval += crad(elei, elej, l, nr, idx) * dgr(idx);
             }
-            fr(l, nr) = frval;
-            dfr(l, nr) = dfrval;
+            fr(nr, l) = frval;
+            dfr(nr, l) = dfrval;
         }
     }
 }
@@ -195,7 +196,7 @@ Function that sets up the look-up tables for spline-representation of radial fun
 
 @returns None
 */
-void RFunctions::setuplookupRadspline() {
+void ACERadialFunctions::setuplookupRadspline() {
     SPECIES_TYPE elei, elej;
     int s, n, l, idx;
     NS_TYPE nr;
@@ -242,11 +243,11 @@ void RFunctions::setuplookupRadspline() {
                     f1g(nr) = c[0];
                     f1gd1(nr) = c[1];
                 }
-                for (l = 0; l <= lmax; l++) {
-                    for (nr = 0; nr < nradial; nr++) {
-                        f0 = fr(l, nr);
+                for (nr = 0; nr < nradial; nr++) {
+                    for (l = 0; l <= lmax; l++) {
+                        f0 = fr(nr, l);
                         f1 = f1f(l, nr);
-                        f0d1 = dfr(l, nr) * invrscalelookup;
+                        f0d1 = dfr(nr, l) * invrscalelookup;
                         f1d1 = f1fd1(l, nr);
                         // evaluate coefficients
                         c[0] = f0;
@@ -275,7 +276,8 @@ Function that gets radial function from look-up table using splines.
 @returns fr, dfr, gr, dgr
 */
 void
-RFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SPECIES_TYPE elei, SPECIES_TYPE elej) {
+ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SPECIES_TYPE elei,
+                                    SPECIES_TYPE elej) {
 //  when to declare variables in header vs on-the-fly?
     DOUBLE_TYPE x;
     int s, nr, nl, l, idx;
@@ -300,14 +302,13 @@ RFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SP
             gr(nr) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
             dgr(nr) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
         }
-        for (l = 0; l <= lmax; l++) {
-            for (nr = 0; nr < nradial; nr++) {
+        for (nr = 0; nr < nradial; nr++) {
+            for (l = 0; l <= lmax; l++) {
                 for (idx = 0; idx <= 3; idx++) {
-                    //c[idx] = lutfrs(idx, nr, l, nl, elei, elej);
                     c[idx] = lutfrs(elei, elej, nl, l, nr, idx);
                 }
-                fr(l, nr) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
-                dfr(l, nr) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
+                fr(nr, l) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
+                dfr(nr, l) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
             }
         }
     } else {

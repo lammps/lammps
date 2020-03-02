@@ -5,7 +5,7 @@
 #define ACE_MULTIARRAY_H
 
 #include <string.h>
-#include "contigous_array_nd.h"
+#include "ace_contigous_array.h"
 
 using namespace std;
 

@@ -15,9 +15,9 @@ Syntax
 * file1,file2,... = names of files containing molecule descriptions
 * zero or more keyword/value pairs may be appended after each file
 * keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale*
-  
+
   .. parsed-literal::
-  
+
        *offset* values = Toff Boff Aoff Doff Ioff
          Toff = offset to add to atom types
          Boff = offset to add to bond types
@@ -170,7 +170,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Charges, Diameters, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -228,6 +228,16 @@ listed in order from 1 to Nlines, but LAMMPS does not check for this.
 * one line per atom
 * line syntax: ID type
 * type = atom type of atom
+
+
+----------
+
+
+*Molecules* section:
+
+* one line per atom
+* line syntax: ID molecule-ID
+* molecule-ID = molecule ID of atom
 
 
 ----------

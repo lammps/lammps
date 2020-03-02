@@ -22,8 +22,6 @@ replicate 1 1 1
 mass * 28.0855
 
 # ----------Potential ---------------------
-#pair_style rcut xcfunctional smear
-#pair_coeff * * * element1 element2 ...
 pair_style pace
 pair_coeff * * Al.pbe.in-rank6.ace Al
 

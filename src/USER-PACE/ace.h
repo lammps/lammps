@@ -62,7 +62,7 @@ public:
     ACE_DEFINE_TIMER(total_time_calc);
 
     //TODO: integrate with lammps atoms mapping
-    int map_lammps_at_type_to_element[6] = {0, 1, 2, 3, 4, 5}; // mapping from atom types to elements
+    int map_lammps_at_type_to_element[6] = {0, 0, 2, 3, 4, 5}; // mapping from atom types to elements
 
     //total energy of ACEAtomicEnvironment
     DOUBLE_TYPE energy = 0;

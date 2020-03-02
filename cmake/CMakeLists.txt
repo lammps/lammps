@@ -137,16 +137,17 @@ set(LAMMPS_API_DEFINES)
 #        USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 #set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 
-set(DEFAULT_PACKAGES SNAP)
+set(DEFAULT_PACKAGES SNAP PACE)
 set(ACCEL_PACKAGES)
 
 foreach (PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach ()
 
-##### USER-PACE
+##### USER-PACE ######
 set(PACE_PATH ${LAMMPS_SOURCE_DIR}/USER-PACE)
 FILE(GLOB PACE_CPP ${PACE_PATH}/*.cpp)
+FILE(GLOB PACE_PAIR_STYLE_CPP ${LAMMPS_SOURCE_DIR}/pair_pace.cpp)
 FILE(GLOB PACE_INCLUDE ${PACE_PATH})
 
 ######################################################
@@ -579,7 +580,7 @@ endif()
 
 
 if (BUILD_EXE)
-  add_executable(lmp ${LMP_SOURCES} ${PACE_CPP})
+  add_executable(lmp ${LMP_SOURCES} ${PACE_CPP} ${PACE_PAIR_STYLE_CPP})
   target_include_directories(lmp PUBLIC ${PACE_INCLUDE})
   if (BUILD_LIB)
     target_link_libraries(lmp lammps)

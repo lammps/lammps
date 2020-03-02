@@ -148,7 +148,7 @@ void PairPACE::compute(int eflag, int vflag) {
 
     //determine the maximum numer of neighbours
     int max_jnum = -1;
-    for (int ii = 0; ii < list->inum; ii++) {
+    for (ii = 0; ii < list->inum; ii++) {
         i = list->ilist[ii];
         jnum = numneigh[i];
         if (jnum > max_jnum)
@@ -304,19 +304,14 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[i] = which element the Ith atom type is, -1 if not mapped
     // map[0] is not used
 
-    for (int i = 1; i <= atom->ntypes; i++) {
-        char *elemname = elemtypes[i - 1];
-        int jelem;
-        for (jelem = 0; jelem < nelements; jelem++)
-            if (strcmp(elemname, elements[jelem]) == 0)
-                break;
-
-        if (jelem < nelements)
-            map[i] = jelem;
-        else if (strcmp(elemname, "NULL") == 0) map[i] = -1;
-        else error->all(FLERR, "Incorrect args for pair coefficients");
+    for (int i = 0; i < atom->ntypes; i++) {
+        char *elemname = elemtypes[i];
+        if (AtomicNumberByName(elemname) == -1) {
+            printf("String '%s' is not a valid element\n", elemname);
+            error->all(FLERR, "Incorrect args for pair coefficients");
+        }
+        map[i] = i;
     }
-
 
     // clear setflag since coeff() called once with I,J = * *
 
@@ -381,11 +376,11 @@ void PairPACE::init_style() {
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-//double PairPACE::init_one(int i, int j) {
-//    if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-//
-//    return cutmax;
-//}
+double PairPACE::init_one(int i, int j) {
+    if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+
+    return 10;
+}
 
 /* ---------------------------------------------------------------------- */
 

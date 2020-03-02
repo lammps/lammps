@@ -5,7 +5,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(ace,PairPACE)
+PairStyle(pace,PairPACE)
 
 #else
 
@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
         virtual void init_style();
 
-//        double init_one(int, int);
+        double init_one(int, int);
 
         // virtual double memory_usage();
 

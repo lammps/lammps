@@ -70,9 +70,9 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* D0 (energy units)
-* alpha (1/distance units)
-* r0 (distance units)
+* :math:`D_0` (energy units)
+* :math:`\alpha` (1/distance units)
+* :math:`r_0` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global morse

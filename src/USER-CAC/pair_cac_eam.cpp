@@ -32,10 +32,9 @@
 #include "domain.h"
 #include "asa_user.h"
 
-
 //#include "math_extra.h"
-#define MAXNEIGH1  300
-#define MAXNEIGH2  30
+#define MAXNEIGHOUT  300
+#define MAXNEIGHIN  30
 #define MAXLINE 1024
 #define DELTA 4
 #define EXPAND 10
@@ -46,9 +45,6 @@ using namespace LAMMPS_NS;
 
 PairCACEAM::PairCACEAM(LAMMPS *lmp) : PairCAC(lmp)
 {
-
-
-  
   restartinfo = 0;
   
   manybody_flag = 1;
@@ -80,17 +76,6 @@ PairCACEAM::PairCACEAM(LAMMPS *lmp) : PairCAC(lmp)
   rho = NULL;
   fp = NULL;
   nmax = 0;
-  
-
-  interior_scales = NULL;
-  surface_counts = NULL;
-
-  surface_counts_max[0] = 0;
-  surface_counts_max[1] = 0;
-  surface_counts_max[2] = 0;
-  surface_counts_max_old[0] = 0;
-  surface_counts_max_old[1] = 0;
-  surface_counts_max_old[2] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,10 +97,6 @@ PairCACEAM::~PairCACEAM() {
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
     memory->destroy(scale);
-    memory->destroy(mass_matrix);
-
-    memory->destroy(surface_counts);
-    memory->destroy(interior_scales);
     memory->destroy(inner_neighbor_coords);
     memory->destroy(outer_neighbor_coords);
     memory->destroy(inner_neighbor_types);
@@ -196,10 +177,6 @@ void PairCACEAM::allocate()
   memory->create(current_force_column, max_nodes_per_element,"pairCAC:current_force_residue");
   memory->create(current_nodal_forces, max_nodes_per_element,"pairCAC:current_nodal_force");
   memory->create(pivot, max_nodes_per_element+1,"pairCAC:pivots");
-  memory->create(surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 
@@ -289,8 +266,8 @@ void PairCACEAM::init_style()
 {
   check_existence_flags();
   // convert read-in file(s) to arrays and spline them
-  maxneigh_quad_inner = MAXNEIGH2;
-  maxneigh_quad_outer = MAXNEIGH1;
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
+  atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   file2array();
   array2spline();
 
@@ -299,61 +276,6 @@ void PairCACEAM::init_style()
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
-  //surface selection array 
-  surf_set[0][0] = 1;
-  surf_set[0][1] = -1;
-  surf_set[1][0] = 1;
-  surf_set[1][1] = 1;
-  surf_set[2][0] = 2;
-  surf_set[2][1] = -1;
-  surf_set[3][0] = 2;
-  surf_set[3][1] = 1;
-  surf_set[4][0] = 3;
-  surf_set[4][1] = -1;
-  surf_set[5][0] = 3;
-  surf_set[5][1] = 1;
-
-  //surface DOF array
-
-  dof_set[0][0] = 0;
-  dof_set[0][1] = 3;
-  dof_set[0][2] = 4;
-  dof_set[0][3] = 7;
-
-  dof_set[1][0] = 1;
-  dof_set[1][1] = 2;
-  dof_set[1][2] = 5;
-  dof_set[1][3] = 6;
-
-  dof_set[2][0] = 0;
-  dof_set[2][1] = 1;
-  dof_set[2][2] = 4;
-  dof_set[2][3] = 5;
-
-  dof_set[3][0] = 2;
-  dof_set[3][1] = 3;
-  dof_set[3][2] = 6;
-  dof_set[3][3] = 7;
-
-  dof_set[4][0] = 0;
-  dof_set[4][1] = 1;
-  dof_set[4][2] = 2;
-  dof_set[4][3] = 3;
-
-  dof_set[5][0] = 4;
-  dof_set[5][1] = 5;
-  dof_set[5][2] = 6;
-  dof_set[5][3] = 7;
-
-  for (int si = 0; si < 6; si++) {
-    sort_dof_set[si][0] = dof_set[si][0];
-    sort_dof_set[si][1] = dof_set[si][1];
-    sort_dof_set[si][2] = dof_set[si][2];
-    sort_dof_set[si][3] = dof_set[si][3];
-    sort_surf_set[si][0] = surf_set[si][0];
-    sort_surf_set[si][1] = surf_set[si][1];
-  }
- 
 }
 
 ////////////////////////
@@ -701,8 +623,6 @@ void PairCACEAM::grab(FILE *fptr, int n, double *list)
   }
 }
 
-
-
 //---------------------------------
 void PairCACEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
 {
@@ -720,11 +640,7 @@ void *PairCACEAM::extract(const char *str, int &dim)
   return NULL;
 }
 
-
-
-
 //-----------------------------------------------------------------------
-
 
 void PairCACEAM::force_densities(int iii, double s, double t, double w, double coefficients,
   double &force_densityx, double &force_densityy, double &force_densityz) {
@@ -743,7 +659,6 @@ double distancesq;
 double current_position[3];
 double scan_position[3];
 double rcut;
-
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;
 
@@ -792,9 +707,8 @@ int distanceflag=0;
   int poly_index;
   double force_contribution[3];
   int element_index;
-  int *ilist, *jlist, *numneigh, **firstneigh;
-  int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
-  int neigh_max_outer = outer_quad_lists_counts[iii][neigh_quad_counter];
+  int neigh_max_inner = inner_quad_lists_counts[pqi];
+  int neigh_max_outer = outer_quad_lists_counts[pqi];
   int itype, jtype, ktype;
   double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
   double *coeff;
@@ -821,16 +735,12 @@ int distanceflag=0;
   tagint itag, jtag;
   double  rsq1, rsq2;
   double delr1[3], delr2[3], fj[3], fk[3];
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  jlist = firstneigh[iii];
   double ****nodal_positions = atom->nodal_positions;
   int **node_types = atom->node_types;
   origin_type = type_array[poly_counter];
   double inner_scan_position[3];
-  int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
-  int **outer_quad_indices = outer_quad_lists_index[iii][neigh_quad_counter];
+  int **inner_quad_indices = inner_quad_lists_index[pqi];
+  int **outer_quad_indices = outer_quad_lists_index[pqi];
   //precompute virtual neighbor atom locations
     
   

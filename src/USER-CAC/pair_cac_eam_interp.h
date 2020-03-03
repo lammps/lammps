@@ -72,7 +72,6 @@ class PairCACEAMInterp : public PairCAC {
   int max_density;
  
   virtual void allocate();
-  virtual void allocate_quad_attribute(int, int, int);
   virtual void read_file(char *);
   virtual void array2spline();
   virtual void file2array();

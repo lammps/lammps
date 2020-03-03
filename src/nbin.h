@@ -53,6 +53,7 @@ class NBin : protected Pointers {
 
   virtual void setup_bins(int) = 0;
   virtual void bin_atoms() = 0;
+  virtual int coord2bin(double *);
 
   // Kokkos package
 
@@ -76,10 +77,6 @@ class NBin : protected Pointers {
 
   int maxbin;                       // size of binhead array
   int maxatom;                      // size of bins array
-
-  // methods
-
-  virtual int coord2bin(double *);
 };
 
 }

@@ -16,7 +16,7 @@
 
 #include "asa_user.h"
 #include "pointers.h"
-#include "pair_cac.h"
+#include "npair_cac.h"
 #include "atom_vec_cac.h"
 using namespace std;
 
@@ -24,7 +24,7 @@ namespace LAMMPS_NS {
 
 class Asa_Data : protected Pointers {
  public:
-  Asa_Data(class LAMMPS *, class PairCAC *);
+  Asa_Data(class LAMMPS *, class NPairCAC *);
   Asa_Data(class LAMMPS *, class AtomVecCAC *);
  ~Asa_Data();
   
@@ -33,9 +33,9 @@ class Asa_Data : protected Pointers {
   asa_objective *Objective;
 
   AtomVecCAC *avec_pointer;
-  PairCAC *pair_pointer;
+  NPairCAC *npair_pointer;
 
-  int class_flag; //0 for Pair CAC calling and 1 for Atom Vec calling, increment as new ones added
+  int class_flag; //0 for NPair CAC calling and 1 for Atom Vec calling, increment as new ones added
   int call_asa_cg(double *x,double *lo,double *hi, ASA_INT n,
     double grad_tol, double (*valgrad) (asa_objective *), double *Work, ASA_INT *iWork);
   double myvalue(asa_objective *asa);

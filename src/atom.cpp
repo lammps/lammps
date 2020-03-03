@@ -100,7 +100,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   //USER-CAC
   
   nodal_positions = NULL;
-  maxpoly = 0;
+  maxpoly = max_quad_per_element = 0;
   nodes_per_element = 0;
   initial_nodal_positions = NULL;
   nodal_velocities = NULL;
@@ -115,24 +115,34 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nodes_per_element_list = NULL;
   eboxes = NULL;
   ebox_ref = NULL;
+  quadrature_counts = NULL;
+  e2quad_index = NULL;
+  list_container = NULL;
+  inner_quad_neigh_maxes = NULL;
+  outer_quad_neigh_maxes = NULL;
+  quadrature_point_data = NULL;
   min_x = min_f = min_v = NULL;
-  CAC_cut=0;
-  max_search_range=0;
-  initial_size=0;
-  one_layer_flag=0;
-  neboxes=0;
-  local_neboxes=0;
-  CAC_comm_flag=0;
-  bin_foreign=0;
-  neigh_weight_flag=0;
-  neighbor_weights=NULL;
-  weight_count=0;
-  CAC_pair_flag=0;
-  element_names=NULL;
-  element_type_count=0;
-  dense_count=0;
-  outer_neigh_flag=0;
-  CAC_virial=0;
+  npair_cac = NULL;
+  max_search_range = 0;
+  initial_size = 0;
+  max_neigh_inner_init = 0;
+  max_neigh_outer_init = 0;
+  one_layer_flag = 0;
+  neboxes = 0;
+  local_neboxes = 0;
+  CAC_comm_flag = 0;
+  sector_flag = 0;
+  bin_foreign = 0;
+  neigh_weight_flag = 0;
+  neighbor_weights = NULL;
+  weight_count = 0;
+  CAC_pair_flag = 0;
+  element_names = NULL;
+  element_type_count = 0;
+  dense_count = 0;
+  outer_neigh_flag = 0;
+  CAC_virial = 0;
+  ghost_quad_flag = 0;
 
   // USER-DPD
 

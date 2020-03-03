@@ -32,8 +32,8 @@
 #include "domain.h"
 #include "asa_user.h"
 
-#define MAXNEIGH1  50
-#define MAXNEIGH2  10
+#define MAXNEIGHIN  50
+#define MAXNEIGHOUT  10
 #define EXPAND 10
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -45,22 +45,8 @@ PairCACLJ::PairCACLJ(LAMMPS *lmp) : PairCAC(lmp)
   restartinfo = 0;
   nmax = 0;
   outer_neighflag = 0;
-
-  interior_scales = NULL;
-  surface_counts = NULL;
- 
-
   inner_neighbor_coords = NULL;
- 
   inner_neighbor_types = NULL;
-  
-
-  surface_counts_max[0] = 0;
-  surface_counts_max[1] = 0;
-  surface_counts_max[2] = 0;
-  surface_counts_max_old[0] = 0;
-  surface_counts_max_old[1] = 0;
-  surface_counts_max_old[2] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +63,6 @@ PairCACLJ::~PairCACLJ() {
     memory->destroy(lj3);
     memory->destroy(lj4);
     memory->destroy(offset);
-    memory->destroy(mass_matrix);
     memory->destroy(inner_neighbor_coords);
     memory->destroy(inner_neighbor_types);
   }
@@ -117,10 +102,6 @@ void PairCACLJ::allocate()
   memory->create(current_force_column, max_nodes_per_element,"pairCAC:current_force_residue");
   memory->create(current_nodal_forces, max_nodes_per_element,"pairCAC:current_nodal_force");
   memory->create(pivot, max_nodes_per_element+1,"pairCAC:pivots");
-  memory->create(surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 /* ----------------------------------------------------------------------
@@ -243,69 +224,13 @@ void PairCACLJ::init_style()
 {
   check_existence_flags();
 
-  maxneigh_quad_inner = MAXNEIGH2;
-  maxneigh_quad_outer = MAXNEIGH1;
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
-  //surface selection array 
-  surf_set[0][0] = 1;
-  surf_set[0][1] = -1;
-  surf_set[1][0] = 1;
-  surf_set[1][1] = 1;
-  surf_set[2][0] = 2;
-  surf_set[2][1] = -1;
-  surf_set[3][0] = 2;
-  surf_set[3][1] = 1;
-  surf_set[4][0] = 3;
-  surf_set[4][1] = -1;
-  surf_set[5][0] = 3;
-  surf_set[5][1] = 1;
-
-  //surface DOF array
-
-  dof_set[0][0] = 0;
-  dof_set[0][1] = 3;
-  dof_set[0][2] = 4;
-  dof_set[0][3] = 7;
-
-  dof_set[1][0] = 1;
-  dof_set[1][1] = 2;
-  dof_set[1][2] = 5;
-  dof_set[1][3] = 6;
-
-  dof_set[2][0] = 0;
-  dof_set[2][1] = 1;
-  dof_set[2][2] = 4;
-  dof_set[2][3] = 5;
-
-  dof_set[3][0] = 2;
-  dof_set[3][1] = 3;
-  dof_set[3][2] = 6;
-  dof_set[3][3] = 7;
-
-  dof_set[4][0] = 0;
-  dof_set[4][1] = 1;
-  dof_set[4][2] = 2;
-  dof_set[4][3] = 3;
-
-  dof_set[5][0] = 4;
-  dof_set[5][1] = 5;
-  dof_set[5][2] = 6;
-  dof_set[5][3] = 7;
-
-  for (int si = 0; si < 6; si++) {
-    sort_dof_set[si][0] = dof_set[si][0];
-    sort_dof_set[si][1] = dof_set[si][1];
-    sort_dof_set[si][2] = dof_set[si][2];
-    sort_dof_set[si][3] = dof_set[si][3];
-    sort_surf_set[si][0] = surf_set[si][0];
-    sort_surf_set[si][1] = surf_set[si][1];
-  }
-
 }
 
 //-----------------------------------------------------------------------
@@ -377,69 +302,63 @@ unit_cell[2] = w;
 
   //precompute virtual neighbor atom locations
 
-      int listtype;
-      int listindex;
-      int poly_index;
-      double force_contribution[3];
-      int scan_type;
-      int poly_grad_scan;
-      int element_index;
-      int *ilist, *jlist, *numneigh, **firstneigh;
-      int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
-      int **node_types = atom->node_types;
-      int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
-      ilist = list->ilist;
-      numneigh = list->numneigh;
-      firstneigh = list->firstneigh;
-      jlist = firstneigh[iii];
-        //if(update->ntimestep==1)
+  int listtype;
+  int listindex;
+  int poly_index;
+  double force_contribution[3];
+  int scan_type;
+  int poly_grad_scan;
+  int element_index;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int neigh_max = inner_quad_lists_counts[pqi];
+  int **node_types = atom->node_types;
+  int **inner_quad_indices = inner_quad_lists_index[pqi];
       
-      if(neigh_max>local_inner_max){
-      memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3,"Pair_CAC_lj:inner_neighbor_coords");
-      memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
-       local_inner_max=neigh_max+EXPAND;
-      }
+  if(neigh_max>local_inner_max){
+  memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3,"Pair_CAC_lj:inner_neighbor_coords");
+  memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
+    local_inner_max=neigh_max+EXPAND;
+  }
       
-      for (int l = 0; l < neigh_max; l++){ 
-      element_index = inner_quad_indices[l][0];
-      poly_index = inner_quad_indices[l][1];
-      inner_neighbor_types[l] = node_types[element_index][poly_index];
-      }
-      //interpolate virtual atom coordinates from shape functions corresponding to unit cells
-      interpolation(iii);
+  for (int l = 0; l < neigh_max; l++){ 
+    element_index = inner_quad_indices[l][0];
+    poly_index = inner_quad_indices[l][1];
+    inner_neighbor_types[l] = node_types[element_index][poly_index];
+  }
+    //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+  interpolation(iii);
 
-      for (int l = 0; l < neigh_max; l++) {
-
-        scan_type = inner_neighbor_types[l];
-        scan_position[0] = inner_neighbor_coords[l][0];
-        scan_position[1] = inner_neighbor_coords[l][1];
-        scan_position[2] = inner_neighbor_coords[l][2];
-        delx = current_position[0] - scan_position[0];
-        dely = current_position[1] - scan_position[1];
-        delz = current_position[2] - scan_position[2];
-        distancesq = delx*delx + dely*dely + delz*delz;
-        if(distancesq>=cut_global_s*cut_global_s) continue;
-        r2inv = 1.0 / distancesq;
-        r6inv = r2inv*r2inv*r2inv;
-        factor_lj = special_lj[sbmask(iii)];
-        forcelj = r6inv * (lj1[scan_type][origin_type]
-          * r6inv - lj2[scan_type][origin_type]);
-        fpair = factor_lj*forcelj*r2inv;
-        force_densityx += delx*fpair;
-        force_densityy += dely*fpair;
-        force_densityz += delz*fpair;
-        if(atom->CAC_virial){
-        virial_density[0] += 0.5*delx*delx*fpair;
-        virial_density[1] += 0.5*dely*dely*fpair;
-        virial_density[2] += 0.5*delz*delz*fpair;
-        virial_density[3] += 0.5*delx*dely*fpair;
-        virial_density[4] += 0.5*delx*delz*fpair;
-        virial_density[5] += 0.5*dely*delz*fpair;
-        }
-        if (quad_eflag) 
-          quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
-            offset[origin_type][scan_type]/2;
-        //end of energy portion
-      }
+  for (int l = 0; l < neigh_max; l++) {
+    scan_type = inner_neighbor_types[l];
+    scan_position[0] = inner_neighbor_coords[l][0];
+    scan_position[1] = inner_neighbor_coords[l][1];
+    scan_position[2] = inner_neighbor_coords[l][2];
+    delx = current_position[0] - scan_position[0];
+    dely = current_position[1] - scan_position[1];
+    delz = current_position[2] - scan_position[2];
+    distancesq = delx*delx + dely*dely + delz*delz;
+    if(distancesq>=cut_global_s*cut_global_s) continue;
+    r2inv = 1.0 / distancesq;
+    r6inv = r2inv*r2inv*r2inv;
+    factor_lj = special_lj[sbmask(iii)];
+    forcelj = r6inv * (lj1[scan_type][origin_type]
+      * r6inv - lj2[scan_type][origin_type]);
+    fpair = factor_lj*forcelj*r2inv;
+    force_densityx += delx*fpair;
+    force_densityy += dely*fpair;
+    force_densityz += delz*fpair;
+    if(atom->CAC_virial){
+      virial_density[0] += 0.5*delx*delx*fpair;
+      virial_density[1] += 0.5*dely*dely*fpair;
+      virial_density[2] += 0.5*delz*delz*fpair;
+      virial_density[3] += 0.5*delx*dely*fpair;
+      virial_density[4] += 0.5*delx*delz*fpair;
+      virial_density[5] += 0.5*dely*delz*fpair;
+    }
+    if (quad_eflag) 
+      quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
+        offset[origin_type][scan_type]/2;
+      //end of energy portion
+    }
 //end of scanning loop
 }

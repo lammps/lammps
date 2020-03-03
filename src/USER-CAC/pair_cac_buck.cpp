@@ -31,8 +31,8 @@
 #include "domain.h"
 #include "asa_user.h"
 
-#define MAXNEIGH1  50
-#define MAXNEIGH2  10
+#define MAXNEIGHOUT  50
+#define MAXNEIGHIN  10
 #define EXPAND 10
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,26 +44,16 @@ PairCACBuck::PairCACBuck(LAMMPS *lmp) : PairCAC(lmp)
   restartinfo = 0;
   nmax = 0;
   outer_neighflag = 0;
-
-  interior_scales = NULL;
-  surface_counts = NULL;
   inner_neighbor_coords = NULL;
-
   inner_neighbor_types = NULL;
-  surface_counts_max[0] = 0;
-  surface_counts_max[1] = 0;
-  surface_counts_max[2] = 0;
-  surface_counts_max_old[0] = 0;
-  surface_counts_max_old[1] = 0;
-  surface_counts_max_old[2] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairCACBuck::~PairCACBuck() {
   if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->destroy(cut);
   memory->destroy(a);
   memory->destroy(rho);
@@ -72,7 +62,6 @@ PairCACBuck::~PairCACBuck() {
   memory->destroy(buck1);
   memory->destroy(buck2);
   memory->destroy(offset);
-    memory->destroy(mass_matrix);
   memory->destroy(inner_neighbor_coords);
   memory->destroy(inner_neighbor_types);
   }
@@ -104,18 +93,12 @@ void PairCACBuck::allocate()
   memory->create(buck1, n + 1, n + 1, "pair:buck1");
   memory->create(buck2, n + 1, n + 1, "pair:buck2");
   memory->create(offset, n + 1, n + 1, "pair:offset");
-
-
   memory->create(mass_matrix, max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
   memory->create(mass_copy, max_nodes_per_element, max_nodes_per_element,"pairCAC:copy_mass_matrix");
   memory->create(force_column, max_nodes_per_element,3,"pairCAC:force_residue");
   memory->create(current_force_column, max_nodes_per_element,"pairCAC:current_force_residue");
   memory->create(current_nodal_forces, max_nodes_per_element,"pairCAC:current_nodal_force");
   memory->create(pivot, max_nodes_per_element+1,"pairCAC:pivots");
-  memory->create(surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 
@@ -241,69 +224,14 @@ void PairCACBuck::init_style()
 {
   check_existence_flags();
 
-
-  maxneigh_quad_inner = MAXNEIGH2;
-  maxneigh_quad_outer = MAXNEIGH1;
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
+  atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
-  //surface selection array
-  surf_set[0][0] = 1;
-  surf_set[0][1] = -1;
-  surf_set[1][0] = 1;
-  surf_set[1][1] = 1;
-  surf_set[2][0] = 2;
-  surf_set[2][1] = -1;
-  surf_set[3][0] = 2;
-  surf_set[3][1] = 1;
-  surf_set[4][0] = 3;
-  surf_set[4][1] = -1;
-  surf_set[5][0] = 3;
-  surf_set[5][1] = 1;
-
-  //surface DOF array
-
-  dof_set[0][0] = 0;
-  dof_set[0][1] = 3;
-  dof_set[0][2] = 4;
-  dof_set[0][3] = 7;
-
-  dof_set[1][0] = 1;
-  dof_set[1][1] = 2;
-  dof_set[1][2] = 5;
-  dof_set[1][3] = 6;
-
-  dof_set[2][0] = 0;
-  dof_set[2][1] = 1;
-  dof_set[2][2] = 4;
-  dof_set[2][3] = 5;
-
-  dof_set[3][0] = 2;
-  dof_set[3][1] = 3;
-  dof_set[3][2] = 6;
-  dof_set[3][3] = 7;
-
-  dof_set[4][0] = 0;
-  dof_set[4][1] = 1;
-  dof_set[4][2] = 2;
-  dof_set[4][3] = 3;
-
-  dof_set[5][0] = 4;
-  dof_set[5][1] = 5;
-  dof_set[5][2] = 6;
-  dof_set[5][3] = 7;
-
-  for (int si = 0; si < 6; si++) {
-    sort_dof_set[si][0] = dof_set[si][0];
-    sort_dof_set[si][1] = dof_set[si][1];
-    sort_dof_set[si][2] = dof_set[si][2];
-    sort_dof_set[si][3] = dof_set[si][3];
-    sort_surf_set[si][0] = surf_set[si][0];
-    sort_surf_set[si][1] = surf_set[si][1];
-  }
 
 }
 
@@ -380,13 +308,9 @@ void PairCACBuck::force_densities(int iii, double s, double t, double w, double 
   int scan_type;
   int element_index;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
+  int neigh_max = inner_quad_lists_counts[pqi];
   int **node_types = atom->node_types;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  jlist = firstneigh[iii];
-  int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
+  int **inner_quad_indices = inner_quad_lists_index[pqi];
   double ****nodal_positions = atom->nodal_positions;
 
     if(neigh_max>local_inner_max){
@@ -404,7 +328,6 @@ void PairCACBuck::force_densities(int iii, double s, double t, double w, double 
 
       //compute force at quadrature point
       for (int l = 0; l < neigh_max; l++) {
-
         scan_type = inner_neighbor_types[l];
         scan_position[0] = inner_neighbor_coords[l][0];
         scan_position[1] = inner_neighbor_coords[l][1];
@@ -416,7 +339,6 @@ void PairCACBuck::force_densities(int iii, double s, double t, double w, double 
         if (distancesq < cut[origin_type][scan_type]* cut[origin_type][scan_type]) {
           r2inv = 1.0 / distancesq;
           r6inv = r2inv*r2inv*r2inv;
-
 
           r = sqrt(distancesq);
           rexp = exp(-r*rhoinv[origin_type][scan_type]);
@@ -434,7 +356,6 @@ void PairCACBuck::force_densities(int iii, double s, double t, double w, double 
           virial_density[4] += 0.5*delx*delz*fpair;
           virial_density[5] += 0.5*dely*delz*fpair;
           }
-
           if (quad_eflag) {
             quadrature_energy += (a[origin_type][scan_type]*rexp - c[origin_type][scan_type]*r6inv -
             offset[origin_type][scan_type])/2;

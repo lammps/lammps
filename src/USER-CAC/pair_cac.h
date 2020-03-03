@@ -27,16 +27,7 @@ namespace LAMMPS_NS {
 class PairCAC : public Pair {
  public:
 	double cutmax;                // max cutoff for all elements
-  int pre_force_flag;           // set to 1 if computing something before force
-  class Asa_Data *asa_pointer; 
-  //variable for Asa_Data to obtain
-  int poly_min; 
-  int surf_select[2];
-  int dof_surf_list[4];
-  double quad_r[3];
-  int neigh_nodes_per_element; 
-  int *neighbor_element_scale;
-  double ***neighbor_element_positions;    
+  int pre_force_flag;           // set to 1 if computing something before force   
    
   PairCAC(class LAMMPS *);
   virtual ~PairCAC();
@@ -50,7 +41,6 @@ class PairCAC : public Pair {
   double shape_function(double, double, double,int,int);
   void interpolation(int);
   double shape_function_derivative(double, double, double,int,int,int);
-  int quad_sector_select(double, double, double,int,int);
  
   //set of shape functions
   double quad_shape_one(double s, double t, double w){ return (1-s)*(1-t)*(1-w)/8;}
@@ -76,22 +66,17 @@ class PairCAC : public Pair {
   int max_nodes_per_element, neigh_poly_count;
   double virial_density[6];
 
-  //stores quadrature point coordinates and calculation coefficients for all nlocal
-  double ** quadrature_point_data;
+  //stores quadrature point coordinates and calculation coefficients
+  double **quadrature_point_data;
   int quadrature_point_max;
-  int *quadrature_counts;
+  int *quadrature_counts, *e2quad_index;
   int max_quad_per_element;
+  double *quadrature_weights;
+  double *quadrature_abcissae;
+  int quadrature_node_count;
 	
   double cut_global_s;
-  int   quadrature_node_count;
   double cutoff_skin;
-  double cell_vectors[3][3];
-  double interior_scale[3];
-  int **surf_set;
-  int **dof_set;
-  int **sort_surf_set;
-  int **sort_dof_set;
-  double shape_args[3];
   int quad_allocated;
   int one_layer_flag;
   //used to call set of shape functions
@@ -108,10 +93,6 @@ class PairCAC : public Pair {
   double *current_force_column;
   double *current_x;
   int   *pivot;
-  double *quad_node,quad_weight;  
-  double *quadrature_weights;
-  double *quadrature_abcissae;
-  double *quadrature_result;
   double **shape_quad_result;
   double **current_nodal_positions;
   double **neighbor_copy_ucell;
@@ -119,33 +100,23 @@ class PairCAC : public Pair {
   int neighbor_element_type;
   int old_atom_count,old_all_atom_count, old_quad_count;
   int *old_atom_etype, *old_all_atom_etype;
-  int ****inner_quad_lists_index;
-  double ****inner_quad_lists_ucell;
-  int **inner_quad_lists_counts;
-  int ****outer_quad_lists_index;
-  double ****outer_quad_lists_ucell;
-  int **outer_quad_lists_counts;
-  double **old_quad_minima;
-  double *old_minima_neighbors;
-  double **interior_scales;
-  int **surface_counts;
+  int ***inner_quad_lists_index;
+  double ***inner_quad_lists_ucell;
+  int *inner_quad_lists_counts;
+  int ***outer_quad_lists_index;
+  double ***outer_quad_lists_ucell;
+  int *outer_quad_lists_counts;
   int atomic_flag;
   int nmax, nmax_surf;
-  int expansion_count_inner, expansion_count_outer, max_expansion_count_inner, max_expansion_count_outer;
   int neighrefresh;
   int maxneigh;
   int maxneigh_quad_inner, maxneigh_quad_outer;
   int maxneigh2;
-  int surface_counts_max[3];
-  int surface_counts_max_old[3];
   int current_element_type, current_poly_count;
   int natomic, atomic_counter;
   int *type_array;
   int poly_counter;
-  int current_list_index;
-  int interior_flag;
-  int neigh_quad_counter;
-  int quad_list_counter;
+  int qi, pqi;
   int local_inner_max;
   int local_outer_max;
   int densemax;
@@ -156,30 +127,17 @@ class PairCAC : public Pair {
   double *inner_neighbor_charges;
 
 	virtual void allocate();
-	virtual void read_file(char *) {}
-  virtual void array2spline(){}
-  virtual void file2array(){}
   void copy_vectors(int copymode);
 
   //further CAC functions 
-  void quadrature_init(int degree);
   void check_existence_flags();
-  //void init_asa_cg();
-  void allocate_quad_neigh_list(int,int,int);
-  virtual void allocate_quad_attribute(int,int,int) {}
-  void allocate_surface_counts();
   void compute_mass_matrix();
-  void compute_quad_neighbors(int);
   void compute_forcev(int);
-  void grow_quad_data();
   void set_shape_functions();
-  void compute_surface_depths(double &x, double &y, double &z, 
-    int &xb, int &yb, int &zb, int flag);
   void LUPSolve(double **A, int *P, double *b, int N, double *x);
-  void neighbor_accumulate(double,double,double,int, int,int);
   int LUPDecompose(double **A, int N, double Tol, int *P);
   double shape_product(int,int);
-  void quad_list_build(int, double, double, double);
+  void quadrature_init(int degree);
   virtual void pre_force_densities() {}
   virtual void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz) {}

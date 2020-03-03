@@ -95,10 +95,11 @@ void ComputeCACQuadCount::compute_peratom()
   double interior_scales[3];
   int n1, n2, n3;
   //enable passing quadrature rank that is not 2
-  int  quad = atom->quadrature_node_count;
+  int quad = atom->quadrature_node_count;
   if(nlocal!=atom->weight_count&&atom->neigh_weight_flag!=0)
   error->one(FLERR, "weight_counts don't match nlocal");
   for (int i = 0; i < nlocal; i++) {
+    //preliminary balancing metric if called before the first neighboring
     if(atom->neigh_weight_flag==0){
       //if(1){
     current_element_scale = element_scale[i];
@@ -142,7 +143,7 @@ void ComputeCACQuadCount::compute_surface_depths(double &scalex, double &scaley,
   int poly = 0;
   double unit_cell_mapped[3];
 
-  double rcut=neighbor->cutneighmax - neighbor->skin;
+  double rcut=neighbor->cutneighmax;
   //flag determines the current element type and corresponding procedure to calculate parameters for
   //surface penetration depth to be used when computing force density with influences from neighboring
   //elements

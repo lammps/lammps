@@ -138,7 +138,9 @@ void NPair::copy_bin_info()
   //USER-CAC package arrays
   quad2bin = nb->quad2bin;
   bin_ncontent = nb->bin_ncontent;
-  bin_content = nb-> bin_content;
+  bin_content = nb->bin_content;
+  nbin_element_overlap = nb->nbin_element_overlap;
+  bin_element_overlap = nb->bin_element_overlap;
 }
 
 /* ----------------------------------------------------------------------

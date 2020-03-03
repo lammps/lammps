@@ -31,8 +31,8 @@
 #include "domain.h"
 #include "asa_user.h"
 
-#define MAXNEIGH1  50
-#define MAXNEIGH2  10
+#define MAXNEIGHOUT  50
+#define MAXNEIGHIN  10
 #define EXPAND 10
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,28 +44,17 @@ PairCACCoulWolf::PairCACCoulWolf(LAMMPS *lmp) : PairCAC(lmp)
   restartinfo = 0;
   nmax = 0;
   outer_neighflag = 0;
-
-  interior_scales = NULL;
-  surface_counts = NULL;
   inner_neighbor_coords = NULL;
-
   inner_neighbor_types = NULL;
   inner_neighbor_charges = NULL;
-  surface_counts_max[0] = 0;
-  surface_counts_max[1] = 0;
-  surface_counts_max[2] = 0;
-  surface_counts_max_old[0] = 0;
-  surface_counts_max_old[1] = 0;
-  surface_counts_max_old[2] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairCACCoulWolf::~PairCACCoulWolf() {
   if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    memory->destroy(mass_matrix);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->destroy(inner_neighbor_coords);
   memory->destroy(inner_neighbor_types);
   memory->destroy(inner_neighbor_charges);
@@ -89,20 +78,12 @@ void PairCACCoulWolf::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
-
-
-
   memory->create(mass_matrix, max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
   memory->create(mass_copy, max_nodes_per_element, max_nodes_per_element,"pairCAC:copy_mass_matrix");
   memory->create(force_column, max_nodes_per_element,3,"pairCAC:force_residue");
   memory->create(current_force_column, max_nodes_per_element,"pairCAC:current_force_residue");
   memory->create(current_nodal_forces, max_nodes_per_element,"pairCAC:current_nodal_force");
   memory->create(pivot, max_nodes_per_element+1,"pairCAC:pivots");
-  memory->create(surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 
@@ -165,8 +146,8 @@ void PairCACCoulWolf::init_style()
   check_existence_flags();
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style cac/coul/wolf requires atom IDs");
-  maxneigh_quad_inner = MAXNEIGH2;
-  maxneigh_quad_outer = MAXNEIGH1;
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
+  atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (!atom->q_flag)
     error->all(FLERR, "Pair coul/wolf requires atom attribute q for charges");
   // need a full neighbor list
@@ -176,61 +157,6 @@ void PairCACCoulWolf::init_style()
   //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
   cut_coulsq = cut_coul*cut_coul;
-  //surface selection array
-  surf_set[0][0] = 1;
-  surf_set[0][1] = -1;
-  surf_set[1][0] = 1;
-  surf_set[1][1] = 1;
-  surf_set[2][0] = 2;
-  surf_set[2][1] = -1;
-  surf_set[3][0] = 2;
-  surf_set[3][1] = 1;
-  surf_set[4][0] = 3;
-  surf_set[4][1] = -1;
-  surf_set[5][0] = 3;
-  surf_set[5][1] = 1;
-
-  //surface DOF array
-
-  dof_set[0][0] = 0;
-  dof_set[0][1] = 3;
-  dof_set[0][2] = 4;
-  dof_set[0][3] = 7;
-
-  dof_set[1][0] = 1;
-  dof_set[1][1] = 2;
-  dof_set[1][2] = 5;
-  dof_set[1][3] = 6;
-
-  dof_set[2][0] = 0;
-  dof_set[2][1] = 1;
-  dof_set[2][2] = 4;
-  dof_set[2][3] = 5;
-
-  dof_set[3][0] = 2;
-  dof_set[3][1] = 3;
-  dof_set[3][2] = 6;
-  dof_set[3][3] = 7;
-
-  dof_set[4][0] = 0;
-  dof_set[4][1] = 1;
-  dof_set[4][2] = 2;
-  dof_set[4][3] = 3;
-
-  dof_set[5][0] = 4;
-  dof_set[5][1] = 5;
-  dof_set[5][2] = 6;
-  dof_set[5][3] = 7;
-
-  for (int si = 0; si < 6; si++) {
-    sort_dof_set[si][0] = dof_set[si][0];
-    sort_dof_set[si][1] = dof_set[si][1];
-    sort_dof_set[si][2] = dof_set[si][2];
-    sort_dof_set[si][3] = dof_set[si][3];
-    sort_surf_set[si][0] = surf_set[si][0];
-    sort_surf_set[si][1] = surf_set[si][1];
-  }
-
 }
 
 //-----------------------------------------------------------------------
@@ -313,7 +239,7 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
       int scan_type;
       int element_index;
       int *ilist, *jlist, *numneigh, **firstneigh;
-      int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
+      int neigh_max = inner_quad_lists_counts[pqi];
       e_shift = erfc(alf*cut_coul) / cut_coul;
       f_shift = -(e_shift + 2.0*alf / MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
         cut_coul;
@@ -326,7 +252,7 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
       double **node_charges = atom->node_charges;
       double origin_element_charge= node_charges[iii][poly_counter];
       double neighbor_element_charge;
-      int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
+      int **inner_quad_indices = inner_quad_lists_index[pqi];
       qisq = origin_element_charge*origin_element_charge;
       e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
 

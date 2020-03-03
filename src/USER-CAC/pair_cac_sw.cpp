@@ -32,8 +32,8 @@
 #include "asa_user.h"
 
 //#include "math_extra.h"
-#define MAXNEIGH1  110
-#define MAXNEIGH2  10
+#define MAXNEIGHOUT  110
+#define MAXNEIGHIN  10
 #define MAXLINE 1024
 #define DELTA 4
 #define EXPAND 10
@@ -44,8 +44,6 @@ using namespace MathConst;
 
 PairCACSW::PairCACSW(LAMMPS *lmp) : PairCAC(lmp)
 {
-
-
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -64,15 +62,6 @@ PairCACSW::PairCACSW(LAMMPS *lmp) : PairCAC(lmp)
   outer_neighbor_coords = NULL;
   inner_neighbor_types = NULL;
   outer_neighbor_types = NULL;
-  interior_scales = NULL;
-  surface_counts = NULL;
-
-  surface_counts_max[0] = 0;
-  surface_counts_max[1] = 0;
-  surface_counts_max[2] = 0;
-  surface_counts_max_old[0] = 0;
-  surface_counts_max_old[1] = 0;
-  surface_counts_max_old[2] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,7 +84,6 @@ PairCACSW::~PairCACSW() {
   memory->destroy(outer_neighbor_coords);
   memory->destroy(inner_neighbor_types);
   memory->destroy(outer_neighbor_types);
-    memory->destroy(mass_matrix);
   }
 }
 
@@ -118,10 +106,6 @@ void PairCACSW::allocate()
   memory->create(current_force_column, max_nodes_per_element,"pairCAC:current_force_residue");
   memory->create(current_nodal_forces, max_nodes_per_element,"pairCAC:current_nodal_force");
   memory->create(pivot, max_nodes_per_element+1,"pairCAC:pivots");
-  memory->create(surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 
@@ -216,8 +200,8 @@ double PairCACSW::init_one(int i, int j) {
 void PairCACSW::init_style()
 {
   check_existence_flags();
-  maxneigh_quad_inner = MAXNEIGH2;
-  maxneigh_quad_outer = MAXNEIGH1;
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
+  atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style cac/sw requires atom IDs");
 
@@ -228,61 +212,6 @@ void PairCACSW::init_style()
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
-  //surface selection array
-  surf_set[0][0] = 1;
-  surf_set[0][1] = -1;
-  surf_set[1][0] = 1;
-  surf_set[1][1] = 1;
-  surf_set[2][0] = 2;
-  surf_set[2][1] = -1;
-  surf_set[3][0] = 2;
-  surf_set[3][1] = 1;
-  surf_set[4][0] = 3;
-  surf_set[4][1] = -1;
-  surf_set[5][0] = 3;
-  surf_set[5][1] = 1;
-
-  //surface DOF array
-
-  dof_set[0][0] = 0;
-  dof_set[0][1] = 3;
-  dof_set[0][2] = 4;
-  dof_set[0][3] = 7;
-
-  dof_set[1][0] = 1;
-  dof_set[1][1] = 2;
-  dof_set[1][2] = 5;
-  dof_set[1][3] = 6;
-
-  dof_set[2][0] = 0;
-  dof_set[2][1] = 1;
-  dof_set[2][2] = 4;
-  dof_set[2][3] = 5;
-
-  dof_set[3][0] = 2;
-  dof_set[3][1] = 3;
-  dof_set[3][2] = 6;
-  dof_set[3][3] = 7;
-
-  dof_set[4][0] = 0;
-  dof_set[4][1] = 1;
-  dof_set[4][2] = 2;
-  dof_set[4][3] = 3;
-
-  dof_set[5][0] = 4;
-  dof_set[5][1] = 5;
-  dof_set[5][2] = 6;
-  dof_set[5][3] = 7;
-
-  for (int si = 0; si < 6; si++) {
-    sort_dof_set[si][0] = dof_set[si][0];
-    sort_dof_set[si][1] = dof_set[si][1];
-    sort_dof_set[si][2] = dof_set[si][2];
-    sort_dof_set[si][3] = dof_set[si][3];
-    sort_surf_set[si][0] = surf_set[si][0];
-    sort_surf_set[si][1] = surf_set[si][1];
-  }
-
 }
 
 ////////////////////////
@@ -566,15 +495,12 @@ void PairCACSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   if (eflag) eng = facrad;
 }
 
-
 //-----------------------------------------------------------------------
-
 
 void PairCACSW::force_densities( int iii, double s,double t, double w, double coefficients,
   double &force_densityx,double &force_densityy,double &force_densityz){
 
 double delx,dely,delz;
-
 double r2inv;
 double r6inv;
 double shape_func;
@@ -602,9 +528,9 @@ unit_cell[2] = w;
 //for each grid scan
 
 int distanceflag=0;
-    current_position[0]=0;
-    current_position[1]=0;
-    current_position[2]=0;
+  current_position[0]=0;
+  current_position[1]=0;
+  current_position[2]=0;
 
   if (!atomic_flag) {
     nodes_per_element = nodes_count_list[current_element_type];
@@ -628,9 +554,8 @@ int distanceflag=0;
   int scan_type, scan_type2;
   int element_index;
   int poly_index;
-  int *ilist, *jlist, *numneigh, **firstneigh;
-  int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
-  int neigh_max_outer = outer_quad_lists_counts[iii][neigh_quad_counter];
+  int neigh_max_inner = inner_quad_lists_counts[pqi];
+  int neigh_max_outer = outer_quad_lists_counts[pqi];
   int itype, jtype, ktype, ijparam, ikparam, ijkparam;
   double energy_contribution;
   energy_contribution = 0;
@@ -649,16 +574,12 @@ int distanceflag=0;
   tagint itag, jtag;
   double rsq, rsq1, rsq2;
   double delr1[3], delr2[3], fj[3], fk[3];
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  jlist = firstneigh[iii];
   double ****nodal_positions = atom->nodal_positions;
   int **node_types = atom->node_types;
   origin_type = map[type_array[poly_counter]];
   double inner_scan_position[3];
-  int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
-  int **outer_quad_indices = outer_quad_lists_index[iii][neigh_quad_counter];
+  int **inner_quad_indices = inner_quad_lists_index[pqi];
+  int **outer_quad_indices = outer_quad_lists_index[pqi];
   //precompute virtual neighbor atom locations
   for (int l = 0; l < neigh_max_inner; l++) {
     //listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
@@ -676,12 +597,10 @@ int distanceflag=0;
   interpolation(iii);
   //two body contribution
   for (int l = 0; l < neigh_max_inner; l++) {
-
     scan_type = inner_neighbor_types[l];
     scan_position[0] = inner_neighbor_coords[l][0];
     scan_position[1] = inner_neighbor_coords[l][1];
     scan_position[2] = inner_neighbor_coords[l][2];
-
 
     delx = current_position[0] - scan_position[0];
     dely = current_position[1] - scan_position[1];
@@ -705,8 +624,6 @@ int distanceflag=0;
     virial_density[4] += 0.5*delx*delz*fpair;
     virial_density[5] += 0.5*dely*delz*fpair;
     }
-
-
   }
 
   //ith three body contributions
@@ -721,11 +638,8 @@ int distanceflag=0;
     distancesq = delx*delx + dely*dely + delz*delz;
 
     ijparam = elem2param[origin_type][scan_type][scan_type];
-
     rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
     if (rsq1 >= params[ijparam].cutsq) continue;
-
-
 
     for (int k = l + 1; k < neigh_max_inner; k++) {
       scan_type2 = inner_neighbor_types[k];
@@ -742,7 +656,6 @@ int distanceflag=0;
       rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
       if (rsq2 >= params[ikparam].cutsq) continue;
 
-
       threebody(&params[ijparam], &params[ikparam], &params[ijkparam],
         rsq1, rsq2, delr1, delr2, fj, fk, quad_eflag, energy_contribution);
         quadrature_energy += energy_contribution/3;
@@ -758,9 +671,7 @@ int distanceflag=0;
       virial_density[4] += THIRD*(delr1[0]*fj[2] + delr2[0]*fk[2]);
       virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
       }
-
     }
-
   }
   //jk three body contributions to i
   for (int l = 0; l < neigh_max_inner; l++) {
@@ -778,8 +689,6 @@ int distanceflag=0;
 
     rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
     if (rsq1 >= params[ijparam].cutsq) continue;
-
-
 
     for (int k = 0; k < neigh_max_inner; k++) {
       //add ji as well as ij contributions
@@ -849,7 +758,6 @@ int distanceflag=0;
         virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
       }
     }
-
   }
 
 //end of scanning loop

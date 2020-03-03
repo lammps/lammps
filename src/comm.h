@@ -81,7 +81,7 @@ class Comm : protected Pointers {
   virtual void exchange() = 0;                   // move atoms to new procs
   virtual void borders() = 0;                    // setup list of atoms to comm
 
-  // forward/reverse comm from a Pair, Fix, Compute, Dump
+  // forward/reverse comm from a Pair, Fix, Compute, Dump, NPair
 
   virtual void forward_comm_pair(class Pair *) = 0;
   virtual void reverse_comm_pair(class Pair *) = 0;
@@ -92,6 +92,8 @@ class Comm : protected Pointers {
   virtual void reverse_comm_compute(class Compute *) = 0;
   virtual void forward_comm_dump(class Dump *) = 0;
   virtual void reverse_comm_dump(class Dump *) = 0;
+  virtual void forward_comm_npair(class NPair *, int size){}
+  virtual void reverse_comm_npair(class Npair *, int size){}
 
   // forward comm of an array
   // exchange of info on neigh stencil

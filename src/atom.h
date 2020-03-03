@@ -98,21 +98,31 @@ class Atom : protected Pointers {
   double *damage;
 
   //USER-CAC package
-   int nodes_per_element, maxpoly, words_per_node; //maximum number of nodes and atoms per unit cell per element in model
+   
+  int nodes_per_element, maxpoly, words_per_node; //maximum number of nodes and atoms per unit cell per element in model
 	// followed by number of words per node in a data file and the number of pure atoms in the CAC model
+
   double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces,
-	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes;
-  double ****nodal_virial;
-  int *poly_count, **node_types,  *element_type,
+	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes,
+    ****nodal_virial, ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, **quadrature_point_data,
+    **interior_scales;
+
+  int *poly_count, **node_types,  *element_type, max_quad_per_element,
 	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
-     initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref;
-  int neigh_weight_flag, **neighbor_weights, quadrature_node_count;
-  double CAC_cut, CAC_skin, max_search_range;				//used by npair_CAC styles
-  int one_layer_flag, weight_count,CAC_pair_flag, element_type_count, outer_neigh_flag;
-  char **element_names;
-  double *min_x, *min_v, *min_f; //used by CAC min styles
-  int dense_count; //used when minimizing with CAC styles
-  int CAC_virial;
+    initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref, **list_container,
+    neigh_weight_flag, **neighbor_weights, quadrature_node_count, *e2quad_index,
+    ***inner_quad_lists_index, *inner_quad_lists_counts, ***outer_quad_lists_index,
+    *outer_quad_lists_counts, quadrature_point_max, quadrature_poly_max, *quadrature_counts, **surface_counts,
+    max_neigh_outer_init, max_neigh_inner_init, *inner_quad_neigh_maxes, *outer_quad_neigh_maxes;
+
+  int one_layer_flag, weight_count,CAC_pair_flag, element_type_count,
+    outer_neigh_flag, ghost_quad_flag, sector_flag;
+  double max_search_range;              //currently used by comm style to determine communication overlap range
+  char **element_names;                 //stores names for element types
+  double *min_x, *min_v, *min_f;        //used by CAC min styles
+  int dense_count;                      //used when minimizing with CAC styles
+  int CAC_virial;                       //1 if the virial calculation is requested; 0 otherwise.
+  class NPairCAC *npair_cac;            //invoked by some CAC pair styles to allocate quadrature point level arrays
 
   // USER-DPD package
 

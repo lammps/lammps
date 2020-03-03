@@ -34,6 +34,10 @@ class NPair : protected Pointers {
   void build_setup();
   virtual void build(class NeighList *) = 0;
   virtual bigint memory_usage() {return 0;}
+  virtual int pack_forward_comm(int, int *, double *, int, int *){}
+  virtual void unpack_forward_comm(int, int, double *){}
+  virtual int pack_reverse_comm(int, int, double *){}
+  virtual void unpack_reverse_comm(int, int *, double *){}
 
  protected:
   double **mycutneighsq;         // per-type cutoffs when user specified

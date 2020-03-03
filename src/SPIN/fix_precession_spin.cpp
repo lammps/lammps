@@ -30,6 +30,7 @@
 #include "force.h"
 #include "input.h"
 #include "math_const.h"
+#include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
@@ -43,7 +44,7 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -154,6 +155,9 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 FixPrecessionSpin::~FixPrecessionSpin()
 {
   delete [] magstr;
+  
+  // test emag list storing mag energies
+  memory->destroy(emag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,6 +217,11 @@ void FixPrecessionSpin::init()
 
   if (varflag == CONSTANT) set_magneticprecession();
 
+  // test emag list storing mag energies
+  // init. size of energy stacking lists
+
+  nlocal_max = atom->nlocal;
+  memory->grow(emag,nlocal_max,"pair/spin:emag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -252,21 +261,33 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double **fm = atom->fm;
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
-  double spi[3], fmi[3], epreci;
+  double spi[4], fmi[3], epreci;
 
+  // test emag list storing mag energies
+  // checking size of emag
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+  
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {
+    
+    // test emag list storing mag energies
+    emag[i] = 0.0;
+    
     if (mask[i] & groupbit) {
       epreci = 0.0;
       spi[0] = sp[i][0];
       spi[1] = sp[i][1];
       spi[2] = sp[i][2];
+      spi[3] = sp[i][3];
       fmi[0] = fmi[1] = fmi[2] = 0.0;
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= compute_zeeman_energy(spi);
       }
 
       if (aniso_flag) {           // compute magnetic anisotropy
@@ -279,6 +300,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
         epreci -= compute_cubic_energy(spi);
       }
 
+      emag[i] += epreci;
       eprec += epreci;
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];

@@ -13,8 +13,9 @@ create_box      1 box
 create_atoms    1 box
 
 mass            1 1.0
-set             type 1 spin 2.0 1.0 0.0 0.0
+set             type 1 spin 1.0 0.0 0.0 1.0
 
+# defines a pair/style for neighbor list, but do not use it
 pair_style      spin/exchange 4.0
 pair_coeff      * * exchange 1.0 0.0 0.0 1.0
 
@@ -22,26 +23,24 @@ group bead      type 1
  
 variable        H equal 10.0
 variable        Kan equal 0.0
-variable        Temperature equal 0.0 
-variable        Nsteps equal 500000
+variable        Temperature equal 19.00000000000000000000
+variable        RUN equal 1000000
 
 fix             1 all nve/spin lattice no
 fix             2 all precession/spin zeeman ${H} 0.0 0.0 1.0 anisotropy ${Kan} 0.0 0.0 1.0
 fix_modify      2 energy yes
 fix             3 all langevin/spin ${Temperature} 0.01 12345
 
-compute 	out_mag    all spin
-compute 	out_pe     all pe
+compute         compute_spin all spin
+compute         outsp all property/atom spx spy spz sp
+compute         magsz all reduce ave c_outsp[3]
 
-variable 	magx      equal c_out_mag[1]
-variable 	magy      equal c_out_mag[2]
-variable 	magz      equal c_out_mag[3]
-variable 	magnorm   equal c_out_mag[4]
-variable 	emag      equal c_out_mag[5]
+thermo          50000
+thermo_style    custom step time temp vol pe c_compute_spin[5] etotal  
 
-thermo_style    custom step time v_magx v_magy v_magz v_emag pe etotal
-thermo          100
+variable        magnetic_energy equal c_compute_spin[5]
 
-timestep	0.0001
+fix             avespin all ave/time 1 ${RUN} ${RUN} v_Temperature v_H v_Kan c_magsz v_magnetic_energy file average_spin
 
-run             ${Nsteps}
+timestep        0.1
+run             ${RUN}

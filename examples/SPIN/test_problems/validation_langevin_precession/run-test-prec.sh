@@ -10,10 +10,9 @@ N=20
 for (( i=0; i<$N; i++ ))
 do
   temp="$(echo "$tempi+$i*($tempf-$tempi)/$N" | bc -l)"
-  sed s/temperature/${temp}/g bench-prec-spin.template > \
-    bench-prec-spin.in
-  ./../../../../src/lmp_serial \
-    -in bench-prec-spin.in 
+  sed s/temperature/${temp}/g test-prec-spin.template > \
+    test-prec-spin.in
+  ./../../../../src/lmp_serial -in test-prec-spin.in 
   Hz="$(tail -n 1 average_spin | awk -F " " '{print $3}')"
   sz="$(tail -n 1 average_spin | awk -F " " '{print $5}')"
   en="$(tail -n 1 average_spin | awk -F " " '{print $6}')"

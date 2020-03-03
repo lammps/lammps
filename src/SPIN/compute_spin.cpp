@@ -41,13 +41,20 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), pair(NULL), spin_pairs(NULL)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
   vector_flag = 1;
   size_vector = 6;
   extvector = 0;
+  // npairs = npairspin = 0;
+  
+  // initialize the magnetic interaction flags
+
+  pair_spin_flag = 0;
+  long_spin_flag = 0;
+  precession_spin_flag = 0;
 
   init();
 
@@ -60,6 +67,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
 ComputeSpin::~ComputeSpin()
 {
   memory->destroy(vector);
+  delete [] spin_pairs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,7 +76,11 @@ void ComputeSpin::init()
 {
   hbar = force->hplanck/MY_2PI;
   kb = force->boltz;
+  npairs = npairspin = 0;
+  precession_spin_flag = 0;
 
+  // set ptrs on Pair/Spin styles
+  
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
   if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
@@ -173,9 +185,10 @@ void ComputeSpin::compute_vector()
         // update magnetic precession energies
         
         if (precession_spin_flag) {
-          magenergy -= lockprecessionspin->compute_zeeman_energy(sp[i]);
-          magenergy -= lockprecessionspin->compute_anisotropy_energy(sp[i]);
-          magenergy -= lockprecessionspin->compute_cubic_energy(sp[i]);
+          magenergy += lockprecessionspin->emag[i];
+          // magenergy -= lockprecessionspin->compute_zeeman_energy(sp[i]);
+          // magenergy -= lockprecessionspin->compute_anisotropy_energy(sp[i]);
+          // magenergy -= lockprecessionspin->compute_cubic_energy(sp[i]);
         }
         
         // update magnetic pair interactions

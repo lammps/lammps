@@ -72,12 +72,6 @@ PairPACE::~PairPACE() {
     delete[] elements;
 
 
-    if (allocated) {
-        memory->destroy(setflag);
-        memory->destroy(cutsq);
-        delete[] map;
-    }
-
     delete[] potential_file_name;
 
     delete basis_set;
@@ -94,10 +88,10 @@ PairPACE::~PairPACE() {
 
 void PairPACE::compute(int eflag, int vflag) {
     printf("--> PairPACE::compute\n");
-    int i, j, ii, jj, jnum, k;
+    int i, j, ii, jj, inum, jnum, k;
     double delx, dely, delz, evdwl, rsq;
     double fij[3];
-    int *jlist, *numneigh, **firstneigh;
+    int *ilist, *jlist, *numneigh, **firstneigh;
     evdwl = 0.0;
 
     ev_init(eflag, vflag);
@@ -118,10 +112,21 @@ void PairPACE::compute(int eflag, int vflag) {
     int nall = nlocal + atom->nghost;
     //printf("nall=%d\n",nall);
 
+    // inum: length of the neighborlists list
+    inum = list->inum;
+    //printf("inum=%d\n",inum);
+    // ilist: list of "i" atoms for which neighbor lists exist
+    ilist = list->ilist;
     //numneigh: the length of each these neigbor list
     numneigh = list->numneigh;
     // the pointer to the list of neighbors of "i"
     firstneigh = list->firstneigh;
+
+    if (inum != nlocal) {
+        printf("inum: %d nlocal: %d are different.\n", inum, nlocal);
+        exit(0);
+    }
+
 
     // Aidan Thompson told RD (26 July 2019) that practically always holds:
     // inum = nlocal
@@ -148,17 +153,30 @@ void PairPACE::compute(int eflag, int vflag) {
 
     //determine the maximum numer of neighbours
     int max_jnum = -1;
+    int nei = 0;
+    // printf("list->inum=%d\n",list->inum);
     for (ii = 0; ii < list->inum; ii++) {
-        i = list->ilist[ii];
+        i = ilist[ii];
+        //   printf("ilist[%d]=%d\n",ii,i);
         jnum = numneigh[i];
+        // printf("numneigh[%d]=%d\n",i,jnum);
+        nei = nei + jnum;
+        //printf("firstneigh[%d]/jlist=\n",i);
+        jlist = firstneigh[i];
+        // loop all neighbors of atom i
+//        for (jj = 0; jj < jnum; jj++) {
+//                printf("%d ", jlist[jj]);
+//        }
+//        printf("\n");
+
         if (jnum > max_jnum)
             max_jnum = jnum;
     }
 
-    printf("Max num of neighbours = %d\n", max_jnum);
+    //printf("Max num of neighbours = %d\n", max_jnum);
 
     ace->resize_neighbours_cache(max_jnum);
-
+    //printf("Caches resized to %d\n", max_jnum);
 
     //loop over atoms
     for (ii = 0; ii < list->inum; ii++) {
@@ -166,11 +184,11 @@ void PairPACE::compute(int eflag, int vflag) {
         k = map[type[i]];
 
         // this to be removed once fully integrated in LAMMPS
-        if (k != 0) {
-            printf("Error: Cannot handle multiple species.\n");
-            printf("Stopping.\n");
-            exit(0);
-        }
+//        if (k != 0) {
+//            printf("Error: Cannot handle multiple species.\n");
+//            printf("Stopping.\n");
+//            exit(0);
+//        }
 
         const double xtmp = x[i][0];
         const double ytmp = x[i][1];
@@ -197,6 +215,7 @@ void PairPACE::compute(int eflag, int vflag) {
             fij[1] = ace->neighbours_forces(jj, 1);
             fij[2] = ace->neighbours_forces(jj, 2);
 
+            //printf("f_ij(i=%d, j=%d) = (%f, %f, %f)\n",i,j,fij[0], fij[1], fij[2]);
 
             f[i][0] += fij[0];
             f[i][1] += fij[1];
@@ -225,7 +244,7 @@ void PairPACE::compute(int eflag, int vflag) {
     }
 
 
-    printf("vflag_fdotr=%d\n", vflag_fdotr);
+    //printf("vflag_fdotr=%d\n", vflag_fdotr);
     if (vflag_fdotr) virial_fdotr_compute();
 
 
@@ -378,7 +397,7 @@ void PairPACE::init_style() {
 
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-
+    //TODO: adapt
     return 10;
 }
 

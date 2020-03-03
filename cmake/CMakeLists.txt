@@ -184,7 +184,7 @@ endif()
 
 # do MPI detection after language activation, if MPI for these language is required
 set(MPI_CXX_SKIP_MPICXX TRUE)
-find_package(MPI QUIET)
+#find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
   find_package(MPI REQUIRED)

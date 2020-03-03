@@ -1,56 +1,22 @@
-# Al with pACE
-
-# ---------- Initialize Simulation ---------------------
 clear
-units metal
-dimension 3
-boundary p p p
 atom_style atomic
-atom_modify map array
+units metal
+boundary p p p 
+atom_modify sort 0 0.0 
 
-# ---------- Create structure ---------------------
-lattice 	fcc 4.0
-region	box block 0 3 0 3 0 3 units lattice
-create_box	1 box
+read_data fcc.dat
 
-lattice	fcc 4.0 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
-create_atoms 1 box
-replicate 1 1 1
+### interactions
+pair_style pace 
+pair_coeff * * Al.pbe.in-rank6.ace Al 
+mass 1 26.981538 
 
-# --------- Mass -------------------
-# mass in grams/mole for units metal
-mass * 28.0855
-
-# ----------Potential ---------------------
-pair_style pace
-pair_coeff * * Al.pbe.in-rank6.ace Al
-
-
-# ----------- Neighborlist ----------------------
-neighbor 0.3 bin
-neigh_modify check yes
-
-# ---------- Properties ---------------------
-compute eng all pe/atom
-compute eatoms all reduce sum c_eng
-
-# ---------- Minimization ---------------------
-reset_timestep 0
-fix 1 all box/relax iso 0.0 vmax 0.001
-thermo 10
-thermo_style custom step pe lx ly lz press pxx pyy pzz c_eatoms
+### run
+fix fix_nve all nve
+dump dump_all all custom 1 /Users/lysogy36/CLionProjects/lammps-ace/playground/tmp/trj_lammps000001irg8_dsg.bin id type x y z vx vy vz fx fy fz
+thermo_style custom step temp press cpu pxx pyy pzz pxy pxz pyz ke pe etotal vol lx ly lz atoms
+thermo_modify flush yes format float %23.16g
+thermo 1
 run 0
-#min_style cg
-#minimize 1e-25 1e-25 5000 10000
-
-variable natoms equal "count(all)"
-variable teng equal "c_eatoms"
-variable length equal "lx"
-variable ecoh equal "v_teng/v_natoms"
-
-print "Total energy (eV) = ${teng};"
-print "Number of atoms = ${natoms};"
-print "Lattice constant (Angstoms) = ${length};"
-print "Cohesive energy (eV) = ${ecoh};"
-
-print "All done!"
+print "__end_of_ase_invoked_calculation__" 
+log /dev/stdout

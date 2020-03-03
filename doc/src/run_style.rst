@@ -1,13 +1,13 @@
-.. index:: run\_style
+.. index:: run_style
 
-run\_style command
-==================
+run_style command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style style args
 
@@ -57,8 +57,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
    run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
@@ -83,10 +82,10 @@ processors.  See the :doc:`-partition command-line switch <Run_options>`
 for info on how to run LAMMPS with multiple partitions.
 
 Specifically, this style performs all computation except the
-:doc:`kspace\_style <kspace_style>` portion of the force field on the 1st
+:doc:`kspace_style <kspace_style>` portion of the force field on the 1st
 partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`, :doc:`neighbor list building <neighbor>`,
 :doc:`fixes <fix>` including time integration, and output.  The
-:doc:`kspace\_style <kspace_style>` portion of the calculation is
+:doc:`kspace_style <kspace_style>` portion of the calculation is
 performed on the 2nd partition.
 
 This is most useful for the PPPM kspace\_style when its performance on
@@ -112,16 +111,16 @@ match the integer multiple constraint.  See the
 to control this, e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   procssors \* \* \* part 1 2 multiple
+   processors * * * part 1 2 multiple
 
 You can also use the :doc:`partition <partition>` command to explicitly
 specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 3 4 5
    partition yes 2 processors 3 1 5
@@ -163,7 +162,7 @@ outermost rRESPA level.  Thus if the 3 loop factors are "2 2 2" for
 4-level rRESPA, and the outer timestep is set to 4.0 fmsec, then the
 inner timestep would be 8x smaller or 0.5 fmsec.  All other LAMMPS
 commands that specify number of timesteps (e.g. :doc:`thermo <thermo>`
-for thermo output every N steps, :doc:`neigh\_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
+for thermo output every N steps, :doc:`neigh_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
 steps, etc) refer to the outermost timesteps.
 
 The rRESPA keywords enable you to specify at what level of the
@@ -176,7 +175,7 @@ outermost level, and kspace forces are computed where pair forces are.
 The inner, middle, outer forces have no defaults.
 
 For fixes that support it, the rRESPA level at which a given fix is
-active, can be selected through the :doc:`fix\_modify <fix_modify>` command.
+active, can be selected through the :doc:`fix_modify <fix_modify>` command.
 
 The *inner* and *middle* keywords take additional arguments for
 cutoffs that are used by the pairwise force computations.  If the 2
@@ -200,7 +199,7 @@ are computed at the same rRESPA level.  See the doc pages for
 individual pair styles for details.
 
 Another option for using pair potentials with rRESPA is with the
-*hybrid* keyword, which requires the use of the :doc:`pair\_style hybrid or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
+*hybrid* keyword, which requires the use of the :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
 sub-styles of the hybrid pair style are evaluated at different rRESPA
 levels.  This can be useful, for example, to set different timesteps
 for hybrid coarse-grained/all-atom models.  The *hybrid* keyword
@@ -235,7 +234,7 @@ settings for use of the *respa* style without SHAKE in biomolecular
 simulations:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  4.0
    run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
@@ -257,7 +256,7 @@ settings can be used for biomolecular simulations with SHAKE and
 rRESPA:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix             2 all shake 0.000001 500 0 m 1.0 a 1
    timestep        4.0
@@ -273,7 +272,7 @@ slow modes in the simulation.  For example, a system of slowly-moving
 charged polymer chains could be setup as follows:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 4.0
    run_style respa 2 8
@@ -292,7 +291,7 @@ In real units, for a pure LJ fluid at liquid density, with a sigma of
 seem to work well:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  36.0
    run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
@@ -342,7 +341,7 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
 
@@ -367,8 +366,3 @@ to rRESPA levels is as follows:
 
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

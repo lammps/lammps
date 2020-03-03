@@ -102,7 +102,7 @@ written and read using MPI-IO.
 
 Restart files are written on timesteps that are a multiple of N but
 not on the first timestep of a run or minimization.  You can use the
-:doc:`write\_restart <write_restart>` command to write a restart file
+:doc:`write_restart <write_restart>` command to write a restart file
 before a run begins.  A restart file is not written on the last
 timestep of a run unless it is a multiple of N.  A restart file is
 written on the last timestep of a minimization if N > 0 and the
@@ -132,10 +132,10 @@ a simulation where something goes wrong at step 1163:
 ----------
 
 
-See the :doc:`read\_restart <read_restart>` command for information about
+See the :doc:`read_restart <read_restart>` command for information about
 what is stored in a restart file.
 
-Restart files can be read by a :doc:`read\_restart <read_restart>`
+Restart files can be read by a :doc:`read_restart <read_restart>`
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the :doc:`-r command-line switch <Run_options>` to convert a restart file to a data file.
@@ -149,7 +149,7 @@ another machine.  In this case, you can use the :doc:`-r command-line switch <Ru
    new input script must specify any fixes you want to use.  Even when
    restart information is stored in the file, as it is for some fixes,
    commands may need to be re-specified in the new input script, in order
-   to re-use that information.  See the :doc:`read\_restart <read_restart>`
+   to re-use that information.  See the :doc:`read_restart <read_restart>`
    command for information about what is stored in a restart file.
 
 
@@ -188,7 +188,7 @@ package must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`write\_restart <write_restart>`, :doc:`read\_restart <read_restart>`
+:doc:`write_restart <write_restart>`, :doc:`read_restart <read_restart>`
 
 Default
 """""""
@@ -197,8 +197,3 @@ Default
 .. parsed-literal::
 
    restart 0
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

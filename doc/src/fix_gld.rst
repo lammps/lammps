@@ -62,8 +62,12 @@ to be a Prony series.
 
 With this fix active, the force on the *j*\ th atom is given as
 
-.. image:: Eqs/fix_gld1.jpg
-   :align: center
+.. math::
+
+   {\bf F}_{j}(t) = & {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
+   \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\ 
+   \langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
+
 
 Here, the first term is representative of all conservative (pairwise,
 bonded, etc) forces external to this fix, the second is the temporally
@@ -72,7 +76,7 @@ the colored Gaussian random force.
 
 The Prony series form of the memory kernel is chosen to enable an
 extended variable formalism, with a number of exemplary mathematical
-features discussed in :ref:`(Baczewski) <Baczewski>`. In particular, 3N\_k
+features discussed in :ref:`(Baczewski) <Baczewski>`. In particular, :math:`3N_k`
 extended variables are added to each atom, which effect the action of
 the memory kernel without having to explicitly evaluate the integral
 over time in the second term of the force. This also has the benefit
@@ -137,7 +141,7 @@ do "exact" restarts with this fix, where the simulation continues on
 the same as if no restart had taken place. However, in a statistical
 sense, a restarted simulation should produce the same behavior.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.
 
@@ -158,7 +162,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix langevin <fix_langevin>`, :doc:`fix viscous <fix_viscous>`,
-:doc:`pair\_style dpd/tstat <pair_dpd>`
+:doc:`pair_style dpd/tstat <pair_dpd>`
 
 Default
 """""""
@@ -174,8 +178,3 @@ The option defaults are frozen = no, zero = no.
 
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

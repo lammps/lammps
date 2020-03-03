@@ -58,6 +58,7 @@ private:
   int firstfile;           // index of 1st dump file my cluster reads
                            //   (0 to multiproc_nfile-1)
   int filereader;          // 1 if this proc reads from a dump file(s)
+  int parallel;            // 1 if parallel reading (e.g. via ADIOS2)
 
   int dimension;           // same as in Domain
   int triclinic;

@@ -402,13 +402,6 @@ void Neighbor::init()
     }
   }
 
-  // maxwt = max multiplicative factor on atom indices stored in neigh list
-
-  maxwt = 0;
-  if (special_flag[1] == 2) maxwt = 2;
-  if (special_flag[2] == 2) maxwt = 3;
-  if (special_flag[3] == 2) maxwt = 4;
-
   // ------------------------------------------------------------------
   // xhold array
 

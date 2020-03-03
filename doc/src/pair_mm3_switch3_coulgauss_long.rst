@@ -1,13 +1,13 @@
-.. index:: pair\_style mm3/switch3/coulgauss/long
+.. index:: pair_style mm3/switch3/coulgauss/long
 
-pair\_style mm3/switch3/coulgauss/long command
+pair_style mm3/switch3/coulgauss/long command
 ==============================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -26,7 +26,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mm3/switch3/coulgauss/long    12.0 3.0
    pair_coeff 1  0.2 2.5 1.2
@@ -40,44 +40,55 @@ Description
 The *mm3/switch3/coulgauss/long* style evaluates the MM3
 vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 
-.. image:: Eqs/pair_mm3_switch3.jpg
-   :align: center
+.. math::
+
+   E & = \epsilon_{ij} \left[ -2.25 \left(\frac{r_{v,ij}}{r_{ij}}\right)^6 + 1.84(10)^5 \exp\left[-12.0 r_{ij}/r_{v,ij}\right] \right] S_3(r_{ij}) \\
+   r_{v,ij} & =  r_{v,i} + r_{v,j} \\ 
+   \epsilon_{ij} & = \sqrt{\epsilon_i \epsilon_j}
+
 
 , which goes smoothly to zero at the cutoff r\_c as defined
 by the switching function
 
-.. image:: Eqs/pair_switch3.jpg
-   :align: center
+.. math::
+
+   S_3(r) = \left\lbrace \begin{array}{ll}
+                       1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
+                       3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
+                       0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
+                   \end{array} \right.
+
 
 where w is the width defined in the arguments. This potential
 is combined with Coulomb interaction between Gaussian charge densities:
 
-.. image:: Eqs/pair_coulgauss.jpg
-   :align: center
+.. math::
 
-where qi and qj are the
-charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, gamma\_i and gamma\_j
-are the widths of the Gaussian charge distribution and erf() is the error-function.
-This style has to be used in conjunction with the :doc:`kspace\_style <kspace_style>` command
+   E = \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
+
+
+where :math:`q_i` and :math:`q_j` are the charges on the 2 atoms,
+epsilon is the dielectric constant which can be set by the
+:doc:`dielectric <dielectric>` command, ::math:`\gamma_i` and
+:math:`\gamma_j` are the widths of the Gaussian charge distribution and
+erf() is the error-function.  This style has to be used in conjunction
+with the :doc:`kspace_style <kspace_style>` command
 
 If one cutoff is specified it is used for both the vdW and Coulomb
 terms.  If two cutoffs are specified, the first is used as the cutoff
 for the vdW terms, and the second is the cutoff for the Coulombic term.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* epsilon (energy)
-* r\_v (distance)
-* gamma (distance)
-
+* :math:`\epsilon` (energy)
+* :math:`r_v` (distance)
+* :math:`\gamma` (distance)
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -96,11 +107,6 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,28 +1,28 @@
-.. index:: pair\_style peri/pmb
+.. index:: pair_style peri/pmb
 
-pair\_style peri/pmb command
-============================
+pair_style peri/pmb command
+===========================
 
-pair\_style peri/pmb/omp command
-================================
+pair_style peri/pmb/omp command
+===============================
 
-pair\_style peri/lps command
-============================
+pair_style peri/lps command
+===========================
 
-pair\_style peri/lps/omp command
-================================
+pair_style peri/lps/omp command
+===============================
 
-pair\_style peri/ves command
-============================
+pair_style peri/ves command
+===========================
 
-pair\_style peri/eps command
-============================
+pair_style peri/eps command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -32,19 +32,19 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style peri/pmb
-   pair_coeff \* \* 1.6863e22 0.0015001 0.0005 0.25
+   pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25
 
    pair_style peri/lps
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25
 
    pair_style peri/ves
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001
 
    pair_style peri/eps
-   pair_coeff \* \* 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43
+   pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43
 
 Description
 """""""""""
@@ -81,9 +81,9 @@ regarding the VES and EPS models in LAMMPS you can contact R. Rahman
 (rezwanur.rahman at utsa.edu).
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below.
 
 For the *peri/pmb* style:
@@ -91,11 +91,11 @@ For the *peri/pmb* style:
 * c (energy/distance/volume\^2 units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 
 C is the effectively a spring constant for Peridynamic bonds, the
 horizon is a cutoff distance for truncating interactions, and s00 and
-alpha are used as a bond breaking criteria.  The units of c are such
+:math:`\alpha` are used as a bond breaking criteria.  The units of c are such
 that c/distance = stiffness/volume\^2, where stiffness is
 energy/distance\^2 and volume is distance\^3.  See the users guide for
 more details.
@@ -106,10 +106,10 @@ For the *peri/lps* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 
 K is the bulk modulus and G is the shear modulus.  The horizon is a
-cutoff distance for truncating interactions, and s00 and alpha are
+cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
 used as a bond breaking criteria. See the users guide for more
 details.
 
@@ -119,12 +119,12 @@ For the *peri/ves* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 * m\_lambdai (unitless)
 * m\_taubi (unitless)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
-cutoff distance for truncating interactions, and s00 and alpha are
+cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
 used as a bond breaking criteria. m\_lambdai and m\_taubi are the
 viscoelastic relaxation parameter and time constant,
 respectively. m\_lambdai varies within zero to one. For very small
@@ -138,11 +138,11 @@ For the *peri/eps* style:
 * G (force/area units)
 * horizon (distance units)
 * s00 (unitless)
-* alpha (unitless)
+* :math:`\alpha` (unitless)
 * m\_yield\_stress (force/area units)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
-cutoff distance and s00 and alpha are used as a bond breaking
+cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m\_yield\_stress is the yield stress of the material. For
 details please see the description in "(Mtchell2011a)".
 
@@ -177,17 +177,17 @@ instructions on how to use the accelerated styles effectively.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 shift option.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -204,7 +204,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -247,8 +247,3 @@ viscoelasticity model for peridynamics. Sandia National Lab Report,
 **(Mitchell2011a)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -51,7 +51,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary langevin 1.0 1.0 1000.0 699483
    fix 1 all langevin 1.0 1.1 100.0 48279 scale 3 1.5
@@ -67,35 +67,35 @@ performs Brownian dynamics (BD), since the total force on each atom
 will have the form:
 
 
-.. parsed-literal::
+.. math::
 
-   F = Fc + Ff + Fr
-   Ff = - (m / damp) v
-   Fr is proportional to sqrt(Kb T m / (dt damp))
+   F = & F_c + F_f + F_r \\
+   F_f = & - \frac{m}{\mathrm{damp}} v \\
+   F_r \propto & \sqrt{\frac{k_B T m}{dt~\mathrm{damp}}}
 
-Fc is the conservative force computed via the usual inter-particle
-interactions (:doc:`pair\_style <pair_style>`,
-:doc:`bond\_style <bond_style>`, etc).
+:math:`F_c` is the conservative force computed via the usual
+inter-particle interactions (:doc:`pair_style <pair_style>`,
+:doc:`bond_style <bond_style>`, etc).  The :math:`F_f` and :math:`F_r`
+terms are added by this fix on a per-particle basis.  See the
+:doc:`pair_style dpd/tstat <pair_dpd>` command for a thermostatting
+option that adds similar terms on a pairwise basis to pairs of
+interacting particles.
 
-The Ff and Fr terms are added by this fix on a per-particle basis.
-See the :doc:`pair\_style dpd/tstat <pair_dpd>` command for a
-thermostatting option that adds similar terms on a pairwise basis to
-pairs of interacting particles.
+:math:`F_f` is a frictional drag or viscous damping term proportional to
+the particle's velocity.  The proportionality constant for each atom is
+computed as :math:`\frac{m}{\mathrm{damp}}`, where *m* is the mass of the
+particle and damp is the damping factor specified by the user.
 
-Ff is a frictional drag or viscous damping term proportional to the
-particle's velocity.  The proportionality constant for each atom is
-computed as m/damp, where m is the mass of the particle and damp is
-the damping factor specified by the user.
-
-Fr is a force due to solvent atoms at a temperature T randomly bumping
-into the particle.  As derived from the fluctuation/dissipation
-theorem, its magnitude as shown above is proportional to sqrt(Kb T m /
-dt damp), where Kb is the Boltzmann constant, T is the desired
-temperature, m is the mass of the particle, dt is the timestep size,
-and damp is the damping factor.  Random numbers are used to randomize
-the direction and magnitude of this force as described in
-:ref:`(Dunweg) <Dunweg1>`, where a uniform random number is used (instead of
-a Gaussian random number) for speed.
+:math:`F_r` is a force due to solvent atoms at a temperature *T*
+randomly bumping into the particle.  As derived from the
+fluctuation/dissipation theorem, its magnitude as shown above is
+proportional to :math:`\sqrt{\frac{k_B T m}{dt~\mathrm{damp}}}`, where
+:math:`k_B` is the Boltzmann constant, *T* is the desired temperature,
+*m* is the mass of the particle, *dt* is the timestep size, and damp is
+the damping factor.  Random numbers are used to randomize the direction
+and magnitude of this force as described in :ref:`(Dunweg) <Dunweg1>`,
+where a uniform random number is used (instead of a Gaussian random
+number) for speed.
 
 Note that unless you use the *omega* or *angmom* keywords, the
 thermostat effect of this fix is applied to only the translational
@@ -107,14 +107,15 @@ thermostatting takes place; see the description below.
 
 .. note::
 
-   Unlike the :doc:`fix nvt <fix_nh>` command which performs
-   Nose/Hoover thermostatting AND time integration, this fix does NOT
-   perform time integration.  It only modifies forces to effect
-   thermostatting.  Thus you must use a separate time integration fix,
-   like :doc:`fix nve <fix_nve>` to actually update the velocities and
-   positions of atoms using the modified forces.  Likewise, this fix
-   should not normally be used on atoms that also have their temperature
-   controlled by another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale <fix_temp_rescale>` commands.
+   Unlike the :doc:`fix nvt <fix_nh>` command which performs Nose/Hoover
+   thermostatting AND time integration, this fix does NOT perform time
+   integration.  It only modifies forces to effect thermostatting.  Thus
+   you must use a separate time integration fix, like :doc:`fix nve
+   <fix_nve>` to actually update the velocities and positions of atoms
+   using the modified forces.  Likewise, this fix should not normally be
+   used on atoms that also have their temperature controlled by another
+   fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
+   <fix_temp_rescale>` commands.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for
 a discussion of different ways to compute temperature and perform
@@ -131,7 +132,7 @@ will be evaluated each timestep, and its value used to determine the
 target temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
@@ -145,7 +146,7 @@ with :doc:`compute commands <compute>` that remove a "bias" from the
 atom velocities.  E.g. removing the center-of-mass velocity from a
 group of atoms or removing the x-component of velocity from the
 calculation.  This is not done by default, but only if the
-:doc:`fix\_modify <fix_modify>` command is used to assign a temperature
+:doc:`fix_modify <fix_modify>` command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual :doc:`compute commands <compute>` to determine which ones
 include a bias.  In this case, the thermostat works in the following
@@ -154,13 +155,14 @@ the remaining thermal degrees of freedom, and the bias is added back
 in.
 
 The *damp* parameter is specified in time units and determines how
-rapidly the temperature is relaxed.  For example, a value of 100.0
-means to relax the temperature in a timespan of (roughly) 100 time
-units (tau or fmsec or psec - see the :doc:`units <units>` command).
-The damp factor can be thought of as inversely related to the
-viscosity of the solvent.  I.e. a small relaxation time implies a
-hi-viscosity solvent and vice versa.  See the discussion about gamma
-and viscosity in the documentation for the :doc:`fix viscous <fix_viscous>` command for more details.
+rapidly the temperature is relaxed.  For example, a value of 100.0 means
+to relax the temperature in a timespan of (roughly) 100 time units
+(:math:`\tau` or fs or ps - see the :doc:`units <units>` command).  The
+damp factor can be thought of as inversely related to the viscosity of
+the solvent.  I.e. a small relaxation time implies a high-viscosity
+solvent and vice versa.  See the discussion about :math:`\gamma` and
+viscosity in the documentation for the :doc:`fix viscous <fix_viscous>`
+command for more details.
 
 The random # *seed* must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -191,39 +193,40 @@ The rotational temperature of the particles can be monitored by the
 :doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute temp/asphere <compute_temp_asphere>` commands with their rotate
 options.
 
-For the *omega* keyword there is also a scale factor of 10.0/3.0 that
-is applied as a multiplier on the Ff (damping) term in the equation
-above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
-not affect the thermostatting behavior of the Langevin formalism but
-insures that the randomized rotational diffusivity of spherical
-particles is correct.
+For the *omega* keyword there is also a scale factor of
+:math:`\frac{10.0}{3.0}` that is applied as a multiplier on the
+:math:`F_f` (damping) term in the equation above and of
+:math:`\sqrt{\frac{10.0}{3.0}}` as a multiplier on the :math:`F_r` term.
+This does not affect the thermostatting behavior of the Langevin
+formalism but insures that the randomized rotational diffusivity of
+spherical particles is correct.
 
 For the *angmom* keyword a similar scale factor is needed which is
-10.0/3.0 for spherical particles, but is anisotropic for aspherical
-particles (e.g. ellipsoids).  Currently LAMMPS only applies an
-isotropic scale factor, and you can choose its magnitude as the
+:math:`\frac{10.0}{3.0}` for spherical particles, but is anisotropic for
+aspherical particles (e.g. ellipsoids).  Currently LAMMPS only applies
+an isotropic scale factor, and you can choose its magnitude as the
 specified value of the *angmom* keyword.  If your aspherical particles
-are (nearly) spherical than a value of 10.0/3.0 = 3.333 is a good
-choice.  If they are highly aspherical, a value of 1.0 is as good a
-choice as any, since the effects on rotational diffusivity of the
-particles will be incorrect regardless.  Note that for any reasonable
-scale factor, the thermostatting effect of the *angmom* keyword on the
-rotational temperature of the aspherical particles should still be
-valid.
+are (nearly) spherical than a value of :math:`\frac{10.0}{3.0} =
+3.\overline{3}` is a good choice.  If they are highly aspherical, a
+value of 1.0 is as good a choice as any, since the effects on rotational
+diffusivity of the particles will be incorrect regardless.  Note that
+for any reasonable scale factor, the thermostatting effect of the
+*angmom* keyword on the rotational temperature of the aspherical
+particles should still be valid.
 
 The keyword *scale* allows the damp factor to be scaled up or down by
 the specified factor for atoms of that type.  This can be useful when
 different atom types have different sizes or masses.  It can be used
 multiple times to adjust damp for several atom types.  Note that
 specifying a ratio of 2 increases the relaxation time which is
-equivalent to the solvent's viscosity acting on particles with 1/2 the
-diameter.  This is the opposite effect of scale factors used by the
-:doc:`fix viscous <fix_viscous>` command, since the damp factor in fix
-*langevin* is inversely related to the gamma factor in fix *viscous*\ .
-Also note that the damping factor in fix *langevin* includes the
-particle mass in Ff, unlike fix *viscous*\ .  Thus the mass and size of
-different atom types should be accounted for in the choice of ratio
-values.
+equivalent to the solvent's viscosity acting on particles with
+:math:`\frac{1}{2}` the diameter.  This is the opposite effect of scale
+factors used by the :doc:`fix viscous <fix_viscous>` command, since the
+damp factor in fix *langevin* is inversely related to the :math:`\gamma`
+factor in fix *viscous*\ .  Also note that the damping factor in fix
+*langevin* includes the particle mass in Ff, unlike fix *viscous*\ .
+Thus the mass and size of different atom types should be accounted for
+in the choice of ratio values.
 
 The keyword *tally* enables the calculation of the cumulative energy
 added/subtracted to the atoms as they are thermostatted.  Effectively
@@ -304,13 +307,13 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Langevin thermostatting to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
 setting the *tally* keyword to *yes*\ .
@@ -337,7 +340,7 @@ with run\_style respa.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair\_style dpd/tstat <pair_dpd>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`
 
 Default
 """""""
@@ -379,8 +382,3 @@ types, tally = no, zero = no, gjf = no.
 
 
 **(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

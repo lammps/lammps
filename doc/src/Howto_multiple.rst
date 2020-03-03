@@ -9,7 +9,7 @@ more timesteps, then you simply use the :doc:`run <run>` command
 multiple times.  For example, this script
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    units lj
    atom_style atomic
@@ -28,7 +28,7 @@ the :doc:`clear <clear>` command can be used in between them to
 re-initialize LAMMPS.  For example, this script
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    units lj
    atom_style atomic
@@ -49,7 +49,7 @@ multiple times with different settings.  For example, this
 script, named in.polymer
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable d index run1 run2 run3 run4 run5 run6 run7 run8
    shell cd $d
@@ -66,7 +66,7 @@ same system at 8 different temperatures, using a temperature variable
 and storing the output in different log and dump files, for example
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable a loop 8
    variable t index 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15
@@ -96,8 +96,3 @@ on the 3 partitions one after the other until all were finished.
 Initially, 3 simulations would be started simultaneously, one on each
 partition.  When one finished, that partition would then start
 the 4th simulation, and so forth, until all 8 were completed.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

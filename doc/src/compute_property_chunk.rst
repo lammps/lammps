@@ -122,8 +122,3 @@ Related commands
 :doc:`fix ave/chunk <fix_ave_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

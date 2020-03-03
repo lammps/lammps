@@ -45,7 +45,7 @@ belong to the group.
 (3) Sometimes command B will use values that can be set by command A.
 This means command A must precede command B in the input script if it
 is to have the desired effect.  For example, the
-:doc:`read\_data <read_data>` command initializes the system by setting
+:doc:`read_data <read_data>` command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
 values are not desired, the :doc:`processors <processors>` and
 :doc:`boundary <boundary>` commands need to be used before read\_data to

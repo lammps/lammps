@@ -74,8 +74,3 @@ Phys, 79, 926 (1983).
 
 
 **(Price)** Price and Brooks, J Chem Phys, 121, 10096 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

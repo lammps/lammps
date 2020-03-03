@@ -1,7 +1,7 @@
 Accelerator packages
 ====================
 
-Accelerated versions of various :doc:`pair\_style <pair_style>`,
+Accelerated versions of various :doc:`pair_style <pair_style>`,
 :doc:`fixes <fix>`, :doc:`computes <compute>`, and other commands have
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
@@ -26,7 +26,6 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`OPT Package <Speed_opt>`          | generic CPU optimizations                             |
 +-----------------------------------------+-------------------------------------------------------+
-
 
 .. toctree::
    :maxdepth: 1
@@ -62,16 +61,16 @@ the same, and the numerical results it produces should also be the
 same, except for precision and round-off effects.
 
 For example, all of these styles are accelerated variants of the
-Lennard-Jones :doc:`pair\_style lj/cut <pair_lj>`:
+Lennard-Jones :doc:`pair_style lj/cut <pair_lj>`:
 
-* :doc:`pair\_style lj/cut/gpu <pair_lj>`
-* :doc:`pair\_style lj/cut/intel <pair_lj>`
-* :doc:`pair\_style lj/cut/kk <pair_lj>`
-* :doc:`pair\_style lj/cut/omp <pair_lj>`
-* :doc:`pair\_style lj/cut/opt <pair_lj>`
+* :doc:`pair_style lj/cut/gpu <pair_lj>`
+* :doc:`pair_style lj/cut/intel <pair_lj>`
+* :doc:`pair_style lj/cut/kk <pair_lj>`
+* :doc:`pair_style lj/cut/omp <pair_lj>`
+* :doc:`pair_style lj/cut/opt <pair_lj>`
 
 To see what accelerate styles are currently available for a particular
-style, find the style name in the `Commands\_all <lc_>`_
+style, find the style name in the :doc:`Commands <Commands_all>`
 style pages (fix,compute,pair,etc) and see what suffixes are listed
 (g,i,k,o,t) with it.  The doc pages for individual commands
 (e.g. :doc:`pair lj/cut <pair_lj>` or :doc:`fix nve <fix_nve>`) also list
@@ -145,7 +144,7 @@ details.
 Likewise, the bench directory has FERMI and KEPLER and PHI
 sub-directories with Make.py commands and input scripts for using all
 the accelerator packages on various machines.  See the README files in
-those dirs.
+those directories.
 
 As mentioned above, the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
 performance results for the various accelerator packages for several
@@ -189,7 +188,3 @@ The individual accelerator package doc pages explain:
 * guidelines for best performance
 * restrictions
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

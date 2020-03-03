@@ -79,8 +79,3 @@ it, which contains the installed liblammps.so.
 
 Starting Python outside (!) of your build directory, but with the virtualenv
 enabled and with the LD\_LIBRARY\_PATH set gives you access to LAMMPS via Python.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

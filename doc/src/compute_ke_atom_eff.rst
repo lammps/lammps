@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/atom/eff
 
@@ -30,30 +30,31 @@ Define a computation that calculates the per-atom translational
 group.  The particles are assumed to be nuclei and electrons modeled
 with the :doc:`electronic force field <pair_eff>`.
 
-The kinetic energy for each nucleus is computed as 1/2 m v\^2, where m
-corresponds to the corresponding nuclear mass, and the kinetic energy
-for each electron is computed as 1/2 (me v\^2 + 3/4 me s\^2), where me
-and v correspond to the mass and translational velocity of each
-electron, and s to its radial velocity, respectively.
+The kinetic energy for each nucleus is computed as :math:`\frac{1}{2} m
+v^2`, where *m* corresponds to the corresponding nuclear mass, and the
+kinetic energy for each electron is computed as :math:`\frac{1}{2} (m_e
+v^2 + \frac{3}{4} m_e s^2)`, where :math:`m_e` and *v* correspond to the mass
+and translational velocity of each electron, and *s* to its radial
+velocity, respectively.
 
 There is a subtle difference between the quantity calculated by this
 compute and the kinetic energy calculated by the *ke* or *etotal*
 keyword used in thermodynamic output, as specified by the
-:doc:`thermo\_style <thermo_style>` command. For this compute, kinetic
+:doc:`thermo_style <thermo_style>` command. For this compute, kinetic
 energy is "translational" plus electronic "radial" kinetic energy,
 calculated by the simple formula above. For thermodynamic output, the
 *ke* keyword infers kinetic energy from the temperature of the system
-with 1/2 Kb T of energy for each (nuclear-only) degree of freedom in
-eFF.
+with :math:`\frac{1}{2} k_B T` of energy for each (nuclear-only) degree
+of freedom in eFF.
 
 .. note::
 
    The temperature in eFF should be monitored via the :doc:`compute temp/eff <compute_temp_eff>` command, which can be printed with
-   thermodynamic output by using the :doc:`thermo\_modify <thermo_modify>`
+   thermodynamic output by using the :doc:`thermo_modify <thermo_modify>`
    command, as shown in the following example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press
@@ -84,8 +85,3 @@ Related commands
 :doc:`dump custom <dump>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

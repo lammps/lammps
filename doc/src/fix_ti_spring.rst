@@ -48,8 +48,10 @@ The thermodynamic integration procedure is performed by rescaling the
 force on each atom. Given an atomic configuration the force (F) on
 each atom is given by
 
-.. image:: Eqs/fix_ti_spring_force.jpg
-   :align: center
+.. math::
+
+  F = \left( 1-\lambda \right) F_{\text{solid}} + \lambda F_{\text{harm}}
+
 
 where F\_solid is the force that acts on an atom due to an interatomic
 potential (\ *e.g.* EAM potential), F\_harm is the force due to the
@@ -87,15 +89,19 @@ The *function* keyword allows the use of two different lambda
 paths. Option *1* results in a constant rate of change of lambda with
 time:
 
-.. image:: Eqs/fix_ti_spring_function_1.jpg
-   :align: center
+.. math::
+
+  \lambda(\tau) = \tau
+
 
 where tau is the scaled time variable *t/t\_s*. The option *2* performs
 the lambda switching at a rate defined by the following switching
 function
 
-.. image:: Eqs/fix_ti_spring_function_2.jpg
-   :align: center
+.. math::
+
+  \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)
+
 
 This function has zero slope as lambda approaches its extreme values
 (0 and 1), according to :ref:`de Koning <deKoning96>` this results in
@@ -182,8 +188,3 @@ Science, 112, 333 (2016).
 
 
 **(de Koning)** de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

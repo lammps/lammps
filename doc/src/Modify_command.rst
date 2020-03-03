@@ -18,8 +18,3 @@ The single method your new class must define is as follows:
 
 Of course, the new class can define other methods and variables as
 needed.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

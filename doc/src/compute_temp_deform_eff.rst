@@ -34,7 +34,7 @@ induced by use of the :doc:`fix deform <fix_deform>` command.  A
 compute of this style is created by the :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>` command to compute the thermal
 temperature of atoms for thermostatting purposes.  A compute of this
 style can also be used by any command that computes a temperature,
-e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`,
+e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`,
 etc.
 
 The calculation performed by this compute is exactly like that
@@ -73,8 +73,3 @@ Related commands
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

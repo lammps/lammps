@@ -308,6 +308,7 @@ accelerated styles exist.
 * :doc:`precession/spin <fix_precession_spin>` -
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
+* :doc:`propel/self <fix_propel_self>` - model self-propelled particles
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values
 * :doc:`python/invoke <fix_python_invoke>` - call a Python function during a simulation
 * :doc:`python/move <fix_python_move>` -  call a Python function during a simulation run
@@ -406,8 +407,3 @@ Related commands
 :doc:`unfix <unfix>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -85,7 +85,7 @@ variable is used, the velocity it calculates must be in box units, not
 lattice units; see the discussion of the *units* keyword below.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters or other parameters.
 
 Atom-style variables can specify the same formulas as equal-style
@@ -202,7 +202,7 @@ it owns.  This can be a slow loop for a large simulation.  If atoms
 were read from a data file, the velocity assigned to a particular atom
 will be the same, independent of how many processors are being used.
 This will not be the case if atoms were created using the
-:doc:`create\_atoms <create_atoms>` command, since atom IDs will likely
+:doc:`create_atoms <create_atoms>` command, since atom IDs will likely
 be assigned to atoms differently.
 
 If loop = local, then each processor loops over only its atoms to
@@ -281,8 +281,3 @@ Default
 The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
 no, bias = no, loop = all, and units = lattice.  The temp and rigid
 keywords are not defined by default.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -54,19 +54,22 @@ effects, smaller timestep inaccuracy, faster equilibration and shorter
 decorrelation time.
 
 HMA should not be used if atoms are expected to diffuse.  It is also
-restricted to simulations in the NVT ensemble.  While this compute may be
-used with any potential in LAMMPS, it will provide inaccurate results
+restricted to simulations in the NVT ensemble.  While this compute may
+be used with any potential in LAMMPS, it will provide inaccurate results
 for potentials that do not go to 0 at the truncation distance;
-:doc:`pair\_lj\_smooth\_linear <pair_lj_smooth_linear>` and Ewald summation should
-work fine, while :doc:`pair\_lj <pair_lj>` will perform poorly unless
-the potential is shifted (via :doc:`pair\_modify <pair_modify>` shift) or the cutoff is large.  Furthermore, computation of the heat capacity with
-this compute is restricted to those that implement the single\_hessian method
-in Pair.  Implementing single\_hessian in additional pair styles is simple.
-Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke (kofke at
-buffalo.edu) if your desired pair style does not have this method.  This is
-the list of pair styles that currently implement pair\_hessian:
+:doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>` and Ewald
+summation should work fine, while :doc:`pair_style lj/cut <pair_lj>`
+will perform poorly unless the potential is shifted (via
+:doc:`pair_modify <pair_modify>` shift) or the cutoff is large.
+Furthermore, computation of the heat capacity with this compute is
+restricted to those that implement the *single\_hessian* method in Pair.
+Implementing *single\_hessian* in additional pair styles is simple.
+Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke
+(kofke at buffalo.edu) if your desired pair style does not have this
+method.  This is the list of pair styles that currently implement
+*single\_hessian*:
 
-* :doc:`lj\_smooth\_linear <pair_lj_smooth_linear>`
+* :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>`
 
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
@@ -77,7 +80,7 @@ A detailed description of this method can be found in (:ref:`Moustafa <hma-Moust
 
 .. math::
 
-   \begin{equation}\left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>\end{equation}
+   \left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>
 
 where :math:`N` is the number of atoms in the system, :math:`k_B` is Boltzmann's
 constant, :math:`T` is the temperature, :math:`d` is the
@@ -90,7 +93,7 @@ The pressure is computed by the formula:
 
 .. math::
 
-   \begin{equation}\left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>\end{equation}
+   \left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>
 
 where :math:`\rho` is the number density of the system, :math:`\Delta \hat P` is the
 difference between the harmonic and lattice pressure, :math:`P_{vir}` is
@@ -105,9 +108,9 @@ pressure and harmonic pressure.
 
 .. math::
 
-   \begin{equation}\left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
+   \left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
    U_{HMA}^2 \right> - \left<U_{HMA}\right>^2 \right) + \frac{1}{4 T}
-   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>\end{equation}
+   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
 
 where :math:`\Phi` is the Hessian matrix. The compute hma command
 computes the full expression for :math:`C_V` except for the
@@ -127,7 +130,7 @@ The *anharmonic* keyword will instruct the compute to return anharmonic
 properties rather than the full properties, which include lattice, harmonic
 and anharmonic contributions.
 When using this keyword, the compute must be first active (it must be included
-via a :doc:`thermo\_style custom <thermo_style>` command) while the atoms are
+via a :doc:`thermo_style custom <thermo_style>` command) while the atoms are
 still at their lattice sites (before equilibration).
 
 The temp-ID specified with compute hma command should be same as the fix-ID of Nose-Hoover (:doc:`fix nvt <fix_nh>`) or
@@ -156,7 +159,7 @@ The following example illustrates the placement of this command in the input scr
 
 .. note::
 
-   The :doc:`fix\_modify energy yes <fix_modify>` command must also be specified if a fix is to contribute potential energy to this command.
+   The :doc:`fix_modify energy yes <fix_modify>` command must also be specified if a fix is to contribute potential energy to this command.
 
 An example input script that uses this compute is included in
 examples/USER/hma/ along with corresponding LAMMPS output showing that the HMA
@@ -202,8 +205,3 @@ this compute.
 
 **(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ ,
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

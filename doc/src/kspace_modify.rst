@@ -1,13 +1,13 @@
-.. index:: kspace\_modify
+.. index:: kspace_modify
 
-kspace\_modify command
-======================
+kspace_modify command
+=====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_modify keyword value ...
 
@@ -62,7 +62,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_modify mesh 24 24 30 order 6
    kspace_modify slab 3.0
@@ -72,7 +72,7 @@ Description
 """""""""""
 
 Set parameters used by the kspace solvers defined by the
-:doc:`kspace\_style <kspace_style>` command.  Not all parameters are
+:doc:`kspace_style <kspace_style>` command.  Not all parameters are
 relevant to all kspace styles.
 
 
@@ -92,12 +92,12 @@ collective operations and adequate hardware.
 
 
 The *compute* keyword allows Kspace computations to be turned off,
-even though a :doc:`kspace\_style <kspace_style>` is defined.  This is
+even though a :doc:`kspace_style <kspace_style>` is defined.  This is
 not useful for running a real simulation, but can be useful for
 debugging purposes or for computing only partial forces that do not
 include the Kspace contribution.  You can also do this by simply not
-defining a :doc:`kspace\_style <kspace_style>`, but a Kspace-compatible
-:doc:`pair\_style <pair_style>` requires a kspace style to be defined.
+defining a :doc:`kspace_style <kspace_style>`, but a Kspace-compatible
+:doc:`pair_style <pair_style>` requires a kspace style to be defined.
 This keyword gives you that option.
 
 
@@ -179,7 +179,7 @@ are different.
 
 
 The *force* keyword overrides the relative accuracy parameter set by
-the :doc:`kspace\_style <kspace_style>` command with an absolute
+the :doc:`kspace_style <kspace_style>` command with an absolute
 accuracy.  The accuracy determines the RMS error in per-atom forces
 calculated by the long-range solver and is thus specified in force
 units.  A negative value for the accuracy setting means to use the
@@ -272,7 +272,7 @@ MSM.
 
 The *mix/disp* keyword selects the mixing rule for the dispersion
 coefficients.  With *pair*\ , the dispersion coefficients of unlike
-types are computed as indicated with :doc:`pair\_modify <pair_modify>`.
+types are computed as indicated with :doc:`pair_modify <pair_modify>`.
 With *geom*\ , geometric mixing is enforced on the dispersion
 coefficients in the kspace coefficients. When using the arithmetic
 mixing rule, this will speed-up the simulations but introduces some
@@ -361,10 +361,10 @@ or with suffix kspace/pair styles of MSM, like OMP or GPU.
 
 
 The *scafacos* keyword is used for settings that are passed to the
-ScaFaCoS library when using :doc:`kspace\_style scafacos <kspace_style>`.
+ScaFaCoS library when using :doc:`kspace_style scafacos <kspace_style>`.
 
 The *tolerance* option affects how the *accuracy* specified with the
-:doc:`kspace\_style <kspace_style>` command is interpreted by ScaFaCoS.
+:doc:`kspace_style <kspace_style>` command is interpreted by ScaFaCoS.
 The following values may be used:
 
 * energy = absolute accuracy in total Coulombic energy
@@ -394,7 +394,7 @@ field\_rel tolerance types set a tolerance based on the electric field
 values computed by ScaFaCoS.  Since per-atom forces are derived from
 the per-atom electric field, this effectively sets a tolerance on the
 forces, similar to other LAMMPS KSpace styles, as explained on the
-:doc:`kspace\_style <kspace_style>` doc page.
+:doc:`kspace_style <kspace_style>` doc page.
 
 Note that not all ScaFaCoS solvers support all tolerance types.
 These are the allowed values for each method:
@@ -444,7 +444,7 @@ boundaries can be set using :doc:`boundary <boundary>` (the slab
 approximation in not needed).  The *slab* keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace\_style <kspace_style>` *ewald/disp*\ ,
+:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*\ ,
 *ewald/dipole*\ , and *pppm/dipole*\ .
 
 .. note::
@@ -483,12 +483,13 @@ parameters, see the :doc:`Howto dispersion <Howto_dispersion>` doc page.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
 
-:doc:`kspace\_style <kspace_style>`, :doc:`boundary <boundary>`
+:doc:`kspace_style <kspace_style>`, :doc:`boundary <boundary>`
 
 Default
 """""""
@@ -560,8 +561,3 @@ Chem Theory Comput, 9, 5412 (2013).
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

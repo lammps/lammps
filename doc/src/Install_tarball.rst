@@ -5,16 +5,9 @@ You can download a current LAMMPS tarball from the `download page <download_>`_
 of the `LAMMPS website <lws_>`_.
 
 .. _download: http://lammps.sandia.gov/download.html
-
-
-
 .. _bug: http://lammps.sandia.gov/bug.html
-
-
-
 .. _older: http://lammps.sandia.gov/tars
-
-
+.. _lws: http://lammps.sandia.gov
 
 You have two choices of tarballs, either the most recent stable
 release or the most current patch release.  Stable releases occur a
@@ -31,27 +24,23 @@ Older versions of LAMMPS can also be downloaded from `this page <older_>`_.
 Once you have a tarball, unzip and untar it with the following
 command:
 
+.. code-block:: bash
 
-.. parsed-literal::
-
-   tar -xzvf lammps\*.tar.gz
+   $ tar -xzvf lammps\*.tar.gz
 
 This will create a LAMMPS directory with the version date
 in its name, e.g. lammps-23Jun18.
 
-
 ----------
-
 
 You can also download a zip file via the "Clone or download" button on
 the `LAMMPS GitHub site <git_>`_.  The file name will be lammps-master.zip
 which can be unzipped with the following command, to create
 a lammps-master dir:
 
+.. code-block:: bash
 
-.. parsed-literal::
-
-   unzip lammps\*.zip
+   $ unzip lammps\*.zip
 
 This version is the most up-to-date LAMMPS development version.  It
 will have the date of the most recent patch release (see the file
@@ -60,9 +49,6 @@ features added since the last patch release.  They will be included in
 the next patch release tarball.
 
 .. _git: https://github.com/lammps/lammps
-
-
-
 
 ----------
 
@@ -77,8 +63,3 @@ The patch files are posted on the `bug and feature page <bug_>`_ of the
 website, along with a list of changed files and details about what is
 in the new patch release.  Instructions for applying a patch file are
 on the :doc:`Install patch <Install_patch>` doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

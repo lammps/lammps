@@ -97,7 +97,7 @@ instructions on how to use the accelerated styles effectively.
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is performing charge equilibration. Default is
 the outermost level.
@@ -121,7 +121,7 @@ This fix command currently only supports :doc:`pair style *comb*\ <pair_comb>`.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style comb <pair_comb>`
+:doc:`pair_style comb <pair_comb>`
 
 Default
 """""""
@@ -158,8 +158,3 @@ Phillpot, Phys Rev B, 81, 125328 (2010).
 
 **(Rick\_and\_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
 101, 16141 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

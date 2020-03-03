@@ -1,16 +1,16 @@
-.. index:: pair\_style table/rx
+.. index:: pair_style table/rx
 
-pair\_style table/rx command
-============================
+pair_style table/rx command
+===========================
 
-pair\_style table/rx/kk command
-===============================
+pair_style table/rx/kk command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table style N ...
 
@@ -21,15 +21,14 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table/rx linear 1000
    pair_style table/rx linear 1000 fractional
    pair_style table/rx linear 1000 molecular
-   pair_coeff \* \* rxn.table ENTRY1 h2o h2o 10.0
-   pair_coeff \* \* rxn.table ENTRY1 1fluid 1fluid 10.0
-   pair_coeff \* 3 rxn.table ENTRY1 h2o no2 10.0
+   pair_coeff * * rxn.table ENTRY1 h2o h2o 10.0
+   pair_coeff * * rxn.table ENTRY1 1fluid 1fluid 10.0
+   pair_coeff * 3 rxn.table ENTRY1 h2o no2 10.0
 
 Description
 """""""""""
@@ -42,7 +41,7 @@ one CG particle can interact with a species in a neighboring CG
 particle through a site-site interaction potential model. Style
 *table/rx* creates interpolation tables of length *N* from pair
 potential and force values listed in a file(s) as a function of
-distance.  The files are read by the :doc:`pair\_coeff <pair_coeff>`
+distance.  The files are read by the :doc:`pair_coeff <pair_coeff>`
 command.
 
 The interpolation tables are created by fitting cubic splines to the
@@ -69,7 +68,7 @@ table via a fast bit-mapping technique :ref:`(Wolff) <Wolff>` and a linear
 interpolation is performed between adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * filename
@@ -108,7 +107,7 @@ best effect:
 
 * Vary the number of table points; you may need to use more than you think
   to get good resolution.
-* Always use the :doc:`pair\_write <pair_write>` command to produce a plot
+* Always use the :doc:`pair_write <pair_write>` command to produce a plot
   of what the final interpolated potential looks like.  This can show up
   interpolation "features" you may not like.
 * Start with the linear style; it's the style least likely to have problems.
@@ -152,7 +151,7 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`pair\_style table/rx <pair_style>` command.  Let
+specified in the :doc:`pair_style table/rx <pair_style>` command.  Let
 Ntable = *N* in the pair\_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
@@ -184,7 +183,7 @@ If used, the parameter "BITMAP" is also followed by 2 values *rlo* and
 *rhi*\ .  These values, along with the "N" value determine the ordering
 of the N lines that follow and what distance is associated with each.
 This ordering is complex, so it is not documented here, since this
-file is typically produced by the :doc:`pair\_write <pair_write>` command
+file is typically produced by the :doc:`pair_write <pair_write>` command
 with its *bitmap* option.  When the table is in BITMAP format, the "N"
 parameter in the file must be equal to 2\^M where M is the value
 specified in the pair\_style command.  Also, a cutoff parameter cannot
@@ -218,7 +217,7 @@ one that matches the specified keyword.
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-The :doc:`pair\_modify <pair_modify>` shift, table, and tail options are
+The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
 This pair style writes the settings for the "pair\_style table/rx" command
@@ -229,7 +228,7 @@ file, since it is tabulated in the potential files.  Thus, pair\_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -268,7 +267,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** fractional weighting
 
@@ -281,8 +280,3 @@ Related commands
 
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

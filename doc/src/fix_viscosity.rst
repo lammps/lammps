@@ -120,7 +120,7 @@ box orthogonal; thus it does not suffer from this limitation.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -184,8 +184,3 @@ The option defaults are swap = 1 and vtarget = INF.
 
 **(Maginn)** Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
 260, 218-231 (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,13 +1,13 @@
-.. index:: pair\_style mesocnt
+.. index:: pair_style mesocnt
 
-pair\_style mesocnt command
-===========================
+pair_style mesocnt command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mesocnt
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mesocnt
-   pair_coeff \* \* 10_10.cnt
+   pair_coeff * * 10_10.cnt
 
 Description
 """""""""""
@@ -51,7 +51,7 @@ original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
 The potential requires tabulated data provided in a single ASCII 
-text file specified in the :doc:`pair\_coeff <pair_coeff>` command. 
+text file specified in the :doc:`pair_coeff <pair_coeff>` command. 
 The first line of the file provides a time stamp and
 general information. The second line lists four integers giving
 the number of data points provided in the subsequent four
@@ -105,7 +105,7 @@ Communications.
 
 This pair style does not support mixing.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`, 
@@ -114,7 +114,7 @@ Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -134,7 +134,7 @@ This pair potential requires the :doc:`newton <newton>` setting to be
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -154,8 +154,3 @@ Related commands
 
 **(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts, 
 Q31.013 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

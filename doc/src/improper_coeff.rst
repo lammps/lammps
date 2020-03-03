@@ -1,13 +1,13 @@
-.. index:: improper\_coeff
+.. index:: improper_coeff
 
-improper\_coeff command
-=======================
+improper_coeff command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_coeff N args
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_coeff 1 300.0 0.0
-   improper_coeff \* 80.2 -1 2
-   improper_coeff \*4 80.2 -1 2
+   improper_coeff * 80.2 -1 2
+   improper_coeff *4 80.2 -1 2
 
 Description
 """""""""""
@@ -30,7 +30,7 @@ Description
 Specify the improper force field coefficients for one or more improper
 types.  The number and meaning of the coefficients depends on the
 improper style.  Improper coefficients can also be set in the data
-file read by the :doc:`read\_data <read_data>` command or in a restart
+file read by the :doc:`read_data <read_data>` command or in a restart
 file.
 
 N can be specified in one of two ways.  An explicit numeric value can
@@ -48,9 +48,9 @@ the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   improper_coeff \* 300.0 0.0
+   improper_coeff * 300.0 0.0
    improper_coeff 2 50.0 0.0
 
 A line in a data file that specifies improper coefficients uses the
@@ -65,7 +65,7 @@ corresponds to the 1st example above would be listed as
 
    1 300.0 0.0
 
-The :doc:`improper\_style class2 <improper_class2>` is an exception to
+The :doc:`improper_style class2 <improper_class2>` is an exception to
 this rule, in that an additional argument is used in the input script
 to allow specification of the cross-term coefficients.  See its doc
 page for details.
@@ -75,7 +75,7 @@ page for details.
 
 
 The list of all improper styles defined in LAMMPS is given on the
-:doc:`improper\_style <improper_style>` doc page.  They are also listed
+:doc:`improper_style <improper_style>` doc page.  They are also listed
 in more compact form on the :ref:`Commands improper <improper>` doc page.
 
 On either of those pages, click on the style to display the formula it
@@ -91,8 +91,8 @@ Restrictions
 
 
 This command must come after the simulation box is defined by a
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`, or
-:doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
+:doc:`create_box <create_box>` command.
 
 An improper style must be defined before any improper coefficients are
 set, either in the input script or in a data file.
@@ -100,11 +100,6 @@ set, either in the input script or in a data file.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_style <improper_style>`
+:doc:`improper_style <improper_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

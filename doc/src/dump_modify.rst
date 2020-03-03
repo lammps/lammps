@@ -1,13 +1,13 @@
-.. index:: dump\_modify
+.. index:: dump_modify
 
-dump\_modify command
-====================
+dump_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify dump-ID keyword values ...
 
@@ -121,7 +121,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify 1 format line "%d %d %20.15g %g %g" scale yes
    dump_modify 1 format float %20.15g scale yes
@@ -265,7 +265,7 @@ For example, the following commands will
 write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        s equal logfreq(10,3,10)
    dump            1 all atom 100 tmp.dump
@@ -275,7 +275,7 @@ The following commands would write snapshots at the timesteps listed
 in file tmp.times:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        f file tmp.times
    variable        s equal next(f)
@@ -372,7 +372,7 @@ settings, reverting all values to their default format.
    example, these commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute     1 all property/local batom1 batom2
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
@@ -535,7 +535,7 @@ last snapshot.  This can be accomplished with something the following
 commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        Dhop equal 0.6
    variable        check atom "c_dsp[4] > v_Dhop"
@@ -546,7 +546,7 @@ commands:
 The :doc:`compute displace/atom <compute_displace_atom>` command
 calculates the displacement of each atom from its reference position.
 The "4" index is the scalar displacement; 1,2,3 are the xyz components
-of the displacement.  The :doc:`dump\_modify thresh <dump_modify>`
+of the displacement.  The :doc:`dump_modify thresh <dump_modify>`
 command will cause only atoms that have displaced more than 0.6
 Angstroms to be output on a given snapshot (assuming metal units).
 However, note that when an atom is output, we also need to update the
@@ -621,7 +621,7 @@ most effective when the typical magnitude of position data is between
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom\_modify sort <atom_modify>` option is turned on, which it is by default, to
+parallel.  This is the case even in serial if the :doc:`atom_modify sort <atom_modify>` option is turned on, which it is by default, to
 improve performance.  A sort value of *id* means sort the output by
 atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending
@@ -647,7 +647,7 @@ performed.
 The *thermo* keyword only applies the dump *netcdf* style.  It
 triggers writing of :doc:`thermo <thermo>` information to the dump file
 alongside per-atom data.  The values included in the dump file are
-identical to the values specified by :doc:`thermo\_style <thermo_style>`.
+identical to the values specified by :doc:`thermo_style <thermo_style>`.
 
 
 ----------
@@ -678,7 +678,7 @@ only dump atoms whose attribute has changed (or not changed).
 Three examples follow.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify ... thresh ix != LAST
 
@@ -688,20 +688,20 @@ once and then crossed back between the two dump timesteps would not be
 included.)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region foo sphere 10 20 10 15
    variable inregion atom rmask(foo)
-   dump_modify ... thresh v_inregion \|\^ LAST
+   dump_modify ... thresh v_inregion |^ LAST
 
 This will dump atoms which crossed the boundary of the spherical
 region since the last dump.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable charge atom "(q > 0.5) \|\| (q < -0.5)"
-   dump_modify ... thresh v_charge \|\^ LAST
+   variable charge atom "(q > 0.5) || (q < -0.5)"
+   dump_modify ... thresh v_charge |^ LAST
 
 This will dump atoms whose charge has changed from an absolute value
 less than 1/2 to greater than 1/2 (or vice versa) since the last dump.
@@ -935,13 +935,13 @@ examples/pour/in.pour.2d.molecule input script for an example of how
 this is used.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        colors string &
                    "red green blue yellow white &
                    purple pink orange lime gray"
    variable        mol atom mol%10
-   dump            1 all image 250 image.\*.jpg v_mol type &
+   dump            1 all image 250 image.*.jpg v_mol type &
                    zoom 1.6 adiam 1.5
    dump_modify     1 pad 5 amap 0 10 sa 1 10 ${colors}
 
@@ -1193,8 +1193,3 @@ Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | wheat = 245, 222, 179         | white = 255, 255, 255                | whitesmoke = 245, 245, 245      | yellow = 255, 255, 0           | yellowgreen = 154, 205, 50     |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

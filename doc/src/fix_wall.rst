@@ -104,38 +104,61 @@ wall-particle interactions depends on the style.
 
 For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
 
-.. image:: Eqs/fix_wall_lj93.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+                       \left(\frac{\sigma}{r}\right)^3 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
-.. image:: Eqs/fix_wall_lj1043.jpg
-   :align: center
+.. math::
+
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+                       \left(\frac{\sigma}{r}\right)^4 -
+                       \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
+                       \qquad r < r_c
+
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
-of the :doc:`pair\_style colloid <pair_colloid>` potential:
+of the :doc:`pair_style colloid <pair_colloid>` potential:
 
-.. image:: Eqs/fix_wall_colloid.jpg
-   :align: center
+.. math::
+
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
+    & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
+
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
 
-.. image:: Eqs/fix_wall_harmonic.jpg
-   :align: center
+.. math::
+
+ E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
+
 
 For style *wall/morse*\ , the energy E is given by a Morse potential:
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
+       \qquad r < r_c
+
 
 In all cases, *r* is the distance from the particle to the wall at
-position *coord*\ , and Rc is the *cutoff* distance at which the
+position *coord*\ , and :math:`r_c` is the *cutoff* distance at which the
 particle and wall no longer interact.  The energy of the wall
 potential is shifted so that the wall-particle interaction energy is
 0.0 at the cutoff distance.
@@ -157,15 +180,15 @@ where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
 can specify formulas with various mathematical functions, and include
-:doc:`thermo\_style <thermo_style>` command keywords for the simulation
+:doc:`thermo_style <thermo_style>` command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.  See examples below.
 
 For the *wall/lj93* and *wall/lj126* and *wall/lj1043* styles,
-*epsilon* and *sigma* are the usual Lennard-Jones parameters, which
+:math:`\epsilon` and :math:`\sigma` are the usual Lennard-Jones parameters, which
 determine the strength and size of the particle as it interacts with
-the wall.  Epsilon has energy units.  Note that this *epsilon* and
-*sigma* may be different than any *epsilon* or *sigma* values defined
+the wall.  Epsilon has energy units.  Note that this :math:`\epsilon` and
+:math:`\sigma` may be different than any :math:`\epsilon` or :math:`\sigma` values defined
 for a pair style that computes particle-particle interactions.
 
 The *wall/lj93* interaction is derived by integrating over a 3d
@@ -174,46 +197,46 @@ interaction is effectively a harder, more repulsive wall interaction.
 The *wall/lj1043* interaction is yet a different form of wall
 interaction, described in Magda et al in :ref:`(Magda) <Magda>`.
 
-For the *wall/colloid* style, *R* is the radius of the colloid
-particle, *D* is the distance from the surface of the colloid particle
-to the wall (r-R), and *sigma* is the size of a constituent LJ
-particle inside the colloid particle and wall.  Note that the cutoff
-distance Rc in this case is the distance from the colloid particle
-center to the wall.  The prefactor *epsilon* can be thought of as an
-effective Hamaker constant with energy units for the strength of the
-colloid-wall interaction.  More specifically, the *epsilon* pre-factor
-= 4 \* pi\^2 \* rho\_wall \* rho\_colloid \* epsilon \* sigma\^6, where epsilon
-and sigma are the LJ parameters for the constituent LJ
-particles. Rho\_wall and rho\_colloid are the number density of the
-constituent particles, in the wall and colloid respectively, in units
-of 1/volume.
+For the *wall/colloid* style, *R* is the radius of the colloid particle,
+*D* is the distance from the surface of the colloid particle to the wall
+(r-R), and :math:`\sigma` is the size of a constituent LJ particle
+inside the colloid particle and wall.  Note that the cutoff distance Rc
+in this case is the distance from the colloid particle center to the
+wall.  The prefactor :math:`\epsilon` can be thought of as an effective
+Hamaker constant with energy units for the strength of the colloid-wall
+interaction.  More specifically, the :math:`\epsilon` pre-factor is
+:math:`4\pi^2 \rho_{wall} \rho_{colloid} \epsilon \sigma^6`, where
+:math:`\epsilon` and :math:`\sigma` are the LJ parameters for the
+constituent LJ particles. :math:`\rho_{wall}` and :math:`\rho_{colloid}`
+are the number density of the constituent particles, in the wall and
+colloid respectively, in units of 1/volume.
 
 The *wall/colloid* interaction is derived by integrating over
-constituent LJ particles of size *sigma* within the colloid particle
-and a 3d half-lattice of Lennard-Jones 12/6 particles of size *sigma*
+constituent LJ particles of size :math:`\sigma` within the colloid particle
+and a 3d half-lattice of Lennard-Jones 12/6 particles of size :math:`\sigma`
 in the wall.  As mentioned in the preceding paragraph, the density of
 particles in the wall and colloid can be different, as specified by
-the *epsilon* pre-factor.
+the :math:`\epsilon` pre-factor.
 
-For the *wall/harmonic* style, *epsilon* is effectively the spring
+For the *wall/harmonic* style, :math:`\epsilon` is effectively the spring
 constant K, and has units (energy/distance\^2).  The input parameter
-*sigma* is ignored.  The minimum energy position of the harmonic
+:math:`\sigma` is ignored.  The minimum energy position of the harmonic
 spring is at the *cutoff*\ .  This is a repulsive-only spring since the
 interaction is truncated at the *cutoff*
 
 For the *wall/morse* style, the three parameters are in this order:
-*D\_0* the depth of the potential, *alpha* the width parameter, and
-*r\_0* the location of the minimum.  *D\_0* has energy units, *alpha*
-inverse distance units, and *r\_0* distance units.
+:math:`D_0` the depth of the potential, :math:`\alpha` the width parameter, and
+:math:`r_0` the location of the minimum.  :math:`D_0` has energy units, :math:`\alpha`
+inverse distance units, and :math:`r_0` distance units.
 
-For any wall, the *epsilon* and/or *sigma* and/or *alpha* parameter can
+For any wall, the :math:`\epsilon` and/or :math:`\sigma` and/or :math:`\alpha` parameter can
 be specified
 as an :doc:`equal-style variable <variable>`, in which case it should be
 specified as v\_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and
 the result becomes the current epsilon or sigma of the wall.
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent wall interaction.
 
@@ -230,7 +253,7 @@ time.  Thus it is easy to specify a time-dependent wall interaction.
    the finite-size particles of radius R must be a distance larger than R
    from the wall position *coord*\ .  The *harmonic* style is a softer
    potential and does not blow up as r -> 0, but you must use a large
-   enough *epsilon* that particles always reamin on the correct side of
+   enough :math:`\epsilon` that particles always reamin on the correct side of
    the wall (r > 0).
 
 The *units* keyword determines the meaning of the distance units used
@@ -247,7 +270,7 @@ define the lattice spacings.
 
 The *fld* keyword can be used with a *yes* setting to invoke the wall
 constraint before pairwise interactions are computed.  This allows an
-implicit FLD model using :doc:`pair\_style lubricateU <pair_lubricateU>`
+implicit FLD model using :doc:`pair_style lubricateU <pair_lubricateU>`
 to include the wall force in its calculations.  If the setting is
 *no*\ , wall forces are imposed after pairwise interactions, in the
 usual manner.
@@ -321,15 +344,15 @@ perturbation on the particles:
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the interaction between
 atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -353,7 +376,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
    If you want the atom/wall interaction energy to be included in
    the total potential energy of the system (the quantity being
-   minimized), you MUST enable the :doc:`fix\_modify <fix_modify>` *energy*
+   minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
 
@@ -408,8 +431,3 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

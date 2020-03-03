@@ -72,8 +72,3 @@ Related commands
 :doc:`group <group>`, :doc:`dump <dump>`, :doc:`fix colvars <fix_colvars>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

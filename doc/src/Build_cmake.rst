@@ -20,7 +20,7 @@ make command to build LAMMPS, which uses the created
 Makefile(s). Example:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd lammps                        # change to the LAMMPS distribution directory
    mkdir build; cd build            # create a new directory (folder) for build
@@ -52,7 +52,7 @@ After compilation, you may optionally install the LAMMPS executable into
 your system with:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make install    # optional, copy LAMMPS executable & library elsewhere
 
@@ -115,7 +115,7 @@ folder, recreate the directory and start over.
 **Command-line version of CMake**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cmake [options ...] /path/to/lammps/cmake  # build from any dir
    cmake [options ...] ../cmake               # build from lammps/build
@@ -127,7 +127,7 @@ The argument can be preceeded or followed by various CMake
 command-line options.  Several useful ones are:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
    -D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
@@ -177,7 +177,7 @@ directory.
 **Curses version (terminal-style menu) of CMake**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    ccmake ../cmake
 
@@ -195,7 +195,7 @@ more information.
 **GUI version of CMake**\ :
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    cmake-gui ../cmake
 
@@ -216,7 +216,7 @@ for more information.
 Check if your machine already has CMake installed:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    which cmake             # do you have it?
    which cmake3            # version 3 may have this name
@@ -226,10 +226,10 @@ On clusters or supercomputers which use environment modules to manage
 software packages, do this:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
-   module list            # is a cmake module already loaded?
-   module avail           # is a cmake module available?
+   module list            # is a module for cmake already loaded?
+   module avail           # is a module for cmake available?
    module load cmake3     # load cmake module with appropriate name
 
 Most Linux distributions offer pre-compiled cmake packages through
@@ -238,8 +238,3 @@ enough version, you can download the latest version at
 `https://cmake.org/download/ <https://cmake.org/download/>`_.
 Instructions on how to install it on various platforms can be found
 `on this page <https://cmake.org/install/>`_.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

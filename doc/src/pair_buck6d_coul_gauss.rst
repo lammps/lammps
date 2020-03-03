@@ -1,16 +1,16 @@
-.. index:: pair\_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/dsf
 
-pair\_style buck6d/coul/gauss/dsf command
+pair_style buck6d/coul/gauss/dsf command
+========================================
+
+pair_style buck6d/coul/gauss/long command
 =========================================
-
-pair\_style buck6d/coul/gauss/long command
-==========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -34,7 +34,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck6d/coul/gauss/dsf    0.9000    12.0000
    pair_coeff 1  1  1030.  3.061  457.179  4.521  0.608
@@ -50,12 +50,14 @@ interactions following the MOF-FF force field after
 :ref:`(Schmid) <Schmid>`. The vdW term of the *buck6d* styles
 computes a dispersion damped Buckingham potential:
 
-.. image:: Eqs/pair_buck6d.jpg
-   :align: center
+.. math::
 
-where A and C are a force constant, kappa is an ionic-pair dependent
+   E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
+
+
+where A and C are a force constant, :math:`\kappa` is an ionic-pair dependent
 reciprocal length parameter, D is a dispersion correction parameter,
-and the cutoff Rc truncates the interaction distance.
+and the cutoff :math:`r_c` truncates the interaction distance.
 The first term in the potential corresponds to the Buckingham
 repulsion term and the second term to the dispersion attraction with
 a damping correction analog to the Grimme correction used in DFT.
@@ -78,21 +80,23 @@ distributions which effectively dampen electrostatic interactions
 for high charges at close distances.  The electrostatic potential
 is thus evaluated as:
 
-.. image:: Eqs/pair_coul_gauss.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the
-charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, alpha is
-ion pair dependent damping parameter and erf() is the error-function.
-The cutoff Rc truncates the interaction distance.
+   E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, epsilon is the dielectric constant which
+can be set by the :doc:`dielectric <dielectric>` command, :math:`\alpha`
+is the ion pair dependent damping parameter and erf() is the
+error-function.  The cutoff :math:`r_c` truncates the interaction distance.
 
 The style *buck6d/coul/gauss/dsf* computes the Coulomb interaction
 via the damped shifted force model described in :ref:`(Fennell) <Fennell>`
 approximating an Ewald sum similar to the :doc:`pair coul/dsf <pair_coul>`
 styles. In *buck6d/coul/gauss/long* an additional damping factor is
 applied to the Coulombic term so it can be used in conjunction with the
-:doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 options. The Coulombic cutoff in this case separates the real and
 reciprocal space evaluation of the Ewald sum.
 
@@ -101,20 +105,20 @@ terms.  If two cutoffs are specified, the first is used as the cutoff
 for the vdW terms, and the second is the cutoff for the Coulombic term.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (energy units)
-* rho (distance\^-1 units)
+* :math:`\rho` (distance\^-1 units)
 * C (energy-distance\^6 units)
 * D (distance\^14 units)
-* alpha (distance\^-1 units)
+* :math:`\alpha` (distance\^-1 units)
 * cutoff (distance units)
 
-The second coefficient, rho, must be greater than zero. The latter
-coefficient is optional.  If not specified, the global vdW cutoff
+The second coefficient, :math:`\rho`, must be greater than zero. The
+latter coefficient is optional.  If not specified, the global vdW cutoff
 is used.
 
 
@@ -126,7 +130,7 @@ is used.
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-These styles do not support the :doc:`pair\_modify <pair_modify>` shift
+These styles do not support the :doc:`pair_modify <pair_modify>` shift
 option for the energy. Instead the smoothing function should be applied
 by setting the global smoothing parameter to a value < 1.0.
 
@@ -143,7 +147,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -157,8 +161,3 @@ Related commands
 
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

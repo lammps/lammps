@@ -1,28 +1,28 @@
-.. index:: pair\_style vashishta
+.. index:: pair_style vashishta
 
-pair\_style vashishta command
-=============================
+pair_style vashishta command
+============================
 
-pair\_style vashishta/gpu command
-=================================
-
-pair\_style vashishta/omp command
-=================================
-
-pair\_style vashishta/kk command
+pair_style vashishta/gpu command
 ================================
 
-pair\_style vashishta/table command
-===================================
+pair_style vashishta/omp command
+================================
 
-pair\_style vashishta/table/omp command
-=======================================
+pair_style vashishta/kk command
+===============================
+
+pair_style vashishta/table command
+==================================
+
+pair_style vashishta/table/omp command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -41,13 +41,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style vashishta
-   pair_coeff \* \* SiC.vashishta Si C
+   pair_coeff * * SiC.vashishta Si C
 
    pair_style vashishta/table 100000 0.2
-   pair_coeff \* \* SiC.vashishta Si C
+   pair_coeff * * SiC.vashishta Si C
 
 Description
 """""""""""
@@ -63,16 +63,21 @@ including SiO2 :ref:`Vashishta1990 <Vashishta1990>`, SiC
 
 The potential for the energy U of a system of atoms is
 
-.. image:: Eqs/pair_vashishta.jpg
-   :align: center
+.. math::
+
+   U & =  \sum_i^N \sum_{j > i}^N U_{ij}^{(2)} (r_{ij}) + \sum_i^N \sum_{j \neq i}^N \sum_{k > j, k \neq i}^N U_{ijk}^{(3)} (r_{ij}, r_{ik}, \theta_{ijk}) \\
+   U_{ij}^{(2)} (r) & =   \frac{H_{ij}}{r^{\eta_{ij}}} + \frac{Z_i Z_j}{r}\exp(-r/\lambda_{1,ij}) - \frac{D_{ij}}{r^4}\exp(-r/\lambda_{4,ij}) - \frac{W_{ij}}{r^6}, r < r_{c,{ij}} \\
+   U_{ijk}^{(3)}(r_{ij},r_{ik},\theta_{ijk}) & =  B_{ijk} \frac{\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} {1+C_{ijk}\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} \times \\
+                    &  \exp \left( \frac{\gamma_{ij}}{r_{ij} - r_{0,ij}} \right) \exp \left( \frac{\gamma_{ik}}{r_{ik} - r_{0,ik}} \right), r_{ij} < r_{0,ij}, r_{ik} < r_{0,ik}
+
 
 where we follow the notation used in :ref:`Branicio2009 <Branicio2009>`.
-U2 is a two-body term and U3 is a three-body term.  The
+:math:`U^2` is a two-body term and U3 is a three-body term.  The
 summation over two-body terms is over all neighbors J within
-a cutoff distance = *rc*\ .  The twobody terms are shifted and
+a cutoff distance = :math:`r_c`.  The twobody terms are shifted and
 tilted by a linear function so that the energy and force are
-both zero at *rc*\ . The summation over three-body terms
-is over all neighbors J and K within a cut-off distance = *r0*\ ,
+both zero at :math:`r_c`. The summation over three-body terms
+is over all neighbors *i* and *k* within a cut-off distance :math:`= r_0`,
 where the exponential screening function becomes zero.
 
 The *vashishta* style computes these formulas analytically.  The
@@ -95,7 +100,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of Vashishta elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine a file SiC.vashishta has parameters for
@@ -104,9 +109,9 @@ the 1st 3 to be Si, and the 4th to be C, you would use the following
 pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.vashishta Si Si Si C
+   pair_coeff * * SiC.vashishta Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -126,20 +131,20 @@ and three-body coefficients in the formulae above:
 * element 1 (the center atom in a 3-body interaction)
 * element 2
 * element 3
-* H (energy units)
-* eta
-* Zi (electron charge units)
-* Zj (electron charge units)
-* lambda1 (distance units)
-* D (energy units)
-* lambda4 (distance units)
-* W (energy units)
-* rc (distance units)
-* B (energy units)
-* gamma
-* r0 (distance units)
-* C
-* costheta0
+* *H* (energy units)
+* :math:`\eta`
+* :math:`Z_i` (electron charge units)
+* :math:`Z_j` (electron charge units)
+* :math:`\lambda_1` (distance units)
+* *D* (energy units)
+* :math:`\lambda_4` (distance units)
+* *W* (energy units)
+* :math:`r_c` (distance units)
+* *B* (energy units)
+* :math:`\gamma`
+* :math:`r_0` (distance units)
+* *C*
+* :math:`\cos\theta_0`
 
 The non-annotated parameters are unitless.  The Vashishta potential
 file must contain entries for all the elements listed in the
@@ -159,12 +164,14 @@ unambiguous, general, and simple to code, LAMMPS uses a slightly
 confusing method for specifying parameters.  All parameters are
 divided into two classes: two-body and three-body.  Two-body and
 three-body parameters are handled differently, as described below.
-The two-body parameters are H, eta, lambda1, D, lambda4, W, rc, gamma,
-and r0.  They appear in the above formulae with two subscripts.  The
-parameters Zi and Zj are also classified as two-body parameters, even
-though they only have 1 subscript.  The three-body parameters are B,
-C, costheta0.  They appear in the above formulae with three
-subscripts.  Two-body and three-body parameters are handled
+The two-body parameters are *H*\ , :math:`\eta`, :math:`\lambda_1`,
+*D*\ , :math:`\lambda_4`, *W*, :math:`r_c`, :math:`\gamma`,
+and :math:`r_0`.  They appear in the above formulae with two subscripts.
+The parameters :math:`Z_i` and :math:`Z_j` are also classified
+as two-body parameters, even
+though they only have 1 subscript.  The three-body parameters are *B*\ ,
+*C*\ , :math:`\cos\theta_0`.  They appear in the above formulae with
+three subscripts.  Two-body and three-body parameters are handled
 differently, as described below.
 
 The first element in each entry is the center atom in a three-body
@@ -184,7 +191,8 @@ ensure that these values are equal. Two-body parameters appearing in
 entries where the 2nd and 3rd elements are different are stored but
 never used. It is good practice to enter zero for these values. Note
 that the three-body function U3 above contains the two-body parameters
-gamma and r0. So U3 for a central C atom bonded to an Si atom and a
+:math:`\gamma` and :math:`r_0`. So U3 for a central C atom bonded to
+an Si atom and a
 second C atom will take three-body parameters from the CSiC entry, but
 two-body parameters from the CCC and CSiSi entries.
 
@@ -220,7 +228,7 @@ For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
 described above from values in the potential file.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -228,7 +236,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -254,7 +262,7 @@ appropriate units if your simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -282,8 +290,3 @@ J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
 
 **(Branicio2009)** Branicio, Rino, Gan and Tsuzuki, J. Phys Condensed
 Matter 21 (2009) 095002
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

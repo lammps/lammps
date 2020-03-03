@@ -1,22 +1,22 @@
-.. index:: dihedral\_style opls
+.. index:: dihedral_style opls
 
-dihedral\_style opls command
-============================
+dihedral_style opls command
+===========================
 
-dihedral\_style opls/intel command
-==================================
+dihedral_style opls/intel command
+=================================
 
-dihedral\_style opls/kk command
+dihedral_style opls/kk command
+==============================
+
+dihedral_style opls/omp command
 ===============================
-
-dihedral\_style opls/omp command
-================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
    dihedral_coeff 1 1.740 -0.157 0.279 0.00   # CT-CT-CT-CT
@@ -36,8 +36,11 @@ Description
 
 The *opls* dihedral style uses the potential
 
-.. image:: Eqs/dihedral_opls.jpg
-   :align: center
+.. math::
+
+   E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
+       & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
+
 
 Note that the usual 1/2 factor is not included in the K values.
 
@@ -45,14 +48,14 @@ This dihedral potential is used in the OPLS force field and is
 described in :ref:`(Watkins) <Watkins>`.
 
 The following coefficients must be defined for each dihedral type via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* K1 (energy)
-* K2 (energy)
-* K3 (energy)
-* K4 (energy)
+* :math:`K_1` (energy)
+* :math:`K_2` (energy)
+* :math:`K_3` (energy)
+* :math:`K_4` (energy)
 
 
 ----------
@@ -91,7 +94,7 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
 
@@ -104,8 +107,3 @@ Related commands
 
 
 **(Watkins)** Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

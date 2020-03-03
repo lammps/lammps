@@ -1,13 +1,13 @@
-.. index:: fix smd/integrate\_ulsph
+.. index:: fix smd/integrate_ulsph
 
-fix smd/integrate\_ulsph command
+fix smd/integrate_ulsph command
 ================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/integrate_ulsph keyword
 
@@ -26,8 +26,7 @@ limit\_velocity values = max\_velocity
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all smd/integrate_ulsph adjust_radius 1.02 25 50
    fix 1 all smd/integrate_ulsph limit_velocity 1000
@@ -66,8 +65,3 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

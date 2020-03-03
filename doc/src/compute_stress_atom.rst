@@ -152,14 +152,14 @@ i.e. computed values for contributions from bonds and two-body pair styles,
 such as :doc:`Lennard-Jones <pair_lj>`, will be the same,
 while contributions from angles, dihedrals and impropers will be different.
 
-The :doc:`dihedral\_style charmm <dihedral_charmm>` style calculates
+The :doc:`dihedral_style charmm <dihedral_charmm>` style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 
 The KSpace contribution is calculated using the method in
 :ref:`(Heyes) <Heyes2>` for the Ewald method and by the methodology described
 in :ref:`(Sirk) <Sirk1>` for PPPM.  The choice of KSpace solver is specified
-by the :doc:`kspace\_style pppm <kspace_style>` command.  Note that for
+by the :doc:`kspace_style pppm <kspace_style>` command.  Note that for
 PPPM, the calculation requires 6 extra FFTs each timestep that
 per-atom stress is calculated.  Thus it can significantly increase the
 cost of the PPPM calculation if it is needed on a large fraction of
@@ -210,7 +210,7 @@ result. I.e. the last 2 columns of thermo output will be the same:
 .. note::
 
    The per-atom stress does not include any Lennard-Jones tail
-   corrections to the pressure added by the :doc:`pair\_modify tail yes <pair_modify>` command, since those are contributions to the
+   corrections to the pressure added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
    global system pressure.
 
 **Output info:**
@@ -272,8 +272,3 @@ Related commands
 
 
 **(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

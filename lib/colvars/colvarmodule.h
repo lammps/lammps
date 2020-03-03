@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -608,10 +608,6 @@ public:
 
   // proxy functions
 
-  /// \brief Value of the unit for atomic coordinates with respect to
-  /// angstroms (used by some variables for hard-coded default values)
-  static real unit_angstrom();
-
   /// \brief Boltmann constant
   static real boltzmann();
 
@@ -678,28 +674,22 @@ public:
     return 5;
   }
 
-
-  // Replica exchange commands.
-  static bool replica_enabled();
-  static int replica_index();
-  static int replica_num();
-  static void replica_comm_barrier();
-  static int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
-  static int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
-
   /// \brief Get the distance between two atomic positions with pbcs handled
   /// correctly
   static rvector position_distance(atom_pos const &pos1,
                                    atom_pos const &pos2);
 
-  /// \brief Names of groups from a Gromacs .ndx file to be read at startup
-  std::list<std::string> index_group_names;
+  /// \brief Names of groups from one or more Gromacs .ndx files
+  std::vector<std::string> index_group_names;
 
-  /// \brief Groups from a Gromacs .ndx file read at startup
-  std::list<std::vector<int> > index_groups;
+  /// \brief Groups from one or more Gromacs .ndx files
+  std::vector<std::vector<int> *> index_groups;
 
   /// \brief Read a Gromacs .ndx file
   int read_index_file(char const *filename);
+
+  /// Clear the index groups loaded so far
+  int reset_index_groups();
 
   /// \brief Select atom IDs from a file (usually PDB) \param filename name of
   /// the file \param atoms array into which atoms read from "filename" will be
@@ -726,11 +716,10 @@ public:
                          std::string const &pdb_field,
                          double pdb_field_value = 0.0);
 
-  /// \brief Load the coordinates for a group of atoms from an
-  /// XYZ file
-  static int load_coords_xyz(char const *filename,
-                             std::vector<rvector> *pos,
-                             atom_group *atoms);
+  /// Load coordinates into an atom group from an XYZ file (assumes Angstroms)
+  int load_coords_xyz(char const *filename,
+                      std::vector<rvector> *pos,
+                      atom_group *atoms);
 
   /// Frequency for collective variables trajectory output
   static size_t cv_traj_freq;
@@ -770,6 +759,9 @@ private:
 
   /// Thread-specific depth
   std::vector<size_t> depth_v;
+
+  /// Track how many times the XYZ reader has been used
+  int xyz_reader_use_count;
 
 public:
 

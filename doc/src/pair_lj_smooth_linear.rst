@@ -1,16 +1,16 @@
-.. index:: pair\_style lj/smooth/linear
+.. index:: pair_style lj/smooth/linear
 
-pair\_style lj/smooth/linear command
-====================================
+pair_style lj/smooth/linear command
+===================================
 
-pair\_style lj/smooth/linear/omp command
-========================================
+pair_style lj/smooth/linear/omp command
+=======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear cutoff
 
@@ -20,10 +20,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear 2.5
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 0.3 3.0 9.0
 
 Description
@@ -35,17 +35,21 @@ standard 12/6 Lennard-Jones function and subtracts a linear term based
 on the cutoff distance, so that both, the potential and the force, go
 continuously to zero at the cutoff Rc :ref:`(Toxvaerd) <Toxvaerd>`:
 
-.. image:: Eqs/pair_lj_smooth_linear.jpg
-   :align: center
+.. math::
+
+   \phi\left(r\right) & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right] \\
+   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c 
+
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional. If not specified, the global
@@ -83,14 +87,14 @@ For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed. The default mix value is geometric.
 See the "pair\_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction, since it goes
 to 0.0 at the cutoff by construction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure, since the energy of the pair interaction is smoothed to 0.0
 at the cutoff.
@@ -99,7 +103,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -113,7 +117,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair lj/smooth <pair_lj_smooth>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth <pair_lj_smooth>`
 
 **Default:** none
 
@@ -126,8 +130,3 @@ Related commands
 
 
 **(Toxvaerd)** Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

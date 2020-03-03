@@ -54,58 +54,58 @@ Masses:
 
 .. math::
 
-   \begin{equation} M' = M + m \end{equation}
+    M' = M + m 
 
 
 .. math::
 
-   \begin{equation} m' = \frac {M\, m } {M'} \end{equation}
+    m' = \frac {M\, m } {M'} 
 
 Positions:
 
 .. math::
 
-   \begin{equation} X' = \frac {M\, X + m\, x} {M'}\end{equation}
+    X' = \frac {M\, X + m\, x} {M'}
 
 
 .. math::
 
-   \begin{equation} x' = x - X \end{equation}
+    x' = x - X 
 
 Velocities:
 
 .. math::
 
-   \begin{equation} V' = \frac {M\, V + m\, v} {M'}\end{equation}
+    V' = \frac {M\, V + m\, v} {M'}
 
 
 .. math::
 
-   \begin{equation} v' = v - V \end{equation}
+    v' = v - V 
 
 Forces:
 
 .. math::
 
-   \begin{equation} F' = F + f \end{equation}
+    F' = F + f 
 
 
 .. math::
 
-   \begin{equation} f' = \frac { M\, f - m\, F} {M'}\end{equation}
+    f' = \frac { M\, f - m\, F} {M'}
 
 This transform conserves the total kinetic energy
 
 .. math::
 
-   \begin{equation} \frac 1 2 \, (M\, V^2\ + m\, v^2)
-   = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) \end{equation}
+    \frac 1 2 \, (M\, V^2\ + m\, v^2)
+   = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) 
 
 and the virial defined with absolute positions
 
 .. math::
 
-   \begin{equation} X\, F + x\, f = X'\, F' + x'\, f' \end{equation}
+    X\, F + x\, f = X'\, F' + x'\, f' 
 
 
 ----------
@@ -211,7 +211,7 @@ Related commands
 :doc:`fix drude <fix_drude>`,
 :doc:`fix langevin/drude <fix_langevin_drude>`,
 :doc:`compute temp/drude <compute_temp_drude>`,
-:doc:`pair\_style thole <pair_thole>`
+:doc:`pair_style thole <pair_thole>`
 
 **Default:** none
 
@@ -224,8 +224,3 @@ Related commands
 
 
 **(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

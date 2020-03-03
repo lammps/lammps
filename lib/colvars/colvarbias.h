@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -51,17 +51,18 @@ public:
   }
 
   /// Retrieve colvar values and calculate their biasing forces
-  /// Return bias energy
+  /// Some implementations may use calc_energy() and calc_forces()
   virtual int update();
 
-  /// \brief Compute the energy of the bias with alternative values of the
-  /// collective variables (suitable for bias exchange)
-  virtual int calc_energy(std::vector<colvarvalue> const &values =
-                          std::vector<colvarvalue>(0))
-  {
-    cvm::error("Error: calc_energy() not implemented.\n", COLVARS_NOT_IMPLEMENTED);
-    return COLVARS_NOT_IMPLEMENTED;
-  }
+  /// Compute the energy of the bias
+  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// currently cached in the bias instance otherwise
+  virtual int calc_energy(std::vector<colvarvalue> const *values);
+
+  /// Compute the forces due to the bias
+  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// currently cached in the bias instance otherwise
+  virtual int calc_forces(std::vector<colvarvalue> const *values);
 
   /// Send forces to the collective variables
   virtual void communicate_forces();

@@ -20,7 +20,7 @@ parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
@@ -156,6 +156,7 @@ OPT.
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`
    * :doc:`print <fix_print>`
+   * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
    * :doc:`python/invoke <fix_python_invoke>`
    * :doc:`python/move <fix_python_move>`
@@ -239,8 +240,3 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
-   *
-   *
-   *
-   *
-   *

@@ -1,13 +1,13 @@
-.. index:: pair\_style kolmogorov/crespi/full
+.. index:: pair_style kolmogorov/crespi/full
 
-pair\_style kolmogorov/crespi/full command
-==========================================
+pair_style kolmogorov/crespi/full command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag
 
@@ -18,15 +18,15 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay kolmogorov/crespi/full 20.0 0
-   pair_coeff \* \* none
-   pair_coeff \* \* kolmogorov/crespi/full  CH.KC   C C
+   pair_coeff * * none
+   pair_coeff * * kolmogorov/crespi/full  CH.KC   C C
 
    pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0 1
-   pair_coeff \* \* rebo                    CH.rebo      C H
-   pair_coeff \* \* kolmogorov/crespi/full  CH_taper.KC  C H
+   pair_coeff * * rebo                    CH.rebo      C H
+   pair_coeff * * kolmogorov/crespi/full  CH_taper.KC  C H
 
 Description
 """""""""""
@@ -35,15 +35,21 @@ The *kolmogorov/crespi/full* style computes the Kolmogorov-Crespi (KC)
 interaction potential as described in :ref:`(Kolmogorov) <Kolmogorov1>`.
 No simplification is made,
 
-.. image:: Eqs/pair_kolmogorov_crespi_full.jpg
-   :align: center
+.. math::
+
+   E  = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij}  = & e^{-\lambda (r_{ij} -z_0)} \left [ C + f(\rho_{ij}) + f(\rho_{ji}) - A \left ( \frac{r_{ij}}{z_0}\right )^{-6} \right ] \\
+  \rho_{ij}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot {\bf n}_{i})^2 \\
+  \rho_{ji}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot  {\bf n}_{j})^2 \\
+  f(\rho) & =  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} { (\rho/\delta) }^{2n}
+
 
 It is important to have a sufficiently large cutoff to ensure smooth
 forces and to include all the pairs to build the neighbor list for
 calculating the normals.  Energies are shifted so that they go
 continuously to zero at the cutoff assuming that the exponential part of
-*Vij* (first term) decays sufficiently fast.  This shift is achieved by
-the last term in the equation for *Vij* above. This is essential only
+:math:`V_{ij}` (first term) decays sufficiently fast.  This shift is achieved by
+the last term in the equation for :math:`V_{ij}` above. This is essential only
 when the tapper function is turned off. The formula of taper function
 can be found in pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
@@ -94,7 +100,7 @@ To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 0 all pair kolmogorov/crespi/full
    variable Evdw  equal c_0[1]
@@ -134,13 +140,13 @@ units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_none <pair_none>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style drip <pair_drip>`,
-:doc:`pair\_style pair\_lebedeva\_z <pair_lebedeva_z>`,
-:doc:`pair\_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_none <pair_none>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style pair\_lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
 **Default:** tap\_flag = 0
 
@@ -165,8 +171,3 @@ Related commands
 
 
 **(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

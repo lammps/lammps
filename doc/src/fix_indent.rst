@@ -110,12 +110,12 @@ will be evaluated each timestep, and its value used to define the
 indenter geometry.
 
 Note that equal-style variables can specify formulas with various
-mathematical functions, and include :doc:`thermo\_style <thermo_style>`
+mathematical functions, and include :doc:`thermo_style <thermo_style>`
 command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify indenter properties that
 change as a function of time or span consecutive runs in a continuous
 fashion.  For the latter, see the *start* and *stop* keywords of the
-:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo\_style custom <thermo_style>` for details.
+:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for details.
 
 For example, if a spherical indenter's x-position is specified as v\_x,
 then this variable definition will keep it's center at a relative
@@ -169,7 +169,7 @@ cylindrical indenter is scaled by the x lattice spacing.
 Note that the units keyword only affects indenter geometry parameters
 specified directly with numbers, not those specified as variables.  In
 the latter case, you should use the *xlat*\ , *ylat*\ , *zlat* keywords of
-the :doc:`thermo\_style <thermo_style>` command if you want to include
+the :doc:`thermo_style <thermo_style>` command if you want to include
 lattice spacings in a variable formula.
 
 The force constant *K* is not affected by the *units* keyword.  It is
@@ -177,7 +177,7 @@ always in force/distance\^2 units where force and distance are defined
 by the :doc:`units <units>` command.  If you wish K to be scaled by the
 lattice spacing, you can define K with a variable whose formula
 contains *xlat*\ , *ylat*\ , *zlat* keywords of the
-:doc:`thermo\_style <thermo_style>` command, e.g.
+:doc:`thermo_style <thermo_style>` command, e.g.
 
 
 .. parsed-literal::
@@ -189,12 +189,12 @@ contains *xlat*\ , *ylat*\ , *zlat* keywords of the
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy of interaction between atoms and the indenter to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  The energy of each particle interacting
 with the indenter is K/3 (r - R)\^3.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -214,7 +214,7 @@ check if you have done this.
 
    If you want the atom/indenter interaction energy to be included
    in the total potential energy of the system (the quantity being
-   minimized), you must enable the :doc:`fix\_modify <fix_modify>` *energy*
+   minimized), you must enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
 Restrictions
@@ -227,8 +227,3 @@ Default
 """""""
 
 The option defaults are side = out and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

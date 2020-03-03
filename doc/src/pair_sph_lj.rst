@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/lj
+.. index:: pair_style sph/lj
 
-pair\_style sph/lj command
-==========================
+pair_style sph/lj command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/lj
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/lj
-   pair_coeff \* \* 1.0 2.4
+   pair_coeff * * 1.0 2.4
 
 Description
 """""""""""
@@ -34,10 +34,10 @@ See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
-* nu artificial viscosity (no units)
+* :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
 
 
@@ -49,13 +49,13 @@ above.
 This style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This style does not support the :doc:`pair\_modify <pair_modify>`
+This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
 pair\_coeff commands in an input script that reads a restart file.
 
-This style can only be used via the *pair* keyword of the :doc:`run\_style respa <run_style>` command.  It does not support the *inner*\ ,
+This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 Restrictions
@@ -71,7 +71,7 @@ if LAMMPS was built with that package.  See the :doc:`Build package <Build_packa
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, pair\_sph/rhosum
+:doc:`pair_coeff <pair_coeff>`, pair\_sph/rhosum
 
 **Default:** none
 
@@ -91,8 +91,3 @@ Related commands
 
 **(Monaghan)** Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

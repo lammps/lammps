@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -30,6 +30,41 @@ namespace {
   }
 
 }
+
+
+colvarparse::colvarparse()
+{
+  init();
+}
+
+
+void colvarparse::init()
+{
+  config_string.clear();
+  clear_keyword_registry();
+}
+
+
+colvarparse::colvarparse(const std::string& conf)
+{
+  init(conf);
+}
+
+
+void colvarparse::init(std::string const &conf)
+{
+  if (! config_string.size()) {
+    init();
+    config_string = conf;
+  }
+}
+
+
+colvarparse::~colvarparse()
+{
+  init();
+}
+
 
 
 bool colvarparse::get_key_string_value(std::string const &conf,
@@ -156,7 +191,7 @@ template<>
 int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
                                            std::string const &data,
                                            bool &value,
-                                           bool const &def_value)
+                                           bool const & /* def_value */)
 {
   if ( (data == std::string("on")) ||
        (data == std::string("yes")) ||
@@ -176,8 +211,8 @@ int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
 
 template<typename TYPE>
 int colvarparse::_get_keyval_scalar_novalue_(std::string const &key_str,
-                                             TYPE &value,
-                                             Parse_Mode const &parse_mode)
+                                             TYPE & /* value */,
+                                             Parse_Mode const & /* parse_mode */)
 {
   return cvm::error("Error: improper or missing value "
                     "for \""+key_str+"\".\n", INPUT_ERROR);

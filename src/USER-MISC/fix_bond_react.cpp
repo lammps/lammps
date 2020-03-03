@@ -2946,8 +2946,12 @@ void FixBondReact::read(int myrxn)
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
+      if (ibonding[myrxn] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
+      if (jbonding[myrxn] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
@@ -2987,6 +2991,8 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
   for (int i = 0; i < nedge; i++) {
     readline(line);
     sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     edge[tmp-1][myrxn] = 1;
   }
 }
@@ -2998,6 +3004,8 @@ void FixBondReact::Equivalences(char *line, int myrxn)
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
     sscanf(line,"%d %d",&tmp1,&tmp2);
+    if (tmp1 > onemol->natoms || tmp2 > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     equivalences[tmp2-1][0][myrxn] = tmp2;
     equivalences[tmp2-1][1][myrxn] = tmp1;
@@ -3017,6 +3025,8 @@ void FixBondReact::CustomEdges(char *line, int myrxn)
   for (int i = 0; i < ncustom; i++) {
     readline(line);
     sscanf(line,"%d %s",&tmp,edgemode);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     if (strcmp(edgemode,"none") == 0)
       custom_edges[tmp-1][myrxn] = 0;
     else if (strcmp(edgemode,"charges") == 0)
@@ -3033,6 +3043,8 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
   for (int i = 0; i < ndelete; i++) {
     readline(line);
     sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
   }
 }
@@ -3043,6 +3055,8 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
   for (int i = 0; i < nchiral; i++) {
     readline(line);
     sscanf(line,"%d",&tmp);
+    if (tmp > onemol->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     chiral_atoms[tmp-1][0][myrxn] = 1;
     if (onemol->xflag == 0)
       error->one(FLERR,"Bond/react: Molecule template 'Coords' section required for chiralIDs keyword");
@@ -3080,6 +3094,8 @@ void FixBondReact::Constraints(char *line, int myrxn)
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[nconstraints][1] = DISTANCE;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       constraints[nconstraints][2] = tmp[0];
       constraints[nconstraints][3] = tmp[1];
       constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
@@ -3087,6 +3103,8 @@ void FixBondReact::Constraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints][1] = ANGLE;
       sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
+      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms || tmp[2] > onemol->natoms)
+        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
       constraints[nconstraints][2] = tmp[0];
       constraints[nconstraints][3] = tmp[1];
       constraints[nconstraints][4] = tmp[2];

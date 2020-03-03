@@ -16,7 +16,7 @@ means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you'll need to look in the source
+occurs and is not self-explanatory, you will need to look in the source
 code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`
@@ -286,6 +286,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Attempting to rescale a 0.0 temperature*
    Cannot rescale a temperature that is already 0.0.
 
+*Attempting to insert more particles than available lattice points*
+   Self-explanatory.
+
 *Bad FENE bond*
    Two atoms in a FENE bond have become so far apart that the bond cannot
    be computed.
@@ -485,6 +488,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: Cannot use fix bond/react with non-molecular systems*
    Only systems with bonds that can be changed can be used. Atom\_style
    template does not qualify.
+
+*Bond/react: Invalid template atom ID in map file*
+   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
 
 *Bond/react: Rmax cutoff is longer than pairwise cutoff*
    This is not allowed because bond creation is done using the pairwise
@@ -6188,7 +6194,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -6203,7 +6209,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -6218,7 +6224,7 @@ keyword to allow for additional bonds to be formed
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
-   :doc:`neigh\_modify <neigh_modify>` command.  The safest settings are
+   :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
    moved far outside a processor's sub-domain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
@@ -8409,10 +8415,3 @@ keyword to allow for additional bonds to be formed
 
 *Zero-length lattice orient vector*
    Self-explanatory.
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

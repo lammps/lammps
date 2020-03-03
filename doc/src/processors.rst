@@ -107,11 +107,11 @@ different processor grids for different partitions, e.g.
 
    This command only affects the initial regular 3d grid created
    when the simulation box is first specified via a
-   :doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-   :doc:`read\_restart <read_restart>` command.  Or if the simulation box is
+   :doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+   :doc:`read_restart <read_restart>` command.  Or if the simulation box is
    re-created via the :doc:`replicate <replicate>` command.  The same
    regular grid is initially created, regardless of which
-   :doc:`comm\_style <comm_style>` command is in effect.
+   :doc:`comm_style <comm_style>` command is in effect.
 
 If load-balancing is never invoked via the :doc:`balance <balance>` or
 :doc:`fix balance <fix_balance>` commands, then the initial regular grid
@@ -120,7 +120,7 @@ the methods invoked by those commands retain the logical topology of
 the initial 3d grid, and the mapping of processors to the grid
 specified by the processors command.  However the grid spacings in
 different dimensions may change, so that processors own sub-domains of
-different sizes.  If the :doc:`comm\_style tiled <comm_style>` command is
+different sizes.  If the :doc:`comm_style tiled <comm_style>` command is
 used, methods invoked by the balancing commands may discard the 3d
 grid of processors and tile the simulation domain with sub-domains of
 different sizes and shapes which no longer have a logical 3d
@@ -274,7 +274,7 @@ styles are not supported, so an *xyz* style is used in their place.
 The *part* keyword affects the factorization of P into Px,Py,Pz.
 
 It can be useful when running in multi-partition mode, e.g. with the
-:doc:`run\_style verlet/split <run_style>` command.  It specifies a
+:doc:`run_style verlet/split <run_style>` command.  It specifies a
 dependency between a sending partition *Psend* and a receiving
 partition *Precv* which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of *Psend*
@@ -292,7 +292,7 @@ constraint.  The nature of the constraint is determined by the
 For a *cstyle* of *multiple*\ , each dimension of the sender's processor
 grid is required to be an integer multiple of the corresponding
 dimension in the receiver's processor grid.  This is a requirement of
-the :doc:`run\_style verlet/split <run_style>` command.
+the :doc:`run_style verlet/split <run_style>` command.
 
 For example, assume the sending partition creates a 4x6x10 grid = 240
 processor grid.  If the receiving partition is running on 80
@@ -358,7 +358,7 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 
@@ -378,8 +378,3 @@ Default
 
 The option defaults are Px Py Pz = \* \* \*, grid = onelevel, and map =
 cart.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

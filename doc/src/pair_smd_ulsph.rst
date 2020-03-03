@@ -1,13 +1,13 @@
-.. index:: pair\_style smd/ulsph
+.. index:: pair_style smd/ulsph
 
-pair\_style smd/ulsph command
+pair_style smd/ulsph command
 =============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/ulsph args
 
@@ -22,9 +22,9 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_style smd/ulsph \*DENSITY_CONTINUITY \*VELOCITY_GRADIENT \*NO_GRADIENT_CORRECTION
+   pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
 
 Description
 """""""""""
@@ -36,11 +36,11 @@ Smooth-Particle Hydrodynamics algorithm.
 This pair style is invoked similar to the following command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_style smd/ulsph \*DENSITY_CONTINUITY \*VELOCITY_GRADIENT \*NO_GRADIENT_CORRECTION
-   pair_coeff i j \*COMMON rho0 c0 Q1 Cp hg &
-                  \*END
+   pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
+   pair_coeff i j *COMMON rho0 c0 Q1 Cp hg &
+                  *END
 
 Here, *i* and *j* denote the *LAMMPS* particle types for which this
 pair style is defined. Note that *i* and *j* can be different, i.e.,
@@ -90,15 +90,6 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

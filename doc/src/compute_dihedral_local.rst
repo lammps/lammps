@@ -51,7 +51,7 @@ processors, equals the number of dihedral angles in the system, modified
 by the group parameter as explained below.
 
 The value *phi* is the dihedral angle, as defined in the diagram on
-the :doc:`dihedral\_style <dihedral_style>` doc page.
+the :doc:`dihedral_style <dihedral_style>` doc page.
 
 The value *v\_name* can be used together with the *set* keyword to
 compute a user-specified function of the dihedral angle phi.  The
@@ -79,16 +79,16 @@ the system and output the statistics in various ways:
 
    compute 1 all property/local datom1 datom2 datom3 datom4 dtype
    compute 2 all dihedral/local phi v_cos v_cossq set phi p
-   dump 1 all local 100 tmp.dump c_1**\*** c_2**\***
+   dump 1 all local 100 tmp.dump c_1[*] c_2[*]
 
-   compute 3 all reduce ave c_2**\***
-   thermo_style custom step temp press c_3**\***
+   compute 3 all reduce ave c_2[*]
+   thermo_style custom step temp press c_3[*]
 
-   fix 10 all ave/histo 10 10 100 -1 1 20 c_2\ **2** mode vector file tmp.histo
+   fix 10 all ave/histo 10 10 100 -1 1 20 c_2[2] mode vector file tmp.histo
 
 The :doc:`dump local <dump>` command will output the angle,
 cosine(angle), cosine\^2(angle) for every dihedral in the system.  The
-:doc:`thermo\_style <thermo_style>` command will print the average of
+:doc:`thermo_style <thermo_style>` command will print the average of
 those quantities via the :doc:`compute reduce <compute_reduce>` command
 with thermo output.  And the :doc:`fix ave/histo <fix_ave_histo>`
 command will histogram the cosine(angle) values and write them to a
@@ -144,8 +144,3 @@ Related commands
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

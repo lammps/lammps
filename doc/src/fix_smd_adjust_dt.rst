@@ -1,13 +1,13 @@
-.. index:: fix smd/adjust\_dt
+.. index:: fix smd/adjust_dt
 
-fix smd/adjust\_dt command
-==========================
+fix smd/adjust_dt command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/adjust_dt arg
 
@@ -25,7 +25,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all smd/adjust_dt 0.1
 
@@ -67,8 +67,3 @@ Related commands
 :doc:`smd/tlsph\_dt <compute_smd_tlsph_dt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

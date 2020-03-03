@@ -11,7 +11,7 @@ University:
 * Richard Berger, richard.berger at temple.edu
 
 .. _sjp: http://www.cs.sandia.gov/~sjplimp
-
+.. _lws: http://lammps.sandia.gov
 
 
 Past developers include Paul Crozier and Mark Stevens, both at Sandia,
@@ -62,8 +62,3 @@ version of LAMMPS were the following:
 * Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 * Steve Lustig (Dupont)
 * Jim Belak and Roy Pollock (LLNL)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

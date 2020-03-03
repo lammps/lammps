@@ -1,16 +1,16 @@
-.. index:: improper\_style ring
+.. index:: improper_style ring
 
-improper\_style ring command
-============================
+improper_style ring command
+===========================
 
-improper\_style ring/omp command
-================================
+improper_style ring/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
    improper_coeff 1 8000 70.5
@@ -28,14 +28,20 @@ Description
 
 The *ring* improper style uses the potential
 
-.. image:: Eqs/improper_ring.jpg
-   :align: center
+.. math::
 
-where K is a prefactor, theta is the angle formed by the atoms
-specified by (i,j,k,l) indices and theta0 its equilibrium value.
+   E = &\frac{1}{6} K \left(\Delta_{ijl} + \Delta_{ijk} + \Delta_{kjl} \right)^6 \\
+   \Delta_{ijl} = & \cos{\theta_{ijl} - \cos{\theta_0}} \\
+   \Delta_{ijk} = & \cos{\theta_{ijk} - \cos{\theta_0}} \\
+   \Delta_{kjl} = & \cos{\theta_{kjl} - \cos{\theta_0}}
+
+
+where :math:`K` is a prefactor, :math:`\theta` is the angle formed by
+the atoms specified by (i,j,k,l) indices and :math:`\theta_0` its
+equilibrium value.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
-by the :doc:`read\_data <read_data>` command) are ordered i,j,k,l then
+by the :doc:`read_data <read_data>` command) are ordered i,j,k,l then
 theta\_\ *ijl* is the angle between atoms i,j and l, theta\_\ *ijk* is the
 angle between atoms i,j and k, theta\_\ *kjl* is the angle between atoms
 j,k, and l.
@@ -51,13 +57,13 @@ data file four atoms: i, j, k and l are specified with i,j and l lying
 on the backbone of the chain and k specifying the chirality of j.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* theta0 (degrees)
+* :math:`K` (energy)
+* :math:`\theta_0` (degrees)
 
 
 ----------
@@ -96,7 +102,7 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 .. _Destree:
 
@@ -104,8 +110,3 @@ Related commands
 
 **(Destree)** M. Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert,
 J Chem Phys, 112, 9632 (2000).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

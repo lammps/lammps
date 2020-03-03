@@ -11,7 +11,7 @@ After installing Homebrew, you can install LAMMPS on your system with
 the following commands:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    % brew install lammps
 
@@ -22,7 +22,7 @@ Once LAMMPS is installed, you can test the installation with the
 Lennard-Jones benchmark file:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    % brew test lammps -v
 
@@ -32,7 +32,7 @@ installed.  In order to use potentials from `openkim.org <openkim_>`_, you can
 install the `openkim-models` package
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    % brew install openkim-models
 
@@ -46,9 +46,3 @@ up the Homebrew capability.
 
 
 .. _openkim: https://openkim.org
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,13 +1,13 @@
-.. index:: read\_data
+.. index:: read_data
 
-read\_data command
-==================
+read_data command
+=================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+ 
+.. code-block:: LAMMPS
 
    read_data file keyword args ...
 
@@ -54,7 +54,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data data.lj
    read_data ../run7/data.polymer.gz
@@ -68,8 +68,8 @@ Description
 Read in a data file containing information LAMMPS needs to run a
 simulation.  The file can be ASCII text or a gzipped text file
 (detected by a .gz suffix).  This is one of 3 ways to specify initial
-atom coordinates; see the :doc:`read\_restart <read_restart>` and
-:doc:`create\_atoms <create_atoms>` commands for alternative methods.
+atom coordinates; see the :doc:`read_restart <read_restart>` and
+:doc:`create_atoms <create_atoms>` commands for alternative methods.
 Also see the explanation of the :doc:`-restart command-line switch <Run_options>` which can convert a restart file to a data
 file.
 
@@ -83,7 +83,7 @@ specified group-ID.  The group will be created if it does not already
 exist.  This is useful if you are reading multiple data files and wish
 to put sets of atoms into different groups so they can be operated on
 later.  E.g. a group of added atoms can be moved to new positions via
-the :doc:`displace\_atoms <displace_atoms>` command.  Note that atoms
+the :doc:`displace_atoms <displace_atoms>` command.  Note that atoms
 read from the data file are also always added to the "all" group.  The
 :doc:`group <group>` command discusses atom groups, as used in LAMMPS.
 
@@ -107,7 +107,7 @@ contained in individual data files.  For example one data file could
 contain fluid in a confined domain; a second could contain wall atoms,
 and the second file could be read a third time to create a wall on the
 other side of the fluid.  The third set of atoms could be rotated to
-an opposing direction using the :doc:`displace\_atoms <displace_atoms>`
+an opposing direction using the :doc:`displace_atoms <displace_atoms>`
 command, after the third read\_data command is used.
 
 The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
@@ -116,7 +116,7 @@ useful in this context.
 If a simulation box does not yet exist, the *add* keyword
 cannot be used; the read\_data command is being used for the first
 time.  If a simulation box does exist, due to using the
-:doc:`create\_box <create_box>` command, or a previous read\_data command,
+:doc:`create_box <create_box>` command, or a previous read\_data command,
 then the *add* keyword must be used.
 
 .. note::
@@ -175,9 +175,9 @@ for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
 to build up a complex geometry.  It is up to you to insure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
-Note that the :doc:`displace\_atoms <displace_atoms>` command can be used
+Note that the :doc:`displace_atoms <displace_atoms>` command can be used
 to move a subset of atoms after they have been read from a data file.
-Likewise, the :doc:`delete\_atoms <delete_atoms>` command can be used to
+Likewise, the :doc:`delete_atoms <delete_atoms>` command can be used to
 remove overlapping atoms.  Note that the shift values (Sx, Sy, Sz) are
 also added to the simulation box information (xlo, xhi, ylo, yhi, zlo,
 zhi) in the data file to shift its boundaries.  E.g. xlo\_new = xlo +
@@ -212,7 +212,7 @@ interactions in your input script to have a complete pairwise
 interaction model.
 
 An alternative to using the *extra* keywords with the read\_data
-command, is to use the :doc:`create\_box <create_box>` command to
+command, is to use the :doc:`create_box <create_box>` command to
 initialize the simulation box and all the various type limits you need
 via its *extra* keywords.  Then use the read\_data command one or more
 times to populate the system with atoms, bonds, angles, etc, using the
@@ -408,7 +408,7 @@ molecules defined in the data file.  Using this header flag is
 deprecated; please use the *extra/special/per/atom* keyword instead.
 Using this setting will pre-allocate space in the LAMMPS data
 structures for storing these neighbors.  See the
-:doc:`special\_bonds <special_bonds>` and :doc:`molecule <molecule>` doc
+:doc:`special_bonds <special_bonds>` and :doc:`molecule <molecule>` doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 
 .. note::
@@ -421,7 +421,7 @@ pages for more discussion of 1-2,1-3,1-4 neighbors.
    If they appear in later data files, they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
-only used with :doc:`atom\_style ellipsoid or line or tri or body <atom_style>` and specify how many of the atoms are
+only used with :doc:`atom_style ellipsoid or line or tri or body <atom_style>` and specify how many of the atoms are
 finite-size ellipsoids or lines or triangles or bodies; the remainder
 are point particles.  See the discussion of ellipsoidflag and the
 *Ellipsoids* section below.  See the discussion of lineflag and the
@@ -431,7 +431,7 @@ are point particles.  See the discussion of ellipsoidflag and the
 
 .. note::
 
-   For :doc:`atom\_style template <atom_style>`, the molecular
+   For :doc:`atom_style template <atom_style>`, the molecular
    topology (bonds,angles,etc) is contained in the molecule templates
    read-in by the :doc:`molecule <molecule>` command.  This means you
    cannot set the *bonds*\ , *angles*\ , etc header keywords in the data
@@ -466,8 +466,8 @@ For example, these lines:
    Atoms # sphere
    Pair Coeffs # lj/cut
 
-will check if the currently-defined :doc:`atom\_style <atom_style>` is
-*sphere*\ , and the current :doc:`pair\_style <pair_style>` is *lj/cut*\ .
+will check if the currently-defined :doc:`atom_style <atom_style>` is
+*sphere*\ , and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
 If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
@@ -508,9 +508,9 @@ Atoms section:
 
 
 The number and meaning of the coefficients are specific to the defined
-angle style.  See the :doc:`angle\_style <angle_style>` and
-:doc:`angle\_coeff <angle_coeff>` commands for details.  Coefficients can
-also be set via the :doc:`angle\_coeff <angle_coeff>` command in the
+angle style.  See the :doc:`angle_style <angle_style>` and
+:doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
+also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
 
 
@@ -702,7 +702,7 @@ in dump files.  Normally, it is a unique value from 1 to Natoms for
 each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
 map array is used, but not if an atom map hash is used; see the
-:doc:`atom\_modify <atom_modify>` command for details.  If an atom map is
+:doc:`atom_modify <atom_modify>` command for details.  If an atom map is
 not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
@@ -723,7 +723,7 @@ triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
 *Triangles*\ , or *Bodies* section.
 
 The *template-index* and *template-atom* are only defined used by
-:doc:`atom\_style template <atom_style>`.  In this case the
+:doc:`atom_style template <atom_style>`.  In this case the
 :doc:`molecule <molecule>` command is used to define a molecule template
 which contains one or more molecules.  If an atom belongs to one of
 those molecules, its *template-index* and *template-atom* are both set
@@ -757,7 +757,7 @@ discs (not 3d spheres), by changing their moment of inertia.
 For atom\_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-:doc:`atom\_style <atom_style>` command.  The sub-style specific values
+:doc:`atom_style <atom_style>` command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,type,x,y,z).  For
 example, for the "charge" sub-style, a "q" value would appear.  For
 the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
@@ -875,7 +875,7 @@ script.
 
 
 
-The *Bodies* section must appear if :doc:`atom\_style body <atom_style>`
+The *Bodies* section must appear if :doc:`atom_style body <atom_style>`
 is used and any atoms listed in the *Atoms* section have a bodyflag =
 1.  The number of bodies should be specified in the header section via
 the "bodies" keyword.
@@ -883,7 +883,7 @@ the "bodies" keyword.
 Each body can have a variable number of integer and/or floating-point
 values.  The number and meaning of the values is defined by the body
 style, as described in the :doc:`Howto body <Howto_body>` doc page.  The
-body style is given as an argument to the :doc:`atom\_style body <atom_style>` command.
+body style is given as an argument to the :doc:`atom_style body <atom_style>` command.
 
 The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
@@ -919,9 +919,9 @@ The *Bodies* section must appear after the *Atoms* section.
 
 
 The number and meaning of the coefficients are specific to the defined
-bond style.  See the :doc:`bond\_style <bond_style>` and
-:doc:`bond\_coeff <bond_coeff>` commands for details.  Coefficients can
-also be set via the :doc:`bond\_coeff <bond_coeff>` command in the input
+bond style.  See the :doc:`bond_style <bond_style>` and
+:doc:`bond_coeff <bond_coeff>` commands for details.  Coefficients can
+also be set via the :doc:`bond_coeff <bond_coeff>` command in the input
 script.
 
 
@@ -1021,10 +1021,10 @@ in this section must be integers (1, not 1.0).
 
 
 The number and meaning of the coefficients are specific to the defined
-dihedral style.  See the :doc:`dihedral\_style <dihedral_style>` and
-:doc:`dihedral\_coeff <dihedral_coeff>` commands for details.
+dihedral style.  See the :doc:`dihedral_style <dihedral_style>` and
+:doc:`dihedral_coeff <dihedral_coeff>` commands for details.
 Coefficients can also be set via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script.
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
 
 
 ----------
@@ -1076,7 +1076,7 @@ section must be integers (1, not 1.0).
 
 
 
-The *Ellipsoids* section must appear if :doc:`atom\_style ellipsoid <atom_style>` is used and any atoms are listed in the
+The *Ellipsoids* section must appear if :doc:`atom_style ellipsoid <atom_style>` is used and any atoms are listed in the
 *Atoms* section with an ellipsoidflag = 1.  The number of ellipsoids
 should be specified in the header section via the "ellipsoids"
 keyword.
@@ -1138,10 +1138,10 @@ The *Ellipsoids* section must appear after the *Atoms* section.
 
 
 The number and meaning of the coefficients are specific to the defined
-improper style.  See the :doc:`improper\_style <improper_style>` and
-:doc:`improper\_coeff <improper_coeff>` commands for details.
+improper style.  See the :doc:`improper_style <improper_style>` and
+:doc:`improper_coeff <improper_coeff>` commands for details.
 Coefficients can also be set via the
-:doc:`improper\_coeff <improper_coeff>` command in the input script.
+:doc:`improper_coeff <improper_coeff>` command in the input script.
 
 
 ----------
@@ -1196,7 +1196,7 @@ values in this section must be integers (1, not 1.0).
 
 
 
-The *Lines* section must appear if :doc:`atom\_style line <atom_style>`
+The *Lines* section must appear if :doc:`atom_style line <atom_style>`
 is used and any atoms are listed in the *Atoms* section with a
 lineflag = 1.  The number of lines should be specified in the header
 section via the "lines" keyword.
@@ -1235,7 +1235,7 @@ The *Lines* section must appear after the *Atoms* section.
 This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
-e.g. :doc:`atom\_style sphere <atom_style>`.
+e.g. :doc:`atom_style sphere <atom_style>`.
 
 
 ----------
@@ -1276,12 +1276,12 @@ e.g. :doc:`atom\_style sphere <atom_style>`.
 
 
 The number and meaning of the coefficients are specific to the defined
-pair style.  See the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands for details.  Since pair
+pair style.  See the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are not specified, these will be
 generated automatically by the pair style's mixing rule.  See the
-individual pair\_style doc pages and the :doc:`pair\_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair\_coeff <pair_coeff>` command in the input
+individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
 
@@ -1310,12 +1310,12 @@ script.
 
 This section must have N\*(N+1)/2 lines where N = # of atom types.  The
 number and meaning of the coefficients are specific to the defined
-pair style.  See the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands for details.  Since pair
+pair style.  See the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are all specified, these values will
 turn off the default mixing rule defined by the pair style.  See the
-individual pair\_style doc pages and the :doc:`pair\_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair\_coeff <pair_coeff>` command in the input
+individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
 
@@ -1342,7 +1342,7 @@ script.
 
 
 
-The *Triangles* section must appear if :doc:`atom\_style tri <atom_style>` is used and any atoms are listed in the *Atoms*
+The *Triangles* section must appear if :doc:`atom_style tri <atom_style>` is used and any atoms are listed in the *Atoms*
 section with a triangleflag = 1.  The number of lines should be
 specified in the header section via the "triangles" keyword.
 
@@ -1394,14 +1394,14 @@ Wz are in units of angular velocity (radians/time).
 For atom\_style hybrid, following the 4 initial values (ID,vx,vy,vz),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-:doc:`atom\_style <atom_style>` command.  The sub-style specific values
+:doc:`atom_style <atom_style>` command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,vx,vy,vz).  For
 example, for the "sphere" sub-style, "wx", "wy", "wz" values would
 appear.  These are listed in the same order they appear as listed
 above.  Thus if
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid electron sphere
 
@@ -1431,15 +1431,10 @@ doc page for details.
 Related commands
 """"""""""""""""
 
-:doc:`read\_dump <read_dump>`, :doc:`read\_restart <read_restart>`,
-:doc:`create\_atoms <create_atoms>`, :doc:`write\_data <write_data>`
+:doc:`read_dump <read_dump>`, :doc:`read_restart <read_restart>`,
+:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`
 
 Default
 """""""
 
 The default for all the *extra* keywords is 0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

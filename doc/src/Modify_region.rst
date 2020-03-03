@@ -20,8 +20,3 @@ class.  See region.h for details.
 +-------------------+---------------------------------------------------------------------+
 | shape\_update     | change region shape if set by time-dependent variable               |
 +-------------------+---------------------------------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

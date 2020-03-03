@@ -37,12 +37,16 @@ struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeNeigh{};
 struct TagPairSNAPPreUi{};
 struct TagPairSNAPComputeUi{};
+struct TagPairSNAPComputeUiTot{}; // new --- accumulate ulist into ulisttot separately
+struct TagPairSNAPComputeUiCPU{}; 
 struct TagPairSNAPComputeZi{};
 struct TagPairSNAPComputeBi{};
 struct TagPairSNAPZeroYi{};
 struct TagPairSNAPComputeYi{};
 struct TagPairSNAPComputeDuidrj{};
+struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrj{};
+struct TagPairSNAPComputeDeidrjCPU{};
 
 template<class DeviceType>
 class PairSNAPKokkos : public PairSNAP {
@@ -74,10 +78,16 @@ public:
   void operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeigh>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPPreUi,const int& ii) const;
+  void operator() (TagPairSNAPPreUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUiTot,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiTot>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZi,const int& ii) const;
@@ -86,7 +96,7 @@ public:
   void operator() (TagPairSNAPComputeBi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPZeroYi,const int& ii) const;
+  void operator() (TagPairSNAPZeroYi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi,const int& ii) const;
@@ -95,7 +105,13 @@ public:
   void operator() (TagPairSNAPComputeDuidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeDuidrjCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrjCPU>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeDeidrjCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPBeta,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPBeta>::member_type& team) const;

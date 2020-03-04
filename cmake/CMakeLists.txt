@@ -55,12 +55,9 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
 endif()
 
-option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
-if(DISABLE_CXX11_REQUIREMENT)
-  add_definitions(-DLAMMPS_CXX98)
-# else()
-#  set(CMAKE_CXX_STANDARD 11)
-endif()
+# we require C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # GNU compiler features
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")

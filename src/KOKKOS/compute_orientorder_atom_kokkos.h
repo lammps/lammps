@@ -87,7 +87,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   typename AT::t_float_2d d_qnarray;
 
  private:
-  int inum;
+  int inum,chunk_size,chunk_offset;
 
   typename AT::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_int_1d mask;

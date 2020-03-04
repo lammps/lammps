@@ -61,6 +61,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   wlflag = 0;
   wlhatflag = 0;
   qlcompflag = 0;
+  chunksize = 16384;
 
   // specify which orders to request
 
@@ -142,6 +143,13 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (cutoff <= 0.0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"chunksize") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      if (chunksize <= 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute orientorder/atom command");
   }

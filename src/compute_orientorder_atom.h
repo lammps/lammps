@@ -62,6 +62,7 @@ class ComputeOrientOrderAtom : public Compute {
   virtual void init_clebsch_gordan();
   double *cglist;                      // Clebsch-Gordan coeffs
   int idxcg_max;
+  int chunksize;
 };
 
 }

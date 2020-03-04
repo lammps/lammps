@@ -1,22 +1,22 @@
-.. index:: pair\_style lubricate
+.. index:: pair_style lubricate
 
-pair\_style lubricate command
-=============================
+pair_style lubricate command
+============================
 
-pair\_style lubricate/omp command
+pair_style lubricate/omp command
+================================
+
+pair_style lubricate/poly command
 =================================
 
-pair\_style lubricate/poly command
-==================================
-
-pair\_style lubricate/poly/omp command
-======================================
+pair_style lubricate/poly/omp command
+=====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF
 
@@ -32,16 +32,16 @@ Syntax
 **Examples:** (all assume radius = 1)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lubricate 1.5 1 1 2.01 2.5
    pair_coeff 1 1 2.05 2.8
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style lubricate 1.5 1 1 2.01 2.5
-   pair_coeff \* \*
+   pair_coeff * *
    variable mu equal ramp(1,2)
-   fix 1 all adapt 1 pair lubricate mu \* \* v_mu
+   fix 1 all adapt 1 pair lubricate mu * * v_mu
 
 Description
 """""""""""
@@ -51,8 +51,16 @@ interactions between mono-disperse finite-size spherical particles in
 a pairwise fashion.  The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball1>`
 
-.. image:: Eqs/pair_lubricate.jpg
-   :align: center
+.. math::
+
+   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
+   a_{sh} | (\omega_1 + \omega_2) \bullet 
+   (\mathbf{I} - \mathbf{nn}) - 2 \Omega_N |^2 - \\
+   &  a_{pu} | (\omega_1 - \omega_2) \bullet (\mathbf{I} - \mathbf{nn}) |^2 -
+   a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\
+   & \\
+   \Omega_N & = \mathbf{n} \times (v_1 - v_2) / r
+
 
 which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
@@ -82,12 +90,14 @@ The other component is due to the Fast Lubrication Dynamics (FLD)
 approximation, described in :ref:`(Kumar) <Kumar1>`, which can be
 represented by the following equation
 
-.. image:: Eqs/fld.jpg
-   :align: center
+.. math::
+
+   F^{H} = -R_{FU}(U-U^{\infty}) + R_{FE}E^{\infty}
+
 
 where U represents the velocities and angular velocities of the
-particles, U\^\ *infty* represents the velocity and the angular velocity
-of the undisturbed fluid, and E\^\ *infty* represents the rate of strain
+particles, :math:`U^{\infty}` represents the velocity and the angular velocity
+of the undisturbed fluid, and :math:`E^{\infty}` represents the rate of strain
 tensor of the undisturbed fluid with viscosity *mu*\ . Again, note that
 this is dynamic viscosity which has units of mass/distance/time, not
 kinematic viscosity. Volume fraction corrections to R\_FU are included

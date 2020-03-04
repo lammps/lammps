@@ -1,22 +1,22 @@
-.. index:: dihedral\_style harmonic
+.. index:: dihedral_style harmonic
 
-dihedral\_style harmonic command
-================================
+dihedral_style harmonic command
+===============================
 
-dihedral\_style harmonic/intel command
-======================================
+dihedral_style harmonic/intel command
+=====================================
 
-dihedral\_style harmonic/kk command
+dihedral_style harmonic/kk command
+==================================
+
+dihedral_style harmonic/omp command
 ===================================
-
-dihedral\_style harmonic/omp command
-====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style harmonic
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style harmonic
    dihedral_coeff 1 80.0 1 2
@@ -36,7 +36,7 @@ The *harmonic* dihedral style uses the potential
 
 .. math::
 
-  E = K [ 1 + d  \cos (n \phi) ]
+   E = K [ 1 + d  \cos (n \phi) ]
 
 
 The following coefficients must be defined for each dihedral type via the

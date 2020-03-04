@@ -1,19 +1,19 @@
-.. index:: improper\_style cvff
+.. index:: improper_style cvff
 
-improper\_style cvff command
-============================
+improper_style cvff command
+===========================
 
-improper\_style cvff/intel command
-==================================
+improper_style cvff/intel command
+=================================
 
-improper\_style cvff/omp command
-================================
+improper_style cvff/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
 
@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
    improper_coeff 1 80.0 -1 4

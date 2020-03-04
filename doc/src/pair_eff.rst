@@ -1,13 +1,13 @@
-.. index:: pair\_style eff/cut
+.. index:: pair_style eff/cut
 
-pair\_style eff/cut command
-===========================
+pair_style eff/cut command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut cutoff keyword args ...
 
@@ -29,13 +29,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut 39.7
    pair_style eff/cut 40.0 limit/eradius
    pair_style eff/cut 40.0 limit/eradius pressure/evirials
    pair_style eff/cut 40.0 ecp 1 Si 3 C
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 20.0
    pair_coeff 1 s 0.320852 2.283269 0.814857
    pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621
@@ -98,25 +98,19 @@ and the quantum-derived Pauli (E\_PR) and Kinetic energy interactions
 potentials between electrons (E\_KE) for a total energy expression
 given as,
 
-.. image:: Eqs/eff_energy_expression.jpg
-   :align: center
+.. math::
+
+   U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
 
 The individual terms are defined as follows:
 
-.. image:: Eqs/eff_KE.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/eff_NN.jpg
-   :align: center
-
-.. image:: Eqs/eff_Ne.jpg
-   :align: center
-
-.. image:: Eqs/eff_ee.jpg
-   :align: center
-
-.. image:: Eqs/eff_Pauli.jpg
-   :align: center
+   E_{KE}  = & \frac{\hbar^2 }{{m_{e} }}\sum\limits_i {\frac{3}{{2s_i^2 }}} \\
+   E_{NN}  = & \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{{Z_i Z_j }}{{R_{ij} }}} \\
+   E_{Ne}  = & - \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i,j} {\frac{{Z_i }}{{R_{ij} }}Erf\left( {\frac{{\sqrt 2 R_{ij} }}{{s_j }}} \right)} \\
+   E_{ee}  = & \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} \\
+   E_{Pauli}  = & \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}} \\
 
 where, s\_i correspond to the electron sizes, the sigmas i's to the
 fixed spins of the electrons, Z\_i to the charges on the nuclei, R\_ij
@@ -229,11 +223,10 @@ representations, after the "ecp" keyword.
    Si.  The ECP captures the orbital overlap between the core and valence
    electrons (i.e. Pauli repulsion) with one of the functional forms:
 
-.. image:: Eqs/eff_ECP1.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/eff_ECP2.jpg
-   :align: center
+   E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
+   E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 
 
 Where the 1st form correspond to core interactions with s-type valence
 electrons and the 2nd to core interactions with p-type valence

@@ -1,13 +1,13 @@
-.. index:: pair\_coeff
+.. index:: pair_coeff
 
-pair\_coeff command
-===================
+pair_coeff command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff I J args
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff 1 2 1.0 1.0 2.5
    pair_coeff 2 \* 1.0 1.0
@@ -56,7 +56,7 @@ same I,J pair.  For example, these commands set the coeffs for all I,J
 pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff \* \* 1.0 1.0 2.5
    pair_coeff 2 3 2.0 1.0 1.12

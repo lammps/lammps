@@ -1,13 +1,13 @@
-.. index:: dihedral\_style spherical
+.. index:: dihedral_style spherical
 
-dihedral\_style spherical command
-=================================
+dihedral_style spherical command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style spherical
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_coeff 1 1  286.1  1 124  1    1 90.0 0    1 90.0 0
    dihedral_coeff 1 3  69.3   1 93.9 1    1 90   0    1 90   0  &
@@ -32,10 +32,10 @@ The *spherical* dihedral style uses the potential:
 
 .. math::
 
-  E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
-  \Phi_{i}(\phi)        & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
-  \Theta_{1i}(\theta_1) & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
-  \Theta_{2i}(\theta_2) & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
+   E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
+   \Phi_{i}(\phi)            & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
+   \Theta_{1i}(\theta_1)     & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
+   \Theta_{2i}(\theta_2)     & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
 
 
 For this dihedral style, the energy can be any function that combines the

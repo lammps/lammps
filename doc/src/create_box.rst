@@ -1,13 +1,13 @@
-.. index:: create\_box
+.. index:: create_box
 
-create\_box command
-===================
+create_box command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_box N region-ID keyword value ...
 
@@ -34,7 +34,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_box 2 mybox
    create_box 2 mybox bond/types 2 extra/bond/per/atom 1

@@ -1,18 +1,19 @@
-.. index:: improper\_style sqdistharm
+.. index:: improper_style sqdistharm
 
-improper\_style sqdistharm command
-==================================
+improper_style sqdistharm command
+=================================
 
 Syntax
 """"""
 
-improper\_style sqdistharm
+.. code-block:: LAMMPS
+
+   improper_style sqdistharm
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style sqdistharm
    improper_coeff 1 50.0 0.1
@@ -24,8 +25,7 @@ The *sqdistharm* improper style uses the potential
 
 .. math::
 
-  E = K (d^2 - {d_0}^2)^2
-
+   E = K (d^2 - {d_0}^2)^2
 
 where :math:`d` is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet

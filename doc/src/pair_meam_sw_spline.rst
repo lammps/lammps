@@ -1,13 +1,13 @@
-.. index:: pair\_style meam/sw/spline
+.. index:: pair_style meam/sw/spline
 
-pair\_style meam/sw/spline command
-==================================
+pair_style meam/sw/spline command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
 
@@ -15,11 +15,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
-   pair_coeff \* \* Ti.meam.sw.spline Ti
-   pair_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.sw.spline Ti
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
 Description
 """""""""""
@@ -32,12 +32,17 @@ was first proposed by Nicklas, Fellinger, and Park
 :ref:`(Nicklas) <Nicklas>`.  We refer to it as MEAM+SW.  The total energy E
 is given by
 
-.. image:: Eqs/pair_meam_sw_spline.jpg
-   :align: center
+.. math::
 
-where rho\_I is the density at atom I, theta\_JIK is the angle between
-atoms J, I, and K centered on atom I. The seven functions
-Phi, F, G, U, rho, f, and g are represented by cubic splines.
+   E & = E_{MEAM} + E_{SW} \\
+   E_{MEAM} & =  \sum _{IJ} \phi (r_{IJ}) + \sum _{I} U(\rho _I) \\
+   E_{SW} & =  \sum _{I} \sum _{JK} F(r_{IJ}) \, F(r_{IK}) \, G(\cos(\theta _{JIK})) \\
+   \rho _I & = \sum _J \rho(r_{IJ}) + \sum _{JK} f(r_{IJ}) \, f(r_{IK}) \, g(\cos(\theta _{JIK}))
+
+where :math:`\rho_I` is the density at atom I, :math:`\theta_{JIK}` is
+the angle between atoms J, I, and K centered on atom I. The seven
+functions :math:`\phi, F, G, U, \rho, f,` and *g* are represented by
+cubic splines.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the

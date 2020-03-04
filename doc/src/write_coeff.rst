@@ -1,23 +1,23 @@
-.. index:: write\_coeff
+.. index:: write_coeff
 
-write\_coeff command
-====================
+write_coeff command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_coeff file
 
-   file = name of data file to write out
+* file = name of data file to write out
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_coeff polymer.coeff
 

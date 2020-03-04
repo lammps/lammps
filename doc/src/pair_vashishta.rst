@@ -1,28 +1,28 @@
-.. index:: pair\_style vashishta
+.. index:: pair_style vashishta
 
-pair\_style vashishta command
-=============================
+pair_style vashishta command
+============================
 
-pair\_style vashishta/gpu command
-=================================
-
-pair\_style vashishta/omp command
-=================================
-
-pair\_style vashishta/kk command
+pair_style vashishta/gpu command
 ================================
 
-pair\_style vashishta/table command
-===================================
+pair_style vashishta/omp command
+================================
 
-pair\_style vashishta/table/omp command
-=======================================
+pair_style vashishta/kk command
+===============================
+
+pair_style vashishta/table command
+==================================
+
+pair_style vashishta/table/omp command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -41,13 +41,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style vashishta
-   pair_coeff \* \* SiC.vashishta Si C
+   pair_coeff * * SiC.vashishta Si C
 
    pair_style vashishta/table 100000 0.2
-   pair_coeff \* \* SiC.vashishta Si C
+   pair_coeff * * SiC.vashishta Si C
 
 Description
 """""""""""
@@ -65,10 +65,10 @@ The potential for the energy U of a system of atoms is
 
 .. math::
 
-  U & =  \sum_i^N \sum_{j > i}^N U_{ij}^{(2)} (r_{ij}) + \sum_i^N \sum_{j \neq i}^N \sum_{k > j, k \neq i}^N U_{ijk}^{(3)} (r_{ij}, r_{ik}, \theta_{ijk}) \\
-  U_{ij}^{(2)} (r) & =   \frac{H_{ij}}{r^{\eta_{ij}}} + \frac{Z_i Z_j}{r}\exp(-r/\lambda_{1,ij}) - \frac{D_{ij}}{r^4}\exp(-r/\lambda_{4,ij}) - \frac{W_{ij}}{r^6}, r < r_{c,{ij}} \\
-  U_{ijk}^{(3)}(r_{ij},r_{ik},\theta_{ijk}) & =  B_{ijk} \frac{\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} {1+C_{ijk}\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} \times \\
-                   &  \exp \left( \frac{\gamma_{ij}}{r_{ij} - r_{0,ij}} \right) \exp \left( \frac{\gamma_{ik}}{r_{ik} - r_{0,ik}} \right), r_{ij} < r_{0,ij}, r_{ik} < r_{0,ik}
+   U & =  \sum_i^N \sum_{j > i}^N U_{ij}^{(2)} (r_{ij}) + \sum_i^N \sum_{j \neq i}^N \sum_{k > j, k \neq i}^N U_{ijk}^{(3)} (r_{ij}, r_{ik}, \theta_{ijk}) \\
+   U_{ij}^{(2)} (r) & =   \frac{H_{ij}}{r^{\eta_{ij}}} + \frac{Z_i Z_j}{r}\exp(-r/\lambda_{1,ij}) - \frac{D_{ij}}{r^4}\exp(-r/\lambda_{4,ij}) - \frac{W_{ij}}{r^6}, r < r_{c,{ij}} \\
+   U_{ijk}^{(3)}(r_{ij},r_{ik},\theta_{ijk}) & =  B_{ijk} \frac{\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} {1+C_{ijk}\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} \times \\
+                    &  \exp \left( \frac{\gamma_{ij}}{r_{ij} - r_{0,ij}} \right) \exp \left( \frac{\gamma_{ik}}{r_{ik} - r_{0,ik}} \right), r_{ij} < r_{0,ij}, r_{ik} < r_{0,ik}
 
 
 where we follow the notation used in :ref:`Branicio2009 <Branicio2009>`.
@@ -109,9 +109,9 @@ the 1st 3 to be Si, and the 4th to be C, you would use the following
 pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.vashishta Si Si Si C
+   pair_coeff * * SiC.vashishta Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si

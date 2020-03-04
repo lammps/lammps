@@ -1,18 +1,20 @@
-.. index:: improper\_style distharm
+.. index:: improper_style distharm
 
-improper\_style distharm command
-================================
+improper_style distharm command
+===============================
 
 Syntax
 """"""
 
-improper\_style distharm
+.. code-block:: LAMMPS
+
+   improper_style distharm
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style distharm
    improper_coeff 1 25.0 0.5
@@ -24,10 +26,10 @@ The *distharm* improper style uses the potential
 
 .. math::
 
-  E = K (d - d_0)^2
+   E = K (d - d_0)^2
 
 
-where d is the oriented distance between the central atom and the plane formed
+where :math:`d` is the oriented distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
 (listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the L-atom is assumed to be the

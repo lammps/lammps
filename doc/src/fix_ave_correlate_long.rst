@@ -116,7 +116,7 @@ For the meaning of the additional optional keywords, see the :doc:`fix ave/corre
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-Contrary to doc:`fix ave/correlate <fix_ave_correlate>`_ this fix
+Contrary to :doc:`fix ave/correlate <fix_ave_correlate>` this fix
 does **not** provide access to its internal data to various output
 options. Since this fix in intended for the calculation of time
 correlation functions over very long MD simulations, the information

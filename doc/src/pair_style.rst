@@ -1,13 +1,13 @@
-.. index:: pair\_style
+.. index:: pair_style
 
-pair\_style command
-===================
+pair_style command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
    pair_style eam/alloy
@@ -354,6 +354,6 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none

@@ -1,13 +1,13 @@
-.. index:: delete\_atoms
+.. index:: delete_atoms
 
-delete\_atoms command
-=====================
+delete_atoms command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms style args keyword value ...
 
@@ -41,7 +41,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms group edge
    delete_atoms region sphere compress no

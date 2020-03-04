@@ -1,13 +1,13 @@
-.. index:: third\_order
+.. index:: third_order
 
-third\_order command
-====================
+third_order command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    third_order group-ID style delta args keyword value ...
 
@@ -28,7 +28,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    third_order 1 regular 0.000001
    third_order 1 eskm 0.000001

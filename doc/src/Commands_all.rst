@@ -17,7 +17,7 @@ General commands
 An alphabetic list of all general LAMMPS commands.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`

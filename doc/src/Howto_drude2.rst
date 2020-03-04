@@ -9,9 +9,7 @@ USER-DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
 
-
 ----------
-
 
 **Overview of Drude induced dipoles**
 
@@ -35,7 +33,7 @@ polarizability :math:`\alpha` by
 
 .. math::
 
-   \begin{equation} K_D = \frac 1 2\, \frac {q_D^2} \alpha\end{equation}
+   K_D = \frac 1 2\, \frac {q_D^2} \alpha
 
 Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
@@ -75,10 +73,7 @@ important features:
 #. The possibility to thermostat the additional degrees of freedom associated with the induced dipoles at very low temperature, in terms of the reduced coordinates of the Drude particles with respect to their cores. This makes the trajectory close to that of relaxed induced dipoles.
 #. The Drude dipoles on covalently bonded atoms interact too strongly due to the short distances, so an atom may capture the Drude particle (shell) of a neighbor, or the induced dipoles within the same molecule may align too much.  To avoid this, damping at short of the interactions between the point charges composing the induced dipole can be done by :ref:`Thole <Thole2>` functions.
 
-
-
 ----------
-
 
 **Preparation of the data file**
 
@@ -144,7 +139,7 @@ LAMMPS to recognize that you are using Drude oscillators, you should
 use the fix *drude*\ . The command is
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix DRUDE all drude C C C N N D D D
 
@@ -165,7 +160,7 @@ space is required.  Otherwise LAMMPS crashes and gives the required
 value.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data data-p.lmp extra/special/per/atom 1
 
@@ -179,25 +174,25 @@ include Coulomb interactions, for instance *lj/cut/coul/long* with
 1.e-4:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/coul/long 10.0
    kspace_style pppm 1.0e-4
 
 As compared to the non-polarizable input file, *pair\_coeff* lines need
 to be added for the DPs.  Since the DPs have no Lennard-Jones
-interactions, their *epsilon* is 0. so the only *pair\_coeff* line
+interactions, their :math:`\epsilon` is 0. so the only *pair\_coeff* line
 that needs to be added is
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* 6\* 0.0 0.0 # All-DPs
+   pair_coeff * 6* 0.0 0.0 # All-DPs
 
 Now for the thermalization, the simplest choice is to use the :doc:`fix langevin/drude <fix_langevin_drude>`.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix LANG all langevin/drude 300. 100 12435 1. 20 13977
 
@@ -211,7 +206,7 @@ together with their DC.  For this, ghost atoms need to know their
 velocities. Thus you need to add the following command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
 
@@ -223,7 +218,7 @@ If the fix *shake* is used to constrain the C-H bonds, it should be
 invoked after the fix *langevin/drude* for more accuracy.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix SHAKE ATOMS shake 0.0001 20 0 t 4 5
 
@@ -237,7 +232,7 @@ modification of forces but no position/velocity updates), the fix
 *nve* should be used in conjunction.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix NVE all nve
 
@@ -246,7 +241,7 @@ them in a *dump\_modify ... element ...* command, by adding the element
 type of the DPs. Here for instance
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump DUMP all custom 10 dump.lammpstrj id mol type element x y z ix iy iz
    dump_modify DUMP element C C O H H D D D
@@ -260,7 +255,7 @@ temperatures of the DC-DP pair centers of mass and of the DPs relative
 to their DCs, you should use the :doc:`compute temp\_drude <compute_temp_drude>`
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute TDRUDE all temp/drude
 
@@ -269,7 +264,7 @@ using *thermo\_style custom* with respectively *c\_TDRUDE[1]* and
 *c\_TDRUDE[2]*. These should be close to 300.0 and 1.0 on average.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2]
 
@@ -295,7 +290,7 @@ It is to be used as *hybrid/overlay* with any standard *coul* pair
 style.  In our example, we would use
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0
 
@@ -311,7 +306,7 @@ to complete the *pair\_coeff* section of the input file.  In our
 example, this will look like:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff    1    1 lj/cut/coul/long    0.0700   3.550
    pair_coeff    1    2 lj/cut/coul/long    0.0700   3.550
@@ -323,8 +318,8 @@ example, this will look like:
    pair_coeff    3    3 lj/cut/coul/long    0.1700   3.070
    pair_coeff    3    4 lj/cut/coul/long    0.0714   2.745
    pair_coeff    4    4 lj/cut/coul/long    0.0300   2.420
-   pair_coeff    \*    5 lj/cut/coul/long    0.0000   0.000
-   pair_coeff    \*   6\* lj/cut/coul/long    0.0000   0.000
+   pair_coeff    *    5 lj/cut/coul/long    0.0000   0.000
+   pair_coeff    *   6* lj/cut/coul/long    0.0000   0.000
    pair_coeff    1    1 thole   1.090   2.510
    pair_coeff    1    2 thole   1.218   2.510
    pair_coeff    1    3 thole   0.829   1.590
@@ -376,7 +371,7 @@ Using a Nose-Hoover barostat with the *langevin/drude* thermostat is
 straightforward using fix *nph* instead of *nve*\ .  For example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix NPH all nph iso 1. 1. 500
 
@@ -391,7 +386,7 @@ the reverse transformation.  For a NVT simulation, with the DCs and
 atoms at 300 K and the DPs at 1 K relative to their DC one would use
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix DIRECT all drude/transform/direct
    fix NVT1 ATOMS nvt temp 300. 300. 100
@@ -401,7 +396,7 @@ atoms at 300 K and the DPs at 1 K relative to their DC one would use
 For our phenol example, the groups would be defined as
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group ATOMS  type 1 2 3 4 5 # DCs and non-polarizable atoms
    group CORES  type 1 2 3     # DCs
@@ -415,7 +410,7 @@ center of mass of the whole system drifts faster and faster, the *fix
 momentum* can be used. For instance:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix MOMENTUM all momentum 100 linear 1 1 1
 
@@ -430,7 +425,7 @@ the *fix\_modify* command for this.  In the end, the block of
 instructions for thermostatting and barostatting will look like
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute TATOMS ATOMS temp
    fix DIRECT all drude/transform/direct
@@ -454,7 +449,7 @@ review the different thermostats and ensemble combinations.
 NVT ensemble using Langevin thermostat:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
    fix LANG all langevin/drude 300. 100 12435 1. 20 13977
@@ -464,7 +459,7 @@ NVT ensemble using Langevin thermostat:
 NVT ensemble using Nose-Hoover thermostat:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix DIRECT all drude/transform/direct
    fix RIGID ATOMS rigid/nvt/small molecule temp 300. 300. 100
@@ -474,7 +469,7 @@ NVT ensemble using Nose-Hoover thermostat:
 NPT ensemble with Langevin thermostat:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
    fix LANG all langevin/drude 300. 100 12435 1. 20 13977
@@ -484,7 +479,7 @@ NPT ensemble with Langevin thermostat:
 NPT ensemble using Nose-Hoover thermostat:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute TATOM ATOMS temp
    fix DIRECT all drude/transform/direct

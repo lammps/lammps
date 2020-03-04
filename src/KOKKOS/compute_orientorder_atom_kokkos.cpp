@@ -154,9 +154,9 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   Kokkos::parallel_reduce("ComputeOrientOrderAtomKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Experimental::Max<int>(maxneigh));
 
   if (chunk_size > d_distsq.extent(0) || maxneigh > d_distsq.extent(1)) {
-    d_distsq = t_sna_2d_lr("orientorder/atom:distsq",nmax,maxneigh);
-    d_nearest = t_sna_2i_lr("orientorder/atom:nearest",nmax,maxneigh);
-    d_rlist = t_sna_3d_lr("orientorder/atom:rlist",nmax,maxneigh,3);
+    d_distsq = t_sna_2d_lr("orientorder/atom:distsq",chunk_size,maxneigh);
+    d_nearest = t_sna_2i_lr("orientorder/atom:nearest",chunk_size,maxneigh);
+    d_rlist = t_sna_3d_lr("orientorder/atom:rlist",chunk_size,maxneigh,3);
   
     d_distsq_um = d_distsq;
     d_rlist_um = d_rlist;

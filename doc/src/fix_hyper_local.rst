@@ -155,17 +155,15 @@ simulation domain.
 
 To accomplish this, if :math:`B_{ij} < B_{target}`, the :math:`C_{ij}`
 prefactor for bond *ij* is incremented on the current timestep by an
-amount proportional to the inverse of the specified *alpha* and the
-difference (:math:`B_{ij} - B_{target}`).
-Conversely if :math:`B_{ij} > B_{target}`, :math:`C_{ij}` is decremented
-by the same amount.
-This procedure is termed "boostostatting" in :ref:`(Voter2013) <Voter2013lhd>`.
-It drives all of the individual :math:`C_{ij}` to
-values such that when :math:`V^{max}_{ij}` is applied as a bias to
-bond *ij*, the resulting boost factor :math:`B_{ij}` will be close
-to :math:`B_{target}` on average.
-Thus the LHD time acceleration factor for the overall system is
-effectively *Btarget*\ .
+amount proportional to the inverse of the specified :math:`\alpha` and
+the difference (:math:`B_{ij} - B_{target}`).  Conversely if
+:math:`B_{ij} > B_{target}`, :math:`C_{ij}` is decremented by the same
+amount.  This procedure is termed "boostostatting" in :ref:`(Voter2013)
+<Voter2013lhd>`.  It drives all of the individual :math:`C_{ij}` to
+values such that when :math:`V^{max}_{ij}` is applied as a bias to bond
+*ij*, the resulting boost factor :math:`B_{ij}` will be close to
+:math:`B_{target}` on average.  Thus the LHD time acceleration factor
+for the overall system is effectively *Btarget*\ .
 
 Note that in LHD, the boost factor :math:`B_{target}` is specified by the user.
 This is in contrast to global hyperdynamics (GHD) where the boost

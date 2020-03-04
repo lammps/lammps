@@ -1,19 +1,19 @@
-.. index:: pair\_style lj96/cut
+.. index:: pair_style lj96/cut
 
-pair\_style lj96/cut command
-============================
+pair_style lj96/cut command
+===========================
 
-pair\_style lj96/cut/gpu command
-================================
+pair_style lj96/cut/gpu command
+===============================
 
-pair\_style lj96/cut/omp command
-================================
+pair_style lj96/cut/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj96/cut cutoff
 
@@ -23,10 +23,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj96/cut 2.5
-   pair_coeff \* \* 1.0 1.0 4.0
+   pair_coeff * * 1.0 1.0 4.0
    pair_coeff 1 1 1.0 1.0
 
 Description
@@ -35,10 +35,14 @@ Description
 The *lj96/cut* style compute a 9/6 Lennard-Jones potential, instead
 of the standard 12/6 potential, given by
 
-.. image:: Eqs/pair_lj96.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff.
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
+
+
+:math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -46,8 +50,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global LJ
@@ -111,7 +115,7 @@ details.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

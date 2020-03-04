@@ -1,13 +1,13 @@
-.. index:: dump\_modify
+.. index:: dump_modify
 
-dump\_modify command
-====================
+dump_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify dump-ID keyword values ...
 
@@ -121,7 +121,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify 1 format line "%d %d %20.15g %g %g" scale yes
    dump_modify 1 format float %20.15g scale yes
@@ -265,7 +265,7 @@ For example, the following commands will
 write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        s equal logfreq(10,3,10)
    dump            1 all atom 100 tmp.dump
@@ -275,7 +275,7 @@ The following commands would write snapshots at the timesteps listed
 in file tmp.times:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        f file tmp.times
    variable        s equal next(f)
@@ -372,7 +372,7 @@ settings, reverting all values to their default format.
    example, these commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute     1 all property/local batom1 batom2
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
@@ -535,7 +535,7 @@ last snapshot.  This can be accomplished with something the following
 commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        Dhop equal 0.6
    variable        check atom "c_dsp[4] > v_Dhop"
@@ -678,7 +678,7 @@ only dump atoms whose attribute has changed (or not changed).
 Three examples follow.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify ... thresh ix != LAST
 
@@ -688,20 +688,20 @@ once and then crossed back between the two dump timesteps would not be
 included.)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region foo sphere 10 20 10 15
    variable inregion atom rmask(foo)
-   dump_modify ... thresh v_inregion \|\^ LAST
+   dump_modify ... thresh v_inregion |^ LAST
 
 This will dump atoms which crossed the boundary of the spherical
 region since the last dump.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable charge atom "(q > 0.5) \|\| (q < -0.5)"
-   dump_modify ... thresh v_charge \|\^ LAST
+   variable charge atom "(q > 0.5) || (q < -0.5)"
+   dump_modify ... thresh v_charge |^ LAST
 
 This will dump atoms whose charge has changed from an absolute value
 less than 1/2 to greater than 1/2 (or vice versa) since the last dump.
@@ -935,13 +935,13 @@ examples/pour/in.pour.2d.molecule input script for an example of how
 this is used.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        colors string &
                    "red green blue yellow white &
                    purple pink orange lime gray"
    variable        mol atom mol%10
-   dump            1 all image 250 image.\*.jpg v_mol type &
+   dump            1 all image 250 image.*.jpg v_mol type &
                    zoom 1.6 adiam 1.5
    dump_modify     1 pad 5 amap 0 10 sa 1 10 ${colors}
 

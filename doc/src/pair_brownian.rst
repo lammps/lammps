@@ -1,22 +1,22 @@
-.. index:: pair\_style brownian
+.. index:: pair_style brownian
 
-pair\_style brownian command
-============================
+pair_style brownian command
+===========================
 
-pair\_style brownian/omp command
+pair_style brownian/omp command
 ================================
 
-pair\_style brownian/poly command
-=================================
+pair_style brownian/poly command
+================================
 
-pair\_style brownian/poly/omp command
-=====================================
+pair_style brownian/poly/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF
 
@@ -35,11 +35,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
    pair_coeff 1 1 2.05 2.8
-   pair_coeff \* \*
+   pair_coeff * *
 
 Description
 """""""""""

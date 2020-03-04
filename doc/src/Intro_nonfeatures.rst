@@ -14,8 +14,8 @@ Specifically, LAMMPS was not conceived and designed for:
 * visualize your MD simulation interactively
 * plot your output data
 
-Although over the years these limitations have been somewhat
-reduced through features added to LAMMPS or external tools
+Over the years some of these limitations have been reduced or
+removed, through features added to LAMMPS or external tools
 that either closely interface with LAMMPS or extend LAMMPS.
 
 Here are suggestions on how to perform these tasks:

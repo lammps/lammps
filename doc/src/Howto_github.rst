@@ -3,16 +3,14 @@ LAMMPS GitHub tutorial
 
 **written by Stefan Paquay**
 
-
 ----------
-
 
 This document describes the process of how to use GitHub to integrate
 changes or additions you have made to LAMMPS into the official LAMMPS
 distribution.  It uses the process of updating this very tutorial as
 an example to describe the individual steps and options.  You need to
 be familiar with git and you may want to have a look at the
-`Git book <http://git-scm.com/book/>`_ to reacquaint yourself with some
+`git book <http://git-scm.com/book/>`_ to reacquaint yourself with some
 of the more advanced git features used below.
 
 As of fall 2016, submitting contributions to LAMMPS via pull requests
@@ -84,14 +82,14 @@ First of all, create a clone of your version on github on your local
 machine via HTTPS:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ git clone https://github.com/<your user name>/lammps.git <some name>
 
 or, if you have set up your GitHub account for using SSH keys, via SSH:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ git clone git@github.com:<your user name>/lammps.git
 
@@ -111,7 +109,7 @@ To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ cd mylammps
      $ git checkout master
@@ -120,7 +118,7 @@ and use git pull:
 You can also add this URL as a remote:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ git remote add lammps_upstream https://www.github.com/lammps/lammps
 
@@ -130,7 +128,7 @@ workflow that updated this tutorial, and hence we will call the branch
 "github-tutorial-update":
 
 
-.. parsed-literal::
+.. code-block:: bash
 
     $ git checkout -b github-tutorial-update master
 
@@ -143,38 +141,39 @@ unrelated feature, you should switch branches!
 After everything is done, add the files to the branch and commit them:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add doc/src/Howto_github.txt
-    $ git add doc/src/JPG/tutorial\*.png
+    $ git add doc/src/JPG/tutorial*.png
 
 .. warning::
 
-   Do not use *git commit -a* (or *git add -A*\ ).  The -a
-   flag (or -A flag) will automatically include \_all\\_ modified or new files
+   Do not use *git commit -a* (or *git add -A*\ ).  The -a flag (or -A
+   flag) will automatically include **all** modified **and** new files
    and that is rarely the behavior you want.  It can easily lead to
-   accidentally adding unrelated and unwanted changes into the repository.
-   Instead it is preferable to explicitly use *git add*\ , *git rm*\ , *git mv*
-   for adding, removing, renaming individual files, respectively, and then
-   *git commit* to finalize the commit.  Carefully check all pending
-   changes with *git status* before committing them.  If you find doing
-   this on the command line too tedious, consider using a GUI, for example
-   the one included in git distributions written in Tk, i.e. use *git gui*
-   (on some Linux distributions it may be required to install an additional
-   package to use it).
+   accidentally adding unrelated and unwanted changes into the
+   repository.  Instead it is preferable to explicitly use *git add*\ ,
+   *git rm*\ , *git mv* for adding, removing, renaming individual files,
+   respectively, and then *git commit* to finalize the commit.
+   Carefully check all pending changes with *git status* before
+   committing them.  If you find doing this on the command line too
+   tedious, consider using a GUI, for example the one included in git
+   distributions written in Tk, i.e. use *git gui* (on some Linux
+   distributions it may be required to install an additional package to
+   use it).
 
 After adding all files, the change set can be committed with some
 useful message that explains the change.
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ git commit -m 'Finally updated the github tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push
 
@@ -183,7 +182,7 @@ not configured anything. If your local branch is not present on GitHub yet,
 it will ask you to add it by running
 
 
-.. parsed-literal::
+.. code-block:: bash
 
      $ git push --set-upstream origin github-tutorial-update
 
@@ -194,14 +193,14 @@ If you want to make really sure you push to the right repository
 (which is good practice), you can provide it explicitly:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push origin
 
 or using an explicit URL:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push git@github.com:Pakketeretet2/lammps.git
 
@@ -410,10 +409,10 @@ Now, since in the meantime our local text for the tutorial also changed,
 we need to pull Axel's change back into our branch, and merge them:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add Howto_github.txt
-    $ git add JPG/tutorial_reverse_pull_request\*.png
+    $ git add JPG/tutorial_reverse_pull_request*.png
     $ git commit -m "Updated text and images on reverse pull requests"
     $ git pull
 
@@ -427,7 +426,7 @@ branch is now perfect as far as we are concerned, so we are going to
 commit and push again:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add Howto_github.txt
     $ git add JPG/tutorial_reverse_pull_request6.png
@@ -458,7 +457,7 @@ keep it a bit more tidy. Note that you first have to switch to another
 branch!
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ git checkout master
    $ git pull master
@@ -474,7 +473,7 @@ Finally, if you delete the branch locally, you might want to push this
 to your remote(s) as well:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push origin :github-tutorial-update
 

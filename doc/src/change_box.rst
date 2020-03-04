@@ -1,13 +1,13 @@
-.. index:: change\_box
+.. index:: change_box
 
-change\_box command
-===================
+change_box command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box group-ID parameter args ... keyword args ...
 
@@ -58,7 +58,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all xy final -2.0 z final 0.0 5.0 boundary p p f remap units box
    change_box all x scale 1.1 y volume z volume remap
@@ -114,7 +114,7 @@ new owning processors.
    is non-periodic and atoms extend from 0 to 20 in all dimensions:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x final -10 20
    create_atoms 1 single -5 5 5       # this will fail to insert an atom
@@ -195,7 +195,7 @@ style, then both it and the current keyword apply to the keyword
 preceding "key".  I.e. this sequence of keywords is allowed:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 y volume z volume
 
@@ -207,7 +207,7 @@ If the following command is used, then the z box length will shrink by
 the same 1.1 factor the x box length was increased by:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 z volume
 
@@ -217,16 +217,16 @@ y,z box lengths shrink so as to keep their relative aspect ratio
 constant:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   change_box all"x scale 1.1 y volume z volume
+   change_box all x scale 1.1 y volume z volume
 
 If the following command is used, then the final box will be a factor
 of 10% larger in x and y, and a factor of 21% smaller in z, so as to
 keep the volume constant:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 z volume y scale 1.1 z volume
 

@@ -1,22 +1,22 @@
-.. index:: pair\_style zbl
+.. index:: pair_style zbl
 
-pair\_style zbl command
-=======================
+pair_style zbl command
+======================
 
-pair\_style zbl/gpu command
-===========================
-
-pair\_style zbl/kk command
+pair_style zbl/gpu command
 ==========================
 
-pair\_style zbl/omp command
-===========================
+pair_style zbl/kk command
+=========================
+
+pair_style zbl/omp command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style zbl inner outer
 
@@ -27,10 +27,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style zbl 3.0 4.0
-   pair_coeff \* \* 73.0 73.0
+   pair_coeff * * 73.0 73.0
    pair_coeff 1 1 14.0 14.0
 
 Description
@@ -45,9 +45,9 @@ energy due to a pair of atoms at a distance r\_ij is given by:
 
 .. math::
 
-  E^{ZBL}_{ij} & = \frac{1}{4\pi\epsilon_0} \frac{Z_i Z_j \,e^2}{r_{ij}} \phi(r_{ij}/a)+ S(r_{ij})\\
-  a & =  \frac{0.46850}{Z_{i}^{0.23} + Z_{j}^{0.23}}\\
-  \phi(x) & =  0.18175e^{-3.19980x} + 0.50986e^{-0.94229x} + 0.28022e^{-0.40290x} + 0.02817e^{-0.20162x}\\
+   E^{ZBL}_{ij} & = \frac{1}{4\pi\epsilon_0} \frac{Z_i Z_j \,e^2}{r_{ij}} \phi(r_{ij}/a)+ S(r_{ij})\\
+   a & =  \frac{0.46850}{Z_{i}^{0.23} + Z_{j}^{0.23}}\\
+   \phi(x) & =  0.18175e^{-3.19980x} + 0.50986e^{-0.94229x} + 0.28022e^{-0.40290x} + 0.02817e^{-0.20162x}\\
 
 where *e* is the electron charge, :math:`\epsilon_0` is the electrical
 permittivity of vacuum, and :math:`Z_i` and :math:`Z_j` are the nuclear

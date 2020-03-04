@@ -1,22 +1,22 @@
-.. index:: pair\_style ufm
+.. index:: pair_style ufm
 
-pair\_style ufm command
-=======================
+pair_style ufm command
+======================
 
-pair\_style ufm/gpu command
-===========================
+pair_style ufm/gpu command
+==========================
 
-pair\_style ufm/omp command
-===========================
+pair_style ufm/omp command
+==========================
 
-pair\_style ufm/opt command
-===========================
+pair_style ufm/opt command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style ufm cutoff
 
@@ -25,17 +25,16 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style ufm 4.0
    pair_coeff 1 1 100.0 1.0 2.5
-   pair_coeff \* \* 100.0 1.0
+   pair_coeff * * 100.0 1.0
 
    pair_style ufm 4.0
-   pair_coeff \* \* 10.0 1.0
+   pair_coeff * * 10.0 1.0
    variable prefactor equal ramp(10,100)
-   fix 1 all adapt 1 pair ufm epsilon \* \* v_prefactor
+   fix 1 all adapt 1 pair ufm epsilon * * v_prefactor
 
 Description
 """""""""""
@@ -45,7 +44,7 @@ Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
 .. math::
 
    E & = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c \\
-  \varepsilon & = p\,k_B\,T
+   \varepsilon & = p\,k_B\,T
 
 
 where :math:`r_c` is the cutoff, :math:`\sigma` is a distance-scale and
@@ -75,10 +74,10 @@ all pairwise interactions from 10.0 at the beginning to 100.0 at the end
 of a run:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable prefactor equal ramp(10,100)
-   fix 1 all adapt 1 pair ufm epsilon \* \* v_prefactor
+   fix 1 all adapt 1 pair ufm epsilon * * v_prefactor
 
 .. note::
 
@@ -144,7 +143,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -1,13 +1,13 @@
-.. index:: create\_bonds
+.. index:: create_bonds
 
-create\_bonds command
-=====================
+create_bonds command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_bonds style args ... keyword value ...
 
@@ -48,7 +48,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_bonds many all all 1 1.0 1.2
    create_bonds many surf solvent 3 2.0 2.4
@@ -198,7 +198,7 @@ to only trigger the internal list to be created once, after the last
 bond (or angle, or dihedral, or improper) is added:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_bonds single/bond 5 52 98 special no
    create_bonds single/bond 5 73 74 special no

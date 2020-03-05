@@ -52,7 +52,13 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(NOT (${CMAKE_BUILD_TYPE} STREQUAL "Debug"))
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
+  endif()
 endif()
 
 option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)

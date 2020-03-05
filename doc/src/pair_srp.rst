@@ -15,9 +15,9 @@ Syntax
 * distance = *min* or *mid*
 * zero or more keyword/value pairs may be appended
 * keyword = *exclude*
-  
+
   .. parsed-literal::
-  
+
        *bptype* value = atom type for bond particles
        *exclude* value = *yes* or *no*
 
@@ -60,7 +60,7 @@ bond-pairwise potential, such that the force on bond *i* due to bond
 
 .. math::
 
-   F^{SRP}_{ij} & = C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c
+   F^{\mathrm{SRP}}_{ij} = C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c
 
 
 where *r* and :math:`\hat{r}_{ij}` are the distance and unit vector
@@ -74,8 +74,8 @@ lever rule,
 
 .. math::
 
-   F_{i1}^{SRP} & = F^{SRP}_{ij}(L) \\
-   F_{i2}^{SRP} & = F^{SRP}_{ij}(1-L)  
+   F_{i1}^{\mathrm{SRP}} & = F^{\mathrm{SRP}}_{ij}(L) \\
+   F_{i2}^{\mathrm{SRP}} & = F^{\mathrm{SRP}}_{ij}(1-L)
 
 
 where *L* is the normalized distance from the atom to the point of

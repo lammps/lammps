@@ -1,14 +1,18 @@
 # Numerical difference calculation of error in forces
 
 units   	metal
-atom_style      full
+atom_style      atomic
 
-boundary 	p p p
-read_data argon.lmp
-
-include ff-argon.lmp
+lattice fcc 5.358000
+region box block 0 6 0 6 0 6
+create_box 1 box
+create_atoms 1box
+mass 1 39.903
 
 velocity all create 10 2357 mom yes dist gaussian
+
+pair_style lj/cubic
+pair_coeff * * 0.0102701 3.42
 
 neighbor 1 bin
 

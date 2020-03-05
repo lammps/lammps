@@ -115,7 +115,7 @@ int MinFire::iterate(int maxiter)
   int flag,flagall;
 
   alpha_final = 0.0;
- 
+
   // Leap Frog integration initialization
 
   if (integrator == 2) {

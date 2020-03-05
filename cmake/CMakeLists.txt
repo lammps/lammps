@@ -52,7 +52,13 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
+  endif()
 endif()
 
 # we require C++11
@@ -175,6 +181,7 @@ option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_CXX_INCLUDE_PATH})
+  add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
   option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
   if(LAMMPS_LONGLONG_TO_LONG)

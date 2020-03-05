@@ -160,14 +160,20 @@ void colvarproxy_lammps::init(const char *conf_file)
   }
 }
 
-void colvarproxy_lammps::add_config_file(const char *conf_file)
+int colvarproxy_lammps::add_config_file(const char *conf_file)
 {
-  colvars->read_config_file(conf_file);
+  return colvars->read_config_file(conf_file);
 }
 
-void colvarproxy_lammps::add_config_string(const std::string &conf)
+int colvarproxy_lammps::add_config_string(const std::string &conf)
 {
-  colvars->read_config_string(conf);
+  return colvars->read_config_string(conf);
+}
+
+int colvarproxy_lammps::read_state_file(char const *state_filename)
+{
+  input_prefix() = std::string(state_filename);
+  return colvars->setup_input();
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()

@@ -86,10 +86,13 @@ class colvarproxy_lammps : public colvarproxy {
   void write_output_files();
 
   // read additional config from file
-  void add_config_file(char const *config_filename);
+  int add_config_file(char const *config_filename);
 
   // read additional config from string
-  void add_config_string(const std::string &config);
+  int add_config_string(const std::string &config);
+
+  // load a state file
+  int read_state_file(char const *state_filename);
 
   // Request to set the units used internally by Colvars
   int set_unit_system(std::string const &units_in, bool check_only);

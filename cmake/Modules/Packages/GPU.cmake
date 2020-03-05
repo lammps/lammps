@@ -1,7 +1,4 @@
 if(PKG_GPU)
-    if (CMAKE_VERSION VERSION_LESS "3.1")
-      message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
-    endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h

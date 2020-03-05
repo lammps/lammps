@@ -49,29 +49,29 @@ by two times *Delta*.
 
 .. note::
 
-It is important to choose a suitable value for delta, the magnitude of
-atom displacements that are used to generate finite difference
-approximations to the exact forces.  For typical systems, a value in
-the range 1e-xxx to 1e-yyy will probably work well.  However, the
-best value will depend on a multitude of factors including the LAMMPS
-unit style, the stiffness of the interatomic potential,the
-thermodynamic state of the material being probed, and so on. The only
-way to be sure that you have made a good choice is to do a
-sensitivity study on a representative atomic configuration, sweeping 
-over a wide range of values of delta.  If delta is too small, the
-output forces will vary erratically due to truncation effects. If
-delta is increased beyond a certain point, the output forces will
-start to vary smoothly with delta, due to growing contributions from
-higher order derivatives. In between these two limits, the numerical
-force values should be largely independent of delta.
+   It is important to choose a suitable value for delta, the magnitude of
+   atom displacements that are used to generate finite difference
+   approximations to the exact forces.  For typical systems, a value in
+   the range 1e-xxx to 1e-yyy will probably work well.  However, the
+   best value will depend on a multitude of factors including the LAMMPS
+   unit style, the stiffness of the interatomic potential,the
+   thermodynamic state of the material being probed, and so on. The only
+   way to be sure that you have made a good choice is to do a
+   sensitivity study on a representative atomic configuration, sweeping 
+   over a wide range of values of delta.  If delta is too small, the
+   output forces will vary erratically due to truncation effects. If
+   delta is increased beyond a certain point, the output forces will
+   start to vary smoothly with delta, due to growing contributions from
+   higher order derivatives. In between these two limits, the numerical
+   force values should be largely independent of delta.
 
 .. note::
 
-The cost of each energy evaluation is essentially the cost of an MD
-timestep.  This invoking this fix once has a cost of 2N timesteps,
-where N is the total number of atoms in the system (assuming all atoms
-are included in the group).  So this fix can be very expensive to use
-for large systems.
+   The cost of each energy evaluation is essentially the cost of an MD
+   timestep.  This invoking this fix once has a cost of 2N timesteps,
+   where N is the total number of atoms in the system (assuming all atoms
+   are included in the group).  So this fix can be very expensive to use
+   for large systems.
 
 ----------
 

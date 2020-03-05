@@ -272,14 +272,18 @@ public:
   /// skipping other blocks
   class read_block {
 
-    std::string const   key;
+    /// The keyword that identifies the block
+    std::string const key;
+
+    /// Where to keep the data (may be NULL)
     std::string * const data;
 
   public:
-    inline read_block(std::string const &key_in, std::string &data_in)
-      : key(key_in), data(&data_in)
-    {}
-    inline ~read_block() {}
+
+    read_block(std::string const &key_in, std::string *data_in = NULL);
+
+    ~read_block();
+
     friend std::istream & operator >> (std::istream &is, read_block const &rb);
   };
 

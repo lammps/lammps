@@ -39,7 +39,7 @@ is often used in conjunction with spherical particles, via a command
 like
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole
 

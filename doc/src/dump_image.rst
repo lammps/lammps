@@ -89,7 +89,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump d0 all image 100 dump.\*.jpg type type
    dump d1 mobile image 500 snap.\*.png element element ssao yes 4539 0.6
@@ -121,19 +121,12 @@ script to generate the images/movie.
 Here are two sample images, rendered as 1024x1024 JPEG files.  Click
 to see the full-size images:
 
-.. raw:: html
-
-   <DIV ALIGN=center>
-
 .. image:: JPG/dump1_small.jpg
    :target: JPG/dump1.jpg
-
+   :width: 48%
 .. image:: JPG/dump2_small.jpg
    :target: JPG/dump2.jpg
-
-.. raw:: html
-
-   </DIV>
+   :width: 48%
 
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also
@@ -235,8 +228,6 @@ the `AtomEye <atomeye_>`_ visualization package.
 
 .. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
 
-
-
 If other atom attributes are used for the *color* or *diameter*
 settings, they are interpreted in the following way.
 
@@ -258,9 +249,7 @@ drawn.  Note that finite-size spherical particles, as defined by
 :doc:`atom_style sphere <atom_style>` define a per-particle radius or
 diameter, which can be used as the *diameter* setting.
 
-
 ----------
-
 
 The various keywords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
@@ -268,9 +257,7 @@ will likely not need to change.  The :doc:`dump modify <dump_modify>`
 also has options specific to the dump image style, particularly for
 assigning colors to atoms, bonds, and other image features.
 
-
 ----------
-
 
 The *atom* keyword allow you to turn off the drawing of all atoms, if
 the specified value is *no*\ .  Note that this will not turn off the
@@ -283,9 +270,7 @@ set a single numeric *size*\ .  All atoms will be drawn with that
 diameter, e.g. 1.5, which is in whatever distance :doc:`units <units>`
 the input script defines, e.g. Angstroms.
 
-
 ----------
-
 
 The *bond* keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
@@ -329,9 +314,7 @@ If *type* is specified for the *width* value then the diameter of each
 bond is determined by its bond type.  By default all types have
 diameter 0.5.  This mapping can be changed by the :doc:`dump_modify bdiam <dump_modify>` command.
 
-
 ----------
-
 
 The *line* keyword can be used when :doc:`atom_style line <atom_style>`
 is used to define particles as line segments, and will draw them as
@@ -586,10 +569,10 @@ MPEG or other movie file you can use:
 
 * a) Use the ImageMagick convert program.
   
-  .. parsed-literal::
+  .. code-block:: bash
   
-     % convert \*.jpg foo.gif
-     % convert -loop 1 \*.ppm foo.mpg
+     % convert *.jpg foo.gif
+     % convert -loop 1 *.ppm foo.mpg
 
 
   Animated GIF files from ImageMagick are not optimized. You can use
@@ -614,17 +597,14 @@ MPEG or other movie file you can use:
   allows extremely flexible encoding and decoding of movies.
 
   
-  .. parsed-literal::
+  .. code-block:: bash
   
-     cat snap.\*.jpg \| ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
-     cat snap.\*.ppm \| ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
+     cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
+     cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
 
   Front ends for FFmpeg exist for multiple platforms. For more
   information see the `FFmpeg homepage <http://www.ffmpeg.org/>`_
-
-
-
 
 ----------
 
@@ -640,7 +620,7 @@ Play the movie:
   movie. Both are available for multiple OSes and support a large
   variety of file formats and decoders.
   
-  .. parsed-literal::
+  .. code-block:: bash
   
      % mplayer foo.mpg
      % ffplay bar.avi
@@ -649,9 +629,9 @@ Play the movie:
   `animate tool <http://www.sandia.gov/~sjplimp/pizza/doc/animate.html>`_,
   which works directly on a series of image files.
   
-  .. parsed-literal::
+  .. code-block:: python
   
-     a = animate("foo\*.jpg")
+     a = animate("foo*.jpg")
 
 * d) QuickTime and other Windows- or MacOS-based media players can
   obviously play movie files directly. Similarly for corresponding tools
@@ -660,10 +640,7 @@ Play the movie:
   additional libraries, purchasing a license, or may not be
   supported.
 
-
-
 ----------
-
 
 See the :doc:`Modify <Modify>` doc page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities

@@ -1,16 +1,16 @@
-.. index:: improper\_style fourier
+.. index:: improper_style fourier
 
-improper\_style fourier command
-===============================
+improper_style fourier command
+==============================
 
-improper\_style fourier/omp command
-===================================
+improper_style fourier/omp command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
    improper_coeff 1 100.0 0.0 1.0 0.5 1

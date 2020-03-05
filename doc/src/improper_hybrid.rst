@@ -1,13 +1,13 @@
-.. index:: improper\_style hybrid
+.. index:: improper_style hybrid
 
-improper\_style hybrid command
-==============================
+improper_style hybrid command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style hybrid style1 style2 ...
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style hybrid harmonic helix
    improper_coeff 1 harmonic 120.0 30

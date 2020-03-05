@@ -1,13 +1,13 @@
-.. index:: reset\_ids
+.. index:: reset_ids
 
-reset\_ids command
-==================
+reset_ids command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_ids
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_ids
 
@@ -54,7 +54,7 @@ as the :doc:`create_atoms <create_atoms>` command explains.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

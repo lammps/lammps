@@ -1,19 +1,19 @@
-.. index:: pair\_style yukawa/colloid
+.. index:: pair_style yukawa/colloid
 
-pair\_style yukawa/colloid command
-==================================
+pair_style yukawa/colloid command
+=================================
 
-pair\_style yukawa/colloid/gpu command
-======================================
+pair_style yukawa/colloid/gpu command
+=====================================
 
-pair\_style yukawa/colloid/omp command
-======================================
+pair_style yukawa/colloid/omp command
+=====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa/colloid kappa cutoff
 
@@ -24,11 +24,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa/colloid 2.0 2.5
    pair_coeff 1 1 100.0 2.3
-   pair_coeff \* \* 100.0
+   pair_coeff * * 100.0
 
 Description
 """""""""""

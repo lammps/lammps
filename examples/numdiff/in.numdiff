@@ -6,7 +6,7 @@ atom_style      atomic
 lattice fcc 5.358000
 region box block 0 6 0 6 0 6
 create_box 1 box
-create_atoms 1box
+create_atoms 1 box
 mass 1 39.903
 
 velocity all create 10 2357 mom yes dist gaussian

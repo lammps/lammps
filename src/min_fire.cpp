@@ -271,8 +271,9 @@ int MinFire::iterate(int maxiter)
       flagv0 = 1;
     }
 
-    // 1st iter: evauates velocity
-    // required to limit timestep in case of particles
+    // evaluates velocties to estimate wether dtv has to be limited
+    // required when v have been reset
+
     if (flagv0) {
       dtf = dt * force->ftm2v;
       energy_force(0);
@@ -307,7 +308,7 @@ int MinFire::iterate(int maxiter)
 
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
 
-    // 1st iter: velocities reset to 0
+    // reset velocities when necessary
 
     if (flagv0) {
       for (int i = 0; i < nlocal; i++)

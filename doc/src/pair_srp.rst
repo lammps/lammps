@@ -34,7 +34,7 @@ Examples
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 100.0 0.8
 
-   pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 \* min exclude yes
+   pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 * min exclude yes
    pair_coeff 1 1 dpd 60.0 50 1.0
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 40.0

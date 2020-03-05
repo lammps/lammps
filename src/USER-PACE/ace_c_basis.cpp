@@ -365,6 +365,7 @@ void ACEBasisSet::save(string filename) {
     fprintf(fptr, "nelements=%d\n", nelements);
     fprintf(fptr, "rankmax=%d\n", rankmax);
     fprintf(fptr, "ndensitymax=%d\n", ndensitymax);
+    fprintf(fptr, "cutoffmax=%f\n", cutoffmax);
 
     fprintf(fptr, "ntot=%d\n", ntot);
 
@@ -586,6 +587,16 @@ void ACEBasisSet::load(string filename) {
         exit(EXIT_FAILURE);
     }
     ndensitymax = stoi(buffer);
+
+
+    res = fscanf(fptr, " cutoffmax=");
+    res = fscanf(fptr, "%s", buffer);
+    if (res != 1) {
+        printf("Error while reading file");
+        exit(EXIT_FAILURE);
+    }
+    cutoffmax = stod(buffer);
+
 
     res = fscanf(fptr, " ntot=");
     res = fscanf(fptr, "%s", buffer);

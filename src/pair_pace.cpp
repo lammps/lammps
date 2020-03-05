@@ -87,7 +87,7 @@ PairPACE::~PairPACE() {
 /* ---------------------------------------------------------------------- */
 
 void PairPACE::compute(int eflag, int vflag) {
-    printf("--> PairPACE::compute\n");
+    //printf("--> PairPACE::compute\n");
     int i, j, ii, jj, inum, jnum, k;
     double delx, dely, delz, evdwl, rsq;
     double fij[3];
@@ -397,8 +397,11 @@ void PairPACE::init_style() {
 
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+    printf("init_ine i=%d, j=%d: ", i, j);
     //TODO: adapt
-    return 10;
+    printf("%f\n", basis_set->radial_functions.cut(i - 1, j - 1));
+    return basis_set->radial_functions.cut(i - 1, j - 1);
+    //return basis_set->cutoffmax;
 }
 
 /* ---------------------------------------------------------------------- */

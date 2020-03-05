@@ -33,10 +33,10 @@ public:
     /**
     Arrays to store radial functions.
     */
-    Array1D<DOUBLE_TYPE> gr;
-    Array1D<DOUBLE_TYPE> dgr;
-    Array2D<DOUBLE_TYPE> fr;//done
-    Array2D<DOUBLE_TYPE> dfr;//done
+    Array1D<DOUBLE_TYPE> gr; // g_k(r) functions
+    Array1D<DOUBLE_TYPE> dgr; //derivatives of g_k(r) functions
+    Array2D<DOUBLE_TYPE> fr;  //R_nl(r) functions
+    Array2D<DOUBLE_TYPE> dfr; //derivatives of R_nl(r) functions
 
     /**
     Arrays to store Chebyshev polynomials.
@@ -57,12 +57,11 @@ public:
     Array6D<DOUBLE_TYPE> lutfrs;
     Array5D<DOUBLE_TYPE> lutgrs;
     Array5D<DOUBLE_TYPE> crad;
-    Array3D<DOUBLE_TYPE> cradl0; //crad for l = 0; then nradial2 = nradbase
 
     Array2D<DOUBLE_TYPE> lambda;
     Array2D<DOUBLE_TYPE> cut;
     Array2D<DOUBLE_TYPE> dcut;
-    Array2D<DOUBLE_TYPE> f1f; //done
+    Array2D<DOUBLE_TYPE> f1f;
     Array2D<DOUBLE_TYPE> f1fd1;
 
     Array1D<DOUBLE_TYPE> f1g;

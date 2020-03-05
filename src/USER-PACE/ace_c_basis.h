@@ -55,6 +55,7 @@ public:
     NS_TYPE nradbase;
     LS_TYPE lmax;
     NS_TYPE nradmax;
+    DOUBLE_TYPE cutoffmax;
 
 
     //1D flat array basis representation: [mu]

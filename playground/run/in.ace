@@ -1,21 +1,21 @@
+# (written by ASE)
 clear
-atom_style atomic
-units metal
+units metal 
 boundary p p p 
 atom_modify sort 0 0.0 
 
-read_data fcc.dat
+read_data data_lammps000001o7fc22oa
 
-### interactions
+### interactions 
 pair_style pace 
-pair_coeff * * Al.pbe.in-rank6.ace Al 
-mass 1 26.981538 
+pair_coeff * * Al.pbe.ace Al 
+mass 1 26.98 
 
 ### run
 fix fix_nve all nve
-dump dump_all all custom 1 dump.bin id type x y z vx vy vz fx fy fz
+dump dump_all all custom 1 trj.ace id type x y z vx vy vz fx fy fz
 thermo_style custom step temp press cpu pxx pyy pzz pxy pxz pyz ke pe etotal vol lx ly lz atoms
-thermo_modify flush yes format float %23.16g
+thermo_modify flush yes
 thermo 1
 run 0
 print "__end_of_ase_invoked_calculation__" 

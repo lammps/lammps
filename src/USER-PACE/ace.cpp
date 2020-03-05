@@ -177,10 +177,10 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     DOUBLE_TYPE xn, yn, zn, r_xyz;
     DOUBLE_TYPE R, GR, DGR, R_over_r, DR;
     DOUBLE_TYPE *r_hat;
-    int j;
+
     SPECIES_TYPE elej;
     DENSITY_TYPE ndensity; //TODO: extract from basis set, as it is equal to all functions
-    RANK_TYPE r, rank;
+    RANK_TYPE r, rank, t;
     NS_TYPE n;
     LS_TYPE l;
     MS_TYPE m, m_t;
@@ -190,7 +190,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     LS_TYPE *ls;
     MS_TYPE *ms;
 
-    int jj, func_ind, ms_ind;
+    int j, jj, func_ind, ms_ind;
     SHORT_INT_TYPE factor;
 
     ACEComplex Y{0}, Y_DR{0.};
@@ -259,6 +259,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     for (jj = 0; jj < jnum; ++jj) {
 
         j = jlist[jj];
+
         xn = x[j][0] - xtmp;
         yn = x[j][1] - ytmp;
         zn = x[j][2] - ztmp;
@@ -394,32 +395,32 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
             A_backward_prod[r] = 1;
 
             //fill forward A-product triangle
-            for (j = 0; j < rank; j++) {
-                //TODO: optimize ns[j]-1 -> ns[j] during functions construction
-                A_cache[j] = A(mus[j], ns[j] - 1, ls[j], ms[j]);
+            for (t = 0; t < rank; t++) {
+                //TODO: optimize ns[t]-1 -> ns[t] during functions construction
+                A_cache[t] = A(mus[t], ns[t] - 1, ls[t], ms[t]);
 #ifdef DEBUG_ENERGY_CALCULATIONS
-                printf("A(x=%d, n=%d, l=%d, m=%d)=(%f,%f)\n", mus[j], ns[j], ls[j], ms[j], A_cache[j].real,
-                       A_cache[j].img);
+                printf("A(x=%d, n=%d, l=%d, m=%d)=(%f,%f)\n", mus[t], ns[t], ls[t], ms[t], A_cache[t].real,
+                       A_cache[t].img);
 #endif
-                A_forward_prod[j + 1] = A_forward_prod[j] * A_cache[j];
+                A_forward_prod[t + 1] = A_forward_prod[t] * A_cache[t];
             }
 
-            B = A_forward_prod[j];
+            B = A_forward_prod[t];
 #ifdef DEBUG_FORCES_CALCULATIONS
             printf("B = (%f, %f)\n", (B).real, (B).img);
 #endif
             //fill backward A-product triangle
-            for (j = r; j >= 1; j--) {
-                A_backward_prod[j - 1] =
-                        A_backward_prod[j] * A_cache[j];
+            for (t = r; t >= 1; t--) {
+                A_backward_prod[t - 1] =
+                        A_backward_prod[t] * A_cache[t];
             }
 
-            for (j = 0; j < rank; ++j, ++func_ms_t_ind) {
-                dB = A_forward_prod[j] * A_backward_prod[j]; //dB - product of all A's except j-th
+            for (t = 0; t < rank; ++t, ++func_ms_t_ind) {
+                dB = A_forward_prod[t] * A_backward_prod[t]; //dB - product of all A's except t-th
                 dB_flatten(func_ms_t_ind) = dB;
 #ifdef DEBUG_FORCES_CALCULATIONS
-                m_t = ms[j];
-                printf("dB(n,l,m)(%d,%d,%d) = (%f, %f)\n", ns[j], ls[j], m_t, (dB).real, (dB).img);
+                m_t = ms[t];
+                printf("dB(n,l,m)(%d,%d,%d) = (%f, %f)\n", ns[t], ls[t], m_t, (dB).real, (dB).img);
 #endif
             }
 
@@ -482,21 +483,21 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 #endif
             }
 
-            for (j = 0; j < rank; ++j, ++func_ms_t_ind) {
-                m_t = ms[j];
+            for (t = 0; t < rank; ++t, ++func_ms_t_ind) {
+                m_t = ms[t];
                 factor = (m_t % 2 == 0 ? 1 : -1);
                 dB = dB_flatten(func_ms_t_ind);
-                weights(mus[j], ns[j] - 1, ls[j], m_t) += dB * theta * 0.5; // Theta_array(func_ms_ind);
+                weights(mus[t], ns[t] - 1, ls[t], m_t) += dB * theta * 0.5; // Theta_array(func_ms_ind);
                 // update -m_t (that could also be positive), because the basis is half_basis
-                weights(mus[j], ns[j] - 1, ls[j], -m_t) +=
+                weights(mus[t], ns[t] - 1, ls[t], -m_t) +=
                         (dB).conjugated() * factor * theta * 0.5;// Theta_array(func_ms_ind);
 
 #ifdef DEBUG_FORCES_CALCULATIONS
-                printf("dB(n,l,m)(%d,%d,%d) = (%f, %f)\n", ns[j], ls[j], m_t, (dB).real, (dB).img);
+                printf("dB(n,l,m)(%d,%d,%d) = (%f, %f)\n", ns[t], ls[t], m_t, (dB).real, (dB).img);
                 printf("theta = %f\n",theta);
-                printf("weights(n,l,m)(%d,%d,%d) += (%f, %f)\n", ns[j], ls[j], m_t, (dB * theta * 0.5).real,
+                printf("weights(n,l,m)(%d,%d,%d) += (%f, %f)\n", ns[t], ls[t], m_t, (dB * theta * 0.5).real,
                        (dB * theta * 0.5).img);
-                printf("weights(n,l,-m)(%d,%d,%d) += (%f, %f)\n", ns[j], ls[j], -m_t,
+                printf("weights(n,l,-m)(%d,%d,%d) += (%f, %f)\n", ns[t], ls[t], -m_t,
                        ( (dB).conjugated() * factor * theta * 0.5).real,
                        ( (dB).conjugated() * factor * theta * 0.5).img);
 #endif

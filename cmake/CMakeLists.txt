@@ -2,7 +2,7 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -55,12 +55,9 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
 endif()
 
-option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
-if(DISABLE_CXX11_REQUIREMENT)
-  add_definitions(-DLAMMPS_CXX98)
-# else()
-#  set(CMAKE_CXX_STANDARD 11)
-endif()
+# we require C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # GNU compiler features
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -355,9 +352,6 @@ endforeach(HEADER)
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
-if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't supported without a C compiler before v3.4
-endif()
 # RB: disabled this check because it breaks with KOKKOS CUDA enabled
 #foreach(FUNC sin cos)
 #  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})

@@ -87,6 +87,7 @@ void MinFire::setup_style()
 
   for (int i = 0; i < nlocal; i++)
     v[i][0] = v[i][1] = v[i][2] = 0.0;
+  flagv0 = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -114,7 +115,7 @@ int MinFire::iterate(int maxiter)
   int flag,flagall;
 
   alpha_final = 0.0;
-
+ 
   // Leap Frog integration initialization
 
   if (integrator == 2) {
@@ -146,18 +147,6 @@ int MinFire::iterate(int maxiter)
         v[i][2] = dtfm * f[i][2];
       }
     }
-    // limit timestep so no particle moves further than dmax
-
-    dtvone = dt;
-
-    for (int i = 0; i < nlocal; i++) {
-      vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
-      vmax = MAX(vmax,fabs(v[i][2]));
-      if (dtvone*vmax > dmax) dtvone = dmax/vmax;
-    }
-
-    MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
-
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -279,6 +268,31 @@ int MinFire::iterate(int maxiter)
 
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
+      flagv0 = 1;
+    }
+
+    // 1st iter: evauates velocity
+    // required to limit timestep in case of particles
+    if (flagv0) {
+      dtf = dt * force->ftm2v;
+      energy_force(0);
+      neval++;
+
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / rmass[i];
+          v[i][0] = dtfm * f[i][0];
+          v[i][1] = dtfm * f[i][1];
+          v[i][2] = dtfm * f[i][2];
+        }
+      } else {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] = dtfm * f[i][0];
+          v[i][1] = dtfm * f[i][1];
+          v[i][2] = dtfm * f[i][2];
+        }
+      }
     }
 
     // limit timestep so no particle moves further than dmax
@@ -293,6 +307,13 @@ int MinFire::iterate(int maxiter)
 
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
 
+    // 1st iter: velocities reset to 0
+
+    if (flagv0) {
+      for (int i = 0; i < nlocal; i++)
+        v[i][0] = v[i][1] = v[i][2] = 0.0;
+    }
+    
     // min dtv over replicas, if necessary
     // this communicator would be invalid for multiprocess replicas
 
@@ -449,6 +470,10 @@ int MinFire::iterate(int maxiter)
       ecurrent = energy_force(0);
       neval++;
     }
+
+    // velocities have been evaluated
+
+    flagv0 = 0;
 
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0

@@ -146,6 +146,18 @@ int MinFire::iterate(int maxiter)
         v[i][2] = dtfm * f[i][2];
       }
     }
+    // limit timestep so no particle moves further than dmax
+
+    dtvone = dt;
+
+    for (int i = 0; i < nlocal; i++) {
+      vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
+      vmax = MAX(vmax,fabs(v[i][2]));
+      if (dtvone*vmax > dmax) dtvone = dmax/vmax;
+    }
+
+    MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -259,9 +271,9 @@ int MinFire::iterate(int maxiter)
 
       if (halfstepback_flag) {
         for (int i = 0; i < nlocal; i++) {
-          x[i][0] -= 0.5 * dtv * v[i][0];
-          x[i][1] -= 0.5 * dtv * v[i][1];
-          x[i][2] -= 0.5 * dtv * v[i][2];
+          x[i][0] -= 0.5 * dt * v[i][0];
+          x[i][1] -= 0.5 * dt * v[i][1];
+          x[i][2] -= 0.5 * dt * v[i][2];
         }
       }
 

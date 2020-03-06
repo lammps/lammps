@@ -356,7 +356,7 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 
 }
 
-void ACEBasisSet::save(string filename) {
+void ACEBasisSet::save(const string &filename) {
     FILE *fptr;
     fptr = fopen(filename.c_str(), "w");
     fprintf(fptr, "lmax=%d\n", lmax);
@@ -377,6 +377,10 @@ void ACEBasisSet::save(string filename) {
     }
     fprintf(fptr, "\n");
 
+    fprintf(fptr, "core repulsion parameters: ");
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
+        for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j)
+            fprintf(fptr, "%.18f %.18f\n", radial_functions.prehc(mu_i, mu_j), radial_functions.lambdahc(mu_j, mu_j));
 
     fprintf(fptr, "elements:");
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu)
@@ -538,7 +542,7 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 void ACEBasisSet::load(string filename) {
     int res;
     FILE *fptr;
-    char buffer[1024];
+    char buffer[1024], buffer2[1024];
     fptr = fopen(filename.c_str(), "r");
 
     res = fscanf(fptr, "lmax=%s", buffer);
@@ -630,7 +634,6 @@ void ACEBasisSet::load(string filename) {
                           cutoff);
 
 
-
     for (int i = 0; i < parameters.size(); ++i) {
         res = fscanf(fptr, "%s", buffer);
         if (res != 1) {
@@ -641,7 +644,28 @@ void ACEBasisSet::load(string filename) {
         parameters[i] = stof(buffer);
     }
 
+    //hard-core repulsion
+    res = fscanf(fptr, " core repulsion parameters:");
+    if (res != 0) {
+        printf("Error while reading core repulsion parameters\n");
+        exit(EXIT_FAILURE);
+    }
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
+        for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
+            res = fscanf(fptr, "%s %s", buffer, buffer2);
+            if (res != 2) {
+                printf("Error while reading file core repulsion parameters (values)\n");
+                exit(EXIT_FAILURE);
+            }
+            radial_functions.prehc(mu_i, mu_j) = stod(buffer);
+            radial_functions.lambdahc(mu_i, mu_j) = stod(buffer2);
 
+//            printf("Read: prehc(mu_i, mu_j)=%f\n",radial_functions.prehc(mu_i, mu_j));
+//            printf("Read: lambdahc(mu_i, mu_j)=%f\n",radial_functions.lambdahc(mu_i, mu_j));
+        }
+
+
+    //elements mapping
     elements_name = new string[nelements];
     res = fscanf(fptr, " elements:");
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {

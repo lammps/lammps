@@ -24,6 +24,9 @@ public:
 
     void radbase(DOUBLE_TYPE lam, DOUBLE_TYPE r_c, DOUBLE_TYPE d_r_c, DOUBLE_TYPE r);
 
+    static void
+    radcore(DOUBLE_TYPE r, DOUBLE_TYPE pre, DOUBLE_TYPE lambda, DOUBLE_TYPE cutoff, DOUBLE_TYPE &cr, DOUBLE_TYPE &dcr);
+
     void setuplookupRadspline();
 
     void radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej);
@@ -37,6 +40,9 @@ public:
     Array1D<DOUBLE_TYPE> dgr; //derivatives of g_k(r) functions
     Array2D<DOUBLE_TYPE> fr;  //R_nl(r) functions
     Array2D<DOUBLE_TYPE> dfr; //derivatives of R_nl(r) functions
+
+    //hard-core repulsion
+    DOUBLE_TYPE cr, dcr;
 
     /**
     Arrays to store Chebyshev polynomials.
@@ -56,8 +62,11 @@ public:
     */
     Array6D<DOUBLE_TYPE> lutfrs;
     Array5D<DOUBLE_TYPE> lutgrs;
-    Array5D<DOUBLE_TYPE> crad;
+    Array4D<DOUBLE_TYPE> luthcs; // hard-core repulsion
 
+
+
+    Array5D<DOUBLE_TYPE> crad;
     Array2D<DOUBLE_TYPE> lambda;
     Array2D<DOUBLE_TYPE> cut;
     Array2D<DOUBLE_TYPE> dcut;
@@ -66,6 +75,10 @@ public:
 
     Array1D<DOUBLE_TYPE> f1g;
     Array1D<DOUBLE_TYPE> f1gd1;
+
+    //hard-core repulsion coefficients
+    Array2D<DOUBLE_TYPE> prehc;
+    Array2D<DOUBLE_TYPE> lambdahc;
 
 
 //--------------------------------------------------------------------------

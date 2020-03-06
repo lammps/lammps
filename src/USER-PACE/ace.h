@@ -35,6 +35,10 @@ class ACE {
     Array3DLM<ACEComplex> Y_cache = Array3DLM<ACEComplex>("Y_cache");
     Array3DLM<Dycomponent> DY_cache = Array3DLM<Dycomponent>("dY_dense_cache");
 
+    //hard-core repulsion
+    //(neigh_jj)
+    Array1D<DOUBLE_TYPE> DCR_cache = Array1D<DOUBLE_TYPE>("DCR_cache");
+
     //densities rho(ndensity), index  = 0 .. ndensity-1
     Array1D<DOUBLE_TYPE> rhos = Array1D<DOUBLE_TYPE>("rhos");
     //derivatives wrt. densities  index = 0 .. ndensity-1

@@ -7,6 +7,7 @@ species:
     ndensityi: 2
     npoti: FinnisSinclair
     parameters: [1.0, 1.0, 1.0, 0.5]
+    core-repulsion: [83.83674258342853, 0.5692360986854252]
     rcutij: 8.7
     dcutij: 0.01
     NameOfCutoffFunctionij: cos

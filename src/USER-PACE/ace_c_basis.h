@@ -89,7 +89,7 @@ public:
                                    DENSITY_TYPE ndensity);
 
     //TODO: implement write basis to file
-    void save(string filename);
+    void save(const string &filename);
 
     void load(string filename);
 

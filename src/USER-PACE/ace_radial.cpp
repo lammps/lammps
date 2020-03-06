@@ -43,10 +43,11 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     cheb2.init(nradbase + 1, "cheb2");
 
 
-    //lutfrs.init(4, nradmax, 1 + lmax, ntot, nelements, nelements, "lutfrs");
     lutfrs.init(nelements, nelements, ntot, 1 + lmax, nradial, 4, "lutfrs");
-    //lutgrs.init(4, nradbase, ntot, nelements, nelements, "lutgrs");
     lutgrs.init(nelements, nelements, ntot, nradbase, 4, "lutgrs");
+
+    luthcs.init(nelements, nelements, ntot, 4, "luthcs");
+
     lambda.init(nelements, nelements, "lambda");
     lambda.fill(1.);
 
@@ -58,6 +59,13 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 
     crad.init(nelements, nelements, (lmax + 1), nradial, nradbase, "crad");
     crad.fill(0.);
+
+    //hard-core repulsion
+    prehc.init(nelements, nelements, "prehc");
+    prehc.fill(0.);
+
+    lambdahc.init(nelements, nelements, "lambdahc");
+    lambdahc.fill(1.);
 
 }
 
@@ -200,7 +208,8 @@ void ACERadialFunctions::setuplookupRadspline() {
     SPECIES_TYPE elei, elej;
     int s, n, l, idx;
     NS_TYPE nr;
-    DOUBLE_TYPE x, lam, cu, dc, f0, f1, f1d1, f0d1;
+    DOUBLE_TYPE r, lam, r_cut, dr_cut, f0, f1, f1d1, f0d1;
+    DOUBLE_TYPE cr, dcr, f1hc, f1hcd1, pre, lamhc;
     DOUBLE_TYPE c[4];
     nlut = ntot;
     // cutoff is global cutoff
@@ -211,20 +220,31 @@ void ACERadialFunctions::setuplookupRadspline() {
     invrscalelookup = 1.0 / rscalelookup;
     lutfrs.fill(0.0);
     lutgrs.fill(0.0);
+    // core repulsion
+    luthcs.fill(0.0);
     // at r = rcut + eps the function and its derivatives is zero
     s = nradbase;
-    f1g.fill(0);
-    f1gd1.fill(0);
+
     for (elei = 0; elei < nelements; elei++) {
         for (elej = 0; elej < nelements; elej++) {
+            // moved this here for several elements
+            f1g.fill(0);
+            f1gd1.fill(0);
+            // this appeared to be missing
+            f1f.fill(0);
+            f1fd1.fill(0);
+            // core repulsion
+            f1hc = 0.0;
+            f1hcd1 = 0.0;
             for (n = nlut - 1; n >= 0; n--) {
-                x = invrscalelookup * DOUBLE_TYPE(n);
+                r = invrscalelookup * DOUBLE_TYPE(n);
                 lam = lambda(elei, elej);
-                cu = cut(elei, elej);
-                dc = dcut(elei, elej);
+                r_cut = cut(elei, elej);
+                dr_cut = dcut(elei, elej);
                 // set up radial functions
-                radbase(lam, cu, dc, x);
-                radfunc(elei, elej);
+                radbase(lam, r_cut, dr_cut, r); //update g, dg
+                radfunc(elei, elej); // update fr(nr, l),  dfr(nr, l)
+
                 for (nr = 0; nr < nradbase; nr++) {
                     f0 = gr(nr);
                     f1 = f1g(nr);
@@ -239,7 +259,7 @@ void ACERadialFunctions::setuplookupRadspline() {
                     for (idx = 0; idx <= 3; idx++) {
                         lutgrs(elei, elej, n, nr, idx) = c[idx];
                     }
-                    // evalute function values and derivatives at current position
+                    // evaluate function values and derivatives at current position
                     f1g(nr) = c[0];
                     f1gd1(nr) = c[1];
                 }
@@ -263,6 +283,27 @@ void ACERadialFunctions::setuplookupRadspline() {
                         f1fd1(l, nr) = c[1];
                     }
                 }
+
+                // core repulsion (prehc and lambdahc need to be read from input)
+                pre = prehc(elei, elej);
+                lamhc = lambdahc(elei, elej);
+                radcore(r, pre, lamhc, cutoff, cr, dcr);
+                f0 = cr;
+                f1 = f1hc;
+                f0d1 = dcr * invrscalelookup;
+                f1d1 = f1hcd1;
+                // evaluate coefficients
+                c[0] = f0;
+                c[1] = f0d1;
+                c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
+                c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
+                // store coefficients
+                for (idx = 0; idx <= 3; idx++) {
+                    luthcs(elei, elej, n, idx) = c[idx];
+                }
+                // evalute and store function values and derivatives at current position
+                f1hc = c[0];
+                f1hcd1 = c[1];
             }
         }
     }
@@ -278,9 +319,8 @@ Function that gets radial function from look-up table using splines.
 void
 ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SPECIES_TYPE elei,
                                     SPECIES_TYPE elej) {
-//  when to declare variables in header vs on-the-fly?
     DOUBLE_TYPE x;
-    int s, nr, nl, l, idx;
+    int nr, nl, l, idx;
     DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2;
     DOUBLE_TYPE c[4];
     x = r * rscalelookup;
@@ -311,10 +351,58 @@ ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nra
                 dfr(nr, l) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
             }
         }
+
+        // core repulsion
+        for (idx = 0; idx <= 3; idx++) {
+            c[idx] = luthcs(elei, elej, nl, idx);
+        }
+        cr = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
+        dcr = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
     } else {
         gr.fill(0);
         dgr.fill(0);
         fr.fill(0);
         dfr.fill(0);
+        // core repulsion
+        cr = 0.0;
+        dcr = 0.0;
     }
+}
+
+
+void
+ACERadialFunctions::radcore(DOUBLE_TYPE r, DOUBLE_TYPE pre, DOUBLE_TYPE lambda, DOUBLE_TYPE cutoff, DOUBLE_TYPE &cr,
+                            DOUBLE_TYPE &dcr) {
+/* pseudocode for hard core repulsion
+in:
+ r: distance
+ pre: prefactor: read from input, depends on pair of atoms mu_i mu_j
+ lambda: exponent: read from input, depends on pair of atoms mu_i mu_j
+ cutoff: cutoff distance: read from input, depends on pair of atoms mu_i mu_j
+out:
+cr: hard core repulsion
+dcr: derivative of hard core repulsion
+
+ function
+ \$f f_{core} = pre \exp( - \lambda r^2 ) / r   \$f
+
+*/
+
+    DOUBLE_TYPE r2, lr2, y;
+
+//   repulsion strictly positive and decaying
+    pre = abs(pre);
+    lambda = abs(lambda);
+
+    r2 = r * r;
+    lr2 = lambda * r2;
+    if (lr2 < 50.0) {
+        y = exp(-lr2);
+        cr = pre * y / r;
+        dcr = -pre * y * (2.0 * lr2 + 1.0) / r2;
+    } else {
+        cr = 0.0;
+        dcr = 0.0;
+    }
+
 }

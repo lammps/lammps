@@ -37,11 +37,13 @@ void ACE::init() {
     DY_cache.init(1, basis_set->lmax + 1, "dY_dense_cache");
     DY_cache.fill({0.});
 
+    //hard-core repulsion
+    DCR_cache.init(1, "DCR_cache");
+    DCR_cache.fill(0);
 
     rhos.init(basis_set->ndensitymax, "rhos");
     dF_drho.init(basis_set->ndensitymax, "dF_drho");
 
-    //Theta_array.init(basis_set->max_B_array_size, "Theta_array");
     dB_flatten.init(basis_set->max_dB_array_size, "dB_flatten");
 
 }
@@ -110,24 +112,24 @@ void ACE::compute(ACEAtomicEnvironment &atomic_environment, bool verbose) {
 
 #ifdef FINE_TIMING
     if (verbose) {
-        printf("   Total time: %ld microseconds\n", ACE_TIMER_MICROSECONDS(total_time_calc));
-        printf("Per atom time:    %ld microseconds\n",
+        printf("   Total time: %lld microseconds\n", ACE_TIMER_MICROSECONDS(total_time_calc));
+        printf("Per atom time:    %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(per_atom_calc) / atomic_environment.n_atoms_tot);
 
 
-        printf("Loop_over_nei/atom: %ld microseconds\n",
+        printf("Loop_over_nei/atom: %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(loop_over_neighbour) / atomic_environment.n_atoms_tot);
 
-        printf("       Energy/atom: %ld microseconds\n",
+        printf("       Energy/atom: %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(energy_calc) / atomic_environment.n_atoms_tot);
 
-        printf("       Forces/atom: %ld microseconds\n",
+        printf("       Forces/atom: %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(forces_calc_loop) / atomic_environment.n_atoms_tot);
 
-        printf("phi_recalcs/atom: %ld microseconds\n",
+        printf("phi_recalcs/atom: %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(phi_recalc) / atomic_environment.n_atoms_tot);
 
-        printf("     forces_neig: %ld microseconds\n",
+        printf("     forces_neig: %lld microseconds\n",
                ACE_TIMER_MICROSECONDS(forces_calc_neighbour) / atomic_environment.n_atoms_tot);
 
     }
@@ -154,6 +156,10 @@ void ACE::resize_neighbours_cache(int max_jnum) {
 
         DY_cache.resize(max_jnum, basis_set->lmax + 1);
         DY_cache.fill({0});
+
+        //hard-core repulsion
+        DCR_cache.init(max_jnum, "DCR_cache");
+        DCR_cache.fill(0);
     }
 }
 
@@ -172,10 +178,10 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
          << x[i][1] << ","
          << x[i][2] << ")" << endl;
 #endif
-    DOUBLE_TYPE evdwl = 0;
+    DOUBLE_TYPE evdwl = 0, ecore = 0;
     DOUBLE_TYPE r_norm;
     DOUBLE_TYPE xn, yn, zn, r_xyz;
-    DOUBLE_TYPE R, GR, DGR, R_over_r, DR;
+    DOUBLE_TYPE R, GR, DGR, R_over_r, DR, DCR;
     DOUBLE_TYPE *r_hat;
 
     SPECIES_TYPE elej;
@@ -328,6 +334,11 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
                 }
             }
         }
+
+        //hard-core repulsion
+        ecore += basis_set->radial_functions.cr;
+        DCR_cache(jj) = basis_set->radial_functions.dcr;
+
     } //end loop over neighbours
 
     //complex conjugate A's (for NEGATIVE (-m) terms)
@@ -561,7 +572,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
                     auto w = weights(elej, n, l, m);
                     if (w == 0)
                         continue;
-//counting for -m cases if m>0
+                    //counting for -m cases if m>0
                     if (m > 0) w *= 2;
                     DY = DY_cache_jj(l, m);
                     Y_DR = Y_cache_jj(l, m) * DR;
@@ -591,11 +602,22 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
             }
         }
 
+
 #ifdef PRINT_INTERMEDIATE_VALUES
         printf("f_ji(k=%d, i=%d)=(%f, %f, %f)\n", jj, i,
                f_ji[0], f_ji[1], f_ji[2]
         );
 #endif
+
+        //hard-core repulsion
+
+        DCR = DCR_cache(jj);
+#ifdef   DEBUG_FORCES_CALCULATIONS
+        printf("DCR = %f\n",DCR);
+#endif
+        f_ji[0] += DCR * r_hat[0];
+        f_ji[1] += DCR * r_hat[1];
+        f_ji[2] += DCR * r_hat[2];
 
         neighbours_forces(jj, 0) = f_ji[0];
         neighbours_forces(jj, 1) = f_ji[1];
@@ -605,7 +627,8 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     ACE_TIMER_STOP(forces_calc_loop)
 
     //now, energies and forces are ready
-    energies(i) = evdwl;
+    //printf("ecore = %f\n",ecore);
+    energies(i) = evdwl + ecore;
 #ifdef PRINT_INTERMEDIATE_VALUES
     cout << "energies(i) = FS(...rho_p_accum...) = " << evdwl <<
          endl;

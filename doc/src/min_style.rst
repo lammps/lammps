@@ -182,4 +182,4 @@ Jonsson, Mills, Jacobsen.
 .. _Guenole:
 
 **(Guenole)** Guenole, Noehring, Vaid, Houlle, Xie, Prakash, Bitzek,
-Comput Mater Sci, (2020), in press (arXiv:190802038).
+Comput Mater Sci, 175, 109584 (2020).

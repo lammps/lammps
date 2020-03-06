@@ -16,7 +16,7 @@ means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you'll need to look in the source
+occurs and is not self-explanatory, you will need to look in the source
 code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`

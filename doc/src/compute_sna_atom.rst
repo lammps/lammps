@@ -46,8 +46,6 @@ Syntax
           *0* = do not generate quadratic terms
           *1* = generate quadratic terms
 
-
-
 Examples
 """"""""
 

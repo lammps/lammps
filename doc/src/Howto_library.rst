@@ -59,17 +59,17 @@ details.
    wish.
 
 
-.. parsed-literal::
+.. code-block:: c
 
-   void lammps_open(int, char \*\*, MPI_Comm, void \*\*)
-   void lammps_open_no_mpi(int, char \*\*, void \*\*)
-   void lammps_close(void \*)
-   int lammps_version(void \*)
-   void lammps_file(void \*, char \*)
-   char \*lammps_command(void \*, char \*)
-   void lammps_commands_list(void \*, int, char \*\*)
-   void lammps_commands_string(void \*, char \*)
-   void lammps_free(void \*)
+   void lammps_open(int, char **, MPI_Comm, void **)
+   void lammps_open_no_mpi(int, char **, void **)
+   void lammps_close(void *)
+   int lammps_version(void *)
+   void lammps_file(void *, char *)
+   char *lammps_command(void *, char *)
+   void lammps_commands_list(void *, int, char **)
+   void lammps_commands_string(void *, char *)
+   void lammps_free(void *)
 
 The lammps\_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were :doc:`command-line arguments <Run_options>` when LAMMPS is run in stand-alone mode
@@ -137,16 +137,16 @@ the documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:
 
 
-.. parsed-literal::
+.. code-block:: c
 
-   int lammps_extract_setting(void \*, char \*)
-   void \*lammps_extract_global(void \*, char \*)
-   void lammps_extract_box(void \*, double \*, double \*,
-                           double \*, double \*, double \*, int \*, int \*)
-   void \*lammps_extract_atom(void \*, char \*)
-   void \*lammps_extract_compute(void \*, char \*, int, int)
-   void \*lammps_extract_fix(void \*, char \*, int, int, int, int)
-   void \*lammps_extract_variable(void \*, char \*, char \*)
+   int lammps_extract_setting(void *, char *)
+   void *lammps_extract_global(void *, char *)
+   void lammps_extract_box(void *, double *, double *,
+                           double *, double *, double *, int *, int *)
+   void *lammps_extract_atom(void *, char *)
+   void *lammps_extract_compute(void *, char *, int, int)
+   void *lammps_extract_fix(void *, char *, int, int, int, int)
+   void *lammps_extract_variable(void *, char *, char *)
 
 The extract\_setting() function returns info on the size
 of data types (e.g. 32-bit or 64-bit atom IDs) used
@@ -164,13 +164,13 @@ storage may be reallocated as LAMMPS runs, so you need to re-call the
 function to assure a current pointer or returned value(s).
 
 
-.. parsed-literal::
+.. code-block:: c
 
-   double lammps_get_thermo(void \*, char \*)
-   int lammps_get_natoms(void \*)
+   double lammps_get_thermo(void *, char *)
+   int lammps_get_natoms(void *)
 
-   int lammps_set_variable(void \*, char \*, char \*)
-   void lammps_reset_box(void \*, double \*, double \*, double, double, double)
+   int lammps_set_variable(void *, char *, char *)
+   void lammps_reset_box(void *, double *, double *, double, double, double)
 
 The lammps\_get\_thermo() function returns the current value of a thermo
 keyword as a double precision value.
@@ -188,13 +188,13 @@ simulation box, e.g. as part of restoring a previously extracted and
 saved state of a simulation.
 
 
-.. parsed-literal::
+.. code-block:: c
 
-   void lammps_gather_atoms(void \*, char \*, int, int, void \*)
-   void lammps_gather_atoms_concat(void \*, char \*, int, int, void \*)
-   void lammps_gather_atoms_subset(void \*, char \*, int, int, int, int \*, void \*)
-   void lammps_scatter_atoms(void \*, char \*, int, int, void \*)
-   void lammps_scatter_atoms_subset(void \*, char \*, int, int, int, int \*, void \*)
+   void lammps_gather_atoms(void *, char *, int, int, void *)
+   void lammps_gather_atoms_concat(void *, char *, int, int, void *)
+   void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *)
+   void lammps_scatter_atoms(void *, char *, int, int, void *)
+   void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *)
 
 The gather functions collect peratom info of the requested type (atom
 coords, atom types, forces, etc) from all processors, and returns the
@@ -231,10 +231,10 @@ lammps\_scatter\_atoms\_subset() function takes a subset of IDs as an
 argument and only scatters those values to the owning atoms.
 
 
-.. parsed-literal::
+.. code-block:: c
 
-   void lammps_create_atoms(void \*, int, tagint \*, int \*, double \*, double \*,
-                            imageint \*, int)
+   void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
+                            imageint *, int)
 
 The lammps\_create\_atoms() function takes a list of N atoms as input
 with atom types and coords (required), an optionally atom IDs and

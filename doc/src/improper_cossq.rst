@@ -1,16 +1,16 @@
-.. index:: improper\_style cossq
+.. index:: improper_style cossq
 
-improper\_style cossq command
-=============================
+improper_style cossq command
+============================
 
-improper\_style cossq/omp command
-=================================
+improper_style cossq/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cossq
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cossq
    improper_coeff 1 4.0 0.0
@@ -30,7 +30,7 @@ The *cossq* improper style uses the potential
 
 .. math::
 
-  E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}
+   E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}
 
 
 where :math:`\chi` is the improper angle, :math:`\chi_0` is its

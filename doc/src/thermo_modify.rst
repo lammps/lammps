@@ -1,13 +1,13 @@
-.. index:: thermo\_modify
+.. index:: thermo_modify
 
-thermo\_modify command
-======================
+thermo_modify command
+=====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+ 
+.. code-block:: LAMMPS
 
    thermo_modify keyword value ...
 
@@ -33,7 +33,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_modify lost ignore flush yes
    thermo_modify temp myTemp format 3 %15.8g
@@ -175,7 +175,7 @@ user to override the default.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

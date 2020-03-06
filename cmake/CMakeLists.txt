@@ -2,7 +2,7 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -36,7 +36,6 @@ get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 include(PreventInSourceBuilds)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-  #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
@@ -53,15 +52,18 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
 endif()
 
-option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
-if(DISABLE_CXX11_REQUIREMENT)
-  add_definitions(-DLAMMPS_CXX98)
-# else()
-#  set(CMAKE_CXX_STANDARD 11)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
+  endif()
 endif()
+
+# we require C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # GNU compiler features
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -179,6 +181,7 @@ option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_CXX_INCLUDE_PATH})
+  add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
   option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
   if(LAMMPS_LONGLONG_TO_LONG)
@@ -356,9 +359,6 @@ endforeach(HEADER)
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
-if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't supported without a C compiler before v3.4
-endif()
 # RB: disabled this check because it breaks with KOKKOS CUDA enabled
 #foreach(FUNC sin cos)
 #  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
@@ -420,7 +420,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-QMMM)
+foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
@@ -682,7 +682,7 @@ endforeach()
 
 get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 include(FeatureSummary)
-feature_summary(DESCRIPTION "The following packages have been found:" WHAT PACKAGES_FOUND)
+feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
@@ -702,7 +702,7 @@ if (${_index} GREATER -1)
 endif()
 list (FIND LANGUAGES "C" _index)
 if (${_index} GREATER -1)
-  message(STATUS "C Compiler ${CMAKE_C_COMPILER}
+  message(STATUS "C compiler ${CMAKE_C_COMPILER}
      Type     ${CMAKE_C_COMPILER_ID}
      Version  ${CMAKE_C_COMPILER_VERSION}
      C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
@@ -712,22 +712,22 @@ if(CMAKE_EXE_LINKER_FLAGS)
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared library flags:  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static libraries  ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static library flags:  ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 if(BUILD_MPI)
-  message(STATUS "Using mpi with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
 endif()
 if(PKG_GPU)
-  message(STATUS "GPU Api: ${GPU_API}")
+  message(STATUS "GPU API: ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "GPU Arch: ${GPU_ARCH}")
+    message(STATUS "GPU architecture: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OCL Tune: ${OCL_TUNE}")
+    message(STATUS "OpenCL parameter tuning: ${OCL_TUNE}")
   endif()
-  message(STATUS "GPU Precision: ${GPU_PREC}")
+  message(STATUS "GPU precision: ${GPU_PREC}")
 endif()
 if(PKG_KOKKOS)
   message(STATUS "Kokkos Arch: ${KOKKOS_ARCH}")

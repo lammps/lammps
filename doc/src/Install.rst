@@ -19,7 +19,6 @@ need the source code.
 
    Install_tarball
    Install_git
-   Install_svn
    Install_patch
 
 These are the files and sub-directories in the LAMMPS distribution:

@@ -1,19 +1,19 @@
-.. index:: improper\_style class2
+.. index:: improper_style class2
 
-improper\_style class2 command
-==============================
+improper_style class2 command
+=============================
 
-improper\_style class2/omp command
-==================================
-
-improper\_style class2/kk command
+improper_style class2/omp command
 =================================
+
+improper_style class2/kk command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style class2
 
@@ -21,11 +21,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style class2
    improper_coeff 1 100.0 0
-   improper_coeff \* aa 0.0 0.0 0.0 115.06 130.01 115.06
+   improper_coeff * aa 0.0 0.0 0.0 115.06 130.01 115.06
 
 Description
 """""""""""
@@ -34,11 +34,11 @@ The *class2* improper style uses the potential
 
 .. math::
 
-  E      = & E_i + E_{aa} \\
-  E_i    = & K [ \frac{\chi_{ijkl} + \chi_{kjli} + \chi_{ljik}}{3} - \chi_0 ]^2 \\
-  E_{aa} = & M_1 (\theta_{ijk} - \theta_1) (\theta_{kjl} - \theta_3) + \\
-           & M_2 (\theta_{ijk} - \theta_1) (\theta_{ijl} - \theta_2) + \\
-           & M_3 (\theta_{ijl} - \theta_2) (\theta_{kjl} - \theta_3)
+   E      = & E_i + E_{aa} \\
+   E_i    = & K [ \frac{\chi_{ijkl} + \chi_{kjli} + \chi_{ljik}}{3} - \chi_0 ]^2 \\
+   E_{aa} = & M_1 (\theta_{ijk} - \theta_1) (\theta_{kjl} - \theta_3) + \\
+            & M_2 (\theta_{ijk} - \theta_1) (\theta_{ijl} - \theta_2) + \\
+            & M_3 (\theta_{ijl} - \theta_2) (\theta_{kjl} - \theta_3)
 
 
 where :math:`E_i` is the improper term and :math:`E_{aa}` is an

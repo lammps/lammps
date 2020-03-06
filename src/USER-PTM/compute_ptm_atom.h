@@ -39,6 +39,7 @@ class ComputePTMAtom : public Compute {
   double rmsd_threshold;
   class NeighList *list;
   double **output;
+  int group2bit;
 };
 
 }

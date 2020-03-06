@@ -50,10 +50,14 @@ The modified velocity-Verlet (MVV) algorithm aims to improve the
 stability of the time integrator by using an extrapolated version of
 the velocity for the force evaluation:
 
-.. image:: Eqs/fix_mvv_dpd.jpg
-   :align: center
+.. math::
 
-where the parameter <font size="4">&lambda;</font> depends on the
+   v(t+\frac{\Delta t}{2}) = & v(t) + \frac{\Delta t}{2}\cdot a(t) \\
+   r(t+\Delta t) = & r(t) + \Delta t\cdot v(t+\frac{\Delta t}{2}) \\
+   a(t+\Delta t) = & \frac{1}{m}\cdot F\left[ r(t+\Delta t), v(t) +\lambda \cdot \Delta t\cdot a(t)\right] \\
+   v(t+\Delta t) = & v(t+\frac{\Delta t}{2}) + \frac{\Delta t}{2}\cdot a(t+\Delta t)
+
+where the parameter :math:`\lambda` depends on the
 specific choice of DPD parameters, and needs to be tuned on a
 case-by-case basis.  Specification of a *lambda* value is optional.
 If specified, the setting must be from 0.0 to 1.0.  If not specified,

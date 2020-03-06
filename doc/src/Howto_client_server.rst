@@ -97,7 +97,7 @@ client or server code:
 * examples/COUPLE/lammps\_nwchem
 * examples/COUPLE/lammps\_vasp
 
-The examples/message dir couples a client instance of LAMMPS to a
+The examples/message directory couples a client instance of LAMMPS to a
 server instance of LAMMPS.
 
 The files in the *lammps\_mc* folder show how to couple LAMMPS as
@@ -135,7 +135,7 @@ together to exchange MPI messages between them.
 For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 1 lmp_mpi -log log.client < in.client &
    % mpirun -np 2 lmp_mpi -log log.server < in.server
@@ -151,7 +151,7 @@ For message exchange in *mpi/one* mode:
 Launch both codes in a single mpirun command:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -log log.server
 

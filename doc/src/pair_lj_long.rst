@@ -1,28 +1,28 @@
-.. index:: pair\_style lj/long/coul/long
+.. index:: pair_style lj/long/coul/long
 
-pair\_style lj/long/coul/long command
+pair_style lj/long/coul/long command
+====================================
+
+pair_style lj/long/coul/long/intel command
+==========================================
+
+pair_style lj/long/coul/long/omp command
+========================================
+
+pair_style lj/long/coul/long/opt command
+========================================
+
+pair_style lj/long/tip4p/long command
 =====================================
 
-pair\_style lj/long/coul/long/intel command
-===========================================
-
-pair\_style lj/long/coul/long/omp command
+pair_style lj/long/tip4p/long/omp command
 =========================================
-
-pair\_style lj/long/coul/long/opt command
-=========================================
-
-pair\_style lj/long/tip4p/long command
-======================================
-
-pair\_style lj/long/tip4p/long/omp command
-==========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -59,34 +59,41 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/long/coul/long cut off 2.5
    pair_style lj/long/coul/long cut long 2.5 4.0
    pair_style lj/long/coul/long long long 2.5 4.0
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 3 4
 
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description
 """""""""""
 
-Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones and
-Coulombic potentials, given by
+Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones potential:
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c \\
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, epsilon is the dielectric constant which can be set by
-the :doc:`dielectric <dielectric>` command, and Rc is the cutoff.  If
+with :math:`\epsilon` and :math:`\sigma` being the usual Lennard-Jones
+potential parameters, plus the Coulomb potential, given by:
+
+.. math::
+
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j` are the charges on
+the 2 atoms, :math:`\epsilon` is the dielectric constant which can be set by
+the :doc:`dielectric <dielectric>` command, and :math:`r_c` is the cutoff.  If
 one cutoff is specified in the pair\_style command, it is used for both
 the LJ and Coulombic terms.  If two cutoffs are specified, they are
 used as cutoffs for the LJ and Coulombic terms respectively.
@@ -147,8 +154,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 

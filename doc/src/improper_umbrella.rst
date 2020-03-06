@@ -1,16 +1,16 @@
-.. index:: improper\_style umbrella
+.. index:: improper_style umbrella
 
-improper\_style umbrella command
-================================
+improper_style umbrella command
+===============================
 
-improper\_style umbrella/omp command
-====================================
+improper_style umbrella/omp command
+===================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
    improper_coeff 1 100.0 180.0
@@ -32,8 +32,8 @@ commonly referred to as a classic inversion and used in the
 
 .. math::
 
-  E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
-  E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
+   E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
+   E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
 
 
 where :math:`K` is the force constant and :math:`\omega` is the angle between the IL

@@ -173,6 +173,7 @@ backcolor
 Baczewski
 Bagi
 Bagnold
+Bkappa
 Bal
 balancer
 Balankura
@@ -315,6 +316,7 @@ Caswell
 Cates
 cauchy
 cauchystat
+Cavazzoni
 Cavium
 Cawkwell
 cbecker
@@ -612,7 +614,8 @@ dimgray
 dipolar
 dir
 Direc
-dirs
+dirname
+disarmmd
 discoverable
 discretization
 discretized
@@ -642,6 +645,7 @@ Donadio
 dotc
 Doty
 doxygen
+downarrow
 Doye
 dpd
 DPD
@@ -1238,6 +1242,7 @@ iostreams
 iparam
 ipi
 ipp
+Ippolito
 IPv
 IPython
 Isele
@@ -1293,6 +1298,7 @@ Janssens
 Jaramillo
 Jarzynski
 jatempl
+javascript
 jcp
 jea
 jec
@@ -1406,6 +1412,7 @@ Kraus
 Kremer
 Kress
 Kronik
+ksh
 kspace
 Kspace
 KSpace
@@ -1540,6 +1547,7 @@ Liu
 Livermore
 lj
 llammps
+LLVM
 lm
 lmp
 lmpptr
@@ -1616,6 +1624,7 @@ manybody
 MANYBODY
 Maras
 Marchetti
+Mariella
 Marrink
 Marroquin
 Marsaglia
@@ -1630,6 +1639,7 @@ Masuhiro
 Matchett
 Materias
 mathbf
+mathjax
 matlab
 matplotlib
 Matsubara
@@ -2008,6 +2018,7 @@ Nrecompute
 Nrepeat
 nreset
 Nrho
+Nroff
 nrun
 Ns
 Nsample
@@ -2610,6 +2621,7 @@ Shenderova
 Shi
 Shiga
 Shinoda
+shlib
 shockvel
 si
 SiC
@@ -2689,6 +2701,7 @@ sqdistharm
 sqrt
 src
 srd
+sright
 Srinivasan
 Srolovitz
 srp
@@ -2961,6 +2974,7 @@ uInfParallel
 uk
 ul
 ulb
+Uleft
 uloop
 ulsph
 uMech
@@ -2993,6 +3007,7 @@ unsplit
 unstrained
 untar
 untilted
+uparrow
 upenn
 upto
 Urbakh
@@ -3116,6 +3131,7 @@ webpage
 Weckner
 WeinanE
 Wennberg
+Westmere
 Westview
 wget
 Whelan

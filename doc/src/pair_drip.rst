@@ -1,13 +1,13 @@
-.. index:: pair\_style drip
+.. index:: pair_style drip
 
-pair\_style drip command
-========================
+pair_style drip command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip [styles ...]
 
@@ -17,19 +17,19 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip
-   pair_coeff \* \* none
-   pair_coeff \* \* drip  C.drip  C
+   pair_coeff * * none
+   pair_coeff * * drip  C.drip  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C
-   pair_coeff \* \* rebo  CH.airebo  C
+   pair_coeff * * drip  C.drip     C
+   pair_coeff * * rebo  CH.airebo  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 Description
 """""""""""
@@ -40,10 +40,13 @@ in :ref:`(Wen) <Wen2018>`, which is based on the :ref:`(Kolmogorov) <Kolmogorov2
 potential and provides an improved prediction for forces.
 The total potential energy of a system is
 
-.. image:: Eqs/pair_drip.jpg
-   :align: center
+.. math::
 
-where the *r\^-6* term models the attractive London dispersion,
+   E = & \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\
+   \phi_{ij} = &f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right]
+
+
+where the :math:`r^{-6}` term models the attractive London dispersion,
 the exponential term is designed to capture the registry effect due to
 overlapping *pi* bonds, and *fc* is a cutoff function.
 
@@ -82,9 +85,9 @@ types and you want all of them to be C, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* drip  C.drip  C C C
+   pair_coeff * * drip  C.drip  C C C
 
 If a mapping value is specified as NULL, the mapping is not performed. This
 could be useful when DRIP is used to model part of the system where other
@@ -93,11 +96,11 @@ and H of atom type 2, you can use the following command to inform DRIP not to
 model H atoms:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 .. note::
 

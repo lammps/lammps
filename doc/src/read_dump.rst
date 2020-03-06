@@ -1,13 +1,13 @@
-.. index:: read\_dump
+.. index:: read_dump
 
-read\_dump command
-==================
+read_dump command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump file Nstep field1 field2 ... keyword values ...
 
@@ -56,7 +56,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump dump.file 5000 x y z
    read_dump dump.xyz 5 x y z box no format xyz

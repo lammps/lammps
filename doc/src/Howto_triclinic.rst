@@ -55,7 +55,7 @@ rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
   c_z = & |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2}
 
 where A = \| **A** \| indicates the scalar length of **A**\ . The hat symbol (\^)
-indicates the corresponding unit vector. *beta* and *gamma* are angles
+indicates the corresponding unit vector. :math:`\beta` and :math:`\gamma` are angles
 between the vectors described below. Note that by construction,
 **a**\ , **b**\ , and **c** have strictly positive x, y, and z components, respectively.
 If it should happen that

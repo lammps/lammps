@@ -1,13 +1,13 @@
-.. index:: comm\_modify
+.. index:: comm_modify
 
-comm\_modify command
-====================
+comm_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify keyword value ...
 
@@ -30,14 +30,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify mode multi
    comm_modify mode multi group solvent
-   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2\*4 15.0
+   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
    comm_modify vel yes
    comm_modify mode single cutoff 5.0 vel yes
-   comm_modify cutoff/multi \* 0.0
+   comm_modify cutoff/multi * 0.0
 
 Description
 """""""""""

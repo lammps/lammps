@@ -1,13 +1,13 @@
-.. index:: pair\_style mesocnt
+.. index:: pair_style mesocnt
 
-pair\_style mesocnt command
-===========================
+pair_style mesocnt command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mesocnt
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mesocnt
-   pair_coeff \* \* 10_10.cnt
+   pair_coeff * * 10_10.cnt
 
 Description
 """""""""""

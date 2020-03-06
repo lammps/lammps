@@ -1,13 +1,13 @@
-.. index:: fix smd/integrate\_tlsph
+.. index:: fix smd/integrate_tlsph
 
-fix smd/integrate\_tlsph command
-================================
+fix smd/integrate_tlsph command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/integrate_tlsph keyword values
 
@@ -26,7 +26,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all smd/integrate_tlsph
    fix 1 all smd/integrate_tlsph limit_velocity 1000

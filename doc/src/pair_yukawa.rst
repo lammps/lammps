@@ -1,22 +1,22 @@
-.. index:: pair\_style yukawa
+.. index:: pair_style yukawa
 
-pair\_style yukawa command
-==========================
+pair_style yukawa command
+=========================
 
-pair\_style yukawa/gpu command
-==============================
-
-pair\_style yukawa/omp command
-==============================
-
-pair\_style yukawa/kk command
+pair_style yukawa/gpu command
 =============================
+
+pair_style yukawa/omp command
+=============================
+
+pair_style yukawa/kk command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa kappa cutoff
 
@@ -27,21 +27,23 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa 2.0 2.5
    pair_coeff 1 1 100.0 2.3
-   pair_coeff \* \* 100.0
+   pair_coeff * * 100.0
 
 Description
 """""""""""
 
 Style *yukawa* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_yukawa.jpg
-   :align: center
+.. math::
 
-Rc is the cutoff.
+   E = A \frac{e^{- \kappa r}}{r} \qquad r < r_c
+
+
+:math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

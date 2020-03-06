@@ -1,16 +1,16 @@
-.. index:: dihedral\_style helix
+.. index:: dihedral_style helix
 
-dihedral\_style helix command
-=============================
+dihedral_style helix command
+============================
 
-dihedral\_style helix/omp command
-=================================
+dihedral_style helix/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style helix
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style helix
    dihedral_coeff 1 80.0 100.0 40.0
@@ -30,8 +30,8 @@ The *helix* dihedral style uses the potential
 
 .. math::
 
-  E = A [1 - \cos(\theta)] + B [1 + \cos(3 \theta)] + 
-      C [1 + \cos(\theta + \frac{\pi}{4})]
+   E = A [1 - \cos(\theta)] + B [1 + \cos(3 \theta)] + 
+       C [1 + \cos(\theta + \frac{\pi}{4})]
 
 
 This coarse-grain dihedral potential is described in :ref:`(Guo) <Guo>`.

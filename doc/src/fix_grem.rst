@@ -38,17 +38,19 @@ which uses non-Boltzmann ensembles to sample over first order phase
 transitions. The is done by defining replicas with an enthalpy
 dependent effective temperature
 
-.. image:: Eqs/fix_grem.jpg
-   :align: center
+.. math::
 
-with *eta* negative and steep enough to only intersect the
+  T_{eff} = \lambda + \eta (H - H_0)
+
+
+with :math:`\eta` negative and steep enough to only intersect the
 characteristic microcanonical temperature (Ts) of the system once,
-ensuring a unimodal enthalpy distribution in that replica. *Lambda* is
-the intercept and effects the generalized ensemble similar to how
-temperature effects a Boltzmann ensemble. *H0* is a reference
-enthalpy, and is typically set as the lowest desired sampled enthalpy.
-Further explanation can be found in our recent papers
-:ref:`(Malolepsza) <Malolepsza>`.
+ensuring a unimodal enthalpy distribution in that replica.
+:math:`\lambda` is the intercept and effects the generalized ensemble
+similar to how temperature effects a Boltzmann ensemble. :math:`H_0`
+is a reference enthalpy, and is typically set as the lowest desired
+sampled enthalpy.  Further explanation can be found in our recent
+papers :ref:`(Malolepsza) <Malolepsza>`.
 
 This fix requires a Nose-Hoover thermostat fix reference passed to the
 grem as *thermostat-ID*\ . Two distinct temperatures exist in this
@@ -59,13 +61,13 @@ algorithms can be used.
 
 The fix enforces a generalized ensemble in a single replica
 only. Typically, this ideology is combined with replica exchange with
-replicas differing by *lambda* only for simplicity, but this is not
+replicas differing by :math:`\lambda` only for simplicity, but this is not
 required. A multi-replica simulation can be run within the LAMMPS
 environment using the :doc:`temper/grem <temper_grem>` command. This
 utilizes LAMMPS partition mode and requires the number of available
 processors be on the order of the number of desired replicas. A
 100-replica simulation would require at least 100 processors (1 per
-world at minimum). If a many replicas are needed on a small number of
+world at minimum). If many replicas are needed on a small number of
 processors, multi-replica runs can be run outside of LAMMPS.  An
 example of this can be found in examples/USER/misc/grem and has no
 limit on the number of replicas per processor. However, this is very
@@ -74,13 +76,13 @@ inefficient and error prone and should be avoided if possible.
 In general, defining the generalized ensembles is unique for every
 system. When starting a many-replica simulation without any knowledge
 of the underlying microcanonical temperature, there are several tricks
-we have utilized to optimize the process.  Choosing a less-steep *eta*
-yields broader distributions, requiring fewer replicas to map the
-microcanonical temperature.  While this likely struggles from the same
-sampling problems gREM was built to avoid, it provides quick insight
-to Ts.  Initially using an evenly-spaced *lambda* distribution
-identifies regions where small changes in enthalpy lead to large
-temperature changes. Replicas are easily added where needed.
+we have utilized to optimize the process.  Choosing a less-steep
+:math:`\eta` yields broader distributions, requiring fewer replicas to
+map the microcanonical temperature.  While this likely struggles from
+the same sampling problems gREM was built to avoid, it provides quick
+insight to Ts.  Initially using an evenly-spaced :math:`\lambda`
+distribution identifies regions where small changes in enthalpy lead
+to large temperature changes. Replicas are easily added where needed.
 
 
 ----------

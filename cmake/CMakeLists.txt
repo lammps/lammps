@@ -117,7 +117,7 @@ option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)"
 
 if(NOT BUILD_EXE AND NOT BUILD_LIB)
   message(FATAL_ERROR "You need to at least enable one of two following options: BUILD_LIB or BUILD_EXE")
-endif()
+endif ()
 
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 include(GNUInstallDirs)
@@ -126,25 +126,35 @@ set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
-  GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
-  REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
-  USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
-  USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
-  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
-  USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
-  USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
+#set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
+#        GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
+#        REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+#        USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
+#        USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
+#        USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
+#        USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
+#        USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
+#        USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
+#set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
+
+set(DEFAULT_PACKAGES SNAP PACE)
+set(ACCEL_PACKAGES)
+
+foreach (PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
+endforeach ()
+
+##### USER-PACE ######
+set(PACE_PATH ${LAMMPS_SOURCE_DIR}/USER-PACE)
+FILE(GLOB PACE_CPP ${PACE_PATH}/*.cpp)
+FILE(GLOB PACE_PAIR_STYLE_CPP ${LAMMPS_SOURCE_DIR}/pair_pace.cpp)
+FILE(GLOB PACE_INCLUDE ${PACE_PATH})
 
 ######################################################
 # download and unpack support binaries for compilation
 # of windows binaries.
 ######################################################
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
   file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
           EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
@@ -174,7 +184,7 @@ endif()
 
 # do MPI detection after language activation, if MPI for these language is required
 set(MPI_CXX_SKIP_MPICXX TRUE)
-find_package(MPI QUIET)
+#find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
   find_package(MPI REQUIRED)
@@ -337,6 +347,7 @@ include(Packages/LATTE)
 include(Packages/MESSAGE)
 include(Packages/MSCG)
 include(Packages/COMPRESS)
+
 
 # the windows version of LAMMPS requires a couple extra libraries
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -567,16 +578,18 @@ else()
   list(APPEND LMP_SOURCES ${LIB_SOURCES})
 endif()
 
-if(BUILD_EXE)
-  add_executable(lmp ${LMP_SOURCES})
-  if(BUILD_LIB)
+
+if (BUILD_EXE)
+  add_executable(lmp ${LMP_SOURCES} ${PACE_CPP} ${PACE_PAIR_STYLE_CPP})
+  target_include_directories(lmp PUBLIC ${PACE_INCLUDE})
+  if (BUILD_LIB)
     target_link_libraries(lmp lammps)
-  else()
+  else ()
     target_link_libraries(lmp ${LAMMPS_LINK_LIBS})
-    if(LAMMPS_DEPS)
+    if (LAMMPS_DEPS)
       add_dependencies(lmp ${LAMMPS_DEPS})
-    endif()
-  endif()
+    endif ()
+  endif ()
 
   set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})

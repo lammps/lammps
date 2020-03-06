@@ -45,6 +45,10 @@ using namespace MathConst;
 #define B4       -5.80844129e-3
 #define B5        1.14652755e-1
 
+#define EPSILON 1.0e-20
+#define EPS_EWALD 1.0e-6
+#define EPS_EWALD_SQR 1.0e-12
+
 /* ---------------------------------------------------------------------- */
 
 PairLJCutTholeLongOMP::PairLJCutTholeLongOMP(LAMMPS *lmp) :
@@ -168,6 +172,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsqi[jtype]) {
+        rsq += EPSILON; // Add Epsilon for case: r = 0; DC-DP 1-1 interaction must be removed by special bond;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -175,14 +180,15 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * r;
+            grij = g_ewald * (r + EPS_EWALD);
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
             u = 1. - t;
             erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/r;
+            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;

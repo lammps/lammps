@@ -1,20 +1,20 @@
-.. index:: pair\_style cosine/squared
+.. index:: pair_style cosine/squared
 
-pair\_style cosine/squared command
-==================================
+pair_style cosine/squared command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style cosine/squared cutoff
 
 * cutoff = global cutoff for cosine-squared interactions (distance units)
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff i j eps sigma
    pair_coeff i j eps sigma cutoff
@@ -31,7 +31,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
    pair_coeff \* \* 1.0 1.3
@@ -44,12 +44,19 @@ Description
 
 Style *cosine/squared* computes a potential of the form
 
-.. image:: Eqs/pair_cosine_squared.jpg
-   :align: center
+.. math::
 
-between two point particles, where (sigma, -epsilon) is the location of
-the (rightmost) minimum of the potential, as explained in the syntax
-section above.
+   E = 
+   \begin{cases}
+   -\epsilon& \quad r < \sigma \\
+   -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)&\quad \sigma \leq r < r_c \\
+   0& \quad r \geq r_c
+   \end{cases}
+
+
+between two point particles, where (:math:`\sigma, -\epsilon`) is the
+location of the (rightmost) minimum of the potential, as explained in
+the syntax section above.
 
 This potential was first used in (Cooke)\_#CKD for a coarse-grained lipid
 membrane model.  It is generally very useful as a non-specific
@@ -63,11 +70,15 @@ If the *wca* option is used then a Weeks-Chandler-Andersen potential
 (Weeks)\_#WCA is added to the above specified cosine-squared potential,
 specifically the following:
 
-.. image:: Eqs/pair_cosine_squared_wca.jpg
-   :align: center
+.. math::
 
-In this case, and this case only, the *sigma* parameter can be equal to
-*cutoff* (sigma = cutoff) which will result in ONLY the WCA potential
+ E = \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       2\left(\frac{\sigma}{r}\right)^6 + 1\right]
+                       , \quad r < \sigma
+
+
+In this case, and this case only, the :math:`\sigma` parameter can be equal to
+*cutoff* (:math:`\sigma =` cutoff) which will result in ONLY the WCA potential
 being used (and print a warning), so the minimum will be attained at
 (sigma, 0). This is a convenience feature that enables a purely
 repulsive potential to be used without a need to define an additional

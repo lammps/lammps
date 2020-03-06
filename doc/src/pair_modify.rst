@@ -1,13 +1,13 @@
-.. index:: pair\_modify
+.. index:: pair_modify
 
-pair\_modify command
-====================
+pair_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify keyword values ...
 
@@ -44,7 +44,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify shift yes mix geometric
    pair_modify tail yes
@@ -63,12 +63,12 @@ specified parameters are by default modified for all the hybrid sub-styles.
 
 .. note::
 
-  The behavior for hybrid pair styles can be changed by using the *pair*
-  keyword, which allows selection of a specific sub-style to apply all
-  remaining keywords to.
-  The *special* and *compute/tally* keywords can **only** be
-  used in conjunction with the *pair* keyword.  See further details about
-  these 3 keywords below.
+   The behavior for hybrid pair styles can be changed by using the *pair*
+   keyword, which allows selection of a specific sub-style to apply all
+   remaining keywords to.
+   The *special* and *compute/tally* keywords can **only** be
+   used in conjunction with the *pair* keyword.  See further details about
+   these 3 keywords below.
 
 The *mix* keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -90,30 +90,29 @@ See the doc page for individual pair styles for those restrictions.  Note also t
 coefficients for a specific I != J pairing, in which case no mixing is
 performed.
 
-mix *geometric*
+- mix *geometric*
 
 
-.. parsed-literal::
+  .. math::
 
-   epsilon_ij = sqrt(epsilon_i \* epsilon_j)
-   sigma_ij = sqrt(sigma_i \* sigma_j)
+     \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
+     \sigma_{ij}   = & \sqrt{\sigma_i  \sigma_j}
 
-mix *arithmetic*
-
-
-.. parsed-literal::
-
-   epsilon_ij = sqrt(epsilon_i \* epsilon_j)
-   sigma_ij = (sigma_i + sigma_j) / 2
-
-mix *sixthpower*
+- mix *arithmetic*
 
 
-.. parsed-literal::
+  .. math::
 
-   epsilon_ij = (2 \* sqrt(epsilon_i\*epsilon_j) \* sigma_i\^3 \* sigma_j\^3) /
-                (sigma_i\^6 + sigma_j\^6)
-   sigma_ij = ((sigma_i\*\*6 + sigma_j\*\*6) / 2) \^ (1/6)
+    \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
+    \sigma_{ij}   = & \frac{1}{2} (\sigma_i + \sigma_j)
+
+- mix *sixthpower*
+
+
+  .. math::
+
+    \epsilon_{ij} = & \frac{2 \sqrt{\epsilon_i \epsilon_j} \sigma_i^3 \sigma_j^3}{\sigma_i^6 + \sigma_j^6} \\
+    \sigma_{ij} =   & \left(\frac{1}{2} (\sigma_i^6 + \sigma_j^6) \right)^{\frac{1}{6}}
 
 The *shift* keyword determines whether a Lennard-Jones potential is
 shifted at its cutoff to 0.0.  If so, this adds an energy term to each

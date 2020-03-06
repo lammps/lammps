@@ -1,16 +1,16 @@
-.. index:: pair\_style exp6/rx
+.. index:: pair_style exp6/rx
 
-pair\_style exp6/rx command
-===========================
+pair_style exp6/rx command
+==========================
 
-pair\_style exp6/rx/kk command
-==============================
+pair_style exp6/rx/kk command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style exp6/rx cutoff ...
 
@@ -21,16 +21,16 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style exp6/rx 10.0
    pair_style exp6/rx 10.0 fractional
    pair_style exp6/rx 10.0 molecular
-   pair_coeff \* \* exp6.params h2o h2o exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params h2o 1fluid exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid exponent 1.0 1.0 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid none 10.0
-   pair_coeff \* \* exp6.params 1fluid 1fluid polynomial filename 10.0
+   pair_coeff * * exp6.params h2o h2o exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params h2o 1fluid exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid exponent 1.0 1.0 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid none 10.0
+   pair_coeff * * exp6.params 1fluid 1fluid polynomial filename 10.0
 
 Description
 """""""""""
@@ -43,17 +43,20 @@ one CG particle can interact with a species in a neighboring CG
 particle through a site-site interaction potential model.  The
 *exp6/rx* style computes an exponential-6 potential given by
 
-.. image:: Eqs/pair_exp6_rx.jpg
-   :align: center
+.. math::
 
-where the *epsilon* parameter determines the depth of the potential
-minimum located at *Rm*\ , and *alpha* determines the softness of the repulsion.
+   U_{ij}(r) = \frac{\epsilon}{\alpha-6}\{6\exp[\alpha(1-\frac{r_{ij}}{R_{m}})]-\alpha(\frac{R_{m}}{r_{ij}})^6\}
+
+
+where the :math:`\epsilon` parameter determines the depth of the
+potential minimum located at :math:`R_m`, and :math:`\alpha` determines
+the softness of the repulsion.
 
 The coefficients must be defined for each species in a given particle
 type via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, where the first argument is the filename that includes the
 exponential-6 parameters for each species.  The file includes the
-species tag followed by the *alpha*\ , *epsilon* and *Rm*
+species tag followed by the :math:`\alpha, \epsilon` and :math:`R_m`
 parameters. The format of the file is described below.
 
 The second and third arguments specify the site-site interaction
@@ -74,22 +77,22 @@ to scale the EXP-6 parameters as reactions occur.  Currently, there
 are three scaling options:  *exponent*\ , *polynomial* and *none*\ .
 
 Exponent scaling requires two additional arguments for scaling
-the *Rm* and *epsilon* parameters, respectively.  The scaling factor
+the :math:`R_m` and :math:`\epsilon` parameters, respectively.  The scaling factor
 is computed by phi\^exponent, where phi is the number of molecules
 represented by the coarse-grain particle and exponent is specified
-as a pair coefficient argument for *Rm* and *epsilon*\ , respectively.
-The *Rm* and *epsilon* parameters are multiplied by the scaling
+as a pair coefficient argument for :math:`R_m` and :math:`\epsilon`, respectively.
+The :math:`R_m` and :math:`\epsilon` parameters are multiplied by the scaling
 factor to give the scaled interaction parameters for the CG particle.
 
 Polynomial scaling requires a filename to be specified as a pair
 coeff argument.  The file contains the coefficients to a fifth order
-polynomial for the *alpha*\ , *epsilon* and *Rm* parameters that depend
+polynomial for the :math:`\alpha`, :math:`\epsilon` and :math:`R_m` parameters that depend
 upon phi (the number of molecules represented by the CG particle).
 The format of a polynomial file is provided below.
 
 The *none* option to the scaling does not have any additional pair coeff
 arguments.  This is equivalent to specifying the *exponent* option with
-*Rm* and *epsilon* exponents of 0.0 and 0.0, respectively.
+:math:`R_m` and :math:`\epsilon` exponents of 0.0 and 0.0, respectively.
 
 The final argument specifies the interaction cutoff (optional).
 
@@ -133,23 +136,30 @@ between sections.
 
 Following a blank line, the next N lines list the species and their
 corresponding parameters.  The first argument is the species tag, the
-second argument is the exp6 tag, the 3rd argument is the *alpha*
-parameter (energy units), the 4th argument is the *epsilon* parameter
-(energy-distance\^6 units), and the 5th argument is the *Rm* parameter
+second argument is the exp6 tag, the 3rd argument is the :math:`\alpha`
+parameter (energy units), the 4th argument is the :math:`\epsilon` parameter
+(energy-distance\^6 units), and the 5th argument is the :math:`R_m` parameter
 (distance units).  If a species tag of "1fluid" is listed as a pair
 coefficient, a one-fluid approximation is specified where a
 concentration-dependent combination of the parameters is computed
 through the following equations:
 
-.. image:: Eqs/pair_exp6_rx_oneFluid.jpg
-   :align: center
+.. math::
+
+   R_{m}^{3} = & \sum_{a}\sum_{b} x_{a}x_{b}R_{m,ab}^{3} \\
+   \epsilon  = & \frac{1}{R_{m}^{3}}\sum_{a}\sum_{b} x_{a}x_{b}\epsilon_{ab}R_{m,ab}^{3} \\
+   \alpha    = & \frac{1}{\epsilon R_{m}^{3}}\sum_{a}\sum_{b} x_{a}x_{b}\alpha_{ab}\epsilon_{ab}R_{m,ab}^{3}
 
 where
 
-.. image:: Eqs/pair_exp6_rx_oneFluid2.jpg
-   :align: center
+.. math::
 
-and xa and xb are the mole fractions of a and b, respectively, which
+   \epsilon_{ab} = & \sqrt{\epsilon_{a}\epsilon_{b}} \\
+   R_{m,ab}      = & \frac{R_{m,a}+R_{m,b}}{2} \\ 
+   \alpha_{ab}   = & \sqrt{\alpha_{a}\alpha_{b}}
+
+
+and :math:`x_a` and :math:`x_b` are the mole fractions of a and b, respectively, which
 comprise the gas mixture.
 
 

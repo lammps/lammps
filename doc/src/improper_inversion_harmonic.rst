@@ -1,13 +1,13 @@
-.. index:: improper\_style inversion/harmonic
+.. index:: improper_style inversion/harmonic
 
-improper\_style inversion/harmonic command
-==========================================
+improper_style inversion/harmonic command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style inversion/harmonic
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style inversion/harmonic
    improper_coeff 1 18.776340 0.000000
@@ -28,7 +28,7 @@ out-of-plane angle definition and uses an harmonic potential:
 
 .. math::
 
-  E = K \left(\omega - \omega_0\right)^2
+   E = K \left(\omega - \omega_0\right)^2
 
 
 where :math:`K` is the force constant and :math:`\omega` is the angle

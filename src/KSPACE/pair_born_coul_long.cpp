@@ -47,6 +47,7 @@ PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp)
   ewaldflag = pppmflag = 1;
   ftable = NULL;
   writedata = 1;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

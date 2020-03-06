@@ -1,13 +1,13 @@
-.. index:: min\_style
+.. index:: min_style
 
-min\_style command
-==================
+min_style command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style style
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
    min_style spin
@@ -65,21 +65,21 @@ Style *fire* is a damped dynamics method described in :ref:`(Bitzek)
 and alters the projection operation to maintain components of the
 velocity non-parallel to the current force vector.  The velocity of
 each atom is initialized to 0.0 by this style, at the beginning of a
-minimization. This style correspond to an optimized version described 
+minimization. This style correspond to an optimized version described
 in :ref:`(Guenole) <Guenole>` that include different time integration
-schemes and defaults parameters. The default parameters can be 
+schemes and defaults parameters. The default parameters can be
 modified with the command :doc:`min_modify <min_modify>`.
 
 
-Style *fire/old* is the original implementation of *fire* in Lammps, 
-conserved for backward compatibility. The main differences regarding 
+Style *fire/old* is the original implementation of *fire* in Lammps,
+conserved for backward compatibility. The main differences regarding
 the current version *fire* are: time integration by Explicit Euler
 only, different sequence in maintaining velocity components non-parallel
 to the current force vector and hard-coded minimization parameters.
-A complete description of the differences between *fire/old* and *fire* 
-can be found in :ref:`(Guenole) <Guenole>` (where the current *fire* 
-in lammps is named *fire2.0*). By using an appropriate set of 
-parameters, *fire* can behave similarly than *fire/old*, as described
+A complete description of the differences between *fire/old* and *fire*
+can be found in :ref:`(Guenole) <Guenole>` (where the current *fire*
+in LAMMPS is called *fire2.0*). By using an appropriate set of
+parameters, *fire* can behave similar to *fire/old*, as described
 in the :doc:`min_modify <min_modify>` command.
 
 Style *spin* is a damped spin dynamics with an adaptive timestep.
@@ -148,7 +148,8 @@ instructions on how to use the accelerated styles effectively.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -159,7 +160,7 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
 

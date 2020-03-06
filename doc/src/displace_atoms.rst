@@ -1,13 +1,13 @@
-.. index:: displace\_atoms
+.. index:: displace_atoms
 
-displace\_atoms command
-=======================
+displace_atoms command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    displace_atoms group-ID style args keyword value ...
 
@@ -45,7 +45,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    displace_atoms top move 0 -5 0 units box
    displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5

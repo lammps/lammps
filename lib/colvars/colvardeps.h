@@ -229,6 +229,8 @@ public:
     f_cvb_awake,
     /// \brief will apply forces
     f_cvb_apply_force,
+    /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
+    f_cvb_bypass_ext_lagrangian,
     /// \brief requires total forces
     f_cvb_get_total_force,
     /// \brief whether this bias should record the accumulated work

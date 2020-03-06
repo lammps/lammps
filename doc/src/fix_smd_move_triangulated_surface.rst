@@ -1,13 +1,13 @@
-.. index:: fix smd/move\_tri\_surf
+.. index:: fix smd/move_tri_surf
 
-fix smd/move\_tri\_surf command
-===============================
+fix smd/move_tri_surf command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/move_tri_surf keyword
 
@@ -33,11 +33,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix 1 tool smd/move_tri_surf \*LINEAR 20 20 10
-   fix 2 tool smd/move_tri_surf \*WIGGLE 20 20 10
-   fix 2 tool smd/move_tri_surf \*ROTATE 0 0 0 5 2 1
+   fix 1 tool smd/move_tri_surf *LINEAR 20 20 10
+   fix 2 tool smd/move_tri_surf *WIGGLE 20 20 10
+   fix 2 tool smd/move_tri_surf *ROTATE 0 0 0 5 2 1
 
 Description
 """""""""""

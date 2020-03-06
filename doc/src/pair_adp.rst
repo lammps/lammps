@@ -1,16 +1,16 @@
-.. index:: pair\_style adp
+.. index:: pair_style adp
 
-pair\_style adp command
-=======================
+pair_style adp command
+======================
 
-pair\_style adp/omp command
-===========================
+pair_style adp/omp command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style adp
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style adp
-   pair_coeff \* \* Ta.adp Ta
-   pair_coeff \* \* ../potentials/AlCu.adp Al Al Cu
+   pair_coeff * * Ta.adp Ta
+   pair_coeff * * ../potentials/AlCu.adp Al Al Cu
 
 Description
 """""""""""
@@ -32,15 +32,21 @@ using the angular dependent potential (ADP) of :ref:`(Mishin) <Mishin>`,
 which is a generalization of the :doc:`embedded atom method (EAM) potential <pair_eam>`.  The LAMMPS implementation is discussed in
 :ref:`(Singh) <Singh>`.  The total energy Ei of an atom I is given by
 
-.. image:: Eqs/pair_adp.jpg
-   :align: center
+.. math::
 
-where F is the embedding energy which is a function of the atomic
-electron density rho, phi is a pair potential interaction, alpha and
-beta are the element types of atoms I and J, and s and t = 1,2,3 and
-refer to the cartesian coordinates.  The mu and lambda terms represent
-the dipole and quadruple distortions of the local atomic environment
-which extend the original EAM framework by introducing angular forces.
+   E_i            & = F_\alpha \left( \sum_{j\neq i} \rho_\beta (r_{ij}) \right) + \frac{1}{2} \sum_{j\neq i}\phi_{\alpha\beta}(r_{ij})+ \frac{1}{2} \sum_s (\mu_i^s)^2 + \frac{1}{2} \sum_{s,t} (\lambda_i^{st})^2 - \frac{1}{6} \nu_i^2 \\
+   \mu_i^s        & = \sum_{j\neq i}u_{\alpha\beta}(r_{ij})r_{ij}^s\\
+   \lambda_i^{st} & = \sum_{j\neq i}w_{\alpha\beta}(r_{ij})r_{ij}^sr_{ij}^t\\
+   \nu_i          & = \sum_s\lambda_i^{ss}
+
+
+where :math:`F` is the embedding energy which is a function of the atomic
+electron density :math:`\rho`, :math:`\phi` is a pair potential interaction,
+:math:`\alpha` and :math:`\beta` are the element types of atoms :math:`I` and
+:math:`J`, and :math:`s` and :math:`t = 1,2,3` and refer to the cartesian
+coordinates.  The :math:`\mu` and :math:`\lambda` terms represent the dipole
+and quadruple distortions of the local atomic environment which extend the
+original EAM framework by introducing angular forces.
 
 Note that unlike for other potentials, cutoffs for ADP potentials are
 not set in the pair\_style or pair\_coeff command; they are specified in
@@ -61,12 +67,12 @@ command to specify them.
 
 Only a single pair\_coeff command is used with the *adp* style which
 specifies an extended DYNAMO *setfl* file, which contains information
-for M elements.  These are mapped to LAMMPS atom types by specifying N
+for :math:`M` elements.  These are mapped to LAMMPS atom types by specifying :math:`N`
 additional arguments after the filename in the pair\_coeff command,
-where N is the number of LAMMPS atom types:
+where :math:`N` is the number of LAMMPS atom types:
 
 * filename
-* N element names = mapping of extended *setfl* elements to atom types
+* :math:`N` element names = mapping of extended *setfl* elements to atom types
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways to
 specify the path for the potential file.
@@ -79,9 +85,9 @@ and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
 the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* AlCu.adp Al Al Al Cu
+   pair_coeff * * AlCu.adp Al Al Al Cu
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Al arguments map LAMMPS atom types 1,2,3 to the Al
@@ -103,29 +109,33 @@ the tabulated pair potentials.  See the :doc:`pair_eam <pair_eam>`
 command for further details on the *setfl* format.
 
 * lines 1,2,3 = comments (ignored)
-* line 4: Nelements Element1 Element2 ... ElementN
-* line 5: Nrho, drho, Nr, dr, cutoff
+* line 4: :math:`N_{\text{elements}}` Element1 Element2 ... ElementN
+* line 5: :math:`N_\rho`, :math:`d_\rho`, :math:`N_r`, :math:`d_r`, cutoff
 
-Following the 5 header lines are Nelements sections, one for each
+Following the 5 header lines are :math:`N_{\text{elements}}` sections, one for each
 element, each with the following format:
 
 * line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
-* embedding function F(rho) (Nrho values)
-* density function rho(r) (Nr values)
+* embedding function :math:`F(\rho)` (:math:`N_\rho` values)
+* density function :math:`\rho(r)` (:math:`N_r` values)
 
-Following the Nelements sections, Nr values for each pair potential
-phi(r) array are listed for all i,j element pairs in the same format
-as other arrays.  Since these interactions are symmetric (i,j = j,i)
-only phi arrays with i >= j are listed, in the following order: i,j =
-(1,1), (2,1), (2,2), (3,1), (3,2), (3,3), (4,1), ..., (Nelements,
-Nelements).  The tabulated values for each phi function are listed as
-r\*phi (in units of eV-Angstroms), since they are for atom pairs, the
+Following the :math:`N_{\text{elements}}` sections, :math:`N_r` values for each pair potential
+:math:`\phi(r)` array are listed for all :math:`i,j` element pairs in the same format
+as other arrays.  Since these interactions are symmetric (:math:`i,j = j,i`)
+only :math:`\phi` arrays with :math:`i \geq j` are listed, in the following order:
+
+.. math::
+
+   i,j = (1,1), (2,1), (2,2), (3,1), (3,2), (3,3), (4,1), ..., (N_{\text{elements}},N_{\text{elements}}).
+
+The tabulated values for each :math:`\phi` function are listed as
+:math:`r*\phi` (in units of eV-Angstroms), since they are for atom pairs, the
 same as for :doc:`other EAM files <pair_eam>`.
 
-After the phi(r) arrays, each of the u(r) arrays are listed in the
+After the :math:`\phi(r)` arrays, each of the :math:`u(r)` arrays are listed in the
 same order with the same assumptions of symmetry.  Directly following
-the u(r), the w(r) arrays are listed.  Note that phi(r) is the only
-array tabulated with a scaling by r.
+the :math:`u(r)`, the :math:`w(r)` arrays are listed.  Note that :math:`\phi(r)` is the only
+array tabulated with a scaling by :math:`r`.
 
 
 ----------

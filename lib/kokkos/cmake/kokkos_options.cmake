@@ -78,6 +78,7 @@ set(KOKKOS_ARCH_LIST)
 list(APPEND KOKKOS_ARCH_LIST
      None            # No architecture optimization
      AMDAVX          # (HOST) AMD chip
+     EPYC            # (HOST) AMD EPYC Zen-Core CPU
      ARMv80          # (HOST) ARMv8.0 Compatible CPU
      ARMv81          # (HOST) ARMv8.1 Compatible CPU
      ARMv8-ThunderX  # (HOST) ARMv8 Cavium ThunderX CPU

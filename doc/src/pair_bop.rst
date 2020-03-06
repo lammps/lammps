@@ -1,13 +1,13 @@
-.. index:: pair\_style bop
+.. index:: pair_style bop
 
-pair\_style bop command
-=======================
+pair_style bop command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style bop keyword ...
 
@@ -24,19 +24,19 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style bop
-   pair_coeff \* \* ../potentials/CdTe_bop Cd Te
+   pair_coeff * * ../potentials/CdTe_bop Cd Te
    pair_style bop save
-   pair_coeff \* \* ../potentials/CdTe.bop.table Cd Te Te
+   pair_coeff * * ../potentials/CdTe.bop.table Cd Te Te
    comm_modify cutoff 14.70
 
 Description
 """""""""""
 
 The *bop* pair style computes Bond-Order Potentials (BOP) based on
-quantum mechanical theory incorporating both sigma and pi bonding.
+quantum mechanical theory incorporating both :math:`\sigma` and :math:`\pi` bonding.
 By analytically deriving the BOP from quantum mechanical theory its
 transferability to different phases can approach that of quantum
 mechanical methods.  This potential is similar to the original BOP
@@ -53,47 +53,50 @@ discussed below.
 
 The BOP potential consists of three terms:
 
-.. image:: Eqs/pair_bop.jpg
-   :align: center
+.. math::
 
-where phi\_ij(r\_ij) is a short-range two-body function representing the
-repulsion between a pair of ion cores, beta\_(sigma,ij)(r\_ij) and
-beta\_(sigma,ij)(r\_ij) are respectively sigma and pi bond integrals,
-THETA\_(sigma,ij) and THETA\_(pi,ij) are sigma and pi bond-orders, and
-U\_prom is the promotion energy for sp-valent systems.
+   E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left( r_{ij} \right) - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\sigma,ij} \left( r_{ij} \right) \cdot \Theta_{\sigma,ij} - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\pi,ij} \left( r_{ij} \right) \cdot \Theta_{\pi,ij} + U_{prom}
+
+
+where :math:`\phi_{ij}(r_{ij})` is a short-range two-body function
+representing the repulsion between a pair of ion cores,
+:math:`\beta_{\sigma,ij}(r_{ij})` and :math:`\beta_{\sigma,ij}(r_{ij})`
+are respectively sigma and :math:`\pi` bond integrals, :math:`\Theta_{\sigma,ij}`
+and :math:`\Theta_{\pi,ij}` are :math:`\sigma` and :math:`\pi`
+bond-orders, and U\_prom is the promotion energy for sp-valent systems.
 
 The detailed formulas for this potential are given in Ward
 (:ref:`Ward <Ward>`); here we provide only a brief description.
 
-The repulsive energy phi\_ij(r\_ij) and the bond integrals
-beta\_(sigma,ij)(r\_ij) and beta\_(phi,ij)(r\_ij) are functions of the
-interatomic distance r\_ij between atom i and j.  Each of these
-potentials has a smooth cutoff at a radius of r\_(cut,ij).  These
+The repulsive energy :math:`\phi_{ij}(r_{ij})` and the bond integrals
+:math:`\beta_{\sigma,ij}(r_{ij})` and :math:`\beta_{\phi,ij}(r_{ij})` are functions of the
+interatomic distance :math:`r_{ij}` between atom *i* and *j*\ .  Each of these
+potentials has a smooth cutoff at a radius of :math:`r_{cut,ij}`.  These
 smooth cutoffs ensure stable behavior at situations with high sampling
 near the cutoff such as melts and surfaces.
 
 The bond-orders can be viewed as environment-dependent local variables
-that are ij bond specific.  The maximum value of the sigma bond-order
-(THETA\_sigma) is 1, while that of the pi bond-order (THETA\_pi) is 2,
-attributing to a maximum value of the total bond-order
-(THETA\_sigma+THETA\_pi) of 3.  The sigma and pi bond-orders reflect the
-ubiquitous single-, double-, and triple- bond behavior of
-chemistry. Their analytical expressions can be derived from tight-
-binding theory by recursively expanding an inter-site Green's function
-as a continued fraction. To accurately represent the bonding with a
-computationally efficient potential formulation suitable for MD
-simulations, the derived BOP only takes (and retains) the first two
-levels of the recursive representations for both the sigma and the pi
-bond-orders. Bond-order terms can be understood in terms of molecular
-orbital hopping paths based upon the Cyrot-Lackmann theorem
-(:ref:`Pettifor\_1 <Pettifor_1>`).  The sigma bond-order with a half-full
-valence shell is used to interpolate the bond-order expression that
-incorporated explicit valance band filling.  This pi bond-order
-expression also contains also contains a three-member ring term that
-allows implementation of an asymmetric density of states, which helps
-to either stabilize or destabilize close-packed structures.  The pi
-bond-order includes hopping paths of length 4.  This enables the
-incorporation of dihedral angles effects.
+that are ij bond specific.  The maximum value of the :math:`\sigma`
+bond-order (:math:`\Theta_{\sigma}` is 1, while that of the :math:`\pi`
+bond-order (:math:`\Theta_{\pi}`) is 2, attributing to a maximum value
+of the total bond-order (:math:`\Theta_{\sigma}+\Theta_{\pi}`) of 3.
+The :math:`\sigma` and :math:`\pi` bond-orders reflect the ubiquitous
+single-, double-, and triple- bond behavior of chemistry. Their
+analytical expressions can be derived from tight- binding theory by
+recursively expanding an inter-site Green's function as a continued
+fraction. To accurately represent the bonding with a computationally
+efficient potential formulation suitable for MD simulations, the derived
+BOP only takes (and retains) the first two levels of the recursive
+representations for both the :math:`\sigma` and the :math:`\pi` bond-orders. Bond-order
+terms can be understood in terms of molecular orbital hopping paths
+based upon the Cyrot-Lackmann theorem (:ref:`Pettifor\_1 <Pettifor_1>`).
+The :math:`\sigma` bond-order with a half-full valence shell is used to
+interpolate the bond-order expression that incorporated explicit valance
+band filling.  This :math:`\pi` bond-order expression also contains also contains
+a three-member ring term that allows implementation of an asymmetric
+density of states, which helps to either stabilize or destabilize
+close-packed structures.  The :math:`\pi` bond-order includes hopping paths of
+length 4.  This enables the incorporation of dihedral angles effects.
 
 .. note::
 

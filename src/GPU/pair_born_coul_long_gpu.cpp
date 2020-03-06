@@ -177,6 +177,10 @@ void PairBornCoulLongGPU::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
+  // setup force tables
+
+  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;

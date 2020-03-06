@@ -69,33 +69,42 @@ dependent force to the fluid.
 The lattice-Boltzmann algorithm solves for the fluid motion governed by
 the Navier Stokes equations,
 
-.. image:: Eqs/fix_lb_fluid_navierstokes.jpg
-   :align: center
+.. math::
+   
+   \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= & 0 \\
+   \partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = & \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
+
 
 with,
 
-.. image:: Eqs/fix_lb_fluid_viscosity.jpg
-   :align: center
+.. math::
 
-where rho is the fluid density, u is the local fluid velocity, sigma
-is the stress tensor, F is a local external force, and eta and Lambda
-are the shear and bulk viscosities respectively.  Here, we have
-implemented
+   \eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
 
-.. image:: Eqs/fix_lb_fluid_stress.jpg
-   :align: center
 
-with a\_0 set to 1/3 (dx/dt)\^2 by default.
+where :math:`\rho` is the fluid density, *u* is the local
+fluid velocity, :math:`\sigma` is the stress tensor, *F* is a local external
+force, and :math:`\eta` and :math:`\Lambda` are the shear and bulk viscosities
+respectively.  Here, we have implemented
+
+.. math::
+
+   \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
+
+
+with :math:`a_0` set to :math:`\frac{1}{3} \frac{dx}{dt}^2` by default.
 
 The algorithm involves tracking the time evolution of a set of partial
 distribution functions which evolve according to a velocity
 discretized version of the Boltzmann equation,
 
-.. image:: Eqs/fix_lb_fluid_boltzmann.jpg
-   :align: center
+.. math::
+
+   \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
+
 
 where the first term on the right hand side represents a single time
-relaxation towards the equilibrium distribution function, and tau is a
+relaxation towards the equilibrium distribution function, and :math:`\tau` is a
 parameter physically related to the viscosity.  On a technical note,
 we have implemented a 15 velocity model (D3Q15) as default; however,
 the user can switch to a 19 velocity model (D3Q19) through the use of
@@ -108,23 +117,28 @@ finite difference LB integrator is used.  If *LBtype* is set equal to
 Physical variables are then defined in terms of moments of the distribution
 functions,
 
-.. image:: Eqs/fix_lb_fluid_properties.jpg
-   :align: center
+.. math::
+
+   \rho = & \displaystyle\sum\limits_{i} f_i \\
+   \rho u_{\alpha} = & \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 Full details of the lattice-Boltzmann algorithm used can be found in
 :ref:`Mackay et al. <fluid-Mackay>`.
 
-The fluid is coupled to the MD particles described by *group-ID*
-through a velocity dependent force.  The contribution to the fluid
-force on a given lattice mesh site j due to MD particle alpha is
+The fluid is coupled to the MD particles described by *group-ID* through
+a velocity dependent force.  The contribution to the fluid force on a
+given lattice mesh site j due to MD particle :math:`\alpha` is
 calculated as:
 
-.. image:: Eqs/fix_lb_fluid_fluidforce.jpg
-   :align: center
+.. math::
 
-where v\_n is the velocity of the MD particle, u\_f is the fluid
-velocity interpolated to the particle location, and gamma is the force
-coupling constant.  Zeta is a weight assigned to the grid point,
+   {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
+
+
+where :math:`\mathbf{v}_n` is the velocity of the MD particle,
+:math:`\mathbf{u}_f` is the fluid
+velocity interpolated to the particle location, and :math:`\gamma` is the force
+coupling constant.  :math:`\zeta` is a weight assigned to the grid point,
 obtained by distributing the particle to the nearest lattice sites.
 For this, the user has the choice between a trilinear stencil, which
 provides a support of 8 lattice sites, or the immersed boundary method
@@ -135,27 +149,32 @@ to walls, due to its smaller support.  Therefore, by default, the
 Peskin stencil is used; however the user may switch to the trilinear
 stencil by specifying the keyword, *trilinear*\ .
 
-By default, the force coupling constant, gamma, is calculated according to
+By default, the force coupling constant, :math:`\gamma`, is calculated
+according to
 
-.. image:: Eqs/fix_lb_fluid_gammadefault.jpg
-   :align: center
+.. math::
 
-Here, m\_v is the mass of the MD particle, m\_u is a representative
-fluid mass at the particle location, and dt\_collision is a collision
-time, chosen such that tau/dt\_collision = 1 (see :ref:`Mackay and Denniston <Mackay2>` for full details).  In order to calculate m\_u, the
-fluid density is interpolated to the MD particle location, and
-multiplied by a volume, node\_area\*dx\_lb, where node\_area represents
-the portion of the surface area of the composite object associated
-with a given MD particle.  By default, node\_area is set equal to
-dx\_lb\*dx\_lb; however specific values for given atom types can be set
-using the *setArea* keyword.
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+
+
+Here, :math:`m_v` is the mass of the MD particle, :math:`m_u` is a
+representative fluid mass at the particle location, and :math:`\Delta
+t_{collision}` is a collision time, chosen such that
+:math:`\frac{\tau}{\Delta t_{collision}} = 1` (see :ref:`Mackay and
+Denniston <Mackay2>` for full details).  In order to calculate :math:`m_u`,
+the fluid density is interpolated to the MD particle location, and
+multiplied by a volume, node\_area * :math:`dx_{LB}`, where node\_area
+represents the portion of the surface area of the composite object
+associated with a given MD particle.  By default, node\_area is set
+equal to :math:`dx_{LB}^2`; however specific values for given atom types
+can be set using the *setArea* keyword.
 
 The user also has the option of specifying their own value for the
 force coupling constant, for all the MD particles associated with the
 fix, through the use of the *setGamma* keyword.  This may be useful
 when modelling porous particles.  See :ref:`Mackay et al. <fluid-Mackay>` for a
 detailed description of the method by which the user can choose an
-appropriate gamma value.
+appropriate :math:`\gamma` value.
 
 .. note::
 
@@ -169,7 +188,9 @@ appropriate gamma value.
    used to integrate the particle motion.  However, if the user specifies
    their own value for the force coupling constant, as mentioned in
    :ref:`Mackay et al. <fluid-Mackay>`, the built-in LAMMPS integrators may prove to
-   be unstable.  Therefore, we have included our own integrators :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, and :doc:`fix lb/pc <fix_lb_pc>`, to solve for the particle motion in these
+   be unstable.  Therefore, we have included our own integrators
+   :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, and
+   :doc:`fix lb/pc <fix_lb_pc>`, to solve for the particle motion in these
    cases.  These integrators should not be used with the
    :doc:`lb/viscous <fix_lb_viscous>` fix, as they add hydrodynamic forces
    to the particles directly.  In addition, they can not be used if the
@@ -188,28 +209,29 @@ appropriate gamma value.
    location, in order to approximate an infinitely massive particle (see
    the dragforce test run for an example).
 
-
 ----------
 
-
 Inside the fix, parameters are scaled by the lattice-Boltzmann
-timestep, dt, grid spacing, dx, and mass unit, dm.  dt is set equal to
-(nevery\*dt\_MD), where dt\_MD is the MD timestep.  By default, dm is set
-equal to 1.0, and dx is chosen so that tau/(dt) =
-(3\*eta\*dt)/(rho\*dx\^2) is approximately equal to 1.  However, the user
-has the option of specifying their own values for dm, and dx, by using
+timestep, :math:`dt_{LB}`, grid spacing, :math:`dx_{LB}`, and mass unit,
+:math:`dm_{LB}`.  :math:`dt_{LB}` is set equal to
+:math:`\mathrm{nevery}\cdot dt_{MD}`, where :math:`dt_{MD}` is the MD timestep.
+By default,
+:math:`dm_{LB}` is set equal to 1.0, and :math:`dx_{LB}` is chosen so that
+:math:`\frac{\tau}{dt} = \frac{3\eta dt}{\rho dx^2}` is approximately equal to 1.
+However, the user has the option of specifying their own values for
+:math:`dm_{LB}`, and :math:`dx_{LB}`, by using
 the optional keywords *dm*\ , and *dx* respectively.
 
 .. note::
 
-   Care must be taken when choosing both a value for dx, and a
-   simulation domain size.  This fix uses the same subdivision of the
-   simulation domain among processors as the main LAMMPS program.  In
+   Care must be taken when choosing both a value for :math:`dx_{LB}`,
+   and a simulation domain size.  This fix uses the same subdivision of
+   the simulation domain among processors as the main LAMMPS program.  In
    order to uniformly cover the simulation domain with lattice sites, the
    lengths of the individual LAMMPS sub-domains must all be evenly
-   divisible by dx.  If the simulation domain size is cubic, with equal
-   lengths in all dimensions, and the default value for dx is used, this
-   will automatically be satisfied.
+   divisible by :math:`dx_{LB}`.  If the simulation domain size is cubic,
+   with equal lengths in all dimensions, and the default value for
+   :math:`dx_{LB}` is used, this will automatically be satisfied.
 
 Physical parameters describing the fluid are specified through
 *viscosity*\ , *density*\ , and *a0*\ . If the force coupling constant is
@@ -221,27 +243,25 @@ the mass, distance, and time units chosen for the main LAMMPS run, as
 they are scaled by the LB timestep, lattice spacing, and mass unit,
 inside the fix.
 
-
 ----------
-
 
 The *setArea* keyword allows the user to associate a surface area with
 a given atom type.  For example if a spherical composite object of
 radius R is represented as a spherical shell of N evenly distributed
 MD particles, all of the same type, the surface area per particle
-associated with that atom type should be set equal to 4\*pi\*R\^2/N.
+associated with that atom type should be set equal to :math:`\frac{4\pi R^2}{N}`.
 This keyword should only be used if the force coupling constant,
-gamma, is set the default way.
+:math:`\gamma`, is set the default way.
 
 The *setGamma* keyword allows the user to specify their own value for
-the force coupling constant, gamma, instead of using the default
+the force coupling constant, :math:`\gamma`, instead of using the default
 value.
 
 The *scaleGamma* keyword should be used in conjunction with the
-*setGamma* keyword, when the user wishes to specify different gamma
+*setGamma* keyword, when the user wishes to specify different :math:`\gamma`
 values for different atom types.  This keyword allows the user to
-scale the *setGamma* gamma value by a factor, gammaFactor, for a given
-atom type.
+scale the *setGamma* :math:`\gamma` value by a factor, gammaFactor,
+for a given atom type.
 
 The *dx* keyword allows the user to specify a value for the LB grid
 spacing.
@@ -250,9 +270,10 @@ The *dm* keyword allows the user to specify the LB mass unit.
 
 If the *a0* keyword is used, the value specified is used for the
 square of the speed of sound in the fluid.  If this keyword is not
-present, the speed of sound squared is set equal to (1/3)\*(dx/dt)\^2.
-Setting a0 > (dx/dt)\^2 is not allowed, as this may lead to
-instabilities.
+present, the speed of sound squared is set equal to
+:math:`\frac{1}{3}\left(\frac{dx_{LB}}{dt_{LB}}\right)^2`.
+Setting :math:`a0 > (\frac{dx_{LB}}{dt_{LB}})^2` is not allowed,
+as this may lead to instabilities.
 
 If the *noise* keyword is used, followed by a positive temperature
 value, and a positive integer random number seed, a thermal
@@ -364,16 +385,18 @@ Default
 
 By default, the force coupling constant is set according to
 
-.. image:: Eqs/fix_lb_fluid_gammadefault.jpg
-   :align: center
+.. math::
 
-and an area of dx\_lb\^2 per node, used to calculate the fluid mass at
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+
+
+and an area of :math:`dx_{LB}^2` per node, used to calculate the fluid mass at
 the particle node location, is assumed.
 
-dx is chosen such that tau/(delta t\_LB) =
-(3 eta dt\_LB)/(rho dx\_lb\^2) is approximately equal to 1.
-dm is set equal to 1.0.
-a0 is set equal to (1/3)\*(dx\_lb/dt\_lb)\^2.
+*dx* is chosen such that :math:`\frac{\tau}{dt_{LB}} =
+\frac{3\eta dt_{LB}}{\rho dx_{LB}^2}` is approximately equal to 1.
+*dm* is set equal to 1.0.
+*a0* is set equal to :math:`\frac{1}{3}\left(\frac{dx_{LB}}{dt_{LB}}\right)^2`.
 The Peskin stencil is used as the default interpolation method.
 The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
 If walls are present, they are assumed to be stationary.

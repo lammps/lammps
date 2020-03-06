@@ -1,16 +1,16 @@
-.. index:: pair\_style lj/smooth/linear
+.. index:: pair_style lj/smooth/linear
 
-pair\_style lj/smooth/linear command
-====================================
+pair_style lj/smooth/linear command
+===================================
 
-pair\_style lj/smooth/linear/omp command
-========================================
+pair_style lj/smooth/linear/omp command
+=======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear cutoff
 
@@ -20,10 +20,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth/linear 2.5
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 0.3 3.0 9.0
 
 Description
@@ -35,8 +35,12 @@ standard 12/6 Lennard-Jones function and subtracts a linear term based
 on the cutoff distance, so that both, the potential and the force, go
 continuously to zero at the cutoff Rc :ref:`(Toxvaerd) <Toxvaerd>`:
 
-.. image:: Eqs/pair_lj_smooth_linear.jpg
-   :align: center
+.. math::
+
+   \phi\left(r\right) & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                       \left(\frac{\sigma}{r}\right)^6 \right] \\
+   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c 
+
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -44,8 +48,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional. If not specified, the global

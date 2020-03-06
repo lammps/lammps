@@ -1,22 +1,22 @@
-.. index:: pair\_style ufm
+.. index:: pair_style ufm
 
-pair\_style ufm command
-=======================
+pair_style ufm command
+======================
 
-pair\_style ufm/gpu command
-===========================
+pair_style ufm/gpu command
+==========================
 
-pair\_style ufm/omp command
-===========================
+pair_style ufm/omp command
+==========================
 
-pair\_style ufm/opt command
-===========================
+pair_style ufm/opt command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style ufm cutoff
 
@@ -25,27 +25,32 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style ufm 4.0
    pair_coeff 1 1 100.0 1.0 2.5
-   pair_coeff \* \* 100.0 1.0
+   pair_coeff * * 100.0 1.0
 
    pair_style ufm 4.0
-   pair_coeff \* \* 10.0 1.0
+   pair_coeff * * 10.0 1.0
    variable prefactor equal ramp(10,100)
-   fix 1 all adapt 1 pair ufm epsilon \* \* v_prefactor
+   fix 1 all adapt 1 pair ufm epsilon * * v_prefactor
 
 Description
 """""""""""
 
 Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) potential :ref:`(Paula Leite2016) <PL2>` which is given by
 
-.. image:: Eqs/pair_ufm.jpg
-   :align: center
+.. math::
 
-where rc is the cutoff, sigma is a distance-scale and epsilon is an energy-scale, i.e., a product of Boltzmann constant kB, temperature T and the Uhlenbeck-Ford p-parameter which is responsible
+   E & = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c \\
+   \varepsilon & = p\,k_B\,T
+
+
+where :math:`r_c` is the cutoff, :math:`\sigma` is a distance-scale and
+:math:`\epsilon` is an energy-scale, i.e., a product of Boltzmann constant
+:math:`k_B`, temperature *T* and the Uhlenbeck-Ford p-parameter which
+is responsible
 to control the softness of the interactions :ref:`(Paula Leite2017) <PL1>`.
 This model is useful as a reference system for fluid-phase free-energy calculations :ref:`(Paula Leite2016) <PL2>`.
 
@@ -55,8 +60,8 @@ or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global *ufm*
@@ -69,14 +74,20 @@ all pairwise interactions from 10.0 at the beginning to 100.0 at the end
 of a run:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable prefactor equal ramp(10,100)
-   fix 1 all adapt 1 pair ufm epsilon \* \* v_prefactor
+   fix 1 all adapt 1 pair ufm epsilon * * v_prefactor
 
 .. note::
 
-   The thermodynamic integration procedure can be performed with this potential using :doc:`fix adapt <fix_adapt>`. This command will rescale the force on each atom by varying a scale variable, which always starts with value 1.0. The syntax is the same described above, however, changing epsilon to scale. A detailed explanation of how to use this command and perform nonequilibrium thermodynamic integration in LAMMPS is given in the paper by :ref:`(Freitas) <Freitas2>`.
+   The thermodynamic integration procedure can be performed with this
+   potential using :doc:`fix adapt <fix_adapt>`. This command will
+   rescale the force on each atom by varying a scale variable, which
+   always starts with value 1.0. The syntax is the same described above,
+   however, changing epsilon to scale. A detailed explanation of how to
+   use this command and perform nonequilibrium thermodynamic integration
+   in LAMMPS is given in the paper by :ref:`(Freitas) <Freitas2>`.
 
 
 ----------
@@ -132,7 +143,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -55,7 +55,7 @@ to each atom as:
 
 .. math::
 
-   \begin{equation}\vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e\end{equation}
+   \vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e
 
 where :math:`\vec{F}_i` is the resulting total force on the atom.
 :math:`\vec{F}^0_i` is the original force applied to the atom, :math:`\vec{v}_i` is

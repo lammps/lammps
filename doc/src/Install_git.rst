@@ -11,16 +11,20 @@ has several advantages:
 * You can submit your new features back to GitHub for inclusion in
   LAMMPS.
 
-You must have `git <git_>`_ installed on your system to communicate with
-the public git server for LAMMPS.
+You must have `git <git_>`_ installed on your system to use the
+commands explained below to communicate with the git servers on
+GitHub.  For people still using subversion (svn), GitHub also
+provides `limited support for subversion clients <svn_>`_.
+
 
 .. warning::
 
    As of October 2016, the official home of public LAMMPS development is
    on GitHub.  The previously advertised LAMMPS git repositories on
-   git.lammps.org and bitbucket.org are now deprecated, and may go away at any time.
+   git.lammps.org and bitbucket.org are now deprecated or offline.
 
 .. _git: https://git-scm.com
+.. _svn: https://help.github.com/en/github/importing-your-projects-to-github/working-with-subversion-on-github
 
 You can follow LAMMPS development on 3 different git branches:
 

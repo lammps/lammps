@@ -35,13 +35,14 @@ The *sdk* angle style is a combination of the harmonic angle potential,
    E = K (\theta - \theta_0)^2 
 
 
-where :math:`\theta_0` is the equilibrium value of the angle and :math:`K` a prefactor,
-with the *repulsive* part of the non-bonded *lj/sdk* pair style
-between the atoms 1 and 3.  This angle potential is intended for
-coarse grained MD simulations with the CMM parameterization using the
-:doc:`pair_style lj/sdk <pair_sdk>`.  Relative to the pair\_style
-*lj/sdk*\ , however, the energy is shifted by *epsilon*\ , to avoid sudden
-jumps.  Note that the usual 1/2 factor is included in :math:`K`.
+where :math:`\theta_0` is the equilibrium value of the angle and
+:math:`K` a prefactor, with the *repulsive* part of the non-bonded
+*lj/sdk* pair style between the atoms 1 and 3.  This angle potential is
+intended for coarse grained MD simulations with the CMM parameterization
+using the :doc:`pair_style lj/sdk <pair_sdk>`.  Relative to the
+pair\_style *lj/sdk*\ , however, the energy is shifted by
+:math:`\epsilon`, to avoid sudden jumps.  Note that the usual 1/2 factor
+is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above:

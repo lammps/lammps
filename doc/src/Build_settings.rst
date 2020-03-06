@@ -23,11 +23,11 @@ explain how to do this for building both with CMake and make.
 C++11 standard compliance
 ------------------------------------------
 
-The LAMMPS developers plan to transition to make the C++11 standard the
-minimum requirement for compiling LAMMPS.  Currently this only applies to
-some packages like KOKKOS while the rest aims to be compatible with the C++98
-standard.  Most currently used compilers are compatible with C++11; some need
-to set extra flags to enable C++11 compliance.  Example for GNU c++:
+A C++11 standard compatible compiler is a requirement for compiling LAMMPS.
+LAMMPS version 3 March 2020 is the last version compatible with the previous
+C++98 standard for the core code and most packages. Most currently used
+C++ compilers are compatible with C++11, but some older ones may need extra
+flags to enable C++11 compliance.  Example for GNU c++ 4.8.x:
 
 .. code-block:: make
 

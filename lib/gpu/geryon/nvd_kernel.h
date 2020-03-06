@@ -244,7 +244,7 @@ class UCL_Kernel {
   template <class dtype>
   inline void add_arg(const dtype* const arg) {
     #if CUDA_VERSION >= 4000
-    _kernel_args[_num_args]=const_cast<dtype * const>(arg);
+    _kernel_args[_num_args]=const_cast<dtype *>(arg);
     #else
     _param_size = (_param_size+__alignof(dtype)-1) & ~(__alignof(dtype)-1);
     CU_SAFE_CALL(cuParamSetv(_kernel,_param_size,(void*)arg,sizeof(dtype)));

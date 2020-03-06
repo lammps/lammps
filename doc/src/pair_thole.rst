@@ -113,7 +113,7 @@ For pair\_style *thole*\ , the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
-* alpha (distance units\^3)
+* :math:`\alpha` (distance units\^3)
 * damp
 * cutoff (distance units)
 
@@ -126,10 +126,10 @@ For pair style *lj/cut/thole/long*\ , the following coefficients must be
 defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
-* epsilon (energy units)
-* sigma (length units)
-* alpha (distance units\^3)
-* damps
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (length units)
+* :math:`\alpha` (distance units\^3)
+* damp
 * LJ cutoff (distance units)
 
 The last two coefficients are optional and default to the global values from
@@ -168,12 +168,9 @@ are defined using
 
 .. math::
 
-   \alpha_{ij} = \sqrt{\alpha_i\alpha_j}
-
-
-.. math::
-
-   a_{ij} = \frac 1 2 (a_i + a_j)
+   \alpha_{ij} = & \sqrt{\alpha_i\alpha_j} \\
+   & \\
+   a_{ij} = & \frac 1 2 (a_i + a_j)
 
 Restrictions
 """"""""""""

@@ -287,22 +287,29 @@ KOKKOS\_ARCH settings described below.  Note that for CMake, these are
 really Kokkos variables, not LAMMPS variables.  Hence you must use
 case-sensitive values, e.g. BDW, not bdw.
 
+* AMDAVX = AMD 64-bit x86 CPUs
+* EPYC   = AMD EPYC Zen class CPUs
 * ARMv80 = ARMv8.0 Compatible CPU
 * ARMv81 = ARMv8.1 Compatible CPU
 * ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU
-* BGQ = IBM Blue Gene/Q CPUs
-* Power8 = IBM POWER8 CPUs
-* Power9 = IBM POWER9 CPUs
+* ARMv8-TX2 = ARMv8 Cavium ThunderX2 CPU
+* WSM = Intel Westmere CPUs
 * SNB = Intel Sandy/Ivy Bridge CPUs
 * HSW = Intel Haswell CPUs
 * BDW = Intel Broadwell Xeon E-class CPUs
 * SKX = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
 * KNC = Intel Knights Corner Xeon Phi
 * KNL = Intel Knights Landing Xeon Phi
+* BGQ = IBM Blue Gene/Q CPUs
+* Power7 = IBM POWER8 CPUs
+* Power8 = IBM POWER8 CPUs
+* Power9 = IBM POWER9 CPUs
+* Kepler = NVIDIA Kepler default (generation CC 3.5)
 * Kepler30 = NVIDIA Kepler generation CC 3.0
 * Kepler32 = NVIDIA Kepler generation CC 3.2
 * Kepler35 = NVIDIA Kepler generation CC 3.5
 * Kepler37 = NVIDIA Kepler generation CC 3.7
+* Maxwell = NVIDIA Maxwell default (generation CC 5.0)
 * Maxwell50 = NVIDIA Maxwell generation CC 5.0
 * Maxwell52 = NVIDIA Maxwell generation CC 5.2
 * Maxwell53 = NVIDIA Maxwell generation CC 5.3

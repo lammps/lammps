@@ -295,7 +295,7 @@ a self term (for i = j) to the first and second term on the
 right-hand-side, respectively, and a small enough :math:`\alpha` damping
 parameter, the second term shrinks and the potential becomes a
 rapidly-converging real-space summation.  With a long enough cutoff and
-small enough alpha parameter, the energy and forces calculated by the
+small enough :math:`\alpha` parameter, the energy and forces calculated by the
 Wolf summation method approach those of the Ewald sum.  So it is a means
 of getting effective long-range interactions with a short-range
 potential.

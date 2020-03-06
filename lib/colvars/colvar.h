@@ -229,17 +229,9 @@ public:
 
   /// \brief Location of the lower boundary
   colvarvalue lower_boundary;
-  /// \brief Location of the lower wall
-  colvarvalue lower_wall;
-  /// \brief Force constant for the lower boundary potential (|x-xb|^2)
-  cvm::real   lower_wall_k;
 
   /// \brief Location of the upper boundary
   colvarvalue upper_boundary;
-  /// \brief Location of the upper wall
-  colvarvalue upper_wall;
-  /// \brief Force constant for the upper boundary potential (|x-xb|^2)
-  cvm::real   upper_wall_k;
 
   /// \brief Is the interval defined by the two boundaries periodic?
   bool periodic_boundaries() const;
@@ -453,9 +445,9 @@ public:
   std::ostream & write_traj_label(std::ostream &os);
 
   /// Read the collective variable from a restart file
-  std::istream & read_restart(std::istream &is);
+  std::istream & read_state(std::istream &is);
   /// Write the collective variable to a restart file
-  std::ostream & write_restart(std::ostream &os);
+  std::ostream & write_state(std::ostream &os);
 
   /// Write output files (if defined, e.g. in analysis mode)
   int write_output_files();

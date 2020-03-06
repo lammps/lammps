@@ -15,8 +15,10 @@
 
 
 colvarbias::colvarbias(char const *key)
-  : bias_type(to_lower_cppstr(key))
 {
+  bias_type = to_lower_cppstr(key);
+  state_keyword = bias_type;
+
   description = "uninitialized " + cvm::to_str(key) + " bias";
   init_dependencies();
   rank = 1;
@@ -25,6 +27,7 @@ colvarbias::colvarbias(char const *key)
   b_output_energy = false;
   reset();
   state_file_step = 0L;
+  matching_state = false;
 }
 
 
@@ -80,9 +83,20 @@ int colvarbias::init(std::string const &conf)
     cvm::log("Reinitializing bias \""+name+"\".\n");
   }
 
+  colvar_values.resize(num_variables());
+
+  for (i = 0; i < num_variables(); i++) {
+    colvar_values[i].type(colvars[i]->value().type());
+    colvar_forces[i].type(colvar_values[i].type());
+    previous_colvar_forces[i].type(colvar_values[i].type());
+  }
+
   output_prefix = cvm::output_prefix();
 
   get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
+
+  // Disabled by default in base class; default value can be overridden by derived class constructor
+  get_keyval_feature(this, conf, "bypassExtendedLagrangian", f_cvb_bypass_ext_lagrangian, is_enabled(f_cvb_bypass_ext_lagrangian), parse_silent);
 
   get_keyval(conf, "timeStepFactor", time_step_factor, 1);
   if (time_step_factor < 1) {
@@ -113,6 +127,11 @@ int colvarbias::init_dependencies() {
 
     init_feature(f_cvb_apply_force, "apply force", f_type_user);
     require_feature_children(f_cvb_apply_force, f_cv_gradient);
+
+    init_feature(f_cvb_bypass_ext_lagrangian, "bypass extended-Lagrangian coordinates", f_type_user);
+    // The exclusion below prevents the inconsistency where biasing forces are applied onto
+    // the actual colvar, while total forces are measured on the extended coordinate
+    exclude_feature_self(f_cvb_bypass_ext_lagrangian, f_cvb_get_total_force);
 
     init_feature(f_cvb_get_total_force, "obtain total force", f_type_dynamic);
     require_feature_children(f_cvb_get_total_force, f_cv_total_force);
@@ -157,6 +176,12 @@ int colvarbias::init_dependencies() {
 
   // only compute TI samples when deriving from colvarbias_ti
   feature_states[f_cvb_calc_ti_samples].available = false;
+
+  // The feature f_cvb_bypass_ext_lagrangian is only implemented by some derived classes
+  // (initially, harmonicWalls)
+  feature_states[f_cvb_bypass_ext_lagrangian].available = false;
+  // disabled by default; can be changed by derived classes that implement it
+  feature_states[f_cvb_bypass_ext_lagrangian].enabled = false;
 
   return COLVARS_OK;
 }
@@ -265,6 +290,11 @@ int colvarbias::update()
 
   has_data = true;
 
+  // Update the cached colvar values
+  for (size_t i = 0; i < num_variables(); i++) {
+    colvar_values[i] = colvars[i]->value();
+  }
+
   error_code |= calc_energy(NULL);
   error_code |= calc_forces(NULL);
 
@@ -304,9 +334,11 @@ void colvarbias::communicate_forces()
     // may send forces to the same colvar
     // which is why rescaling has to happen now: the colvar is not
     // aware of this bias' time_step_factor
-    variables(i)->add_bias_force(cvm::real(time_step_factor) * colvar_forces[i]);
-  }
-  for (i = 0; i < num_variables(); i++) {
+    if (is_enabled(f_cvb_bypass_ext_lagrangian)) {
+      variables(i)->add_bias_force_actual_value(cvm::real(time_step_factor) * colvar_forces[i]);
+    } else {
+      variables(i)->add_bias_force(cvm::real(time_step_factor) * colvar_forces[i]);
+    }
     previous_colvar_forces[i] = colvar_forces[i];
   }
 }
@@ -368,19 +400,26 @@ std::string const colvarbias::get_state_params() const
 
 int colvarbias::set_state_params(std::string const &conf)
 {
-  std::string new_name = "";
-  if (colvarparse::get_keyval(conf, "name", new_name,
-                              std::string(""), colvarparse::parse_silent) &&
-      (new_name != this->name)) {
-    cvm::error("Error: in the state file, the "
-               "\""+bias_type+"\" block has a different name, \""+new_name+
-               "\": different system?\n", INPUT_ERROR);
-  }
+  matching_state = false;
 
-  if (name.size() == 0) {
+  std::string check_name = "";
+  colvarparse::get_keyval(conf, "name", check_name,
+                          std::string(""), colvarparse::parse_silent);
+
+  if (check_name.size() == 0) {
     cvm::error("Error: \""+bias_type+"\" block within the restart file "
                "has no identifiers.\n", INPUT_ERROR);
   }
+
+  if (check_name != this->name) {
+    if (cvm::debug()) {
+      cvm::log("Ignoring state of bias \""+check_name+
+               "\": this bias is named \""+name+"\".\n");
+    }
+    return COLVARS_OK;
+  }
+
+  matching_state = true;
 
   colvarparse::get_keyval(conf, "step", state_file_step,
                           cvm::step_absolute(), colvarparse::parse_silent);
@@ -396,7 +435,7 @@ std::ostream & colvarbias::write_state(std::ostream &os)
   }
   os.setf(std::ios::scientific, std::ios::floatfield);
   os.precision(cvm::cv_prec);
-  os << bias_type << " {\n"
+  os << state_keyword << " {\n"
      << "  configuration {\n";
   std::istringstream is(get_state_params());
   std::string line;
@@ -415,13 +454,12 @@ std::istream & colvarbias::read_state(std::istream &is)
   size_t const start_pos = is.tellg();
 
   std::string key, brace, conf;
-  if ( !(is >> key)   || !(key == bias_type) ||
+  if ( !(is >> key)   || !(key == state_keyword || key == bias_type) ||
        !(is >> brace) || !(brace == "{") ||
-       !(is >> colvarparse::read_block("configuration", conf)) ||
+       !(is >> colvarparse::read_block("configuration", &conf)) ||
        (set_state_params(conf) != COLVARS_OK) ) {
-    if (key != bias_type)
-      cvm::log("Found key \"" + key + "\" instead of \"" + bias_type + "\"\n");
-    cvm::error("Error: in reading state configuration for \""+bias_type+"\" bias \""+
+    cvm::error("Error: in reading state configuration for \""+bias_type+
+               "\" bias \""+
                this->name+"\" at position "+
                cvm::to_str(static_cast<size_t>(is.tellg()))+
                " in stream.\n", INPUT_ERROR);
@@ -430,6 +468,15 @@ std::istream & colvarbias::read_state(std::istream &is)
     is.setstate(std::ios::failbit);
     return is;
   }
+
+  if (matching_state == false) {
+    // This state is not for this bias
+    is.seekg(start_pos, std::ios::beg);
+    return is;
+  }
+
+  cvm::log("Restarting "+bias_type+" bias \""+name+"\" from step number "+
+           cvm::to_str(state_file_step)+".\n");
 
   if (!read_state_data(is)) {
     cvm::error("Error: in reading state data for \""+bias_type+"\" bias \""+

@@ -4,7 +4,7 @@ Overview
 The best way to add a new feature to LAMMPS is to find a similar
 feature and look at the corresponding source and header files to figure
 out what it does.  You will need some knowledge of C++ to be able to
-understand the hi-level structure of LAMMPS and its class
+understand the high-level structure of LAMMPS and its class
 organization, but functions (class methods) that do actual
 computations are written in vanilla C-style code and operate on simple
 C-style data structures (vectors and arrays).

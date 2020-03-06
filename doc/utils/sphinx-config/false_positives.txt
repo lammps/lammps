@@ -615,6 +615,7 @@ dipolar
 dir
 Direc
 dirname
+disarmmd
 discoverable
 discretization
 discretized
@@ -2017,6 +2018,7 @@ Nrecompute
 Nrepeat
 nreset
 Nrho
+Nroff
 nrun
 Ns
 Nsample
@@ -3129,6 +3131,7 @@ webpage
 Weckner
 WeinanE
 Wennberg
+Westmere
 Westview
 wget
 Whelan

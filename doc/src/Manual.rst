@@ -78,7 +78,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-
-.. raw:: html
-
-   </BODY>

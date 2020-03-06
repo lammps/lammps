@@ -196,9 +196,9 @@ Specify a log file for LAMMPS to write status information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
 file log.lammps.  If this switch is used, LAMMPS writes to the
 specified file.  In multi-partition mode, if the switch is not used, a
-log.lammps file is created with hi-level status information.  Each
+log.lammps file is created with high-level status information.  Each
 partition also writes to a log.lammps.N file where N is the partition
-ID.  If the switch is specified in multi-partition mode, the hi-level
+ID.  If the switch is specified in multi-partition mode, the high-level
 logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
@@ -529,10 +529,10 @@ Specify a file for LAMMPS to write its screen information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
 screen.  If this switch is used, LAMMPS writes to the specified file
 instead and you will see no screen output.  In multi-partition mode,
-if the switch is not used, hi-level status information is written to
+if the switch is not used, high-level status information is written to
 the screen.  Each partition also writes to a screen.N file where N is
 the partition ID.  If the switch is specified in multi-partition mode,
-the hi-level screen dump is named "file" and each partition also
+the high-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the

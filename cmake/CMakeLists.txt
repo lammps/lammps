@@ -2,7 +2,7 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -52,15 +52,18 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
 endif()
 
-option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
-if(DISABLE_CXX11_REQUIREMENT)
-  add_definitions(-DLAMMPS_CXX98)
-# else()
-#  set(CMAKE_CXX_STANDARD 11)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
+  endif()
 endif()
+
+# we require C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # GNU compiler features
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -131,9 +134,9 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
   USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
   USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
   USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
-  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
-  USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
-  USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
+  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REACTION
+  USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY
+  USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
@@ -178,6 +181,7 @@ option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_CXX_INCLUDE_PATH})
+  add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
   option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
   if(LAMMPS_LONGLONG_TO_LONG)
@@ -355,9 +359,6 @@ endforeach(HEADER)
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
-if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't supported without a C compiler before v3.4
-endif()
 # RB: disabled this check because it breaks with KOKKOS CUDA enabled
 #foreach(FUNC sin cos)
 #  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})

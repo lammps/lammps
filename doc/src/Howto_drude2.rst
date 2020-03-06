@@ -181,7 +181,7 @@ include Coulomb interactions, for instance *lj/cut/coul/long* with
 
 As compared to the non-polarizable input file, *pair\_coeff* lines need
 to be added for the DPs.  Since the DPs have no Lennard-Jones
-interactions, their *epsilon* is 0. so the only *pair\_coeff* line
+interactions, their :math:`\epsilon` is 0. so the only *pair\_coeff* line
 that needs to be added is
 
 

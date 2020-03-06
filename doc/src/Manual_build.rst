@@ -1,22 +1,28 @@
 Building the LAMMPS manual
 **************************
 
-Depending on how you obtained LAMMPS, the doc directory has 2 or 3
-sub-directories and optionally 2 PDF files and 2 e-book format files:
+Depending on how you obtained LAMMPS, the doc directory has up
+to 6 sub-directories, 2 Nroff files, and optionally 2 PDF files
+plus 2 e-book format files:
 
 
 .. parsed-literal::
 
    src             # content files for LAMMPS documentation
    html            # HTML version of the LAMMPS manual (see html/Manual.html)
-   tools           # tools and settings for building the documentation
+   utils           # tools and settings for building the documentation
+   docenv          # virtualenv for processing the manual sources
+   doctrees        # temporary data from processing the manual
+   mathjax         # code and fonts for rendering math in html
    Manual.pdf      # large PDF version of entire manual
    Developer.pdf   # small PDF with info about how LAMMPS is structured
    LAMMPS.epub     # Manual in ePUB e-book format
    LAMMPS.mobi     # Manual in MOBI e-book format
+   lammps.1        # man page for the lammps command
+   msi2lmp.1       # man page for the msi2lmp command
 
-If you downloaded LAMMPS as a tarball from the web site, all these
-directories and files should be included.
+If you downloaded LAMMPS as a tarball from the web site, the html folder
+and the PDF files should be included.
 
 If you downloaded LAMMPS from the public git repository, then the HTML
 and PDF files are not included.  Instead you need to create them, in one

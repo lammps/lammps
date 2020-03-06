@@ -87,9 +87,9 @@ is thus evaluated as:
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, alpha is ion
-pair dependent damping parameter and erf() is the error-function.  The
-cutoff Rc truncates the interaction distance.
+can be set by the :doc:`dielectric <dielectric>` command, :math:`\alpha`
+is the ion pair dependent damping parameter and erf() is the
+error-function.  The cutoff :math:`r_c` truncates the interaction distance.
 
 The style *buck6d/coul/gauss/dsf* computes the Coulomb interaction
 via the damped shifted force model described in :ref:`(Fennell) <Fennell>`

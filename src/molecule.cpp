@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
-  Pointers(lmp), id(NULL), x(NULL), type(NULL), q(NULL), radius(NULL),
+  Pointers(lmp), id(NULL), x(NULL), type(NULL), molecule(NULL), q(NULL), radius(NULL),
   rmass(NULL), num_bond(NULL), bond_type(NULL), bond_atom(NULL),
   num_angle(NULL), angle_type(NULL), angle_atom1(NULL), angle_atom2(NULL),
   angle_atom3(NULL), num_dihedral(NULL), dihedral_type(NULL), dihedral_atom1(NULL),

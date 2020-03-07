@@ -490,7 +490,13 @@ void CreateAtoms::command(int narg, char **arg)
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (molecule_flag) molecule[ilocal] = moloffset + i+1;
+        if (molecule_flag) {
+          if (onemol->moleculeflag) {
+            molecule[ilocal] = moloffset + i + onemol->molecule[m];
+          } else {
+            molecule[ilocal] = moloffset + i+1;
+          }
+        }
         if (molecular == 2) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;

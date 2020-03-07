@@ -30,9 +30,13 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
-  int ntypes,nmolecules;
+  int ntypes,nmolecules,ngroups;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nibody,ndbody;
+
+  // group info
+  char **groupnames;
+  int **groupmask; // ngroups by natoms
 
   // max bond,angle,etc per atom
 
@@ -41,7 +45,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined in file, 0 if not
 
-  int xflag,typeflag,moleculeflag,qflag,radiusflag,rmassflag;
+  int xflag,typeflag,moleculeflag,groupflag,qflag,radiusflag,rmassflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
@@ -119,6 +123,7 @@ class Molecule : protected Pointers {
   void compute_mass();
   void compute_com();
   void compute_inertia();
+  int findgroup(const char *);
   void check_attributes(int);
 
  private:
@@ -133,6 +138,7 @@ class Molecule : protected Pointers {
   void coords(char *);
   void types(char *);
   void molecules(char *);
+  void groups(char *);
   void charges(char *);
   void diameters(char *);
   void masses(char *);

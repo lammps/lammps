@@ -878,7 +878,7 @@ void NPairCAC::quad_list_build(int iii, double s, double t, double w) {
 //------------------------------------------------------------------------
 //this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL!!.
 void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_neigh_initial, int outer_neigh_initial){
-  int i,j,jj,jnum,sign1,sign2;
+  int i,j,jj,jnum,sign1,sign2,flag, check_flag;
   double delx,dely,delz;
   int *jlist,*numneigh,**firstneigh;
   double ****nodal_positions= atom->nodal_positions;
@@ -929,6 +929,7 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
     neighbor_element_type = element_type[j];
     neighbor_element_scale = element_scale[j];
     neigh_poly_count=poly_count[j];
+    check_flag = 0;
     if (neighbor_element_type == 1) {
       unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
       unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
@@ -1070,8 +1071,9 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
           //loop minimum for every poly DOF to ensure minimum
           // run the minimization code
           for (poly_min = 0; poly_min < neigh_poly_count; poly_min++) {
-            asa_pointer->call_asa_cg(xm, lo, hi, n, 
+            flag = asa_pointer->call_asa_cg(xm, lo, hi, n, 
               1.e-2*unit_cell_min, NULL, Work, iWork);
+              if(flag==7) check_flag = 1;
 
             double tol = 0.00001*unit_cell_min;
             if (xm[0] > 1 + tol || xm[1] > 1 + tol || xm[0] < -1 - tol || xm[1] < -1 - tol) {
@@ -1136,6 +1138,11 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
           }
         }
         else { break; }
+      }
+      //check if flag was ever 7 and no completion was reached
+      if(complete==0){
+        if(check_flag)
+          error->one(FLERR,"asa_cg iterations failed in finding a solution for quadrature neighboring processes. flag = 7");
       }
 
       if (complete == 1) {
@@ -2279,7 +2286,6 @@ int NPairCAC::CAC_decide_quad2element(double *current_quad_point, int neighbor_e
 }
 
 //allocate quadrature based neighbor storage
-
 void NPairCAC::allocate_neigh_list() {
   int *element_type = atom->element_type;
   
@@ -2646,19 +2652,31 @@ void NPairCAC::unpack_forward_comm(int n, int first, double *buf)
 //memory usage due to quadrature point list memory structure
 bigint NPairCAC::memory_usage()
 {
-  int quad= quadrature_node_count;
-  int n1=surface_counts_max[0];
-  int n2=surface_counts_max[1];
-  int n3=surface_counts_max[2];
-  int max_quad_count = quad*quad*quad + 2 * n1*quad*quad + 2 * n2*quad*quad +
-    + 2 * n3*quad*quad + 4 * n1*n2*quad + 4 * n3*n2*quad + 4 * n1*n3*quad
-    + 8 * n1*n2*n3;
+  int i;
   bigint bytes_used = 0;
   if (neigh_allocated) {
-    for (int init = 0; init < max_atom_count; init++) {
-      bytes_used +=memory->usage(list_container[init],maxneigh);
+    for (i = 0; i < max_atom_count; i++) {
+      bytes_used +=memory->usage(list_container[i],list_maxes[i]);
     }
   }
-   
+  
+  if(quad_allocated){
+    for (i = 0; i < quad_count_max; i++) {
+      if(sector_flag){
+      bytes_used +=memory->usage(inner_quad_lists_index[i],inner_quad_neigh_maxes[i],3);
+      if(outer_neigh_flag)
+      bytes_used +=memory->usage(outer_quad_lists_index[i],outer_quad_neigh_maxes[i],3);
+      }
+      else{
+      bytes_used +=memory->usage(inner_quad_lists_index[i],inner_quad_neigh_maxes[i],2);
+      if(outer_neigh_flag)
+      bytes_used +=memory->usage(outer_quad_lists_index[i],outer_quad_neigh_maxes[i],2);
+      }
+      bytes_used +=memory->usage(inner_quad_lists_ucell[i],inner_quad_neigh_maxes[i],3);
+      if(outer_neigh_flag)
+      bytes_used +=memory->usage(outer_quad_lists_ucell[i],outer_quad_neigh_maxes[i],3);
+    }
+  }
+  
   return bytes_used;
 }

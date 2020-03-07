@@ -90,12 +90,17 @@ int Asa_Data::call_asa_cg(double *x,double *lo,double *hi, ASA_INT n,
   int ntry = 0;
   flag=asa_cg(x, lo, hi, n, NULL, cgParm, asaParm,
     grad_tol, NULL, Work, iWork, this);
-  while((flag==4||flag==2)&&ntry!=max_tries){
+  while((flag==4||flag==2||flag==7)&&ntry!=max_tries){
+    //perturb point
+    if(flag==7){
+      for(int ni=0; ni < n; ni++)
+      x[ni] += grad_tol;
+    }
     ntry++;
     flag=asa_cg(x, lo, hi, n, NULL, cgParm, asaParm,
     grad_tol, NULL, Work, iWork, this);
   }
-  if(flag>1){
+  if(flag>1&&flag!=7){
   if(class_flag==0)
   sprintf(asa_error, "asa_cg iterations failed in finding a solution for quadrature neighboring processes. flag = %d ", flag);
   if(class_flag==1)

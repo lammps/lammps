@@ -365,6 +365,14 @@ E: Invalid improper type in impropers section of molecule file
 
 Self-explanatory.
 
+E: Invalid molecule ID in molecule file
+
+Molecule ID must be a non-zero positive integer.
+
+E: Invalid Molecules section in molecule file
+
+Self-explanatory.
+
 E: Invalid Special Bond Counts section in molecule file
 
 Self-explanatory.

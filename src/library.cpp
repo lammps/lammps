@@ -621,6 +621,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
 
     if (style == 2) {
       if (!fix->local_flag) return NULL;
+      if (type == 0) return (void *) &fix->size_local_rows;
       if (type == 1) return (void *) fix->vector_local;
       if (type == 2) return (void *) fix->array_local;
     }

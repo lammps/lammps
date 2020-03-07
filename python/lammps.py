@@ -510,6 +510,10 @@ class lammps(object):
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
+    elif (style == 2) and (type == 0):
+      self.lib.lammps_extract_fix.restype = POINTER(c_int)
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
+      return ptr[0]
     elif (style == 1) or (style == 2):
       if type == 1:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)

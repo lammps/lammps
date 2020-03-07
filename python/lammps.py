@@ -486,6 +486,7 @@ class lammps(object):
         return None
       elif style == 2:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
         return ptr[0]
     if type == 1:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)

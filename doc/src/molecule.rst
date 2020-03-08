@@ -171,7 +171,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Molecules, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Groups, Charges, Diameters, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info

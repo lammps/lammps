@@ -188,7 +188,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 void TILD::settings(int narg, char **arg)
 {
     if (narg < 1) error->all(FLERR,"Illegal kspace_style tild command");
-    accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+    grid_res = fabs(force->numeric(FLERR, arg[0]));
 }
 
 TILD::~TILD(){
@@ -806,7 +806,7 @@ void TILD::set_grid()
   // reduce it until accuracy target is met
 
   if (!gridflag) {
-    h = h_x = h_y = h_z = 4.0/g_ewald;
+    h = h_x = h_y = h_z = grid_res;
     int count = 0;
     while (1) {
 
@@ -898,9 +898,7 @@ void TILD::set_grid_global()
 
   if (!gridflag) {
 
-    if (differentiation_flag == 1 || stagger_flag) {
-
-      h = h_x = h_y = h_z = 4.0/g_ewald;
+      h = h_x = h_y = h_z = grid_res;
       int count = 0;
       while (1) {
 

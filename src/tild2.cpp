@@ -1795,14 +1795,6 @@ int TILD::modify_param(int narg, char** arg)
   return narg;
 }
 
-int TILD::add_potent_param(int narg, char** arg){
-    // for (int i = 0; i < MAX_GROUP; i++){
-    //   for (int j =0 ; j<narg; j++){
-    //   // potent_coeff[i]
-    //   ;
-    //   }
-    // }
-}
 
 /* ----------------------------------------------------------------------
    ghost-swap to accumulate full density in brick decomposition

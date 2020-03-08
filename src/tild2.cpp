@@ -808,7 +808,6 @@ void TILD::set_grid()
   if (!gridflag) {
     h = h_x = h_y = h_z = grid_res;
     int count = 0;
-    while (1) {
 
       // set grid dimension
       nx_pppm = static_cast<int> (xprd/h_x);
@@ -836,19 +835,7 @@ void TILD::set_grid()
       nzlo_fft = me_z*nz_pppm/npez_fft;
       nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-      // double qopt = compute_qopt();
-
-      // double dfkspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
-
-      count++;
-
-      // break loop if the accuracy has been reached or too many loops have been performed
-      // if (dfkspace <= accuracy) break;
-      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction");
-      h *= 0.95;
-      h_x = h_y = h_z = h;
     }
-  }
 
   // boost grid size until it is factorable
 

@@ -492,9 +492,9 @@ void CreateAtoms::command(int narg, char **arg)
       for (int m = 0; m < natoms; m++) {
         if (molecule_flag) {
           if (onemol->moleculeflag) {
-            molecule[ilocal] = moloffset + i + onemol->molecule[m];
+            molecule[ilocal] = moloffset + onemol->molecule[m];
           } else {
-            molecule[ilocal] = moloffset + i+1;
+            molecule[ilocal] = moloffset + 1;
           }
         }
         if (molecular == 2) {
@@ -529,6 +529,13 @@ void CreateAtoms::command(int narg, char **arg)
               special[ilocal][j] += offset;
         }
         ilocal++;
+      }
+      if (molecule_flag) {
+        if (onemol->moleculeflag) {
+          moloffset += onemol->nmolecules;
+        } else {
+          moloffset++;
+        }
       }
     }
 

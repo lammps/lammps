@@ -217,6 +217,8 @@ void TILD::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use TILD with 2d simulation");
+  if (differentiation_flag != 0)
+    error->all(FLERR, "Cannot use analytic differentiation with TILD.");
   if (comm->style != 0)
     error->universe_all(FLERR,"TILD can only currently be used with "
                         "comm_style brick");
@@ -942,37 +944,6 @@ void TILD::set_grid_global()
         h *= 0.95;
         h_x = h_y = h_z = h;
       }
-
-    } else {
-
-      double err;
-      h_x = h_y = h_z = 1.0/g_ewald;
-
-      nx_pppm = static_cast<int> (xprd/h_x) + 1;
-      ny_pppm = static_cast<int> (yprd/h_y) + 1;
-      nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
-
-      err = estimate_ik_error(h_x,xprd,natoms);
-      while (err > accuracy) {
-        err = estimate_ik_error(h_x,xprd,natoms);
-        nx_pppm++;
-        h_x = xprd/nx_pppm;
-      }
-
-      err = estimate_ik_error(h_y,yprd,natoms);
-      while (err > accuracy) {
-        err = estimate_ik_error(h_y,yprd,natoms);
-        ny_pppm++;
-        h_y = yprd/ny_pppm;
-      }
-
-      err = estimate_ik_error(h_z,zprd_slab,natoms);
-      while (err > accuracy) {
-        err = estimate_ik_error(h_z,zprd_slab,natoms);
-        nz_pppm++;
-        h_z = zprd_slab/nz_pppm;
-      }
-    }
 
     // scale grid for triclinic skew
 

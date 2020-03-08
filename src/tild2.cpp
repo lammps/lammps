@@ -842,6 +842,20 @@ void TILD::set_grid()
   while (!factorable(nx_pppm)) nx_pppm++;
   while (!factorable(ny_pppm)) ny_pppm++;
   while (!factorable(nz_pppm)) nz_pppm++;
+
+  char str[128];
+  if (comm->me == 0) {
+    if (screen){
+      fprintf(screen,"  grid points x dim: %d\n",nx_pppm);
+      fprintf(screen,"  grid points y dim: %d\n",ny_pppm);
+      fprintf(screen,"  grid points z dim: %d\n",nz_pppm);
+}
+    if (logfile){
+      fprintf(logfile,"  grid points x dim: %d\n",nx_pppm);
+      fprintf(logfile,"  grid points y dim: %d\n",ny_pppm);
+      fprintf(logfile,"  grid points z dim: %d\n",nz_pppm);
+    }
+  }
 }
 
 
@@ -967,12 +981,21 @@ void TILD::set_grid_global()
 
   if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
     error->all(FLERR," grid is too large");
+    
+  char str[128];
+  if (comm->me == 0) {
+    if (screen){
+      fprintf(screen,"  grid points x dim: %d\n",nx_pppm);
+      fprintf(screen,"  grid points y dim: %d\n",ny_pppm);
+      fprintf(screen,"  grid points z dim: %d\n",nz_pppm);
 }
-
-/* ----------------------------------------------------------------------
-   check if all factors of n are in list of factors
-   return 1 if yes, 0 if no
-------------------------------------------------------------------------- */
+    if (logfile){
+      fprintf(logfile,"  grid points x dim: %d\n",nx_pppm);
+      fprintf(logfile,"  grid points y dim: %d\n",ny_pppm);
+      fprintf(logfile,"  grid points z dim: %d\n",nz_pppm);
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    allocate per-atom memory that depends on # of K-vectors and order

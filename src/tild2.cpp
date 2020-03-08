@@ -80,7 +80,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   group_group_enable = 0;
   tildflag = 1;
   triclinic = domain->triclinic;
-
+  triclinic_support = 0;
   nfactors = 3;
   factors = new int[nfactors];
   factors[0] = 2;

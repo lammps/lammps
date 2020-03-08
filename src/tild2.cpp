@@ -431,12 +431,6 @@ void TILD::setup_grid()
   // set_grid_global();
   // set_grid_local();
 
-  
-  // reallocate K-space dependent memory
-  // check if grid communication is now overlapping if not allowed
-  // don't invoke allocate peratom() or group(), will be allocated when needed
-
-
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
   // don't invoke allocate_peratom(), compute() will allocate when needed
@@ -1583,6 +1577,11 @@ void TILD::field_gradient(FFT_SCALAR *in,
   
 
 }
+
+/* ----------------------------------------------------------------------
+   check if all factors of n are in list of factors
+   return 1 if yes, 0 if no
+------------------------------------------------------------------------- */
 
 int TILD::factorable(int n)
 {

@@ -1668,15 +1668,6 @@ void TILD::particle_map(double delx, double dely, double delz,
 }
 
 
-void TILD::particle_map_c(double delx, double dely, double delz,
-                               double sft, int** p2g, int nup, int nlow,
-                               int nxlo, int nylo, int nzlo,
-                               int nxhi, int nyhi, int nzhi)
-{
-  particle_map(delx, dely, delz, sft, p2g, nup, nlow,
-               nxlo, nylo, nzlo, nxhi, nyhi, nzhi);
-}
-
 int TILD::modify_param(int narg, char** arg)
 {
   int i;
@@ -2221,28 +2212,6 @@ void TILD::deallocate_groups()
   memory->destroy(density_B_fft);
 }
 
-/* ----------------------------------------------------------------------
- compute estimated kspace force error
-------------------------------------------------------------------------- */
-double TILD::compute_df_kspace()
-{
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
-  bigint natoms = atom->natoms;
-  double df_kspace = 0.0;
-  // if (differentiation_flag == 1 || stagger_flag) {
-  //   double qopt = compute_qopt();
-  //   df_kspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
-  // } else {
-  //   double lprx = estimate_ik_error(h_x,xprd,natoms);
-  //   double lpry = estimate_ik_error(h_y,yprd,natoms);
-  //   double lprz = estimate_ik_error(h_z,zprd_slab,natoms);
-  //   df_kspace = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  // }
-  return df_kspace;
-}
 
 /* ----------------------------------------------------------------------
    remap density from 3d brick decomposition to FFT decomposition
@@ -2619,7 +2588,6 @@ void TILD::ev_calculation(int den_group) {
   double s2 = scale_inv * scale_inv;
   double rho0;
   FFT_SCALAR *dummy, *wk2;
-  double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
   int igroup1 = group->find("all");
 
@@ -2643,8 +2611,6 @@ void TILD::ev_calculation(int den_group) {
   } else { // Else not the all group
     wk2 = work1;
   }
-
-  int igroup1 = group->find("all");
 
   // Determine if working with the all group
   if (den_group == igroup1 && subtract_rho0 == 1){

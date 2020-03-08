@@ -159,7 +159,6 @@ class TILD : public KSpace{
 
   virtual void allocate_peratom();
   virtual void deallocate_peratom();
-  double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
   // virtual double compute_qopt();
   // virtual double compute_qopt_ik();
@@ -173,10 +172,6 @@ class TILD : public KSpace{
                              double, int **, int, int,
                              int, int, int,
                              int, int, int);
-  virtual void particle_map_c(double, double, double,
-                              double, int **, int, int,
-                              int, int, int,
-                              int, int, int );
   // virtual void make_rho();
   virtual void make_rho_none();
   virtual void brick2fft(int, int, int, int, int, int,

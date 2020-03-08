@@ -379,6 +379,10 @@ E: Invalid Molecules section in molecule file
 
 Self-explanatory.
 
+E: Invalid atom ID in Groups section of molecule file
+
+Self-explanatory.
+
 E: Invalid Special Bond Counts section in molecule file
 
 Self-explanatory.

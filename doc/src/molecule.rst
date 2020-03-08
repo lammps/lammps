@@ -148,6 +148,7 @@ appear if the value(s) are different than the default.
 * Na *angles* = # of angles Na in molecule, default = 0
 * Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
 * Ni *impropers* = # of impropers Ni in molecule, default = 0
+* Ng *groups* = # of groups in molecule, default = 0
 * Mtotal *mass* = total mass of molecule
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
@@ -238,6 +239,20 @@ listed in order from 1 to Nlines, but LAMMPS does not check for this.
 * one line per atom
 * line syntax: ID molecule-ID
 * molecule-ID = molecule ID of atom
+
+
+----------
+
+
+*Groups* section:
+
+* one line per group
+* line syntax: ID a b c d ...
+* a,b,c,d,... = IDs of atoms in group
+
+The ID of a group can only contain alphanumeric characters and
+underscores.  The atom IDs should be values from 1 to Natoms, where
+Natoms = # of atoms in the molecule.
 
 
 ----------

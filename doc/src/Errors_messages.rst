@@ -4732,7 +4732,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid molecule ID in molecule file*
    Molecule ID must be a non-zero positive integer.
 
-*Invalid Molecules section in molecule file*   
+*Invalid Molecules section in molecule file*
    Self-explanatory.
 
 *Invalid REAX atom type*
@@ -4800,6 +4800,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom ID in Dihedrals section of data file*
    Atom IDs must be positive integers and within range of defined
    atoms.
+
+*Invalid atom ID in Groups section of molecule file*
+   Self-explanatory.
 
 *Invalid atom ID in Impropers section of data file*
    Atom IDs must be positive integers and within range of defined

@@ -1827,55 +1827,7 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   int n = 0;
   int Dim = domain->dimension;
 
-  if (flag == FORWARD_IK) {
-    FFT_SCALAR *xsrc = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *ysrc = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *zsrc = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      buf[n++] = xsrc[list[i]];
-      buf[n++] = ysrc[list[i]];
-      buf[n++] = zsrc[list[i]];
-    }
-  } else if (flag == FORWARD_AD) {
-    FFT_SCALAR *src = &u_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++)
-      buf[i] = src[list[i]];
-  } else if (flag == FORWARD_IK_PERATOM) {
-    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) buf[n++] = esrc[list[i]];
-      if (vflag_atom) {
-        buf[n++] = v0src[list[i]];
-        buf[n++] = v1src[list[i]];
-        buf[n++] = v2src[list[i]];
-        buf[n++] = v3src[list[i]];
-        buf[n++] = v4src[list[i]];
-        buf[n++] = v5src[list[i]];
-      }
-    }
-  } else if (flag == FORWARD_AD_PERATOM) {
-    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      buf[n++] = v0src[list[i]];
-      buf[n++] = v1src[list[i]];
-      buf[n++] = v2src[list[i]];
-      buf[n++] = v3src[list[i]];
-      buf[n++] = v4src[list[i]];
-      buf[n++] = v5src[list[i]];
-    }
-  } 
-  else if (flag == FORWARD_NONE){
+  if (flag == FORWARD_NONE){
     for (int k = 0; k < group->ngroup; k++) {
     for (int j = 0; j < Dim; j++) {
       FFT_SCALAR *src = &gradWgroup[k][j][nzlo_out][nylo_out][nxlo_out];
@@ -1891,55 +1843,7 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   int n = 0;
   int Dim = domain->dimension;
 
-  if (flag == FORWARD_IK) {
-    FFT_SCALAR *xdest = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *ydest = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *zdest = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      xdest[list[i]] = buf[n++];
-      ydest[list[i]] = buf[n++];
-      zdest[list[i]] = buf[n++];
-    }
-  } else if (flag == FORWARD_AD) {
-    FFT_SCALAR *dest = &u_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++)
-      dest[list[i]] = buf[i];
-  } else if (flag == FORWARD_IK_PERATOM) {
-    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) esrc[list[i]] = buf[n++];
-      if (vflag_atom) {
-        v0src[list[i]] = buf[n++];
-        v1src[list[i]] = buf[n++];
-        v2src[list[i]] = buf[n++];
-        v3src[list[i]] = buf[n++];
-        v4src[list[i]] = buf[n++];
-        v5src[list[i]] = buf[n++];
-      }
-    }
-  } else if (flag == FORWARD_AD_PERATOM) {
-    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
-    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      v0src[list[i]] = buf[n++];
-      v1src[list[i]] = buf[n++];
-      v2src[list[i]] = buf[n++];
-      v3src[list[i]] = buf[n++];
-      v4src[list[i]] = buf[n++];
-      v5src[list[i]] = buf[n++];
-    }
-  } 
-  else if (flag == FORWARD_NONE){
+  if (flag == FORWARD_NONE){
     for (int k = 0; k < group->ngroup; k++) {
     for (int j = 0; j < Dim; j++) {
       FFT_SCALAR *dest = &gradWgroup[k][j][nzlo_out][nylo_out][nxlo_out];

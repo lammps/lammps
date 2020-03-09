@@ -1,20 +1,21 @@
-.. index:: pair\_style smd/tlsph
+.. index:: pair_style smd/tlsph
 
-pair\_style smd/tlsph command
-=============================
+pair_style smd/tlsph command
+============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/tlsph args
 
 Examples
 """"""""
 
-pair\_style smd/tlsph
+.. code-block:: LAMMPS
+
+   pair_style smd/tlsph
 
 Description
 """""""""""
@@ -26,11 +27,11 @@ Smooth-Particle Hydrodynamics algorithm.
 This pair style is invoked with the following command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/tlsph
-   pair_coeff i j \*COMMON rho0 E nu Q1 Q2 hg Cp &
-                  \*END
+   pair_coeff i j *COMMON rho0 E nu Q1 Q2 hg Cp &
+                  *END
 
 Here, *i* and *j* denote the *LAMMPS* particle types for which this
 pair style is defined. Note that *i* and *j* must be equal, i.e., no
@@ -78,12 +79,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

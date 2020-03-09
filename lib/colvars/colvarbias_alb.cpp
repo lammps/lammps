@@ -246,6 +246,12 @@ int colvarbias_alb::update()
 
 int colvarbias_alb::set_state_params(std::string const &conf)
 {
+  int error_code = colvarbias::set_state_params(conf);
+
+  if (error_code != COLVARS_OK) {
+    return error_code;
+  }
+
   if (!get_keyval(conf, "setCoupling", set_coupling))
     cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
 

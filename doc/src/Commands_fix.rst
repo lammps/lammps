@@ -20,7 +20,7 @@ parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`

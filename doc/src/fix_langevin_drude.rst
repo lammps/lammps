@@ -60,34 +60,34 @@ Velocities:
 
 .. math::
 
-   \begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}
+    V' = \frac {M\, V + m\, v} {M'} 
 
 
 .. math::
 
-   \begin{equation} v' = v - V \end{equation}
+    v' = v - V 
 
 Masses:
 
 .. math::
 
-   \begin{equation} M' = M + m \end{equation}
+    M' = M + m 
 
 
 .. math::
 
-   \begin{equation} m' = \frac {M\, m } {M'} \end{equation}
+    m' = \frac {M\, m } {M'} 
 
 The Langevin forces are computed as
 
 .. math::
 
-   \begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}
+    F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' 
 
 
 .. math::
 
-   \begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}
+    f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' 
 
 :math:`F_r'` is a random force proportional to
 :math:`\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                  {\mathrm dt\, \mathtt{damp\_com} }         }`.
@@ -98,12 +98,12 @@ transform:
 
 .. math::
 
-   \begin{equation} F = \frac M {M'}\, F' - f' \end{equation}
+    F = \frac M {M'}\, F' - f' 
 
 
 .. math::
 
-   \begin{equation} f = \frac m {M'}\, F' + f' \end{equation}
+    f = \frac m {M'}\, F' + f' 
 
 This fix also thermostats non-polarizable atoms in the group at
 temperature *Tcom*\ , as if they had a massless Drude partner.  The
@@ -319,8 +319,3 @@ The option defaults are zero = no.
 
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -75,13 +75,18 @@ be the position and velocity of atom *i* at time *n*\ , for
 *i* =1,...,\ *N*\ , where *N* is the number of sites of our reference
 molecule. The distance vector between sites *i* and *j* is given by
 
-.. image:: Eqs/fix_rattle_rij.jpg
-   :align: center
+.. math::
+
+   \mathbf r^{n+1}_{ij} = \mathbf r^n_j - \mathbf r^n_i
+
 
 The constraints can then be formulated as
 
-.. image:: Eqs/fix_rattle_constraints.jpg
-   :align: center
+.. math::
+
+   \mathbf r^{n+1}_{ij} \cdot \mathbf r^{n+1}_{ij} &= d^2_{ij} \quad \text{and} \\
+   \mathbf v^{n+1}_{ij} \cdot \mathbf r^{n+1}_{ij} &= 0
+
 
 The SHAKE algorithm satisfies the first condition, i.e. the sites at
 time *n+1* will have the desired separations Dij immediately after the
@@ -263,8 +268,3 @@ J of Comp Phys, 23, 327-341 (1977).
 
 
 **(Andersen)** H. Andersen, J of Comp Phys, 52, 24-34 (1983).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -63,8 +63,3 @@ Related commands
 :doc:`compute temp/uef <compute_temp_uef>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

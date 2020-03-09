@@ -1,15 +1,15 @@
-.. index:: pair\_style zero
+.. index:: pair_style zero
 
-pair\_style zero command
-========================
+pair_style zero command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_style zero cutoff *nocoeff*
+   pair_style zero cutoff [nocoeff]
 
 * zero = style name of this pair style
 * cutoff = global cutoff (distance units)
@@ -19,12 +19,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style zero 10.0
    pair_style zero 5.0 nocoeff
-   pair_coeff \* \*
-   pair_coeff 1 2\*4 3.0
+   pair_coeff * *
+   pair_coeff 1 2*4 3.0
 
 Description
 """""""""""
@@ -84,7 +84,7 @@ and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -92,8 +92,3 @@ Related commands
 :doc:`pair_style none <pair_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

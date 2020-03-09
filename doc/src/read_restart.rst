@@ -1,13 +1,13 @@
-.. index:: read\_restart
+.. index:: read_restart
 
-read\_restart command
-=====================
+read_restart command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_restart file flag
 
@@ -18,13 +18,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_restart save.10000
    read_restart save.10000 remap
-   read_restart restart.\*
-   read_restart restart.\*.mpiio
-   read_restart poly.\*.% remap
+   read_restart restart.*
+   read_restart restart.*.mpiio
+   read_restart poly.*.% remap
 
 Description
 """""""""""
@@ -125,7 +125,7 @@ MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
 installed, e.g.
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
    make mpi          # build LAMMPS for your platform
@@ -281,8 +281,3 @@ Related commands
 :doc:`write_restart <write_restart>`, :doc:`restart <restart>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

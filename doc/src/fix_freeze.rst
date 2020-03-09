@@ -94,8 +94,3 @@ Related commands
 :doc:`atom_style sphere <atom_style>`, :doc:`fix setforce <fix_setforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

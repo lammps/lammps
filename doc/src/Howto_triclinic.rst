@@ -1,17 +1,3 @@
-:doc:`Higher level section <Howto>` - `LAMMPS WWW Site <lws_>`_ - `LAMMPS Documentation <ld_>`_ - `LAMMPS Commands <lc_>`_ 
-
-.. _lws: http://lammps.sandia.gov
-
-
-
-.. _ld: Manual.html
-
-
-
-.. _lc: Commands\_all.html
-
-
-
 Triclinic (non-orthogonal) simulation boxes
 ===========================================
 
@@ -53,11 +39,23 @@ vectors of a general parallelepiped, where there is no restriction on
 **A** x **B** . **C** > 0.  The equivalent LAMMPS **a**\ ,\ **b**\ ,\ **c** are a linear
 rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
 
-.. image:: Eqs/transform.jpg
-   :align: center
+.. math::
+
+  \begin{pmatrix} \mathbf{a}  & \mathbf{b}  & \mathbf{c} \end{pmatrix} = &
+  \begin{pmatrix}
+    a_x & b_x & c_x \\
+    0   & b_y & c_y \\
+    0   & 0   & c_z \\
+  \end{pmatrix} \\
+  a_x = & A \\
+  b_x = & \mathbf{B} \cdot \mathbf{\hat{A}} \quad = \quad B \cos{\gamma} \\
+  b_y = & |\mathbf{\hat{A}} \times \mathbf{B}| \quad = \quad B \sin{\gamma} \quad =  \quad  \sqrt{B^2 - {b_x}^2} \\
+  c_x = & \mathbf{C} \cdot \mathbf{\hat{A}} \quad = \quad C \cos{\beta} \\
+  c_y = & \mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})} \times \mathbf{\hat{A}} \quad = \quad \frac{\mathbf{B} \cdot \mathbf{C} - b_x c_x}{b_y} \\
+  c_z = & |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2}
 
 where A = \| **A** \| indicates the scalar length of **A**\ . The hat symbol (\^)
-indicates the corresponding unit vector. *beta* and *gamma* are angles
+indicates the corresponding unit vector. :math:`\beta` and :math:`\gamma` are angles
 between the vectors described below. Note that by construction,
 **a**\ , **b**\ , and **c** have strictly positive x, y, and z components, respectively.
 If it should happen that
@@ -74,8 +72,14 @@ fractional coordinates in the
 old basis and then converting to distance coordinates in the new basis.
 The transformation is given by the following equation:
 
-.. image:: Eqs/rotate.jpg
-   :align: center
+.. math::
+
+  \mathbf{x} = & \begin{pmatrix} \mathbf{a}  & \mathbf{b}  & \mathbf{c} \end{pmatrix} \cdot \frac{1}{V}
+    \begin{pmatrix}
+      \mathbf{B \times C}  \\
+      \mathbf{C \times A}  \\
+      \mathbf{A \times B} 
+    \end{pmatrix} \cdot \mathbf{X}
 
 where *V* is the volume of the box, **X** is the original vector quantity and
 **x** is the vector in the LAMMPS basis.
@@ -156,23 +160,36 @@ For extreme values of tilt, LAMMPS may also lose atoms and generate an
 error.
 
 Triclinic crystal structures are often defined using three lattice
-constants *a*\ , *b*\ , and *c*\ , and three angles *alpha*\ , *beta* and
-*gamma*\ . Note that in this nomenclature, the a, b, and c lattice
-constants are the scalar lengths of the edge vectors **a**\ , **b**\ , and **c**
-defined above.  The relationship between these 6 quantities
-(a,b,c,alpha,beta,gamma) and the LAMMPS box sizes (lx,ly,lz) =
+constants *a*\ , *b*\ , and *c*\ , and three angles :math:`\alpha`,
+:math:`\beta`, and :math:`\gamma`. Note that in this nomenclature,
+the a, b, and c lattice constants are the scalar lengths of the edge
+vectors **a**\ , **b**\ , and **c** defined above.  The relationship
+between these 6 quantities (a, b, c, :math:`\alpha`, :math:`\beta`,
+:math:`\gamma`) and the LAMMPS box sizes (lx,ly,lz) =
 (xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is as follows:
 
-.. image:: Eqs/box.jpg
-   :align: center
+.. math::
+
+  a   = & {\rm lx} \\
+  b^2 = &  {\rm ly}^2 +  {\rm xy}^2 \\
+  c^2 = &  {\rm lz}^2 +  {\rm xz}^2 +  {\rm yz}^2 \\
+  \cos{\alpha} = & \frac{{\rm xy}*{\rm xz} + {\rm ly}*{\rm yz}}{b*c} \\
+  \cos{\beta}  = & \frac{\rm xz}{c} \\
+  \cos{\gamma} = & \frac{\rm xy}{b} \\
 
 The inverse relationship can be written as follows:
 
-.. image:: Eqs/box_inverse.jpg
-   :align: center
+.. math::
 
-The values of *a*\ , *b*\ , *c* , *alpha*\ , *beta* , and *gamma* can be printed
-out or accessed by computes using the
+  {\rm lx}   = & a \\
+  {\rm xy}   = & b \cos{\gamma}  \\
+  {\rm xz}   = & c \cos{\beta}\\
+  {\rm ly}^2 = & b^2 - {\rm xy}^2 \\
+  {\rm yz}   = & \frac{b*c \cos{\alpha} - {\rm xy}*{\rm xz}}{\rm ly} \\
+  {\rm lz}^2 = & c^2 - {\rm xz}^2 - {\rm yz}^2 \\
+
+The values of *a*\ , *b*\ , *c* , :math:`\alpha` , :math:`\beta`, and
+:math:`\gamma` can be printed out or accessed by computes using the
 :doc:`thermo_style custom <thermo_style>` keywords
 *cella*\ , *cellb*\ , *cellc*\ , *cellalpha*\ , *cellbeta*\ , *cellgamma*\ ,
 respectively.
@@ -225,4 +242,3 @@ material.  The :doc:`fix deform <fix_deform>` command can be used for
 this purpose.  It allows dynamic control of the xy, xz, yz tilt
 factors as a simulation runs.  This is discussed in the next section
 on non-equilibrium MD (NEMD) simulations.
-

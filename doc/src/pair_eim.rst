@@ -1,16 +1,16 @@
-.. index:: pair\_style eim
+.. index:: pair_style eim
 
-pair\_style eim command
-=======================
+pair_style eim command
+======================
 
-pair\_style eim/omp command
-===========================
+pair_style eim/omp command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -20,12 +20,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eim
-   pair_coeff \* \* Na Cl ../potentials/ffield.eim Na Cl
-   pair_coeff \* \* Na Cl ffield.eim  Na Na Na Cl
-   pair_coeff \* \* Na Cl ../potentials/ffield.eim Cl NULL Na
+   pair_coeff * * Na Cl ../potentials/ffield.eim Na Cl
+   pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
+   pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na
 
 Description
 """""""""""
@@ -34,30 +34,42 @@ Style *eim* computes pairwise interactions for ionic compounds
 using embedded-ion method (EIM) potentials :ref:`(Zhou) <Zhou2>`.  The
 energy of the system E is given by
 
-.. image:: Eqs/pair_eim1.jpg
-   :align: center
+.. math::
+
+   E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left(r_{ij}\right) + \sum_{i=1}^{N}E_i\left(q_i,\sigma_i\right)
 
 The first term is a double pairwise sum over the J neighbors of all I
-atoms, where phi\_ij is a pair potential.  The second term sums over
+atoms, where :math:`\phi_{ij}` is a pair potential.  The second term sums over
 the embedding energy E\_i of atom I, which is a function of its charge
-q\_i and the electrical potential sigma\_i at its location.  E\_i, q\_i,
-and sigma\_i are calculated as
+q\_i and the electrical potential :math:`\sigma_i` at its location.  E\_i, q\_i,
+and :math:`sigma_i` are calculated as
 
-.. image:: Eqs/pair_eim2.jpg
-   :align: center
+.. math::
 
-where eta\_ji is a pairwise function describing electron flow from atom
-I to atom J, and psi\_ij is another pairwise function.  The multi-body
+   q_i  = & \sum_{j=i_1}^{i_N} \eta_{ji}\left(r_{ij}\right) \\
+   \sigma_i  = & \sum_{j=i_1}^{i_N} q_j \cdot \psi_{ij} \left(r_{ij}\right) \\
+   E_i\left(q_i,\sigma_i\right)  = & \frac{1}{2} \cdot q_i \cdot \sigma_i
+
+where :math:`\eta_{ji} is a pairwise function describing electron flow from atom
+I to atom J, and :math:`\psi_{ij}` is another pairwise function.  The multi-body
 nature of the EIM potential is a result of the embedding energy term.
 A complete list of all the pair functions used in EIM is summarized
 below
 
-.. image:: Eqs/pair_eim3.jpg
-   :align: center
+.. math::
 
-Here E\_b, r\_e, r\_(c,phi), alpha, beta, A\_(psi), zeta, r\_(s,psi),
-r\_(c,psi), A\_(eta), r\_(s,eta), r\_(c,eta), chi, and pair function type
-p are parameters, with subscripts ij indicating the two species of
+   \phi_{ij}\left(r\right) = & \left\{ \begin{array}{lr}
+   \left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\alpha_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)-\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\beta_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=1 \\
+   \left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\alpha_{ij}}  -\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\beta_{ij}}\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=2
+   \end{array}
+   \right.\\
+   \eta_{ji} = & A_{\eta,ij}\left(\chi_j-\chi_i\right)f_c\left(r,r_{s,\eta,ij},r_{c,\eta,ij}\right) \\
+   \psi_{ij}\left(r\right) = & A_{\psi,ij}\exp\left(-\zeta_{ij}r\right)f_c\left(r,r_{s,\psi,ij},r_{c,\psi,ij}\right) \\
+   f_{c}\left(r,r_p,r_c\right) = & 0.510204 \mathrm{erfc}\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
+
+Here :math:`E_b, r_e, r_(c,\phi), \alpha, \beta, A_(\psi), \zeta, r_(s,\psi),
+r_(c,\psi), A_(\eta), r_(s,\eta), r_(c,\eta), \chi,` and pair function type
+*p* are parameters, with subscripts *ij* indicating the two species of
 atoms in the atomic pair.
 
 .. note::
@@ -106,9 +118,9 @@ types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
 use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Na Cl ffield.eim Na Na Na Cl
+   pair_coeff * * Na Cl ffield.eim Na Na Na Cl
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
@@ -197,8 +209,3 @@ Related commands
 
 **(Zhou)** Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

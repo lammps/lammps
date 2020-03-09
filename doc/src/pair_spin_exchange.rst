@@ -1,7 +1,7 @@
-.. index:: pair\_style spin/exchange
+.. index:: pair_style spin/exchange
 
-pair\_style spin/exchange command
-=================================
+pair_style spin/exchange command
+================================
 
 Syntax
 """"""
@@ -55,7 +55,7 @@ in :ref:`(Tranchida) <Tranchida3>`.
 
 From this exchange interaction, each spin :math:`i` will be submitted
 to a magnetic torque :math:`\vec{\omega}`, and its associated atom can be submitted to a
-force :math:`\vec{F}` for spin-lattice calculations (see :doc:`fix\_nve\_spin <fix_nve_spin>`),
+force :math:`\vec{F}` for spin-lattice calculations (see :doc:`fix nve/spin <fix_nve_spin>`),
 such as:
 
 .. math::

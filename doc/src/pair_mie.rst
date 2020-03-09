@@ -1,16 +1,16 @@
-.. index:: pair\_style mie/cut
+.. index:: pair_style mie/cut
 
-pair\_style mie/cut command
-===========================
+pair_style mie/cut command
+==========================
 
-pair\_style mie/cut/gpu command
-===============================
+pair_style mie/cut/gpu command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mie/cut cutoff
 
@@ -20,7 +20,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mie/cut 10.0
    pair_coeff 1 1 0.72 3.40 23.00 6.66
@@ -32,14 +32,19 @@ Description
 
 The *mie/cut* style computes the Mie potential, given by
 
-.. image:: Eqs/pair_mie.jpg
-   :align: center
+.. math::
+
+   E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
+                         \qquad r < r_c
+
 
 Rc is the cutoff and C is a function that depends on the repulsive and
 attractive exponents, given by:
 
-.. image:: Eqs/pair_mie2.jpg
-   :align: center
+.. math::
+
+   C = \left(\frac{\gamma_{rep}}{\gamma_{rep}-\gamma_{att}}\right) \left(\frac{\gamma_{rep}}{\gamma_{att}}\right)^{\left(\frac{\gamma_{att}}{\gamma_{rep}-\gamma_{att}}\right)}
+
 
 Note that for 12/6 exponents, C is equal to 4 and the formula is the
 same as the standard Lennard-Jones potential.
@@ -94,7 +99,7 @@ details.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -119,8 +124,3 @@ Related commands
 
 **(Avendano)** C. Avendano, T. Lafitte, A. Galindo, C. S. Adjiman,
 G. Jackson, E. Muller, J Phys Chem B, 115, 11154 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

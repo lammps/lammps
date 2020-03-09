@@ -38,8 +38,3 @@ to find the appropriate location.
 
 Adding new :doc:`compute styles <compute>` (whose calculated values can
 then be accessed by variables) is discussed on the :doc:`Modify compute <Modify_compute>` doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

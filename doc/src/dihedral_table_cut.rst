@@ -1,13 +1,13 @@
-.. index:: dihedral\_style table/cut
+.. index:: dihedral_style table/cut
 
-dihedral\_style table/cut command
-=================================
+dihedral_style table/cut command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table/cut style Ntable
 
@@ -17,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table/cut spline 400
    dihedral_style table/cut linear 1000
@@ -66,18 +65,21 @@ above.
 The cutoff dihedral style uses a tabulated dihedral interaction with a
 cutoff function:
 
-.. image:: Eqs/dihedral_table_cut.jpg
-   :align: center
+.. math::
+
+   f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
+   f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
+
 
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.
 
-The cutoff angle1 specifies the angle (in degrees) below which the dihedral
+The cutoff :math:`\theta_1` specifies the angle (in degrees) below which the dihedral
 interaction is unmodified, i.e. the cutoff function is 1.
 
-The cutoff function is applied between angle1 and angle2, which is the angle at
-which the cutoff function drops to zero.  The value of zero effectively "turns
-off" the dihedral interaction.
+The cutoff function is applied between :math:`\theta_1` and :math:`\theta_2`, which is
+the angle at which the cutoff function drops to zero.  The value of zero effectively
+"turns off" the dihedral interaction.
 
 The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
@@ -229,8 +231,3 @@ Related commands
 
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

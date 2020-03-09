@@ -284,8 +284,3 @@ setting is defined.  If the *mol* keyword is used, the default for
 Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
 0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0 (for 3d), vel = 0.0 0.0 0.0
 (for 2d), and id = max.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

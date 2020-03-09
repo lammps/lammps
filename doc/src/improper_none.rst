@@ -1,13 +1,13 @@
-.. index:: improper\_style none
+.. index:: improper_style none
 
-improper\_style none command
-============================
+improper_style none command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style none
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style none
 
@@ -39,8 +39,3 @@ Related commands
 :doc:`improper_style zero <improper_zero>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

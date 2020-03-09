@@ -1,16 +1,16 @@
-.. index:: pair\_style table/rx
+.. index:: pair_style table/rx
 
-pair\_style table/rx command
-============================
+pair_style table/rx command
+===========================
 
-pair\_style table/rx/kk command
-===============================
+pair_style table/rx/kk command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table style N ...
 
@@ -21,15 +21,14 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table/rx linear 1000
    pair_style table/rx linear 1000 fractional
    pair_style table/rx linear 1000 molecular
-   pair_coeff \* \* rxn.table ENTRY1 h2o h2o 10.0
-   pair_coeff \* \* rxn.table ENTRY1 1fluid 1fluid 10.0
-   pair_coeff \* 3 rxn.table ENTRY1 h2o no2 10.0
+   pair_coeff * * rxn.table ENTRY1 h2o h2o 10.0
+   pair_coeff * * rxn.table ENTRY1 1fluid 1fluid 10.0
+   pair_coeff * 3 rxn.table ENTRY1 h2o no2 10.0
 
 Description
 """""""""""
@@ -281,8 +280,3 @@ Related commands
 
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -227,8 +227,3 @@ Default
 """""""
 
 The keyword default is ordinate = degree.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

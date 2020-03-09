@@ -46,13 +46,17 @@ defined within the file associated with this command.
 
 For a general reaction such that
 
-.. image:: Eqs/fix_rx_reaction.jpg
-   :align: center
+.. math::
+
+   \nu_{A}A + \nu_{B}B \rightarrow \nu_{C}C
+
 
 the reaction rate equation is defined to be of the form
 
-.. image:: Eqs/fix_rx_reactionRate.jpg
-   :align: center
+.. math::
+
+   r = k(T)[A]^{\nu_{A}}[B]^{\nu_{B}}
+
 
 In the current implementation, the exponents are defined to be equal
 to the stoichiometric coefficients.  A given reaction set consisting
@@ -121,12 +125,14 @@ irreversible reaction.  After specifying the reaction, the reaction
 rate constant is determined through the temperature dependent
 Arrhenius equation:
 
-.. image:: Eqs/fix_rx.jpg
-   :align: center
+.. math::
+
+   k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
+
 
 where *A* is the Arrhenius factor in time units or concentration/time
 units, *n* is the unitless exponent of the temperature dependence, and
-*E\_a* is the activation energy in energy units.  The temperature
+:math:`E_a` is the activation energy in energy units.  The temperature
 dependence can be removed by specifying the exponent as zero.
 
 The internal temperature of the coarse-grained particles can be used
@@ -136,13 +142,17 @@ be specified to compute a local-average particle internal temperature
 for use in the reaction rate constant expressions.  The local-average
 particle internal temperature is defined as:
 
-.. image:: Eqs/fix_rx_localTemp.jpg
-   :align: center
+.. math::
+
+   \theta_i^{-1} = \frac{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)\theta_j^{-1}}{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)}
+
 
 where the Lucy function is expressed as:
 
-.. image:: Eqs/fix_rx_localTemp2.jpg
-   :align: center
+.. math::
+
+   \omega_{Lucy}\left(r_{ij}\right) = \left( 1 + \frac{3r_{ij}}{r_c} \right) \left( 1 - \frac{r_{ij}}{r_c} \right)^3
+
 
 The self-particle interaction is included in the above equation.
 
@@ -246,8 +256,3 @@ Related commands
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

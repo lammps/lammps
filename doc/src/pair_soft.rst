@@ -1,19 +1,19 @@
-.. index:: pair\_style soft
+.. index:: pair_style soft
 
-pair\_style soft command
-========================
+pair_style soft command
+=======================
 
-pair\_style soft/gpu command
-============================
+pair_style soft/gpu command
+===========================
 
-pair\_style soft/omp command
-============================
+pair_style soft/omp command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style soft cutoff
 
@@ -23,24 +23,27 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style soft 1.0
-   pair_coeff \* \* 10.0
+   pair_coeff * * 10.0
    pair_coeff 1 1 10.0 3.0
 
    pair_style soft 1.0
-   pair_coeff \* \* 0.0
+   pair_coeff * * 0.0
    variable prefactor equal ramp(0,30)
-   fix 1 all adapt 1 pair soft a \* \* v_prefactor
+   fix 1 all adapt 1 pair soft a * * v_prefactor
 
 Description
 """""""""""
 
 Style *soft* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_soft.jpg
-   :align: center
+.. math::
+
+   E = A \left[ 1 + \cos\left(\frac{\pi r}{r_c}\right) \right]
+   \qquad r < r_c
+
 
 It is useful for pushing apart overlapping atoms, since it does not
 blow up as r goes to 0.  A is a pre-factor that can be made to vary in
@@ -80,10 +83,10 @@ all pairwise interactions from 0.0 at the beginning to 30.0 at the end
 of a run:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable prefactor equal ramp(0,30)
-   fix 1 all adapt 1 pair soft a \* \* v_prefactor
+   fix 1 all adapt 1 pair soft a * * v_prefactor
 
 Note that a formula defined by an :doc:`equal-style variable <variable>`
 can use the current timestep, elapsed time in the current run, elapsed
@@ -151,8 +154,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/limit <fix_nve_limit>`, :doc:`fix adapt <fix_adapt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

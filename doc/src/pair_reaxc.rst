@@ -1,19 +1,19 @@
-.. index:: pair\_style reax/c
+.. index:: pair_style reax/c
 
-pair\_style reax/c command
-==========================
+pair_style reax/c command
+=========================
 
-pair\_style reax/c/kk command
+pair_style reax/c/kk command
+============================
+
+pair_style reax/c/omp command
 =============================
-
-pair\_style reax/c/omp command
-==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style reax/c cfile keyword value
 
@@ -35,13 +35,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style reax/c NULL
    pair_style reax/c controlfile checkqeq no
    pair_style reax/c NULL lgvdw yes
    pair_style reax/c NULL safezone 1.6 mincap 100
-   pair_coeff \* \* ffield.reax C H O N
+   pair_coeff * * ffield.reax C H O N
 
 Description
 """""""""""
@@ -189,7 +189,7 @@ To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute reax all pair reax/c
    variable eb      equal c_reax[1]
@@ -227,9 +227,9 @@ the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
 H, you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* ffield.reax C C N H
+   pair_coeff * * ffield.reax C C N H
 
 
 ----------
@@ -394,8 +394,3 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 **(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

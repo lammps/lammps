@@ -48,13 +48,13 @@ Restrictions
 """"""""""""
 
 
-This compute is part of the USER-MESO package.  It is only enabled if
+This compute is part of the USER-MESODPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style tdpd <pair_meso>`
+:doc:`pair_style tdpd <pair_mesodpd>`
 
 **Default:** none
 
@@ -68,8 +68,3 @@ Related commands
 
 **(Li2015)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143:
 014101 (2015).  DOI: 10.1063/1.4923254
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

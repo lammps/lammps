@@ -4,17 +4,17 @@ LAMMPS features
 LAMMPS is a classical molecular dynamics (MD) code with these general
 classes of functionality:
 
-* :ref:`General features <general>`
-* :ref:`Particle and model types <particle>`
-* :ref:`Interatomic potentials (force fields) <ff>`
-* :ref:`Atom creation <create>`
-* :ref:`Ensembles, constraints, and boundary conditions <ensemble>`
-* :ref:`Integrators <integrate>`
-* :ref:`Diagnostics <diag>`
-* :ref:`Output <output>`
-* :ref:`Multi-replica models <replica1>`
-* :ref:`Pre- and post-processing <prepost>`
-* :ref:`Specialized features (beyond MD itself) <special>`
+1. :ref:`General features <general>`
+2. :ref:`Particle and model types <particle>`
+3. :ref:`Interatomic potentials (force fields) <ff>`
+4. :ref:`Atom creation <create>`
+5. :ref:`Ensembles, constraints, and boundary conditions <ensemble>`
+6. :ref:`Integrators <integrate>`
+7. :ref:`Diagnostics <diag>`
+8. :ref:`Output <output>`
+9. :ref:`Multi-replica models <replica1>`
+10. :ref:`Pre- and post-processing <prepost>`
+11. :ref:`Specialized features (beyond MD itself) <special>`
 
 
 ----------
@@ -87,7 +87,7 @@ commands)
 * water potentials: TIP3P, TIP4P, SPC
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
-* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim\_init, kim\_interactions, and kim\_query <kim_commands>` commands
+* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim_init, kim_interactions, and kim_query <kim_commands>` commands
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials
 
@@ -224,8 +224,3 @@ classical MD options:
 * :doc:`Lattice Boltzmann fluid <fix_lb_fluid>`
 * :doc:`targeted <fix_tmd>` and :doc:`steered <fix_smd>` molecular dynamics
 * :doc:`two-temperature electron model <fix_ttm>`
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

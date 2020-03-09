@@ -41,7 +41,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary langevin/eff 1.0 1.0 10.0 699483
    fix 1 all langevin/eff 1.0 1.1 10.0 48279 scale 3 1.5
@@ -55,28 +55,31 @@ this command performs Brownian dynamics (BD), since the total force on
 each atom will have the form:
 
 
-.. parsed-literal::
+.. math::
 
-   F = Fc + Ff + Fr
-   Ff = - (m / damp) v
-   Fr is proportional to sqrt(Kb T m / (dt damp))
+   F   = & F_c + F_f + F_r \\
+   F_f = & - \frac{m}{\mathrm{damp}} v \\
+   F_r \propto &  \sqrt{\frac{k_B T m}{dt~\mathrm{damp}}}
 
-Fc is the conservative force computed via the usual inter-particle
-interactions (:doc:`pair_style <pair_style>`).
 
-The Ff and Fr terms are added by this fix on a per-particle basis.
+:math:`F_c` is the conservative force computed via the usual
+inter-particle interactions (:doc:`pair_style <pair_style>`).
+The :math:`F_f` and :math:`F_r` terms are added by this fix on a
+per-particle basis.
 
-The operation of this fix is exactly like that described by the :doc:`fix langevin <fix_langevin>` command, except that the thermostatting
-is also applied to the radial electron velocity for electron
-particles.
+The operation of this fix is exactly like that described by the
+:doc:`fix langevin <fix_langevin>` command, except that the
+thermostatting is also applied to the radial electron velocity for
+electron particles.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
-is not saved in restart files, this means you cannot do "exact"
-restarts with this fix, where the simulation continues on the same as
-if no restart had taken place.  However, in a statistical sense, a
-restarted simulation should produce the same behavior.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  Because the state of the random number generator is not
+saved in restart files, this means you cannot do "exact" restarts with
+this fix, where the simulation continues on the same as if no restart
+had taken place.  However, in a statistical sense, a restarted
+simulation should produce the same behavior.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
@@ -133,8 +136,3 @@ The option defaults are scale = 1.0 for all types and tally = no.
 
 
 **(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

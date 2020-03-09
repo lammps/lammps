@@ -378,8 +378,3 @@ Default
 
 The option defaults are Px Py Pz = \* \* \*, grid = onelevel, and map =
 cart.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

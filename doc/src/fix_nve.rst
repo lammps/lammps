@@ -83,8 +83,3 @@ Related commands
 :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

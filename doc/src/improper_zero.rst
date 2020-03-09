@@ -1,25 +1,25 @@
-.. index:: improper\_style zero
+.. index:: improper_style zero
 
-improper\_style zero command
-============================
+improper_style zero command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   improper_style zero *nocoeff*
+   improper_style zero [nocoeff]
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style zero
    improper_style zero nocoeff
-   improper_coeff \*
+   improper_coeff *
 
 Description
 """""""""""
@@ -51,8 +51,3 @@ Restrictions
 :doc:`improper_style none <improper_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

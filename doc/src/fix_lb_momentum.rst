@@ -82,8 +82,3 @@ Default
 """""""
 
 Zeros the total system linear momentum in each dimension.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

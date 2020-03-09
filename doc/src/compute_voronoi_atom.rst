@@ -249,8 +249,3 @@ Related commands
 :doc:`dump custom <dump>`, :doc:`dump local <dump>`
 
 **Default:** *neighbors* no, *peratom* yes
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

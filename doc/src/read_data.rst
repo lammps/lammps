@@ -1,13 +1,13 @@
-.. index:: read\_data
+.. index:: read_data
 
-read\_data command
-==================
+read_data command
+=================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+ 
+.. code-block:: LAMMPS
 
    read_data file keyword args ...
 
@@ -54,7 +54,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data data.lj
    read_data ../run7/data.polymer.gz
@@ -1401,7 +1401,7 @@ appear.  These are listed in the same order they appear as listed
 above.  Thus if
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid electron sphere
 
@@ -1438,8 +1438,3 @@ Default
 """""""
 
 The default for all the *extra* keywords is 0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

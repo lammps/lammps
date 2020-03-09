@@ -1,13 +1,12 @@
-.. index:: pair\_style tri/lj
+.. index:: pair_style tri/lj
 
-pair\_style tri/lj command
-==========================
+pair_style tri/lj command
+=========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tri/lj cutoff
 
@@ -16,11 +15,10 @@ cutoff = global cutoff for interactions (distance units)
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tri/lj 3.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.5 2.5
 
 Description
@@ -121,8 +119,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style line/lj <pair_line_lj>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

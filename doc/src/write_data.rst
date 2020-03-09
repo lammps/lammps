@@ -1,13 +1,13 @@
-.. index:: write\_data
+.. index:: write_data
 
-write\_data command
+write_data command
 ===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_data file keyword value ...
 
@@ -29,10 +29,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_data data.polymer
-   write_data data.\*
+   write_data data.*
 
 Description
 """""""""""
@@ -145,8 +145,3 @@ Default
 """""""
 
 The option defaults are pair = ii.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

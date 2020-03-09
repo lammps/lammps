@@ -1,21 +1,22 @@
-.. index:: pair\_style smd/tri\_surface
+.. index:: pair_style smd/tri_surface
 
-pair\_style smd/tri\_surface command
-====================================
+pair_style smd/tri\_surface command
+===================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/tri_surface scale_factor
 
 Examples
 """"""""
 
-pair\_style smd/tri\_surface 1.0
-pair\_coeff 1 1 <contact\_stiffness>
+.. code-block:: LAMMPS
+
+   pair_style smd/tri_surface 1.0
+   pair_coeff 1 1 <contact_stiffness>
 
 Description
 """""""""""
@@ -63,12 +64,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

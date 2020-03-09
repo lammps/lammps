@@ -700,8 +700,3 @@ The option defaults are as follows:
 * bound = lower and upper in all dimensions
 * pbc = no
 * units = lattice
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

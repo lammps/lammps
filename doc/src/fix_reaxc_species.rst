@@ -197,8 +197,3 @@ Default
 The default values for bond-order cutoffs are 0.3 for all I-J pairs.  The
 default element symbols are C, H, O, N.  Position files are not written
 by default.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

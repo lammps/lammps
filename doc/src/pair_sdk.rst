@@ -1,37 +1,37 @@
-.. index:: pair\_style lj/sdk
+.. index:: pair_style lj/sdk
 
-pair\_style lj/sdk command
-==========================
+pair_style lj/sdk command
+=========================
 
-pair\_style lj/sdk/gpu command
-==============================
-
-pair\_style lj/sdk/kk command
+pair_style lj/sdk/gpu command
 =============================
 
-pair\_style lj/sdk/omp command
-==============================
+pair_style lj/sdk/kk command
+============================
 
-pair\_style lj/sdk/coul/long command
-====================================
+pair_style lj/sdk/omp command
+=============================
 
-pair\_style lj/sdk/coul/long/gpu command
-========================================
-
-pair\_style lj/sdk/coul/long/omp command
-========================================
-
-pair\_style lj/sdk/coul/msm command
+pair_style lj/sdk/coul/long command
 ===================================
 
-pair\_style lj/sdk/coul/msm/omp command
+pair_style lj/sdk/coul/long/gpu command
 =======================================
+
+pair_style lj/sdk/coul/long/omp command
+=======================================
+
+pair_style lj/sdk/coul/msm command
+==================================
+
+pair_style lj/sdk/coul/msm/omp command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -51,7 +51,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/sdk 2.5
    pair_coeff 1 1 lj12_6 1 1.1 2.8
@@ -70,8 +70,18 @@ Description
 The *lj/sdk* styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
 given by
 
-.. image:: Eqs/pair_cmm.jpg
-   :align: center
+.. math::
+
+   E = & \frac{27}{4} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right] 
+                         \qquad r < r_c \\
+   E = & \frac{3\sqrt{3}}{2} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^4 \right] 
+                         \qquad r < r_c \\
+   E = &  4 \epsilon  \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right] 
+                         \qquad r < r_c
+
 
 as required for the SDK Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>` and :ref:`(DeVane) <DeVane>`.  Rc is the cutoff.
@@ -196,8 +206,3 @@ Related commands
 
 
 **(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

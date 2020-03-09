@@ -1,13 +1,13 @@
-.. index:: pair\_write
+.. index:: pair_write
 
-pair\_write command
-===================
+pair_write command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_write itype jtype N style inner outer file keyword Qi Qj
 
@@ -23,7 +23,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_write 1 3 500 r 1.0 10.0 table.txt LJ
    pair_write 1 1 1000 rsq 2.0 8.0 table.txt Yukawa_1_1 -0.5 0.5
@@ -84,8 +84,3 @@ Related commands
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

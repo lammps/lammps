@@ -61,7 +61,7 @@ specify boundary conditions or force constraints in the usual way,
 which will be added to the per-atom forces returned by the server
 code.
 
-See the examples/message dir for example scripts where LAMMPS is both
+See the examples/message directory for example scripts where LAMMPS is both
 the "client" and/or "server" code for this kind of client/server MD
 simulation.  The examples/message/README file explains how to launch
 LAMMPS and another code in tandem to perform a coupled simulation.
@@ -108,8 +108,3 @@ Related commands
 :doc:`message <message>`, :doc:`server <server>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

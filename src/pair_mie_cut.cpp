@@ -40,6 +40,7 @@ using namespace MathConst;
 PairMIECut::PairMIECut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

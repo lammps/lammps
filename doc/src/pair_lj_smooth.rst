@@ -1,16 +1,16 @@
-.. index:: pair\_style lj/smooth
+.. index:: pair_style lj/smooth
 
-pair\_style lj/smooth command
-=============================
+pair_style lj/smooth command
+============================
 
-pair\_style lj/smooth/omp command
-=================================
+pair_style lj/smooth/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth Rin Rc
 
@@ -21,10 +21,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/smooth 8.0 10.0
-   pair_coeff \* \* 10.0 1.5
+   pair_coeff * * 10.0 1.5
    pair_coeff 1 1 20.0 1.3 7.0 9.0
 
 Description
@@ -33,12 +33,18 @@ Description
 Style *lj/smooth* computes a LJ interaction with a force smoothing
 applied between the inner and outer cutoff.
 
-.. image:: Eqs/pair_lj_smooth.jpg
-   :align: center
+.. math::
+
+   E & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right]
+                         \qquad r < r_{in} \\
+   F & =  C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
+                       \qquad r_{in} < r < r_c
+
 
 The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
-cause the force to vary smoothly from the inner cutoff Rin to the
-outer cutoff Rc.
+cause the force to vary smoothly from the inner cutoff :math:`r_{in}` to the
+outer cutoff :math:`r_c`.
 
 At the inner cutoff the force and its 1st derivative
 will match the non-smoothed LJ formula.  At the outer cutoff the force
@@ -58,13 +64,13 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
-* inner (distance units)
-* outer (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
+* :math:`r_{in}` (distance units)
+* :math:`r_c` (distance units)
 
 The last 2 coefficients are optional inner and outer cutoffs.  If not
-specified, the global values for Rin and Rc are used.
+specified, the global values for :math:`r_{in}` and :math:`r_c` are used.
 
 
 ----------
@@ -125,7 +131,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -133,8 +139,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth/linear <pair_lj_smooth_linear>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

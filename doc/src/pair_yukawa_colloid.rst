@@ -1,19 +1,19 @@
-.. index:: pair\_style yukawa/colloid
+.. index:: pair_style yukawa/colloid
 
-pair\_style yukawa/colloid command
-==================================
+pair_style yukawa/colloid command
+=================================
 
-pair\_style yukawa/colloid/gpu command
-======================================
+pair_style yukawa/colloid/gpu command
+=====================================
 
-pair\_style yukawa/colloid/omp command
-======================================
+pair_style yukawa/colloid/omp command
+=====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa/colloid kappa cutoff
 
@@ -24,22 +24,24 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa/colloid 2.0 2.5
    pair_coeff 1 1 100.0 2.3
-   pair_coeff \* \* 100.0
+   pair_coeff * * 100.0
 
 Description
 """""""""""
 
 Style *yukawa/colloid* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_yukawa_colloid.jpg
-   :align: center
+.. math::
 
-where Ri and Rj are the radii of the two particles and Rc is the
-cutoff.
+   E = \frac{A}{\kappa} e^{- \kappa (r - (r_i + r_j))} \qquad r < r_c
+
+
+where :math:`r_i` and :math:`r_j` are the radii of the two particles
+and :math:`r_c` is the cutoff.
 
 In contrast to :doc:`pair_style yukawa <pair_yukawa>`, this functional
 form arises from the Coulombic interaction between two colloid
@@ -49,7 +51,7 @@ theory.  :doc:`Pair\_style yukawa <pair_yukawa>` is a screened Coulombic
 potential between two point-charges and uses no such approximation.
 
 This potential applies to nearby particle pairs for which the Derjagin
-approximation holds, meaning h << Ri + Rj, where h is the
+approximation holds, meaning :math:`h << r_i + r_j`, where *h* is the
 surface-to-surface separation of the two particles.
 
 When used in combination with :doc:`pair_style colloid <pair_colloid>`,
@@ -72,17 +74,17 @@ used in :doc:`pair_style yukawa <pair_yukawa>`.  For low surface
 potentials, i.e. less than about 25 mV, A can be written as:
 
 
-.. parsed-literal::
+.. math::
 
-   A = 2 \* PI \* R\*eps\*eps0 \* kappa \* psi\^2
+   A = 2 \pi R\varepsilon\varepsilon_0 \kappa \psi^2
 
 where
 
-* R = colloid radius (distance units)
-* eps0 = permittivity of free space (charge\^2/energy/distance units)
-* eps = relative permittivity of fluid medium (dimensionless)
-* kappa = inverse screening length (1/distance units)
-* psi = surface potential (energy/charge units)
+* *R* = colloid radius (distance units)
+* :math:`\varepsilon_0` = permittivity of free space (charge\^2/energy/distance units)
+* :math:`\varepsilon` = relative permittivity of fluid medium (dimensionless)
+* :math:`\kappa` = inverse screening length (1/distance units)
+* :math:`\psi` = surface potential (energy/charge units)
 
 The last coefficient is optional.  If not specified, the global
 yukawa/colloid cutoff is used.
@@ -174,8 +176,3 @@ Related commands
 
 **(Safran)** Safran, Statistical Thermodynamics of Surfaces, Interfaces,
 And Membranes, Westview Press, ISBN: 978-0813340791 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

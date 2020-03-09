@@ -1,13 +1,13 @@
-.. index:: kspace\_modify
+.. index:: kspace_modify
 
-kspace\_modify command
-======================
+kspace_modify command
+=====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_modify keyword value ...
 
@@ -62,7 +62,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_modify mesh 24 24 30 order 6
    kspace_modify slab 3.0
@@ -483,7 +483,8 @@ parameters, see the :doc:`Howto dispersion <Howto_dispersion>` doc page.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -560,8 +561,3 @@ Chem Theory Comput, 9, 5412 (2013).
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

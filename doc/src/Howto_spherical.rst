@@ -39,7 +39,7 @@ is often used in conjunction with spherical particles, via a command
 like
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole
 
@@ -236,8 +236,3 @@ as single particles, though they can store internal state, such as a
 list of sub-particles.  Individual body particles are typically treated
 as rigid bodies, and their motion integrated with a command like :doc:`fix nve/body <fix_nve_body>`.  Interactions between pairs of body
 particles are computed via a command like :doc:`pair_style body/nparticle <pair_body_nparticle>`.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

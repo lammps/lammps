@@ -1,13 +1,13 @@
-.. index:: read\_dump
+.. index:: read_dump
 
-read\_dump command
-==================
+read_dump command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump file Nstep field1 field2 ... keyword values ...
 
@@ -56,7 +56,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump dump.file 5000 x y z
    read_dump dump.xyz 5 x y z box no format xyz
@@ -416,10 +416,3 @@ The option defaults are box = yes, replace = yes, purge = no, trim =
 no, add = no, scaled = no, wrapped = yes, and format = native.
 
 .. _vmd: http://www.ks.uiuc.edu/Research/vmd
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

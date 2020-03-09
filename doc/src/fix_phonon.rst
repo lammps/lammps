@@ -71,21 +71,21 @@ coefficients of the system in reciprocal space are given by
 
 .. math::
 
-   \begin{equation}\mathbf{\Phi}_{k\alpha,k^\prime \beta}(\mathbf{q}) = k_B T \mathbf{G}^{-1}_{k\alpha,k^\prime \beta}(\mathbf{q})\end{equation}
+   \mathbf{\Phi}_{k\alpha,k^\prime \beta}(\mathbf{q}) = k_B T \mathbf{G}^{-1}_{k\alpha,k^\prime \beta}(\mathbf{q})
 
 where :math:`\mathbf{G}` is the Green's functions coefficients given by
 
 
 .. math::
 
-   \begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) = \left< \mathbf{u}_{k\alpha}(\mathbf{q}) \bullet \mathbf{u}_{k^\prime \beta}^*(\mathbf{q}) \right>\end{equation}
+   \mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) = \left< \mathbf{u}_{k\alpha}(\mathbf{q}) \bullet \mathbf{u}_{k^\prime \beta}^*(\mathbf{q}) \right>
 
 where :math:`\left< \ldots \right>` denotes the ensemble average, and
 
 
 .. math::
 
-   \begin{equation}\mathbf{u}_{k\alpha}(\mathbf{q}) = \sum_l \mathbf{u}_{l k \alpha} \exp{(i\mathbf{qr}_l)}\end{equation}
+   \mathbf{u}_{k\alpha}(\mathbf{q}) = \sum_l \mathbf{u}_{l k \alpha} \exp{(i\mathbf{qr}_l)}
 
 is the :math:`\alpha` component of the atomic displacement for the :math:`k`
 th atom in the unit cell in reciprocal space at :math:`\mathbf{q}`. In
@@ -95,9 +95,9 @@ according to the following formula,
 
 .. math::
 
-   \begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) =
+   \mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) =
    \left< \mathbf{R}_{k \alpha}(\mathbf{q}) \bullet \mathbf{R}^*_{k^\prime \beta}(\mathbf{q}) \right>
-   - \left<\mathbf{R}\right>_{k \alpha}(\mathbf{q}) \bullet \left<\mathbf{R}\right>^*_{k^\prime \beta}(\mathbf{q})\end{equation}
+   - \left<\mathbf{R}\right>_{k \alpha}(\mathbf{q}) \bullet \left<\mathbf{R}\right>^*_{k^\prime \beta}(\mathbf{q})
 
 where :math:`\mathbf{R}` is the instantaneous positions of atoms, and
 :math:`\left<\mathbf{R}\right>` is the averaged atomic positions. It
@@ -110,8 +110,8 @@ Once the force constant matrix is known, the dynamical matrix
 
 .. math::
 
-   \begin{equation}\mathbf{D}_{k\alpha, k^\prime\beta}(\mathbf{q}) =
-   (m_k m_{k^\prime})^{-\frac{1}{2}} \mathbf{\Phi}_{k \alpha, k^\prime \beta}(\mathbf{q})\end{equation}
+   \mathbf{D}_{k\alpha, k^\prime\beta}(\mathbf{q}) =
+   (m_k m_{k^\prime})^{-\frac{1}{2}} \mathbf{\Phi}_{k \alpha, k^\prime \beta}(\mathbf{q})
 
 whose eigenvalues are exactly the phonon frequencies at :math:`\mathbf{q}`.
 
@@ -238,8 +238,3 @@ method*\ , `Computer Physics Communications [182](2):540-541 (2011). <http://dx.
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
 molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <http://dx.doi.org/10.1016/j.cpc.2011.04.019>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

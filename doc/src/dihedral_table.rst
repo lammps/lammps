@@ -1,16 +1,16 @@
-.. index:: dihedral\_style table
+.. index:: dihedral_style table
 
-dihedral\_style table command
-=============================
+dihedral_style table command
+============================
 
-dihedral\_style table/omp command
-=================================
+dihedral_style table/omp command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table style Ntable
 
@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table spline 400
    dihedral_style table linear 1000
@@ -226,8 +226,3 @@ Related commands
 :doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,22 +1,22 @@
-.. index:: pair\_style hbond/dreiding/lj
+.. index:: pair_style hbond/dreiding/lj
 
-pair\_style hbond/dreiding/lj command
-=====================================
+pair_style hbond/dreiding/lj command
+====================================
 
-pair\_style hbond/dreiding/lj/omp command
-=========================================
-
-pair\_style hbond/dreiding/morse command
+pair_style hbond/dreiding/lj/omp command
 ========================================
 
-pair\_style hbond/dreiding/morse/omp command
-============================================
+pair_style hbond/dreiding/morse command
+=======================================
+
+pair_style hbond/dreiding/morse/omp command
+===========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
 
@@ -31,7 +31,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90
    pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
@@ -46,15 +46,28 @@ The *hbond/dreiding* styles compute the Acceptor-Hydrogen-Donor (AHD)
 3-body hydrogen bond interaction for the :doc:`DREIDING <Howto_bioFF>`
 force field, given by:
 
-.. image:: Eqs/pair_hbond_dreiding.jpg
-   :align: center
+.. math::
 
-where Rin is the inner spline distance cutoff, Rout is the outer
-distance cutoff, theta\_c is the angle cutoff, and n is the cosine
-periodicity.
+   E  = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_{\rm in} \\
+      = & S(r) * \left[LJ(r) | Morse(r) \right] \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
+      = & 0 \qquad \qquad \qquad \qquad \qquad \qquad \qquad r > r_{\rm out} \\
+   LJ(r)  = & AR^{-12}-BR^{-10}cos^n\theta=
+         \epsilon\left\lbrace 5\left[ \frac{\sigma}{r}\right]^{12}-
+         6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n\theta\\
+   Morse(r)  = & D_0\left\lbrace \chi^2 - 2\chi\right\rbrace cos^n\theta=
+         D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} 
+         \right\rbrace cos^n\theta \\
+   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
+   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
+   { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
+
+
+where :math:`r_{\rm in}` is the inner spline distance cutoff,
+:math:`r_{\rm out}` is the outer distance cutoff, :math:`\theta_c` is
+the angle cutoff, and *n* is the cosine periodicity.
 
 Here, *r* is the radial distance between the donor (D) and acceptor
-(A) atoms and *theta* is the bond angle between the acceptor, the
+(A) atoms and :math:`\theta` is the bond angle between the acceptor, the
 hydrogen (H) and the donor atoms:
 
 .. image:: JPG/dreiding_hbond.jpg
@@ -137,11 +150,11 @@ follows:
 
 * K = hydrogen atom type = 1 to Ntypes
 * donor flag = *i* or *j*
-* epsilon (energy units)
-* sigma (distance units)
-* n = exponent in formula above
-* distance cutoff Rin (distance units)
-* distance cutoff Rout (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
+* *n* = exponent in formula above
+* distance cutoff :math:`r_{\rm in}` (distance units)
+* distance cutoff :math:`r_{\rm out}` (distance units)
 * angle cutoff (degrees)
 
 For the *hbond/dreiding/morse* style the list of coefficients is as
@@ -149,12 +162,12 @@ follows:
 
 * K = hydrogen atom type = 1 to Ntypes
 * donor flag = *i* or *j*
-* D0 (energy units)
-* alpha (1/distance units)
-* r0 (distance units)
-* n = exponent in formula above
-* distance cutoff Rin (distance units)
-* distance cutoff Rout (distance units)
+* :math:`D_0` (energy units)
+* :math:`\alpha` (1/distance units)
+* :math:`r_0` (distance units)
+* *n* = exponent in formula above
+* distance cutoff :math:`r_{\rm in}` (distance units)
+* distance cutoff :math:`r_{out}` (distance units)
 * angle cutoff (degrees)
 
 A single hydrogen atom type K can be specified, or a wild-card asterisk
@@ -169,13 +182,13 @@ flag is *j*\ , then the atom of type J in the pair\_coeff command is
 treated as the donor and I is the donor.  This option is required
 because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
-Epsilon and sigma are settings for the hydrogen bond potential based
-on a Lennard-Jones functional form.  Note that sigma is defined as the
-zero-crossing distance for the potential, not as the energy minimum at
-2\^(1/6) sigma.
+:math:`\epsilon` and :math:`\sigma` are settings for the hydrogen bond
+potential based on a Lennard-Jones functional form.  Note that sigma is
+defined as the zero-crossing distance for the potential, not as the
+energy minimum at :math:`2^{1/6} \sigma`.
 
-D0 and alpha and r0 are settings for the hydrogen bond potential based
-on a Morse functional form.
+:math:`D_0` and :math:`\alpha` and :math:`r_0` are settings for the
+hydrogen bond potential based on a Morse functional form.
 
 The last 3 coefficients for both styles are optional.  If not
 specified, the global n, distance cutoff, and angle cutoff specified
@@ -240,7 +253,7 @@ To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute hb all pair hbond/dreiding/lj
    variable n_hbond equal c_hb[1] #number hbonds
@@ -279,8 +292,3 @@ Related commands
 
 **(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

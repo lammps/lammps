@@ -182,8 +182,3 @@ Related commands
 :doc:`fix npt <fix_nh>`, :doc:`fix nve\_asphere <fix_nve_asphere>`, :doc:`fix nvt\_asphere <fix_nvt_asphere>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

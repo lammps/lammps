@@ -1,13 +1,13 @@
-.. index:: pair\_style python
+.. index:: pair_style python
 
-pair\_style python command
-==========================
+pair_style python command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python cutoff
 
@@ -17,14 +17,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python 2.5
-   pair_coeff \* \* py_pot.LJCutMelt lj
+   pair_coeff * * py_pot.LJCutMelt lj
 
    pair_style hybrid/overlay coul/long 12.0 python 12.0
-   pair_coeff \* \* coul/long
-   pair_coeff \* \* python py_pot.LJCutSPCE OW NULL
+   pair_coeff * * coul/long
+   pair_coeff * * python py_pot.LJCutSPCE OW NULL
 
 Description
 """""""""""
@@ -62,9 +62,9 @@ two are supposed to be using the 'LJ1' parameters and the third the
 'LJ2' parameters, then you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* py_pot.LJCutMelt LJ1 LJ1 LJ2
+   pair_coeff * * py_pot.LJCutMelt LJ1 LJ1 LJ2
 
 The first two arguments **must** be \* \* so as to span all LAMMPS atom
 types.  The first two LJ1 arguments map LAMMPS atom types 1 and 2 to
@@ -83,10 +83,10 @@ placeholders for atom types that will be used with other potentials.
 The python potential file has to start with the following code:
 
 
-.. parsed-literal::
+.. code-block:: python
 
-   from __future_\_ import print_function
-   #
+   from __future__ import print_function
+   
    class LAMMPSPairPotential(object):
        def __init__(self):
            self.pmap=dict()
@@ -115,7 +115,7 @@ Here is an example for a single type Lennard-Jones potential class
 which the parameters epsilon and sigma are both 1.0:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    class LJCutMelt(LAMMPSPairPotential):
        def __init__(self):
@@ -140,7 +140,7 @@ value of the internal potential parameter data structure. Following
 the *LJCutMelt* example, here are the two functions:
 
 
-.. parsed-literal::
+.. code-block:: python
 
       def compute_force(self,rsq,itype,jtype):
            coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
@@ -181,10 +181,10 @@ the *LJCutMelt* example, here are the two functions:
    for an example LAMMPS input of how to build a table file:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python 2.5
-   pair_coeff \* \* py_pot.LJCutMelt lj
+   pair_coeff * * py_pot.LJCutMelt lj
    shell rm -f melt.table
    pair_write  1 1 2000 rsq 0.01 2.5 lj1_lj2.table lj
 
@@ -199,7 +199,7 @@ After switching the pair style to *table*\ , the potential tables need
 to be assigned to the LAMMPS atom types like this:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style      table linear 2000
    pair_coeff      1  1  melt.table lj
@@ -248,8 +248,3 @@ Related commands
 :doc:`pair style table <pair_table>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

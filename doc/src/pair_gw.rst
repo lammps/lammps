@@ -1,16 +1,16 @@
-.. index:: pair\_style gw
+.. index:: pair_style gw
 
-pair\_style gw command
-======================
+pair_style gw command
+=====================
 
-pair\_style gw/zbl command
-==========================
+pair_style gw/zbl command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -19,14 +19,13 @@ Syntax
 Examples
 """"""""
 
-pair\_style gw
-pair\_coeff \* \* SiC.gw Si C C
+.. code-block:: LAMMPS
 
-
-.. parsed-literal::
+   pair_style gw
+   pair_coeff * * SiC.gw Si C C
 
    pair_style gw/zbl
-   pair_coeff \* \* SiC.gw.zbl C Si
+   pair_coeff * * SiC.gw.zbl C Si
 
 Description
 """""""""""
@@ -60,9 +59,9 @@ If your LAMMPS simulation has 4 atoms types and you want the first 3 to
 be Si, and the 4th to be C, you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.gw Si Si Si C
+   pair_coeff * * SiC.gw Si Si Si C
 
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -138,8 +137,3 @@ Related commands
 
 **(Gao)** Gao and Weber, Nuclear Instruments and Methods in Physics
 Research B 191 (2012) 504.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

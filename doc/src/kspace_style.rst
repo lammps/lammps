@@ -1,13 +1,13 @@
-.. index:: kspace\_style
+.. index:: kspace_style
 
-kspace\_style command
-=====================
+kspace_style command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_style style value
 
@@ -82,7 +82,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
@@ -94,12 +94,12 @@ Description
 """""""""""
 
 Define a long-range solver for LAMMPS to use each timestep to compute
-long-range Coulombic interactions or long-range 1/r\^6 interactions.
+long-range Coulombic interactions or long-range :math:`1/r^6` interactions.
 Most of the long-range solvers perform their computation in K-space,
 hence the name of this command.
 
 When such a solver is used in conjunction with an appropriate pair
-style, the cutoff for Coulombic or 1/r\^N interactions is effectively
+style, the cutoff for Coulombic or :math:`1/r^N` interactions is effectively
 infinite.  If the Coulombic case, this means each charge in the system
 interacts with charges in an infinite array of periodic images of the
 simulation domain.
@@ -128,9 +128,9 @@ The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
 
 The *ewald/disp* style adds a long-range dispersion sum option for
-1/r\^6 potentials and is useful for simulation of interfaces
+:math:`1/r^6` potentials and is useful for simulation of interfaces
 :ref:`(Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
-but in a more efficient manner than the *ewald* style.  The 1/r\^6
+but in a more efficient manner than the *ewald* style.  The :math:`1/r^6`
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
 The *ewald/disp* style can also be used with point-dipoles, see
@@ -153,8 +153,8 @@ to solve Poisson's equation on the mesh, then interpolates electric
 fields on the mesh points back to the atoms.  It is closely related to
 the particle-mesh Ewald technique (PME) :ref:`(Darden) <Darden>` used in
 AMBER and CHARMM.  The cost of traditional Ewald summation scales as
-N\^(3/2) where N is the number of atoms in the system.  The PPPM solver
-scales as Nlog(N) due to the FFTs, so it is almost always a faster
+:math:`N^{\frac{3}{2}}` where :math:`N` is the number of atoms in the system.  The PPPM solver
+scales as :math:`N \log{N}` due to the FFTs, so it is almost always a faster
 choice :ref:`(Pollock) <Pollock>`.
 
 The *pppm/cg* style is identical to the *pppm* style except that it
@@ -229,7 +229,7 @@ parameters and how to choose them is described in
 
    All of the PPPM styles can be used with single-precision FFTs by
    using the compiler switch -DFFT\_SINGLE for the FFT\_INC setting in your
-   lo-level Makefile.  This setting also changes some of the PPPM
+   low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
    fields to particles) to be performed in single precision.  This option
    can speed-up long-range calculations, particularly in parallel or on
@@ -244,7 +244,7 @@ The *msm* style invokes a multi-level summation method MSM solver,
 :ref:`(Hardy) <Hardy2006>` or :ref:`(Hardy2) <Hardy2009>`, which maps atom charge
 to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
 meshes on which direct Coulomb solvers are done.  This method does not
-use FFTs and scales as N. It may therefore be faster than the other
+use FFTs and scales as :math:`N`. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
 core counts. MSM can also be used for non-periodic boundary conditions
 and for mixed periodic and non-periodic boundaries.
@@ -397,7 +397,7 @@ produce the same results, except for round-off and precision issues.
 More specifically, the *pppm/gpu* style performs charge assignment and
 force interpolation calculations on the GPU.  These processes are
 performed either in single or double precision, depending on whether
-the -DFFT\_SINGLE setting was specified in your lo-level Makefile, as
+the -DFFT\_SINGLE setting was specified in your low-level Makefile, as
 discussed above.  The FFTs themselves are still calculated on the CPU.
 If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
@@ -466,7 +466,7 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kspace_style none
 
@@ -590,8 +590,3 @@ Illinois at Urbana-Champaign, (2006).
 
 **(Who)** Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

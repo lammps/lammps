@@ -52,11 +52,13 @@ boundaries.
 Rg is a measure of the size of a chunk, and is computed by this
 formula
 
-.. image:: Eqs/compute_gyration.jpg
-   :align: center
+.. math::
 
-where M is the total mass of the chunk, Rcm is the center-of-mass
-position of the chunk, and the sum is over all atoms in the
+ {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
+
+
+where :math:`M` is the total mass of the chunk, :math:`r_{cm}` is
+the center-of-mass position of the chunk, and the sum is over all atoms in the
 chunk.
 
 Note that only atoms in the specified group contribute to the
@@ -70,14 +72,16 @@ non-zero chunk IDs.
 If the *tensor* keyword is specified, then the scalar Rg value is not
 calculated, but an Rg tensor is instead calculated for each chunk.
 The formula for the components of the tensor is the same as the above
-formula, except that (Ri - Rcm)\^2 is replaced by (Rix - Rcmx) \* (Riy -
-Rcmy) for the xy component, etc.  The 6 components of the tensor are
+formula, except that :math:`(r_i - r_{cm})^2` is replaced by
+:math:`(r_{i,x} - r_{cm,x}) \cdot (r_{i,y} - r_{cm,y})` for the xy
+component, and so on.  The 6 components of the tensor are
 ordered xx, yy, zz, xy, xz, yz.
 
 .. note::
 
-   The coordinates of an atom contribute to Rg in "unwrapped" form,
-   by using the image flags associated with each atom.  See the :doc:`dump custom <dump>` command for a discussion of "unwrapped" coordinates.
+   The coordinates of an atom contribute to :math:`R_g` in "unwrapped" form,
+   by using the image flags associated with each atom.  See the :doc:`dump custom <dump>`
+   command for a discussion of "unwrapped" coordinates.
    See the Atoms section of the :doc:`read_data <read_data>` command for a
    discussion of image flags and how they are set for each atom.  You can
    reset the image flags (e.g. to 0) before invoking this compute by
@@ -119,8 +123,3 @@ Restrictions
 :doc:`compute gyration <compute_gyration>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

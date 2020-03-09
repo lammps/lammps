@@ -11,6 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LAMMPS_LIBRARY_H
+#define LAMMPS_LIBRARY_H
+
 /*
    C or Fortran style library interface to LAMMPS
    new LAMMPS-specific functions can be added
@@ -114,6 +117,7 @@ int lammps_get_last_error_message(void *, char *, int);
 }
 #endif
 
+#endif /* LAMMPS_LIBRARY_H */
 /* ERROR/WARNING messages:
 
 E: Library error: issuing LAMMPS command during run

@@ -1,13 +1,13 @@
-.. index:: pair\_style mgpt
+.. index:: pair_style mgpt
 
-pair\_style mgpt command
-========================
+pair_style mgpt command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
 
@@ -15,14 +15,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
-   pair_coeff \* \* Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
+   pair_coeff * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
    cp ~/lammps/potentials/Ta6.8x.mgpt.parmin parmin
    cp ~/lammps/potentials/Ta6.8x.mgpt.potin potin
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 1234 precision double
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 12
+   pair_coeff * * parmin potin Omega volpress yes nbody 1234 precision double
+   pair_coeff * * parmin potin Omega volpress yes nbody 12
 
 Description
 """""""""""
@@ -33,8 +33,13 @@ multi-ion interatomic potentials in d-band transition metals, with a
 volume-dependent, real-space total-energy functional for the N-ion
 elemental bulk material in the form
 
-.. image:: Eqs/pair_mgpt.jpg
-   :align: center
+.. math::
+
+   E_{\rm tot}({\bf R}_1 \ldots {\bf R}_N) = NE_{\rm vol}(\Omega ) 
+   + \frac{1}{2} \sum _{i,j} \mbox{}^\prime \ v_2(ij;\Omega ) 
+   + \frac{1}{6} \sum _{i,j,k} \mbox{}^\prime \ v_3(ijk;\Omega ) 
+   + \frac{1}{24} \sum _{i,j,k,l} \mbox{}^\prime \ v_4(ijkl;\Omega )
+
 
 where the prime on each summation sign indicates the exclusion of all
 self-interaction terms from the summation.  The leading volume term
@@ -247,8 +252,3 @@ Series, 46, 254 (2006).
 
 **(Oppelstrup)** Oppelstrup, unpublished, 2015.
 Oppelstrup and Moriarty, to be published.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

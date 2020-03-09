@@ -91,8 +91,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/sphere <fix_nve_sphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -36,16 +36,19 @@ Brownian dynamics (BD).
 A random torque and a transverse dissipation are applied to each spin i according to
 the following stochastic differential equation:
 
-.. image:: Eqs/fix_langevin_spin_sLLG.jpg
-   :align: center
+.. math::
 
-with lambda the transverse damping, and eta a random vector.
+   \frac{d \vec{s}_{i}}{dt} = \frac{1}{\left(1+\lambda^2 \right)} \left( \left(
+   \vec{\omega}_{i} +\vec{\eta} \right) \times \vec{s}_{i} + \lambda\, \vec{s}_{i}
+  \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right) \right)
+
+with :math:`\lambda` the transverse damping, and :math:`\eta` a random vector.
 This equation is referred to as the stochastic Landau-Lifshitz-Gilbert (sLLG)
 equation.
 
-The components of eta are drawn from a Gaussian probability law. Their amplitude
-is defined as a proportion of the temperature of the external thermostat T (in K
-in metal units).
+The components of :math:`\eta` are drawn from a Gaussian probability
+law. Their amplitude is defined as a proportion of the temperature of
+the external thermostat T (in K in metal units).
 
 More details about this implementation are reported in :ref:`(Tranchida) <Tranchida2>`.
 
@@ -119,8 +122,3 @@ Related commands
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

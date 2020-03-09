@@ -60,7 +60,7 @@ Syntax
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/misc/bond\_react.
+For unabridged example scripts and files, see examples/USER/reaction.
 
 
 .. parsed-literal::
@@ -149,10 +149,9 @@ constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/misc/bond\_react).
-The time integration command should be placed after the fix bond/react
-command due to the internal dynamic grouping performed by fix
-bond/react.
+above (full examples can be found at examples/USER/reaction). The time
+integration command should be placed after the fix bond/react command
+due to the internal dynamic grouping performed by fix bond/react.
 
 .. note::
 
@@ -295,7 +294,7 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update\_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there are three types of constraints available, as discussed below.
+there are four types of constraints available, as discussed below.
 
 A sample map file is given below:
 
@@ -371,11 +370,31 @@ the central atom). Angles must be specified in degrees. This
 constraint can be used to enforce a certain orientation between
 reacting molecules.
 
+The constraint of type 'dihedral' has the following syntax:
+
+
+.. parsed-literal::
+
+   dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
+
+where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+and *ID4* are pre-reaction atom IDs. Dihedral angles are calculated in
+the interval (-180,180]. Refer to the :doc:`dihedral style <dihedral_style>`
+documentation for further details on convention. If *amin* is less
+than *amax*, these four atoms must form a dihedral angle greater than
+*amin* **and** less than *amax* for the reaction to occur. If *amin*
+is greater than *amax*, these four atoms must form a dihedral angle
+greater than *amin* **or** less than *amax* for the reaction to occur.
+Angles must be specified in degrees. Optionally, a second range of
+permissible angles *amin2*-*amax2* can be specified.
+
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:
 
-.. image:: Eqs/fix_bond_react.jpg
-   :align: center
+.. math::
+
+   k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
+
 
 The Arrhenius constraint has the following syntax:
 
@@ -385,12 +404,12 @@ The Arrhenius constraint has the following syntax:
    arrhenius *A* *n* *E_a* *seed*
 
 where 'arrhenius' is the required keyword, *A* is the pre-exponential
-factor, *n* is the exponent of the temperature dependence, *E\_a* is
-the activation energy (:doc:`units <units>` of energy), and *seed* is a
+factor, *n* is the exponent of the temperature dependence, :math:`E_a`
+is the activation energy (:doc:`units <units>` of energy), and *seed* is a
 random number seed. The temperature is defined as the instantaneous
 temperature averaged over all atoms in the reaction site, and is
 calculated in the same manner as for example
-:doc:`compute\_temp\_chunk <compute_temp_chunk>`. Currently, there are no
+:doc:`compute temp/chunk <compute_temp_chunk>`. Currently, there are no
 options for additional temperature averaging or velocity-biased
 temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the
@@ -514,7 +533,7 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the USER-REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
@@ -541,8 +560,3 @@ update\_edges = none
 
 
 **(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

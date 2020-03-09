@@ -136,8 +136,3 @@ Default
 """""""
 
 The option defaults are shift = fix group-ID, and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

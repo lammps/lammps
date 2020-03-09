@@ -1,25 +1,25 @@
-.. index:: dihedral\_style charmm
+.. index:: dihedral_style charmm
 
-dihedral\_style charmm command
-==============================
+dihedral_style charmm command
+=============================
 
-dihedral\_style charmm/intel command
-====================================
+dihedral_style charmm/intel command
+===================================
 
-dihedral\_style charmm/kk command
+dihedral_style charmm/kk command
+================================
+
+dihedral_style charmm/omp command
 =================================
 
-dihedral\_style charmm/omp command
-==================================
-
-dihedral\_style charmmfsw command
-=================================
+dihedral_style charmmfsw command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style style
 
@@ -29,7 +29,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style charmm
    dihedral_style charmmfsw
@@ -42,8 +42,10 @@ Description
 
 The *charmm* and *charmmfsw* dihedral styles use the potential
 
-.. image:: Eqs/dihedral_charmm.jpg
-   :align: center
+.. math::
+
+   E = K [ 1 + \cos (n \phi - d) ]
+
 
 See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM
 force field.  This dihedral style can also be used for the AMBER force
@@ -66,9 +68,9 @@ The following coefficients must be defined for each dihedral type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* K (energy)
-* n (integer >= 0)
-* d (integer value of degrees)
+* :math:`K` (energy)
+* :math:`n` (integer >= 0)
+* :math:`d` (integer value of degrees)
 * weighting factor (1.0, 0.5, or 0.0)
 
 The weighting factor is required to correct for double counting
@@ -190,8 +192,3 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,25 +1,24 @@
-.. index:: dihedral\_style zero
+.. index:: dihedral_style zero
 
-dihedral\_style zero command
+dihedral_style zero command
 ============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   dihedral_style zero *nocoeff*
+   dihedral_style zero [nocoeff]
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style zero
    dihedral_style zero nocoeff
-   dihedral_coeff \*
+   dihedral_coeff *
 
 Description
 """""""""""
@@ -51,8 +50,3 @@ Restrictions
 :doc:`dihedral_style none <dihedral_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

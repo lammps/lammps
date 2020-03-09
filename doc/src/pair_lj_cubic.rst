@@ -1,19 +1,19 @@
-.. index:: pair\_style lj/cubic
+.. index:: pair_style lj/cubic
 
-pair\_style lj/cubic command
-============================
+pair_style lj/cubic command
+===========================
 
-pair\_style lj/cubic/gpu command
-================================
+pair_style lj/cubic/gpu command
+===============================
 
-pair\_style lj/cubic/omp command
-================================
+pair_style lj/cubic/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
 
@@ -21,10 +21,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
-   pair_coeff \* \* 1.0 0.8908987
+   pair_coeff * * 1.0 0.8908987
 
 Description
 """""""""""
@@ -39,15 +39,19 @@ point.  The cubic coefficient A3 is chosen so that both energy and
 force go to zero at the cutoff distance.  Outside the cutoff distance
 the energy and force are zero.
 
-.. image:: Eqs/pair_lj_cubic.jpg
-   :align: center
+.. math::
 
-The location of the inflection point rs is defined
-by the LJ diameter, rs/sigma = (26/7)\^1/6. The cutoff distance
-is defined by rc/rs = 67/48 or rc/sigma = 1.737....
+   E & = u_{LJ}(r) \qquad r \leq r_s \\
+     & = u_{LJ}(r_s) + (r-r_s) u'_{LJ}(r_s) - \frac{1}{6} A_3 (r-r_s)^3 \qquad r_s < r \leq r_c \\
+     & = 0 \qquad r > r_c 
+
+
+The location of the inflection point :math:`r_s` is defined
+by the LJ diameter, :math:`r_s/\sigma = (26/7)^{1/6}`. The cutoff distance
+is defined by :math:`r_c/r_s = 67/48` or :math:`r_c/\sigma = 1.737...`
 The analytic expression for the
 the cubic coefficient
-A3\*rmin\^3/epsilon = 27.93... is given in the paper by
+:math:`A_3 r_{min}^3/\epsilon = 27.93...` is given in the paper by
 Holian and Ravelo :ref:`(Holian) <Holian>`.
 
 This potential is commonly used to study the shock mechanics of FCC
@@ -59,13 +63,13 @@ or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 
-Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum, which is
-located at rmin = 2\^(1/6)\*sigma. In the above example, sigma =
-0.8908987, so rmin = 1.
+Note that :math:`\sigma` is defined in the LJ formula as the
+zero-crossing distance for the potential, not as the energy minimum,
+which is located at :math:`r_{min} = 2^{\frac{1}{6}} \sigma`. In the
+above example, :math:`\sigma = 0.8908987`, so :math:`r_{min} = 1.0`.
 
 
 ----------
@@ -149,8 +153,3 @@ Related commands
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

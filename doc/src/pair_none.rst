@@ -1,13 +1,12 @@
-.. index:: pair\_style none
+.. index:: pair_style none
 
-pair\_style none command
-========================
+pair_style none command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
@@ -15,7 +14,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
@@ -43,7 +42,7 @@ building of a neighbor lists, but compute no pairwise interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -51,8 +50,3 @@ Related commands
 :doc:`pair_style zero <pair_zero>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

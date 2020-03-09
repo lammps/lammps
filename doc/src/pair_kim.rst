@@ -1,13 +1,13 @@
-.. index:: pair\_style kim
+.. index:: pair_style kim
 
-pair\_style kim command
-=======================
+pair_style kim command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style kim model
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style kim SW_StillingerWeber_1985_Si__MO_405512056662_005
-   pair_coeff \* \* Si
+   pair_coeff * * Si
 
 Description
 """""""""""
@@ -68,9 +68,9 @@ If the LAMMPS simulation has four atom types, where the first three are Si,
 and the fourth is C, the following *pair\_coeff* command would be used:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Si Si Si C
+   pair_coeff * * Si Si Si C
 
 The first two arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1, 2, and 3 to Si as
@@ -128,8 +128,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`kim_commands <kim_commands>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

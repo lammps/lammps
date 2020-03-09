@@ -38,7 +38,7 @@ run-time by using the :doc:`-partition command-line switch <Run_options>` to lau
 which in this context are the same as replicas.  E.g.  these commands:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
    mpirun -np 8 lmp_linux -partition 8x1 -in in.neb
@@ -53,8 +53,3 @@ processors.  Thus the above commands could be run on a
 single-processor (or few-processor) desktop so that you can run
 a multi-replica simulation on more replicas than you have
 physical processors.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

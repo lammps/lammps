@@ -1,40 +1,40 @@
-.. index:: pair\_style born/coul/dsf/cs
+.. index:: pair_style born/coul/dsf/cs
 
-pair\_style born/coul/dsf/cs command
+pair_style born/coul/dsf/cs command
 ====================================
 
-pair\_style born/coul/long/cs command
+pair_style born/coul/long/cs command
 =====================================
 
-pair\_style born/coul/long/cs/gpu command
+pair_style born/coul/long/cs/gpu command
 =========================================
 
-pair\_style born/coul/wolf/cs command
+pair_style born/coul/wolf/cs command
 =====================================
 
-pair\_style born/coul/wolf/cs/gpu command
+pair_style born/coul/wolf/cs/gpu command
 =========================================
 
-pair\_style buck/coul/long/cs command
+pair_style buck/coul/long/cs command
 =====================================
 
-pair\_style coul/long/cs command
+pair_style coul/long/cs command
 ================================
 
-pair\_style coul/long/cs/gpu command
+pair_style coul/long/cs/gpu command
 ====================================
 
-pair\_style coul/wolf/cs command
+pair_style coul/wolf/cs command
 ================================
 
-pair\_style lj/cut/coul/long/cs command
+pair_style lj/cut/coul/long/cs command
 =======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -71,33 +71,33 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style born/coul/dsf/cs 0.1 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style born/coul/long/cs 10.0 8.0
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/wolf/cs 0.25 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style buck/coul/long/cs 10.0
    pair_style buck/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
 
    pair_style coul/long/cs 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/wolf/cs 0.2 9.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style lj/cut/coul/long/cs 10.0
    pair_style lj/cut/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description
@@ -138,12 +138,14 @@ is used to calculate the correction factor is extended by a minimal
 distance (r\_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
-.. image:: Eqs/pair_cs.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the core and shell, epsilon is the dielectric constant and r\_min is the
-minimal distance.
+   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the core and shell, epsilon is the dielectric
+constant and :math:`r_{min}` is the minimal distance.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of
@@ -211,8 +213,3 @@ Related commands
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

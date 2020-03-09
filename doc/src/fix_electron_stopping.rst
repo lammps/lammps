@@ -55,7 +55,7 @@ to each atom as:
 
 .. math::
 
-   \begin{equation}\vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e\end{equation}
+   \vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e
 
 where :math:`\vec{F}_i` is the resulting total force on the atom.
 :math:`\vec{F}^0_i` is the original force applied to the atom, :math:`\vec{v}_i` is
@@ -203,8 +203,3 @@ The default is no limitation by region, and minneigh = 1.
 
 
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

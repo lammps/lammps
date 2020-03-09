@@ -1,13 +1,13 @@
-.. index:: pair\_style sph/heatconduction
+.. index:: pair_style sph/heatconduction
 
-pair\_style sph/heatconduction command
-======================================
+pair_style sph/heatconduction command
+=====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/heatconduction
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sph/heatconduction
-   pair_coeff \* \* 1.0 2.4
+   pair_coeff * * 1.0 2.4
 
 Description
 """""""""""
@@ -67,8 +67,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, pair\_sph/rhosum
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

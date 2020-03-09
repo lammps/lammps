@@ -1,13 +1,13 @@
-.. index:: pair\_style quip
+.. index:: pair_style quip
 
-pair\_style quip command
-========================
+pair_style quip command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style quip
 
@@ -15,11 +15,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style      quip
-   pair_coeff      \* \* gap_example.xml "Potential xml_label=GAP_2014_5_8_60_17_10_38_466" 14
-   pair_coeff      \* \* sw_example.xml "IP SW" 14
+   pair_coeff      * * gap_example.xml "Potential xml_label=GAP_2014_5_8_60_17_10_38_466" 14
+   pair_coeff      * * sw_example.xml "IP SW" 14
 
 Description
 """""""""""
@@ -117,8 +117,3 @@ Review Letters 104, 136403 (2010).
 
 **(Bartok\_PhD)** A Bartok-Partay, PhD Thesis, University of Cambridge,
 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

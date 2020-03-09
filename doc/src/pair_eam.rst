@@ -1,76 +1,76 @@
-.. index:: pair\_style eam
+.. index:: pair_style eam
 
-pair\_style eam command
-=======================
+pair_style eam command
+======================
 
-pair\_style eam/gpu command
-===========================
-
-pair\_style eam/intel command
-=============================
-
-pair\_style eam/kk command
+pair_style eam/gpu command
 ==========================
 
-pair\_style eam/omp command
-===========================
+pair_style eam/intel command
+============================
 
-pair\_style eam/opt command
-===========================
+pair_style eam/kk command
+=========================
 
-pair\_style eam/alloy command
-=============================
+pair_style eam/omp command
+==========================
 
-pair\_style eam/alloy/gpu command
-=================================
+pair_style eam/opt command
+==========================
 
-pair\_style eam/alloy/intel command
-===================================
+pair_style eam/alloy command
+============================
 
-pair\_style eam/alloy/kk command
+pair_style eam/alloy/gpu command
 ================================
 
-pair\_style eam/alloy/omp command
-=================================
-
-pair\_style eam/alloy/opt command
-=================================
-
-pair\_style eam/cd command
-==========================
-
-pair\_style eam/cd/omp command
-==============================
-
-pair\_style eam/cd/old command
-==============================
-
-pair\_style eam/cd/old/omp command
+pair_style eam/alloy/intel command
 ==================================
 
-pair\_style eam/fs command
-==========================
+pair_style eam/alloy/kk command
+===============================
 
-pair\_style eam/fs/gpu command
-==============================
-
-pair\_style eam/fs/intel command
+pair_style eam/alloy/omp command
 ================================
 
-pair\_style eam/fs/kk command
+pair_style eam/alloy/opt command
+================================
+
+pair_style eam/cd command
+=========================
+
+pair_style eam/cd/omp command
 =============================
 
-pair\_style eam/fs/omp command
-==============================
+pair_style eam/cd/old command
+=============================
 
-pair\_style eam/fs/opt command
-==============================
+pair_style eam/cd/old/omp command
+=================================
+
+pair_style eam/fs command
+=========================
+
+pair_style eam/fs/gpu command
+=============================
+
+pair_style eam/fs/intel command
+===============================
+
+pair_style eam/fs/kk command
+============================
+
+pair_style eam/fs/omp command
+=============================
+
+pair_style eam/fs/opt command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -80,20 +80,20 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eam
-   pair_coeff \* \* cuu3
-   pair_coeff 1\*3 1\*3 niu3.eam
+   pair_coeff * * cuu3
+   pair_coeff 1*3 1\*3 niu3.eam
 
    pair_style eam/alloy
-   pair_coeff \* \* ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
+   pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
 
    pair_style eam/cd
-   pair_coeff \* \* ../potentials/FeCr.cdeam Fe Cr
+   pair_coeff * * ../potentials/FeCr.cdeam Fe Cr
 
    pair_style eam/fs
-   pair_coeff \* \* NiAlH_jea.eam.fs Ni Al Ni Ni
+   pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
 
 Description
 """""""""""
@@ -102,8 +102,11 @@ Style *eam* computes pairwise interactions for metals and metal alloys
 using embedded-atom method (EAM) potentials :ref:`(Daw) <Daw>`.  The total
 energy Ei of an atom I is given by
 
-.. image:: Eqs/pair_eam.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
+         \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
@@ -179,9 +182,9 @@ single argument:
 Thus the following command
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \*2 1\*2 cuu3.eam
+   pair_coeff *2 1*2 cuu3.eam
 
 will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
@@ -230,9 +233,9 @@ by LAMMPS to compute the pair potential term in the EAM energy
 expression as r\*phi, in units of eV-Angstroms, via the formula
 
 
-.. parsed-literal::
+.. math::
 
-   r\*phi = 27.2 \* 0.529 \* Zi \* Zj
+   r \cdot \phi = 27.2 \cdot 0.529 \cdot Z_i \cdot Z_j
 
 where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
@@ -274,9 +277,9 @@ be Ni, and the 4th to be Al, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* NiAlH_jea.eam.alloy Ni Ni Ni Al
+   pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
@@ -371,8 +374,12 @@ alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
 given by
 
-.. image:: Eqs/pair_eam_fs.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ 
+   \rho_{\alpha\beta} (r_{ij})\right) + 
+   \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,
@@ -395,9 +402,9 @@ For style *eam/fs*\ , the form of the pair\_coeff command is exactly the
 same as for style *eam/alloy*\ , e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* NiAlH_jea.eam.fs Ni Ni Ni Al
+   pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
 
 where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
@@ -548,8 +555,3 @@ Materials Science & Engineering, 7, 075005 (2009).
 
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

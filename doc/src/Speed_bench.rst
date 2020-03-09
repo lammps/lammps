@@ -36,9 +36,9 @@ scalability on your machine.
 
 The bench directory includes a few log.\* files that show performance
 of these 5 problems on 1 or 4 cores of Linux desktop.  The bench/FERMI
-and bench/KEPLER dirs have input files and scripts and instructions
+and bench/KEPLER directories have input files and scripts and instructions
 for running the same (or similar) problems using OpenMP or GPU or Xeon
-Phi acceleration options.  See the README files in those dirs and the
+Phi acceleration options.  See the README files in those directories and the
 :doc:`Speed packages <Speed_packages>` doc pages for instructions on how
 to build LAMMPS and run on that kind of hardware.
 
@@ -76,7 +76,4 @@ estimate parallel performance for multi-node runs using the same logic
 as for all-MPI mode, except that now you will typically need many more
 atoms/node to achieve good scalability.
 
-
 .. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

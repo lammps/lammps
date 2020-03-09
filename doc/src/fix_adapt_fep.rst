@@ -319,14 +319,9 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute fep <compute_fep>`, :doc:`fix adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`, :doc:`pair\_fep\_soft <pair_fep_soft>`
+:doc:`compute fep <compute_fep>`, :doc:`fix adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`, :doc:`pair_style \*/soft <pair_fep_soft>`
 
 Default
 """""""
 
 The option defaults are scale = no, reset = no, after = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

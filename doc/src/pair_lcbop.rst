@@ -1,13 +1,13 @@
-.. index:: pair\_style lcbop
+.. index:: pair_style lcbop
 
-pair\_style lcbop command
-=========================
+pair_style lcbop command
+========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lcbop
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lcbop
-   pair_coeff \* \* ../potentials/C.lcbop C
+   pair_coeff * * ../potentials/C.lcbop C
 
 Description
 """""""""""
@@ -43,9 +43,9 @@ As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* C.lcbop C C C NULL
+   pair_coeff * * C.lcbop C C C NULL
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first C argument maps LAMMPS atom type 1 to the C element in the
@@ -109,8 +109,3 @@ Related commands
 
 **(Los and Fasolino)** J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

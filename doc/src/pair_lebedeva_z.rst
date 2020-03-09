@@ -1,13 +1,13 @@
-.. index:: pair\_style lebedeva/z
+.. index:: pair_style lebedeva/z
 
-pair\_style lebedeva/z command
-==============================
+pair_style lebedeva/z command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style [hybrid/overlay ...] lebedeva/z cutoff
 
@@ -15,14 +15,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay lebedeva/z 20.0
-   pair_coeff \* \* none
+   pair_coeff * * none
    pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C
 
    pair_style hybrid/overlay rebo lebedeva/z 14.0
-   pair_coeff \* \* rebo        CH.rebo       C C
+   pair_coeff * * rebo        CH.rebo       C C
    pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C
 
 Description
@@ -32,13 +32,20 @@ The *lebedeva/z* style computes the Lebedeva interaction
 potential as described in :ref:`(Lebedeva et al.) <Leb01>`. An important simplification is made,
 which is to take all normals along the z-axis.
 
-.. image:: Eqs/pair_lebedeva.png
-   :align: center
+.. math::
+
+   E       = & \frac{1}{2} \sum_i \sum_{i \neq j} V_{ij}\\
+   V_{ij}  = & B e^{-\alpha(r_{ij} - z_0)} \\
+             & + C(1 + D_1\rho^2_{ij} + D_2\rho^4_{ij} e^{-\lambda_1\rho^2_{ij}} e^{-\lambda_2 (z^2_{ij} - z^2_0)} \\
+             & - A \left(\frac{z_0}{r_ij}\right)^6 + A \left( \frac{z_0}{r_c} \right)^6 \\
+   \rho^2_{ij} = & x^2_{ij} + y^2_{ij} \qquad (\mathbf{n_i} \equiv \mathbf{\hat{z}})
+
+
 
 It is important to have a sufficiently large cutoff to ensure smooth forces.
 Energies are shifted so that they go continuously to zero at the cutoff assuming
-that the exponential part of *Vij* (first term) decays sufficiently fast.
-This shift is achieved by the last term in the equation for *Vij* above.
+that the exponential part of :math:`V_{ij}` (first term) decays sufficiently fast.
+This shift is achieved by the last term in the equation for :math:`V_{ij}` above.
 
 The parameter file (e.g. CC.Lebedeva), is intended for use with metal
 :doc:`units <units>`, with energies in meV. An additional parameter, *S*\ ,
@@ -76,8 +83,3 @@ Related commands
 
 
 **(Lebedeva et al.)** I. V. Lebedeva, A. A. Knizhnik, A. M. Popov, Y. E. Lozovik, B. V. Potapkin, Phys. Rev. B, 84, 245437 (2011)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

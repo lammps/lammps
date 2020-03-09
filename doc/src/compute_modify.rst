@@ -1,13 +1,13 @@
-.. index:: compute\_modify
+.. index:: compute_modify
 
-compute\_modify command
-=======================
+compute_modify command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute_modify compute-ID keyword value ...
 
@@ -30,7 +30,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute_modify myTemp extra/dof 0
    compute_modify newtemp dynamic/dof yes extra/dof 600
@@ -80,8 +80,3 @@ Default
 
 The option defaults are extra/dof = 2 or 3 for 2d or 3d systems and
 dynamic/dof = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

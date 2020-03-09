@@ -1,16 +1,16 @@
-.. index:: dihedral\_style quadratic
+.. index:: dihedral_style quadratic
 
-dihedral\_style quadratic command
-=================================
+dihedral_style quadratic command
+================================
 
-dihedral\_style quadratic/omp command
-=====================================
+dihedral_style quadratic/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style quadratic
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style quadratic
    dihedral_coeff 100.0 80.0
@@ -28,8 +28,10 @@ Description
 
 The *quadratic* dihedral style uses the potential:
 
-.. image:: Eqs/dihedral_quadratic.jpg
-   :align: center
+.. math::
+
+   E = K (\phi - \phi_0)^2 
+
 
 This dihedral potential can be used to keep a dihedral in a predefined
 value (cis=zero, right-hand convention is used).
@@ -40,8 +42,8 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy/radian\^2)
-* phi0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\phi_0` (degrees)
 
 
 ----------
@@ -83,8 +85,3 @@ Related commands
 :doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

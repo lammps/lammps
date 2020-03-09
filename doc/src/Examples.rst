@@ -29,11 +29,12 @@ be quickly post-processed into a movie using commands described on the
 Animations of many of the examples can be viewed on the Movies section
 of the `LAMMPS web site <lws_>`_.
 
-There are two kinds of sub-directories in the examples dir.  Lowercase
-dirs contain one or a few simple, quick-to-run problems.  Uppercase
-dirs contain up to several complex scripts that illustrate a
-particular kind of simulation method or model.  Some of these run for
-longer times, e.g. to measure a particular quantity.
+There are two kinds of sub-directories in the examples folder.  Lower
+case named directories contain one or a few simple, quick-to-run
+problems.  Upper case named directories contain up to several complex
+scripts that illustrate a particular kind of simulation method or
+model.  Some of these run for longer times, e.g. to measure a
+particular quantity.
 
 Lists of both kinds of directories are given below.
 
@@ -228,10 +229,4 @@ instructions.  See the :doc:`Packages\_details <Packages_details>` doc
 page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org
-
-
-
-
 .. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

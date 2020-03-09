@@ -1,13 +1,13 @@
-.. index:: pair\_style nb3b/harmonic
+.. index:: pair_style nb3b/harmonic
 
-pair\_style nb3b/harmonic command
-=================================
+pair_style nb3b/harmonic command
+================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style nb3b/harmonic
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style nb3b/harmonic
-   pair_coeff \* \* MgOH.nb3bharmonic Mg O H
+   pair_coeff * * MgOH.nb3bharmonic Mg O H
 
 Description
 """""""""""
@@ -26,10 +26,12 @@ Description
 This pair style computes a non-bonded 3-body harmonic potential for the
 energy E of a system of atoms as
 
-.. image:: Eqs/pair_nb3b_harmonic.jpg
-   :align: center
+.. math::
 
-where *theta\_0* is the equilibrium value of the angle and *K* is a
+   E = K (\theta - \theta_0)^2 
+
+
+where :math:`\theta_0` is the equilibrium value of the angle and *K* is a
 prefactor. Note that the usual 1/2 factor is included in *K*\ . The form
 of the potential is identical to that used in angle\_style *harmonic*\ ,
 but in this case, the atoms do not need to be explicitly bonded.
@@ -52,9 +54,9 @@ want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC.nb3b.harmonic Si Si Si C
+   pair_coeff * * SiC.nb3b.harmonic Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -76,15 +78,15 @@ triplet of elements.
 Each entry has six arguments. The first three are atom types as
 referenced in the LAMMPS input file. The first argument specifies the
 central atom. The fourth argument indicates the *K* parameter. The
-fifth argument indicates *theta\_0*. The sixth argument indicates a
+fifth argument indicates :math:`\theta_0`. The sixth argument indicates a
 separation cutoff in Angstroms.
 
 For a given entry, if the second and third arguments are identical,
 then the entry is for a cutoff for the distance between types 1 and 2
-(values for *K* and *theta\_0* are irrelevant in this case).
+(values for *K* and :math:`\theta_0` are irrelevant in this case).
 
-For a given entry, if the first three arguments are all different,
-then the entry is for the *K* and *theta\_0* parameters (the cutoff in
+For a given entry, if the first three arguments are all different, then
+the entry is for the *K* and :math:`\theta_0` parameters (the cutoff in
 this case is irrelevant).
 
 It is required that the potential file contains entries for *all*
@@ -112,8 +114,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

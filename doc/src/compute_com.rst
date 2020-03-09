@@ -62,8 +62,3 @@ Related commands
 :doc:`compute com/chunk <compute_com_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

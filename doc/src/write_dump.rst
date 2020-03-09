@@ -1,13 +1,13 @@
-.. index:: write\_dump
+.. index:: write_dump
 
-write\_dump command
-===================
+write_dump command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_dump group-ID style file dump-args modify dump_modify-args
 
@@ -23,15 +23,15 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_dump all atom dump.atom
    write_dump subgroup atom dump.run.bin
-   write_dump all custom dump.myforce.\* id type x y vx fx
+   write_dump all custom dump.myforce.* id type x y vx fx
    write_dump flow custom dump.%.myforce id type c_myF[3] v_ke modify sort id
    write_dump all xyz system.xyz modify sort id element O H
-   write_dump all image snap\*.jpg type type size 960 960 modify backcolor white
-   write_dump all image snap\*.jpg element element &
+   write_dump all image snap*.jpg type type size 960 960 modify backcolor white
+   write_dump all image snap*.jpg element element &
       bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &
       modify backcolor white element C C O H N C C C O H H S O H
 
@@ -98,8 +98,3 @@ Default
 The defaults are listed on the doc pages for the :doc:`dump <dump>` and
 :doc:`dump image <dump_image>` and :doc:`dump_modify <dump_modify>`
 commands.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

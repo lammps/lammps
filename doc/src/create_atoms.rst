@@ -1,13 +1,13 @@
-.. index:: create\_atoms
+.. index:: create_atoms
 
-create\_atoms command
+create_atoms command
 =====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_atoms type style args keyword values ...
 
@@ -29,7 +29,7 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
   
-  .. parsed-literal::
+  .. code-block:: LAMMPS
   
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
@@ -61,7 +61,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_atoms 1 box
    create_atoms 3 region regsphere basis 2 3
@@ -269,7 +269,7 @@ converts lattice spacings to distance.  Click on the image for a
 larger version.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension       2
    variable        x equal 100
@@ -280,7 +280,7 @@ larger version.
 
    variable        xx internal 0.0
    variable        yy internal 0.0
-   variable        v equal "(0.2\*v_y\*ylat \* cos(v_xx/xlat \* 2.0\*PI\*4.0/v_x) + 0.5\*v_y\*ylat - v_yy) > 0.0"
+   variable        v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
    create_atoms    1 box var v set x xx set y yy
    write_dump      all atom sinusoid.lammpstrj
 
@@ -385,8 +385,3 @@ The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
 being created).  The other defaults are *remap* = no, *rotate* =
 random, and *units* = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

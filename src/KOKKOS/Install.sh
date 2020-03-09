@@ -160,6 +160,7 @@ action kissfft_kokkos.h kissfft.h
 action kokkos.cpp
 action kokkos.h
 action kokkos_base.h
+action kokkos_base_fft.h fft3d.h
 action kokkos_few.h
 action kokkos_type.h
 action memory_kokkos.h

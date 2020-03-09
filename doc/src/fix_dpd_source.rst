@@ -82,16 +82,16 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MESO package. It is only enabled if
+This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_meso>` command.  Fix *tdpd/source* must be used with the
-:doc:`pair_style tdpd <pair_meso>` command.
+Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
+:doc:`pair_style tdpd <pair_mesodpd>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style edpd <pair_meso>`, :doc:`pair_style tdpd <pair_meso>`,
+:doc:`pair_style edpd <pair_mesodpd>`, :doc:`pair_style tdpd <pair_mesodpd>`,
 :doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`, :doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
 
 **Default:** none
@@ -117,8 +117,3 @@ temperature-dependent properties", J. Comput. Phys., 265: 113-127
 "Transport dissipative particle dynamics model for mesoscopic
 advection-diffusion-reaction problems", J. Chem. Phys., 143: 014101
 (2015).  DOI: 10.1063/1.4923254
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

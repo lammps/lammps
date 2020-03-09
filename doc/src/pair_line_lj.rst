@@ -1,13 +1,13 @@
-.. index:: pair\_style line/lj
+.. index:: pair_style line/lj
 
-pair\_style line/lj command
-===========================
+pair_style line/lj command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj cutoff
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj 3.0
-   pair_coeff \* \* 1.0 1.0 1.0 0.8 1.12
+   pair_coeff * * 1.0 1.0 1.0 0.8 1.12
    pair_coeff 1 2 1.0 2.0 1.0 1.5 1.12 5.0
    pair_coeff 1 2 1.0 0.0 1.0 1.0 2.5
 
@@ -28,13 +28,13 @@ Description
 """""""""""
 
 Style *line/lj* treats particles which are line segments as a set of
-small spherical particles that tile the line segment length as
-explained below.  Interactions between two line segments, each with N1
-and N2 spherical particles, are calculated as the pairwise sum of
-N1\*N2 Lennard-Jones interactions.  Interactions between a line segment
-with N spherical particles and a point particle are treated as the
-pairwise sum of N Lennard-Jones interactions.  See the :doc:`pair_style lj/cut <pair_lj>` doc page for the definition of Lennard-Jones
-interactions.
+small spherical particles that tile the line segment length as explained
+below.  Interactions between two line segments, each with N1 and N2
+spherical particles, are calculated as the pairwise sum of N1\*N2
+Lennard-Jones interactions.  Interactions between a line segment with N
+spherical particles and a point particle are treated as the pairwise sum
+of N Lennard-Jones interactions.  See the :doc:`pair_style lj/cut
+<pair_lj>` doc page for the definition of Lennard-Jones interactions.
 
 The set of non-overlapping spherical sub-particles that represent a
 line segment are generated in the following manner.  Their size is a
@@ -50,10 +50,10 @@ each pair of points.
 
 The LJ interaction between 2 spheres on different line segments (or a
 sphere on a line segment and a point particles) is computed with
-sub-particle epsilon, sigma, and cutoff values that are set by the
-pair\_coeff command, as described below.  If the distance between the 2
-spheres is greater than the sub-particle cutoff, there is no
-interaction.  This means that some pairs of sub-particles on 2 line
+sub-particle :math:`\epsilon`, :math:`\sigma`, and *cutoff* values that
+are set by the pair\_coeff command, as described below.  If the distance
+between the 2 spheres is greater than the sub-particle cutoff, there is
+no interaction.  This means that some pairs of sub-particles on 2 line
 segments may interact, but others may not.
 
 For purposes of creating the neighbor list for pairs of interacting
@@ -86,8 +86,8 @@ commands:
 
 * sizeI (distance units)
 * sizeJ (distance units)
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * subcutoff (distance units)
 * cutoff (distance units)
 
@@ -102,11 +102,11 @@ sizeI will apply to all segments of type I.  If typeI or typeJ refers
 to point particles, the corresponding sizeI or sizeJ is ignored; it
 can be set to 0.0.
 
-The *epsilon*\ , *sigma*\ , and *subcutoff* coefficients are used to
-compute an LJ interactions between a pair of sub-particles on 2 line
-segments (of type I and J), or between a sub particle/point particle
-pair.  As discussed above, the *subcutoff* and *cutoff* params are
-different.  The latter is only used for building the neighbor list
+The :math:`\epsilon`, :math:`\sigma`, and *subcutoff* coefficients are
+used to compute an LJ interactions between a pair of sub-particles on 2
+line segments (of type I and J), or between a sub particle/point
+particle pair.  As discussed above, the *subcutoff* and *cutoff* params
+are different.  The latter is only used for building the neighbor list
 when the distance between centers of two line segments or one segment
 and a point particle is calculated.
 
@@ -152,8 +152,3 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style tri/lj <pair_tri_lj>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -66,7 +66,7 @@ and see one line of output for each processor you run on.
    insure both are using the same version of MPI.  If you only have one
    MPI installed on your system, this is not an issue, but it can be if
    you have multiple MPIs.  Your LAMMPS build is explicit about which MPI
-   it is using, since you specify the details in your lo-level
+   it is using, since you specify the details in your low-level
    src/MAKE/Makefile.foo file.  Mpi4py uses the "mpicc" command to find
    information about the MPI it uses to build against.  And it tries to
    load "libmpi.so" from the LD\_LIBRARY\_PATH.  This may or may not find
@@ -74,8 +74,3 @@ and see one line of output for each processor you run on.
    both mpi4py and LAMMPS together, this is an issue you may need to
    address, e.g. by moving other MPI installations so that mpi4py finds
    the right one.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

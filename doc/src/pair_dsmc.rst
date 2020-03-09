@@ -1,13 +1,13 @@
-.. index:: pair\_style dsmc
+.. index:: pair_style dsmc
 
-pair\_style dsmc command
-========================
+pair_style dsmc command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
 
@@ -22,10 +22,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dsmc 2.5 34387 10 1.0 100 20
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0
 
 Description
@@ -74,7 +74,7 @@ the "fix nve/noforce" time integration fix for the DSMC particles,
 e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/noforce
 
@@ -85,7 +85,7 @@ on the same processor.  To ensure this occurs, you should use
 these commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neighbor 0.0 bin
    neigh_modify every 1 delay 0 check no
@@ -105,7 +105,7 @@ uniform, which will not give good DSMC collision rates. Specify
 as in the following:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 594.6 87287 loop geom dist gaussian
 
@@ -171,8 +171,3 @@ Related commands
 
 **(Bird)** G. A. Bird, "Molecular Gas Dynamics and the Direct Simulation
 of Gas Flows" (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

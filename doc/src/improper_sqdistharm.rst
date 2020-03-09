@@ -1,18 +1,19 @@
-.. index:: improper\_style sqdistharm
+.. index:: improper_style sqdistharm
 
-improper\_style sqdistharm command
-==================================
+improper_style sqdistharm command
+=================================
 
 Syntax
 """"""
 
-improper\_style sqdistharm
+.. code-block:: LAMMPS
+
+   improper_style sqdistharm
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style sqdistharm
    improper_coeff 1 50.0 0.1
@@ -22,10 +23,11 @@ Description
 
 The *sqdistharm* improper style uses the potential
 
-.. image:: Eqs/improper_sqdistharm.jpg
-   :align: center
+.. math::
 
-where d is the distance between the central atom and the plane formed
+   E = K (d^2 - {d_0}^2)^2
+
+where :math:`d` is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
 (listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the L-atom is assumed to be the
@@ -36,10 +38,10 @@ The following coefficients must be defined for each improper type via
 the improper\_coeff command as in the example above, or in the data
 file or restart files read by the read\_data or read\_restart commands:
 
-* K (energy/distance\^4)
-* d0\^2 (distance\^2)
+* :math:`K` (energy/distance\^4)
+* :math:`{d_0}^2` (distance\^2)
 
-Note that d0\^2 (in units distance\^2) has be provided and not d0.
+Note that :math:`{d_0}^2` (in units distance\^2) has be provided and not :math:`d_0`.
 
 
 ----------
@@ -59,8 +61,3 @@ Related commands
 :doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

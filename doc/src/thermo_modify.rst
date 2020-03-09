@@ -1,13 +1,13 @@
-.. index:: thermo\_modify
+.. index:: thermo_modify
 
-thermo\_modify command
-======================
+thermo_modify command
+=====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+ 
+.. code-block:: LAMMPS
 
    thermo_modify keyword value ...
 
@@ -33,7 +33,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_modify lost ignore flush yes
    thermo_modify temp myTemp format 3 %15.8g
@@ -175,7 +175,7 @@ user to override the default.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -193,8 +193,3 @@ The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults
 are "one", "%8d", and "%12.8g".  For style "multi", the line and
 format defaults are "multi", "%8d", and "%14.4f".
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

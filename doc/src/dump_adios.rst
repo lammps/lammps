@@ -85,12 +85,3 @@ Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -566,9 +566,3 @@ Related commands
 .. _pizza: http://pizza.sandia.gov
 
 **Default:** none
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

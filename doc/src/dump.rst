@@ -726,8 +726,3 @@ Default
 
 The defaults for the *image* and *movie* styles are listed on the
 :doc:`dump image <dump_image>` doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

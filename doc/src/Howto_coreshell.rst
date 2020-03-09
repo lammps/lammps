@@ -88,10 +88,10 @@ For the NaCL example problem, these pair style and bond style settings
 are used:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style      born/coul/long/cs 20.0 20.0
-   pair_coeff      \* \*      0.0 1.000   0.00  0.00   0.00
+   pair_coeff      * *      0.0 1.000   0.00  0.00   0.00
    pair_coeff      3 3    487.0 0.23768 0.00  1.05   0.50 #Na-Na
    pair_coeff      3 4 145134.0 0.23768 0.00  6.99   8.70 #Na-Cl
    pair_coeff      4 4 405774.0 0.23768 0.00 72.40 145.40 #Cl-Cl
@@ -132,7 +132,7 @@ this temperature be output for the overall system.
 For the NaCl example, this can be done as follows:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group cores type 1 2
    group shells type 3 4
@@ -151,7 +151,7 @@ second argument in :doc:`fix modify <fix_modify>` and
 :doc:`thermo_modify <thermo_modify>` resulting in:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    (...)
    compute CSequ all temp/cs cores shells
@@ -175,7 +175,7 @@ the pairs.  This can be done by using the *bias* keyword of the
 :doc:`velocity <velocity>` command, e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 1427 134 bias yes temp CSequ
    velocity all scale 1427 temp CSequ
@@ -212,7 +212,7 @@ pairs as chunks.
 For example if core/shell pairs are the only molecules:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data NaCl_CS_x0.1_prop.data
    compute prop all property/atom molecule
@@ -223,7 +223,7 @@ For example if core/shell pairs are the only molecules:
 For example if core/shell pairs and other molecules are present:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix csinfo all property/atom i_CSID                       # property/atom command
    read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file
@@ -264,8 +264,3 @@ The additional section in the date file would be formatted like this:
 
 **(Fincham)** Fincham, Mackrodt and Mitchell, J Phys Condensed Matter,
 6, 393-404 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -199,8 +199,3 @@ Default
 """""""
 
 The option default for the every keyword is every = 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

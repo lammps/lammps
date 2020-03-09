@@ -1,13 +1,13 @@
-.. index:: run\_style
+.. index:: run_style
 
-run\_style command
-==================
+run_style command
+=================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style style args
 
@@ -57,8 +57,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
    run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
@@ -112,16 +111,16 @@ match the integer multiple constraint.  See the
 to control this, e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   procssors \* \* \* part 1 2 multiple
+   processors * * * part 1 2 multiple
 
 You can also use the :doc:`partition <partition>` command to explicitly
 specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 3 4 5
    partition yes 2 processors 3 1 5
@@ -235,7 +234,7 @@ settings for use of the *respa* style without SHAKE in biomolecular
 simulations:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  4.0
    run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
@@ -257,7 +256,7 @@ settings can be used for biomolecular simulations with SHAKE and
 rRESPA:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix             2 all shake 0.000001 500 0 m 1.0 a 1
    timestep        4.0
@@ -273,7 +272,7 @@ slow modes in the simulation.  For example, a system of slowly-moving
 charged polymer chains could be setup as follows:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 4.0
    run_style respa 2 8
@@ -292,7 +291,7 @@ In real units, for a pure LJ fluid at liquid density, with a sigma of
 seem to work well:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  36.0
    run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
@@ -342,7 +341,7 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
 
@@ -367,8 +366,3 @@ to rRESPA levels is as follows:
 
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

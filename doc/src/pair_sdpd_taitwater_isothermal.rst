@@ -1,13 +1,12 @@
-.. index:: pair\_style sdpd/taitwater/isothermal
+.. index:: pair_style sdpd/taitwater/isothermal
 
-pair\_style sdpd/taitwater/isothermal command
-=============================================
+pair_style sdpd/taitwater/isothermal command
+============================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sdpd/taitwater/isothermal temperature viscosity seed
 
@@ -18,11 +17,10 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sdpd/taitwater/isothermal 300. 1. 28681
-   pair_coeff \* \* 1000.0 1430.0 2.4
+   pair_coeff * * 1000.0 1430.0 2.4
 
 Description
 """""""""""
@@ -47,11 +45,13 @@ imagine for a mesoscopic particle.
 The pressure forces between particles will be computed according to
 Tait's equation of state:
 
-.. image:: Eqs/pair_sph_tait.jpg
-   :align: center
+.. math::
 
-where gamma = 7 and B = c\_0\^2 rho\_0 / gamma, with rho\_0 being the
-reference density and c\_0 the reference speed of sound.
+  p = B \left[(\frac{\rho}{\rho_0})^{\gamma} - 1\right]
+
+where :math:`\gamma = 7` and :math:`B = c_0^2 \rho_0 / \gamma`, with
+:math:`\rho_0` being the reference density and :math:`c_0` the reference
+speed of sound.
 
 The laminar viscosity and the random forces will be computed according
 to formulas described in :ref:`(Espanol and Revenga) <Espanol_Revenga>`.
@@ -75,10 +75,9 @@ The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
-* rho0 reference density (mass/volume units)
-* c0 reference soundspeed (distance/time units)
+* :math:`\rho_0` reference density (mass/volume units)
+* :math:`c_0` reference soundspeed (distance/time units)
 * h kernel function cutoff (distance units)
-
 
 ----------
 
@@ -107,7 +106,8 @@ if LAMMPS was built with that package.  See the :doc:`Build package <Build_packa
 Related commands
 """"""""""""""""
 
-:doc:`pair coeff <pair_coeff>`, :doc:`pair sph/rhosum <pair_sph_rhosum>`
+:doc:`pair coeff <pair_coeff>`, :doc:`pair sph/rhosum <pair_sph_rhosum>`,
+:doc:`pair sph/taitwater <pair_sph_taitwater>`
 
 Default
 """""""
@@ -123,8 +123,3 @@ The default seed is 0 (before mixing).
 
 
 **(Espanol and Revenga)** Espanol, Revenga, Physical Review E, 67, 026705 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

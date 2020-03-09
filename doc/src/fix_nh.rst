@@ -511,9 +511,28 @@ with *respa*\ , LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
-.. image:: Eqs/fix_nh1.jpg
-   :align: center
+.. math::
 
+   \exp \left(\mathrm{i} L \Delta t \right) = & \hat{E}
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
+   &\times \left[ 
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \right]^n \\
+   &\times
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
+   &+ \mathcal{O} \left(\Delta t^3 \right)
+
+   
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
 whereas Tuckerman's factorization requires splitting the pressure into
@@ -736,8 +755,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

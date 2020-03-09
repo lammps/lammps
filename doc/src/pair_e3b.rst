@@ -1,21 +1,21 @@
-.. index:: pair\_style e3b
+.. index:: pair_style e3b
 
-pair\_style e3b command
-=======================
+pair_style e3b command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style e3b Otype
 
 * Otype = atom type for oxygen
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* keyword
+   pair_coeff * * keyword
 
 * one or more keyword/value pairs must be appended.
 * keyword = *preset* or *Ea* or *Eb* or *Ec* or *E2* or *K3* or *K2* or *Rs* or *Rc3* or *Rc2* or *bondL* or *neigh*
@@ -44,21 +44,32 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style e3b 1
-   pair_coeff \* \* Ea 35.85 Eb -240.2 Ec 449.3 E2 108269.9 K3 1.907 K2 4.872 Rc3 5.2 Rc2 5.2 Rs 5.0 bondL 0.9572
+   pair_coeff * * Ea 35.85 Eb -240.2 Ec 449.3 E2 108269.9 K3 1.907 K2 4.872 Rc3 5.2 Rc2 5.2 Rs 5.0 bondL 0.9572
 
    pair_style hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.15 8.5
-   pair_coeff \* \* e3b preset 2011
+   pair_coeff * * e3b preset 2011
 
 Description
 """""""""""
 
 The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :ref:`(Kumar 2008) <Kumar>`.
 
-.. image:: Eqs/e3b.jpg
-   :align: center
+.. math::
+
+   E =& E_2 \sum_{i,j}e^{-k_2 r_{ij}} + E_A \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type A}}} f(r_{ij})f(r_{k\ell}) + E_B \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type B}}} f(r_{ij})f(r_{k\ell}) + E_C \sum_{\substack{i,j,k,\ell \\
+   \in \textrm{type C}}} f(r_{ij})f(r_{k\ell}) \\
+   f(r) =& e^{-k_3 r}s(r) \\
+   s(r) =& \begin{cases}
+   1 & r<R_s \\
+   \displaystyle\frac{(R_f-r)^2(R_f-3R_s+2r)}{(R_f-R_s)^3} & R_s\leq r\leq R_f \\
+   0 & r>R_f\\
+   \end{cases}
+
 
 This potential was developed as a water model that includes the three-body cooperativity of hydrogen bonding explicitly.
 To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair\_style hybrid/overlay*.
@@ -103,7 +114,7 @@ If the neigh setting is too large, the pair style will use more memory than nece
 This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
 The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
-See the examples/USER/e3b directory for a complete example script.
+See the examples/USER/misc/e3b directory for a complete example script.
 
 
 ----------
@@ -169,8 +180,3 @@ The option default for the *neigh* keyword is 10.
 
 
 **(Tainter 2015)** Tainter, Shi, and Skinner, 11, 2268 (2015)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

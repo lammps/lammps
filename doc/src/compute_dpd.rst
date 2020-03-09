@@ -26,19 +26,26 @@ Description
 """""""""""
 
 Define a computation that accumulates the total internal conductive
-energy (U\_cond), the total internal mechanical energy (U\_mech), the
-total chemical energy (U\_chem) and the *harmonic* average of the internal
-temperature (dpdTheta) for the entire system of particles.  See the
+energy (:math:`U^{cond}`), the total internal mechanical energy
+(:math:`U^{mech}`), the total chemical energy (:math:`U^{chem}`)
+and the *harmonic* average of the internal temperature (:math:`\theta_{avg}`)
+for the entire system of particles.  See the
 :doc:`compute dpd/atom <compute_dpd_atom>` command if you want
 per-particle internal energies and internal temperatures.
 
 The system internal properties are computed according to the following
 relations:
 
-.. image:: Eqs/compute_dpd.jpg
-   :align: center
+.. math::
 
-where N is the number of particles in the system
+   U^{cond} = & \displaystyle\sum_{i=1}^{N} u_{i}^{cond} \\ 
+   U^{mech} = & \displaystyle\sum_{i=1}^{N} u_{i}^{mech} \\
+   U^{chem} = & \displaystyle\sum_{i=1}^{N} u_{i}^{chem} \\
+          U = & \displaystyle\sum_{i=1}^{N} (u_{i}^{cond} + u_{i}^{mech} + u_{i}^{chem}) \\
+   \theta_{avg} = & (\frac{1}{N}\displaystyle\sum_{i=1}^{N} \frac{1}{\theta_{i}})^{-1} \\
+
+
+where :math:`N` is the number of particles in the system
 
 
 ----------
@@ -46,8 +53,9 @@ where N is the number of particles in the system
 
 **Output info:**
 
-This compute calculates a global vector of length 5 (U\_cond, U\_mech,
-U\_chem, dpdTheta, N\_particles), which can be accessed by indices 1-5.
+This compute calculates a global vector of length 5 (:math:`U^{cond}`,
+:math:`U^{mech}`, :math:`U^{chem}`, :math:`\theta_{avg}`, :math:`N`),
+which can be accessed by indices 1-5.
 See the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
@@ -83,8 +91,3 @@ Related commands
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

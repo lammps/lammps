@@ -1,13 +1,13 @@
-.. index:: comm\_style
+.. index:: comm_style
 
-comm\_style command
-===================
+comm_style command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style style
 
@@ -17,7 +17,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style brick
    comm_style tiled
@@ -71,8 +71,3 @@ Default
 """""""
 
 The default style is brick.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

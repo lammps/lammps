@@ -42,8 +42,3 @@ converge and requires careful post-processing :ref:`(Shinoda) <Shinoda1>`
 
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

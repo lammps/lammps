@@ -1,13 +1,12 @@
-.. index:: thermo\_style
+.. index:: thermo_style
 
-thermo\_style command
-=====================
+thermo_style command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style style args
 
@@ -51,7 +50,7 @@ Syntax
            ke = kinetic energy
            etotal = total energy (pe + ke)
            enthalpy = enthalpy (etotal + press\*vol)
-           evdwl = VanderWaal pairwise energy (includes etail)
+           evdwl = van der Waals pairwise energy (includes etail)
            ecoul = Coulombic pairwise energy
            epair = pairwise energy (evdwl + ecoul + elong)
            ebond = bond energy
@@ -60,7 +59,7 @@ Syntax
            eimp = improper energy
            emol = molecular energy (ebond + eangle + edihed + eimp)
            elong = long-range kspace energy
-           etail = VanderWaal energy long-range tail correction
+           etail = van der Waals energy long-range tail correction
            vol = volume
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z
@@ -89,13 +88,12 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style multi
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
-   thermo_style custom step temp etotal c_myTemp[\*] v_abc
+   thermo_style custom step temp etotal c_myTemp[*] v_abc
 
 Description
 """""""""""
@@ -155,7 +153,7 @@ default this is done by using a *temperature* compute which is created
 when LAMMPS starts up, as if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
@@ -174,7 +172,7 @@ using a *pressure* compute which is created when LAMMPS starts up, as
 if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 
@@ -193,7 +191,7 @@ be computed: "pe", "etotal", "ebond", etc.  This is done by using a
 command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
@@ -207,13 +205,13 @@ change the attributes of this potential energy via the
 
 
 The kinetic energy of the system *ke* is inferred from the temperature
-of the system with 1/2 Kb T of energy for each degree of freedom.
-Thus, using different :doc:`compute commands <compute>` for calculating
-temperature, via the :doc:`thermo_modify temp <thermo_modify>` command,
-may yield different kinetic energies, since different computes that
-calculate temperature can subtract out different non-thermal
-components of velocity and/or include different degrees of freedom
-(translational, rotational, etc).
+of the system with :math:`\frac{1}{2} k_B T` of energy for each degree
+of freedom.  Thus, using different :doc:`compute commands <compute>` for
+calculating temperature, via the :doc:`thermo_modify temp
+<thermo_modify>` command, may yield different kinetic energies, since
+different computes that calculate temperature can subtract out different
+non-thermal components of velocity and/or include different degrees of
+freedom (translational, rotational, etc).
 
 The potential energy of the system *pe* will include contributions
 from fixes if the :doc:`fix_modify thermo <fix_modify>` option is set
@@ -221,7 +219,7 @@ for a fix that calculates such a contribution.  For example, the :doc:`fix wall/
 interacting with the wall.  See the doc pages for "individual fixes"
 to see which ones contribute.
 
-A long-range tail correction *etail* for the VanderWaal pairwise
+A long-range tail correction *etail* for the van der Waals pairwise
 energy will be non-zero only if the :doc:`pair_modify tail <pair_modify>` option is turned on.  The *etail* contribution
 is included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
 corresponding tail correction to the pressure is included in *press*
@@ -286,7 +284,7 @@ if the timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
 
@@ -337,10 +335,10 @@ are equivalent, since the :doc:`compute temp <compute_temp>` command
 creates a global vector with 6 values.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp
-   thermo_style custom step temp etotal c_myTemp[\*]
+   thermo_style custom step temp etotal c_myTemp[*]
    thermo_style custom step temp etotal &
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
@@ -441,11 +439,6 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style one
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

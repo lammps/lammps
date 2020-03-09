@@ -1,13 +1,13 @@
-.. index:: delete\_atoms
+.. index:: delete_atoms
 
-delete\_atoms command
-=====================
+delete_atoms command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms style args keyword value ...
 
@@ -41,7 +41,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms group edge
    delete_atoms region sphere compress no
@@ -168,8 +168,3 @@ Default
 """""""
 
 The option defaults are compress = yes, bond = no, mol = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -78,13 +78,20 @@ additional thermostatting force to the equations of motion, such that
 the time evolution of coordinates and momenta of particle :math:`i`
 becomes :ref:`(Wirnsberger) <Wirnsberger>`
 
-.. image:: Eqs/fix_ehex_eom.jpg
-   :align: center
+.. math::
+
+     \dot{\mathbf r}_i &= \mathbf v_i,  \\
+     \dot{\mathbf v}_i &= \frac{\mathbf f_i}{m_i} + \frac{\mathbf g_i}{m_i}.
 
 The thermostatting force is given by
 
-.. image:: Eqs/fix_ehex_f.jpg
-   :align: center
+.. math::
+
+   \mathbf g_i = \begin{cases}
+   \frac{m_i}{2}   \frac{ F_{\Gamma_{k(\mathbf r_i)}}}{ K_{\Gamma_{k(\mathbf r_i)}}} 
+   \left(\mathbf v_i -  \mathbf v_{\Gamma_{k(\mathbf r_i)}} \right) &  \mbox{$k(\mathbf r_i)> 0$ (inside a reservoir),} \\
+    0                                     &  \mbox{otherwise, } 
+   \end{cases}
 
 where :math:`m_i` is the mass and :math:`k(\mathbf r_i)` maps the particle
 position to the respective reservoir. The quantity
@@ -202,8 +209,3 @@ Related commands
 
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143,
 124104 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

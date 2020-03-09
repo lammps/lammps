@@ -1,13 +1,13 @@
-.. index:: fix\_modify
+.. index:: fix_modify
 
-fix\_modify command
-===================
+fix_modify command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify fix-ID keyword value ...
 
@@ -33,7 +33,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
@@ -154,7 +154,7 @@ will give a warning if that is the case.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -167,8 +167,3 @@ Default
 The option defaults are temp = ID defined by fix, press = ID defined
 by fix, energy = no, virial = different for each fix style, respa = 0,
 bodyforce = late.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

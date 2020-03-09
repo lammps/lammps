@@ -83,17 +83,18 @@ close enough to touch it.
 
 The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
-:doc:`pair_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
-*hooke*\ , *hooke/history*\ , or *hertz/history* for the former, and
-*granular* with all the possible options of the associated
+:doc:`pair_style gran/\* <pair_gran>` or the more general
+:doc:`pair_style granular <pair_granular>` commands.  Currently the
+options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+former, and *granular* with all the possible options of the associated
 *pair\_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
 corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
-:doc:`pair\_style\_granular <pair_granular>` doc pages, in the limit of
-one of the two particles going to infinite radius and mass (flat
-wall).  Specifically, delta = radius - r = overlap of particle with
-wall, m\_eff = mass of particle, and the effective radius of contact =
-RiRj/Ri+Rj is set to the radius of the particle.
+:doc:`pair_style granular <pair_granular>` doc pages, in the limit of
+one of the two particles going to infinite radius and mass (flat wall).
+Specifically, delta = radius - r = overlap of particle with wall, m\_eff
+= mass of particle, and the effective radius of contact = RiRj/Ri+Rj is
+set to the radius of the particle.
 
 The parameters *Kn*\ , *Kt*\ , *gamma\_n*, *gamma\_t*, *xmu* and *dampflag*
 have the same meaning and units as those specified with the
@@ -209,8 +210,3 @@ Related commands
 :doc:`pair_style granular <pair_granular>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

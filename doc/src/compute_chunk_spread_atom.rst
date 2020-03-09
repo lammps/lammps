@@ -230,8 +230,3 @@ Related commands
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`compute reduce/chunk <compute_reduce_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

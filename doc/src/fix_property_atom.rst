@@ -336,8 +336,3 @@ Default
 """""""
 
 The default keyword values are ghost = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

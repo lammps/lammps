@@ -177,8 +177,3 @@ Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
 
 
 **(Jarzynski)** Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

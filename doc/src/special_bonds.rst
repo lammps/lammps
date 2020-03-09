@@ -1,13 +1,13 @@
-.. index:: special\_bonds
+.. index:: special_bonds
 
-special\_bonds command
-======================
+special_bonds command
+=====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds keyword values ...
 
@@ -34,7 +34,7 @@ Syntax
 Examples:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds amber
    special_bonds charmm
@@ -216,7 +216,7 @@ default, then the 2,5 interaction will also be weighted by 0.5.
    time incrementally.  E.g. these two commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds lj 0.0 1.0 1.0
    special_bonds coul 0.0 0.0 1.0
@@ -224,7 +224,7 @@ default, then the 2,5 interaction will also be weighted by 0.5.
 are not the same as
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
 
@@ -250,7 +250,7 @@ their default values before modifying them, each time the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -293,8 +293,3 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

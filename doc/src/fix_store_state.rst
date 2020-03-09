@@ -141,8 +141,3 @@ Default
 """""""
 
 The option default is com = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

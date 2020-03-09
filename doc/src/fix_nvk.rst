@@ -82,8 +82,3 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 
 **(Zhang)** Zhang, J Chem Phys, 106, 6102 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,13 +1,13 @@
-.. index:: neigh\_modify
+.. index:: neigh_modify
 
-neigh\_modify command
-=====================
+neigh_modify command
+====================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify keyword values ...
 
@@ -55,7 +55,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify every 2 delay 10 check yes page 100000
    neigh_modify exclude type 2 3
@@ -185,7 +185,7 @@ atom can have.
    because LAMMPS doesn't error check these limits for every pairwise
    interaction (too costly), but only after all the particle's neighbors
    have been found.  This problem usually means something is very wrong
-   with the way you've setup your problem (particle spacing, cutoff
+   with the way you have setup your problem (particle spacing, cutoff
    length, neighbor skin distance, etc).  If you really expect that many
    neighbors per particle, then boost the *one* and *page* settings
    accordingly.
@@ -227,8 +227,3 @@ Default
 The option defaults are delay = 10, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
 exclude = none, page = 100000, one = 2000, and binsize = 0.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -175,8 +175,3 @@ Related commands
 :doc:`variable <variable>`, :doc:`prd <prd>`, :doc:`neb <neb>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

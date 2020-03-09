@@ -1,13 +1,13 @@
-.. index:: pair\_style awpmd/cut
+.. index:: pair_style awpmd/cut
 
-pair\_style awpmd/cut command
-=============================
+pair_style awpmd/cut command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style awpmd/cut Rc keyword value ...
 
@@ -37,11 +37,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style awpmd/cut -1
    pair_style awpmd/cut 40.0 uhf free
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 20.0
 
 Description
@@ -133,8 +133,3 @@ Default
 
 These are the defaults for the pair\_style keywords: *hartree* for the
 initial wave function, *free* for the wave packet width.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

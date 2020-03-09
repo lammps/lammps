@@ -297,7 +297,7 @@ Restrictions
 """"""""""""
 
 The pair styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* are part of
-the USER-MESO package. It is only enabled if LAMMPS was built with
+the USER-MESODPD package. It is only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` doc page for
 more info.
 

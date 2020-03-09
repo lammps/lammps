@@ -81,7 +81,7 @@ page gives those details.
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
-   * :ref:`USER-MESO <PKG-USER-MESO>`
+   * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
@@ -1793,10 +1793,10 @@ Sandia.
 ----------
 
 
-.. _PKG-USER-MESO:
+.. _PKG-USER-MESODPD:
 
-USER-MESO package
------------------
+USER-MESODPD package
+--------------------
 
 **Contents:**
 
@@ -1812,14 +1812,14 @@ algorithm.
 
 **Supporting info:**
 
-* src/USER-MESO: filenames -> commands
-* src/USER-MESO/README
+* src/USER-MESODPD: filenames -> commands
+* src/USER-MESODPD/README
 * :doc:`atom_style edpd <atom_style>`
-* :doc:`pair_style edpd <pair_meso>`
-* :doc:`pair_style mdpd <pair_meso>`
-* :doc:`pair_style tdpd <pair_meso>`
+* :doc:`pair_style edpd <pair_mesodpd>`
+* :doc:`pair_style mdpd <pair_mesodpd>`
+* :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
-* examples/USER/meso
+* examples/USER/mesodpd
 * http://lammps.sandia.gov/movies.html#mesodpd
 
 

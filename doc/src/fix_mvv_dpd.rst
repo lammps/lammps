@@ -66,15 +66,15 @@ standard velocity-Verlet (VV) scheme.  For more details, see
 :ref:`Groot <Groot2>`.
 
 Fix *mvv/dpd* updates the position and velocity of each atom.  It can
-be used with the :doc:`pair_style mdpd <pair_meso>` command or other
+be used with the :doc:`pair_style mdpd <pair_mesodpd>` command or other
 pair styles such as :doc:`pair dpd <pair_dpd>`.
 
 Fix *mvv/edpd* updates the per-atom temperature, in addition to
-position and velocity, and must be used with the :doc:`pair_style edpd <pair_meso>` command.
+position and velocity, and must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.
 
 Fix *mvv/tdpd* updates the per-atom chemical concentration, in
 addition to position and velocity, and must be used with the
-:doc:`pair_style tdpd <pair_meso>` command.
+:doc:`pair_style tdpd <pair_mesodpd>` command.
 
 
 ----------
@@ -92,14 +92,14 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MESO package. It is only enabled if
+This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style mdpd <pair_meso>`, :doc:`pair_style edpd <pair_meso>`,
-:doc:`pair_style tdpd <pair_meso>`
+:doc:`pair_style mdpd <pair_mesodpd>`, :doc:`pair_style edpd <pair_mesodpd>`,
+:doc:`pair_style tdpd <pair_mesodpd>`
 
 Default
 """""""

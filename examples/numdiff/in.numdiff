@@ -3,6 +3,7 @@
 units   	metal
 atom_style      atomic
 
+atom_modify map yes
 lattice fcc 5.358000
 region box block 0 6 0 6 0 6
 create_box 1 box

@@ -73,6 +73,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix_numdiff requires an atom map, see atom_modify
+
+Self-explanatory.
+
 E: Compute ID for fix numdiff does not exist
 
 Self-explanatory.

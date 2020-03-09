@@ -1687,7 +1687,7 @@ int TILD::modify_param(int narg, char** arg)
       error->all(FLERR, "TILD command before simulation box is defined");
     if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
-    if (strcmp(arg[1], "all") == 0 || strcmp(arg[1], "kappa") == 0 |) {
+    if (strcmp(arg[1], "all") == 0 || strcmp(arg[1], "kappa") == 0 ) {
       igroup1 = group->find(arg[1]);
       if (igroup1 == -1) {
         error->all(FLERR, "the all group is not defined; kspace_modify tild command");

@@ -293,9 +293,11 @@ void WriteRestart::write(char *file)
   //   close header file, open multiname file on each writing proc,
   //   write PROCSPERFILE into new file
 
+  int io_error = 0;
   if (multiproc) {
     if (me == 0 && fp) {
       magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
@@ -379,20 +381,20 @@ void WriteRestart::write(char *file)
   if (mpiioflag) {
     if (me == 0 && fp) {
       magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
     mpiio->openForWrite(file);
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
-  }
+  } else {
 
-  // output of one or more native files
-  // filewriter = 1 = this proc writes to file
-  // ping each proc in my cluster, receive its data, write data to file
-  // else wait for ping from fileproc, send my data to fileproc
+    // output of one or more native files
+    // filewriter = 1 = this proc writes to file
+    // ping each proc in my cluster, receive its data, write data to file
+    // else wait for ping from fileproc, send my data to fileproc
 
-  else {
     int tmp,recv_size;
 
     if (filewriter) {
@@ -409,6 +411,7 @@ void WriteRestart::write(char *file)
         write_double_vec(PERPROC,recv_size,buf);
       }
       magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
 
@@ -417,6 +420,12 @@ void WriteRestart::write(char *file)
       MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
     }
   }
+
+  // Check for I/O error status
+
+  int io_all = 0;
+  MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
+  if (io_all) error->all(FLERR,"I/O error while writing restart");
 
   // clean up
 

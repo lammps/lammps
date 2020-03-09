@@ -48,7 +48,6 @@ class TILD : public KSpace{
   FFT_SCALAR **grad_uG, **grad_uG_hat, *temp;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   int **potent_map;
-  void generate_potential(FFT_SCALAR*, int, double*);
   FFT_SCALAR *****gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
@@ -92,7 +91,8 @@ class TILD : public KSpace{
   void deallocate();
   void slabcorr();
   void init_gauss();
-  void init_potentials();
+  void init_potential(FFT_SCALAR*, int, double*);
+  void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
 

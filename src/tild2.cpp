@@ -343,7 +343,7 @@ void TILD::setup(){
     }
   }
 
-  init_potentials();
+  init_cross_potentials();
   init_gauss();
   vir_func_init();
 
@@ -1071,7 +1071,7 @@ void TILD::deallocate_peratom()
   cg_peratom = NULL;
 }
 
-void TILD::init_potentials(){
+void TILD::init_cross_potentials(){
   
   // Represents the 0 to N-1 points that are captured on this grid.
   int Dim = domain->dimension;
@@ -1143,7 +1143,7 @@ void TILD::init_potentials(){
               a2_sq *= a2_sq;
             double a12_sq = a1_sq + a2_sq;
         double pref = vole / (pow( sqrt(2.0 *PI * (a12_sq) ), Dim));
-        generate_potential(potent[potent_map[ind1][ind2]], 1, &a12_sq);
+        init_potential(potent[potent_map[ind1][ind2]], 1, &a12_sq);
 
       } 
       else {
@@ -1154,7 +1154,7 @@ void TILD::init_potentials(){
         int loc = potent_map[ind1][ind2];
 
         // 1st Potential to be convolved
-        generate_potential(tmp,potent_coeff[pot_map[ind1]][0], param1 );
+        init_potential(tmp,potent_coeff[pot_map[ind1]][0], param1 );
 
         int j = 0;
         for (int i = 0; i < nfft; i++) {
@@ -1169,7 +1169,7 @@ void TILD::init_potentials(){
         }
 
         // 2nd Potential to be convolved
-        generate_potential(tmp,potent_coeff[pot_map[ind2]][0], param2 );
+        init_potential(tmp,potent_coeff[pot_map[ind2]][0], param2 );
 
         j = 0;
         for (int i = 0; i < nfft; i++) {
@@ -1220,7 +1220,7 @@ void TILD::init_potentials(){
 
 }
 
-void TILD::generate_potential(FFT_SCALAR *wk1, int type, double* parameters){
+void TILD::init_potential(FFT_SCALAR *wk1, int type, double* parameters){
 
   int m,l,k;
   int n=0;

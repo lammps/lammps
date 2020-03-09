@@ -95,7 +95,7 @@ OPT.
    * :doc:`eam/fs (gikot) <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
-   * :doc:`edpd <pair_meso>`
+   * :doc:`edpd <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
    * :doc:`exp6/rx (k) <pair_exp6_rx>`
@@ -171,8 +171,8 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
-   * :doc:`mdpd <pair_meso>`
-   * :doc:`mdpd/rhosum <pair_meso>`
+   * :doc:`mdpd <pair_mesodpd>`
+   * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam/c <pair_meamc>`
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
@@ -242,7 +242,7 @@ OPT.
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
-   * :doc:`tdpd <pair_meso>`
+   * :doc:`tdpd <pair_mesodpd>`
    * :doc:`tersoff (giko) <pair_tersoff>`
    * :doc:`tersoff/mod (gko) <pair_tersoff_mod>`
    * :doc:`tersoff/mod/c (o) <pair_tersoff_mod>`

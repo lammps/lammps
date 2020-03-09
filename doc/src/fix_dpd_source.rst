@@ -82,16 +82,16 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MESO package. It is only enabled if
+This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_meso>` command.  Fix *tdpd/source* must be used with the
-:doc:`pair_style tdpd <pair_meso>` command.
+Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
+:doc:`pair_style tdpd <pair_mesodpd>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style edpd <pair_meso>`, :doc:`pair_style tdpd <pair_meso>`,
+:doc:`pair_style edpd <pair_mesodpd>`, :doc:`pair_style tdpd <pair_mesodpd>`,
 :doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`, :doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
 
 **Default:** none

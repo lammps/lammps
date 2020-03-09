@@ -322,7 +322,7 @@ double FixHalt::diskfree()
       disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
     else
       disk_free = -1.0;
-    
+
     MPI_Bcast(&disk_free,1,MPI_DOUBLE,0,world);
   }
   return disk_free;

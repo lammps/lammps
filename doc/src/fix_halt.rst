@@ -15,9 +15,9 @@ Syntax
 * halt = style name of this fix command
 * N = check halt condition every N steps
 * attribute = *bondmax* or *tlimit* or *diskfree* or *v\_name*
-  
+
   .. parsed-literal::
-  
+
        bondmax = length of longest bond in the system (in length units)
        tlimit = elapsed CPU time (in seconds)
        diskfree = free disk space (in megabytes)
@@ -27,18 +27,16 @@ Syntax
 * avalue = numeric value to compare attribute to
 * zero or more keyword/value pairs may be appended
 * keyword = *error* or *message* or *path*
-  
+
   .. parsed-literal::
-  
+
        *error* value = *hard* or *soft* or *continue*
        *message* value = *yes* or *no*
        *path* value = path to check for free space (may be in quotes)
 
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -101,7 +99,6 @@ computing some attribute of the current system.  For example, the
 following "bondmax" variable will calculate the same quantity as the
 hstyle = bondmax option.
 
-
 .. code-block:: LAMMPS
 
    compute         bdist all bond/local dist
@@ -109,7 +106,6 @@ hstyle = bondmax option.
    variable        bondmax equal c_bmax
 
 Thus these two versions of a fix halt command will do the same thing:
-
 
 .. code-block:: LAMMPS
 
@@ -128,9 +124,7 @@ it is "false".
 
 The specified *avalue* must be a numeric value.
 
-
 ----------
-
 
 The optional *error* keyword determines how the current run is halted.
 If its value is *hard*\ , then LAMMPS will stop with an error message.

@@ -94,6 +94,7 @@ page gives those details.
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
    * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
    * :ref:`USER-SDPD <PKG-USER-SDPD>`
@@ -2175,6 +2176,39 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * src/USER-QUIP/README
 * :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
+
+
+----------
+
+
+.. _PKG-USER-REACTION:
+
+USER-REACTION package
+---------------------
+
+**Contents:**
+
+This package allows for complex bond topology changes (reactions)
+during a running MD simulation, when using classical force fields.
+Topology changes are defined in pre- and post-reaction molecule
+templates and can include creation and deletion of bonds, angles,
+dihedrals, impropers, atom types, bond types, angle types, dihedral
+types, improper types, and/or atomic charges. Other options currently
+available include reaction constraints (e.g. angle and Arrhenius
+constraints), deletion of reaction byproducts or other small
+molecules, and chiral-sensitive reactions.
+
+**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+
+**Supporting info:**
+
+* src/USER-REACTION: filenames -> commands
+* src/USER-REACTION/README
+* :doc:`fix bond/react <fix_bond_react>`
+* examples/USER/reaction
+* `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
+* `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
+* disarmmd.org
 
 
 ----------

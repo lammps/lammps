@@ -2534,6 +2534,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This should not happen unless you explicitly deleted
    a secondary fix that fix adapt created internally.
 
+*Could not find fix halt variable name*
+   Self-explanatory.
+
 *Could not find fix gcmc exclusion group ID*
    Self-explanatory.
 
@@ -2882,6 +2885,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dimension command after simulation box is defined*
    The dimension command cannot be used after a read\_data,
    read\_restart, or create\_box command.
+
+*Disk limit not supported by OS or illegal path*
+   Self-explanatory.
 
 *Dispersion PPPMDisp order has been reduced below minorder*
    The default minimum order is 2.  This can be reset by the
@@ -3692,6 +3698,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Fix gld tau coefficients must be > 0*
+   Self-explanatory.
+
+*Fix halt variable is not equal-style variable*
    Self-explanatory.
 
 *Fix heat group has no atoms*
@@ -5117,6 +5126,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid fix box/relax pressure settings*
    Settings for coupled dimensions must be the same.
+
+*Invalid fix halt attribute*
+   Self-explanatory.
+
+*Invalid fix halt operator*
+   Self-explanatory.
 
 *Invalid fix nvt/npt/nph command for a 2d simulation*
    Cannot control z dimension in a 2d model.

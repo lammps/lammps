@@ -72,7 +72,7 @@ class TILD : public KSpace{
   int *assigned_pot, *potent_to_compressed;
   int **group_with_potential;
   int factorable(int);
-  double **param;
+  double **chi_values;
   double grid_res;
   virtual int modify_param(int, char**);
   double **potent_coeff;

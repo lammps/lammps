@@ -99,7 +99,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   density_fft = NULL;
   density_brick_types = NULL;
   gradWgroup = NULL;
-  param = NULL;
+  chi_values = NULL;
   density_fft_types = NULL;
   uG = NULL;
   uG_hat = NULL;
@@ -144,7 +144,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
-  memory->create(param,group->ngroup,group->ngroup,"pppm:param");
+  memory->create(chi_values,group->ngroup,group->ngroup,"pppm:chi_values");
   memory->create(potent_param,MAX_GROUP,MAXPARAM,
   "tild:potent_param");
   memory->create(group_with_potential,MAX_GROUP,MAX_GROUP,
@@ -203,7 +203,7 @@ TILD::~TILD(){
 
   triclinic = domain->triclinic;
   pair_check();
-  memory->destroy(param);
+  memory->destroy(chi_values);
 
 }
 
@@ -1682,7 +1682,7 @@ int TILD::modify_param(int narg, char** arg)
 {
   int i;
   int igroup1, igroup2;
-  if (strcmp(arg[0], "tild/params") == 0) {
+  if (strcmp(arg[0], "tild/chi_values") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "TILD command before simulation box is defined");
     if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
@@ -1695,7 +1695,7 @@ int TILD::modify_param(int narg, char** arg)
       if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
       kappa = atof(arg[2]);
-      param[0][0] = atof(arg[2]);
+      chi_values[0][0] = atof(arg[2]);
     } else {
       if (narg != 4) error->all(FLERR, "Illegal kspace_modify tild command");
       igroup1 = group->find(arg[1]);
@@ -1709,9 +1709,9 @@ int TILD::modify_param(int narg, char** arg)
       }
       if (igroup1 == 0 || igroup2 == 0)
         error->all(FLERR,
-                   "all group specified in 'group1 group2 param' format");
+                   "all group specified in 'group1 group2 chi_values' format");
 
-      param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
+      chi_values[igroup1][igroup2] = chi_values[igroup2][igroup1] = atof(arg[3]);
     }
   } else if (strcmp(arg[0], "tild/total") == 0) {
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
@@ -1733,10 +1733,7 @@ int TILD::modify_param(int narg, char** arg)
    } else if (strcmp(arg[0], "tild/kappa") == 0) {
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
       kappa = atof(arg[1]);
-      param[0][0] = atof(arg[1]);
-  } else if (strcmp(arg[0], "tild/w_0") == 0) {
-      if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
-        w_3body = atof(arg[1]);
+      chi_values[0][0] = atof(arg[1]);
   } else if (strcmp(arg[0], "tild/create_potential") == 0) {
       int loc = atoi(arg[1]);
       if (strcmp(arg[2], "CLEAR") == 0){
@@ -2273,7 +2270,7 @@ void TILD::accumulate_gradient() {
   for (int i = 0; i < group->ngroup; i++) {
     do_fft = false;
     for (int j = 0; j < group->ngroup; j++) {
-      if (fabs(param[i][j]) >= 1e-10) {
+      if (fabs(chi_values[i][j]) != 0) {
         do_fft = true;
         break;
       }
@@ -2314,9 +2311,9 @@ void TILD::accumulate_gradient() {
 
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
-          if (fabs(param[i][i2]) >= 1e-10) {
-            if (normalize_by_rho0 == 1 ) temp_param = param[i][i2] / rho0;
-            else temp_param = param[i][i2];
+          if (fabs(chi_values[i][i2]) != 0) {
+            if (normalize_by_rho0 == 1 ) temp_param = chi_values[i][i2] / rho0;
+            else temp_param = chi_values[i][i2];
             n = 0;
             for (int k = nzlo_in; k <= nzhi_in; k++)
               for (int m = nylo_in; m <= nyhi_in; m++)
@@ -2551,7 +2548,7 @@ void TILD::ev_calculation(int den_group) {
   
   double same_group_factor, off_diag_factor, factor, factor2;
   for (int i2 = den_group; i2 < group->ngroup; i2++) {
-    if (fabs(param[den_group][i2]) >= 1e-10) {
+    if (fabs(chi_values[den_group][i2]) >= 1e-10) {
       if (den_group == igroup1 && i2 == igroup1) {
         // Store the reduced all group
         dummy = tmp;
@@ -2565,9 +2562,9 @@ void TILD::ev_calculation(int den_group) {
       }
 
       if (normalize_by_rho0 == 1) {
-        factor = param[den_group][i2] / rho0 / delvolinv * same_group_factor * 0.5;
+        factor = chi_values[den_group][i2] / rho0 / delvolinv * same_group_factor * 0.5;
       } else {
-        factor = param[den_group][i2] / delvolinv * same_group_factor * 0.5;
+        factor = chi_values[den_group][i2] / delvolinv * same_group_factor * 0.5;
       }
 
       if (eflag_global) {

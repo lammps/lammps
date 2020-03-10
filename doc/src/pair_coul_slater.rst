@@ -64,7 +64,7 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* :math:`\r_c` (distance units)
+* :math:`r_c` (distance units)
 
 The global decay length of the charge (:math:`\lambda`) specified in the pair\_style command is used for all pairs.
 

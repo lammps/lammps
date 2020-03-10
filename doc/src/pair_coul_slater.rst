@@ -46,7 +46,7 @@ distribution in the Coulomb potential, following the formulation of
    E  =  \frac{Cq_iq_j}{\epsilon r} \left( 1- \left( 1 + \frac{r_{ij}}{\lambda} exp\left( -2r_{ij}/\lambda \right) \right) \right)                       \qquad r < r_c 
 
 
-where :math:`r_c` is the cutoff distance and :math:`\lamda` is the decay length of the charge.
+where :math:`r_c` is the cutoff distance and :math:`\lambda` is the decay length of the charge.
 C is the same Coulomb conversion factor as in the pair\_styles coul/cut and coul/long. In this way the Coulomb
 interaction between ions is corrected at small distances r. 
 For the *coul/slater/cut* style, the potential energy for distances larger than the cutoff is zero, 

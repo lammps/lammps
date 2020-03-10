@@ -15,18 +15,18 @@ atoms and the water molecule to run a rigid SPC model.
 | H mass = 1.008
 | O charge = -0.820
 | H charge = 0.410
-| LJ epsilon of OO = 0.1553
-| LJ sigma of OO = 3.166
-| LJ epsilon, sigma of OH, HH = 0.0
-| r0 of OH bond = 1.0
-| theta of HOH angle = 109.47
+| LJ :math:`\epsilon` of OO = 0.1553
+| LJ :math:`\sigma` of OO = 3.166
+| LJ :math:`\epsilon`, :math:`\sigma` of OH, HH = 0.0
+| :math:`r_0` of OH bond = 1.0
+| :math:`\theta` of HOH angle = 109.47\ :math:`^{\circ}`
 |
 
 Note that as originally proposed, the SPC model was run with a 9
-Angstrom cutoff for both LJ and Coulombic terms.  It can also be used
-with long-range Coulombics (Ewald or PPPM in LAMMPS), without changing
-any of the parameters above, though it becomes a different model in
-that mode of usage.
+Angstrom cutoff for both LJ and Coulomb terms.  It can also be used
+with long-range electrostatic solvers (e.g. Ewald or PPPM in LAMMPS)
+without changing any of the parameters above, although it becomes
+a different model in that mode of usage.
 
 The SPC/E (extended) water model is the same, except
 the partial charge assignments change:

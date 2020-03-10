@@ -73,9 +73,15 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix_numdiff requires an atom map, see atom_modify
+E: Fix numdiff requires an atom map, see atom_modify
 
-Self-explanatory.
+Self-explanatory. Efficient loop over all atoms for numerical difference
+requires an atom map.
+
+E: Fix numdiff requires consecutive atom IDs
+
+Self-explanatory. Efficient loop over all atoms for numerical difference
+requires consecutive atom IDs.
 
 E: Compute ID for fix numdiff does not exist
 

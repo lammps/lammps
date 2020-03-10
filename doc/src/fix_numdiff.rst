@@ -53,8 +53,8 @@ by two times *Delta*.
    atom displacements that are used to generate finite difference
    approximations to the exact forces.  For typical systems, a value in
    the range 1e-xxx to 1e-yyy will probably work well.  However, the
-   best value will depend on a multitude of factors including the LAMMPS
-   unit style, the stiffness of the interatomic potential,the
+   best value will depend on a multitude of factors including 
+   the stiffness of the interatomic potential,the
    thermodynamic state of the material being probed, and so on. The only
    way to be sure that you have made a good choice is to do a
    sensitivity study on a representative atomic configuration, sweeping 

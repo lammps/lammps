@@ -73,7 +73,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   temp_f = NULL;
 
   if (atom->map_style == 0)
-    error->all(FLERR,"Fix_numdiff requires an atom map, see atom_modify");
+    error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
   // zero numdiff_forces since dump may access it on timestep 0

@@ -14,15 +14,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
 * fstyle = style of force interactions between particles and wall
-  
+
   .. parsed-literal::
-  
+
        possible choices: hooke, hooke/history, hertz/history, granular
 
 * fstyle\_params = parameters associated with force interaction style
-  
+
   .. parsed-literal::
-  
+
        For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
@@ -31,9 +31,9 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-  
+
   .. parsed-literal::
-  
+
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)

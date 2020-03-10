@@ -17,9 +17,9 @@ Syntax
 * Tstart, Tstop = temperature ramp during the run
 * seed = random number seed to use for generating noise (positive integer)
 * one more value may be appended
-  
+
   .. parsed-literal::
-  
+
          flip-type  = determines the flipping type, can be chosen between rescale - no_flip - hard - soft, if no flip type is given, rescale will be chosen by default
 
 

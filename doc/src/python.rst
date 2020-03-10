@@ -13,9 +13,9 @@ Syntax
 
 * func = name of Python function
 * one or more keyword/args pairs must be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *invoke* or *input* or *return* or *format* or *length* or *file* or *here* or *exists* or *source*
        *invoke* arg = none = invoke the previously defined Python function
        *input* args = N i1 i2 ... iN

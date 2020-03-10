@@ -17,9 +17,9 @@ Syntax
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
 * c\_ID = saed compute ID
-  
+
   .. parsed-literal::
-  
+
      keyword = *file* or *ave* or *start* or *file* or *overwrite*\ :l
        *ave* args = *one* or *running* or *window M*
          one = output a new average value every Nfreq steps

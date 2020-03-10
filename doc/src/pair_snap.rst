@@ -153,7 +153,7 @@ The default values for these keywords are
 * *chunksize* = 2000
 
 The keyword *chunksize* is only applicable when using the
-pair style *snap* with the KOKKOS package and is ignored otherwise. 
+pair style *snap* with the KOKKOS package and is ignored otherwise.
 This keyword controls
 the number of atoms in each pass used to compute the bispectrum
 components and is used to avoid running out of memory. For example
@@ -161,8 +161,8 @@ if there are 4000 atoms in the simulation and the *chunksize*
 is set to 2000, the bispectrum calculation will be broken up
 into two passes.
 
-Detailed definitions for all the other keywords 
-are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page. 
+Detailed definitions for all the other keywords
+are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term, 0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
 The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients

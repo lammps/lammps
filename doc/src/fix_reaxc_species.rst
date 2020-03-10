@@ -22,9 +22,9 @@ Syntax
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
 * keyword = *cutoff* or *element* or *position*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* value = I J Cutoff
          I, J = atom types
          Cutoff = Bond-order cutoff value for this pair of atom types

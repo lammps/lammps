@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/atom = style name of this compute command
 * input = one or more atom attributes
-  
+
   .. parsed-literal::
-  
+
        possible attributes = id, mol, proc, type, mass,
                              x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
                              vx, vy, vz, fx, fy, fz,
@@ -36,9 +36,9 @@ Syntax
                              rho, drho, e, de, cv,
                              i_name, d_name
 
-  
+
   .. parsed-literal::
-  
+
            id = atom ID
            mol = molecule ID
            proc = ID of processor that owns atom
@@ -66,25 +66,25 @@ Syntax
            corner123x, corner123y, corner123z = corner points of triangle
            nbonds = number of bonds assigned to an atom
 
-  
+
   .. parsed-literal::
-  
+
            PERI package per-atom properties:
            vfrac = ???
            s0 = ???
 
-  
+
   .. parsed-literal::
-  
+
            USER-EFF and USER-AWPMD package per-atom properties:
            spin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
 
-  
+
   .. parsed-literal::
-  
+
            USER-SPH package per-atom properties:
            rho = ???
            drho = ???
@@ -92,9 +92,9 @@ Syntax
            de = ???
            cv = ???
 
-  
+
   .. parsed-literal::
-  
+
            :doc:`fix property/atom <fix_property_atom>` per-atom properties:
            i_name = custom integer vector with name
            d_name = custom integer vector with name

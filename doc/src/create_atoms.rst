@@ -13,9 +13,9 @@ Syntax
 
 * type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *random*
-  
+
   .. parsed-literal::
-  
+
        *box* args = none
        *region* args = region-ID
          region-ID = particles will only be created if contained in the region
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
-  
+
   .. code-block:: LAMMPS
-  
+
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          seed = random # seed (positive integer)

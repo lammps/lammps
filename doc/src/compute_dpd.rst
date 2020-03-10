@@ -38,7 +38,7 @@ relations:
 
 .. math::
 
-   U^{cond} = & \displaystyle\sum_{i=1}^{N} u_{i}^{cond} \\ 
+   U^{cond} = & \displaystyle\sum_{i=1}^{N} u_{i}^{cond} \\
    U^{mech} = & \displaystyle\sum_{i=1}^{N} u_{i}^{mech} \\
    U^{chem} = & \displaystyle\sum_{i=1}^{N} u_{i}^{chem} \\
           U = & \displaystyle\sum_{i=1}^{N} (u_{i}^{cond} + u_{i}^{mech} + u_{i}^{chem}) \\

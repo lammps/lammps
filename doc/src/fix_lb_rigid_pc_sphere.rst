@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * lb/rigid/pc/sphere = style name of this fix command
 * bodystyle = *single* or *molecule* or *group*
-  
+
   .. parsed-literal::
-  
+
        *single* args = none
        *molecule* args = none
        *group* args = N groupID1 groupID2 ...
@@ -24,9 +24,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *force* or *torque* or *innerNodes*
-  
+
   .. parsed-literal::
-  
+
        *force* values = M xflag yflag zflag
          M = which rigid body from 1-Nbody (see asterisk form below)
          xflag,yflag,zflag = off/on if component of center-of-mass force is active

@@ -15,9 +15,9 @@ Syntax
 * pimd = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *method* or *fmass* or *sp* or *temp* or *nhc*
-  
+
   .. parsed-literal::
-  
+
        *method* value = *pimd* or *nmpimd* or *cmd*
        *fmass* value = scaling factor on mass
        *sp* value = scaling factor on Planck constant

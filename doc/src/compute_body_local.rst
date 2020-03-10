@@ -15,9 +15,9 @@ Syntax
 * body/local = style name of this compute command
 * one or more keywords may be appended
 * keyword = *id* or *type* or *integer*
-  
+
   .. parsed-literal::
-  
+
        *id* = atom ID of the body particle
        *type* = atom type of the body particle
        *integer* = 1,2,3,etc = index of fields defined by body style

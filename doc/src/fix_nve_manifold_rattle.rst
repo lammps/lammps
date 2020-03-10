@@ -18,9 +18,9 @@ Syntax
 * manifold = name of the manifold
 * manifold-args = parameters for the manifold
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *every*
        *every* values = N
          N = print info about iteration every N steps. N = 0 means no output

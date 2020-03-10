@@ -13,9 +13,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mode* or *cutoff* or *cutoff/multi* or *group* or *vel*
-  
+
   .. parsed-literal::
-  
+
        *mode* value = *single* or *multi* = communicate atoms within a single or multiple distances
        *cutoff* value = Rcut (distance units) = communicate atoms from this far away
        *cutoff/multi* type value

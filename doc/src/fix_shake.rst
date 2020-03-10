@@ -21,9 +21,9 @@ Syntax
 * N = print SHAKE statistics every this many timesteps (0 = never)
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
-  
+
   .. parsed-literal::
-  
+
        *b* values = one or more bond types
        *a* values = one or more angle types
        *t* values = one or more atom types
@@ -31,9 +31,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mol*
-  
+
   .. parsed-literal::
-  
+
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
 

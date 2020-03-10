@@ -17,9 +17,9 @@ Syntax
 * damp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *scale* or *tally* or *zero*
        *scale* values = type ratio
          type = atom type (1-N)
@@ -28,9 +28,9 @@ Syntax
          *no* = do not tally the energy added/subtracted to atoms
          *yes* = do tally the energy added/subtracted to atoms
 
-  
+
   .. parsed-literal::
-  
+
        *zero* value = *no* or *yes*
          *no* = do not set total random force to zero
          *yes* = set total random force to zero

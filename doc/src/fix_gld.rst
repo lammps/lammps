@@ -20,9 +20,9 @@ Syntax
 * c\_k = the weight of the kth term in the Prony series (mass per time units)
 * tau\_k = the time constant of the kth term in the Prony series (time units)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *frozen* or *zero*
        *frozen* value = *no* or *yes*
          *no* = initialize extended variables using values drawn from equilibrium distribution at Tstart
@@ -65,7 +65,7 @@ With this fix active, the force on the *j*\ th atom is given as
 .. math::
 
    {\bf F}_{j}(t) = & {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
-   \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\ 
+   \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\
    \langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
 
 

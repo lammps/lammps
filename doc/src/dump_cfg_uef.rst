@@ -15,9 +15,9 @@ Syntax
 * group-ID = ID of the group of atoms to be dumped
 * N = dump every this many timesteps
 * file = name of file to write dump info to
-  
+
   .. parsed-literal::
-  
+
      args = same as args for :doc:`dump custom <dump>`
 
 

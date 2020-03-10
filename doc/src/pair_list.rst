@@ -50,9 +50,9 @@ The format of the list file is as follows:
 * empty lines will be ignored
 * comment text starts with a '#' character
 * line syntax: *ID1 ID2 style coeffs cutoff*
-  
+
   .. parsed-literal::
-  
+
        ID1 = atom ID of first atom
        ID2 = atom ID of second atom
        style = style of interaction

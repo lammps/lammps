@@ -12,9 +12,9 @@ Syntax
    boundary x y z
 
 * x,y,z = *p* or *s* or *f* or *m*\ , one or two letters
-  
+
   .. parsed-literal::
-  
+
        *p* is periodic
        *f* is non-periodic and fixed
        *s* is non-periodic and shrink-wrapped

@@ -1,5 +1,5 @@
-.. index:: dump atom/adios 
-.. index:: dump custom/adios 
+.. index:: dump atom/adios
+.. index:: dump custom/adios
 
 dump atom/adios  command
 =========================

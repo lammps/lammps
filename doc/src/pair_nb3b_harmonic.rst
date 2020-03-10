@@ -28,7 +28,7 @@ energy E of a system of atoms as
 
 .. math::
 
-   E = K (\theta - \theta_0)^2 
+   E = K (\theta - \theta_0)^2
 
 
 where :math:`\theta_0` is the equilibrium value of the angle and *K* is a

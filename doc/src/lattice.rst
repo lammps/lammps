@@ -13,17 +13,17 @@ Syntax
 
 * style = *none* or *sc* or *bcc* or *fcc* or *hcp* or *diamond* or         *sq* or *sq2* or *hex* or *custom*
 * scale = scale factor between lattice and simulation box
-  
+
   .. parsed-literal::
-  
+
        scale = reduced density rho\* (for LJ units)
        scale = lattice constant in distance units (for all other units)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis*
-  
+
   .. parsed-literal::
-  
+
        *origin* values = x y z
          x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
        *orient* values = dim i j k

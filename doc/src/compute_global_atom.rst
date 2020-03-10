@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * global/atom = style name of this compute command
 * index = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID
        f_ID = per-atom vector calculated by a fix with ID
@@ -25,9 +25,9 @@ Syntax
 
 * one or more inputs can be listed
 * input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global vector calculated by a fix with ID

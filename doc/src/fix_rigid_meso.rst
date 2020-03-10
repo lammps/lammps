@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rigid/meso = style name of this fix command
 * bodystyle = *single* or *molecule* or *group*
-  
+
   .. parsed-literal::
-  
+
        *single* args = none
        *molecule* args = none
        *custom* args = *i_propname* or *v_varname*
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *reinit* or *force* or *torque* or *infile*
-  
+
   .. parsed-literal::
-  
+
        *reinit* = *yes* or *no*
        *force* values = M xflag yflag zflag
          M = which rigid body from 1-Nbody (see asterisk form below)

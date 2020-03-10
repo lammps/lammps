@@ -104,7 +104,7 @@ potential described in :ref:`(Fumi and Tosi) <FumiTosi>`, given by
 
 .. math::
 
-   E = A \exp \left(\frac{\sigma - r}{\rho} \right) - 
+   E = A \exp \left(\frac{\sigma - r}{\rho} \right) -
    \frac{C}{r^6} + \frac{D}{r^8} \qquad r < r_c
 
 

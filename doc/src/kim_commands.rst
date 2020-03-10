@@ -34,9 +34,9 @@ Syntax
 * typeargs = atom type to species mapping (one entry per atom type) or *fixed\_types* for models with a preset fixed mapping
 * variable(s) = single name or list of names of (string style) LAMMPS variable(s) where a query result or parameter get result is stored. Variables that do not exist will be created by the command.
 * formatarg = *list, split, or explicit* (optional):
-  
+
   .. parsed-literal::
-  
+
      *list* = returns a single string with a list of space separated values
             (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
             defined by the *variable* argument. [default for *kim_query*]

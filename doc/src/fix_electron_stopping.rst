@@ -17,9 +17,9 @@ Syntax
 * file = name of the file containing the electronic stopping power table
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *minneigh*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = region, whose atoms will be affected by this fix
        *minneigh* value = minneigh

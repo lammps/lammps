@@ -23,9 +23,9 @@ Syntax
 * RkouterN =  outer radius of K atom shell for Nth ADF histogram (distance units)
 * zero or one keyword/value pairs may be appended
 * keyword = *ordinate*
-  
+
   .. parsed-literal::
-  
+
        *ordinate* value = *degree* or *radian* or *cosine*
          Choose the ordinate parameter for the histogram
 

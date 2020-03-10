@@ -18,9 +18,9 @@ Syntax
 * eflux can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
 

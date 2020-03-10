@@ -26,8 +26,8 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates the eigenvalues of the gyration tensor and 
-three shape parameters of multiple chunks of atoms. The computation includes 
+Define a computation that calculates the eigenvalues of the gyration tensor and
+three shape parameters of multiple chunks of atoms. The computation includes
 all effects due to atoms passing through periodic boundaries.
 
 The three computed shape parameters are the asphericity, b, the acylindricity, c,
@@ -37,13 +37,13 @@ and the relative shape anisotropy, k:
 
  c = & l_z - 0.5(l_y+l_x) \\
  b = & l_y - l_x \\
- k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2} 
+ k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2}
 
 
-where :math:`l_x` <= :math:`l_y` <= :math`l_z` are the three eigenvalues of the gyration tensor. A general description 
-of these parameters is provided in :ref:`(Mattice) <Mattice2>` while an application to polymer systems 
-can be found in :ref:`(Theodorou) <Theodorou2>`. The asphericity  is always non-negative and zero 
-only when the three principal moments are equal. This zero condition is met when the distribution 
+where :math:`l_x` <= :math:`l_y` <= :math`l_z` are the three eigenvalues of the gyration tensor. A general description
+of these parameters is provided in :ref:`(Mattice) <Mattice2>` while an application to polymer systems
+can be found in :ref:`(Theodorou) <Theodorou2>`. The asphericity  is always non-negative and zero
+only when the three principal moments are equal. This zero condition is met when the distribution
 of particles is spherically symmetric (hence the name asphericity) but also whenever the particle
 distribution is symmetric with respect to the three coordinate axes, e.g.,
 when the particles are distributed uniformly on a cube, tetrahedron or other Platonic
@@ -69,7 +69,7 @@ The tensor keyword must be specified in the compute gyration/chunk command.
 
 **Output info:**
 
-This compute calculates a global array with six columns, 
+This compute calculates a global array with six columns,
 which can be accessed by indices 1-6. The first three columns are the
 eigenvalues of the gyration tensor followed by the asphericity, the acylindricity
 and the relative shape anisotropy.  The computed values can be used by any command

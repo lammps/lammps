@@ -22,9 +22,9 @@ Syntax
 * magnitude = size of acceleration (force/mass units)
 * magnitude can be a variable (see below)
 * style = *chute* or *spherical* or *gradient* or *vector*
-  
+
   .. parsed-literal::
-  
+
        *chute* args = angle
          angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
          angle can be a variable (see below)

@@ -17,14 +17,14 @@ Syntax
 * Noutput = output the dynamical matrix every this many measurements
 * Nwait = wait this many timesteps before measuring
 * map\_file = *file* or *GAMMA*
-  
+
   .. parsed-literal::
-  
+
        *file* is the file that contains the mapping info between atom ID and the lattice indices.
 
-  
+
   .. parsed-literal::
-  
+
        *GAMMA* flags to treate the whole simulation box as a unit cell, so that the mapping
        info can be generated internally. In this case, dynamical matrix at only the gamma-point
        will/can be evaluated.
@@ -32,9 +32,9 @@ Syntax
 * prefix = prefix for output files
 * one or none keyword/value pairs may be appended
 * keyword = *sysdim* or *nasr*
-  
+
   .. parsed-literal::
-  
+
        *sysdim* value = d
          d = dimension of the system, usually the same as the MD model dimension
        *nasr* value = n

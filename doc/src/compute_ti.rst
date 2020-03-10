@@ -15,9 +15,9 @@ Syntax
 * ti = style name of this compute command
 * one or more attribute/arg pairs may be appended
 * keyword = pair style (lj/cut, gauss, born, etc) or *tail* or *kspace*
-  
+
   .. parsed-literal::
-  
+
        pair style args = atype v_name1 v_name2
          atype = atom type (see asterisk form below)
          v_name1 = variable with name1 that is energy scale factor and function of lambda

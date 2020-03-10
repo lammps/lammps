@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/move\_tri\_surf keyword = style name of this fix command
 * keyword = *\*LINEAR* or *\*WIGGLE* or *\*ROTATE*
-  
+
   .. parsed-literal::
-  
+
         *\*LINEAR* args = Vx Vy Vz
            Vx,Vy,Vz = components of velocity vector (velocity units), any component can be specified as NULL
         *\*WIGGLE* args = Vx Vy Vz max_travel

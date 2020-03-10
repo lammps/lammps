@@ -12,9 +12,9 @@ Syntax
    run_style style args
 
 * style = *verlet* or *verlet/split* or *respa* or *respa/omp*
-  
+
   .. parsed-literal::
-  
+
        *verlet* args = none
        *verlet/split* args = none
        *respa* args = N n1 n2 ... keyword values ...

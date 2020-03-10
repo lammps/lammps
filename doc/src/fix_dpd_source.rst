@@ -19,9 +19,9 @@ Syntax
 * edpd/source or tdpd/source = style name of this fix command
 * index (only specified for tdpd/source) = index of chemical species (1 to Nspecies)
 * keyword = *sphere* or *cuboid*
-  
+
   .. parsed-literal::
-  
+
        *sphere* values = cx,cy,cz,radius,source
          cx,cy,cz = x,y,z center of spherical domain (distance units)
          radius = radius of a spherical domain (distance units)

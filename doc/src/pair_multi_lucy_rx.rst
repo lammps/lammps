@@ -45,8 +45,8 @@ following from the many-body form described in :ref:`(Moore) <Moore2>` and
 
 .. math::
 
-   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
-   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right)
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij}
 
 
 which consists of a density-dependent function, :math:`A(\rho)`, and a

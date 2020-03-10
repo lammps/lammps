@@ -21,9 +21,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *lamda* or *collision* or *overlap* or *inside* or *exact* or *radius* or *bounce* or *search* or *cubic* or *shift* or *tstat* or *rescale*
-  
+
   .. parsed-literal::
-  
+
        *lamda* value = mean free path of SRD particles (distance units)
        *collision* value = *noslip* or *slip* = collision model
        *overlap* value = *yes* or *no* = whether big particles may overlap

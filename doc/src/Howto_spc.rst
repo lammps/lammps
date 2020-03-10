@@ -20,7 +20,7 @@ atoms and the water molecule to run a rigid SPC model.
 | LJ epsilon, sigma of OH, HH = 0.0
 | r0 of OH bond = 1.0
 | theta of HOH angle = 109.47
-| 
+|
 
 Note that as originally proposed, the SPC model was run with a 9
 Angstrom cutoff for both LJ and Coulombic terms.  It can also be used
@@ -33,7 +33,7 @@ the partial charge assignments change:
 
 | O charge = -0.8476
 | H charge = 0.4238
-| 
+|
 
 See the :ref:`(Berendsen) <howto-Berendsen>` reference for more details on both
 the SPC and SPC/E models.

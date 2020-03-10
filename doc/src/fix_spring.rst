@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * spring = style name of this fix command
 * keyword = *tether* or *couple*
-  
+
   .. parsed-literal::
-  
+
        *tether* values = K x y z R0
          K = spring constant (force/distance units)
          x,y,z = point to which spring is tethered

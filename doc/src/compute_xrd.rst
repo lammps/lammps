@@ -17,9 +17,9 @@ Syntax
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
 * keyword = *2Theta* or *c* or *LP* or *manual* or *echo*
-  
+
   .. parsed-literal::
-  
+
        *2Theta* values = Min2Theta Max2Theta
          Min2Theta,Max2Theta = minimum and maximum 2 theta range to explore
          (radians or degrees)
@@ -111,7 +111,7 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4}
    a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each

@@ -15,16 +15,16 @@ Syntax
    pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
 
 * flag\_buck = *long* or *cut*
-  
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the dispersion term 1/r\^6
        *cut* = use a cutoff
 
 * flag\_coul = *long* or *off*
-  
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the Coulombic term 1/r
        *off* = omit the Coulombic term
 

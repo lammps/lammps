@@ -6,15 +6,15 @@ thermo_modify command
 Syntax
 """"""
 
- 
+
 .. code-block:: LAMMPS
 
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*\ :l
        *lost* value = *error* or *warn* or *ignore*
        *lost/bond* value = *error* or *warn* or *ignore*

@@ -17,9 +17,9 @@ Syntax
 * Nfreq = save state of the time correlation functions every this many timesteps
 * one or more input values can be listed
 * value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *p* or *m*
-  
+
   .. parsed-literal::
-  
+
        *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value

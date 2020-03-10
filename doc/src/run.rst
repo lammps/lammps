@@ -14,9 +14,9 @@ Syntax
 * N = # of timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *upto* or *start* or *stop* or *pre* or *post* or *every*
-  
+
   .. parsed-literal::
-  
+
        *upto* value = none
        *start* value = N1
          N1 = timestep at which 1st run started

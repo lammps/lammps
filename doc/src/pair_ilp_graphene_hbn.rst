@@ -43,8 +43,8 @@ in :ref:`(Kolmogorov) <Kolmogorov2>`.
 .. math::
 
    E  = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-   V_{ij}  = & {\rm Tap}(r_{ij})\left \{ e^{-\alpha (r_{ij}/\beta -1)} 
-                \left [ \epsilon + f(\rho_{ij}) + f(\rho_{ji})\right ] - 
+   V_{ij}  = & {\rm Tap}(r_{ij})\left \{ e^{-\alpha (r_{ij}/\beta -1)}
+                \left [ \epsilon + f(\rho_{ij}) + f(\rho_{ji})\right ] -
                  \frac{1}{1+e^{-d\left [ \left ( r_{ij}/\left (s_R \cdot r^{eff} \right ) \right )-1 \right ]}}
                  \cdot \frac{C_6}{r^6_{ij}} \right \}\\
    \rho_{ij}^2 = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_i)^2 \\
@@ -96,7 +96,7 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   Four new sets of parameters of ILP for 2D layered Materials with bilayer and 
+   Four new sets of parameters of ILP for 2D layered Materials with bilayer and
    bulk configurations are presented in :ref:`(Ouyang1) <Ouyang1>` and :ref:`(Ouyang2) <Ouyang2>`, respectively.
    These parameters provide a good description in both short- and long-range interaction regimes.
    While the old ILP parameters published in :ref:`(Leven2) <Leven2>` and

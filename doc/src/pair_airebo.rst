@@ -84,8 +84,8 @@ The AIREBO potential consists of three terms:
 
 .. math::
 
-   E & = \frac{1}{2} \sum_i \sum_{j \neq i} 
-   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} + 
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i}
+   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} +
     \sum_{k \neq i,j} \sum_{l \neq i,j,k} E^{\text{TORSION}}_{kijl} \right] \\
 
 By default, all three terms are included.  For the *airebo* style, if

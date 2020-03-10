@@ -15,9 +15,9 @@ Syntax
 * displace/atom = style name of this compute command
 * zero or more keyword/arg pairs may be appended
 * keyword = *refresh*
-  
+
   .. parsed-literal::
-  
+
        *replace* arg = name of per-atom variable
 
 

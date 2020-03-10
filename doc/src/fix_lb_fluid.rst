@@ -20,9 +20,9 @@ Syntax
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
 * keyword = *setArea* or *setGamma* or *scaleGamma* or *dx* or *dm* or *a0* or *noise* or *calcforce* or *trilinear* or *D3Q19* or *read\_restart* or *write\_restart* or *zwall\_velocity* or *bodyforce* or *printfluid*
-  
+
   .. parsed-literal::
-  
+
        *setArea* values = type node_area
            type = atom type (1-N)
            node_area = portion of the surface area of the composite object associated with the particular atom type (used when the force coupling constant is set by default).
@@ -70,7 +70,7 @@ The lattice-Boltzmann algorithm solves for the fluid motion governed by
 the Navier Stokes equations,
 
 .. math::
-   
+
    \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= & 0 \\
    \partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = & \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
 

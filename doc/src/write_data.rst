@@ -14,9 +14,9 @@ Syntax
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *nocoeff*
-  
+
   .. parsed-literal::
-  
+
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *pair* value = *ii* or *ij*

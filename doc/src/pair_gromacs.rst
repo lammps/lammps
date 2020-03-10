@@ -66,7 +66,7 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
 .. math::
 
-   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
             \left(\frac{\sigma}{r}\right)^6 \right] + S_{LJ}(r)
                        \qquad r < r_c \\
    E_C  = & \frac{C q_i q_j}{\epsilon  r} + S_C(r) \qquad r < r_c \\

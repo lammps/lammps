@@ -17,9 +17,9 @@ Syntax
 * F = energy flux into the reservoir (energy/time units)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *constrain* or *com* or *hex*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region (reservoir) atoms must be in for added thermostatting force
        *constrain* value = none
@@ -88,9 +88,9 @@ The thermostatting force is given by
 .. math::
 
    \mathbf g_i = \begin{cases}
-   \frac{m_i}{2}   \frac{ F_{\Gamma_{k(\mathbf r_i)}}}{ K_{\Gamma_{k(\mathbf r_i)}}} 
+   \frac{m_i}{2}   \frac{ F_{\Gamma_{k(\mathbf r_i)}}}{ K_{\Gamma_{k(\mathbf r_i)}}}
    \left(\mathbf v_i -  \mathbf v_{\Gamma_{k(\mathbf r_i)}} \right) &  \mbox{$k(\mathbf r_i)> 0$ (inside a reservoir),} \\
-    0                                     &  \mbox{otherwise, } 
+    0                                     &  \mbox{otherwise, }
    \end{cases}
 
 where :math:`m_i` is the mass and :math:`k(\mathbf r_i)` maps the particle

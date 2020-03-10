@@ -15,9 +15,9 @@ Syntax
 * restrain = style name of this fix command
 * one or more keyword/arg pairs may be appended
 * keyword = *bond* or *angle* or *dihedral*
-  
+
   .. parsed-literal::
-  
+
        *bond* args = atom1 atom2 Kstart Kstop r0
          atom1,atom2 = IDs of 2 atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)

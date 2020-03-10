@@ -13,9 +13,9 @@ Syntax:
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * poems = style name of this fix command
 * keyword = *group* or *file* or *molecule*
-  
+
   .. parsed-literal::
-  
+
        *group* values = list of group IDs
        *molecule* values = none
        *file* values = filename

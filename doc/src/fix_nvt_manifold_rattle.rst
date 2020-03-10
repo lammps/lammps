@@ -18,9 +18,9 @@ Syntax
 * manifold = name of the manifold
 * manifold-args = parameters for the manifold
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *temp* or *tchain* or *every*
        *temp* values = Tstart Tstop Tdamp
          Tstart, Tstop = external temperature at start/end of run

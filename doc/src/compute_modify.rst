@@ -14,9 +14,9 @@ Syntax
 * compute-ID = ID of the compute to modify
 * one or more keyword/value pairs may be listed
 * keyword = *extra/dof* or *extra* or *dynamic/dof* or *dynamic*
-  
+
   .. parsed-literal::
-  
+
        *extra/dof* value = N
          N = # of extra degrees of freedom to subtract
        *extra* syntax is identical to *extra/dof*\ , will be disabled at some point

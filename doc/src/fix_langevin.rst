@@ -22,9 +22,9 @@ Syntax
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *angmom* or *omega* or *scale* or *tally* or *zero*
-  
+
   .. parsed-literal::
-  
+
        *angmom* value = *no* or factor
          *no* = do not thermostat rotational degrees of freedom via the angular momentum
          factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below

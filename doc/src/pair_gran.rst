@@ -72,8 +72,8 @@ The two Hookean styles use this formula:
 
 .. math::
 
-   F_{hk} = (k_n \delta \mathbf{n}_{ij} -  
-   m_{eff} \gamma_n\mathbf{ v}_n) - 
+   F_{hk} = (k_n \delta \mathbf{n}_{ij} -
+   m_{eff} \gamma_n\mathbf{ v}_n) -
    (k_t \mathbf{ \Delta s}_t +
    m_{eff} \gamma_t \mathbf{v}_t)
 
@@ -82,9 +82,9 @@ The Hertzian style uses this formula:
 
 .. math::
 
-   F_{hz} = \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} F_{hk} = 
-     \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} 
-     \Big[ (k_n \delta \mathbf{n}_{ij} -  
+   F_{hz} = \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} F_{hk} =
+     \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}}
+     \Big[ (k_n \delta \mathbf{n}_{ij} -
        m_{eff} \: \gamma_n \mathbf{ v}_n) -
        (k_t \mathbf{ \Delta s}_t +
        m_{eff} \: \gamma_t \mathbf{v}_t) \Big]

@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * meso/move = style name of this fix command
 * style = *linear* or *wiggle* or *rotate* or *variable*
-  
+
   .. parsed-literal::
-  
+
        *linear* args = Vx Vy Vz
          Vx,Vy,Vz = components of velocity vector (velocity units), any component can be specified as NULL
        *wiggle* args = Ax Ay Az period
@@ -32,9 +32,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *box* or *lattice*
 
 

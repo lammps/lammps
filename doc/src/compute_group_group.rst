@@ -16,9 +16,9 @@ Syntax
 * group2-ID = group ID of second (or same) group
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *kspace* or *boundary* or *molecule*
-  
+
   .. parsed-literal::
-  
+
        *pair* value = *yes* or *no*
        *kspace* value = *yes* or *no*
        *boundary* value = *yes* or *no*

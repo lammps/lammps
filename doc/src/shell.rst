@@ -12,9 +12,9 @@ Syntax
    shell cmd args
 
 * cmd = *cd* or *mkdir* or *mv* or *rm* or *rmdir* or *putenv* or arbitrary command
-  
+
   .. parsed-literal::
-  
+
        *cd* arg = dir
          dir = directory to change to
        *mkdir* args = dir1 dir2 ...

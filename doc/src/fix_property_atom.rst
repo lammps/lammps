@@ -17,9 +17,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * property/atom = style name of this fix command
 * vec1,vec2,... = *mol* or *q* or *rmass* or *i\_name* or *d\_name*
-  
+
   .. parsed-literal::
-  
+
        *mol* = molecule IDs
        *q* = charge
        *rmass* = per-atom mass
@@ -28,9 +28,9 @@ Syntax
 
 * zero of more keyword/value pairs may be appended
 * keyword = *ghost*
-  
+
   .. parsed-literal::
-  
+
        *ghost* value = *no* or *yes* for whether ghost atom info in communicated
 
 

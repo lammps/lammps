@@ -66,7 +66,7 @@ second term uses components of the virial tensor:
 
 .. math::
 
-   P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} + 
+   P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} +
    \frac{\sum_{k}^{N'} r_{k_I} f_{k_J}}{V}
 
 

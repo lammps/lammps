@@ -16,9 +16,9 @@ Syntax
 * N = envoke this fix every this many timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *range* or *name* or *max*
-  
+
   .. parsed-literal::
-  
+
        *range* arg = *on* or *off*
          *on* = range finding functionality is performed
          *off* = force matching functionality is performed

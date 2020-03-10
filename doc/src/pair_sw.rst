@@ -40,13 +40,13 @@ potential for the energy E of a system of atoms as
 
 .. math::
 
-   E & =  \sum_i \sum_{j > i} \phi_2 (r_{ij}) + 
-          \sum_i \sum_{j \neq i} \sum_{k > j} 
+   E & =  \sum_i \sum_{j > i} \phi_2 (r_{ij}) +
+          \sum_i \sum_{j \neq i} \sum_{k > j}
           \phi_3 (r_{ij}, r_{ik}, \theta_{ijk}) \\
-  \phi_2(r_{ij}) & =  A_{ij} \epsilon_{ij} \left[ B_{ij} (\frac{\sigma_{ij}}{r_{ij}})^{p_{ij}} - 
-                    (\frac{\sigma_{ij}}{r_{ij}})^{q_{ij}} \right] 
+  \phi_2(r_{ij}) & =  A_{ij} \epsilon_{ij} \left[ B_{ij} (\frac{\sigma_{ij}}{r_{ij}})^{p_{ij}} -
+                    (\frac{\sigma_{ij}}{r_{ij}})^{q_{ij}} \right]
                     \exp \left( \frac{\sigma_{ij}}{r_{ij} - a_{ij} \sigma_{ij}} \right) \\
-  \phi_3(r_{ij},r_{ik},\theta_{ijk}) & = \lambda_{ijk} \epsilon_{ijk} \left[ \cos \theta_{ijk} - 
+  \phi_3(r_{ij},r_{ik},\theta_{ijk}) & = \lambda_{ijk} \epsilon_{ijk} \left[ \cos \theta_{ijk} -
                     \cos \theta_{0ijk} \right]^2
                     \exp \left( \frac{\gamma_{ij} \sigma_{ij}}{r_{ij} - a_{ij} \sigma_{ij}} \right)
                     \exp \left( \frac{\gamma_{ik} \sigma_{ik}}{r_{ik} - a_{ik} \sigma_{ik}} \right)

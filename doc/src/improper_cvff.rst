@@ -33,7 +33,7 @@ The *cvff* improper style uses the potential
 
 .. math::
 
-   E = K [1 + d  \cos (n \phi) ] 
+   E = K [1 + d  \cos (n \phi) ]
 
 
 where phi is the improper dihedral angle.

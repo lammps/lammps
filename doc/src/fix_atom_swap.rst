@@ -19,9 +19,9 @@ Syntax
 * T = scaling temperature of the MC swaps (temperature units)
 * one or more keyword/value pairs may be appended to args
 * keyword = *types* or *mu* or *ke* or *semi-grand* or *region*
-  
+
   .. parsed-literal::
-  
+
        *types* values = two or more atom types
        *mu* values = chemical potential of swap types (energy units)
        *ke* value = *no* or *yes*

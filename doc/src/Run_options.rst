@@ -37,7 +37,7 @@ For example, the lmp\_mpi executable might be launched as follows:
 
 .. _echo:
 
-**-echo style** 
+**-echo style**
 
 Set the style of command echoing.  The style can be *none* or *screen*
 or *log* or *both*\ .  Depending on the style, each command read from
@@ -52,7 +52,7 @@ set by using the :doc:`echo <echo>` command in the input script itself.
 
 .. _help:
 
-**-help** 
+**-help**
 
 Print a brief help summary and a list of options compiled into this
 executable for each LAMMPS style (atom\_style, fix, compute,
@@ -67,7 +67,7 @@ used.
 
 .. _file:
 
-**-in file** 
+**-in file**
 
 Specify a file to use as an input script.  This is an optional switch
 when running LAMMPS in one-partition mode.  If it is not specified,
@@ -85,7 +85,7 @@ stdin.
 
 .. _run-kokkos:
 
-**-kokkos on/off keyword/value ...** 
+**-kokkos on/off keyword/value ...**
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
@@ -190,7 +190,7 @@ traffic which is slow.
 
 .. _log:
 
-**-log file** 
+**-log file**
 
 Specify a log file for LAMMPS to write status information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
@@ -211,7 +211,7 @@ Option -plog will override the name of the partition log files file.N.
 
 .. _mpicolor:
 
-**-mpicolor** color 
+**-mpicolor** color
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
@@ -238,7 +238,7 @@ links with from the lib/message directory.  See the
 
 .. _nocite:
 
-**-nocite** 
+**-nocite**
 
 Disable writing the log.cite file which is normally written to list
 references for specific cite-able features used during a LAMMPS run.
@@ -251,7 +251,7 @@ details.
 
 .. _package:
 
-**-package style args ....** 
+**-package style args ....**
 
 Invoke the :doc:`package <package>` command with style and args.  The
 syntax is the same as if the command appeared at the top of the input
@@ -271,7 +271,7 @@ having to edit an input script.
 
 .. _partition:
 
-**-partition 8x2 4 5 ...** 
+**-partition 8x2 4 5 ...**
 
 Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on P
 processors and this switch is not used, LAMMPS runs in one partition,
@@ -302,7 +302,7 @@ in this context.
 
 .. _plog:
 
-**-plog file** 
+**-plog file**
 
 Specify the base name for the partition log files, so partition N
 writes log information to file.N. If file is none, then no partition
@@ -320,7 +320,7 @@ command-line option.
 
 .. _pscreen:
 
-**-pscreen file** 
+**-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
 writes screen information to file.N. If file is none, then no
@@ -338,7 +338,7 @@ specified by the -screen command-line option.
 
 .. _reorder:
 
-**-reorder** 
+**-reorder**
 
 This option has 2 forms:
 
@@ -476,7 +476,7 @@ optional keyword/value settings.
 
 .. _restart2dump:
 
-**-restart2dump restartfile [remap] group-ID dumpstyle dumpfile arg1 arg2 ...** 
+**-restart2dump restartfile [remap] group-ID dumpstyle dumpfile arg1 arg2 ...**
 
 Convert the restart file into a dump file and immediately exit.  This
 is the same operation as if the following 2-line input script were
@@ -523,7 +523,7 @@ the *nfile* and *fileper* keywords.  See the
 
 .. _screen:
 
-**-screen file** 
+**-screen file**
 
 Specify a file for LAMMPS to write its screen information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
@@ -544,7 +544,7 @@ partition screen files file.N.
 
 .. _suffix:
 
-**-suffix style args** 
+**-suffix style args**
 
 Use variants of various styles if they exist.  The specified style can
 be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
@@ -613,7 +613,7 @@ made via the command line.
 
 .. _var:
 
-**-var name value1 value2 ...** 
+**-var name value1 value2 ...**
 
 Specify a variable that will be defined for substitution purposes when
 the input script is read.  This switch can be used multiple times to

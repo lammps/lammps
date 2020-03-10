@@ -14,9 +14,9 @@ Syntax
 * string = text string to print, which may contain variables
 * zero or more keyword/value pairs may be appended
 * keyword = *file* or *append* or *screen* or *universe*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
        *append* value = filename
        *screen* value = *yes* or *no*

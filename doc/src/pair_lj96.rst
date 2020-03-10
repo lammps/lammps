@@ -37,7 +37,7 @@ of the standard 12/6 potential, given by
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} -
    \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 

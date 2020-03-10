@@ -15,9 +15,9 @@ Syntax
 * msd/nongauss = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
 
 

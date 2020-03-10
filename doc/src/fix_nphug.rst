@@ -15,9 +15,9 @@ Syntax
    fix ID group-ID nphug keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scaleyz* or *scalexz* or *scalexy*
        *temp* values = Value1 Value2 Tdamp

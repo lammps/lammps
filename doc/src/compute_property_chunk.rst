@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/chunk = style name of this compute command
 * input = one or more attributes
-  
+
   .. parsed-literal::
-  
+
        attributes = count, id, coord1, coord2, coord3
          count = # of atoms in chunk
          id = original chunk IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`

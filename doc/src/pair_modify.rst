@@ -13,11 +13,11 @@ Syntax
 
 * one or more keyword/value pairs may be listed
 * keyword = *pair* or *shift* or *mix* or *table* or *table/disp* or *tabinner*
-  or *tabinner/disp* or *tail* or *compute* or *nofdotr* or *special* or 
+  or *tabinner/disp* or *tail* or *compute* or *nofdotr* or *special* or
   *compute/tally*
-  
+
   .. parsed-literal::
-  
+
        *pair* value = sub-style N
          sub-style = sub-style of :doc:`pair hybrid <pair_hybrid>`
          N = which instance of sub-style (1 to M), only specify if sub-style is used multiple times

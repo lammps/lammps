@@ -16,9 +16,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *reduce* or *reduce/region*
-  
+
   .. parsed-literal::
-  
+
        *reduce* arg = none
        *reduce/region* arg = region-ID
          region-ID = ID of region to use for choosing atoms
@@ -26,9 +26,9 @@ Syntax
 * mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq*
 * one or more inputs can be listed
 * input = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
        c_ID = per-atom or local vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom or local array calculated by a compute with ID, I can include wildcard (see below)
@@ -38,9 +38,9 @@ Syntax
 
 * zero or more keyword/args pairs may be appended
 * keyword = *replace*
-  
+
   .. parsed-literal::
-  
+
        *replace* args = vec1 vec2
          vec1 = reduced value from this input vector will be replaced
          vec2 = replace it with vec1[N] where N is index of max/min value from vec2

@@ -13,9 +13,9 @@ Syntax
 
 * cutoff = global cutoff for Coulombic interactions
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *limit/eradius* or *pressure/evirials* or *ecp*
        *limit/eradius* args = none
        *pressure/evirials* args = none
@@ -226,7 +226,7 @@ representations, after the "ecp" keyword.
 .. math::
 
    E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
-   E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 
+   E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right]
 
 Where the 1st form correspond to core interactions with s-type valence
 electrons and the 2nd to core interactions with p-type valence

@@ -23,9 +23,9 @@ Syntax
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
 * keyword = *atom* or *adiam* or *bond* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *persp* or *box* or *axes* or *subbox* or *shiny* or *ssao*
-  
+
   .. parsed-literal::
-  
+
        *atom* = yes/no = do or do not draw atoms
        *adiam* size = numeric value for atom diameter (distance units)
        *bond* values = color width = color and width of bonds
@@ -568,9 +568,9 @@ To manually convert JPEG, PNG or PPM files into an animated GIF or
 MPEG or other movie file you can use:
 
 * a) Use the ImageMagick convert program.
-  
+
   .. code-block:: bash
-  
+
      % convert *.jpg foo.gif
      % convert -loop 1 *.ppm foo.mpg
 
@@ -596,9 +596,9 @@ MPEG or other movie file you can use:
   FFmpeg is a command line tool that is available on many platforms and
   allows extremely flexible encoding and decoding of movies.
 
-  
+
   .. code-block:: bash
-  
+
      cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
@@ -619,18 +619,18 @@ Play the movie:
 * b) Use the freely available mplayer or ffplay tool to view a
   movie. Both are available for multiple OSes and support a large
   variety of file formats and decoders.
-  
+
   .. code-block:: bash
-  
+
      % mplayer foo.mpg
      % ffplay bar.avi
 
 * c) Use the `Pizza.py <http://www.sandia.gov/~sjplimp/pizza.html>`_
   `animate tool <http://www.sandia.gov/~sjplimp/pizza/doc/animate.html>`_,
   which works directly on a series of image files.
-  
+
   .. code-block:: python
-  
+
      a = animate("foo*.jpg")
 
 * d) QuickTime and other Windows- or MacOS-based media players can

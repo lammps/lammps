@@ -55,10 +55,10 @@ force field, given by:
          \epsilon\left\lbrace 5\left[ \frac{\sigma}{r}\right]^{12}-
          6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n\theta\\
    Morse(r)  = & D_0\left\lbrace \chi^2 - 2\chi\right\rbrace cos^n\theta=
-         D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} 
+         D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
          \right\rbrace cos^n\theta \\
-   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
-   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
+   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
+   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
    { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
 
 

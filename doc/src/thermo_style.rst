@@ -12,9 +12,9 @@ Syntax
 
 * style = *one* or *multi* or *custom*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *one* args = none
        *multi* args = none
        *custom* args = list of keywords

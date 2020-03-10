@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/spin = style name of this fix command
 * keyword = *lattice*
-  
+
   .. parsed-literal::
-  
+
        *lattice* value = *moving* or *frozen*
          moving = integrate both spin and atomic degress of freedom
          frozen = integrate spins on a fixed lattice

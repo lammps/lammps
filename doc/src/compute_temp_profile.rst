@@ -15,9 +15,9 @@ Syntax
 * temp/profile = style name of this compute command
 * xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension
 * binstyle = *x* or *y* or *z* or *xy* or *yz* or *xz* or *xyz*
-  
+
   .. parsed-literal::
-  
+
        *x* arg = Nx
        *y* arg = Ny
        *z* arg = Nz
@@ -29,9 +29,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *out*
-  
+
   .. parsed-literal::
-  
+
        *out* value = *tensor* or *bin*
 
 

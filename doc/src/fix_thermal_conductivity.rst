@@ -18,9 +18,9 @@ Syntax
 * Nbin = # of layers in edim direction (must be even number)
 * zero or more keyword/value pairs may be appended
 * keyword = *swap*
-  
+
   .. parsed-literal::
-  
+
        *swap* value = Nswap = number of swaps to perform every N steps
 
 

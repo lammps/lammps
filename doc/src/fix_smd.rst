@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd  = style name of this fix command
 * mode = *cvel* or *cfor* to select constant velocity or constant force SMD
-  
+
   .. parsed-literal::
-  
+
        *cvel* values = K vel
          K = spring constant (force/distance units)
          vel = velocity of pulling (distance/time units)
@@ -24,9 +24,9 @@ Syntax
          force = pulling force (force units)
 
 * keyword = *tether* or *couple*
-  
+
   .. parsed-literal::
-  
+
        *tether* values = x y z R0
          x,y,z = point to which spring is tethered
          R0 = distance of end of spring from tether point (distance units)

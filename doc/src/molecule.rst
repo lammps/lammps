@@ -15,9 +15,9 @@ Syntax
 * file1,file2,... = names of files containing molecule descriptions
 * zero or more keyword/value pairs may be appended after each file
 * keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale*
-  
+
   .. parsed-literal::
-  
+
        *offset* values = Toff Boff Aoff Doff Ioff
          Toff = offset to add to atom types
          Boff = offset to add to bond types

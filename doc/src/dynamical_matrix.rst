@@ -15,9 +15,9 @@ Syntax
 * style = *regular* or *eskm*
 * gamma = finite different displacement length (distance units)
 * one or more keyword/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *file* or *binary*
          *file* name = name of output file for the dynamical matrix
          *binary* arg = *yes* or *no* or *gzip*
@@ -51,7 +51,7 @@ matrix defined by
 
    \Phi_{ij}^{\alpha\beta} = \frac{\partial^2 U}{\partial x_{i,\alpha} \partial x_{j,\beta}}
 
-   
+
 The output for the dynamical matrix is printed three elements at a time.
 The three elements are the three :math:`\beta` elements for a respective
 i/:math:`\alpha`/j combination.  Each line is printed in order of j

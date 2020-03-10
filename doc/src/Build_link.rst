@@ -101,7 +101,7 @@ change to:
 
    gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
    g++ -o caller caller.o -L${HOME}/lammps/lib/poems \
-     -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src -llammps -lpoems -lmpi_stubs 
+     -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src -llammps -lpoems -lmpi_stubs
 
 Note, that you need to link with "g++" instead of "gcc", since LAMMPS
 is C++ code.  You can display the currently applied settings for building
@@ -115,15 +115,15 @@ Which should output something like:
 
 .. code-block:: bash
 
-   # Compiler: 
+   # Compiler:
    CXX=g++
-   # Linker: 
+   # Linker:
    LD=g++
-   # Compilation: 
+   # Compilation:
    CXXFLAGS=-g -O3 -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -I${HOME}/lammps/lib/poems -I${HOME}/lammps/src/STUBS
-   # Linking: 
+   # Linking:
    LDFLAGS=-g -O
-   # Libraries: 
+   # Libraries:
    LDLIBS=-L${HOME}/lammps/lib/poems -L${HOME}/lammps/src/STUBS -lpoems -lmpi_stubs
 
 From this you can gather the necessary paths and flags.  With
@@ -165,7 +165,7 @@ traditional make build using "make mode=shlib serial" becomes:
    g++ -o caller caller.o -L${HOME}/lammps/src -llammps
 
 *Locating liblammps.so at runtime*\ :
-   
+
 However, now the `liblammps.so` file is required at runtime and needs
 to be in a folder, where the shared linker program of the operating
 system can find it.  This would be either a folder like "/usr/local/lib64"
@@ -203,7 +203,7 @@ You can verify whether all required shared libraries are found with the
 
 .. code-block:: bash
 
-   $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller 
+   $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller
         linux-vdso.so.1 (0x00007ffe729e0000)
         liblammps.so => /home/user/lammps/src/liblammps.so (0x00007fc91bb9e000)
         libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fc91b984000)
@@ -217,7 +217,7 @@ If a required library is missing, you would get a 'not found' entry:
 
 .. code-block:: bash
 
-   $  ldd caller 
+   $  ldd caller
         linux-vdso.so.1 (0x00007ffd672fe000)
         liblammps.so => not found
         libstdc++.so.6 => /usr/lib64/libstdc++.so.6 (0x00007fb7c7e86000)

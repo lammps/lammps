@@ -16,9 +16,9 @@ Syntax
 * nevery = adjust the momentum every this many timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *linear*
-  
+
   .. parsed-literal::
-  
+
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension.
 

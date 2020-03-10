@@ -14,17 +14,17 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * flow/gauss = style name of this fix command
 * xflag,yflag,zflag = 0 or 1
-  
+
   .. parsed-literal::
-  
+
          0 = do not conserve current in this dimension
          1 = conserve current in this dimension
 
 * zero or more keyword/value pairs may be appended
 * keyword = *energy*
-  
+
   .. parsed-literal::
-  
+
        *energy* value = no or yes
          no = do not compute work done by this fix
          yes = compute work done by this fix

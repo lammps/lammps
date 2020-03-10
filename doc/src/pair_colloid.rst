@@ -47,7 +47,7 @@ The colloid-colloid interaction energy is given by
    \frac{2 a_1 a_2}{r^2-\left(a_1+a_2\right)^2}
    + \frac{2 a_1 a_2}{r^2 - \left(a_1 - a_2\right)^2}
      + \mathrm{ln}
-       \left( 
+       \left(
   \frac{r^2-\left(a_1+a_2\right)^2}{r^2-\left(a_1-a_2\right)^2}
    \right)
   \right] \\
@@ -75,9 +75,9 @@ The colloid-solvent interaction energy is given by
 
 .. math::
 
-   U = \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3} 
+   U = \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3}
    \left[ 1 - \frac{\left(5 ~ a^6+45~a^4~r^2+63~a^2~r^4+15~r^6\right) \sigma^6}
-   {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c 
+   {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c
 
 where :math:A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
 particle, and :math:`r_c` is the cutoff.  This formula is derived from the

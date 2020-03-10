@@ -18,9 +18,9 @@ Syntax
 * Rmax = bond longer than Rmax can break (distance units)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *prob*
-  
+
   .. parsed-literal::
-  
+
        *prob* values = fraction seed
          fraction = break a bond with this probability if otherwise eligible
          seed = random number seed (positive integer)

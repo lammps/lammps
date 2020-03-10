@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * hexorder/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *degree* or *nnn* or *cutoff*
        *cutoff* value = distance cutoff
        *nnn* value = number of nearest neighbors

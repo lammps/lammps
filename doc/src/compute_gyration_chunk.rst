@@ -16,9 +16,9 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * zero or more keyword/value pairs may be appended
 * keyword = *tensor*
-  
+
   .. parsed-literal::
-  
+
        *tensor* value = none
 
 

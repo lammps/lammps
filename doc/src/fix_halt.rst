@@ -15,9 +15,9 @@ Syntax
 * halt = style name of this fix command
 * N = check halt condition every N steps
 * attribute = *bondmax* or *tlimit* or v\_name
-  
+
   .. parsed-literal::
-  
+
        bondmax = length of longest bond in the system
        tlimit = elapsed CPU time
        v_name = name of :doc:`equal-style variable <variable>`
@@ -26,9 +26,9 @@ Syntax
 * avalue = numeric value to compare attribute to
 * zero or more keyword/value pairs may be appended
 * keyword = *error* or *message*
-  
+
   .. parsed-literal::
-  
+
        *error* value = *hard* or *soft* or *continue*
        *message* value = *yes* or *no*
 

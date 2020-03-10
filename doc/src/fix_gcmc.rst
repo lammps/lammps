@@ -22,9 +22,9 @@ Syntax
 * mu = chemical potential of the ideal gas reservoir (energy units)
 * displace = maximum Monte Carlo translation distance (length units)
 * zero or more keyword/value pairs may be appended to args
-  
+
   .. parsed-literal::
-  
+
      keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, or *overlap_cutoff*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
@@ -265,7 +265,7 @@ pressure of the fictitious gas reservoir by:
 .. math::
 
    \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
-             = & k T \ln{\frac{\phi P \Lambda^3}{k T}} 
+             = & k T \ln{\frac{\phi P \Lambda^3}{k T}}
 
 
 where *k* is Boltzman's constant, *T* is the user-specified
@@ -394,9 +394,9 @@ place any pair of atoms closer than the specified overlap cutoff
 distance.
 
 The *max* and *min* keywords allow for the restriction of the number
-of atoms in the simulation. They automatically reject all insertion 
+of atoms in the simulation. They automatically reject all insertion
 or deletion moves that would take the system beyond the set boundaries.
-Should the system already be beyond the boundary, only moves that bring 
+Should the system already be beyond the boundary, only moves that bring
 the system closer to the bounds may be accepted.
 
 The *group* keyword adds all inserted atoms to the

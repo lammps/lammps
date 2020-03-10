@@ -17,9 +17,9 @@ Syntax
 * damp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * keyword = *angmom*
-  
+
   .. parsed-literal::
-  
+
        *angmom* value = factor
          factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
 

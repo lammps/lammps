@@ -13,9 +13,9 @@ Syntax
 
 * group-ID = ID of group of atoms whose velocity will be changed
 * style = *create* or *set* or *scale* or *ramp* or *zero*
-  
+
   .. parsed-literal::
-  
+
        *create* args = temp seed
          temp = temperature value (temperature units)
          seed = random # seed (positive integer)
@@ -35,9 +35,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *dist* or *sum* or *mom* or *rot* or *temp* or *bias* or *loop* or *units*
-  
+
   .. parsed-literal::
-  
+
        *dist* value = *uniform* or *gaussian*
        *sum* value = *no* or *yes*
        *mom* value = *no* or *yes*

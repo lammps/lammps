@@ -155,7 +155,7 @@ where
 .. math::
 
    \epsilon_{ab} = & \sqrt{\epsilon_{a}\epsilon_{b}} \\
-   R_{m,ab}      = & \frac{R_{m,a}+R_{m,b}}{2} \\ 
+   R_{m,ab}      = & \frac{R_{m,a}+R_{m,b}}{2} \\
    \alpha_{ab}   = & \sqrt{\alpha_{a}\alpha_{b}}
 
 

@@ -30,7 +30,7 @@ The *fourier* improper style uses the following potential:
 
 .. math::
 
-   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ] 
+   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ]
 
 
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,

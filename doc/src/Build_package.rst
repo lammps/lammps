@@ -221,7 +221,7 @@ package" will list all the these commands.
    directory src and the sub-directories with the package name (e.g.
    src/KSPACE, src/USER-ATC), so that the files are included or excluded
    when LAMMPS is built.  Only source files in the src folder will be
-   compiled. 
+   compiled.
 
 The following make commands help manage files that exist in both the
 src directory and in package sub-directories.  You do not normally

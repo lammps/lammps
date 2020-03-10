@@ -16,9 +16,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *wall/ees* or *wall/region/ees*
-  
+
   .. parsed-literal::
-  
+
        args for style *wall/ees*\ : one or more *face parameters* groups may be appended
        face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
        parameters = coord epsilon sigma cutoff
@@ -32,9 +32,9 @@ Syntax
            sigma can be a variable (see below)
          cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
-  
+
   .. parsed-literal::
-  
+
        args for style *wall/region/ees*\ : *region-ID* *epsilon* *sigma* *cutoff*
          region-ID = region whose boundary will act as wall
          epsilon = strength factor for wall-particle interaction (energy or energy/distance\^2 units)

@@ -13,9 +13,9 @@ Syntax
 
 * ID = user-defined name of the group
 * style = *delete* or *clear* or *empty* or *region* or         *type* or *id* or *molecule* or *variable* or         *include* or *subtract* or *union* or *intersect* or         *dynamic* or *static*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *clear* = no args
        *empty* = no args

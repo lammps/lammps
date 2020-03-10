@@ -18,9 +18,9 @@ Syntax
 * c\_t = tangential damping coefficient (force/distance or pressure units)
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *xplane* or *yplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
        *zcylinder* args = radius
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle*
-  
+
   .. parsed-literal::
-  
+
        *wiggle* values = dim amplitude period
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)

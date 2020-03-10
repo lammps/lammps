@@ -19,16 +19,16 @@ Syntax
 * N = adjust the momentum every this many timesteps
   one or more keyword/value pairs may be appended
 * keyword = *linear* or *angular* or *rescale*
-  
+
   .. parsed-literal::
-  
+
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension
        *angular* values = none
 
-  
+
   .. parsed-literal::
-  
+
        *rescale* values = none
 
 

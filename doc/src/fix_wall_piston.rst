@@ -16,9 +16,9 @@ Syntax
 * face = *zlo*
 * zero or more keyword/value pairs may be appended
 * keyword = *pos* or *vel* or *ramp* or *units*
-  
+
   .. parsed-literal::
-  
+
        *pos* args = z
          z = z coordinate at which the piston begins (distance units)
        *vel* args = vz

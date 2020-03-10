@@ -16,9 +16,9 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *only\_group* or *surface* or *radius* or *edge\_histo* or *edge\_threshold*
   or *face\_threshold* or *neighbors* or *peratom*
-  
+
   .. parsed-literal::
-  
+
        *only_group* = no arg
        *occupation* = no arg
        *surface* arg = sgroup-ID

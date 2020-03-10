@@ -14,9 +14,9 @@ Syntax
 * which = *client* or *server* or *quit*
 * protocol = *md* or *mc*
 * mode = *file* or *zmq* or *mpi/one* or *mpi/two*
-  
+
   .. parsed-literal::
-  
+
        *file* arg = filename
          filename = file used for message exchanges
        *zmq* arg = socket-ID

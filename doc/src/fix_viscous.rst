@@ -15,9 +15,9 @@ Syntax
 * viscous = style name of this fix command
 * gamma = damping coefficient (force/velocity units)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *scale*
        *scale* values = type ratio
          type = atom type (1-N)

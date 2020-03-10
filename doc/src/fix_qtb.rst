@@ -15,9 +15,9 @@ Syntax
 * qtb = style name of this fix
 * zero or more keyword/value pairs may be appended
 * keyword = *temp* or *damp* or *seed* or *f\_max* or *N\_f*
-  
+
   .. parsed-literal::
-  
+
        *temp* value = target quantum temperature (temperature units)
        *damp* value = damping parameter (time units) inverse of friction *gamma*
        *seed* value = random number seed (positive integer)

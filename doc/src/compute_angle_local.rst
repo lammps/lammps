@@ -15,18 +15,18 @@ Syntax
 * angle/local = style name of this compute command
 * one or more values may be appended
 * value = *theta* or *eng* or *v\_name*
-  
+
   .. parsed-literal::
-  
+
        *theta* = tabulate angles
        *eng* = tabulate angle energies
        *v_name* = equal-style variable with name (see below)
 
 * zero or more keyword/args pairs may be appended
 * keyword = *set*
-  
+
   .. parsed-literal::
-  
+
        *set* args = theta name
          theta = only currently allowed arg
          name = name of variable to set with theta

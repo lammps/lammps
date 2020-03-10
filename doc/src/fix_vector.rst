@@ -16,9 +16,9 @@ Syntax
 * Nevery = use input values every this many timesteps
 * one or more input values can be listed
 * value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID

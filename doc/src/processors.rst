@@ -14,9 +14,9 @@ Syntax
 * Px,Py,Pz = # of processors in each dimension of 3d grid overlaying the simulation domain
 * zero or more keyword/arg pairs may be appended
 * keyword = *grid* or *map* or *part* or *file*
-  
+
   .. parsed-literal::
-  
+
        *grid* arg = gstyle params ...
          gstyle = *onelevel* or *twolevel* or *numa* or *custom*
            onelevel params = none

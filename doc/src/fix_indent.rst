@@ -16,9 +16,9 @@ Syntax
 * K = force constant for indenter surface (force/distance\^2 units)
 * one or more keyword/value pairs may be appended
 * keyword = *sphere* or *cylinder* or *plane* or *side* or *units*
-  
+
   .. parsed-literal::
-  
+
        *sphere* args = x y z R
          x,y,z = initial position of center of indenter (distance units)
          R = sphere radius of indenter (distance units)

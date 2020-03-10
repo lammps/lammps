@@ -14,9 +14,9 @@ Syntax
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces*
-  
+
   .. parsed-literal::
-  
+
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
        *energy* value = *yes* or *no*

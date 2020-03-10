@@ -16,16 +16,16 @@ Syntax
 * region-ID = region whose boundary will act as wall
 * style = *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic* or *morse*
 * args for styles *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic* =
-  
+
   .. parsed-literal::
-  
+
         epsilon = strength factor for wall-particle interaction (energy or energy/distance\^2 units)
         sigma = size factor for wall-particle interaction (distance units)
 
 * args for style *morse* =
-  
+
   .. parsed-literal::
-  
+
         D_0 = depth of the potential (energy units)
         alpha = width parameter (1/distance units)
         r_0 = distance of the potential minimum from wall position (distance units)
@@ -134,7 +134,7 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
 
 .. math::
 
- E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} -
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
@@ -143,7 +143,7 @@ For style *lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
@@ -152,7 +152,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
 .. math::
 
- E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} -
                        \left(\frac{\sigma}{r}\right)^4 -
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
@@ -163,10 +163,10 @@ the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
 
-   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560}
    \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
-    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring

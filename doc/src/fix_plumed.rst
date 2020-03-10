@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * plumed = style name of this fix command
 * keyword = *plumedfile* or *outfile*
-  
+
   .. parsed-literal::
-  
+
        *plumedfile* arg = name of PLUMED input file to use (default: NULL)
        *outfile* arg = name of file on which to write the PLUMED log (default: NULL)
 

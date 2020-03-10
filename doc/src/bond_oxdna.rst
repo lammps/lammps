@@ -69,11 +69,11 @@ commands:
    coaxial stacking interaction *oxdna/coaxstk* as well as
    hydrogen-bonding interaction *oxdna/hbond* (see also documentation of
    :doc:`pair_style oxdna/excv <pair_oxdna>`). For the oxDNA2
-   :ref:`(Snodin) <Snodin0>` bond style the analogous pair styles 
+   :ref:`(Snodin) <Snodin0>` bond style the analogous pair styles
    *oxdna2/excv* , *oxdna2/stk* , *oxdna2/xstk* , *oxdna2/coaxstk* ,
-   *oxdna2/hbond* and an additional Debye-Hueckel pair style 
+   *oxdna2/hbond* and an additional Debye-Hueckel pair style
    *oxdna2/dh* have to be defined. The same applies to the oxRNA2
-   :ref:`(Sulc1) <Sulc01>` styles. 
+   :ref:`(Sulc1) <Sulc01>` styles.
    The coefficients in the above example have to be kept fixed and cannot
    be changed without reparameterizing the entire model.
 
@@ -83,17 +83,17 @@ setup tool which creates single straight or helical DNA strands, DNA/RNA
 duplexes or arrays of DNA/RNA duplexes can be found in
 examples/USER/cgdna/util/.
 
-Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses 
-this implementation.  The article contains general information 
-on the model, its implementation and performance as well as the structure of 
+Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
+this implementation.  The article contains general information
+on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
 `here <PDF/USER-CGDNA.pdf>`_.
-Please cite also the relevant oxDNA/oxRNA publications. These are 
-:ref:`(Ouldridge) <Ouldridge0>` and 
-:ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA, 
-:ref:`(Snodin) <Snodin0>` for oxDNA2, 
-:ref:`(Sulc1) <Sulc01>` for oxRNA2 
-and for sequence-specific hydrogen-bonding and stacking interactions 
+Please cite also the relevant oxDNA/oxRNA publications. These are
+:ref:`(Ouldridge) <Ouldridge0>` and
+:ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA,
+:ref:`(Snodin) <Snodin0>` for oxDNA2,
+:ref:`(Sulc1) <Sulc01>` for oxRNA2
+and for sequence-specific hydrogen-bonding and stacking interactions
 :ref:`(Sulc2) <Sulc02>`.
 
 
@@ -111,7 +111,7 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`, 
+:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 **Default:**

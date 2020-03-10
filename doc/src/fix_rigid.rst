@@ -59,9 +59,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *rigid* or *rigid/nve* or *rigid/nvt* or *rigid/npt* or *rigid/nph* or *rigid/small* or *rigid/nve/small* or *rigid/nvt/small* or *rigid/npt/small* or *rigid/nph/small*
 * bodystyle = *single* or *molecule* or *group*
-  
+
   .. parsed-literal::
-  
+
        *single* args = none
        *molecule* args = none
        *custom* args = *i_propname* or *v_varname*
@@ -73,9 +73,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile*
-  
+
   .. parsed-literal::
-  
+
        *langevin* values = Tstart Tstop Tperiod seed
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)

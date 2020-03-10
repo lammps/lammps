@@ -18,9 +18,9 @@ Syntax
 * deform = style name of this fix command
 * N = perform box deformation every this many timesteps
 * one or more parameter/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
        *x*\ , *y*\ , *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
@@ -66,9 +66,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *remap* or *flip* or *units*
-  
+
   .. parsed-literal::
-  
+
        *remap* value = *x* or *v* or *none*
          x = remap coords of atoms in group into deforming box
          v = remap velocities of all atoms when they cross periodic boundaries

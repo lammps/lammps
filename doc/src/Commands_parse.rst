@@ -116,7 +116,7 @@ LAMMPS:
    underscores, or punctuation characters.
 
 .. _five:
-   
+
 5. The first word is the command name.  All successive words in the line
    are arguments.
 

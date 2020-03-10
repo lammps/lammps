@@ -43,7 +43,7 @@ vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 .. math::
 
    E & = \epsilon_{ij} \left[ -2.25 \left(\frac{r_{v,ij}}{r_{ij}}\right)^6 + 1.84(10)^5 \exp\left[-12.0 r_{ij}/r_{v,ij}\right] \right] S_3(r_{ij}) \\
-   r_{v,ij} & =  r_{v,i} + r_{v,j} \\ 
+   r_{v,ij} & =  r_{v,i} + r_{v,j} \\
    \epsilon_{ij} & = \sqrt{\epsilon_i \epsilon_j}
 
 

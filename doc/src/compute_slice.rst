@@ -17,9 +17,9 @@ Syntax
 * Nstop = stopping index within input vector(s)
 * Nskip = extract every Nskip elements from input vector(s)
 * input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
-  
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID
        f_ID = global vector calculated by a fix with ID

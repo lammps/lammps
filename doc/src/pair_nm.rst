@@ -28,9 +28,9 @@ Syntax
 
 * style = *nm/cut* or *nm/cut/coul/cut* or *nm/cut/coul/long*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *nm/cut* args = cutoff
          cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/coul/cut* args = cutoff (cutoff2)

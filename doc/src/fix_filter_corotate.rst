@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
-  
+
   .. parsed-literal::
-  
+
        *b* values = one or more bond types
        *a* values = one or more angle types
        *t* values = one or more atom types

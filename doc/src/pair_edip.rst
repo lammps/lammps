@@ -45,7 +45,7 @@ In EDIP, the energy E of a system of atoms is
    \phi_{2}(r, Z)  = & A\left[\left(\frac{B}{r}\right)^{\rho} - e^{-\beta Z^2}\right]exp{\left(\frac{\sigma}{r-a}\right)} \\
    \phi_{3}(R_{ij}, R_{ik}, Z_i)  = & exp{\left(\frac{\gamma}{R_{ij}-a}\right)}exp{\left(\frac{\gamma}{R_{ik}-a}\right)}h(cos\theta_{ijk},Z_i) \\
    Z_i  = & \sum_{m \ne i} f(R_{im}) \qquad
-   f(r) = \begin{cases} 
+   f(r) = \begin{cases}
           1 & \quad r<c \\
           \exp\left(\frac{\alpha}{1-x^{-3}}\right) & \quad c<r<a \\
           0 & \quad r>a

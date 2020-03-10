@@ -30,7 +30,7 @@ The *quadratic* dihedral style uses the potential:
 
 .. math::
 
-   E = K (\phi - \phi_0)^2 
+   E = K (\phi - \phi_0)^2
 
 
 This dihedral potential can be used to keep a dihedral in a predefined

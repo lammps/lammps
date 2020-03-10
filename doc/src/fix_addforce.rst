@@ -14,16 +14,16 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * addforce = style name of this fix command
 * fx,fy,fz = force component values (force units)
-  
+
   .. parsed-literal::
-  
+
        any of fx,fy,fz can be a variable (see below)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *every* or *region* or *energy*
-  
+
   .. parsed-literal::
-  
+
        *every* value = Nevery
          Nevery = add force every this many timesteps
        *region* value = region-ID

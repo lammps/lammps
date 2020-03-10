@@ -15,17 +15,17 @@ Syntax
 * dihedral/local = style name of this compute command
 * one or more values may be appended
 * value = *phi* or *v\_name*
-  
+
   .. parsed-literal::
-  
+
        *phi* = tabulate dihedral angles
        *v_name* = equal-style variable with name (see below)
 
 * zero or more keyword/args pairs may be appended
 * keyword = *set*
-  
+
   .. parsed-literal::
-  
+
        *set* args = phi name
          phi = only currently allowed arg
          name = name of variable to set with phi

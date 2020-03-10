@@ -19,9 +19,9 @@ Syntax
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
 * keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *mol* or *rigid* or *shake* or *units*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region to use as insertion volume
        *id* value = *max* or *next*

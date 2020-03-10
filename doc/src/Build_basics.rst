@@ -142,7 +142,7 @@ please refer to its documentation.
 
 .. _default-none-issues:
 
-**OpenMP Compiler compatibility info**\ : 
+**OpenMP Compiler compatibility info**\ :
 
 Some compilers do not fully support the 'default(none)' directive
 and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0

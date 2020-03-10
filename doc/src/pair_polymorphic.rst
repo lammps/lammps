@@ -64,9 +64,9 @@ Stillinger-Weber potential (:ref:`SW <SW>`) if we set
    \left\{\begin{array}{l}
    \eta_{ij} = \delta_{ij},\xi_{IJ}=0 \\
    U_{IJ}\left(r\right)=A_{IJ}\cdot\epsilon_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^q\cdot \left[B_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^{p-q}-1\right]\cdot exp\left(\frac{\sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   V_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\ 
+   V_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
    F_{IJ}\left(X\right)=-X \\
-   P_{IJ}\left(\Delta r\right)=1 \\ 
+   P_{IJ}\left(\Delta r\right)=1 \\
    W_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
    G_{JIK}\left(\theta\right)=\left(cos\theta+\frac{1}{3}\right)^2
    \end{array}\right.
@@ -82,7 +82,7 @@ The potential reduces to Tersoff types of potential
    U_{IJ}\left(r\right)=\frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}\left(r-r_{e,IJ}\right)}\right]\cdot f_{c,IJ}\left(r\right) \\
    V_{IJ}\left(r\right)=\frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}\left(r-r_{e,IJ}\right)}\right]\cdot f_{c,IJ}\left(r\right) \\
    F_{IJ}\left(X\right)=\left(1+X\right)^{-\frac{1}{2}} \\
-   P_{IJ}\left(\Delta r\right)=exp\left(2\mu_{IK}\cdot \Delta r\right) \\ 
+   P_{IJ}\left(\Delta r\right)=exp\left(2\mu_{IK}\cdot \Delta r\right) \\
    W_{IJ}\left(r\right)=f_{c,IK}\left(r\right) \\
    G_{JIK}\left(\theta\right)=\gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}\right]
    \end{array}\right.
@@ -114,7 +114,7 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    B_{IJ} \cdot exp\left(-\lambda_{2,IJ}\cdot r\right)\cdot f_{c,IJ}\left(r\right)+A_{IJ}\cdot exp\left(-\lambda_{1,IJ}\cdot r\right)\cdot & \\ ~~~~~~ f_{c,IJ}\left(r\right) & r \ge r_{c,1,IJ}
    \end{array}\right. \\
    F_{IJ}\left(X\right)=\left[1+\left(\beta_{IJ}\cdot X\right)^{n_{IJ}}\right]^{-\frac{1}{2n_{IJ}}} \\
-   P_{IJ}\left(\Delta r\right)=exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\ 
+   P_{IJ}\left(\Delta r\right)=exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\
    W_{IJ}\left(r\right)=f_{c,IK}\left(r\right) \\
    G_{JIK}\left(\theta\right)=1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
    \end{array}\right.
@@ -147,7 +147,7 @@ The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
    U_{IJ}\left(r\right)=\phi_{IJ}\left(r\right) \\
    V_{IJ}\left(r\right)=1 \\
    F_{II}\left(X\right)=-2F_I\left(X\right) \\
-   P_{IJ}\left(\Delta r\right)=1 \\ 
+   P_{IJ}\left(\Delta r\right)=1 \\
    W_{IJ}\left(r\right)=f_{K}\left(r\right) \\
    G_{JIK}\left(\theta\right)=1
    \end{array}\right.

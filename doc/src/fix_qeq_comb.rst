@@ -20,9 +20,9 @@ Syntax
 * precision = convergence criterion for charge equilibration
 * zero or more keyword/value pairs may be appended
 * keyword = *file*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
          filename = name of file to write QEQ equilibration info to
 

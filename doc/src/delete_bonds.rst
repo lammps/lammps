@@ -13,9 +13,9 @@ Syntax
 
 * group-ID = group ID
 * style = *multi* or *atom* or *bond* or *angle* or *dihedral* or *improper* or *stats*
-  
+
   .. parsed-literal::
-  
+
        *multi* arg = none
        *atom* arg = an atom type or range of types (see below)
        *bond* arg = a bond type or range of types (see below)

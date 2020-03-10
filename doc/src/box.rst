@@ -13,9 +13,9 @@ Syntax
 
 * one or more keyword/value pairs may be appended
 * keyword = *tilt*
-  
+
   .. parsed-literal::
-  
+
        *tilt* value = *small* or *large*
 
 

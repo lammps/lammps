@@ -14,9 +14,9 @@ Syntax
 * file = name of file to write restart information to
 * zero or more keyword/value pairs may be appended
 * keyword = *fileper* or *nfile*
-  
+
   .. parsed-literal::
-  
+
        *fileper* arg = Np
          Np = write one file for every this many processors
        *nfile* arg = Nf

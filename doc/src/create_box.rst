@@ -15,9 +15,9 @@ Syntax
 * region-ID = ID of region to use as simulation domain
 * zero or more keyword/value pairs may be appended
 * keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom*
-  
+
   .. parsed-literal::
-  
+
        *bond/types* value = # of bond types
        *angle/types* value = # of angle types
        *dihedral/types* value = # of dihedral types

@@ -1,10 +1,10 @@
 .. index:: pair_style coul/slater
 
 pair_style coul/slater/cut command
-============================
+==================================
 
 pair_style coul/slater/long command
-================================
+===================================
 
 Syntax
 """"""

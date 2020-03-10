@@ -103,7 +103,7 @@ void PairCoulSlaterCut::compute(int eflag, int vflag)
         }
 
         if (eflag) ecoul = factor_coul * qqrd2e *
-            scale[itype][jtype] * qtmp*q[j] * rinv * 
+            scale[itype][jtype] * qtmp*q[j] * rinv *
             (1 - (1 + r/lamda)*exp(-2*r/lamda));
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

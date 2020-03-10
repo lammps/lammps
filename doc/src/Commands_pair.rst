@@ -73,6 +73,8 @@ OPT.
    * :doc:`coul/long/cs (g) <pair_cs>`
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
+   * :doc:`coul/slater/cut <pair_coul_slater>`
+   * :doc:`coul/slater/long <pair_coul_slater>`   
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
    * :doc:`coul/wolf (ko) <pair_coul>`

@@ -112,7 +112,7 @@ Related commands
 
 .. _Melchor:
 
-**(Melchor)** González-Melchor, Mayoral, Velázquez, and Alejandre, J Chem Phys, 125, 224107 (2006).
+**(Melchor)** Gonzalez-Melchor, Mayoral, Velázquez, and Alejandre, J Chem Phys, 125, 224107 (2006).
 
 .. _Vaiwala:
 

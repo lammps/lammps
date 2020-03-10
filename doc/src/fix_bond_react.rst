@@ -60,7 +60,7 @@ Syntax
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/misc/bond\_react.
+For unabridged example scripts and files, see examples/USER/reaction.
 
 
 .. parsed-literal::
@@ -149,10 +149,9 @@ constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/misc/bond\_react).
-The time integration command should be placed after the fix bond/react
-command due to the internal dynamic grouping performed by fix
-bond/react.
+above (full examples can be found at examples/USER/reaction). The time
+integration command should be placed after the fix bond/react command
+due to the internal dynamic grouping performed by fix bond/react.
 
 .. note::
 
@@ -295,7 +294,7 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update\_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there are three types of constraints available, as discussed below.
+there are four types of constraints available, as discussed below.
 
 A sample map file is given below:
 
@@ -370,6 +369,24 @@ between *amin* and *amax* for the reaction to occur (where *ID2* is
 the central atom). Angles must be specified in degrees. This
 constraint can be used to enforce a certain orientation between
 reacting molecules.
+
+The constraint of type 'dihedral' has the following syntax:
+
+
+.. parsed-literal::
+
+   dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
+
+where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+and *ID4* are pre-reaction atom IDs. Dihedral angles are calculated in
+the interval (-180,180]. Refer to the :doc:`dihedral style <dihedral_style>`
+documentation for further details on convention. If *amin* is less
+than *amax*, these four atoms must form a dihedral angle greater than
+*amin* **and** less than *amax* for the reaction to occur. If *amin*
+is greater than *amax*, these four atoms must form a dihedral angle
+greater than *amin* **or** less than *amax* for the reaction to occur.
+Angles must be specified in degrees. Optionally, a second range of
+permissible angles *amin2*-*amax2* can be specified.
 
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:
@@ -516,7 +533,7 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the USER-REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 

@@ -462,13 +462,13 @@ value >= 0.0, the internal temperature is set to that value.  If it is
 temperature is set to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
-heat capacity of an eDPD particle as defined by the USER-MESO package.
+heat capacity of an eDPD particle as defined by the USER-MESODPD package.
 Currently, only :doc:`atom_style edpd <atom_style>` defines particles
 with these attributes. The values for the temperature and heat
 capacity must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
-specified species as defined by the USER-MESO package. Currently, only
+specified species as defined by the USER-MESODPD package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom\_style command. The value

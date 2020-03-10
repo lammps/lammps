@@ -140,8 +140,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   and your name and email address at the top, like other
   user-contributed LAMMPS source files.  They need to create a class
   that is inside the LAMMPS namespace.  If the file is for one of the
-
-* USER packages, including USER-MISC, then we are not as picky about the
+  USER packages, including USER-MISC, then we are not as picky about the
   coding style (see above).  I.e. the files do not need to be in the
   same stylistic format and syntax as other LAMMPS files, though that
   would be nice for developers as well as users who try to read your

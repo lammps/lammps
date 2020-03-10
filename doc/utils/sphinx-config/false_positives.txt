@@ -615,6 +615,7 @@ dipolar
 dir
 Direc
 dirname
+disarmmd
 discoverable
 discretization
 discretized
@@ -1704,6 +1705,8 @@ Merz
 meshless
 meso
 mesocnt
+MESODPD
+mesodpd
 mesoparticle
 mesoscale
 mesoscopic
@@ -2017,6 +2020,7 @@ Nrecompute
 Nrepeat
 nreset
 Nrho
+Nroff
 nrun
 Ns
 Nsample

@@ -6,7 +6,6 @@ compute heat/flux command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID heat/flux ke-ID pe-ID stress-ID
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -88,7 +86,6 @@ included in the calculation.
    or :doc:`compute centroid/stress/atom virial <compute_stress_atom>`
    so as not to include a kinetic energy term in the heat flux.
 
-
 .. warning::
 
    The compute *heat/flux* has been reported to produce unphysical
@@ -106,9 +103,7 @@ to the thermal conductivity :math:`\kappa`:
 .. math::
    \kappa  = \frac{V}{k_B T^2} \int_0^\infty \langle J_x(0)  J_x(t) \rangle \, \mathrm{d} t = \frac{V}{3 k_B T^2} \int_0^\infty \langle \mathbf{J}(0) \cdot  \mathbf{J}(t)  \rangle \, \mathrm{d}t
 
-
 ----------
-
 
 The heat flux can be output every so many timesteps (e.g. via the
 :doc:`thermo_style custom <thermo_style>` command).  Then as a
@@ -122,9 +117,7 @@ the auto-correlation.  The trap() function in the
 An example LAMMPS input script for solid Ar is appended below.  The
 result should be: average conductivity ~0.29 in W/mK.
 
-
 ----------
-
 
 **Output info:**
 
@@ -166,10 +159,7 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
-
 
 .. parsed-literal::
 
@@ -236,18 +226,12 @@ Related commands
    variable     ndens equal count(all)/vol
    print        "average conductivity: $k[W/mK] @ $T K, ${ndens} /A\^3"
 
-
 ----------
 
-
 .. _Surblys2:
-
-
 
 **(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
 
 .. _Boone:
-
-
 
 **(Boone)** Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).

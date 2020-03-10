@@ -6,7 +6,6 @@ fix qtb command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qtb keyword value ...
@@ -24,11 +23,8 @@ Syntax
        *f_max* value = upper cutoff frequency of the vibration spectrum (1/time units)
        *N_f* value = number of frequency bins (positive integer)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -70,7 +66,6 @@ that any vibrational mode with frequency :math:`\omega` will have a
 temperature-sensitive energy :math:`\theta(\omega,T)` which
 resembles the energy expectation for a quantum harmonic oscillator
 with the same natural frequency:
-
 
 .. math::
 
@@ -148,9 +143,7 @@ Mbytes.
    e.g. :doc:`fix nvt <fix_nh>` and :doc:`fix temp/rescale
    <fix_temp_rescale>`.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimizie info:**
 
@@ -162,21 +155,16 @@ should produce similar behaviors of the system.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the USER-QTB package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""
@@ -184,9 +172,7 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nph <fix_nh>`,
 :doc:`fix langevin <fix_langevin>`, :doc:`fix qbmsst <fix_qbmsst>`
 
-
 ----------
-
 
 Default
 """""""
@@ -194,19 +180,13 @@ Default
 The keyword defaults are temp = 300, damp = 1, seed = 880302,
 f\_max=200.0 and N\_f = 100.
 
-
 ----------
 
-
 .. _Dammak:
-
-
 
 **(Dammak)** Dammak, Chalopin, Laroche, Hayoun, and Greffet, Phys Rev
 Lett, 103, 190601 (2009).
 
 .. _Barrat:
-
-
 
 **(Barrat)** Barrat and Rodney, J. Stat. Phys, 144, 679 (2011).

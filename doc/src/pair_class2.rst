@@ -36,14 +36,12 @@ pair_style lj/class2/coul/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/class2* or *lj/class2/coul/cut* or *lj/class2/coul/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -58,7 +56,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -87,7 +84,6 @@ The *lj/class2* styles compute a 6/9 Lennard-Jones potential given by
    E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 -
      3 \left(\frac{\sigma}{r}\right)^6 \right]
    \qquad r < r_c
-
 
 :math:`r_c` is the cutoff.
 
@@ -120,9 +116,7 @@ since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair\_style command.
 
-
 ----------
-
 
 If the pair\_coeff command is not used to define coefficients for a
 particular I != J type pair, the mixing rule for :math:`\epsilon` and
@@ -132,18 +126,14 @@ The :doc:`pair_modify mix <pair_modify>` setting is thus ignored for
 class2 potentials for epsilon and sigma.  However it is still followed
 for mixing the cutoff distance.
 
-
 ----------
-
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
 the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
 only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -163,9 +153,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -201,7 +189,6 @@ See the :doc:`run_style <run_style>` command for details.
 Restrictions
 """"""""""""
 
-
 These styles are part of the CLASS2 package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -212,12 +199,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _pair-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

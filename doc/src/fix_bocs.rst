@@ -6,7 +6,6 @@ fix bocs command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix  ID group-ID bocs keyword values ...
@@ -19,11 +18,8 @@ Syntax
        *linear_spline* values = input_filename
        *cubic_spline* values = input_filename
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -41,7 +37,6 @@ Dunn and Noid in :ref:`(Dunn1) <bocs-Dunn1>` to the standard MTTK
 barostat by Martyna et. al. in :ref:`(Martyna) <bocs-Martyna>` .
 The first half of the command mimics a standard fix npt command:
 
-
 .. parsed-literal::
 
    fix 1 all bocs temp Tstart Tstop Tcoupl cgiso Pstart Pstop Pdamp
@@ -55,7 +50,6 @@ or *cubic\_spline*.
 With either spline method, the only argument that needs to follow it
 is the name of a file that contains the desired pressure correction
 as a function of volume. The file must be formatted so each line has:
-
 
 .. parsed-literal::
 
@@ -73,7 +67,6 @@ range provided, the simulation will stop.
 
 With the *analytic* option, the arguments are as follows:
 
-
 .. parsed-literal::
 
    ... analytic V_avg N_particles N_coeff Coeff_1 Coeff_2 ... Coeff_N
@@ -84,7 +77,6 @@ coefficients should all be in atmospheres \* cubic angstroms.
 
 Restrictions
 """"""""""""
-
 
 As this is computing a (modified) pressure, group-ID should be *all*\ .
 
@@ -110,26 +102,16 @@ paper by Dunn et. al. :ref:`(Dunn2) <bocs-Dunn2>` .
 
 .. _bocsgithub: https://github.com/noid-group/BOCS
 
-
-
-
 ----------
 
-
 .. _bocs-Dunn1:
-
-
 
 **(Dunn1)** Dunn and Noid, J Chem Phys, 143, 243148 (2015).
 
 .. _bocs-Martyna:
 
-
-
 **(Martyna)** Martyna, Tobias, and Klein, J Chem Phys, 101, 4177 (1994).
 
 .. _bocs-Dunn2:
-
-
 
 **(Dunn2)** Dunn, Lebold, DeLyser, Rudzinski, and Noid, J. Phys. Chem. B, 122, 3363 (2018).

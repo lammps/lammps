@@ -6,7 +6,6 @@ fix cmap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID cmap filename
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -51,14 +49,12 @@ the CMAP interactions, similar to the topology data for bonds, angles,
 dihedrals, etc.  Specially it should have a line like this
 in its header section:
 
-
 .. parsed-literal::
 
    N crossterms
 
 where N is the number of CMAP cross-terms.  It should also have a section
 in the body of the data file like this with N lines:
-
 
 .. parsed-literal::
 
@@ -92,9 +88,7 @@ energy of the system, as output by the
 the note below about how to include the CMAP energy when performing an
 :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -133,7 +127,6 @@ invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-
 To function as expected this fix command must be issued *before* a
 :doc:`read_data <read_data>` command but *after* a
 :doc:`read_restart <read_restart>` command.
@@ -149,19 +142,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Buck:
-
-
 
 **(Buck)** Buck, Bouguet-Bonnet, Pastor, MacKerell Jr., Biophys J, 90, L36
 (2006).
 
 .. _Brooks2:
-
-
 
 **(Brooks)** Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009).

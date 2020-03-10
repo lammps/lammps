@@ -9,7 +9,6 @@ bond_style table/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style table style N
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -59,13 +57,10 @@ The filename specifies a file containing tabulated energy and force
 values.  The keyword specifies a section of the file.  The format of
 this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -127,9 +122,7 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -149,9 +142,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart info:**
 
@@ -165,7 +156,6 @@ script.
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more

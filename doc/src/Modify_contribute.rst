@@ -203,7 +203,6 @@ packages in the src directory for examples. If you are uncertain, please ask.
   usage.  That kind of citation should just be in the doc page you
   provide.
 
-
 Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the
 easier you make it for people to get started, e.g. by providing example

@@ -6,7 +6,6 @@ fix gcmc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID gcmc N X M type seed T mu displace keyword values ...
@@ -54,11 +53,8 @@ Syntax
        *max* value = Maximum number of molecules allowed in the system
        *min* value = Minimum number of molecules allowed in the system
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -153,7 +149,6 @@ used in fix nvt. Otherwise, the imaginary reservoir will not be in
 thermal equilibrium with the simulation cell. Also, it is important
 that the temperature used by fix nvt be dynamic/dof, which can be
 achieved as follows:
-
 
 .. parsed-literal::
 
@@ -252,7 +247,6 @@ as:
 
    \mu = \mu^{id} + \mu^{ex}
 
-
 The second term mu\_ex is the excess chemical potential due to
 energetic interactions and is formally zero for the fictitious gas
 reservoir but is non-zero for interacting systems. So, while the
@@ -267,7 +261,6 @@ pressure of the fictitious gas reservoir by:
    \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
              = & k T \ln{\frac{\phi P \Lambda^3}{k T}}
 
-
 where *k* is Boltzman's constant, *T* is the user-specified
 temperature, :math:`\rho` is the number density, *P* is the pressure,
 and :math:`\phi` is the fugacity coefficient.  The constant
@@ -277,7 +270,6 @@ styles except *lj* it is defined as the thermal de Broglie wavelength
 .. math::
 
    \Lambda = \sqrt{ \frac{h^2}{2 \pi m k T}}
-
 
 where *h* is Planck's constant, and *m* is the mass of the exchanged atom
 or molecule.  For unit style *lj*\ , :math:`\Lambda` is simply set to
@@ -365,7 +357,6 @@ therefore, you will want to use the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 
-
 .. parsed-literal::
 
    compute_modify thermo_temp dynamic yes
@@ -443,7 +434,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -489,13 +479,9 @@ fugacity\_coeff = 1.0, intra\_energy = 0.0, tfac\_insert = 1.0.
 except for the situations where full\_energy is required, as
 listed above.
 
-
 ----------
 
-
 .. _Frenkel:
-
-
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.

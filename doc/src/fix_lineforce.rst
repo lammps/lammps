@@ -6,7 +6,6 @@ fix lineforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lineforce x y z
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

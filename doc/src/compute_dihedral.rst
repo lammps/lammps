@@ -6,7 +6,6 @@ compute dihedral command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID dihedral
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

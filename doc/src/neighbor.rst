@@ -6,7 +6,6 @@ neighbor command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    neighbor skin style
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ dump molfile command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID molfile N file format path
@@ -19,10 +18,8 @@ Syntax
 * format = file format to be used
 * path = file path with plugins (optional)
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,9 +53,7 @@ by this dump style: the number of atoms must not change, the atoms
 must be sorted, outside of the coordinates no change in atom properties
 (like type, mass, charge) will be recorded.
 
-
 ----------
-
 
 The *format* keyword determines what format is used to write out the
 dump. For this to work, LAMMPS must be able to find and load a
@@ -79,9 +74,7 @@ if it had not been wrapped back into the periodic box.  Note that these
 coordinates may thus be far outside the box size stored with the
 snapshot.
 
-
 ----------
-
 
 Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
@@ -94,13 +87,10 @@ an arbitrary timestep.  N can be changed between runs by using the
 :doc:`dump_modify every <dump_modify>` command. The :doc:`dump_modify every <dump_modify>` command also allows a variable to be used to
 determine the sequence of timesteps on which dump files are written.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *molfile* dump style is part of the USER-MOLFILE package.  It is
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -125,9 +115,7 @@ application itself.  The plugins are installed in the directory:
    with a set of header files that are compatible with VMD 1.9 and 1.9.1
    (June 2012)
 
-
 ----------
-
 
 Related commands
 """"""""""""""""

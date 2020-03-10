@@ -6,7 +6,6 @@ change_box command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    change_box group-ID parameter args ... keyword args ...
@@ -52,11 +51,8 @@ Syntax
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -113,7 +109,6 @@ new owning processors.
    Instead you could do something like this, assuming the simulation box
    is non-periodic and atoms extend from 0 to 20 in all dimensions:
 
-
 .. code-block:: LAMMPS
 
    change_box all x final -10 20
@@ -166,9 +161,7 @@ new owning processors.
    transformations.  For more information on the allowed limits for box
    skew see the discussion on triclinic boxes on :doc:`Howto triclinic <Howto_triclinic>` doc page.
 
-
 ----------
-
 
 For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
 styles and values.
@@ -194,7 +187,6 @@ used following a keyword that changed the volume, which is any of the
 style, then both it and the current keyword apply to the keyword
 preceding "key".  I.e. this sequence of keywords is allowed:
 
-
 .. code-block:: LAMMPS
 
    change_box all x scale 1.1 y volume z volume
@@ -206,7 +198,6 @@ preceding keyword was invoked.
 If the following command is used, then the z box length will shrink by
 the same 1.1 factor the x box length was increased by:
 
-
 .. code-block:: LAMMPS
 
    change_box all x scale 1.1 z volume
@@ -216,7 +207,6 @@ shrink by sqrt(1.1) to keep the volume constant.  In this case, the
 y,z box lengths shrink so as to keep their relative aspect ratio
 constant:
 
-
 .. code-block:: LAMMPS
 
    change_box all x scale 1.1 y volume z volume
@@ -224,7 +214,6 @@ constant:
 If the following command is used, then the final box will be a factor
 of 10% larger in x and y, and a factor of 21% smaller in z, so as to
 keep the volume constant:
-
 
 .. code-block:: LAMMPS
 
@@ -242,9 +231,7 @@ keep the volume constant:
 For the *scale* and *volume* styles, the box length is expanded or
 compressed around its mid point.
 
-
 ----------
-
 
 For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
@@ -269,9 +256,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 ... are all equivalent.  Any tilt factor specified by this command
 must be within these limits.
 
-
 ----------
-
 
 The *boundary* keyword takes arguments that have exactly the same
 meaning as they do for the :doc:`boundary <boundary>` command.  In each
@@ -298,9 +283,7 @@ match what is stored in the restart file.  So if you wish to change
 them, you should use the change\_box command after the read\_restart
 command.
 
-
 ----------
-
 
 The *ortho* and *triclinic* keywords convert the simulation box to be
 orthogonal or triclinic (non-orthogonal).
@@ -318,9 +301,7 @@ be toggled to triclinic, and then a :doc:`non-equilibrium MD (NEMD) simulation <
 If the simulation box is currently triclinic and has non-zero tilt in
 xy, yz, or xz, then it cannot be converted to an orthogonal box.
 
-
 ----------
-
 
 The *set* keyword saves the current box size/shape.  This can be
 useful if you wish to use the *remap* keyword more than once or if you
@@ -343,9 +324,7 @@ including this one, have been processed.
 
 Only atoms in the specified group are remapped.
 
-
 ----------
-
 
 The *units* keyword determines the meaning of the distance units used
 to define various arguments.  A *box* value selects standard distance
@@ -354,13 +333,10 @@ units = real or metal.  A *lattice* value means the distance units are
 in lattice spacings.  The :doc:`lattice <lattice>` command must have
 been previously used to define the lattice spacing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 If you use the *ortho* or *triclinic* keywords, then at the point in
 the input script when this command is issued, no :doc:`dumps <dump>` can

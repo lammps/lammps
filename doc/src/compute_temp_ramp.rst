@@ -6,7 +6,6 @@ compute temp/ramp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
@@ -20,14 +19,12 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
 
-
 .. parsed-literal::
 
      *units* value = *lattice* or *box*
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

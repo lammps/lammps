@@ -6,7 +6,6 @@ fix ffl command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID id-group ffl tau Tstart Tstop seed [flip-type]
@@ -22,11 +21,8 @@ Syntax
 
          flip-type  = determines the flipping type, can be chosen between rescale - no_flip - hard - soft, if no flip type is given, rescale will be chosen by default
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -46,11 +42,9 @@ on the same atom groups.
 The time-evolution of a single particle undergoing Langevin dynamics is described
 by the equations
 
-
 .. math::
 
     \frac {dq}{dt} = \frac{p}{m},
-
 
 .. math::
 
@@ -107,7 +101,6 @@ fix is "extensive".
 Restrictions
 """"""""""""
 
-
 In order to perform constant-pressure simulations please use
 :doc:`fix press/berendsen <fix_press_berendsen>`, rather than
 :doc:`fix npt <fix_nh>`, to avoid duplicate integration of the
@@ -121,17 +114,12 @@ Related commands
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`, :doc:`fix gld <fix_gld>`, :doc:`fix gle <fix_gle>`
 
-
 ----------
 
-
 .. _Hijazi:
-
-
 
 .. _Bussi3:
 
 **(Hijazi)** M. Hijazi, D. M. Wilkins, M. Ceriotti, J. Chem. Phys. 148, 184109 (2018)
-
 
 **(Bussi)** G. Bussi, M. Parrinello, Phs. Rev. E 75, 056707 (2007)

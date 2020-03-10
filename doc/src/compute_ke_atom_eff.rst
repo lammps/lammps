@@ -6,7 +6,6 @@ compute ke/atom/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/atom/eff
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,7 +51,6 @@ of freedom in eFF.
    thermodynamic output by using the :doc:`thermo_modify <thermo_modify>`
    command, as shown in the following example:
 
-
 .. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
@@ -74,7 +71,6 @@ The per-atom vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

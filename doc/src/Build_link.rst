@@ -31,7 +31,6 @@ these 2 files:
 
 ----------
 
-
 **Link with LAMMPS as a static library**\ :
 
 The calling application can link to LAMMPS as a static library with
@@ -53,7 +52,6 @@ link the coupled executable are then:
 
    mpicc -c -O $(pkgconf liblammps --cflags) caller.c
    mpicxx -o caller caller.o -$(pkgconf liblammps --libs)
-
 
 *Traditional make*\ :
 
@@ -193,7 +191,6 @@ would add something like this to your ~/.profile file:
 For the csh or tcsh shells, you would equivalently add something like this
 to your ~/.cshrc file:
 
-
 .. code-block:: csh
 
    setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${HOME}/lammps/src
@@ -212,7 +209,6 @@ You can verify whether all required shared libraries are found with the
         libc.so.6 => /lib64/libc.so.6 (0x00007fc91b65b000)
         /lib64/ld-linux-x86-64.so.2 (0x00007fc91c094000)
 
-
 If a required library is missing, you would get a 'not found' entry:
 
 .. code-block:: bash
@@ -226,9 +222,7 @@ If a required library is missing, you would get a 'not found' entry:
         libc.so.6 => /usr/lib64/libc.so.6 (0x00007fb7c7b5d000)
         /lib64/ld-linux-x86-64.so.2 (0x00007fb7c80a2000)
 
-
 ----------
-
 
 **Calling the LAMMPS library**\ :
 

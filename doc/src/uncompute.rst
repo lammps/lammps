@@ -6,7 +6,6 @@ uncompute command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    uncompute compute-ID
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -27,10 +27,6 @@ snapshots.
 
 .. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
 
-
-
 .. _ensight: http://www.ensight.com
-
-
 
 .. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A

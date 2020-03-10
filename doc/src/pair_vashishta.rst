@@ -21,14 +21,12 @@ pair_style vashishta/table/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *vashishta* or *vashishta/table* or *vashishta/omp* or *vashishta/table/omp*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -39,7 +37,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -69,7 +66,6 @@ The potential for the energy U of a system of atoms is
    U_{ij}^{(2)} (r) & =   \frac{H_{ij}}{r^{\eta_{ij}}} + \frac{Z_i Z_j}{r}\exp(-r/\lambda_{1,ij}) - \frac{D_{ij}}{r^4}\exp(-r/\lambda_{4,ij}) - \frac{W_{ij}}{r^6}, r < r_{c,{ij}} \\
    U_{ijk}^{(3)}(r_{ij},r_{ik},\theta_{ijk}) & =  B_{ijk} \frac{\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} {1+C_{ijk}\left[ \cos \theta_{ijk} - \cos \theta_{0ijk} \right]^2} \times \\
                     &  \exp \left( \frac{\gamma_{ij}}{r_{ij} - r_{0,ij}} \right) \exp \left( \frac{\gamma_{ik}}{r_{ik} - r_{0,ik}} \right), r_{ij} < r_{0,ij}, r_{ik} < r_{0,ik}
-
 
 where we follow the notation used in :ref:`Branicio2009 <Branicio2009>`.
 :math:`U^2` is a two-body term and U3 is a three-body term.  The
@@ -107,7 +103,6 @@ As an example, imagine a file SiC.vashishta has parameters for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
 the 1st 3 to be Si, and the 4th to be C, you would use the following
 pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -196,9 +191,7 @@ an Si atom and a
 second C atom will take three-body parameters from the CSiC entry, but
 two-body parameters from the CCC and CSiSi entries.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -218,9 +211,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -239,13 +230,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair style are part of the MANYBODY package.  They is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -266,27 +254,19 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Vashishta1990:
-
-
 
 **(Vashishta1990)** P. Vashishta, R. K. Kalia, J. P. Rino, Phys. Rev. B
 41, 12197 (1990).
 
 .. _Vashishta2007:
 
-
-
 **(Vashishta2007)** P. Vashishta, R. K. Kalia, A. Nakano,
 J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
 
 .. _Branicio2009:
-
-
 
 **(Branicio2009)** Branicio, Rino, Gan and Tsuzuki, J. Phys Condensed
 Matter 21 (2009) 095002

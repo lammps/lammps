@@ -6,7 +6,6 @@ compute erotate/sphere/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/sphere/atom
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

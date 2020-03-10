@@ -6,7 +6,6 @@ read_restart command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    read_restart file flag
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -124,7 +122,6 @@ MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
 MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
 installed, e.g.
 
-
 .. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
@@ -135,9 +132,7 @@ does not have to end in ".mpiio", just contain those characters.
 Unlike MPI-IO dump files, a particular restart file must be both
 written and read using MPI-IO.
 
-
 ----------
-
 
 Here is the list of information included in a restart file, which
 means these quantities do not need to be re-specified in the input
@@ -263,13 +258,10 @@ Bonds that have been broken by the :doc:`fix bond/break <fix_bond_break>` comman
 system.  No information about these bonds is written to the restart
 file.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To write and read restart files in parallel with MPI-IO, the MPIIO
 package must be installed.

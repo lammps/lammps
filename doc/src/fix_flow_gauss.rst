@@ -6,7 +6,6 @@ fix flow/gauss command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID flow/gauss xflag yflag zflag keyword
@@ -29,11 +28,8 @@ Syntax
          no = do not compute work done by this fix
          yes = compute work done by this fix
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -118,9 +114,7 @@ rRESPA levels 3 and 4, respectively, then there must be two separate
 flow/gauss fixes, one that specifies *fix\_modify respa 3* and one with
 *fix\_modify respa 4*.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -162,24 +156,16 @@ Default
 
 The option default for the *energy* keyword is energy = no.
 
-
 ----------
 
-
 .. _Strong:
-
-
 
 **(Strong)** Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).
 
 .. _Evans2:
 
-
-
 **(Evans)** Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).
 
 .. _Zhu:
-
-
 
 **(Zhu)** Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).

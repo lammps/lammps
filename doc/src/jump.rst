@@ -6,7 +6,6 @@ jump command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    jump file label
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -41,7 +39,6 @@ script is re-opened and read again.
    The SELF option is not guaranteed to work when the current input
    script is being read through stdin (standard input), e.g.
 
-
 .. parsed-literal::
 
    lmp_g++ < in.script
@@ -49,7 +46,6 @@ script is re-opened and read again.
 since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems or by some MPI
 implementations.  This can be worked around by using the :doc:`-in command-line switch <Run_options>`, e.g.
-
 
 .. parsed-literal::
 
@@ -59,7 +55,6 @@ or by using the :doc:`-var command-line switch <Run_options>` to pass
 the script name as a variable to the input script.  In the latter
 case, a :doc:`variable <variable>` called "fname" could be used in place
 of SELF, e.g.
-
 
 .. parsed-literal::
 
@@ -74,7 +69,6 @@ each of 10000 steps, and create 10 dump files named file.1, file.2,
 etc.  The :doc:`next <next>` command is used to exit the loop after 10
 iterations.  When the "a" variable has been incremented for the tenth
 time, it will cause the next jump command to be skipped.
-
 
 .. parsed-literal::
 
@@ -93,7 +87,6 @@ partitions of 10 procs each.  An in.file containing the example
 variable and jump command will cause each partition to run a different
 simulation.
 
-
 .. parsed-literal::
 
    mpirun -np 40 lmp_ibm -partition 4x10 -in in.file
@@ -107,7 +100,6 @@ of the loop to finish the run.  Note that any variable could be
 checked, so long as it is current on the timestep when the run
 completes.  As explained on the :doc:`variable <variable>` doc page,
 this can be insured by including the variable in thermodynamic output.
-
 
 .. parsed-literal::
 
@@ -124,7 +116,6 @@ this can be insured by including the variable in thermodynamic output.
 Here is an example of a double loop which uses the if and
 :doc:`jump <jump>` commands to break out of the inner loop when a
 condition is met, then continues iterating through the outer loop.
-
 
 .. parsed-literal::
 
@@ -144,7 +135,6 @@ condition is met, then continues iterating through the outer loop.
 
 Restrictions
 """"""""""""
-
 
 If you jump to a file and it does not contain the specified label,
 LAMMPS will come to the end of the file and exit.

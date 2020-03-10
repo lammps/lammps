@@ -7,7 +7,6 @@ documentation for the offending command may help.  Warning messages
 also list the source file and line number where the warning was
 generated.  For example, a message like this:
 
-
 .. parsed-literal::
 
    WARNING: Bond atom missing in box size check (domain.cpp:187)
@@ -21,11 +20,7 @@ code or contact the author of the package.
 
 Doc page with :doc:`ERROR messages <Errors_messages>`
 
-
 ----------
-
-
-
 
 *Adjusting Coulombic cutoff for MSM, new cutoff = %g*
    The adjust/cutoff command is turned on and the Coulombic cutoff has been

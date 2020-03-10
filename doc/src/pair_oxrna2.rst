@@ -21,7 +21,6 @@ pair_style oxrna2/dh command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style1
@@ -32,7 +31,6 @@ Syntax
 
 * style2 = *oxrna2/excv* or *oxrna2/stk* or *oxrna2/hbond* or *oxrna2/xstk* or *oxrna2/coaxstk* or *oxrna2/dh*
 * args = list of arguments for these particular styles
-
 
 .. parsed-literal::
 
@@ -51,7 +49,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -113,10 +110,8 @@ Please cite also the relevant oxRNA2 publications
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These pair styles can only be used if LAMMPS was built with the
 USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
@@ -133,7 +128,6 @@ Related commands
 **Default:**
 
 none
-
 
 ----------
 

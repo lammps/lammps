@@ -43,13 +43,10 @@ file or restart files read by the read\_data or read\_restart commands:
 
 Note that :math:`{d_0}^2` (in units distance\^2) has be provided and not :math:`d_0`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

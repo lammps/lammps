@@ -6,7 +6,6 @@ compute dpd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID dpd
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -44,12 +42,9 @@ relations:
           U = & \displaystyle\sum_{i=1}^{N} (u_{i}^{cond} + u_{i}^{mech} + u_{i}^{chem}) \\
    \theta_{avg} = & (\frac{1}{N}\displaystyle\sum_{i=1}^{N} \frac{1}{\theta_{i}})^{-1} \\
 
-
 where :math:`N` is the number of particles in the system
 
-
 ----------
-
 
 **Output info:**
 
@@ -63,7 +58,6 @@ The vector values will be in energy and temperature :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -79,13 +73,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Larentzos1:
-
-
 
 **(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative

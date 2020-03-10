@@ -9,7 +9,6 @@ minimize/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    minimize etol ftol maxiter maxeval
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -81,9 +79,7 @@ they require a :doc:`timestep <timestep>` be defined.
    will converge more quickly if you use a timestep about 10x larger
    than you would normally use for dynamics simulations.
 
-
 ----------
-
 
 In all cases, the objective function being minimized is the total
 potential energy of the system as a function of the N atom
@@ -96,7 +92,6 @@ coordinates:
                             & \sum_{ijkl} E_{\it dihedral}(r_i,r_j,r_k,r_l) +
                               \sum_{ijkl} E_{\it improper}(r_i,r_j,r_k,r_l) +
                               \sum_i E_{\it fix}(r_i)
-
 
 where the first term is the sum of all non-bonded :doc:`pairwise
 interactions <pair_style>` including :doc:`long-range Coulombic
@@ -111,9 +106,7 @@ commands affect minimization.
 The starting point for the minimization is the current configuration
 of the atoms.
 
-
 ----------
-
 
 The minimization procedure stops if any of several criteria are met:
 
@@ -176,7 +169,6 @@ which convergence criterion caused the minimizer to stop, as well as
 information about the energy, force, final line search, and iteration
 counts.  An example is as follows:
 
-
 .. parsed-literal::
 
    Minimization stats:
@@ -214,9 +206,7 @@ reduced.
 The iterations and force evaluation values are what is checked by the
 *maxiter* and *maxeval* parameters.
 
-
 ----------
-
 
 .. note::
 
@@ -287,9 +277,7 @@ that can be used include:
    :doc:`fix shake <fix_shake>` or :doc:`fix rigid <fix_rigid>`.  See more
    info in the Restrictions section below.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -309,13 +297,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Features that are not yet implemented are listed here, in case someone
 knows how they could be coded:

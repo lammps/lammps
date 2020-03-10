@@ -6,14 +6,12 @@ pair_style quip command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style quip
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -76,7 +74,6 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-QUIP package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -100,20 +97,14 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-
 ----------
 
-
 .. _Bartok\_2010:
-
-
 
 **(Bartok\_2010)** AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
 Review Letters 104, 136403 (2010).
 
 .. _Bartok\_PhD:
-
-
 
 **(Bartok\_PhD)** A Bartok-Partay, PhD Thesis, University of Cambridge,
 (2010).

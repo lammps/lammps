@@ -12,7 +12,6 @@ There are four basic kinds of LAMMPS output:
   screen.
 * :doc:`Restart files <restart>`.
 
-
 A simulation prints one set of thermodynamic output and (optionally)
 restart files.  It can generate any number of dump files and fix
 output files, depending on what :doc:`dump <dump>` and :doc:`fix <fix>`

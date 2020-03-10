@@ -15,7 +15,6 @@ pair_style ufm/opt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style ufm cutoff
@@ -46,7 +45,6 @@ Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
    E & = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c \\
    \varepsilon & = p\,k_B\,T
 
-
 where :math:`r_c` is the cutoff, :math:`\sigma` is a distance-scale and
 :math:`\epsilon` is an energy-scale, i.e., a product of Boltzmann constant
 :math:`k_B`, temperature *T* and the Uhlenbeck-Ford p-parameter which
@@ -73,7 +71,6 @@ overridden.  For example these commands will vary the prefactor epsilon for
 all pairwise interactions from 10.0 at the beginning to 100.0 at the end
 of a run:
 
-
 .. code-block:: LAMMPS
 
    variable prefactor equal ramp(10,100)
@@ -89,9 +86,7 @@ of a run:
    use this command and perform nonequilibrium thermodynamic integration
    in LAMMPS is given in the paper by :ref:`(Freitas) <Freitas2>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -111,9 +106,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -137,9 +130,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -154,20 +145,14 @@ Related commands
 
 .. _PL1:
 
-
-
 **(Paula Leite2017)** Paula Leite, Santos-Florez, and de Koning, Phys Rev E, 96,
 32115 (2017).
 
 .. _PL2:
 
-
-
 **(Paula Leite2016)** Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126,
 044509 (2016).
 
 .. _Freitas2:
-
-
 
 **(Freitas)** Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016).

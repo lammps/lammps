@@ -6,7 +6,6 @@ unfix command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    unfix fix-ID
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

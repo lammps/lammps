@@ -5,7 +5,6 @@ fix poems command
 
 Syntax:
 
-
 .. parsed-literal::
 
    fix ID group-ID poems keyword values
@@ -20,11 +19,8 @@ Syntax:
        *molecule* values = none
        *file* values = filename
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -52,8 +48,6 @@ copyright information on POEMS and other details, please refer to the
 documents in the poems directory distributed with LAMMPS.
 
 .. _poems: http://www.rpi.edu/~anderk5/lab
-
-
 
 This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
@@ -128,7 +122,6 @@ command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the POEMS package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
 built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -141,13 +134,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Anderson:
-
-
 
 **(Anderson)** Anderson, Mukherjee, Critchley, Ziegler, and Lipton
 "POEMS: Parallelizable Open-source Efficient Multibody Software ",

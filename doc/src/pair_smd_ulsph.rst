@@ -6,13 +6,11 @@ pair_style smd/ulsph command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style smd/ulsph args
 
 * these keywords must be given
-
 
 .. parsed-literal::
 
@@ -20,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -34,7 +31,6 @@ continuum mechanics constitutive laws and an updated Lagrangian
 Smooth-Particle Hydrodynamics algorithm.
 
 This pair style is invoked similar to the following command:
-
 
 .. code-block:: LAMMPS
 
@@ -66,9 +62,7 @@ is recommended.
 Please see the `SMD user guide <PDF/SMD_LAMMPS_userguide.pdf>`_ for a
 complete listing of the possible keywords and material models.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -76,13 +70,10 @@ No mixing is performed automatically.  Currently, no part of USER-SMD
 supports restarting nor minimization.  rRESPA does not apply to this
 pair style.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

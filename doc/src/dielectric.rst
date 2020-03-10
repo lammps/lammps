@@ -6,7 +6,6 @@ dielectric command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dielectric value
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -43,7 +41,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

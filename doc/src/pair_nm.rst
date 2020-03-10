@@ -21,7 +21,6 @@ pair_style nm/cut/coul/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
@@ -40,11 +39,8 @@ Syntax
          cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
          cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -124,9 +120,7 @@ Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
 pair\_style command.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -152,9 +146,7 @@ All of the *nm* pair styles can only be used via the *pair* keyword of
 the :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -177,7 +169,6 @@ instructions on how to use the accelerated styles effectively.
 Restrictions
 """"""""""""
 
-
 These pair styles are part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -188,12 +179,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Clarke:
-
-
 
 **(Clarke)** Clarke and Smith, J Chem Phys, 84, 2290 (1986).

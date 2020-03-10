@@ -9,7 +9,6 @@ pair_style multi/lucy/rx/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style multi/lucy/rx style N keyword ...
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -48,7 +46,6 @@ following from the many-body form described in :ref:`(Moore) <Moore2>` and
    F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right)
    \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij}
 
-
 which consists of a density-dependent function, :math:`A(\rho)`, and a
 radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
 radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`, is taken
@@ -58,13 +55,11 @@ as the Lucy function:
 
    \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
 
-
 The density-dependent energy for a given particle is given by:
 
 .. math::
 
    u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
-
 
 See the supporting information of :ref:`(Brennan) <Brennan2>` or the
 publication by :ref:`(Moore) <Moore2>` for more details on the functional
@@ -122,13 +117,10 @@ associated with the interacting coarse-grained particles (see the
 stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
-
 ----------
-
 
 The format of a tabulated file is a series of one or more sections,
 defined as follows (without the parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -202,9 +194,7 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -225,9 +215,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -247,13 +235,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -265,24 +250,16 @@ Related commands
 
 **Default:** fractional weighting
 
-
 ----------
 
-
 .. _Warren2:
-
-
 
 **(Warren)** Warren, Phys Rev E, 68, 066702 (2003).
 
 .. _Brennan2:
 
-
-
 **(Brennan)** Brennan, J Chem Phys Lett, 5, 2144-2149 (2014).
 
 .. _Moore2:
-
-
 
 **(Moore)** Moore, J Chem Phys, 144, 104501 (2016).

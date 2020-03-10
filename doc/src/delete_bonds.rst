@@ -6,7 +6,6 @@ delete_bonds command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    delete_bonds group-ID style arg keyword ...
@@ -27,10 +26,8 @@ Syntax
 * zero or more keywords may be appended
 * keyword = *any* or *undo* or *remove* or *special*
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -135,7 +132,6 @@ have been modified by the delete\_bonds command.
 
 Restrictions
 """"""""""""
-
 
 This command requires inter-processor communication to acquire ghost
 atoms, to coordinate the deleting of bonds, angles, etc between atoms

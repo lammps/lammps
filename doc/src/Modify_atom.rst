@@ -98,7 +98,6 @@ The code for these classes can use the per-atom properties defined by
 fix property/atom.  The Atom class has a find\_custom() method that is
 useful in this context:
 
-
 .. parsed-literal::
 
    int index = atom->find_custom(char \*name, int &flag);
@@ -108,7 +107,6 @@ that it exists and its index is returned.  The method also sets flag =
 0/1 depending on whether it is an integer or floating-point attribute.
 The vector of values associated with the attribute can then be
 accessed using the returned index as
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ run_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    run_style style args
@@ -52,8 +51,6 @@ Syntax
            *kspace* value = M
              M = which level (1-N) to compute kspace forces in
 
-
-
 Examples
 """"""""
 
@@ -72,9 +69,7 @@ simulations performed by LAMMPS.
 
 The *verlet* style is a standard velocity-Verlet integrator.
 
-
 ----------
-
 
 The *verlet/split* style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
@@ -110,7 +105,6 @@ match the integer multiple constraint.  See the
 :doc:`processors <processors>` command with its *part* keyword for a way
 to control this, e.g.
 
-
 .. code-block:: LAMMPS
 
    processors * * * part 1 2 multiple
@@ -118,7 +112,6 @@ to control this, e.g.
 You can also use the :doc:`partition <partition>` command to explicitly
 specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
-
 
 .. code-block:: LAMMPS
 
@@ -139,9 +132,7 @@ processors in the 2 partitions to the physical cores of a parallel
 machine.  The :doc:`processors <processors>` command has options to
 support this, and strategies are discussed in :doc:`Section 5 <Speed>` of the manual.
 
-
 ----------
-
 
 The *respa* style implements the rRESPA multi-timescale integrator
 :ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level 1 is
@@ -233,7 +224,6 @@ cutoffs) works reasonably well.  We thus recommend the following
 settings for use of the *respa* style without SHAKE in biomolecular
 simulations:
 
-
 .. code-block:: LAMMPS
 
    timestep  4.0
@@ -255,7 +245,6 @@ the size of the time steps in the respa hierarchy.  The following
 settings can be used for biomolecular simulations with SHAKE and
 rRESPA:
 
-
 .. code-block:: LAMMPS
 
    fix             2 all shake 0.000001 500 0 m 1.0 a 1
@@ -270,7 +259,6 @@ For non-biomolecular simulations, the *respa* style can be
 advantageous if there is a clear separation of time scales - fast and
 slow modes in the simulation.  For example, a system of slowly-moving
 charged polymer chains could be setup as follows:
-
 
 .. code-block:: LAMMPS
 
@@ -290,15 +278,12 @@ In real units, for a pure LJ fluid at liquid density, with a sigma of
 3.0 angstroms, and epsilon of 0.1 Kcal/mol, the following settings
 seem to work well:
 
-
 .. code-block:: LAMMPS
 
    timestep  36.0
    run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
 
-
 ----------
-
 
 The *respa/omp* style is a variant of *respa* adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an *omp*
@@ -316,13 +301,10 @@ input script.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *verlet/split* style can only be used if LAMMPS was built with the
 REPLICA package. Correspondingly the *respa/omp* style is available
@@ -340,7 +322,6 @@ Related commands
 Default
 """""""
 
-
 .. code-block:: LAMMPS
 
    run_style verlet
@@ -356,13 +337,9 @@ to rRESPA levels is as follows:
 * kspace forces = same level as pair forces
 * inner, middle, outer forces = no default
 
-
 ----------
 
-
 .. _Tuckerman3:
-
-
 
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).

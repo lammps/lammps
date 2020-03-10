@@ -6,7 +6,6 @@ fix spring/self command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring/self K dir
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

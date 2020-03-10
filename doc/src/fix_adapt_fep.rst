@@ -6,7 +6,6 @@ fix adapt/fep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID adapt/fep N attribute args ... keyword value ...
@@ -47,11 +46,8 @@ Syntax
          *no* = parameters are adapted at timestep N
          *yes* = parameters are adapted one timestep after N
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -73,7 +69,6 @@ with two differences,
   instead of scaling all the charges in the system.
 * There is a new option *after* for better compatibility with "fix
   ave/time".
-
 
 This version is suited for free energy calculations using
 :doc:`compute ti <compute_ti>` or :doc:`compute fep <compute_fep>`.
@@ -106,9 +101,7 @@ such as "fix ave/time" is used to calculate averages at every N
 timesteps, all the contributions to the average will be obtained with
 the same values of the parameters.
 
-
 ----------
-
 
 The *pair* keyword enables various parameters of potentials defined by
 the :doc:`pair_style <pair_style>` command to be changed, if the pair
@@ -241,15 +234,12 @@ For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
-
 .. parsed-literal::
 
    variable prefactor equal ramp(10,30)
    fix 1 all adapt 1 pair soft a \* \* v_prefactor
 
-
 ----------
-
 
 The *kspace* keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
@@ -259,9 +249,7 @@ variable has a value of 1.0, then the solver is unaltered.
 The *kspace* keyword works this way whether the *scale* keyword
 is set to *no* or *yes*\ .
 
-
 ----------
-
 
 The *atom* keyword enables various atom properties to be changed.  The
 *aparam* argument is the name of the parameter to change.  This is the
@@ -291,7 +279,6 @@ For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 
-
 .. parsed-literal::
 
    variable size equal ramp(1.0,0.1)
@@ -300,9 +287,7 @@ over the course of a 1000-step simulation:
 For :doc:`rRESPA time integration <run_style>`, this fix changes
 parameters on the outermost rRESPA level.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

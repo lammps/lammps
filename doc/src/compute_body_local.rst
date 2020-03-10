@@ -6,7 +6,6 @@ compute body/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID body/local input1 input2 ...
@@ -22,11 +21,8 @@ Syntax
        *type* = atom type of the body particle
        *integer* = 1,2,3,etc = index of fields defined by body style
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -72,7 +68,6 @@ Here is an example of how to output body information using the :doc:`dump local 
 body sub-particles are x,y,z coordinates, then the dump file will be
 formatted similar to the output of a :doc:`dump atom or custom <dump>`
 command.
-
 
 .. parsed-literal::
 

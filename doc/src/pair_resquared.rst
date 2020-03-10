@@ -12,7 +12,6 @@ pair_style resquared/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style resquared cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -83,7 +81,6 @@ units:
 .. math::
 
    A_{12} = 4\pi^2\epsilon_{\mathrm{LJ}}(\rho\sigma^3)^2
-
 
 where :math:`\rho` gives the number density of the spherical particles
 composing the ellipsoids and :math:`\epsilon_{\mathrm{LJ}}` determines
@@ -159,9 +156,7 @@ where a, b, and c give the particle diameters.
 The last coefficient is optional.  If not specified, the global cutoff
 specified in the pair\_style command is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -181,9 +176,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -217,13 +210,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords of the :doc:`run_style command <run_style>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -247,18 +237,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers3:
-
-
 
 **(Everaers)** Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 .. _Babadi:
-
-
 
 **(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).

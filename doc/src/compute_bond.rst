@@ -6,7 +6,6 @@ compute bond command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID bond
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

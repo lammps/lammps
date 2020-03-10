@@ -6,7 +6,6 @@ pair_style body/rounded/polyhedron command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style body/rounded/polyhedron c_n c_t mu delta_ua cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -128,7 +126,6 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 These pair styles are part of the BODY package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -143,8 +140,6 @@ Related commands
 **Default:** none
 
 .. _pair-Wang:
-
-
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).

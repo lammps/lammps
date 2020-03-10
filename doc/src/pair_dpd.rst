@@ -24,7 +24,6 @@ pair_style dpd/tstat/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style dpd T cutoff seed
@@ -37,7 +36,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -74,7 +72,6 @@ of 3 terms
    F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
    F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
    w(r)     = & 1 - r/r_c
-
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
@@ -158,9 +155,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -197,13 +192,10 @@ runs, using the *start* and *stop* keywords of the :doc:`run <run>`
 command.  See the :doc:`run <run>` command for details of how to do
 this.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too
@@ -229,26 +221,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Groot1:
-
-
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 .. _Afshar:
 
-
-
 **(Afshar)** Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
 Comm, 184, 1119-1128 (2013).
 
 .. _Phillips:
-
-
 
 **(Phillips)** C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
 Phys Comm, 230, 7191-7201 (2011).

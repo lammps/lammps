@@ -6,7 +6,6 @@ fix deposit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID deposit N type M seed keyword values ...
@@ -63,11 +62,8 @@ Syntax
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -298,7 +294,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

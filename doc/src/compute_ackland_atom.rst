@@ -6,7 +6,6 @@ compute ackland/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ackland/atom keyword/value
@@ -20,11 +19,8 @@ Syntax
 
        *legacy* yes/no = use (\ *yes*\ ) or do not use (\ *no*\ ) legacy ackland algorithm implementation
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -72,7 +68,6 @@ LAMMPS output options.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -88,12 +83,8 @@ Default
 """""""
 The keyword *legacy* defaults to *no*\ .
 
-
 ----------
 
-
 .. _Ackland:
-
-
 
 **(Ackland)** Ackland, Jones, Phys Rev B, 73, 054104 (2006).

@@ -6,7 +6,6 @@ fix smd/move_tri_surf command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID smd/move_tri_surf keyword
@@ -27,11 +26,8 @@ Syntax
            Rx,Ry,Rz = axis of rotation vector
            period = period of rotation (time units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -74,7 +70,6 @@ minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

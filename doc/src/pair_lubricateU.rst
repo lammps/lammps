@@ -9,7 +9,6 @@ pair_style lubricateU/poly command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style mu flaglog cutinner cutoff gdot flagHI flagVF
@@ -24,7 +23,6 @@ Syntax
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
 **Examples:** (all assume radius = 1)
-
 
 .. code-block:: LAMMPS
 
@@ -52,7 +50,6 @@ Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Bal
    a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\
    & \\
    \Omega_N & = \mathbf{n} \times (v_1 - v_2) / r
-
 
 which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
@@ -86,7 +83,6 @@ solved to balance the forces and torques is
 .. math::
 
    -R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}
-
 
 where U represents the velocities and angular velocities of the
 particles, :math:`U^{\infty}` represents the velocities and the angular
@@ -148,9 +144,7 @@ thermostat the system at a constant temperature. If Brownian motion
 and the brownian style should use consistent parameters for *mu*\ ,
 *flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
 
-
 ----------
-
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -165,9 +159,7 @@ The two coefficients are optional.  If neither is specified, the two
 cutoffs specified in the pair\_style command are used.  Otherwise both
 must be specified.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -192,13 +184,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -230,18 +219,12 @@ Default
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
 
-
 ----------
 
-
 .. _Ball2:
-
-
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
 
 .. _Kumar2:
-
-
 
 **(Kumar)** Kumar and Higdon, Phys Rev E, 82, 051401 (2010).

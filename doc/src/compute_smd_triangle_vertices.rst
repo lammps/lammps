@@ -6,7 +6,6 @@ compute smd/triangle/vertices command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/triangle/vertices
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -53,7 +51,6 @@ The values will be given in :doc:`units <units>` of distance.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

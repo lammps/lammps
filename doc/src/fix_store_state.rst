@@ -6,7 +6,6 @@ fix store/state command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID store/state N input1 input2 ... keyword value ...
@@ -26,7 +25,6 @@ Syntax
                              angmomx, angmomy, angmomz, tqx, tqy, tqz,
                              c_ID, c_ID[N], f_ID, f_ID[N], v_name,
                              d_name, i_name
-
 
   .. parsed-literal::
 
@@ -63,11 +61,8 @@ Syntax
 
        *com* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

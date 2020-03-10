@@ -12,7 +12,6 @@ bond_style oxrna2/fene command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style oxdna/fene
@@ -23,7 +22,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -44,7 +42,6 @@ The *oxdna/fene* , *oxdna2/fene* and *oxrna2/fene* bond styles use the potential
 .. math::
 
    E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r_0}{\Delta}\right)^2\right]
-
 
 to define a modified finite extensible nonlinear elastic (FENE)
 potential :ref:`(Ouldridge) <Ouldridge0>` to model the connectivity of the
@@ -96,13 +93,10 @@ Please cite also the relevant oxDNA/oxRNA publications. These are
 and for sequence-specific hydrogen-bonding and stacking interactions
 :ref:`(Sulc2) <Sulc02>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the
 USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
@@ -117,7 +111,6 @@ Related commands
 **Default:**
 
 none
-
 
 ----------
 

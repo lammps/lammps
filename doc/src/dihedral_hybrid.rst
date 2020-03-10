@@ -6,7 +6,6 @@ dihedral_style hybrid command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style hybrid style1 style2 ...
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,6 @@ If dihedral coefficients are specified in the data file read via the
 E.g. "harmonic" or "helix", must be added after the dihedral type, for
 each line in the "Dihedral Coeffs" section, e.g.
 
-
 .. parsed-literal::
 
    Dihedral Coeffs
@@ -63,7 +60,6 @@ I.e. *class2* must be added to each line after the dihedral type.  For
 lines in the AngleTorsion (or EndBondTorsion, etc) section of the data
 file for dihedral types that are not *class2*\ , you must use an
 dihedral style of *skip* as a placeholder, e.g.
-
 
 .. parsed-literal::
 
@@ -82,13 +78,10 @@ in place of a dihedral style, either in a input script dihedral\_coeff
 command or in the data file, if you desire to turn off interactions
 for specific dihedral types.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

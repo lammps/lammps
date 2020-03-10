@@ -6,7 +6,6 @@ pair_style kim command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style kim model
@@ -15,7 +14,6 @@ model = name of a KIM model (the KIM ID for models archived in OpenKIM)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -43,9 +41,7 @@ used by the :doc:`kim_commands interface <kim_commands>` as needed.
    Since *pair\_style kim* is called by *kim\_interactions* as needed,
    is not recommended to be directly used in input scripts.
 
-
 ----------
-
 
 The argument *model* is the name of the KIM PM.
 For potentials archived in OpenKIM
@@ -67,7 +63,6 @@ For example, consider a KIM PM that supports Si and C species.
 If the LAMMPS simulation has four atom types, where the first three are Si,
 and the fourth is C, the following *pair\_coeff* command would be used:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * Si Si Si C
@@ -76,9 +71,7 @@ The first two arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1, 2, and 3 to Si as
 defined within KIM PM.  The final C argument maps LAMMPS atom type 4 to C.
 
-
 ----------
-
 
 In addition to the usual LAMMPS error messages, the KIM library itself
 may generate errors, which should be printed to the screen.  In this
@@ -91,9 +84,7 @@ the *lib/kim/README* file.  Once you have done this and built LAMMPS
 with the KIM package installed you can run the example input scripts
 in *examples/kim*\ .
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -108,13 +99,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the KIM package. See details on
 restrictions in :doc:`kim_commands <kim_commands>`.

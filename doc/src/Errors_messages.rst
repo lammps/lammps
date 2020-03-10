@@ -7,7 +7,6 @@ documentation for the offending command may help.  Error messages also
 list the source file and line number where the error was generated.
 For example, a message like this:
 
-
 .. parsed-literal::
 
    ERROR: Illegal velocity command (velocity.cpp:78)
@@ -21,11 +20,7 @@ code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`
 
-
 ----------
-
-
-
 
 *1-3 bond count is inconsistent*
    An inconsistency was detected when computing the number of 1-3

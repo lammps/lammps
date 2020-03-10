@@ -6,7 +6,6 @@ fix smd/integrate_ulsph command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID smd/integrate_ulsph keyword
@@ -57,7 +56,6 @@ minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

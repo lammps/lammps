@@ -6,14 +6,12 @@ pair_style mesocnt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style mesocnt
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -97,9 +95,7 @@ A full summary of the method and LAMMPS implementation details
 is expected to soon become available in Computer Physics
 Communications.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -117,13 +113,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the USER-MISC package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -138,19 +131,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Volkov1:
-
-
 
 **(Volkov1)** Volkov and Zhigilei, J Phys Chem C, 114, 5513 (2010).
 
 .. _Volkov2:
-
-
 
 **(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts,
 Q31.013 (2008).

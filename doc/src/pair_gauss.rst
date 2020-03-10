@@ -18,7 +18,6 @@ pair_style gauss/cut/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style gauss cutoff
@@ -28,7 +27,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,6 @@ Style *gauss* computes a tethering potential of the form
 .. math::
 
    E = - A \exp(-B r^2) \qquad r < r_c
-
 
 between an atom and its corresponding tether site which will typically
 be a frozen atom in the simulation.  :math:`r_c` is the cutoff.
@@ -71,7 +68,6 @@ between pairs of particles:
 .. math::
 
    E = \frac{H}{\sigma_h\sqrt{2\pi}} \exp\left[-\frac{(r-r_{mh})^2}{2\sigma_h^2}\right]
-
 
 where H determines together with the standard deviation :math:`\sigma_h`
 the peak height of the Gaussian function, and :math:`r_{mh}` the peak
@@ -117,9 +113,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -174,20 +168,16 @@ sites have an atom within the distance at which the force is a maximum
 To print this quantity to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute gauss all pair gauss
    variable occ equal c_gauss[1]
    thermo_style custom step temp epair v_occ
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *gauss/cut* style is part of the "user-misc" package. It is only
 enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -202,14 +192,10 @@ Related commands
 
 .. _Lenart2:
 
-
-
 **(Lenart)** Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
 044509 (2007).
 
 .. _Jusufi2:
-
-
 
 **(Jusufi)** Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).

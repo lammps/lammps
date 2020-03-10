@@ -6,7 +6,6 @@ fix langevin/drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
@@ -28,11 +27,8 @@ Syntax
          *no* = do not set total random force on centers of mass to zero
          *yes* = set total random force on centers of mass to zero
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -62,7 +58,6 @@ Velocities:
 
     V' = \frac {M\, V + m\, v} {M'}
 
-
 .. math::
 
     v' = v - V
@@ -73,7 +68,6 @@ Masses:
 
     M' = M + m
 
-
 .. math::
 
     m' = \frac {M\, m } {M'}
@@ -83,7 +77,6 @@ The Langevin forces are computed as
 .. math::
 
     F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r'
-
 
 .. math::
 
@@ -99,7 +92,6 @@ transform:
 .. math::
 
     F = \frac M {M'}\, F' - f'
-
 
 .. math::
 
@@ -132,9 +124,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the :doc:`fix drude <fix_drude>` command to
@@ -155,14 +145,11 @@ specify the Drude status of each atom type.
    correctly.  You must use the :doc:`comm_modify <comm_modify>` command to
    enable this, e.g.
 
-
 .. parsed-literal::
 
    comm_modify vel yes
 
-
 ----------
-
 
 *Tcom* is the target temperature of the centers of mass, which would
 be used to thermostat the non-polarizable atoms.  *Tdrude* is the
@@ -229,12 +216,9 @@ center-of-mass and relative coordinates, respectively, can be
 calculated using the :doc:`compute temp/drude <compute_temp_drude>`
 command.
 
-
 ----------
 
-
 Usage example for rigid bodies in the NPT ensemble:
-
 
 .. parsed-literal::
 
@@ -270,10 +254,7 @@ Comments:
   the cores. That's why the command *fix\_modify* should be called in
   that case.
 
-
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -309,13 +290,9 @@ Default
 
 The option defaults are zero = no.
 
-
 ----------
 
-
 .. _Jiang1:
-
-
 
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).

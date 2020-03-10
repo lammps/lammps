@@ -6,7 +6,6 @@ dihedral_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style zero [nocoeff]

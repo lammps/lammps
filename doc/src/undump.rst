@@ -6,7 +6,6 @@ undump command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    undump dump-ID
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

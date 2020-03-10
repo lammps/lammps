@@ -6,7 +6,6 @@ fix bond/react command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/react common_keyword values ...
@@ -55,13 +54,10 @@ Syntax
            charges = update atomic charges of all atoms in reaction templates
            custom = force the update of user-specified atomic charges
 
-
-
 Examples
 """"""""
 
 For unabridged example scripts and files, see examples/USER/reaction.
-
 
 .. parsed-literal::
 
@@ -255,14 +251,12 @@ A map file has a header and a body. The header of map file the
 contains one mandatory keyword and five optional keywords. The
 mandatory keyword is 'equivalences':
 
-
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
 The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
 'constraints':
-
 
 .. parsed-literal::
 
@@ -298,10 +292,7 @@ there are four types of constraints available, as discussed below.
 
 A sample map file is given below:
 
-
 ----------
-
-
 
 .. parsed-literal::
 
@@ -330,9 +321,7 @@ A sample map file is given below:
    6   6
    7   7
 
-
 ----------
-
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
@@ -347,7 +336,6 @@ Any number of additional constraints may be specified in the
 Constraints section of the map file. The constraint of type 'distance'
 has syntax as follows:
 
-
 .. parsed-literal::
 
    distance *ID1* *ID2* *rmin* *rmax*
@@ -357,7 +345,6 @@ pre-reaction atom IDs, and these two atoms must be separated by a
 distance between *rmin* and *rmax* for the reaction to occur.
 
 The constraint of type 'angle' has the following syntax:
-
 
 .. parsed-literal::
 
@@ -371,7 +358,6 @@ constraint can be used to enforce a certain orientation between
 reacting molecules.
 
 The constraint of type 'dihedral' has the following syntax:
-
 
 .. parsed-literal::
 
@@ -395,9 +381,7 @@ probability according to the temperature-dependent Arrhenius equation:
 
    k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
 
-
 The Arrhenius constraint has the following syntax:
-
 
 .. parsed-literal::
 
@@ -482,7 +466,6 @@ atoms currently involved in a reaction. For example, adding the
 following command would add an additional thermostat to the group of
 all currently-reacting atoms:
 
-
 .. parsed-literal::
 
    fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
@@ -502,9 +485,7 @@ you should be cautious about invoking this fix too frequently.
 You can dump out snapshots of the current bond topology via the dump
 local command.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -532,7 +513,6 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
@@ -551,12 +531,8 @@ Default
 The option defaults are stabilization = no, prob = 1.0, stabilize\_steps = 60,
 update\_edges = none
 
-
 ----------
 
-
 .. _Gissinger:
-
-
 
 **(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).

@@ -6,14 +6,12 @@ pair_style lj/switch3/coulgauss/long command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/switch3/coulgauss/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -24,7 +22,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -54,7 +51,6 @@ by the switching function
                      3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
                      0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
                  \end{array} \right.
-
 
 where w is the width defined in the arguments. This potential
 is combined with Coulomb interaction between Gaussian charge densities:
@@ -86,7 +82,6 @@ commands:
 
 ----------
 
-
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 Shifting the potential energy is not necessary because the switching
@@ -94,7 +89,6 @@ function ensures that the potential is zero at the cut-off.
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the USER-YAFF package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

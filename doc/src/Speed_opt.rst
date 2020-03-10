@@ -17,7 +17,6 @@ See the :ref:`Build extras <opt>` doc page for instructions.
 
 **Run with the OPT package from the command line:**
 
-
 .. parsed-literal::
 
    lmp_mpi -sf opt -in in.script                # run in serial
@@ -30,7 +29,6 @@ automatically append "opt" to styles that support it.
 
 Use the :doc:`suffix opt <suffix>` command, or you can explicitly add an
 "opt" suffix to individual styles in your input script, e.g.
-
 
 .. parsed-literal::
 
@@ -48,6 +46,5 @@ Just try out an OPT pair style to see how it performs.
 
 Restrictions
 """"""""""""
-
 
 None.

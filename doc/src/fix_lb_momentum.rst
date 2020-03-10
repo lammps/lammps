@@ -6,7 +6,6 @@ fix lb/momentum command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/momentum nevery keyword values ...
@@ -22,11 +21,8 @@ Syntax
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension.
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -64,7 +60,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this

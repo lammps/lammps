@@ -6,7 +6,6 @@ compute erotate/sphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/sphere
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -49,7 +47,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute requires that atoms store a radius and angular velocity
 (omega) as defined by the :doc:`atom_style sphere <atom_style>` command.

@@ -99,13 +99,9 @@ and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 
-
 ----------
 
-
 .. _Jorgensen5:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).

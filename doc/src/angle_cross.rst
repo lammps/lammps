@@ -6,14 +6,12 @@ angle_style cross command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style cross
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,7 +51,6 @@ internally; hence the units of :math:`K_{BS0}` and :math:`K_{BS1}` are in energy
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 USER\_YAFF package.  See the :doc:`Build package <Build_package>` doc

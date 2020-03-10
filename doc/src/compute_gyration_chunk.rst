@@ -6,7 +6,6 @@ compute gyration/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID gyration/chunk chunkID keyword value ...
@@ -21,11 +20,8 @@ Syntax
 
        *tensor* value = none
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -55,7 +51,6 @@ formula
 .. math::
 
  {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
-
 
 where :math:`M` is the total mass of the chunk, :math:`r_{cm}` is
 the center-of-mass position of the chunk, and the sum is over all atoms in the
@@ -90,7 +85,6 @@ ordered xx, yy, zz, xy, xz, yz.
 The simplest way to output the results of the compute gyration/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
-
 
 .. parsed-literal::
 

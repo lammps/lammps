@@ -47,13 +47,11 @@ versus make.
 
 **CMake build**\ :
 
-
 .. code-block:: bash
 
    -D PKG_NAME=value          # yes or no (default)
 
 Examples:
-
 
 .. code-block:: bash
 
@@ -76,7 +74,6 @@ once with CMake.
 
 **Traditional make**\ :
 
-
 .. code-block:: bash
 
    cd lammps/src
@@ -86,7 +83,6 @@ once with CMake.
    make mpi                   # build LAMMPS with whatever packages are now installed
 
 Examples:
-
 
 .. code-block:: bash
 
@@ -132,9 +128,7 @@ src directory.
    That is no longer the case, so that CMake will build as-is without the
    need to un-install those packages.
 
-
 ----------
-
 
 **CMake shortcuts for installing many packages**\ :
 
@@ -169,7 +163,6 @@ one of them as a starting point and customize it to your needs.
 
 **Example:**
 
-
 .. code-block:: bash
 
    # build LAMMPS with most commonly used packages, but then remove
@@ -186,9 +179,7 @@ one of them as a starting point and customize it to your needs.
    # but leaving all other settings untouched. You can run:
    cmake -C ../cmake/presets/no_all.cmake .
 
-
 ----------
-
 
 **Make shortcuts for installing many packages**\ :
 

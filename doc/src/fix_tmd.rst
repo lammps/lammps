@@ -6,7 +6,6 @@ fix tmd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID tmd rho_final file1 N file2
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -44,7 +42,6 @@ structure during the course of the run.
 
 The target file1 can be ASCII text or a gzipped text file (detected by
 a .gz suffix).  The format of the target file1 is as follows:
-
 
 .. parsed-literal::
 
@@ -107,7 +104,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 All TMD fixes must be listed in the input script after all integrator
 fixes (nve, nvt, npt) are applied.  This ensures that atoms are moved
 before their positions are corrected to comply with the constraint.
@@ -125,21 +121,15 @@ doc page for details.
 
 **Default:** none
 
-
 ----------
 
-
 .. _Schlitter1:
-
-
 
 **(Schlitter1)** Schlitter, Swegat, Mulders, "Distance-type reaction
 coordinates for modelling activated processes", J Molecular Modeling,
 7, 171-177 (2001).
 
 .. _Schlitter2:
-
-
 
 **(Schlitter2)** Schlitter and Klahn, "The free energy of a reaction
 coordinate at multiple constraints: a concise formulation", Molecular

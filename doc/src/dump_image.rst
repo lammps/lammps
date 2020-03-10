@@ -9,7 +9,6 @@ dump movie command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID style N file color diameter keyword value ...
@@ -83,11 +82,8 @@ Syntax
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -160,9 +156,7 @@ details.
    timesteps when neighbor lists are rebuilt, the coordinates of an atom
    in the image may be slightly outside the simulation box.
 
-
 ----------
-
 
 Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
@@ -187,9 +181,7 @@ Dump *movie* filenames on the other hand, must not have any wildcard
 character since only one file combining all images into a single
 movie will be written by the movie encoder.
 
-
 ----------
-
 
 The *color* and *diameter* settings determine the color and size of
 atoms rendered in the image.  They can be any atom attribute defined
@@ -339,9 +331,7 @@ lines will be drawn as cylinders with that diameter, e.g. 1.0, which
 is in whatever distance :doc:`units <units>` the input script defines,
 e.g. Angstroms.
 
-
 ----------
-
 
 The *tri* keyword can be used when :doc:`atom_style tri <atom_style>` is
 used to define particles as triangles, and will draw them as triangles
@@ -363,9 +353,7 @@ default the mapping of types to colors is as follows:
 and repeats itself for types > 6.  There is not yet an option to
 change this via the :doc:`dump_modify <dump_modify>` command.
 
-
 ----------
-
 
 The *body* keyword can be used when :doc:`atom_style body <atom_style>`
 is used to define body particles with internal state
@@ -398,9 +386,7 @@ particle.  By default the mapping of types to colors is as follows:
 and repeats itself for types > 6.  There is not yet an option to
 change this via the :doc:`dump_modify <dump_modify>` command.
 
-
 ----------
-
 
 The *fix* keyword can be used with a :doc:`fix <fix>` that produces
 objects to be drawn.
@@ -424,16 +410,12 @@ the mapping of types to colors is as follows:
 and repeats itself for types > 6.  There is not yet an option to
 change this via the :doc:`dump_modify <dump_modify>` command.
 
-
 ----------
-
 
 The *size* keyword sets the width and height of the created images,
 i.e. the number of pixels in each direction.
 
-
 ----------
-
 
 The *view*\ , *center*\ , *up*\ , *zoom*\ , and *persp* values determine how
 3d simulation space is mapped to the 2d plane of the image.  Basically
@@ -478,7 +460,6 @@ plane perpendicular to the view vector implied by the *theta* and
 vector and user-specified up vector.  Thus this internal vector is
 computed from the user-specified *up* vector as
 
-
 .. parsed-literal::
 
    up_internal = view cross (up cross view)
@@ -506,9 +487,7 @@ perspective.
 
    The *persp* keyword is not yet supported as an option.
 
-
 ----------
-
 
 The *box* keyword determines if and how the simulation box boundaries
 are rendered as thin cylinders in the image.  If *no* is set, then the
@@ -536,9 +515,7 @@ processor sub-domain are drawn, with a diameter that is a fraction of
 the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
 of the sub-domain boundaries can be set with the :doc:`dump_modify boxcolor <dump_modify>` command.
 
-
 ----------
-
 
 The *shiny* keyword determines how shiny the objects rendered in the
 image will appear.  The *sfactor* value must be a value 0.0 <=
@@ -553,9 +530,7 @@ cost of computing the image by roughly 2x.  The strength of the effect
 can be scaled by the *dfactor* parameter.  If *no* is set, no depth
 shading is performed.
 
-
 ----------
-
 
 A series of JPEG, PNG, or PPM images can be converted into a movie
 file and then played as a movie using commonly available tools. Using
@@ -573,7 +548,6 @@ MPEG or other movie file you can use:
 
      % convert *.jpg foo.gif
      % convert -loop 1 *.ppm foo.mpg
-
 
   Animated GIF files from ImageMagick are not optimized. You can use
   a program like gifsicle to optimize and thus massively shrink them.
@@ -596,18 +570,15 @@ MPEG or other movie file you can use:
   FFmpeg is a command line tool that is available on many platforms and
   allows extremely flexible encoding and decoding of movies.
 
-
   .. code-block:: bash
 
      cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
-
   Front ends for FFmpeg exist for multiple platforms. For more
   information see the `FFmpeg homepage <http://www.ffmpeg.org/>`_
 
 ----------
-
 
 Play the movie:
 
@@ -646,13 +617,10 @@ See the :doc:`Modify <Modify>` doc page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
 which could then be output into dump files.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To write JPEG images, you must use the -DLAMMPS\_JPEG switch when
 building LAMMPS and link with a JPEG library. To write PNG images, you
@@ -672,7 +640,6 @@ errors and warnings printed by it. Those warnings and error messages
 will be printed to the screen only. Due to the way image data is
 communicated to FFmpeg, it will often print the message
 
-
 .. parsed-literal::
 
    pipe:: Input/output error
@@ -683,7 +650,6 @@ One known issue is that certain movie file formats (e.g. MPEG level 1
 and 2 format streams) have video bandwidth limits that can be crossed
 when rendering too large of image sizes. Typical warnings look like
 this:
-
 
 .. parsed-literal::
 

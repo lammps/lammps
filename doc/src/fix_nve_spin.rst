@@ -6,7 +6,6 @@ fix nve/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/spin keyword values
@@ -21,11 +20,8 @@ Syntax
          moving = integrate both spin and atomic degress of freedom
          frozen = integrate spins on a fixed lattice
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,13 +52,10 @@ A sectoring method enables this scheme for parallel calculations.
 The implementation of this sectoring algorithm is reported
 in :ref:`(Tranchida) <Tranchida1>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix style can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -70,7 +63,6 @@ info.
 
 To use the spin algorithm, it is necessary to define a map with
 the atom\_modify command. Typically, by adding the command:
-
 
 .. parsed-literal::
 
@@ -89,20 +81,14 @@ Default
 
 The option default is lattice = moving.
 
-
 ----------
 
-
 .. _Omelyan1:
-
-
 
 **(Omelyan)** Omelyan, Mryglod, and Folk. Phys. Rev. Lett.
 86(5), 898. (2001).
 
 .. _Tranchida1:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

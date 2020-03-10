@@ -31,7 +31,6 @@ If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
 this to your ~/.cshrc file, one line for each of the two files:
 
-
 .. parsed-literal::
 
    setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
@@ -48,7 +47,6 @@ files are updated with the new version.
 
 If the default settings of "make install-python" are not what you want,
 you can invoke install.py from the python directory manually as
-
 
 .. parsed-literal::
 

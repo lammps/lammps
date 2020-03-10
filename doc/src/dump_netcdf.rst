@@ -9,7 +9,6 @@ dump netcdf/mpiio command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID netcdf N file args
@@ -24,7 +23,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -63,28 +61,19 @@ by :doc:`thermo_style <thermo_style>`.
 
 .. _netcdf-home: http://www.unidata.ucar.edu/software/netcdf/
 
-
-
 .. _pnetcdf-home: http://trac.mcs.anl.gov/projects/parallel-netcdf/
-
-
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 The *netcdf* and *netcdf/mpiio* dump styles are part of the
 USER-NETCDF package.  They are only enabled if LAMMPS was built with
 that package. See the :doc:`Build package <Build_package>` doc page for
 more info.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""

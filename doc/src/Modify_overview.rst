@@ -31,13 +31,11 @@ potentials described in the classic 1997 :ref:`paper <Foo>` by Foo, et al.
 If you wish to invoke those potentials in a LAMMPS input script with a
 command like
 
-
 .. code-block:: LAMMPS
 
    pair_style foo 0.1 3.5
 
 then your pair\_foo.h file should be structured as follows:
-
 
 .. code-block:: c++
 
@@ -102,6 +100,5 @@ functionality:
 ----------
 
 .. _Foo:
-
 
 **(Foo)** Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).

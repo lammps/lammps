@@ -63,7 +63,6 @@ is an integer or floating-point number, respectively, and reject the
 input with an error message (for instance, when an integer is required,
 but a floating-point number 1.0 is provided):
 
-
 .. parsed-literal::
 
    ERROR: Expected integer parameter instead of '1.0' in input script or data file
@@ -80,7 +79,6 @@ reading the input and before parsing commands,
    Using a variable reference (i.e. *v\_name*) is only allowed if
    the documentation of the corresponding command explicitly says it is.
    Otherwise, you will receive an error message of this kind:
-
 
 .. parsed-literal::
 

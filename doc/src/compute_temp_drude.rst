@@ -6,7 +6,6 @@ compute temp/drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/drude
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -68,7 +66,6 @@ are "extensive".
 
 Restrictions
 """"""""""""
-
 
 The number of degrees of freedom contributing to the temperature is
 assumed to be constant for the duration of the run unless the

@@ -6,7 +6,6 @@ compute xrd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
@@ -32,11 +31,8 @@ Syntax
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -226,7 +222,6 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -244,27 +239,19 @@ Default
 The option defaults are 2Theta = 1 179 (degrees), c = 1 1 1, LP = 1,
 no manual flag, no echo flag.
 
-
 ----------
 
-
 .. _xrd-Coleman:
-
-
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
 .. _Colliex:
 
-
-
 **(Colliex)** Colliex et al. International Tables for Crystallography
 Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 .. _Peng:
-
-
 
 **(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).

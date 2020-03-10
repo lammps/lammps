@@ -6,7 +6,6 @@ processors command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    processors Px Py Pz keyword args ...
@@ -39,11 +38,8 @@ Syntax
        *file* arg = outfile
          outfile = name of file to write 3d grid of processors to
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -97,7 +93,6 @@ Px,Py,Pz values for different partitions.
 You can use the :doc:`partition <partition>` command to specify
 different processor grids for different partitions, e.g.
 
-
 .. parsed-literal::
 
    partition yes 1 processors 4 4 4
@@ -127,9 +122,7 @@ different sizes and shapes which no longer have a logical 3d
 connectivity.  If that occurs, all the information specified by the
 processors command is ignored.
 
-
 ----------
-
 
 The *grid* keyword affects the factorization of P into Px,Py,Pz and it
 can also affect how the P processor IDs are mapped to the 3d grid of
@@ -194,7 +187,6 @@ blank or comment lines (starting with a "#" character) can be present.
 The first non-blank, non-comment line should have
 3 values:
 
-
 .. parsed-literal::
 
    Px Py Py
@@ -205,7 +197,6 @@ and the Px, Py, Pz settings of the processors command.
 This line should be immediately followed by
 P = Px\*Py\*Pz lines of the form:
 
-
 .. parsed-literal::
 
    ID I J K
@@ -215,9 +206,7 @@ processors location in the 3d grid.  I must be a number from 1 to Px
 (inclusive) and similarly for J and K.  The P lines can be listed in
 any order, but no processor ID should appear more than once.
 
-
 ----------
-
 
 The *map* keyword affects how the P processor IDs (from 0 to P-1) are
 mapped to the 3d grid of processors.  It is only used by the
@@ -240,7 +229,6 @@ processor ID in the J direction varies next fastest, and the processor
 ID in the K direction varies slowest.  For example, if you select
 style *xyz* and you have a 2x2x2 grid of 8 processors, the assignments
 of the 8 octants of the simulation domain will be:
-
 
 .. parsed-literal::
 
@@ -267,9 +255,7 @@ used to first map the nodes to the 3d grid, then again to the cores
 within each node.  For the latter step, the *cart* and *cart/reorder*
 styles are not supported, so an *xyz* style is used in their place.
 
-
 ----------
-
 
 The *part* keyword affects the factorization of P into Px,Py,Pz.
 
@@ -310,9 +296,7 @@ processors, it could create a 4x2x10 grid, but it will not create a
    this, but your simulation will likely hang in its setup phase if this
    error has been made.
 
-
 ----------
-
 
 The *file* keyword writes the mapping of the factorization of P
 processors and their mapping to the 3d grid to the specified file
@@ -349,13 +333,10 @@ and should represent an identifier relevant to the physical processors
 in your machine.  Note that depending on the MPI implementation,
 multiple cores can have the same *name*\ .
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.

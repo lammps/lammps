@@ -6,7 +6,6 @@ displace_atoms command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    displace_atoms group-ID style args keyword value ...
@@ -39,11 +38,8 @@ Syntax
        keyword = *units*
          value = *box* or *lattice*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -113,9 +109,7 @@ style are determined by the setting of *box* or *lattice* for the
 :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacing.
 
-
 ----------
-
 
 .. note::
 
@@ -139,13 +133,10 @@ define the lattice spacing.
    the simulation box may not end up as optimal as the initial mapping
    attempted to be.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For a 2d simulation, only rotations around the a vector parallel to
 the z-axis are allowed.

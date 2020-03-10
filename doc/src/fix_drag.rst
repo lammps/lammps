@@ -6,7 +6,6 @@ fix drag command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID drag x y z fmag delta
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

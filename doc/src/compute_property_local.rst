@@ -6,7 +6,6 @@ compute property/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/local attribute1 attribute2 ... keyword args ...
@@ -23,7 +22,6 @@ Syntax
                              aatom1 aatom2 aatom3 atype
                              datom1 datom2 datom3 datom4 dtype
                              iatom1 iatom2 iatom3 iatom4 itype
-
 
   .. parsed-literal::
 
@@ -47,11 +45,8 @@ Syntax
 
        *cutoff* arg = *type* or *radius*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

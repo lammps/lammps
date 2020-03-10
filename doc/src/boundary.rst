@@ -6,7 +6,6 @@ boundary command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    boundary x y z
@@ -20,11 +19,8 @@ Syntax
        *s* is non-periodic and shrink-wrapped
        *m* is non-periodic and shrink-wrapped with a minimum value
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -97,7 +93,6 @@ triclinic representations.
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
 :doc:`read_restart <read_restart>` command.  See the
@@ -114,7 +109,6 @@ of lost atoms.
 
 Default
 """""""
-
 
 .. parsed-literal::
 

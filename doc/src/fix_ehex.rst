@@ -6,7 +6,6 @@ fix ehex command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ehex nevery F keyword value
@@ -29,11 +28,8 @@ Syntax
        *hex* value = none
          omit the coordinate correction to recover the HEX algorithm
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -128,9 +124,7 @@ cool continuously.
 This fix will default to :doc:`fix_heat <fix_heat>` (HEX algorithm) if
 the keyword *hex* is specified.
 
-
 ----------
-
 
 **Compatibility with SHAKE and RATTLE (rigid molecules)**\ :
 
@@ -167,9 +161,7 @@ constraints will be satisfied.
    temperature gradients.  A higher precision can be achieved by
    decreasing the timestep.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -182,7 +174,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the RIGID package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -193,19 +184,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ikeshoji:
-
-
 
 **(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
 
 .. _Wirnsberger:
-
-
 
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143,
 124104 (2015).

@@ -132,7 +132,6 @@ packages.  As an example, here is a command that builds with all the
 GPU related packages installed (GPU, KOKKOS with Cuda), including
 settings to build the needed auxiliary GPU libraries for Kepler GPUs:
 
-
 .. parsed-literal::
 
    Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi   -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi
@@ -177,7 +176,6 @@ are in the individual accelerator sections.
 * Styles with an "opt" suffix are part of the OPT package and typically
   speed-up the pairwise calculations of your simulation by 5-25% on a
   CPU.
-
 
 The individual accelerator package doc pages explain:
 

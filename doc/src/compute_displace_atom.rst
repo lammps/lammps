@@ -6,7 +6,6 @@ compute displace/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID displace/atom
@@ -20,11 +19,8 @@ Syntax
 
        *replace* arg = name of per-atom variable
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,9 +61,7 @@ the compute command was issued.  The value of the displacement will be
    quantities will also have the same ID, and thus be initialized
    correctly with time=0 atom coordinates from the restart file.
 
-
 ----------
-
 
 The *refresh* option can be used in conjunction with the "dump\_modify
 refresh" command to generate incremental dump files.
@@ -87,7 +81,6 @@ hops are rare.  Imagine that when a hop occurs an atom moves more than
 a distance *Dhop*\ .  For any snapshot we only want to output atoms that
 have hopped since the last snapshot.  This can be accomplished with
 something like the following commands:
-
 
 .. parsed-literal::
 
@@ -126,9 +119,7 @@ append new output to that same file and delay the output until a later
 timestep.  The *delay* setting avoids a second time = 0 snapshot which
 would be empty.
 
-
 ----------
-
 
 **Output info:**
 

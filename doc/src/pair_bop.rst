@@ -6,7 +6,6 @@ pair_style bop command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style bop keyword ...
@@ -18,11 +17,8 @@ Syntax
 
      save = pre-compute and save some values
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -56,7 +52,6 @@ The BOP potential consists of three terms:
 .. math::
 
    E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left( r_{ij} \right) - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\sigma,ij} \left( r_{ij} \right) \cdot \Theta_{\sigma,ij} - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\pi,ij} \left( r_{ij} \right) \cdot \Theta_{\pi,ij} + U_{prom}
-
 
 where :math:`\phi_{ij}(r_{ij})` is a short-range two-body function
 representing the repulsion between a pair of ion cores,
@@ -121,9 +116,7 @@ The latter requires less memory, but may be slower.  It is best to
 test this option to optimize the speed of BOP for your particular
 system configuration.
 
-
 ----------
-
 
 Only a single pair\_coeff command is used with the *bop* style which
 specifies a BOP potential file, with parameters for all needed
@@ -138,7 +131,6 @@ As an example, imagine the CdTe.bop file has BOP values for Cd
 and Te.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Cd, and the 4th to be Te, you would use the following
 pair\_coeff command:
-
 
 .. parsed-literal::
 
@@ -159,9 +151,7 @@ files are given below with variables matching the formulation of Ward
 (:ref:`Ward <Ward>`) and Zhou (:ref:`Zhou <Zhou1>`). Each header line containing a
 ":" is preceded by a blank line.
 
-
 ----------
-
 
 **No angular table file format**\ :
 
@@ -184,7 +174,6 @@ the tabulated functions are given.
 * Line 2: delta\_1-delta\_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
-
 Following this N lines for e\_1-e\_N containing p\_pi.
 
 * Line 3: p\_pi (for e\_1)
@@ -199,7 +188,6 @@ interaction types e\_i-e\_j, with i=1->N, j=i->N
 * Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
 e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
 
@@ -208,7 +196,6 @@ e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
   contains the full expressions for the constants as functions of
   b\_(sigma,ijk), p\_(sigma,ijk), u\_(sigma,ijk))
 * Line 2: g\_(sigma0), g\_(sigma1), g\_(sigma2) (for e\_1-e\_1-e\_2)
-
 
 The next section contains a block for each interaction type for the
 phi\_ij(r\_ij).  Each block has nr entries with 5 entries per line.
@@ -220,7 +207,6 @@ phi\_ij(r\_ij).  Each block has nr entries with 5 entries per line.
 * ...
 * Line nr/5\_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the
   e\_1-e\_1 interaction type)
-
 
 The next section contains a block for each interaction type for the
 beta\_(sigma,ij)(r\_ij).  Each block has nr entries with 5 entries per
@@ -234,7 +220,6 @@ line.
 * Line nr/5+1: beta\_sigma(r1), beta\_sigma(r2), beta\_sigma(r3),
   beta\_sigma(r4), beta\_sigma(r5) (for the e\_1-e\_2 interaction type)
 
-
 The next section contains a block for each interaction type for
 beta\_(pi,ij)(r\_ij).  Each block has nr entries with 5 entries per line.
 
@@ -245,7 +230,6 @@ beta\_(pi,ij)(r\_ij).  Each block has nr entries with 5 entries per line.
 * ...
 * Line nr/5+1: beta\_pi(r1), beta\_pi(r2), beta\_pi(r3), beta\_pi(r4),
   beta\_pi(r5) (for the e\_1-e\_2 interaction type)
-
 
 The next section contains a block for each interaction type for the
 THETA\_(S,ij)((THETA\_(sigma,ij))\^(1/2), f\_(sigma,ij)).  Each block has
@@ -259,7 +243,6 @@ nBOt entries with 5 entries per line.
 * Line nBOt/5+1: THETA\_(S,ij)(r1), THETA\_(S,ij)(r2), THETA\_(S,ij)(r3),
   THETA\_(S,ij)(r4), THETA\_(S,ij)(r5) (for the e\_1-e\_2 interaction type)
 
-
 The next section contains a block of N lines for e\_1-e\_N
 
 * Line 1: delta\^mu (for e\_1)
@@ -271,9 +254,7 @@ i=0->N, j=i->N
 * Line 1: (A\_ij)\^(mu\*nu) (for e1-e1)
 * Line 2: (A\_ij)\^(mu\*nu) (for e1-e2 and repeats as above)
 
-
 ----------
-
 
 **Angular spline table file format**\ :
 
@@ -297,7 +278,6 @@ the tabulated functions are given.
 * Line 2: delta\_1-delta\_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
-
 Following this N lines for e\_1-e\_N containing p\_pi.
 
 * Line 3: p\_pi (for e\_1)
@@ -312,7 +292,6 @@ interaction types e\_i-e\_j, with i=1->N, j=i->N
 * Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
 e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
 
@@ -325,13 +304,10 @@ e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
   g1, g2... (for e\_1-e\_1-e\_2) and the other three body
   interactions
 
-
 The rest of the table has the same structure as the previous section
 (see above).
 
-
 ----------
-
 
 **Angular no-spline table file format**\ :
 
@@ -355,7 +331,6 @@ the tabulated functions are given.
 * Line 2: delta\_1-delta\_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
-
 Following this N lines for e\_1-e\_N containing p\_pi.
 
 * Line 3: p\_pi (for e\_1)
@@ -370,7 +345,6 @@ interaction types e\_i-e\_j, with i=1->N, j=i->N
 * Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
 e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
 
@@ -382,12 +356,9 @@ e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
 * Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the
   e\_1-e\_1-e\_2 interaction type)
 
-
 The rest of the table has the same structure as the previous section (see above).
 
-
 ----------
-
 
 **Mixing, shift, table tail correction, restart**\ :
 
@@ -402,13 +373,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -432,47 +400,33 @@ Default
 
 non-tabulated potential file, a\_0 is non-zero.
 
-
 ----------
 
-
 .. _Pettifor\_1:
-
-
 
 **(Pettifor\_1)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487
 (1999).
 
 .. _Pettifor\_2:
 
-
-
 **(Pettifor\_2)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84,
 4124 (2000).
 
 .. _Pettifor\_3:
-
-
 
 **(Pettifor\_3)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103
 (2002).
 
 .. _Murdick:
 
-
-
 **(Murdick)** D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R.
 Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 
 .. _Ward:
 
-
-
 **(Ward)** D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A.
 Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
 .. _Zhou1:
-
-
 
 **(Zhou)** X.W. Zhou, D.K. Ward, M. Foster (TBP).

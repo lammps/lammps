@@ -6,7 +6,6 @@ fix_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix_modify fix-ID keyword value ...
@@ -27,11 +26,8 @@ Syntax
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

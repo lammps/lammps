@@ -9,7 +9,6 @@ fix npt/uef command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
@@ -30,11 +29,8 @@ Syntax
        *iso*\ , *x*\ , *y*\ , *z*\ , *tchain*\ , *pchain*\ , *tloop*\ , *ploop*\ , *mtk* keywords
          documented by the :doc:`fix npt <fix_nh>` command
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -98,9 +94,7 @@ during all of the output steps, and therefore trajectory files made
 using the dump command will be in the LAMMPS frame unless the
 :doc:`dump cfg/uef <dump_cfg_uef>` command is used.
 
-
 ----------
-
 
 Temperature control is achieved with the default Nose-Hoover style
 thermostat documented in :doc:`fix npt <fix_nh>`. When this fix is
@@ -122,7 +116,6 @@ pressure (Pxx+Pyy)/2 will be controlled.
 This example command will control the total hydrostatic pressure under
 uniaxial tension:
 
-
 .. parsed-literal::
 
    fix f1 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xyz
@@ -130,7 +123,6 @@ uniaxial tension:
 This example command will control the average stress in compression
 directions, which would typically correspond to free surfaces under
 drawing with uniaxial tension:
-
 
 .. parsed-literal::
 
@@ -148,7 +140,6 @@ method.
 
 For example, the following commands will work:
 
-
 .. parsed-literal::
 
    fix f3 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 y 1 1 5 erate -0.5 -0.5
@@ -156,21 +147,17 @@ For example, the following commands will work:
 
 The following commands will not work:
 
-
 .. parsed-literal::
 
    fix f5 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 1 1 5 erate -0.5 -0.5
    fix f6 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 2 2 5 erate 0.5 0.5
 
-
 ----------
-
 
 These fix computes a temperature and pressure each timestep.  To do
 this, it creates its own computes of style "temp/uef" and
 "pressure/uef", as if one of these two sets of commands had been
 issued:
-
 
 .. parsed-literal::
 
@@ -210,7 +197,6 @@ The fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -238,37 +224,25 @@ The default keyword values specific to this fix are exy = xyz, strain
 npt*\ \_fix\_nh.html except tchain = 1.  The reason for this change is
 given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
-
 ----------
 
-
 .. _Dobson:
-
-
 
 **(Dobson)** Dobson, J Chem Phys, 141, 184103 (2014).
 
 .. _Hunt:
 
-
-
 **(Hunt)** Hunt, Mol Simul, 42, 347 (2016).
 
 .. _Semaev:
-
-
 
 **(Semaev)** Semaev, Cryptography and Lattices, 181 (2001).
 
 .. _Sllod:
 
-
-
 **(Evans and Morriss)** Evans and Morriss, Phys Rev A, 30, 1528 (1984).
 
 .. _Nicholson:
-
-
 
 **(Nicholson and Rutledge)** Nicholson and Rutledge, J Chem Phys, 145,
 244903 (2016).

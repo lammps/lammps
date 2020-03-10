@@ -30,8 +30,6 @@ particles according to the Smoothed Dissipative Particle Dynamics model
 described in this paper by :ref:`(Espanol and Revenga) <Espanol_Revenga>` under
 the following assumptions:
 
-
-
 #. The temperature is constant and uniform.
 #. The shear viscosity is constant and uniform.
 #. The volume viscosity is negligible before the shear viscosity.
@@ -81,7 +79,6 @@ above.
 
 ----------
 
-
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 This style does not support mixing.  Thus, coefficients for all
@@ -99,7 +96,6 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-SDPD package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -114,12 +110,8 @@ Default
 
 The default seed is 0 (before mixing).
 
-
 ----------
 
-
 .. _Espanol\_Revenga:
-
-
 
 **(Espanol and Revenga)** Espanol, Revenga, Physical Review E, 67, 026705 (2003).

@@ -6,7 +6,6 @@ compute vcm/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID vcm/chunk chunkID
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -52,7 +50,6 @@ non-zero chunk IDs.
 The simplest way to output the results of the compute vcm/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
-
 
 .. parsed-literal::
 

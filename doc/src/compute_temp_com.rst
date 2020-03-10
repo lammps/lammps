@@ -6,7 +6,6 @@ compute temp/com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/com
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

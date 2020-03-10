@@ -23,7 +23,6 @@ instructions.
 
 These examples assume one or more 16-core nodes.
 
-
 .. parsed-literal::
 
    env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script           # 1 MPI task, 16 threads according to OMP_NUM_THREADS
@@ -60,7 +59,6 @@ and threads/MPI task is the same.
 
 Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 "omp" suffix to individual styles in your input script, e.g.
-
 
 .. parsed-literal::
 
@@ -140,7 +138,6 @@ circumstances:
   with the USER-OMP package, is an alternative way to reduce the number
   of MPI tasks assigned to the KSpace calculation.
 
-
 Additional performance tips are as follows:
 
 * The best parallel efficiency from *omp* styles is typically achieved
@@ -154,9 +151,7 @@ Additional performance tips are as follows:
   one core and thus is likely to be counterproductive.  Instead, binding
   MPI tasks to a (multi-core) socket, should solve this issue.
 
-
 Restrictions
 """"""""""""
-
 
 None.

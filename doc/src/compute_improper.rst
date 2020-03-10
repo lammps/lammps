@@ -6,7 +6,6 @@ compute improper command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID improper
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

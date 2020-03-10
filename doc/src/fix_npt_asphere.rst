@@ -9,7 +9,6 @@ fix npt/asphere/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID npt/asphere keyword value ...
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,14 +63,11 @@ only the particles in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of particles in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-
 ----------
-
 
 This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp/asphere" and
 "pressure", as if these commands had been issued:
-
 
 .. parsed-literal::
 
@@ -107,9 +102,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -163,7 +156,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

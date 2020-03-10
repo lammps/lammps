@@ -9,7 +9,6 @@ pair_style spin/dipole/long command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style spin/dipole/cut cutoff
@@ -17,7 +16,6 @@ Syntax
 
 * cutoff = global cutoff for magnetic dipole energy and forces
   (optional) (distance units)
-
 
 Examples
 """"""""
@@ -81,9 +79,7 @@ A :doc:`kspace_style <kspace_style>` must be defined to
 use this pair style.  Currently, :doc:`kspace_style ewald/dipole/spin <kspace_style>` and :doc:`kspace_style pppm/dipole/spin <kspace_style>` support long-range magnetic
 dipole-dipole interactions.
 
-
 ----------
-
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
@@ -97,7 +93,6 @@ to be specified in an input script that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 The *spin/dipole/cut* and *spin/dipole/long* styles are part of
 the SPIN package.  They are only enabled if LAMMPS was built with that

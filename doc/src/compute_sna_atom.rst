@@ -15,7 +15,6 @@ compute snap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID sna/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
@@ -48,7 +47,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -84,7 +82,6 @@ polar angle *theta0* defined by,
 
   \theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
 
-
 In this way, all possible neighbor positions are mapped on to a subset
 of the 3-sphere.  Points south of the latitude *theta0max=rfac0\*Pi*
 are excluded.
@@ -105,7 +102,6 @@ coefficient as
 
   u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)}
 
-
 The *w\_i'* neighbor weights are dimensionless numbers that are chosen
 to distinguish atoms of different types, while the central atom is
 arbitrarily assigned a unit weight.  The function *fc(r)* ensures that
@@ -116,7 +112,6 @@ the contribution of each neighbor atom goes smoothly to zero at
 
   f_c(r)   = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
            = & 0,  r > R_{ii'}
-
 
 The expansion coefficients *u\^j\_m,m'* are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
@@ -132,7 +127,6 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
         {j_1} {m_1} {m'_1} \\
         {j_2} {m_2} {m'_2} \end{array}}
         u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
-
 
 The constants *H\^jmm'\_j1m1m1'\_j2m2m2'* are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
@@ -154,7 +148,6 @@ summed separately for each atom type:
 
    -\sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
 
-
 The sum is over all atoms *i'* of atom type *I*\ .  For each atom *i*\ ,
 this compute evaluates the above expression for each direction, each
 atom type, and each bispectrum component.  See section below on output
@@ -166,7 +159,6 @@ derivatives:
 .. math::
 
   -{\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}
-
 
 Again, the sum is over all atoms *i'* of atom type *I*\ .  For each atom
 *i*\ , this compute evaluates the above expression for each of the six
@@ -188,7 +180,6 @@ The potential energy calculation uses the built in compute *thermo\_pe*.
 The stress calculation uses a compute called *snap\_press* that is
 automatically created behind the scenes, according to the following
 command:
-
 
 .. parsed-literal::
 
@@ -259,7 +250,6 @@ of columns and the identity of the bispectrum component contained in
 each column depend of the value of *twojmax*\ , as
 described by the following piece of python code:
 
-
 .. parsed-literal::
 
    for j1 in range(0,twojmax+1):
@@ -329,7 +319,6 @@ page for an overview of LAMMPS output options.
 Restrictions
 """"""""""""
 
-
 These computes are part of the SNAP package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -344,32 +333,22 @@ Default
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
 
-
 ----------
 
-
 .. _Thompson20141:
-
-
 
 **(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
 available at `arXiv:1409.3880 <http://arxiv.org/abs/1409.3880>`_
 
 .. _Bartok20101:
 
-
-
 **(Bartok)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 .. _Meremianin2006:
 
-
-
 **(Meremianin)** Meremianin, J. Phys. A,  39, 3099 (2006).
 
 .. _Varshalovich1987:
-
-
 
 **(Varshalovich)** Varshalovich, Moskalev, Khersonskii, Quantum Theory
 of Angular Momentum, World Scientific, Singapore (1987).

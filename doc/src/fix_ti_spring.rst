@@ -6,7 +6,6 @@ fix ti/spring command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ti/spring k t_s t_eq keyword value ...
@@ -24,10 +23,7 @@ Syntax
        *function* value = function-ID
          function-ID = ID of the switching function (1 or 2)
 
-
-
 **Example:**
-
 
 .. parsed-literal::
 
@@ -51,7 +47,6 @@ each atom is given by
 .. math::
 
   F = \left( 1-\lambda \right) F_{\text{solid}} + \lambda F_{\text{harm}}
-
 
 where F\_solid is the force that acts on an atom due to an interatomic
 potential (\ *e.g.* EAM potential), F\_harm is the force due to the
@@ -93,7 +88,6 @@ time:
 
   \lambda(\tau) = \tau
 
-
 where tau is the scaled time variable *t/t\_s*. The option *2* performs
 the lambda switching at a rate defined by the following switching
 function
@@ -101,7 +95,6 @@ function
 .. math::
 
   \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)
-
 
 This function has zero slope as lambda approaches its extreme values
 (0 and 1), according to :ref:`de Koning <deKoning96>` this results in
@@ -163,7 +156,6 @@ Related commands
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -172,19 +164,13 @@ Default
 
 The keyword default is function = 1.
 
-
 ----------
 
-
 .. _Freitas1:
-
-
 
 **(Freitas)** Freitas, Asta, and de Koning, Computational Materials
 Science, 112, 333 (2016).
 
 .. _deKoning96:
-
-
 
 **(de Koning)** de Koning and Antonelli, Phys Rev E, 53, 465 (1996).

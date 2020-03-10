@@ -6,7 +6,6 @@ fix smd/setvel command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID smd/setvel vx vy vz keyword value ...
@@ -23,11 +22,8 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region particles must be in to have their velocities set
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,9 +61,7 @@ field with optional time-dependence as well.
 If the *region* keyword is used, the particle must also be in the
 specified geometric :doc:`region <region>` in order to have its velocity set by this command.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -85,7 +79,6 @@ the :doc:`run <run>` command.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

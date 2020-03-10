@@ -21,7 +21,6 @@ pair_style peri/eps command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -30,7 +29,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -146,9 +144,7 @@ cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m\_yield\_stress is the yield stress of the material. For
 details please see the description in "(Mtchell2011a)".
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -168,9 +164,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -190,13 +184,10 @@ These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All of these styles are part of the PERI package. They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -208,41 +199,29 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Parks:
-
-
 
 **(Parks)** Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11),
 777-783 (2008).
 
 .. _Silling2000:
 
-
-
 **(Silling 2000)** Silling, J Mech Phys Solids, 48, 175-209 (2000).
 
 .. _Silling2007:
-
-
 
 **(Silling 2007)** Silling, Epton, Weckner, Xu, Askari, J Elasticity,
 88, 151-184 (2007).
 
 .. _Mitchell2011:
 
-
-
 **(Mitchell2011)** Mitchell. A non-local, ordinary-state-based
 viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
 
 .. _Mitchell2011a:
-
-
 
 **(Mitchell2011a)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,

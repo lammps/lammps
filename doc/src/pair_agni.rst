@@ -9,7 +9,6 @@ pair_style agni/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style agni
@@ -34,7 +33,6 @@ an atom as
    d_{i,t}^u              & = \left|\left| V_i^u(\eta) - V_t^u(\eta) \right|\right| \\
    V_i^u(\eta)            & = \sum_{j \neq i}\frac{r^u_{ij}}{r_{ij}} \cdot e^{-\left(\frac{r_{ij}}{\eta} \right)^2} \cdot f_d\left(r_{ij}\right) \\
    f_d\left(r_{ij}\right) & = \frac{1}{2} \left[\cos\left(\frac{\pi r_{ij}}{R_c}\right) + 1 \right]
-
 
 :math:`u` labels the individual components, i.e. :math:`x`, :math:`y` or :math:`z`, and :math:`V` is the
 corresponding atomic fingerprint. :math:`d` is the Euclidean distance between
@@ -67,9 +65,7 @@ parameters of the force field, i.e., the reference training environments
 used to construct the machine learning force field. Example force field
 and input files are provided in the examples/USER/misc/agni directory.
 
-
 ----------
-
 
 Styles with *omp* suffix is functionally the same as the corresponding
 style without the suffix. They have been optimized to run faster,
@@ -87,9 +83,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -104,13 +98,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Currently, only elemental systems are implemented. Also, the method
 only provides access to the forces and not energies or stresses.
@@ -137,24 +128,16 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Botu2015adaptive:
-
-
 
 **(Botu1)** V. Botu and R. Ramprasad, Int. J. Quant. Chem., 115(16), 1074 (2015).
 
 .. _Botu2015learning:
 
-
-
 **(Botu2)** V. Botu and R. Ramprasad, Phys. Rev. B, 92(9), 094306 (2015).
 
 .. _Botu2016construct:
-
-
 
 **(Botu3)** V. Botu, R. Batra, J. Chapman and R. Ramprasad, https://arxiv.org/abs/1610.02098 (2016).

@@ -9,7 +9,6 @@ fix wall/region/ees command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style args
@@ -32,7 +31,6 @@ Syntax
            sigma can be a variable (see below)
          cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
-
   .. parsed-literal::
 
        args for style *wall/region/ees*\ : *region-ID* *epsilon* *sigma* *cutoff*
@@ -41,11 +39,8 @@ Syntax
          sigma = size factor for wall-particle interaction (distance units)
          cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -69,7 +64,6 @@ wall-particle interactions E is given by:
 
    E = \epsilon \left[ \frac{2  \sigma_{LJ}^{12} \left(7 r^5+14 r^3 \sigma_{n}^2+3 r \sigma_{n}^4\right) }{945 \left(r^2-\sigma_{n}^2\right)^7} -\frac{ \sigma_{LJ}^6 \left(2 r \sigma_{n}^3+\sigma_{n}^2 \left(r^2-\sigma_{n}^2\right)\log{ \left[\frac{r-\sigma_{n}}{r+\sigma_{n}}\right]}\right) }{12 \sigma_{n}^5 \left(r^2-\sigma_{n}^2\right)} \right]\qquad \sigma_n < r < r_c
 
-
 Introduced by Babadi and Ejtehadi in :ref:`(Babadi) <BabadiEjtehadi>`. Here,
 *r* is the distance from the particle to the wall at position *coord*\ ,
 and Rc is the *cutoff* distance at which the particle and wall no
@@ -91,7 +85,6 @@ pre-factor is
 .. math::
 
    8 \pi^2 \quad \rho_{wall} \quad \rho_{ellipsoid} \quad \epsilon \quad \sigma_a \quad \sigma_b \quad \sigma_c
-
 
 where :math:`\epsilon` is the LJ energy parameter for the constituent LJ
 particles and :math:`\sigma_a`, :math:`\sigma_b`, and :math:`\sigma_c`
@@ -118,7 +111,6 @@ of using this fix in the examples/USER/misc/ees/ directory.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -136,12 +128,8 @@ Default
 
 none
 
-
 ----------
 
-
 .. _BabadiEjtehadi:
-
-
 
 **(Babadi)** Babadi and Ejtehadi, EPL, 77 (2007) 23002.

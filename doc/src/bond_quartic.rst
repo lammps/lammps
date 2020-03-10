@@ -9,14 +9,12 @@ bond_style quartic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style quartic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -83,15 +81,12 @@ Note that when bonds are dumped to a file via the :doc:`dump local <dump>` comma
 :doc:`delete_bonds <delete_bonds>` command can also be used to query the
 status of broken bonds or permanently delete them, e.g.:
 
-
 .. code-block:: LAMMPS
 
    delete_bonds all stats
    delete_bonds all bond 0 remove
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -111,13 +106,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more

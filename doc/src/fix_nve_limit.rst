@@ -6,7 +6,6 @@ fix nve/limit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/limit xmax
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

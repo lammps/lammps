@@ -6,7 +6,6 @@ fix nve/asphere/noforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/asphere/noforce
@@ -32,9 +31,7 @@ This is useful as an implicit time integrator for Fast Lubrication
 Dynamics, since the velocity and angular momentum are updated by the
 :doc:`pair_style lubricuteU <pair_lubricateU>` command.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -46,7 +43,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

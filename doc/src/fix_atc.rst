@@ -6,7 +6,6 @@ fix atc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix <fixID> <group> atc <type> <parameter_file>
@@ -24,10 +23,8 @@ Syntax
 
 * parameter\_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -43,7 +40,6 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or an on-th
 
 .. image:: JPG/atc_nanotube.jpg
    :align: center
-
 
 .. parsed-literal::
 
@@ -73,7 +69,6 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or an on-th
     run 1000
 
 likewise for this post-processing example:
-
 
 .. parsed-literal::
 
@@ -107,7 +102,6 @@ likewise for this post-processing example:
 the mesh's linear interpolation functions can be used as the localization function
 by using the field option:
 
-
 .. parsed-literal::
 
     fix AtC internal atc field
@@ -116,9 +110,7 @@ by using the field option:
 
 Note coupling and post-processing can be combined in the same simulations using separate fixes.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -131,7 +123,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 Thermal and two\_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. In addition, currently:
 
@@ -241,51 +232,35 @@ Default
 """""""
 None
 
-
 ----------
-
 
 For detailed exposition of the theory and algorithms please see:
 
 .. _Wagner:
 
-
-
 **(Wagner)** Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.
 
 .. _Zimmeman2004:
-
-
 
 **(Zimmerman2004)** Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004), 12:S319.
 
 .. _Zimmerman2010:
 
-
-
 **(Zimmerman2010)** Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.
 
 .. _Templeton2010:
-
-
 
 **(Templeton2010)** Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.
 
 .. _Jones:
 
-
-
 **(Jones)** Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940.
 
 .. _Templeton2011:
 
-
-
 **(Templeton2011)** Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.
 
 .. _Mandadapu:
-
-
 
 **(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.
 

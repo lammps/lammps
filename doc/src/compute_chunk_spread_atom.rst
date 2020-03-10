@@ -6,7 +6,6 @@ compute chunk/spread/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID chunk/spread/atom chunkID input1 input2 ...
@@ -24,11 +23,8 @@ Syntax
        f_ID = global vector calculated by a fix with ID
        f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -85,9 +81,7 @@ or fix.
    does not check that it is per-chunk data.  It only checks that the fix
    produces a global vector or array.
 
-
 ----------
-
 
 Each listed input is operated on independently.
 
@@ -105,21 +99,17 @@ had been listed one by one.  E.g. these 2 compute chunk/spread/atom
 commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a per-atom array
 with 3 columns:
 
-
 .. parsed-literal::
 
    compute com all com/chunk mychunk
    compute 10 all chunk/spread/atom mychunk c_com[*]
    compute 10 all chunk/spread/atom mychunk c_com[1] c_com[2] c_com[3]
 
-
 ----------
-
 
 Here is an example of writing a dump file the with the center-of-mass
 (COM) for the chunk each atom is in.  The commands below can be added
 to the bench/in.chain script.
-
 
 .. parsed-literal::
 
@@ -133,7 +123,6 @@ The same per-chunk data for each atom could be used to define per-atom
 forces for the :doc:`fix addforce <fix_addforce>` command.  In this
 example the forces act to pull atoms of an extended polymer chain
 towards its COM in an attractive manner.
-
 
 .. parsed-literal::
 
@@ -155,7 +144,6 @@ bench/in.chain script.  Thermo output is shown for 1000 steps, where
 the last column is the average radius of gyration over all 320 chains
 in the 32000 atom system:
 
-
 .. parsed-literal::
 
    compute         gyr all gyration/chunk cmol
@@ -174,9 +162,7 @@ in the 32000 atom system:
         900     22.59128    5.0247538    4.5611513
        1000    22.586832      4.94697    4.5238362
 
-
 ----------
-
 
 Here is an example for using one set of chunks, defined for molecules,
 to compute the dipole moment vector for each chunk.  E.g. for water
@@ -184,7 +170,6 @@ molecules. Then spreading those values to each atom in each chunk.
 Then defining a second set of chunks based on spatial bins.  And
 finally, using the :doc:`fix ave/chunk <fix_ave_chunk>` command to
 calculate an average dipole moment vector per spatial bin.
-
 
 .. parsed-literal::
 
@@ -201,9 +186,7 @@ If a molecule straddles bin boundaries, each of its atoms contributes
 in a weighted manner to the average dipole moment of the spatial bin
 it is in.
 
-
 ----------
-
 
 **Output info:**
 

@@ -6,7 +6,6 @@ compute rdf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... keyword/value ...
@@ -24,11 +23,8 @@ Syntax
        *cutoff* value = Rcut
          Rcut = cutoff distance for RDF computation (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -151,7 +147,6 @@ The simplest way to output the results of the compute rdf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-
 .. parsed-literal::
 
    compute myRDF all rdf 50
@@ -178,7 +173,6 @@ also numbers >= 0.0.
 
 Restrictions
 """"""""""""
-
 
 The RDF is not computed for distances longer than the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

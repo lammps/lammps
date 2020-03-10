@@ -16,9 +16,7 @@ classes of functionality:
 10. :ref:`Pre- and post-processing <prepost>`
 11. :ref:`Specialized features (beyond MD itself) <special>`
 
-
 ----------
-
 
 .. _general:
 
@@ -191,11 +189,7 @@ Pre- and post-processing
 
 .. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
 
-
-
 .. _python: http://www.python.org
-
-
 
 .. _special:
 

@@ -6,7 +6,6 @@ log command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    log file keyword
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

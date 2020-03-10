@@ -6,7 +6,6 @@ fix viscosity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
@@ -25,11 +24,8 @@ Syntax
        *swap* value = Nswap = number of swaps to perform every N steps
        *vtarget* value = V or INF = target velocity of swap partners (velocity units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,7 +61,6 @@ within each pair.  This resets their velocities, typically in opposite
 directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:
-
 
 .. parsed-literal::
 
@@ -138,7 +133,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -168,19 +162,13 @@ Default
 
 The option defaults are swap = 1 and vtarget = INF.
 
-
 ----------
 
-
 .. _Muller-Plathe2:
-
-
 
 **(Muller-Plathe)** Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
 
 .. _Maginn:
-
-
 
 **(Maginn)** Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
 260, 218-231 (2007).

@@ -6,7 +6,6 @@ compute angle command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID angle
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

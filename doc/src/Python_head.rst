@@ -4,7 +4,6 @@ Use Python with LAMMPS
 These doc pages describe various ways that LAMMPS and Python can be
 used together.
 
-
 .. toctree::
    :maxdepth: 1
 

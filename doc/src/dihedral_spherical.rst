@@ -6,14 +6,12 @@ dihedral_style spherical command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style spherical
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -36,7 +34,6 @@ The *spherical* dihedral style uses the potential:
    \Phi_{i}(\phi)            & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
    \Theta_{1i}(\theta_1)     & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
    \Theta_{2i}(\theta_2)     & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
-
 
 For this dihedral style, the energy can be any function that combines the
 4-body dihedral-angle (:math:`\phi`) and the two 3-body bond-angles
@@ -86,13 +83,10 @@ the Dihedral Coeffs section of a data file read by the
 * :math:`c_n` (degrees, typically 0.0 or 90.0)
 * :math:`w_n` (typically 0.0 or 1.0)
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 USER\_MISC package.  See the :doc:`Build package <Build_package>` doc

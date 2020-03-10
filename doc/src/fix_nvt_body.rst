@@ -6,7 +6,6 @@ fix nvt/body command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/body keyword value ...
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -52,7 +50,6 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/body", as if this command
 had been issued:
 
-
 .. parsed-literal::
 
    compute fix-ID_temp group-ID temp/body
@@ -85,9 +82,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -134,7 +129,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

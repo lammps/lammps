@@ -62,7 +62,6 @@ simulation box.
 Here is an example input script that calculates the viscosity of
 liquid Ar via the GK formalism:
 
-
 .. code-block:: LAMMPS
 
    # Sample LAMMPS input script for viscosity of liquid Ar
@@ -131,13 +130,9 @@ time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
 with time at sufficiently long times.
 
-
 ----------
 
-
 .. _Daivis-viscosity:
-
-
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

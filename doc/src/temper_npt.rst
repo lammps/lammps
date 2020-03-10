@@ -6,7 +6,6 @@ temper/npt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    temper/npt  N M temp fix-ID seed1 seed2 pressure index
@@ -22,7 +21,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -48,13 +46,10 @@ of pressure, this command works much like the :doc:`temper <temper>`
 command. See the documentation on :doc:`temper <temper>` for information
 on how the parallel tempering is handled in general.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -72,12 +67,8 @@ Related commands
 
 .. _Okabe2:
 
-
-
 **(Okabe)** T. Okabe, M. Kawata, Y. Okamoto, M. Masuhiro, Chem. Phys. Lett., 335, 435-439 (2001).
 
 .. _Mori2:
-
-
 
 **(Mori)** Y. Mori, Y. Okamoto, J. Phys. Soc. Jpn., 7, 074003 (2010).

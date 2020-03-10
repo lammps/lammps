@@ -6,7 +6,6 @@ dimension command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dimension N
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -43,7 +41,6 @@ additional instructions on how to run 2d simulations.
 Restrictions
 """"""""""""
 
-
 This command must be used before the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
@@ -54,7 +51,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

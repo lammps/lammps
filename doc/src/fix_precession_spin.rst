@@ -6,7 +6,6 @@ fix precession/spin command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group precession/spin style args
@@ -24,18 +23,14 @@ Syntax
          K = intensity of the magnetic anisotropy (in eV)
          x y z = vector direction of the anisotropy
 
-
   .. parsed-literal::
 
        *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,7 +59,6 @@ with:
 * :math:`\vec{s}_i` the unitary vector describing the orientation of spin :math:`i`
 * :math:`\mu_i` the atomic moment of spin :math:`i` given as a multiple of the
   Bohr magneton :math:`\mu_B` (for example, :math:`\mu_i \approx 2.2` in bulk iron).
-
 
 The field value in Tesla is multiplied by the gyromagnetic
 ratio, :math:`g \cdot \mu_B/\hbar`, converting it into a precession frequency in
@@ -134,9 +128,7 @@ normalized).
 
 Those styles can be combined within one single command line.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -144,7 +136,6 @@ By default, the energy associated to this fix is not added to the potential
 energy of the system.
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix
 to add this magnetic potential energy to the potential energy of the system,
-
 
 .. code-block:: LAMMPS
 
@@ -159,7 +150,6 @@ No information about this fix is written to :doc:`binary restart files <restart>
 Restrictions
 """"""""""""
 
-
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
 atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -173,13 +163,9 @@ Related commands
 
 none
 
-
 ----------
 
-
 .. _Skomski1:
-
-
 
 **(Skomski)** Skomski, R. (2008). Simple models of magnetism.
 Oxford University Press.

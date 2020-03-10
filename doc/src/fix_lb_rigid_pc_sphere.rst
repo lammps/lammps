@@ -6,7 +6,6 @@ fix lb/rigid/pc/sphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/rigid/pc/sphere bodystyle args keyword values ...
@@ -36,11 +35,8 @@ Syntax
        *innerNodes* values = innergroup-ID
          innergroup-ID = ID of the atom group which does not experience a hydrodynamic force from the lattice-Boltzmann fluid
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -61,9 +57,7 @@ solid, uniform density spheres, with moments of inertia calculated
 using the combined sum of the masses of all the constituent particles
 (which are assumed to be point particles).
 
-
 ----------
-
 
 By default, all of the atoms that this fix acts on experience a
 hydrodynamic force due to the presence of the lattice-Boltzmann fluid.
@@ -81,9 +75,7 @@ is desirable simply to place an atom at the center of each sphere,
 which does not contribute to the hydrodynamic force, and have these
 central atoms interact with one another.
 
-
 ----------
-
 
 Apart from the features described above, this fix is very similar to
 the rigid fix (although it includes fewer optional arguments, and
@@ -136,7 +128,6 @@ of the :doc:`run <run>` command.  These fixes are not invoked during
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -157,12 +148,8 @@ Default
 
 The defaults are force \* on on on, and torque \* on on on.
 
-
 ----------
 
-
 .. _Mackay:
-
-
 
 **(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

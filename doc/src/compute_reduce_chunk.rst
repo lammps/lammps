@@ -6,7 +6,6 @@ compute reduce/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID reduce/chunk chunkID mode input1 input2 ...
@@ -26,11 +25,8 @@ Syntax
        f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
        v_name = per-atom vector calculated by an atom-style variable with name
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -91,16 +87,13 @@ had been listed one by one.  E.g. these 2 compute reduce/chunk
 commands are equivalent, since the :doc:`compute property/chunk <compute_property_chunk>` command creates a per-atom
 array with 3 columns:
 
-
 .. parsed-literal::
 
    compute prop all property/atom vx vy vz
    compute 10 all reduce/chunk mychunk max c_prop[\*]
    compute 10 all reduce/chunk mychunk max c_prop[1] c_prop[2] c_prop[3]
 
-
 ----------
-
 
 Here is an example of using this compute, in conjunction with the
 compute chunk/spread/atom command to identify self-assembled micelles.
@@ -118,7 +111,6 @@ attraction induced by the hydrophobicity.  The output of the
 chunk/reduce command will be a cluster ID per chunk (molecule).
 Molecules with the same cluster ID are in the same micelle.
 
-
 .. parsed-literal::
 
    group phobic type 4     # specific to in.micelle model
@@ -127,7 +119,6 @@ Molecules with the same cluster ID are in the same micelle.
    compute reduce phobic reduce/chunk cmol min c_cluster
 
 This per-chunk info could be output in at least two ways:
-
 
 .. parsed-literal::
 
@@ -147,7 +138,6 @@ The result from compute chunk/spread/atom can be used to define a new
 set of chunks, where all the atoms in all the molecules in the same
 micelle are assigned to the same chunk, i.e. one chunk per micelle.
 
-
 .. parsed-literal::
 
    compute micelle all chunk/atom c_spread compress yes
@@ -157,7 +147,6 @@ of the per-chunk computes listed on the :doc:`Howto chunk <Howto_chunk>`
 doc page.  E.g. count the number of atoms in each micelle, calculate
 its center or mass, shape (moments of inertia), radius of gyration,
 etc.
-
 
 .. parsed-literal::
 
@@ -169,9 +158,7 @@ with its count of atoms, plus a first line for a chunk with all the
 solvent atoms.  By the time 50000 steps have elapsed there are a
 handful of large micelles.
 
-
 ----------
-
 
 **Output info:**
 

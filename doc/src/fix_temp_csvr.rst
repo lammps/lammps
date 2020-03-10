@@ -9,7 +9,6 @@ fix temp/csld command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
@@ -27,10 +26,8 @@ Syntax
 * Tdamp = temperature damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -97,7 +94,6 @@ These fixes compute a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
-
 .. parsed-literal::
 
    compute fix-ID_temp group-ID temp
@@ -129,9 +125,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -157,7 +151,6 @@ is "extensive".
 Restrictions
 """"""""""""
 
-
 These fixes are not compatible with :doc:`fix shake <fix_shake>`.
 
 The fix can be used with dynamic groups as defined by the
@@ -177,17 +170,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Bussi1:
-
-
 
 .. _Bussi2:
 
 **(Bussi1)** Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
-
 
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)

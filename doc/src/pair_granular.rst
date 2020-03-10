@@ -6,7 +6,6 @@ pair_style granular command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style granular cutoff
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -70,9 +68,7 @@ coefficients cannot be determined, so 1-2 interactions must be
 explicitly defined via the *pair\_coeff 1 \** command, otherwise an
 error would result.
 
-
 ----------
-
 
 The first required keyword for the *pair\_coeff* command is the normal
 contact model. Currently supported options for normal contact models
@@ -95,7 +91,6 @@ damping mode, see below); E is Young's modulus in units of
 For the *hooke* model, the normal, elastic component of force acting
 on particle *i* due to contact with particle *j* is given by:
 
-
 .. math::
 
    \mathbf{F}_{ne, Hooke} = k_N \delta_{ij} \mathbf{n}
@@ -109,7 +104,6 @@ for *hooke*\ , the units of the spring constant :math:`k_n` are
 
 For the *hertz* model, the normal component of force is given by:
 
-
 .. math::
 
    \mathbf{F}_{ne, Hertz} = k_N R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
@@ -120,7 +114,6 @@ units of the spring constant :math:`k_n` are *force*\ /\ *length*\ \^2, or
 equivalently *pressure*\ .
 
 For the *hertz/material* model, the force is given by:
-
 
 .. math::
 
@@ -136,7 +129,6 @@ The *dmt* model corresponds to the
 :ref:`(Derjaguin-Muller-Toporov) <DMT1975>` cohesive model, where the force
 is simply Hertz with an additional attractive cohesion term:
 
-
 .. math::
 
    \mathbf{F}_{ne, dmt} = \left(\frac{4}{3} E R^{1/2}\delta_{ij}^{3/2} - 4\pi\gamma R\right)\mathbf{n}
@@ -144,14 +136,12 @@ is simply Hertz with an additional attractive cohesion term:
 The *jkr* model is the :ref:`(Johnson-Kendall-Roberts) <JKR1971>` model,
 where the force is computed as:
 
-
 .. math::
 
    \mathbf{F}_{ne, jkr} = \left(\frac{4Ea^3}{3R} - 2\pi a^2\sqrt{\frac{4\gamma E}{\pi a}}\right)\mathbf{n}
 
 Here, *a* is the radius of the contact zone, related to the overlap
 :math:`\delta` according to:
-
 
 .. math::
 
@@ -168,13 +158,10 @@ initially will not experience force until they come into contact
 experience a tensile force up to :math:`3\pi\gamma R`, at which point they
 lose contact.
 
-
 ----------
-
 
 In addition, the normal force is augmented by a damping term of the
 following general form:
-
 
 .. math::
 
@@ -204,7 +191,6 @@ used by default.
 For *damping velocity*\ , the normal damping is simply equal to the
 user-specified damping coefficient in the *normal* model:
 
-
 .. math::
 
    \eta_n = \eta_{n0}
@@ -213,7 +199,6 @@ Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
 contact model, in units of *mass*\ /\ *time*\ .
 
 For *damping mass\_velocity*, the normal damping is given by:
-
 
 .. math::
 
@@ -229,7 +214,6 @@ The *damping viscoelastic* model is based on the viscoelastic
 treatment of :ref:`(Brilliantov et al) <Brill1996>`, where the normal
 damping is given by:
 
-
 .. math::
 
    \eta_n = \eta_{n0}\ a m_{eff}
@@ -243,14 +227,12 @@ The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`. Here
 the normal model is interpreted as a restitution coefficient
 :math:`e`. The damping constant :math:`\eta_n` is given by:
 
-
 .. math::
 
    \eta_n = \alpha (m_{eff}k_n)^{1/2}
 
 For normal contact models based on material parameters, :math:`k_n = 4/3Ea`.  The parameter :math:`\alpha` is related to the restitution
 coefficient *e* according to:
-
 
 .. math::
 
@@ -263,14 +245,11 @@ no error check is performed on this.
 The total normal force is computed as the sum of the elastic and
 damping components:
 
-
 .. math::
 
    \mathbf{F}_n = \mathbf{F}_{ne} + \mathbf{F}_{n,damp}
 
-
 ----------
-
 
 The *pair\_coeff* command also requires specification of the tangential
 contact model. The required keyword *tangential* is expected, followed
@@ -291,13 +270,11 @@ For *tangential linear\_nohistory*, a simple velocity-dependent Coulomb
 friction criterion is used, which mimics the behavior of the *pair
 gran/hooke* style. The tangential force (\mathbf{F}\_t\) is given by:
 
-
 .. math::
 
    \mathbf{F}_t =  -min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 The tangential damping force :math:`\mathbf{F}_\mathrm{t,damp}` is given by:
-
 
 .. math::
 
@@ -305,7 +282,6 @@ The tangential damping force :math:`\mathbf{F}_\mathrm{t,damp}` is given by:
 
 The tangential damping prefactor :math:`\eta_t` is calculated by scaling
 the normal damping :math:`\eta_n` (see above):
-
 
 .. math::
 
@@ -327,7 +303,6 @@ depends on the form of the contact model. For non-cohesive models
 (\ *hertz*\ , *hertz/material*\ , *hooke*\ ), it is given by the magnitude of
 the normal force:
 
-
 .. math::
 
    F_{n0} = \|\mathbf{F}_n\|
@@ -336,7 +311,6 @@ For cohesive models such as *jkr* and *dmt*\ , the critical force is
 adjusted so that the critical tangential force approaches :math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
 :ref:`Thornton <Thornton1991>`.  For both models, :math:`F_{n0}` takes the
 form:
-
 
 .. math::
 
@@ -352,14 +326,12 @@ accumulated displacement applies to the other options as well.
 
 For *tangential linear\_history*, the tangential force is given by:
 
-
 .. math::
 
    \mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 Here, :math:`\mathbf{\xi}` is the tangential displacement accumulated
 during the entire duration of the contact:
-
 
 .. math::
 
@@ -382,7 +354,6 @@ preserve the magnitude.  This follows the discussion in
 :ref:`Luding <Luding2008>`, see equation 17 and relevant discussion in that
 work:
 
-
 .. math::
 
    \mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'}\| - \mathbf{n}\cdot\mathbf{\xi'}}
@@ -399,7 +370,6 @@ tangential displacement is re-scaled to match the value for the
 critical force (see :ref:`Luding <Luding2008>`, equation 20 and related
 discussion):
 
-
 .. math::
 
    \mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}\right)
@@ -409,11 +379,9 @@ damping) to produce the total force on the particle. The tangential
 force also acts at the contact point (defined as the center of the
 overlap region) to induce a torque on each particle according to:
 
-
 .. math::
 
    \mathbf{\tau}_i = -(R_i - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
-
 
 .. math::
 
@@ -421,7 +389,6 @@ overlap region) to induce a torque on each particle according to:
 
 For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution is used, which differs from the *linear\_history*
 option by an additional factor of *a*\ , the radius of the contact region. The tangential force is given by:
-
 
 .. math::
 
@@ -438,7 +405,6 @@ normal contact model that specifies material parameters :math:`E` and
 case, mixing of the shear modulus for different particle types *i* and
 *j* is done according to:
 
-
 .. math::
 
    1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j
@@ -446,7 +412,6 @@ case, mixing of the shear modulus for different particle types *i* and
 The *mindlin\_rescale* option uses the same form as *mindlin*\ , but the
 magnitude of the tangential displacement is re-scaled as the contact
 unloads, i.e. if :math:`a < a_{t_{n-1}}`:
-
 
 .. math::
 
@@ -460,9 +425,7 @@ created without the rescaling above (:ref:`Walton <WaltonPC>` ). See also
 discussion in :ref:`Thornton et al, 2013 <Thornton2013>` , particularly
 equation 18(b) of that work and associated discussion.
 
-
 ----------
-
 
 The optional *rolling* keyword enables rolling friction, which resists
 pure rolling motion of particles. The options currently supported are:
@@ -480,7 +443,6 @@ rolling displacement due to changes in the frame of reference of the
 contacting pair.  The rolling pseudo-force is computed analogously to
 the tangential force:
 
-
 .. math::
 
    \mathbf{F}_{roll,0} =  k_{roll} \mathbf{\xi}_{roll}  - \gamma_{roll} \mathbf{v}_{roll}
@@ -489,14 +451,12 @@ Here, :math:`\mathbf{v}_{roll} = -R(\mathbf{\Omega}_i - \mathbf{\Omega}_j) \time
 velocity, as given in :ref:`Wang et al <Wang2015>` and
 :ref:`Luding <Luding2008>`. This differs from the expressions given by :ref:`Kuhn and Bagi <Kuhn2004>` and used in :ref:`Marshall <Marshall2009>`; see :ref:`Wang et al <Wang2015>` for details. The rolling displacement is given by:
 
-
 .. math::
 
    \mathbf{\xi}_{roll} = \int_{t_0}^t \mathbf{v}_{roll} (\tau) \mathrm{d} \tau
 
 A Coulomb friction criterion truncates the rolling pseudo-force if it
 exceeds a critical value:
-
 
 .. math::
 
@@ -514,19 +474,15 @@ The rolling pseudo-force does not contribute to the total force on
 either particle (hence 'pseudo'), but acts only to induce an equal and
 opposite torque on each particle, according to:
 
-
 .. math::
 
    \tau_{roll,i} =  R_{eff} \mathbf{n} \times \mathbf{F}_{roll}
-
 
 .. math::
 
    \tau_{roll,j} =  -\tau_{roll,i}
 
-
 ----------
-
 
 The optional *twisting* keyword enables twisting friction, which
 resists rotation of two contacting particles about the vector
@@ -546,7 +502,6 @@ changes in the frame of reference due to rotations of the particle
 pair. The formulation in :ref:`Marshall <Marshall2009>` therefore provides
 the most straightforward treatment:
 
-
 .. math::
 
    \tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}
@@ -555,7 +510,6 @@ Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` is 
 :math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` is the relative twisting angular velocity. The torque
 is then truncated according to:
 
-
 .. math::
 
    \tau_{twist} = min(\mu_{twist} F_{n,0}, \tau_{twist,0})
@@ -563,7 +517,6 @@ is then truncated according to:
 Similar to the sliding and rolling displacement, the angular
 displacement is rescaled so that it corresponds to the critical value
 if the twisting torque exceeds this critical value:
-
 
 .. math::
 
@@ -577,16 +530,13 @@ For *twisting\_marshall*, the coefficients are expressed in terms of
 sliding friction coefficients, as discussed in
 :ref:`Marshall <Marshall2009>` (see equations 32 and 33 of that work):
 
-
 .. math::
 
    k_{twist} = 0.5k_ta^2
 
-
 .. math::
 
    \eta_{twist} = 0.5\eta_ta^2
-
 
 .. math::
 
@@ -594,19 +544,15 @@ sliding friction coefficients, as discussed in
 
 Finally, the twisting torque on each particle is given by:
 
-
 .. math::
 
    \mathbf{\tau}_{twist,i} = \tau_{twist}\mathbf{n}
-
 
 .. math::
 
    \mathbf{\tau}_{twist,j} = -\mathbf{\tau}_{twist,i}
 
-
 ----------
-
 
 The *granular* pair style can reproduce the behavior of the
 *pair gran/\** styles with the appropriate settings (some very
@@ -620,9 +566,7 @@ The second example is equivalent to
 The third example is equivalent to
 *pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
 
-
 ----------
-
 
 LAMMPS automatically sets pairwise cutoff values for *pair\_style
 granular* based on particle radii (and in the case of *jkr* pull-off
@@ -644,9 +588,7 @@ then LAMMPS will use that cutoff for the specified atom type
 combination, and automatically set pairwise cutoffs for the remaining
 atom types.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -666,9 +608,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -685,7 +625,6 @@ for type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
 applicable to *hertz/material*\ , *dmt* and *jkr* normal contact
 models. In that case, the effective elastic modulus is computed as:
 
-
 .. math::
 
    E_{eff,ij} = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}
@@ -693,13 +632,11 @@ models. In that case, the effective elastic modulus is computed as:
 If the *i-j* coefficients :math:`E_{ij}` and :math:`\nu_{ij}` are
 explicitly specified, the effective modulus is computed as:
 
-
 .. math::
 
    E_{eff,ij} = \left(\frac{1-\nu_{ij}^2}{E_{ij}} + \frac{1-\nu_{ij}^2}{E_{ij}}\right)^{-1}
 
 or
-
 
 .. math::
 
@@ -729,13 +666,10 @@ the centers of the two particles (x\_I - x\_J).
 These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*\ , *p2*\ , ...,
 *p12*\ .
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the granular pair styles are part of the GRANULAR package.  It is
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -770,15 +704,11 @@ For the *pair\_coeff* settings: *damping viscoelastic*\ , *rolling none*\ ,
 
 .. _Brill1996:
 
-
-
 **(Brilliantov et al, 1996)** Brilliantov, N. V., Spahn, F., Hertzsch,
 J. M., & Poschel, T. (1996).  Model for collisions in granular
 gases. Physical review E, 53(5), 5382.
 
 .. _Tsuji1992:
-
-
 
 **(Tsuji et al, 1992)** Tsuji, Y., Tanaka, T., & Ishida,
 T. (1992). Lagrangian numerical simulation of plug flow of
@@ -787,15 +717,11 @@ cohesionless particles in a horizontal pipe. Powder technology, 71(3),
 
 .. _JKR1971:
 
-
-
 **(Johnson et al, 1971)** Johnson, K. L., Kendall, K., & Roberts,
 A. D. (1971).  Surface energy and the contact of elastic
 solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
 
 .. _DMT1975:
-
-
 
 **Derjaguin et al, 1975)** Derjaguin, B. V., Muller, V. M., & Toporov,
 Y. P. (1975). Effect of contact deformations on the adhesion of
@@ -803,22 +729,16 @@ particles. Journal of Colloid and interface science, 53(2), 314-326.
 
 .. _Luding2008:
 
-
-
 **(Luding, 2008)** Luding, S. (2008). Cohesive, frictional powders:
 contact models for tension. Granular matter, 10(4), 235.
 
 .. _Marshall2009:
-
-
 
 **(Marshall, 2009)** Marshall, J. S. (2009). Discrete-element modeling
 of particulate aerosol flows.  Journal of Computational Physics,
 228(5), 1541-1561.
 
 .. _Silbert2001:
-
-
 
 **(Silbert, 2001)** Silbert, L. E., Ertas, D., Grest, G. S., Halsey,
 T. C., Levine, D., & Plimpton, S. J. (2001).  Granular flow down an
@@ -827,15 +747,11 @@ inclined plane: Bagnold scaling and rheology. Physical Review E,
 
 .. _Kuhn2004:
 
-
-
 **(Kuhn and Bagi, 2005)** Kuhn, M. R., & Bagi, K. (2004). Contact
 rolling and deformation in granular media.  International journal of
 solids and structures, 41(21), 5793-5820.
 
 .. _Wang2015:
-
-
 
 **(Wang et al, 2015)** Wang, Y., Alonso-Marroquin, F., & Guo,
 W. W. (2015).  Rolling and sliding in 3-D discrete element
@@ -843,21 +759,15 @@ models. Particuology, 23, 49-55.
 
 .. _Thornton1991:
 
-
-
 **(Thornton, 1991)** Thornton, C. (1991). Interparticle sliding in the
 presence of adhesion.  J. Phys. D: Appl. Phys. 24 1942
 
 .. _Mindlin1949:
 
-
-
 **(Mindlin, 1949)** Mindlin, R. D. (1949). Compliance of elastic bodies
 in contact.  J. Appl. Mech., ASME 16, 259-268.
 
 .. _Thornton2013:
-
-
 
 **(Thornton et al, 2013)** Thornton, C., Cummins, S. J., & Cleary,
 P. W. (2013).  An investigation of the comparative behaviour of
@@ -865,7 +775,5 @@ alternative contact force models during inelastic collisions. Powder
 Technology, 233, 30-46.
 
 .. _WaltonPC:
-
-
 
 **(Otis R. Walton)** Walton, O.R., Personal Communication

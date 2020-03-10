@@ -6,7 +6,6 @@ fix saed/vtk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID saed/vtk Nevery Nrepeat Nfreak c_ID attribute args ... keyword args ...
@@ -31,11 +30,8 @@ Syntax
          filename = name of file to output time averages to
        *overwrite* arg = none = overwrite output file with only latest output
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -69,15 +65,12 @@ which store their own "group" definitions.
 Fix saed/vtk is designed to work only with :doc:`compute saed <compute_saed>`
 values, e.g.
 
-
 .. parsed-literal::
 
    compute 3 top saed 0.0251 Al O
    fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -97,9 +90,7 @@ timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
 averaging is done; values are simply generated on timesteps
 100,200,etc.
 
-
 ----------
-
 
 The output for fix ave/time/saed is a file written with the 3rd generation
 vtk image data formatting.  The filename assigned by the *file* keyword is
@@ -107,7 +98,6 @@ appended with \_N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.
 
 By default the header contains the following information (with example data):
-
 
 .. parsed-literal::
 
@@ -130,9 +120,7 @@ The data is shifted by -0.85, -0.85, -0.85 inv(length) units so that
 the origin will lie at 0, 0, 0.   Here, 15,424,827 kspace points are
 sampled in total.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix.
 
@@ -188,7 +176,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 The attributes for fix\_saed\_vtk must match the values assigned in the
 associated :doc:`compute_saed <compute_saed>` command.
 
@@ -202,13 +189,9 @@ Default
 
 The option defaults are ave = one, start = 0, no file output.
 
-
 ----------
 
-
 .. _Coleman:
-
-
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).

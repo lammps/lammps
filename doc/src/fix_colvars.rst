@@ -6,7 +6,6 @@ fix colvars command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID colvars configfile keyword values ...
@@ -25,11 +24,8 @@ Syntax
          use unwrapped coordinates in collective variables (default: yes)
        *tstat* arg = fix id of a thermostat or NULL (default: NULL)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,9 +52,7 @@ A detailed discussion of its implementation is in :ref:`(Fiorin) <Fiorin>`.
 There are some example scripts for using this package with LAMMPS in the
 examples/USER/colvars directory.
 
-
 ----------
-
 
 The only mandatory argument to the fix is the filename to the colvars
 input file that contains the input that is independent from the MD
@@ -125,7 +119,6 @@ fix is "extensive".
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -146,12 +139,8 @@ Default
 The default options are input = NULL, output = out, seed = 1966, unwrap yes,
 and tstat = NULL.
 
-
 ----------
 
-
 .. _Fiorin:
-
-
 
 **(Fiorin)** Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594

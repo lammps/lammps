@@ -6,7 +6,6 @@ compute temp/cs command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/cs group1 group2
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -102,7 +100,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 The number of core/shell pairs contributing to the temperature is
 assumed to be constant for the duration of the run.  No fixes should
 be used which generate new molecules or atoms during a simulation.
@@ -114,13 +111,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _MitchellFinchham1:
-
-
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

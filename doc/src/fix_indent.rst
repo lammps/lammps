@@ -6,7 +6,6 @@ fix indent command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID indent K keyword values ...
@@ -40,11 +39,8 @@ Syntax
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,7 +61,6 @@ The indenter can either be spherical or cylindrical or planar.  You
 must set one of those 3 keywords.
 
 A spherical indenter exerts a force of magnitude
-
 
 .. parsed-literal::
 
@@ -122,14 +117,12 @@ then this variable definition will keep it's center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
 the right edge, even if the box size changes:
 
-
 .. parsed-literal::
 
    variable x equal "xlo + 0.25\*lx"
 
 Similarly, either of these variable definitions will move the indenter
 from an initial position at 2.5 at a constant velocity of 5:
-
 
 .. parsed-literal::
 
@@ -139,7 +132,6 @@ from an initial position at 2.5 at a constant velocity of 5:
 If a spherical indenter's radius is specified as v\_r, then these
 variable definitions will grow the size of the indenter at a specified
 rate.
-
 
 .. parsed-literal::
 
@@ -178,7 +170,6 @@ by the :doc:`units <units>` command.  If you wish K to be scaled by the
 lattice spacing, you can define K with a variable whose formula
 contains *xlat*\ , *ylat*\ , *zlat* keywords of the
 :doc:`thermo_style <thermo_style>` command, e.g.
-
 
 .. parsed-literal::
 

@@ -18,7 +18,6 @@ pair_style oxdna/coaxstk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style1
@@ -29,7 +28,6 @@ Syntax
 
 * style2 = *oxdna/excv* or *oxdna/stk* or *oxdna/hbond* or *oxdna/xstk* or *oxdna/coaxstk*
 * args = list of arguments for these particular styles
-
 
 .. parsed-literal::
 
@@ -44,7 +42,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -106,10 +103,8 @@ and :ref:`(Sulc) <Sulc1>`.
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These pair styles can only be used if LAMMPS was built with the
 USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
@@ -124,7 +119,6 @@ Related commands
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 **Default:** none
-
 
 ----------
 

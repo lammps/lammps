@@ -86,7 +86,6 @@ LAMMPS:
 
    This can be useful for formatting print output to a desired precision:
 
-
    .. code-block:: LAMMPS
 
       print "Final energy per atom: $(pe/atoms:%10.3f) eV/atom"

@@ -6,7 +6,6 @@ compute temp/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ...
@@ -38,11 +37,8 @@ Syntax
        *cdof* value = dof_per_chunk
          dof_per_chunk = define this many degrees-of-freedom per chunk
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -116,9 +112,7 @@ chunk.  The interal KE is summed over the atoms in the chunk using an
 internal "thermal" velocity for each atom, which is its velocity minus
 the center-of-mass velocity of the chunk.
 
-
 ----------
-
 
 Note that currently the global and per-chunk temperatures calculated
 by this compute only include translational degrees of freedom for each
@@ -155,16 +149,13 @@ calculating the temperature; fix ave/chunk does not.
 The simplest way to output the per-chunk results of the compute
 temp/chunk calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for example:
 
-
 .. parsed-literal::
 
    compute cc1 all chunk/atom molecule
    compute myChunk all temp/chunk cc1 temp
    fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -208,9 +199,7 @@ set to the remaining degrees of freedom for the entire molecule
 (entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
 molecule.
 
-
 ----------
-
 
 **Output info:**
 
@@ -239,7 +228,6 @@ energy :doc:`units <units>` for the *kecom* and *internal* values.
 
 Restrictions
 """"""""""""
-
 
 The *com* and *bias* keywords cannot be used together.
 

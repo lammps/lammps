@@ -6,7 +6,6 @@ read_data command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    read_data file keyword args ...
@@ -48,11 +47,8 @@ Syntax
          header-string = header lines containing this string will be passed to fix
          section-string = section names with this string will be passed to fix
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -95,9 +91,7 @@ styles defined, or to read a data file for a different force field.
 
 The use of the *fix* keyword is discussed below.
 
-
 ----------
-
 
 **Reading multiple data files**
 
@@ -219,9 +213,7 @@ times to populate the system with atoms, bonds, angles, etc, using the
 *offset* keyword if desired to alter types used in the various data
 files you read.
 
-
 ----------
-
 
 **Format of a data file**
 
@@ -266,9 +258,7 @@ be capitalized as shown and can't have extra white-space between their
 words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
 the 2 words in "Bond Coeffs", is not valid.
 
-
 ----------
-
 
 **Format of the header of a data file**
 
@@ -440,9 +430,7 @@ are point particles.  See the discussion of ellipsoidflag and the
    keywords, though it is not necessary.  If specified, they must match
    the maximum values defined in any of the template molecules.
 
-
 ----------
-
 
 **Format of the body of a data file**
 
@@ -459,7 +447,6 @@ currently defined style:
 * *Atoms, Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, Improper Coeffs*
 
 For example, these lines:
-
 
 .. parsed-literal::
 
@@ -480,14 +467,11 @@ Any individual line in the various sections can have a trailing
 comment starting with "#" for annotation purposes.  E.g. in the
 Atoms section:
 
-
 .. parsed-literal::
 
    10 1 17 -1.0 10.0 5.0 6.0   # salt ion
 
-
 ----------
-
 
 *Angle Coeffs* section:
 
@@ -505,17 +489,13 @@ Atoms section:
 
        6 70 108.5 0 0
 
-
-
 The number and meaning of the coefficients are specific to the defined
 angle style.  See the :doc:`angle_style <angle_style>` and
 :doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
 
-
 ----------
-
 
 *AngleAngle Coeffs* section:
 
@@ -527,11 +507,7 @@ input script.
        ID = improper type (1-N)
        coeffs = list of coeffs (see :doc:`improper_coeff <improper_coeff>`)
 
-
-
-
 ----------
-
 
 *AngleAngleTorsion Coeffs* section:
 
@@ -543,11 +519,7 @@ input script.
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Angles* section:
 
@@ -566,17 +538,13 @@ example:
 
        2 2 17 29 430
 
-
-
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
 after the *Atoms* section.  All values in this section must be
 integers (1, not 1.0).
 
-
 ----------
-
 
 *AngleTorsion Coeffs* section:
 
@@ -588,11 +556,7 @@ integers (1, not 1.0).
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Atoms* section:
 
@@ -763,13 +727,11 @@ example, for the "charge" sub-style, a "q" value would appear.  For
 the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
 listed in the same order they appear as listed above.  Thus if
 
-
 .. parsed-literal::
 
    atom_style hybrid charge sphere
 
 were used in the input script, each atom line would have these fields:
-
 
 .. parsed-literal::
 
@@ -778,7 +740,6 @@ were used in the input script, each atom line would have these fields:
 Note that if a non-standard value is defined by multiple sub-styles,
 it must appear multiple times in the atom line.  E.g. the atom line
 for atom\_style hybrid dipole full would list "q" twice:
-
 
 .. parsed-literal::
 
@@ -827,7 +788,6 @@ that use unwrapped coordinates internally are as follows:
   continued run (restarted from a data file) begins with image flags
   that are consistent with the previous run.
 
-
 .. note::
 
    If your system is an infinite periodic crystal with bonds then
@@ -841,9 +801,7 @@ a *Velocities* section in the data file or by a
 :doc:`velocity <velocity>` or :doc:`set <set>` command in the input
 script.
 
-
 ----------
-
 
 *Bodies* section:
 
@@ -873,8 +831,6 @@ script.
        1.0 2.0 3.0 1.0 2.0 4.0 1.0
        2.0 3.0 1.0 2.0 4.0 4.0 2.0
 
-
-
 The *Bodies* section must appear if :doc:`atom_style body <atom_style>`
 is used and any atoms listed in the *Atoms* section have a bodyflag =
 1.  The number of bodies should be specified in the header section via
@@ -896,9 +852,7 @@ particular type, no lines appear for that type.
 
 The *Bodies* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Bond Coeffs* section:
 
@@ -916,17 +870,13 @@ The *Bodies* section must appear after the *Atoms* section.
 
        4 250 1.49
 
-
-
 The number and meaning of the coefficients are specific to the defined
 bond style.  See the :doc:`bond_style <bond_style>` and
 :doc:`bond_coeff <bond_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`bond_coeff <bond_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *BondAngle Coeffs* section:
 
@@ -938,11 +888,7 @@ script.
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
-
-
-
 ----------
-
 
 *BondBond Coeffs* section:
 
@@ -954,11 +900,7 @@ script.
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
-
-
-
 ----------
-
 
 *BondBond13 Coeffs* section:
 
@@ -970,11 +912,7 @@ script.
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Bonds* section:
 
@@ -993,14 +931,10 @@ script.
 
        12 3 17 29
 
-
-
 The *Bonds* section must appear after the *Atoms* section.  All values
 in this section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Dihedral Coeffs* section:
 
@@ -1018,17 +952,13 @@ in this section must be integers (1, not 1.0).
 
        3 0.6 1 0 1
 
-
-
 The number and meaning of the coefficients are specific to the defined
 dihedral style.  See the :doc:`dihedral_style <dihedral_style>` and
 :doc:`dihedral_coeff <dihedral_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
 
-
 ----------
-
 
 *Dihedrals* section:
 
@@ -1047,15 +977,11 @@ Coefficients can also be set via the
 
        12 4 17 29 30 21
 
-
-
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
 section must appear after the *Atoms* section.  All values in this
 section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Ellipsoids* section:
 
@@ -1073,8 +999,6 @@ section must be integers (1, not 1.0).
   .. parsed-literal::
 
        12 1 2 1 1 0 0 0
-
-
 
 The *Ellipsoids* section must appear if :doc:`atom_style ellipsoid <atom_style>` is used and any atoms are listed in the
 *Atoms* section with an ellipsoidflag = 1.  The number of ellipsoids
@@ -1099,9 +1023,7 @@ specified as a unit vector.
 
 The *Ellipsoids* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *EndBondTorsion Coeffs* section:
 
@@ -1113,11 +1035,7 @@ The *Ellipsoids* section must appear after the *Atoms* section.
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Improper Coeffs* section:
 
@@ -1135,17 +1053,13 @@ The *Ellipsoids* section must appear after the *Atoms* section.
 
        2 20 0.0548311
 
-
-
 The number and meaning of the coefficients are specific to the defined
 improper style.  See the :doc:`improper_style <improper_style>` and
 :doc:`improper_coeff <improper_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`improper_coeff <improper_coeff>` command in the input script.
 
-
 ----------
-
 
 *Impropers* section:
 
@@ -1164,8 +1078,6 @@ Coefficients can also be set via the
 
        12 3 17 29 13 100
 
-
-
 The ordering of the 4 atoms determines the definition of the improper
 angle used in the formula for each :doc:`improper style <improper_style>`.  See the doc pages for individual styles
 for details.
@@ -1173,9 +1085,7 @@ for details.
 The *Impropers* section must appear after the *Atoms* section.  All
 values in this section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Lines* section:
 
@@ -1194,8 +1104,6 @@ values in this section must be integers (1, not 1.0).
 
        12 1.0 0.0 2.0 0.0
 
-
-
 The *Lines* section must appear if :doc:`atom_style line <atom_style>`
 is used and any atoms are listed in the *Atoms* section with a
 lineflag = 1.  The number of lines should be specified in the header
@@ -1210,9 +1118,7 @@ for defining some interactions.
 
 The *Lines* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Masses* section:
 
@@ -1230,16 +1136,12 @@ The *Lines* section must appear after the *Atoms* section.
 
        3 1.01
 
-
-
 This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
 e.g. :doc:`atom_style sphere <atom_style>`.
 
-
 ----------
-
 
 *MiddleBondTorsion Coeffs* section:
 
@@ -1251,11 +1153,7 @@ e.g. :doc:`atom_style sphere <atom_style>`.
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Pair Coeffs* section:
 
@@ -1273,8 +1171,6 @@ e.g. :doc:`atom_style sphere <atom_style>`.
 
        3 0.022 2.35197 0.022 2.35197
 
-
-
 The number and meaning of the coefficients are specific to the defined
 pair style.  See the :doc:`pair_style <pair_style>` and
 :doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
@@ -1284,9 +1180,7 @@ individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` co
 be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *PairIJ Coeffs* section:
 
@@ -1306,8 +1200,6 @@ script.
        3 3 0.022 2.35197 0.022 2.35197
        3 5 0.022 2.35197 0.022 2.35197
 
-
-
 This section must have N\*(N+1)/2 lines where N = # of atom types.  The
 number and meaning of the coefficients are specific to the defined
 pair style.  See the :doc:`pair_style <pair_style>` and
@@ -1318,9 +1210,7 @@ individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` co
 be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *Triangles* section:
 
@@ -1340,8 +1230,6 @@ script.
 
        12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0
 
-
-
 The *Triangles* section must appear if :doc:`atom_style tri <atom_style>` is used and any atoms are listed in the *Atoms*
 section with a triangleflag = 1.  The number of lines should be
 specified in the header section via the "triangles" keyword.
@@ -1354,9 +1242,7 @@ orientation may be important for defining some interactions.
 
 The *Triangles* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Velocities* section:
 
@@ -1400,14 +1286,12 @@ example, for the "sphere" sub-style, "wx", "wy", "wz" values would
 appear.  These are listed in the same order they appear as listed
 above.  Thus if
 
-
 .. code-block:: LAMMPS
 
    atom_style hybrid electron sphere
 
 were used in the input script, each velocity line would have these
 fields:
-
 
 .. parsed-literal::
 
@@ -1416,13 +1300,10 @@ fields:
 Translational velocities can also be set by the
 :doc:`velocity <velocity>` command in the input script.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To read gzipped data files, you must compile LAMMPS with the
 -DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`

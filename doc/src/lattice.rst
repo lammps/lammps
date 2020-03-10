@@ -6,7 +6,6 @@ lattice command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    lattice style scale keyword values ...
@@ -36,11 +35,8 @@ Syntax
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -94,9 +90,7 @@ can be repeated multiple times to build a poly-crystalline model with
 different geometric regions populated with atoms in different lattice
 orientations.
 
-
 ----------
-
 
 A lattice of style *none* does not define a unit cell and basis set,
 so it cannot be used with the :doc:`create_atoms <create_atoms>`
@@ -140,9 +134,7 @@ x of a basis atom within the unit cell is thus a linear combination of
 the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
 where bx,by,bz are the 3 values specified for the *basis* keyword.
 
-
 ----------
-
 
 This sub-section discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
@@ -199,9 +191,7 @@ the Z direction.
    applied to a1,a2,a3 to rotate the original unit cell to a new
    orientation in the simulation box.
 
-
 ----------
-
 
 Several LAMMPS commands have the option to use distance units that are
 inferred from "lattice spacings" in the x,y,z box directions.
@@ -259,13 +249,10 @@ Note that whenever the lattice command is used, the values of the
 lattice spacings LAMMPS calculates are printed out.  Thus their effect
 in commands that use the spacings should be decipherable.
 
-
 ----------
-
 
 Example commands for generating a Wurtzite crystal (courtesy
 of Aidan Thompson), with its 8 atom unit cell.
-
 
 .. parsed-literal::
 
@@ -301,13 +288,10 @@ of Aidan Thompson), with its 8 atom unit cell.
            basis   7       2       &
            basis   8       2
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *a1,a2,a3,basis* keywords can only be used with style *custom*\ .
 
@@ -319,7 +303,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

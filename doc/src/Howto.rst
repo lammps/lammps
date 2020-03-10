@@ -12,7 +12,6 @@ also show how to setup and run various kinds of simulations.
 Tutorials howto
 ===============
 
-
 .. toctree::
    :name: tutorials
    :maxdepth: 1
@@ -23,7 +22,6 @@ Tutorials howto
 
 General howto
 =============
-
 
 .. toctree::
    :name: general_howto
@@ -40,7 +38,6 @@ General howto
 Settings howto
 ==============
 
-
 .. toctree::
    :name: settings_howto
    :maxdepth: 1
@@ -55,7 +52,6 @@ Settings howto
 
 Analysis howto
 ==============
-
 
 .. toctree::
    :name: analysis_howto
@@ -72,7 +68,6 @@ Analysis howto
 Force fields howto
 ==================
 
-
 .. toctree::
    :name: force_howto
    :maxdepth: 1
@@ -84,7 +79,6 @@ Force fields howto
 
 Packages howto
 ==============
-
 
 .. toctree::
    :name: packages_howto

@@ -6,11 +6,9 @@ pair_style body/rounded/polygon command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style body/rounded/polygon c_n c_t mu delta_ua cutoff
-
 
 .. parsed-literal::
 
@@ -22,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -148,8 +145,6 @@ Related commands
 **Default:** none
 
 .. _pair-Fraige:
-
-
 
 **(Fraige)** F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).

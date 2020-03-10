@@ -6,7 +6,6 @@ fix imd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID imd trate port keyword values ...
@@ -28,11 +27,8 @@ Syntax
          off = LAMMPS waits to be connected to an IMD client before continuing (default)
          on = LAMMPS listens for an IMD client, but continues with the run
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -108,7 +104,6 @@ with fix imd enabled, one needs to start VMD and load a coordinate or
 topology file that matches the fix group.  When the VMD command
 prompts appears, one types the command line:
 
-
 .. parsed-literal::
 
    imd connect localhost 5678
@@ -138,15 +133,9 @@ screen output is active.
 
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd
 
-
-
 .. _imdvmd: http://www.ks.uiuc.edu/Research/vmd/imd/
 
-
-
 .. _vrpnicms: http://sites.google.com/site/akohlmey/software/vrpn-icms
-
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -158,7 +147,6 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

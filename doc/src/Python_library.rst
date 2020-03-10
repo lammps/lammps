@@ -8,7 +8,6 @@ methods that can be invoked on that object.  The sample Python code
 below assumes you have first imported the "lammps" module in your
 Python script, as follows:
 
-
 .. code-block:: Python
 
    from lammps import lammps
@@ -21,7 +20,6 @@ from a C++ or C or Fortran program, and which are described on the
 
 The python/examples directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
-
 
 .. code-block:: Python
 
@@ -93,12 +91,9 @@ can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 
    lmp.create_atoms(n,ids,types,x,v,image,shrinkexceed)   # create N atoms with IDs, types, x, v, and image flags
 
-
 ----------
 
-
 The lines
-
 
 .. code-block:: Python
 
@@ -116,7 +111,6 @@ prompt.
 
 If the ptr argument is set like this:
 
-
 .. code-block:: Python
 
    lmp = lammps(ptr=lmpptr)
@@ -132,7 +126,6 @@ instance "lmp" to make calls to that instance of LAMMPS.  See the
 
 Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.
-
 
 .. code-block:: Python
 
@@ -229,7 +222,6 @@ For the scatter methods, the array of coordinates passed to must be a
 ctypes vector of ints or doubles, allocated and initialized something
 like this:
 
-
 .. code-block:: Python
 
    from ctypes import \*
@@ -247,9 +239,7 @@ like this:
 Alternatively, you can just change values in the vector returned by
 the gather methods, since they are also ctypes vectors.
 
-
 ----------
-
 
 As noted above, these Python class methods correspond one-to-one with
 the functions in the LAMMPS library interface in src/library.cpp and
@@ -263,7 +253,6 @@ following steps:
   function.
 * You should now be able to invoke the new interface function from a
   Python script.
-
 
 ----------
 

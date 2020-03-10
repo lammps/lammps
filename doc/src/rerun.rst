@@ -6,7 +6,6 @@ rerun command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    rerun file1 file2 ... keyword args ...
@@ -31,11 +30,8 @@ Syntax
         Nstop = timestep to which pseudo run will end
       *dump* args = same as :doc:`read_dump <read_dump>` command starting with its field arguments
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -69,7 +65,6 @@ initial simulation produced the dump file:
   Doing this in the original script would result in different (bad)
   dynamics.
 
-
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the :doc:`next <next>` and :doc:`jump <jump>`
 commands).  Each iteration of the loop reads one snapshot from the
@@ -101,9 +96,7 @@ same as for output from any LAMMPS simulation.  See further info below
 as to what that means if the timesteps for snapshots read from dump
 files do not match the specified output frequency.
 
-
 ----------
-
 
 If more than one dump file is specified, the dump files are read one
 after the other.  It is assumed that snapshot timesteps will be in
@@ -162,9 +155,7 @@ options it allows for extracting information from the dump file
 snapshots, and for using that information to alter the LAMMPS
 simulation.
 
-
 ----------
-
 
 In general, a LAMMPS input script that uses a rerun command can
 include and perform all the usual operations of an input script that
@@ -209,13 +200,10 @@ but no output will be produced.  If you want output for every dump
 snapshot, you can simply use N=1 for an output frequency, e.g. for
 thermodynamic output or new dump file output.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`

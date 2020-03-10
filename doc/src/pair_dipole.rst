@@ -30,7 +30,6 @@ pair_style lj/long/dipole/long command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/cut/dipole/cut cutoff (cutoff2)
@@ -55,11 +54,8 @@ Syntax
        *long* = use long-range damping on Coulombic 1/r and point-dipole terms
        *off* = omit Coulombic and point-dipole terms entirely
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -116,7 +112,6 @@ interactions are computed by these formulas for the energy (E), force
    T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) +
                       \frac{3}{r^5} (\vec{p_i} \bullet \vec{r})
                       (\vec{p_j} \times \vec{r})
-
 
 where :math:`q_i` and :math:`q_j` are the charges on the two particles,
 :math:`\vec{p_i}` and :math:`\vec{p_j}` are the dipole moment vectors of
@@ -210,7 +205,6 @@ potentials are computed by these formulas for the energy (E), force
   3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \bullet \vec{r})
   (\vec{p_j} \times \vec{r})
 
-
 where :math:`\epsilon` and :math:`\sigma` are the standard LJ
 parameters, :math:`r_c` is the cutoff, :math:`q_i` and :math:`q_j` are
 the charges on the two particles, :math:`\vec{p_i}` and
@@ -292,9 +286,7 @@ and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -314,9 +306,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -351,7 +341,6 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 The *lj/cut/dipole/cut*\ , *lj/cut/dipole/long*\ , and
 *lj/long/dipole/long* styles are part of the DIPOLE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -370,32 +359,22 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Allen2:
-
-
 
 **(Allen)** Allen and Tildesley, Computer Simulation of Liquids,
 Clarendon Press, Oxford, 1987.
 
 .. _Toukmaji2:
 
-
-
 **(Toukmaji)** Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
 
 .. _Stoddard:
 
-
-
 **(Stoddard)** Stoddard and Ford, Phys Rev A, 8, 1504 (1973).
 
 .. _Price2:
-
-
 
 **(Price)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).

@@ -6,7 +6,6 @@ info command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    info args
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ fix adapt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID adapt N attribute args ... keyword value ...
@@ -47,11 +46,8 @@ Syntax
          *no* = values will remain altered at the end of a run
          *yes* = reset altered values to their original values at the end of a run
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -102,9 +98,7 @@ themselves are actually altered by this fix.  Make sure you use the
 *reset yes* option if you want the parameters to be restored to their
 initial values after the run.
 
-
 ----------
-
 
 The *pair* keyword enables various parameters of potentials defined by
 the :doc:`pair_style <pair_style>` command to be changed, if the pair
@@ -270,15 +264,12 @@ For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
-
 .. parsed-literal::
 
    variable prefactor equal ramp(10,30)
    fix 1 all adapt 1 pair soft a \* \* v_prefactor
 
-
 ----------
-
 
 The *bond* keyword uses the specified variable to change the value of
 a bond coefficient over time, very similar to how the *pair* keyword
@@ -303,9 +294,7 @@ working with fix\_adapt are
 | :doc:`harmonic <bond_harmonic>` | k,r0  | type bonds |
 +---------------------------------+-------+------------+
 
-
 ----------
-
 
 The *kspace* keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
@@ -315,9 +304,7 @@ variable has a value of 1.0, then the solver is unaltered.
 The *kspace* keyword works this way whether the *scale* keyword
 is set to *no* or *yes*\ .
 
-
 ----------
-
 
 The *atom* keyword enables various atom properties to be changed.  The
 *aparam* argument is the name of the parameter to change.  This is the
@@ -349,15 +336,12 @@ For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 
-
 .. parsed-literal::
 
    variable size equal ramp(1.0,0.1)
    fix 1 center adapt 10 atom diameter v_size
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

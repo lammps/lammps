@@ -134,7 +134,6 @@ together to exchange MPI messages between them.
 
 For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 
-
 .. code-block:: bash
 
    % mpirun -np 1 lmp_mpi -log log.client < in.client &
@@ -149,7 +148,6 @@ For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 For message exchange in *mpi/one* mode:
 
 Launch both codes in a single mpirun command:
-
 
 .. code-block:: bash
 

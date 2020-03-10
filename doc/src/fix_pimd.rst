@@ -6,7 +6,6 @@ fix pimd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID pimd keyword value ...
@@ -24,11 +23,8 @@ Syntax
        *temp* value = temperature (temperarate units)
        *nhc* value = Nc = number of chains in Nose-Hoover thermostat
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -132,14 +128,12 @@ To run a PIMD simulation with M quasi-beads in each ring polymer using
 N MPI tasks for each partition's domain-decomposition, you would use P
 = MxN processors (cores) and run the simulation as follows:
 
-
 .. parsed-literal::
 
    mpirun -np P lmp_mpi -partition MxN -in script
 
 Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a :doc:`uloop-style variable <variable>` such as
-
 
 .. parsed-literal::
 
@@ -149,7 +143,6 @@ where M is the number of quasi-beads (partitions) used in the
 calculation.  The uloop variable can then be used to manage I/O
 related tasks for each of the partitions, e.g.
 
-
 .. parsed-literal::
 
    dump dcd all dcd 10 system_${ibead}.dcd
@@ -158,7 +151,6 @@ related tasks for each of the partitions, e.g.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -171,7 +163,6 @@ To avoid this, users can simply initialize velocities with different
 random number seeds assigned to each partition, as defined by the
 uloop variable, e.g.
 
-
 .. parsed-literal::
 
    velocity all create 300.0 1234${ibead} rot yes dist gaussian
@@ -182,45 +173,31 @@ Default
 The keyword defaults are method = pimd, fmass = 1.0, sp = 1.0, temp = 300.0,
 and nhc = 2.
 
-
 ----------
 
-
 .. _Feynman:
-
-
 
 **(Feynman)** R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
 Path Integrals, McGraw-Hill, New York (1965).
 
 .. _pimd-Tuckerman:
 
-
-
 **(Tuckerman)** M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 .. _Cao1:
-
-
 
 **(Cao1)** J. Cao and B. Berne, J Chem Phys, 99, 2902 (1993).
 
 .. _Cao2:
 
-
-
 **(Cao2)** J. Cao and G. Voth, J Chem Phys, 100, 5093 (1994).
 
 .. _Hone:
-
-
 
 **(Hone)** T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
 154103 (2006).
 
 .. _Calhoun:
-
-
 
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).

@@ -22,9 +22,7 @@ and will reduce the time until the integration is complete. For more
 information on the requirements to have your code included into LAMMPS
 please see the :doc:`Modify contribute <Modify_contribute>` doc page.
 
-
 ----------
-
 
 **Making an account**
 
@@ -34,9 +32,7 @@ the "Sign up for GitHub" button. Once your account is created, you
 can sign in by clicking the button in the top left and filling in your
 username or e-mail address and password.
 
-
 ----------
-
 
 **Forking the repository**
 
@@ -63,9 +59,7 @@ At the same time, you can set things up, so you can include changes from
 upstream into your repository and thus keep it in sync with the ongoing
 LAMMPS development.
 
-
 ----------
-
 
 **Adding changes to your own fork**
 
@@ -81,13 +75,11 @@ explained in more detail here: `feature branch workflow <https://www.atlassian.c
 First of all, create a clone of your version on github on your local
 machine via HTTPS:
 
-
 .. code-block:: bash
 
      $ git clone https://github.com/<your user name>/lammps.git <some name>
 
 or, if you have set up your GitHub account for using SSH keys, via SSH:
-
 
 .. code-block:: bash
 
@@ -108,7 +100,6 @@ test them without interfering with the repository on GitHub.
 To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
 
-
 .. code-block:: bash
 
      $ cd mylammps
@@ -116,7 +107,6 @@ and use git pull:
      $ git pull https://github.com/lammps/lammps
 
 You can also add this URL as a remote:
-
 
 .. code-block:: bash
 
@@ -126,7 +116,6 @@ At this point, you typically make a feature branch from the updated master
 branch for the feature you want to work on. This tutorial contains the
 workflow that updated this tutorial, and hence we will call the branch
 "github-tutorial-update":
-
 
 .. code-block:: bash
 
@@ -139,7 +128,6 @@ unrelated feature, you should switch branches!
 **After changes are made**
 
 After everything is done, add the files to the branch and commit them:
-
 
 .. code-block:: bash
 
@@ -165,13 +153,11 @@ After everything is done, add the files to the branch and commit them:
 After adding all files, the change set can be committed with some
 useful message that explains the change.
 
-
 .. code-block:: bash
 
      $ git commit -m 'Finally updated the github tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
-
 
 .. code-block:: bash
 
@@ -180,7 +166,6 @@ After the commit, the changes can be pushed to the same branch on GitHub:
 Git will ask you for your user name and password on GitHub if you have
 not configured anything. If your local branch is not present on GitHub yet,
 it will ask you to add it by running
-
 
 .. code-block:: bash
 
@@ -192,21 +177,17 @@ password, the feature branch should be added to your fork on GitHub.
 If you want to make really sure you push to the right repository
 (which is good practice), you can provide it explicitly:
 
-
 .. code-block:: bash
 
    $ git push origin
 
 or using an explicit URL:
 
-
 .. code-block:: bash
 
    $ git push git@github.com:Pakketeretet2/lammps.git
 
-
 ----------
-
 
 **Filing a pull request**
 
@@ -255,9 +236,7 @@ Now just write some nice comments and click on "Create pull request".
 .. image:: JPG/tutorial_create_new_pull_request2.png
    :align: center
 
-
 ----------
-
 
 **After filing a pull request**
 
@@ -408,7 +387,6 @@ Because the changes are OK with us, we are going to merge by clicking on
 Now, since in the meantime our local text for the tutorial also changed,
 we need to pull Axel's change back into our branch, and merge them:
 
-
 .. code-block:: bash
 
     $ git add Howto_github.txt
@@ -425,7 +403,6 @@ With Axel's changes merged in and some final text updates, our feature
 branch is now perfect as far as we are concerned, so we are going to
 commit and push again:
 
-
 .. code-block:: bash
 
     $ git add Howto_github.txt
@@ -438,9 +415,7 @@ This merge also shows up on the lammps GitHub page:
 .. image:: JPG/tutorial_reverse_pull_request7.png
    :align: center
 
-
 ----------
-
 
 **After a merge**
 
@@ -456,7 +431,6 @@ It is in principle safe to delete them from your own fork. This helps
 keep it a bit more tidy. Note that you first have to switch to another
 branch!
 
-
 .. code-block:: bash
 
    $ git checkout master
@@ -471,7 +445,6 @@ first delete and then pull, everything should still be fine.
 
 Finally, if you delete the branch locally, you might want to push this
 to your remote(s) as well:
-
 
 .. code-block:: bash
 

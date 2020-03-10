@@ -6,7 +6,6 @@ compute gyration/shape/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID gyration/shape/chunk compute-ID
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -38,7 +36,6 @@ and the relative shape anisotropy, k:
  c = & l_z - 0.5(l_y+l_x) \\
  b = & l_y - l_x \\
  k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2}
-
 
 where :math:`l_x` <= :math:`l_y` <= :math`l_z` are the three eigenvalues of the gyration tensor. A general description
 of these parameters is provided in :ref:`(Mattice) <Mattice2>` while an application to polymer systems
@@ -83,7 +80,6 @@ distance\^2 :doc:`units <units>` while the sixth one is dimensionless.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -95,18 +91,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mattice2:
-
-
 
 **(Mattice)** Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994.
 
 .. _Theodorou2:
-
-
 
 **(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).

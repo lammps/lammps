@@ -6,7 +6,6 @@ compute temp/rotate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/rotate
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -84,7 +82,6 @@ vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

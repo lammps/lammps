@@ -6,7 +6,6 @@ fix neb/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID neb/spin Kspring
@@ -61,7 +60,6 @@ as invoked by the :doc:`minimize <minimize>` command via the
 Restrictions
 """"""""""""
 
-
 This command can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
@@ -76,13 +74,9 @@ Default
 
 none
 
-
 ----------
 
-
 .. _BessarabB:
-
-
 
 **(BessarabB)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).

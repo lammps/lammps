@@ -6,7 +6,6 @@ delete_atoms command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    delete_atoms style args keyword value ...
@@ -35,11 +34,8 @@ Syntax
        *bond* value = *no* or *yes*
        *mol* value = *no* or *yes*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -138,7 +134,6 @@ part of molecules.
 
 Restrictions
 """"""""""""
-
 
 The *overlap* styles requires inter-processor communication to acquire
 ghost atoms and build a neighbor list.  This means that your system

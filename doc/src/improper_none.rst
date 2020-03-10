@@ -6,14 +6,12 @@ improper_style none command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style none
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

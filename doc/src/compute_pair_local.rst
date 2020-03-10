@@ -6,7 +6,6 @@ compute pair/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pair/local value1 value2 ... keyword args ...
@@ -31,11 +30,8 @@ Syntax
 
        *cutoff* arg = *type* or *radius*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -118,7 +114,6 @@ with data from this command and output by the :doc:`dump local <dump>`
 command in a consistent way.
 
 Here is an example of how to do this:
-
 
 .. parsed-literal::
 

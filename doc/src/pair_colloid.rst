@@ -12,7 +12,6 @@ pair_style colloid/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style colloid cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -161,9 +159,7 @@ colloid-solvent cutoff in this case.
    commands for efficiency: :doc:`neighbor multi <neighbor>` and
    :doc:`comm_modify multi <comm_modify>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -183,9 +179,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -212,13 +206,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the COLLOID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -241,12 +232,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers1:
-
-
 
 **(Everaers)** Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).

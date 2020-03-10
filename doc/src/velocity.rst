@@ -6,7 +6,6 @@ velocity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    velocity group-ID style args keyword value ...
@@ -49,11 +48,8 @@ Syntax
          fix-ID = ID of rigid body fix
        *units* value = *box* or *lattice*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -124,9 +120,7 @@ coordinates depend on whether the *units* keyword is set to *box* or
 For all styles, no atoms are assigned z-component velocities if the
 simulation is 2d; see the :doc:`dimension <dimension>` command.
 
-
 ----------
-
 
 The keyword/value options are used in the following ways by the
 various styles.
@@ -145,9 +139,7 @@ The *mom* and *rot* keywords are used by *create*\ .  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 
-
 ----------
-
 
 If specified, the *temp* keyword is used by *create* and *scale* to
 specify a :doc:`compute <compute>` that calculates temperature in a
@@ -155,7 +147,6 @@ desired way, e.g. by first subtracting out a velocity bias, as
 discussed on the :doc:`Howto thermostat <Howto_thermostat>` doc page.
 If this keyword is not specified, *create* and *scale* calculate
 temperature using a compute that is defined internally as follows:
-
 
 .. parsed-literal::
 
@@ -190,9 +181,7 @@ specifying the ID of a :doc:`compute temp/ramp <compute_temp_ramp>` or
 :doc:`compute temp/profile <compute_temp_profile>` command, and the
 *bias* keyword set to a *yes* value.
 
-
 ----------
-
 
 The *loop* keyword is used by *create* in the following ways.
 
@@ -226,9 +215,7 @@ This is because the computations based on xyz coordinates are
 sensitive to tiny differences in the double-precision value for a
 coordinate as stored on a particular machine.
 
-
 ----------
-
 
 The *rigid* keyword only has meaning when used with the *zero* style.
 It allows specification of a fix-ID for one of the :doc:`rigid-body fix <fix_rigid>` variants which defines a set of rigid bodies.  The
@@ -243,13 +230,10 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The :doc:`lattice <lattice>`
 command must have been previously used to define the lattice spacing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Assigning a temperature via the *create* style to a system with :doc:`rigid bodies <fix_rigid>` or :doc:`SHAKE constraints <fix_shake>` may not
 have the desired outcome for two reasons.  First, the velocity command
@@ -261,7 +245,6 @@ when constraints are first enforced, leading to a different
 temperature than desired.  A workaround for this is to perform a :doc:`run 0 <run>` command, which insures all DOFs are accounted for
 properly, and then rescale the temperature to the desired value before
 performing a simulation.  For example:
-
 
 .. parsed-literal::
 

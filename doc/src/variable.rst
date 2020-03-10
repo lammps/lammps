@@ -6,7 +6,6 @@ variable command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    variable name style args ...
@@ -74,11 +73,8 @@ Syntax
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -206,9 +202,7 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
-
 ----------
-
 
 The :doc:`Commands parse <Commands_parse>` doc page explains how
 occurrences of a variable name in an input script line are replaced by
@@ -231,7 +225,6 @@ script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the :doc:`if <if>` and :doc:`jump <jump>`
 commands before the variable would become exhausted.  For example,
 
-
 .. parsed-literal::
 
    label       loop
@@ -243,9 +236,7 @@ commands before the variable would become exhausted.  For example,
    label       break
    variable    a delete
 
-
 ----------
-
 
 This section describes how all the various variable styles are defined
 and what they store.  Except for the *equal* and *vector* and *atom*
@@ -379,7 +370,6 @@ the count N of per-atom lines to immediately follow.  N can be the
 total number of atoms in the system, or only a subset.  The next N
 lines have the following format
 
-
 .. parsed-literal::
 
    ID value
@@ -397,7 +387,6 @@ For the *python* style a Python function name is provided.  This needs
 to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
 keyword.  For example these two commands would be self-consistent:
-
 
 .. parsed-literal::
 
@@ -430,9 +419,7 @@ internal-style variable can be used in place of an equal-style
 variable anywhere else in an input script, e.g. as an argument to
 another command that allows for equal-style variables.
 
-
 ----------
-
 
 For the *equal* and *vector* and *atom* styles, a single string is
 specified which represents a formula that will be evaluated afresh
@@ -467,7 +454,6 @@ variety of quantities.  The syntax for each kind of quantity is
 simple, but multiple quantities can be nested and combined in various
 ways to build up formulas of arbitrary complexity.  For example, this
 is a valid (though strange) variable formula:
-
 
 .. parsed-literal::
 
@@ -530,9 +516,7 @@ the atom-style variable, only atoms in the group are included in the
 formula evaluation.  The variable evaluates to 0.0 for atoms not in
 the group.
 
-
 ----------
-
 
 Numbers, constants, and thermo keywords
 ---------------------------------------
@@ -550,7 +534,6 @@ of LAMMPS will be smaller. This can be used to have input scripts
 adapt automatically to LAMMPS versions, when non-backwards compatible
 syntax changes are introduced. Here is an illustrative example (which
 will not work, since the *version* has been introduced more recently):
-
 
 .. parsed-literal::
 
@@ -570,9 +553,7 @@ evaluated directly in an input script (not during a run), then the
 values accessed by the thermo keyword must be current.  See the
 discussion below about "Variable Accuracy".
 
-
 ----------
-
 
 Math Operators
 --------------
@@ -622,9 +603,7 @@ whose properties satisfy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the :doc:`compute reduce <compute_reduce>` command.
 
-
 ----------
-
 
 Math Functions
 --------------
@@ -673,7 +652,6 @@ The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course
 of a run, according to this formula:
 
-
 .. parsed-literal::
 
    value = x + (y-x) \* (timestep-startstep) / (stopstep-startstep)
@@ -691,7 +669,6 @@ timestep in the sequence is returned.  Thus if stagger(1000,100) is
 used in a variable by the :doc:`dump_modify every <dump_modify>`
 command, it will generate the sequence of output timesteps:
 
-
 .. parsed-literal::
 
    100,1000,1100,2000,2100,3000,etc
@@ -706,7 +683,6 @@ any current timestep, the next timestep in the sequence is returned.
 Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, it will generate this sequence of
 output timesteps:
 
-
 .. parsed-literal::
 
    100,200,300,400,1000,2000,3000,4000,10000,20000,etc
@@ -717,7 +693,6 @@ all of them are output.  Y < z is not required.  Thus, if
 logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, then the interval between 100 and
 1000 is divided as 900/18 = 50 steps, and it will generate the
 sequence of output timesteps:
-
 
 .. parsed-literal::
 
@@ -730,7 +705,6 @@ a variable by the :doc:`fix print <fix_print>` command, then the interval
 between 10 and 1000 is divided into 24 parts with a multiplicative
 separation of ~1.21, and it will generate the following sequence of output
 timesteps:
-
 
 .. parsed-literal::
 
@@ -745,7 +719,6 @@ that does not exceed y.  For any current timestep, the next timestep
 in the sequence is returned.  Thus if stride(1000,2000,100) is used
 in a variable by the :doc:`dump_modify every <dump_modify>` command, it
 will generate the sequence of output timesteps:
-
 
 .. parsed-literal::
 
@@ -766,7 +739,6 @@ if stride2(1000,2000,100,1350,1360,1) is used in a variable by the
 :doc:`dump_modify every <dump_modify>` command, it will generate the
 sequence of output timesteps:
 
-
 .. parsed-literal::
 
    1000,1100,1200,1300,1350,1351,1352, ... 1359,1360,1400,1500, ... ,2000
@@ -775,7 +747,6 @@ The vdisplace(x,y) function takes 2 arguments: x = value0 and y =
 velocity, and uses the elapsed time to change the value by a linear
 displacement due to the applied velocity over the course of a run,
 according to this formula:
-
 
 .. parsed-literal::
 
@@ -794,7 +765,6 @@ x = value0, y = amplitude, z = period.  They use the elapsed time to
 oscillate the value by a sin() or cos() function over the course of a
 run, according to one of these formulas, where omega = 2 PI / period:
 
-
 .. parsed-literal::
 
    value = value0 + Amplitude \* sin(omega\*(timestep-startstep)\*dt)
@@ -808,9 +778,7 @@ the *start* keyword of the :doc:`run <run>` command.  See the
 :doc:`thermo_style <thermo_style>` keyword elaplong =
 timestep-startstep.
 
-
 ----------
-
 
 Group and Region Functions
 --------------------------
@@ -845,9 +813,7 @@ The function is computed for all atoms that are in both the group and
 the region.  If the group is "all", then the only criteria for atom
 inclusion is that it be in the region.
 
-
 ----------
-
 
 Special Functions
 -----------------
@@ -933,9 +899,7 @@ invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the :doc:`next <next>` command
 operates.
 
-
 ----------
-
 
 Feature Functions
 -----------------
@@ -975,7 +939,6 @@ the checking is also done using suffix flags, if available and enabled.
 
 Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
 
-
 .. parsed-literal::
 
    pair_style lj/cut/coul/long 14.0
@@ -983,7 +946,6 @@ Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on
    kspace_style pppm
 
 Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
-
 
 .. parsed-literal::
 
@@ -1009,16 +971,13 @@ and C++ exceptions for error handling. Corresponding values for name are
 This enables writing input scripts which only dump using a given format if
 the compiled binary supports it.
 
-
 .. parsed-literal::
 
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
 
    if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
 
-
 ----------
-
 
 Atom Values and Vectors
 -----------------------
@@ -1052,9 +1011,7 @@ Note that many other atom attributes can be used as inputs to a
 variable by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
 a quantity from that compute.
 
-
 ----------
-
 
 Compute References
 ------------------
@@ -1099,7 +1056,6 @@ global vector.  Consider a compute with ID "foo" that does this,
 referenced as follows by variable "a", where "myVec" is another
 vector-style variable:
 
-
 .. parsed-literal::
 
    variable a vector c_foo\*v_myVec
@@ -1117,9 +1073,7 @@ an input script (not during a run), then the values accessed by the
 compute must be current.  See the discussion below about "Variable
 Accuracy".
 
-
 ----------
-
 
 Fix References
 --------------
@@ -1176,9 +1130,7 @@ error is generated.  For example, the :doc:`fix ave/time <fix_ave_time>`
 command may only generate averaged quantities every 100 steps.  See
 the doc pages for individual fix commands for details.
 
-
 ----------
-
 
 Variable References
 -------------------
@@ -1233,9 +1185,7 @@ specified as v\_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
-
 ----------
-
 
 **Immediate Evaluation of Variables:**
 
@@ -1269,7 +1219,6 @@ evaluated.
 As an example, suppose you use this command in your input script to
 define the variable "v" as
 
-
 .. parsed-literal::
 
    variable v equal vol
@@ -1284,7 +1233,6 @@ evaluated continuously during the run.
 If you want to store the initial volume of the system, you can do it
 this way:
 
-
 .. parsed-literal::
 
    variable v equal vol
@@ -1293,7 +1241,6 @@ this way:
 The second command will force "v" to be evaluated (yielding the
 initial volume) and assign that value to the variable "v0".  Thus the
 command
-
 
 .. parsed-literal::
 
@@ -1305,7 +1252,6 @@ during the run.
 Note that it is a mistake to enclose a variable formula in double
 quotes if it contains variables preceded by $ signs.  For example,
 
-
 .. parsed-literal::
 
    variable vratio equal "${vfinal}/${v0}"
@@ -1314,9 +1260,7 @@ This is because the quotes prevent variable substitution (explained on
 the :doc:`Commands parse <Commands_parse>` doc page), and thus an error
 will occur when the formula for "vratio" is evaluated later.
 
-
 ----------
-
 
 **Variable Accuracy:**
 
@@ -1365,7 +1309,6 @@ timestep of the preceding run, e.g. by thermodynamic output.
 One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
 
-
 .. parsed-literal::
 
    variable t equal temp
@@ -1377,7 +1320,6 @@ input script, because generating a value for the "t" variable requires
 a compute for calculating the temperature to be invoked.
 
 However, this sequence of commands would be fine:
-
 
 .. parsed-literal::
 
@@ -1413,7 +1355,6 @@ a 0-timestep run before printing the variable has the desired effect.
 way to detect this has occurred.  Consider the following sequence of
 commands:
 
-
 .. parsed-literal::
 
    pair_coeff 1 1 1.0 1.0
@@ -1440,7 +1381,6 @@ the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:
 
-
 .. parsed-literal::
 
    pair_coeff 1 1 1.0 1.0
@@ -1450,13 +1390,10 @@ coefficient:
    variable e equal pe
    print "Final potential energy = $e"
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Indexing any formula element by global atom ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in

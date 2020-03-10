@@ -12,7 +12,6 @@ pair_style soft/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style soft cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -43,7 +41,6 @@ Style *soft* computes pairwise interactions with the formula
 
    E = A \left[ 1 + \cos\left(\frac{\pi r}{r_c}\right) \right]
    \qquad r < r_c
-
 
 It is useful for pushing apart overlapping atoms, since it does not
 blow up as r goes to 0.  A is a pre-factor that can be made to vary in
@@ -82,7 +79,6 @@ overridden.  For example these commands will vary the prefactor A for
 all pairwise interactions from 0.0 at the beginning to 30.0 at the end
 of a run:
 
-
 .. code-block:: LAMMPS
 
    variable prefactor equal ramp(0,30)
@@ -93,9 +89,7 @@ can use the current timestep, elapsed time in the current run, elapsed
 time since the beginning of a series of runs, as well as access other
 variables.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -115,9 +109,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -140,9 +132,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

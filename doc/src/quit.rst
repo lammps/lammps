@@ -6,7 +6,6 @@ quit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    quit status
@@ -15,7 +14,6 @@ status = numerical exit status (optional)
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ fix python/move command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix python/move pymodule.CLASS
@@ -15,7 +14,6 @@ pymodule.CLASS = use class **CLASS** in module/file **pymodule** to compute how 
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -37,12 +35,9 @@ however, the performance of this fix can be moderately to significantly
 slower than the corresponding C++ code. For specific cases, this
 performance penalty can be limited through effective use of NumPy.
 
-
 ----------
 
-
 The python module file has to start with the following code:
-
 
 .. parsed-literal::
 
@@ -85,9 +80,7 @@ methods as needed.
 
 Examples for how to do this are in the *examples/python* folder.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -99,7 +92,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the PYTHON package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

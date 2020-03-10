@@ -6,7 +6,6 @@ run command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    run N keyword values ...
@@ -29,11 +28,8 @@ Syntax
          c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
          c1 = NULL means no command will be invoked
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -73,7 +69,6 @@ individual fixes to see which ones can be used with the *start/stop*
 keywords.
 
 For example, consider this fix followed by 10 run commands:
-
 
 .. parsed-literal::
 
@@ -149,14 +144,12 @@ of M steps each.  After each M-length run, the specified commands are
 invoked.  If only a single command is specified as NULL, then no
 command is invoked.  Thus these lines:
 
-
 .. parsed-literal::
 
    variable q equal x[100]
    run 6000 every 2000 "print 'Coord = $q'"
 
 are the equivalent of:
-
 
 .. parsed-literal::
 
@@ -176,7 +169,6 @@ Note that by using the line continuation character "&", the run every
 command can be spread across many lines, though it is still a single
 command:
 
-
 .. parsed-literal::
 
    run 100000 every 1000 &
@@ -195,7 +187,6 @@ skipped for intermediate runs.
    You might wish to specify a command that exits the run by
    jumping out of the loop, e.g.
 
-
 .. parsed-literal::
 
    variable t equal temp
@@ -209,7 +200,6 @@ has additional options for how to exit the run.
 
 Restrictions
 """"""""""""
-
 
 When not using the *upto* keyword, the number of specified timesteps N
 must fit in a signed 32-bit integer, so you are limited to slightly

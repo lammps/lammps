@@ -15,7 +15,6 @@ pair_style tdpd command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
@@ -38,11 +37,8 @@ Syntax
          cutoff = global cutoff for tDPD interactions (distance units)
          seed = random # seed (integer) (if <= 0, tDPD will use current time as the seed)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -109,7 +105,6 @@ where the mesoscopic heat friction :math:`\kappa` is given by
 
   \kappa  = \frac{315k_B\upsilon }{2\pi \rho C_v r_{ct}^5}\frac{1}{Pr},
 
-
 with :math:`\upsilon` being the kinematic viscosity. For more details,
 see Eq.(15) in :ref:`(Li2014\_JCP) <Li2014_JCP>`.
 
@@ -135,9 +130,7 @@ heat friction :math:`s_T(T) = \kappa (1 + c_1 (T-1) + c_2 (T-1)^2 + c_3
 specified, the eDPD system will use constant power\_f and
 :math:`\kappa`, which is independent to temperature changes.
 
-
 ----------
-
 
 The *mdpd/rhosum* style computes the local particle mass density
 :math:`\rho` for mDPD particles by kernel function interpolation.
@@ -312,34 +305,24 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Li2014\_JCP:
-
-
 
 **(Li2014\_JCP)** Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys,
 265: 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
 
 .. _Li2015\_CC:
 
-
-
 **(Li2015\_CC)** Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040
 (2015).  DOI: 10.1039/C5CC01684C.
 
 .. _Li2013\_POF:
 
-
-
 **(Li2013\_POF)** Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013).
 DOI: 10.1063/1.4812366.
 
 .. _Li2015\_JCP:
-
-
 
 **(Li2015\_JCP)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys,
 143: 014101 (2015).  DOI: 10.1063/1.4923254.

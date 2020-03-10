@@ -6,7 +6,6 @@ pair_style eff/cut command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style eff/cut cutoff keyword args ...
@@ -23,11 +22,8 @@ Syntax
          type = LAMMPS atom type (1 to Ntypes)
          element = element symbol (e.g. H, Si)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -154,9 +150,7 @@ individual I,J type pair via the :doc:`pair_coeff <pair_coeff>` command.
 All type pairs use the same global cutoff specified in the pair\_style
 command.
 
-
 ----------
-
 
 The *limit/eradius* and *pressure/evirials* keywords are optional.
 Neither or both must be specified.  If not specified they are unset.
@@ -208,9 +202,7 @@ representations, after the "ecp" keyword.
    significant over long-term averaged runs (i.e. even though the energy
    partitioning changes, the total energy remains similar).
 
-
 ----------
-
 
 .. note::
 
@@ -266,9 +258,7 @@ metals (e.g. beryllium) and semimetals such as boron; and various
 compounds containing ionic and/or multicenter bonds, such as boron
 dihydride.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -294,13 +284,10 @@ These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles will only be enabled if LAMMPS is built with the
 USER-EFF package.  It will only be enabled if LAMMPS was built with
@@ -325,20 +312,14 @@ Default
 
 If not specified, limit\_eradius = 0 and pressure\_with\_evirials = 0.
 
-
 ----------
 
-
 .. _Su:
-
-
 
 **(Su)** Su and Goddard, Excited Electron Dynamics Modeling of Warm
 Dense Matter, Phys Rev Lett, 99:185003 (2007).
 
 .. _Jaramillo-Botero:
-
-
 
 **(Jaramillo-Botero)** Jaramillo-Botero, Su, Qi, Goddard, Large-scale,
 Long-term Non-adiabatic Electron Molecular Dynamics for Describing

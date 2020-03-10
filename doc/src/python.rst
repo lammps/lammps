@@ -6,7 +6,6 @@ python command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    python func keyword args ...
@@ -44,11 +43,8 @@ Syntax
          inline = one or more lines of Python code which will be executed immediately
                   must be a single argument, typically enclosed between triple quotes
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -110,9 +106,7 @@ A broader overview of how Python can be used with LAMMPS is given on
 the :doc:`Python <Python_head>` doc page.  There is an examples/python
 directory which illustrates use of the python command.
 
-
 ----------
-
 
 The *func* setting specifies the name of the Python function.  The
 code for the function is defined using the *file* or *here* keywords
@@ -162,7 +156,6 @@ of a python-style variable associates a Python function name with the
 variable.  This must match the *func* setting for this command.  For
 example these two commands would be self-consistent:
 
-
 .. code-block:: LAMMPS
 
    variable foo python myMultiply
@@ -195,9 +188,7 @@ include the string terminator).  If the Python function generates a
 string longer than the default 63 or the specified *Nlen*\ , it will be
 truncated.
 
-
 ----------
-
 
 Either the *file*\ , *here*\ , or *exists* keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the
@@ -226,9 +217,7 @@ later invoked, the function code must match the *input* and
 *return* and *format* keywords specified by the python command.
 Otherwise Python will generate an error.
 
-
 ----------
-
 
 This section describes how Python code can be written to work with
 LAMMPS.
@@ -260,7 +249,6 @@ different commands in a LAMMPS input script that access the returned
 python-style variable associated with the function.  For example,
 consider this function loaded with two global variables defined
 outside the function:
-
 
 .. code-block:: python
 
@@ -318,15 +306,12 @@ global temperature of the system, then you must insure all your Python
 functions (running independently on different processors) call back to
 LAMMPS.  Otherwise the code may hang.
 
-
 ----------
-
 
 Your Python function can "call back" to LAMMPS through its
 library interface, if you use the SELF input to pass Python
 a pointer to LAMMPS.  The mechanism for doing this in your
 Python function is as follows:
-
 
 .. code-block:: python
 
@@ -347,7 +332,6 @@ string argument which is a LAMMPS input script command for LAMMPS to
 execute, the same as if it appeared in your input script.  In this case,
 LAMMPS should output
 
-
 .. parsed-literal::
 
    Hello from inside Python
@@ -362,7 +346,6 @@ library interface.
 
 A more interesting example is in the examples/python/in.python script
 which loads and runs the following function from examples/python/funcs.py:
-
 
 .. code-block:: python
 
@@ -386,7 +369,6 @@ which loads and runs the following function from examples/python/funcs.py:
        if pe/natoms < thresh: return
 
 with these input script commands:
-
 
 .. parsed-literal::
 
@@ -440,9 +422,7 @@ being attempted.
 The same applies to Python functions called during a simulation run at
 each time step using :doc:`fix python/invoke <fix_python_invoke>`.
 
-
 ----------
-
 
 If you run Python code directly on your workstation, either
 interactively or by using Python to launch a Python script stored in a
@@ -456,7 +436,6 @@ logic errors, you may get an error from Python pointing to the
 offending line, or you may get one of these generic errors from
 LAMMPS:
 
-
 .. parsed-literal::
 
    Could not process Python file
@@ -464,7 +443,6 @@ LAMMPS:
 
 When the Python function is invoked, if it does not return properly,
 you will typically get this generic error from LAMMPS:
-
 
 .. parsed-literal::
 
@@ -485,14 +463,12 @@ Third, use Python exception handling.  For example, say this statement
 in your Python function is failing, because you have not initialized the
 variable foo:
 
-
 .. code-block:: python
 
    foo += 1
 
 If you put one (or more) statements inside a "try" statement,
 like this:
-
 
 .. code-block:: python
 
@@ -505,7 +481,6 @@ like this:
 
 then you will get this message printed to the screen:
 
-
 .. parsed-literal::
 
    FOO error: local variable 'foo' referenced before assignment
@@ -514,13 +489,10 @@ If there is no error in the try statements, then nothing is printed.
 Either way the function continues on (unless you put a return or
 sys.exit() in the except clause).
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the PYTHON package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ fix nvk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvk
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -39,9 +37,7 @@ nvk is initiated. If a different kinetic energy is desired, the
 :doc:`velocity <velocity>` command should be used to change the kinetic
 energy prior to this fix.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -53,7 +49,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 The Gaussian thermostat only works when it is applied to all atoms in
 the simulation box. Therefore, the group must be set to all.
@@ -67,18 +62,12 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 **Default:** none
 
-
 ----------
 
-
 .. _nvk-Minary:
-
-
 
 **(Minary)** Minary, Martyna, and Tuckerman, J Chem Phys, 18, 2510 (2003).
 
 .. _nvk-Zhang:
-
-
 
 **(Zhang)** Zhang, J Chem Phys, 106, 6102 (1997).

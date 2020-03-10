@@ -9,7 +9,6 @@ pair_style exp6/rx/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style exp6/rx cutoff ...
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -46,7 +44,6 @@ particle through a site-site interaction potential model.  The
 .. math::
 
    U_{ij}(r) = \frac{\epsilon}{\alpha-6}\{6\exp[\alpha(1-\frac{r_{ij}}{R_{m}})]-\alpha(\frac{R_{m}}{r_{ij}})^6\}
-
 
 where the :math:`\epsilon` parameter determines the depth of the
 potential minimum located at :math:`R_m`, and :math:`\alpha` determines
@@ -96,13 +93,10 @@ arguments.  This is equivalent to specifying the *exponent* option with
 
 The final argument specifies the interaction cutoff (optional).
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -115,7 +109,6 @@ parenthesized comments):
 
 The format of the polynomial scaling file as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -158,13 +151,10 @@ where
    R_{m,ab}      = & \frac{R_{m,a}+R_{m,b}}{2} \\
    \alpha_{ab}   = & \sqrt{\alpha_{a}\alpha_{b}}
 
-
 and :math:`x_a` and :math:`x_b` are the mole fractions of a and b, respectively, which
 comprise the gas mixture.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -178,9 +168,7 @@ This style does not support the pair\_modify tail option for adding long-range
 tail corrections to energy and pressure for the A,C terms in the
 pair interaction.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -200,13 +188,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

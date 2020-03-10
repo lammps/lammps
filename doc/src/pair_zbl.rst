@@ -15,7 +15,6 @@ pair_style zbl/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style zbl inner outer
@@ -25,7 +24,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -85,9 +83,7 @@ be included in a pair\_coeff command.
    always be given as multiples of a proton's charge, e.g. 29.0 for
    copper.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -107,9 +103,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -144,9 +138,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -159,13 +151,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ziegler:
-
-
 
 **(Ziegler)** J.F. Ziegler, J. P. Biersack and U. Littmark, "The
 Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.

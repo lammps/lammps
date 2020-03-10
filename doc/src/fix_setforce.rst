@@ -12,7 +12,6 @@ fix setforce/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID setforce fx fy fz keyword value ...
@@ -29,11 +28,8 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -77,9 +73,7 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
-
 ----------
-
 
 Style *spin* suffix sets the components of the magnetic precession
 vectors instead of the mechanical forces. This also erases all
@@ -92,9 +86,7 @@ atoms in the simulation by zeroing their precession vector.
 All options defined above remain valid, they just apply to the magnetic
 precession vectors instead of the forces.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -117,9 +109,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -149,7 +139,6 @@ non-zero force to atoms during a minimization.
 
 Restrictions
 """"""""""""
-
 
 The fix *setforce/spin* only makes sense when LAMMPS was built with the
 SPIN package.

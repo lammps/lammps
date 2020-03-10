@@ -6,7 +6,6 @@ fix nvt/sllod/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/sllod/eff keyword value ...
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -68,7 +66,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -86,13 +83,9 @@ Default
 
 Same as :doc:`fix nvt/eff <fix_nh_eff>`, except tchain = 1.
 
-
 ----------
 
-
 .. _Tuckerman2:
-
-
 
 **(Tuckerman)** Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).

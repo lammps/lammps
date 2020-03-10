@@ -52,7 +52,6 @@ the next patch release tarball.
 
 ----------
 
-
 If you download a current LAMMPS tarball, one way to stay current as
 new patch tarballs are released, is to download a patch file which you
 can apply to your local directory to update it for each new patch

@@ -6,7 +6,6 @@ angle_style hybrid command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style hybrid style1 style2 ...
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,6 @@ If angle coefficients are specified in the data file read via the
 E.g. "harmonic" or "cosine", must be added after the angle type, for each
 line in the "Angle Coeffs" section, e.g.
 
-
 .. parsed-literal::
 
    Angle Coeffs
@@ -62,7 +59,6 @@ the input script or in the data file.  I.e. *class2* must be added to
 each line after the angle type.  For lines in the BondBond (or
 BondAngle) section of the data file for angle types that are not
 *class2*\ , you must use an angle style of *skip* as a placeholder, e.g.
-
 
 .. parsed-literal::
 
@@ -81,13 +77,10 @@ in place of an angle style, either in a input script :doc:`angle_coeff <angle_co
 command or in the data file, if you desire to turn off interactions
 for specific angle types.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

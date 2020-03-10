@@ -56,12 +56,8 @@ with a Coulomb pair style. It may be useful to use *coul/long/cs* or
 similar from the CORESHELL package if the core and Drude particle come
 too close, which can cause numerical issues.
 
-
 ----------
 
-
 .. _howto-Lamoureux:
-
-
 
 **(Lamoureux and Roux)** G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)

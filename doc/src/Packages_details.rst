@@ -60,7 +60,6 @@ page gives those details.
    * :ref:`SRD <PKG-SRD>`
    * :ref:`VORONOI <PKG-VORONOI>`
 
-
 .. table_from_list::
    :columns: 6
 
@@ -106,9 +105,7 @@ page gives those details.
    * :ref:`USER-VTK <PKG-USER-VTK>`
    * :ref:`USER-YAFF <PKG-USER-YAFF>`
 
-
 ----------
-
 
 .. _PKG-ASPHERE:
 
@@ -133,9 +130,7 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * http://lammps.sandia.gov/movies.html#line
 * http://lammps.sandia.gov/movies.html#tri
 
-
 ----------
-
 
 .. _PKG-BODY:
 
@@ -158,9 +153,7 @@ overview.
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
 
-
 ----------
-
 
 .. _PKG-CLASS2:
 
@@ -181,9 +174,7 @@ CLASS2 molecular force field.
 * :doc:`improper_style class2 <improper_class2>`
 * :doc:`pair_style lj/class2 <pair_class2>`
 
-
 ----------
-
 
 .. _PKG-COLLOID:
 
@@ -213,9 +204,7 @@ Higdon's group at UIUC.
 * examples/colloid
 * examples/srd
 
-
 ----------
-
 
 .. _PKG-COMPRESS:
 
@@ -246,9 +235,7 @@ This package has :ref:`specific installation instructions <compress>` on the :do
 * :doc:`dump custom/gz <dump>`
 * :doc:`dump xyz/gz <dump>`
 
-
 ----------
-
 
 .. _PKG-CORESHELL:
 
@@ -276,9 +263,7 @@ this package.
 * :doc:`pair_style lj/cut/coul/long/cs <pair_lj>`
 * examples/coreshell
 
-
 ----------
-
 
 .. _PKG-DIPOLE:
 
@@ -299,9 +284,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * examples/dipole
 
-
 ----------
-
 
 .. _PKG-GPU:
 
@@ -341,9 +324,7 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
   for styles followed by (g)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
-
 ----------
-
 
 .. _PKG-GRANULAR:
 
@@ -373,9 +354,7 @@ potentials.
 * http://lammps.sandia.gov/movies.html#brazil
 * http://lammps.sandia.gov/movies.html#granregion
 
-
 ----------
-
 
 .. _PKG-KIM:
 
@@ -430,9 +409,7 @@ This package has :ref:`specific installation instructions <kim>` on the :doc:`Bu
 * lib/kim/README
 * examples/kim
 
-
 ----------
-
 
 .. _PKG-KOKKOS:
 
@@ -486,9 +463,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
-
 ----------
-
 
 .. _PKG-KSPACE:
 
@@ -523,9 +498,7 @@ different FFT options for your LAMPMS build.
 * examples/peptide
 * bench/in.rhodo
 
-
 ----------
-
 
 .. _PKG-LATTE:
 
@@ -544,8 +517,6 @@ description is given with the :doc:`fix latte <fix_latte>` command.
 
 .. _latte-home: https://github.com/lanl/LATTE
 
-
-
 **Authors:** Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
 itself is developed at Los Alamos National Laboratory by Marc
 Cawkwell, Anders Niklasson, and Christian Negre.
@@ -563,9 +534,7 @@ This package has :ref:`specific installation instructions <latte>` on the :doc:`
 * examples/latte
 * `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
-
 ----------
-
 
 .. _PKG-MANYBODY:
 
@@ -589,9 +558,7 @@ A variety of many-body and bond-order potentials.  These include
 * examples/vashishta
 * bench/in.eam
 
-
 ----------
-
 
 .. _PKG-MC:
 
@@ -616,9 +583,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`pair_style dsmc <pair_dsmc>`
 * http://lammps.sandia.gov/movies.html#gcmc
 
-
 ----------
-
 
 .. _PKG-MESSAGE:
 
@@ -644,9 +609,7 @@ This package has :ref:`specific installation instructions <message>` on the :doc
 * :doc:`server mc <server_mc>`
 * examples/message
 
-
 ----------
-
 
 .. _PKG-MISC:
 
@@ -678,9 +641,7 @@ listing, "ls src/MISC", to see the list of commands.
 * http://lammps.sandia.gov/pictures.html#ttm
 * http://lammps.sandia.gov/movies.html#evaporation
 
-
 ----------
-
 
 .. _PKG-MOLECULE:
 
@@ -712,9 +673,7 @@ force fields, and a TIP4P water model.
 * bench/in.chain
 * bench/in.rhodo
 
-
 ----------
-
 
 .. _PKG-MPIIO:
 
@@ -736,9 +695,7 @@ written and read in parallel.
 * :doc:`write_restart <write_restart>`
 * :doc:`read_restart <read_restart>`
 
-
 ----------
-
 
 .. _PKG-mscg:
 
@@ -751,8 +708,6 @@ A :doc:`fix mscg <fix_mscg>` command which can parameterize a
 Multi-Scale Coarse-Graining (MSCG) model using the open-source `MS-CG library <mscg-home_>`_.
 
 .. _mscg-home: https://github.com/uchicago-voth/MSCG-release
-
-
 
 To use this package you must have the MS-CG library available on your
 system.
@@ -772,9 +727,7 @@ This package has :ref:`specific installation instructions <mscg>` on the :doc:`B
 * lib/mscg/README
 * examples/mscg
 
-
 ----------
-
 
 .. _PKG-OPT:
 
@@ -808,9 +761,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
-
 ----------
-
 
 .. _PKG-PERI:
 
@@ -841,9 +792,7 @@ Foster (UTSA).
 * examples/peri
 * http://lammps.sandia.gov/movies.html#peri
 
-
 ----------
-
 
 .. _PKG-POEMS:
 
@@ -872,9 +821,7 @@ This package has :ref:`specific installation instructions <poems>` on the :doc:`
 * :doc:`fix poems <fix_poems>`
 * examples/rigid
 
-
 ----------
-
 
 .. _PKG-PYTHON:
 
@@ -907,9 +854,7 @@ This package has :ref:`specific installation instructions <python>` on the :doc:
 * lib/python/README
 * examples/python
 
-
 ----------
-
 
 .. _PKG-QEQ:
 
@@ -929,9 +874,7 @@ part of their formulation.
 * examples/qeq
 * examples/streitz
 
-
 ----------
-
 
 .. _PKG-REPLICA:
 
@@ -962,9 +905,7 @@ another set.
 * examples/prd
 * examples/tad
 
-
 ----------
-
 
 .. _PKG-RIGID:
 
@@ -991,9 +932,7 @@ Also several computes which calculate properties of rigid bodies.
 * http://lammps.sandia.gov/movies.html#box
 * http://lammps.sandia.gov/movies.html#star
 
-
 ----------
-
 
 .. _PKG-SHOCK:
 
@@ -1015,9 +954,7 @@ a material.
 * examples/hugoniostat
 * examples/msst
 
-
 ----------
-
 
 .. _PKG-SNAP:
 
@@ -1042,9 +979,7 @@ computes which analyze attributes of the potential.
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap
 
-
 ----------
-
 
 .. _PKG-SPIN:
 
@@ -1074,9 +1009,7 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`neb/spin <neb_spin>`
 * examples/SPIN
 
-
 ----------
-
 
 .. _PKG-SRD:
 
@@ -1100,9 +1033,7 @@ colloidal particles.
 * http://lammps.sandia.gov/movies.html#line
 * http://lammps.sandia.gov/movies.html#poly
 
-
 ----------
-
 
 .. _PKG-VORONOI:
 
@@ -1117,8 +1048,6 @@ can be used to calculate the local volume or each atoms or its near
 neighbors.
 
 .. _voro-home: http://math.lbl.gov/voro++
-
-
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -1139,9 +1068,7 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
 * examples/voronoi
 
-
 ----------
-
 
 .. _PKG-USER-ADIOS:
 
@@ -1171,10 +1098,7 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 * :doc:`dump custom/adios <dump_adios>`
 * :doc:`read_dump <read_dump>`
 
-
-
 ----------
-
 
 .. _PKG-USER-ATC:
 
@@ -1201,9 +1125,7 @@ This package has :ref:`specific installation instructions <user-atc>` on the :do
 * examples/USER/atc
 * http://lammps.sandia.gov/pictures.html#atc
 
-
 ----------
-
 
 .. _PKG-USER-AWPMD:
 
@@ -1230,9 +1152,7 @@ This package has :ref:`specific installation instructions <user-awpmd>` on the :
 * :doc:`pair_style awpmd/cut <pair_awpmd>`
 * examples/USER/awpmd
 
-
 ----------
-
 
 .. _PKG-USER-BOCS:
 
@@ -1265,9 +1185,7 @@ J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
 Example inputs are in the examples/USER/bocs folder.
 
-
 ----------
-
 
 .. _PKG-USER-CGDNA:
 
@@ -1295,9 +1213,7 @@ rigid-body integrators with improved stability.
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-
 ----------
-
 
 .. _PKG-USER-CGSDK:
 
@@ -1322,9 +1238,7 @@ acids.
 * examples/USER/cgsdk
 * http://lammps.sandia.gov/pictures.html#cg
 
-
 ----------
-
 
 .. _PKG-USER-COLVARS:
 
@@ -1359,9 +1273,7 @@ This package has :ref:`specific installation instructions <user-colvars>` on the
 * :doc:`fix colvars <fix_colvars>`
 * examples/USER/colvars
 
-
 ----------
-
 
 .. _PKG-USER-PLUMED:
 
@@ -1381,8 +1293,6 @@ Tribello.
 
 .. _PLUMED: http://www.plumed.org
 
-
-
 **Install:**
 
 This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` doc page.
@@ -1394,9 +1304,7 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 * :doc:`fix plumed <fix_plumed>`
 * examples/USER/plumed
 
-
 ----------
-
 
 .. _PKG-USER-DIFFRACTION:
 
@@ -1418,9 +1326,7 @@ intensities based on kinematic diffraction theory.
 * :doc:`fix saed/vtk <fix_saed_vtk>`
 * examples/USER/diffraction
 
-
 ----------
-
 
 .. _PKG-USER-DPD:
 
@@ -1461,9 +1367,7 @@ Brennan (ARL).
 * :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
 * examples/USER/dpd
 
-
 ----------
-
 
 .. _PKG-USER-DRUDE:
 
@@ -1495,9 +1399,7 @@ Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
 * examples/USER/drude
 * tools/drude
 
-
 ----------
-
 
 .. _PKG-USER-EFF:
 
@@ -1533,9 +1435,7 @@ tools/eff; see its README file.
 * tools/eff
 * http://lammps.sandia.gov/movies.html#eff
 
-
 ----------
-
 
 .. _PKG-USER-FEP:
 
@@ -1562,9 +1462,7 @@ for using this package in tools/fep; see its README file.
 * tools/fep/README
 * tools/fep
 
-
 ----------
-
 
 .. _PKG-USER-H5MD:
 
@@ -1580,8 +1478,6 @@ This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
 .. _HDF5: http://www.hdfgroup.org/HDF5
-
-
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1600,9 +1496,7 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 * lib/h5md/README
 * :doc:`dump h5md <dump_h5md>`
 
-
 ----------
-
 
 .. _PKG-USER-INTEL:
 
@@ -1649,9 +1543,7 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 * src/USER-INTEL/TEST
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
-
 ----------
-
 
 .. _PKG-USER-LB:
 
@@ -1675,9 +1567,7 @@ Ontario).
 * :doc:`fix lb/viscous <fix_lb_viscous>`
 * examples/USER/lb
 
-
 ----------
-
 
 .. _PKG-USER-MGPT:
 
@@ -1704,9 +1594,7 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 * :doc:`pair_style mgpt <pair_mgpt>`
 * examples/USER/mgpt
 
-
 ----------
-
 
 .. _PKG-USER-MISC:
 
@@ -1729,9 +1617,7 @@ src/USER-MISC/README file.
 * one doc page per individual command listed in src/USER-MISC/README
 * examples/USER/misc
 
-
 ----------
-
 
 .. _PKG-USER-MANIFOLD:
 
@@ -1762,9 +1648,7 @@ Waltham, MA, USA)
 * examples/USER/manifold
 * http://lammps.sandia.gov/movies.html#manifold
 
-
 ----------
-
 
 .. _PKG-USER-MEAMC:
 
@@ -1789,9 +1673,7 @@ Sandia.
 * :doc:`pair_style meam/c <pair_meamc>`
 * examples/meamc
 
-
 ----------
-
 
 .. _PKG-USER-MESODPD:
 
@@ -1822,9 +1704,7 @@ algorithm.
 * examples/USER/mesodpd
 * http://lammps.sandia.gov/movies.html#mesodpd
 
-
 ----------
-
 
 .. _PKG-USER-MOFFF:
 
@@ -1844,8 +1724,6 @@ well as the `MOF+ <MOFplus_>`_ website.
 
 .. _MOFplus: https://www.mofplus.org/content/show/MOF-FF
 
-
-
 **Author:** Hendrik Heenen (Technical U of Munich),
 Rochus Schmid (Ruhr-University Bochum).
 
@@ -1859,9 +1737,7 @@ Rochus Schmid (Ruhr-University Bochum).
 * :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
 * examples/USER/mofff
 
-
 ----------
-
 
 .. _PKG-USER-MOLFILE:
 
@@ -1903,9 +1779,7 @@ This package has :ref:`specific installation instructions <user-molfile>` on the
 * lib/molfile/README
 * :doc:`dump molfile <dump_molfile>`
 
-
 ----------
-
 
 .. _PKG-USER-NETCDF:
 
@@ -1931,15 +1805,9 @@ tools:
 
 .. _ovito: http://www.ovito.org
 
-
-
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
 
-
-
 .. _atomeye: http://www.libatoms.org
-
-
 
 **Author:** Lars Pastewka (Karlsruhe Institute of Technology).
 
@@ -1954,9 +1822,7 @@ This package has :ref:`specific installation instructions <user-netcdf>` on the 
 * lib/netcdf/README
 * :doc:`dump netcdf <dump_netcdf>`
 
-
 ----------
-
 
 .. _PKG-USER-OMP:
 
@@ -2010,9 +1876,7 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
 * `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
 
-
 ----------
-
 
 .. _PKG-USER-PHONON:
 
@@ -2040,9 +1904,7 @@ and Charlie Sievers (UC Davis) for "dynamical\_matrix" and "third\_order"
 * :doc:`third_order <third_order>`
 * examples/USER/phonon
 
-
 ----------
-
 
 .. _PKG-USER-PTM:
 
@@ -2064,9 +1926,7 @@ Matching methodology.
 * src/USER-PTM/LICENSE
 * :doc:`compute ptm/atom <compute_ptm_atom>`
 
-
 ----------
-
 
 .. _PKG-USER-QMMM:
 
@@ -2097,7 +1957,6 @@ changes to LAMMPS itself.
 
 **Authors:** Axel Kohlmeyer (Temple U). Mariella Ippolito and Carlo Cavazzoni (CINECA, Italy)
 
-
 **Install:**
 
 This package has :ref:`specific installation instructions <user-qmmm>`
@@ -2112,9 +1971,7 @@ on the :doc:`Build extras <Build_extras>` doc page.
 * lib/qmmm/example-ec/README
 * lib/qmmm/example-mc/README
 
-
 ----------
-
 
 .. _PKG-USER-QTB:
 
@@ -2142,9 +1999,7 @@ simulation.
 * :doc:`fix qbmsst <fix_qbmsst>`
 * examples/USER/qtb
 
-
 ----------
-
 
 .. _PKG-USER-QUIP:
 
@@ -2158,8 +2013,6 @@ potentials, including Gaussian Approximation Potential (GAP) models
 developed by the Cambridge University group.
 
 .. _quip: https://github.com/libAtoms/QUIP
-
-
 
 To use this package you must have the QUIP libAtoms library available
 on your system.
@@ -2177,9 +2030,7 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
 
-
 ----------
-
 
 .. _PKG-USER-REACTION:
 
@@ -2210,9 +2061,7 @@ molecules, and chiral-sensitive reactions.
 * `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
 * disarmmd.org
 
-
 ----------
-
 
 .. _PKG-USER-REAXC:
 
@@ -2237,9 +2086,7 @@ for monitoring molecules as bonds are created and destroyed.
 * :doc:`fix reax/c/species <fix_reaxc_species>`
 * examples/reax
 
-
 ----------
-
 
 .. _PKG-USER-SCAFACOS:
 
@@ -2274,9 +2121,7 @@ This package has :ref:`specific installation instructions <user-scafacos>` on th
 * :doc:`kspace_modify <kspace_modify>`
 * examples/USER/scafacos
 
-
 ----------
-
 
 .. _PKG-USER-SDPD:
 
@@ -2304,9 +2149,7 @@ Sciences, Iran).
 * :doc:`fix rigid/meso <fix_rigid_meso>`
 * examples/USER/sdpd
 
-
 ----------
-
 
 .. _PKG-USER-SMD:
 
@@ -2344,9 +2187,7 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 * examples/USER/smd
 * http://lammps.sandia.gov/movies.html#smd
 
-
 ----------
-
 
 .. _PKG-USER-SMTBQ:
 
@@ -2369,9 +2210,7 @@ Tetot (LAAS-CNRS, France).
 * :doc:`pair_style smtbq <pair_smtbq>`
 * examples/USER/smtbq
 
-
 ----------
-
 
 .. _PKG-USER-SPH:
 
@@ -2405,9 +2244,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * examples/USER/sph
 * http://lammps.sandia.gov/movies.html#sph
 
-
 ----------
-
 
 .. _PKG-USER-TALLY:
 
@@ -2429,9 +2266,7 @@ stress, etc) about individual interactions.
 * :doc:`compute \*/tally <compute_tally>`
 * examples/USER/tally
 
-
 ----------
-
 
 .. _PKG-USER-UEF:
 
@@ -2457,9 +2292,7 @@ supporting compute styles and an output option.
 * :doc:`dump cfg/uef <dump_cfg_uef>`
 * examples/uef
 
-
 ----------
-
 
 .. _PKG-USER-VTK:
 
@@ -2474,11 +2307,7 @@ other visualization packages.
 
 .. _vtk: http://www.vtk.org
 
-
-
 .. _paraview: http://www.paraview.org
-
-
 
 To use this package you must have VTK library available on your
 system.
@@ -2496,9 +2325,7 @@ This package has :ref:`specific installation instructions <user-vtk>` on the :do
 * lib/vtk/README
 * :doc:`dump vtk <dump_vtk>`
 
-
 ----------
-
 
 .. _PKG-USER-YAFF:
 

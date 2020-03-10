@@ -6,7 +6,6 @@ fix langevin/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/spin T Tdamp seed
@@ -17,10 +16,8 @@ Syntax
 * Tdamp = transverse magnetic damping parameter (adim)
 * seed = random number seed to use for white noise (positive integer)
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,7 +53,6 @@ Note: due to the form of the sLLG equation, this fix has to be defined just
 before the nve/spin fix (and after all other magnetic fixes).
 As an example:
 
-
 .. parsed-literal::
 
    fix 1 all precession/spin zeeman 0.01 0.0 0.0 1.0
@@ -72,9 +68,7 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -88,7 +82,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 The *langevin/spin* fix is part of the SPIN package.  This style is
 only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -106,19 +99,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mayergoyz1:
-
-
 
 **(Mayergoyz)** I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
 .. _Tranchida2:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

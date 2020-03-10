@@ -27,9 +27,7 @@ distribution.
 | combination of viz\_tool.py and plot.py and gui.py             |                                                  |
 +----------------------------------------------------------------+--------------------------------------------------+
 
-
 ----------
-
 
 For the viz\_tool.py and vizplotgui\_tool.py commands, replace "tool"
 with "gl" or "atomeye" or "pymol" or "vmd", depending on what
@@ -40,12 +38,9 @@ which is included in the pizza sub-directory.  See the `Pizza.py doc pages <pizz
 
 .. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
 
-
-
 Note that for AtomEye, you need version 3, and there is a line in the
 scripts that specifies the path and name of the executable.  See the
 AtomEye WWW pages `here <atomeye_>`_ or `here <atomeye3_>`_ for more details:
-
 
 .. parsed-literal::
 
@@ -54,11 +49,7 @@ AtomEye WWW pages `here <atomeye_>`_ or `here <atomeye3_>`_ for more details:
 
 .. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
 
-
-
 .. _atomeye3: http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html
-
-
 
 The latter link is to AtomEye 3 which has the scripting
 capability needed by these Python scripts.
@@ -68,7 +59,6 @@ open-source version of PyMol in your Python, so that you can import it
 from a Python script.  See the PyMol WWW pages `here <pymolhome_>`_ or
 `here <pymolopen_>`_ for more details:
 
-
 .. parsed-literal::
 
    http://www.pymol.org
@@ -76,11 +66,7 @@ from a Python script.  See the PyMol WWW pages `here <pymolhome_>`_ or
 
 .. _pymolhome: http://www.pymol.org
 
-
-
 .. _pymolopen: http://sourceforge.net/scm/?type=svn&group\_id=4546
-
-
 
 The latter link is to the open-source version.
 
@@ -88,9 +74,7 @@ Note that for VMD, you need a fairly current version (1.8.7 works for
 me) and there are some lines in the pizza/vmd.py script for 4 PIZZA
 variables that have to match the VMD installation on your system.
 
-
 ----------
-
 
 See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.

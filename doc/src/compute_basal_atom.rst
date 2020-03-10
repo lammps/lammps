@@ -6,7 +6,6 @@ compute basal/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID basal/atom
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -59,7 +57,6 @@ components of a unit vector.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -74,12 +71,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Barrett:
-
-
 
 **(Barrett)** Barrett, Tschopp, El Kadiri, Scripta Mat. 66, p.666 (2012).

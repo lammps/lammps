@@ -6,7 +6,6 @@ compute temp/profile command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/profile xflag yflag zflag binstyle args
@@ -34,11 +33,8 @@ Syntax
 
        *out* value = *tensor* or *bin*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -169,7 +165,6 @@ temperature :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 You should not use too large a velocity-binning grid, especially in
 3d.  In the current implementation, the binned velocity averages are
 summed across all processors, so this will be inefficient if the grid
@@ -186,12 +181,8 @@ Default
 
 The option default is out = tensor.
 
-
 ----------
 
-
 .. _Evans1:
-
-
 
 **(Evans)** Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).

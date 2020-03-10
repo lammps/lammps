@@ -1149,12 +1149,12 @@ void TILD::init_cross_potentials(){
       else {
         // Computational Convolution
         double *param1, *param2;
-        param1 = &potent_coeff[pot_map[ind1]][1];
-        param2 = &potent_coeff[pot_map[ind2]][1];
+        param1 = &potent_param[pot_map[ind1]][1];
+        param2 = &potent_param[pot_map[ind2]][1];
         int loc = potent_map[ind1][ind2];
 
         // 1st Potential to be convolved
-        init_potential(tmp,potent_coeff[pot_map[ind1]][0], param1 );
+        init_potential(tmp,potent_param[pot_map[ind1]][0], param1 );
 
         int j = 0;
         for (int i = 0; i < nfft; i++) {
@@ -1169,7 +1169,7 @@ void TILD::init_cross_potentials(){
         }
 
         // 2nd Potential to be convolved
-        init_potential(tmp,potent_coeff[pot_map[ind2]][0], param2 );
+        init_potential(tmp,potent_param[pot_map[ind2]][0], param2 );
 
         j = 0;
         for (int i = 0; i < nfft; i++) {

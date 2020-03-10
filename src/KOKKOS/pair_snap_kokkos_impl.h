@@ -29,7 +29,6 @@
 #include "kokkos.h"
 #include "sna.h"
 
-#include <chrono>
 
 #define MAXLINE 1024
 #define MAXWORD 3
@@ -196,24 +195,18 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (beta_max < inum) {
     beta_max = inum;
-    // changed data layout to reflect new threading pattern
-    //d_beta = Kokkos::View<F_FLOAT**, DeviceType>("PairSNAPKokkos:beta",inum,ncoeff);
     d_beta = Kokkos::View<F_FLOAT**, DeviceType>("PairSNAPKokkos:beta",ncoeff,inum);
     d_ninside = Kokkos::View<int*, DeviceType>("PairSNAPKokkos:ninside",inum);
   }
 
-  chunk_size = MIN(chunksize,inum);
+  chunk_size = MIN(chunksize,inum); // "chunksize" variable is set by user
   chunk_offset = 0;
 
   snaKK.grow_rij(chunk_size,max_neighs);
 
   EV_FLOAT ev;
 
-  // lazy design
   int idxu_max = snaKK.idxu_max;
-
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   while (chunk_offset < inum) { // chunk up loop to prevent running out of memory
 
@@ -326,7 +319,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (lmp->kokkos->ngpus == 0) { // CPU
       int vector_length = 1;
       int team_size = 1;
-      
+
       typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrjCPU> policy_duidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
       snaKK.set_dir(-1); // technically doesn't do anything
       Kokkos::parallel_for("ComputeDuidrjCPU",policy_duidrj_cpu,*this);
@@ -359,7 +352,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (lmp->kokkos->ngpus == 0) { // CPU
       int vector_length = 1;
       int team_size = 1;
-    
+
       typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU> policy_deidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
 
       Kokkos::parallel_for("ComputeDeidrjCPU",policy_deidrj_cpu,*this);
@@ -368,7 +361,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
       int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj>::team_size_max(*this);
       int vector_length = 32; // coalescing disaster right now, will fix later
-      int team_size = 8; 
+      int team_size = 8;
       if (team_size*vector_length > team_size_max)
         team_size = team_size_max/vector_length;
 
@@ -770,7 +763,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrj,const type
   const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
- 
+
   my_sna.compute_deidrj(team,ii,jj);
 }
 
@@ -787,7 +780,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrjCPU,const t
   const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
- 
+
   my_sna.compute_deidrj_cpu(team,ii,jj);
 }
 
@@ -822,9 +815,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
       a_f(j,0) -= fij[0];
       a_f(j,1) -= fij[1];
       a_f(j,2) -= fij[2];
-      
+
       // tally global and per-atom virial contribution
-      
+
       if (EVFLAG) {
         if (vflag_either) {
           v_tally_xyz<NEIGHFLAG>(ev,i,j,
@@ -833,7 +826,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
             -my_sna.rij(ii,jj,2));
         }
       }
-      
+
     });
   });
 
@@ -852,16 +845,16 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
         // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
         double evdwl = d_coeffi[0];
-        
+
         // E = beta.B + 0.5*B^t.alpha.B
 
         // linear contributions
-        
+
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           evdwl += d_coeffi[icoeff+1]*my_sna.blist(icoeff,ii);
-        
+
         // quadratic contributions
-        
+
         if (quadraticflag) {
           int k = ncoeff+1;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {

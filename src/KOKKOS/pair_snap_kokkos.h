@@ -37,7 +37,7 @@ struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeNeigh{};
 struct TagPairSNAPPreUi{};
 struct TagPairSNAPComputeUi{};
-struct TagPairSNAPComputeUiTot{}; // new --- accumulate ulist into ulisttot separately
+struct TagPairSNAPComputeUiTot{}; // accumulate ulist into ulisttot separately
 struct TagPairSNAPComputeUiCPU{}; 
 struct TagPairSNAPComputeZi{};
 struct TagPairSNAPComputeBi{};

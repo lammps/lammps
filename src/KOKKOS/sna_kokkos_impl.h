@@ -83,7 +83,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        h_idxcg_block(j1,j2,j) = idxcg_count; 
+        h_idxcg_block(j1,j2,j) = idxcg_count;
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
             idxcg_count++;
@@ -98,9 +98,9 @@ void SNAKokkos<DeviceType>::build_indexlist()
   auto h_idxu_block = Kokkos::create_mirror_view(idxu_block);
 
   int idxu_count = 0;
-  
+
   for(int j = 0; j <= twojmax; j++) {
-    h_idxu_block[j] = idxu_count; 
+    h_idxu_block[j] = idxu_count;
     for(int mb = 0; mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++)
         idxu_count++;
@@ -110,16 +110,16 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
   // index list for beta and B
 
-  int idxb_count = 0;  
+  int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
-  
+
   idxb_max = idxb_count;
   idxb = Kokkos::View<int*[3], DeviceType>("SNAKokkos::idxb",idxb_max);
   auto h_idxb = Kokkos::create_mirror_view(idxb);
-  
+
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
@@ -142,7 +142,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
-          h_idxb_block(j1,j2,j) = idxb_count; 
+          h_idxb_block(j1,j2,j) = idxb_count;
           idxb_count++;
         }
       }
@@ -158,19 +158,19 @@ void SNAKokkos<DeviceType>::build_indexlist()
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
-  
+
   idxz_max = idxz_count;
   idxz = Kokkos::View<int*[10], DeviceType>("SNAKokkos::idxz",idxz_max);
   auto h_idxz = Kokkos::create_mirror_view(idxz);
 
   idxz_block = Kokkos::View<int***, DeviceType>("SNAKokkos::idxz_block", jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
-  
+
   idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        h_idxz_block(j1,j2,j) = idxz_count; 
+        h_idxz_block(j1,j2,j) = idxz_count;
 
         // find right beta(ii,jjb) entry
         // multiply and divide by j+1 factors
@@ -227,7 +227,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   blist = t_sna_2d_ll("sna:blist",idxb_max,natom);
   //ulisttot = t_sna_2c("sna:ulisttot",natom,idxu_max);
   ulisttot = t_sna_2c_ll("sna:ulisttot",idxu_max,natom);
-  
+
   zlist = t_sna_2c_ll("sna:zlist",idxz_max,natom);
 
   //ulist = t_sna_3c("sna:ulist",natom,nmax,idxu_max);
@@ -324,7 +324,7 @@ void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<Dev
 
   compute_uarray_cpu(team, iatom, jnbor, x, y, z, z0, r);
   add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor));
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -382,7 +382,7 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
 
   const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
 
-  zlist(jjz,iatom).re = 0.0; 
+  zlist(jjz,iatom).re = 0.0;
   zlist(jjz,iatom).im = 0.0;
 
   int jju1 = idxu_block[j1] + (j1+1)*mb1min;
@@ -494,7 +494,7 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
     if (j1 == j) {
       if (j2 == j) betaj = 3*beta(jjb,iatom);
       else betaj = 2*beta(jjb,iatom);
-    } else betaj = beta(jjb,iatom); 
+    } else betaj = beta(jjb,iatom);
   } else if (j >= j2) {
     const int jjb = idxb_block(j,j2,j1);
     if (j2 == j) betaj = 2*beta(jjb,iatom)*(j1+1)/(j+1.0);
@@ -552,7 +552,7 @@ void SNAKokkos<DeviceType>::compute_deidrj(const typename Kokkos::TeamPolicy<Dev
 
       if (j % 2 == 0 && 2*mb == j) {
         if (ma == mb) { y_local = 0.5*y_local; }
-        else if (ma > mb) { y_local = { 0., 0. }; } 
+        else if (ma > mb) { y_local = { 0., 0. }; }
         // else the ma < mb gets "double counted", cancelling the 0.5.
       }
 
@@ -624,7 +624,6 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
 
 /* ----------------------------------------------------------------------
    compute Bi by summing conj(Ui)*Zi
-   not updated yet
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -798,7 +797,7 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
   // VMK Section 4.8.2
 
   // All writes go to global memory and shared memory
-  // so we can avoid all global memory reads!
+  // so we can avoid all global memory reads
   Kokkos::single(Kokkos::PerThread(team), [=]() {
     ulist(0,iatom,jnbor) = { 1.0, 0.0 };
     buf1[max_m_tile*team_rank] = {1.,0.};
@@ -838,7 +837,7 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
       const int jjup_shared_idx = max_m_tile*team_rank+mb*j+ma;
 
       SNAcomplex u_accum = {0., 0.};
-      
+
       // VMK recursion relation: grab contribution which is multiplied by a*
       const double rootpq1 = rootpqarray(j - ma, j - mb);
       const SNAcomplex u_up1 = (ma < j)?rootpq1*buf1[jjup_shared_idx]:SNAcomplex(0.,0.);
@@ -877,13 +876,12 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
       }
     });
     // In CUDA backend,
-    // ThreadVectorRange has a __syncwarp (appropriately masked for 
+    // ThreadVectorRange has a __syncwarp (appropriately masked for
     // vector lengths < 32) implict at the end
 
     // swap double buffers
     auto tmp = buf1; buf1 = buf2; buf2 = tmp;
     //std::swap(buf1, buf2); // throws warnings
-    
 
   }
 }
@@ -1552,7 +1550,7 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
                           factorial((j  + cc2) / 2) *
                           factorial((j  - cc2) / 2) *
                           (j + 1));
-            
+
             h_cglist[idxcg_count] = sum * dcg * sfaccg;
             idxcg_count++;
           }
@@ -1687,7 +1685,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
     bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
   bytes += natom * idxu_max * 3 * sizeof(double) * 2;    // dulist
-                                                       
+
   bytes += natom * idxz_max * sizeof(double) * 2;        // zlist
   bytes += natom * idxb_max * sizeof(double);            // blist
   bytes += natom * idxu_max * sizeof(double) * 2;        // ylist

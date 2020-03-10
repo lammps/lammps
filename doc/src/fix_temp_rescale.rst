@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 flow temp/rescale 100 1.0 1.1 0.02 0.5
    fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0
@@ -91,7 +91,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if one of this command had
 been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
 

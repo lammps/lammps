@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 flow temp/rescale/eff 10 1.0 100.0 0.02 1.0
 

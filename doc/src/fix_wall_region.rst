@@ -34,7 +34,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wall all wall/region mySphere lj93 1.0 1.0 2.5
    fix wall all wall/region mySphere harmonic 1.0 0.0 2.5

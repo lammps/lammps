@@ -12,7 +12,6 @@ Syntax
 .. parsed-literal::
 
    fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
-
    fix ID group-ID temp/csld Tstart Tstop Tdamp seed
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
@@ -29,10 +28,9 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all temp/csvr 300.0 300.0 100.0 54324
-
    fix 1 all temp/csld 100.0 300.0 10.0 123321
 
 Description
@@ -94,7 +92,7 @@ These fixes compute a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
 

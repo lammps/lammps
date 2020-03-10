@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all tfmc 0.1 1000.0 159345
    fix 1 all tfmc 0.05 600.0 658943 com 1 1 0

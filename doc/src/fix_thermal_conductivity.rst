@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all thermal/conductivity 100 z 20
    fix 1 all thermal/conductivity 50 z 20 swap 2
@@ -63,7 +63,7 @@ this induces a temperature gradient in the system which can be
 measured using commands such as the following, which writes the
 temperature profile (assuming z = edim) to the file tmp.profile:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute   ke all ke/atom
    variable  temp atom c_ke/1.5

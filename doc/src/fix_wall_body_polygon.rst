@@ -38,7 +38,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 all wall/body/polygon 1000.0 20.0 5.0 xplane -10.0 10.0
+.. code-block:: LAMMPS
+
+   fix 1 all wall/body/polygon 1000.0 20.0 5.0 xplane -10.0 10.0
 
 Description
 """""""""""

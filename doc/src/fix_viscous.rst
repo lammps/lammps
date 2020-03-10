@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 flow viscous 0.1
    fix 1 damp viscous 0.5 scale 3 2.5

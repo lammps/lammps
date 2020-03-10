@@ -50,7 +50,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 srd srd 10 big 1.0 0.25 482984
    fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5

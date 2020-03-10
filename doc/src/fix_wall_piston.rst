@@ -35,7 +35,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix xwalls all wall/piston zlo
    fix walls all wall/piston zlo pos 1.0 vel 10.0 units box

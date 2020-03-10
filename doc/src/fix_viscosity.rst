@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all viscosity 100 x z 20
    fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5
@@ -62,7 +62,7 @@ directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute layers all chunk/atom bin/1d z lower 0.05 units reduced
    fix f1 all ave/chunk 100 10 1000 layers vx file tmp.profile

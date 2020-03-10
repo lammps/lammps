@@ -42,7 +42,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wallhi all wall/ees xlo -1.0 1.0 1.0 2.5 units box
    fix wallhi all wall/ees xhi EDGE 1.0 1.0 2.5

@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all vector 100 c_myTemp
    fix 1 all vector 5 c_myTemp v_integral
@@ -48,11 +48,11 @@ time-integrated using the :doc:`variable trap() <variable>` function.
 For example the velocity auto-correlation function (VACF) can be
 time-integrated, to yield a diffusion coefficient, as follows:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all vacf
    fix             5 all vector 1 c_2[4]
-   variable        diff equal dt\*trap(f_5)
+   variable        diff equal dt*trap(f_5)
    thermo_style    custom step v_diff
 
 The group specified with this command is ignored.  However, note that

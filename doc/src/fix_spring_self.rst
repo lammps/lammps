@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix tether boundary-atoms spring/self 10.0
    fix zrest  move spring/self 10.0 z

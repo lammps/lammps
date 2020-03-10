@@ -38,7 +38,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix xwalls all wall/srd xlo EDGE xhi EDGE
    fix walls all wall/srd xlo 0.0 ylo 10.0 units box
@@ -139,7 +139,7 @@ Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ramp equal ramp(0,10)
    fix 1 all wall/srd xlo v_ramp
@@ -153,20 +153,20 @@ in a time-dependent fashion using equal-style
    variable wiggle equal cwiggle(0.0,5.0,3.0)
    fix 1 all wall/srd xlo v_wiggle
 
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The displace(c0,velocity) function does
-something similar using the equation position = c0 + velocity\*delta,
-where delta is the elapsed time.
+The *ramp(lo,hi)* function adjusts the wall position linearly from *lo*
+to *hi* over the course of a run.  The *vdisplace(c0,velocity)* function
+does something similar using the equation *position = c0 +
+velocity\*delta*, where *delta* is the elapsed time.
 
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
+The *swiggle(c0,A,period)* function causes the wall position to
+oscillate sinusoidally according to this equation, where *omega = 2 PI
+/ period*\ :
 
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
 
-The cwiggle(c0,A,period) function causes the wall position to
+The *cwiggle(c0,A,period)* function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:

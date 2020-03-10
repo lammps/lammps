@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all tune/kspace 100
 

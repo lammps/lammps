@@ -82,7 +82,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
    fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
@@ -285,7 +285,7 @@ in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.  The wall interaction parameters (epsilon,
 sigma) could be varied with additional variable definitions.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ramp equal ramp(0,10)
    fix 1 all wall xlo v_ramp 1.0 1.0 2.5
@@ -299,20 +299,20 @@ sigma) could be varied with additional variable definitions.
    variable wiggle equal cwiggle(0.0,5.0,3.0)
    fix 1 all wall xlo v_wiggle 1.0 1.0 2.5
 
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The vdisplace(c0,velocity) function does
-something similar using the equation position = c0 + velocity\*delta,
-where delta is the elapsed time.
+The *ramp(lo,hi)* function adjusts the wall position linearly from *lo* to
+*hi* over the course of a run.  The *vdisplace(c0,velocity)* function does
+something similar using the equation *position = c0 + velocity\*delta*\ ,
+where *delta* is the elapsed time.
 
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
+The *swiggle(c0,A,period)* function causes the wall position to
+oscillate sinusoidally according to this equation, where *omega = 2 PI
+/ period*\ :
 
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
 
-The cwiggle(c0,A,period) function causes the wall position to
+The *cwiggle(c0,A,period)* function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:

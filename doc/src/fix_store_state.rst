@@ -64,7 +64,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all store/state 0 x y z
    fix 1 all store/state 0 xu yu zu com yes

@@ -60,7 +60,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
    fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
@@ -111,7 +111,8 @@ material.
 
 .. note::
 
-   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`, versions of LAMMPS before 9Jan09 used a
+   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`,
+   versions of LAMMPS before 9Jan09 used a
    different equation for Hertzian interactions.  This means Hertizian
    wall/particle interactions have also changed.  They now include a
    sqrt(radius) term which was not present before.  Also the previous

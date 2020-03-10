@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 5.0

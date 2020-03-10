@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 protein spring/rg 5.0 10.0
    fix 2 micelle spring/rg 5.0 NULL

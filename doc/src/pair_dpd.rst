@@ -129,12 +129,16 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 .. note::
 
-   The virial calculation for pressure when using this pair style
+   The virial calculation for pressure when using these pair styles
    includes all the components of force listed above, including the
-   random force.
+   random force.  Since the random force depends on random numbers,
+   everything that changes the order of atoms in the neighbor list
+   (e.g. different number of MPI ranks or a different neighbor list
+   skin distance) will also change the sequence in which the random
+   numbers are applied and thus the individual forces and therefore
+   also the virial/pressure.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.

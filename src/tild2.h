@@ -75,7 +75,6 @@ class TILD : public KSpace{
   double **chi_values;
   double grid_res;
   virtual int modify_param(int, char**);
-  double **potent_coeff;
   int num_potent;
 
   // group-group interactions

@@ -6,7 +6,7 @@ read_data command
 Syntax
 """"""
 
- 
+
 .. code-block:: LAMMPS
 
    read_data file keyword args ...
@@ -14,9 +14,9 @@ Syntax
 * file = name of data file to read in
 * zero or more keyword/arg pairs may be appended
 * keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *group* or *nocoeff* or *fix*
-  
+
   .. parsed-literal::
-  
+
        *add* arg = *append* or *IDoffset* or *IDoffset MOLoffset* or *merge*
          append = add new atoms with atom IDs appended to current IDs
          IDoffset = add new atoms with atom IDs having IDoffset added
@@ -493,16 +493,16 @@ Atoms section:
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        6 70 108.5 0 0
 
 
@@ -521,9 +521,9 @@ input script.
 
 * one line per improper type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = improper type (1-N)
        coeffs = list of coeffs (see :doc:`improper_coeff <improper_coeff>`)
 
@@ -537,9 +537,9 @@ input script.
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
@@ -553,17 +553,17 @@ input script.
 
 * one line per angle
 * line syntax: ID type atom1 atom2 atom3
-  
+
   .. parsed-literal::
-  
+
        ID = number of angle (1-Nangles)
        type = angle type (1-Nangletype)
        atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
 
 example:
-  
+
   .. parsed-literal::
-  
+
        2 2 17 29 430
 
 
@@ -582,9 +582,9 @@ integers (1, not 1.0).
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
@@ -849,26 +849,26 @@ script.
 
 * one or more lines per body
 * first line syntax: atom-ID Ninteger Ndouble
-  
+
   .. parsed-literal::
-  
+
        Ninteger = # of integer quantities for this particle
        Ndouble = # of floating-point quantities for this particle
 
 * 0 or more integer lines with total of Ninteger values
 * 0 or more double lines with total of Ndouble values
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 6
        2 3 2
        1.0 2.0 3.0 1.0 2.0 4.0
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 0 14
        1.0 2.0 3.0 1.0 2.0 4.0 1.0
        2.0 3.0 1.0 2.0 4.0 4.0 2.0
@@ -904,16 +904,16 @@ The *Bodies* section must appear after the *Atoms* section.
 
 * one line per bond type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = bond type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        4 250 1.49
 
 
@@ -932,9 +932,9 @@ script.
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
@@ -948,9 +948,9 @@ script.
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
@@ -964,9 +964,9 @@ script.
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
@@ -980,17 +980,17 @@ script.
 
 * one line per bond
 * line syntax: ID type atom1 atom2
-  
+
   .. parsed-literal::
-  
+
        ID = bond number (1-Nbonds)
        type = bond type (1-Nbondtype)
        atom1,atom2 = IDs of 1st,2nd atoms in bond
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 17 29
 
 
@@ -1006,16 +1006,16 @@ in this section must be integers (1, not 1.0).
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 0.6 1 0 1
 
 
@@ -1034,17 +1034,17 @@ Coefficients can also be set via the
 
 * one line per dihedral
 * line syntax: ID type atom1 atom2 atom3 atom4
-  
+
   .. parsed-literal::
-  
+
        ID = number of dihedral (1-Ndihedrals)
        type = dihedral type (1-Ndihedraltype)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 4 17 29 30 21
 
 
@@ -1061,17 +1061,17 @@ section must be integers (1, not 1.0).
 
 * one line per ellipsoid
 * line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is an ellipsoid
        shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
        quatw,quati,quatj,quatk = quaternion components for orientation of atom
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 1 2 1 1 0 0 0
 
 
@@ -1107,9 +1107,9 @@ The *Ellipsoids* section must appear after the *Atoms* section.
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
@@ -1123,16 +1123,16 @@ The *Ellipsoids* section must appear after the *Atoms* section.
 
 * one line per improper type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = improper type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        2 20 0.0548311
 
 
@@ -1151,17 +1151,17 @@ Coefficients can also be set via the
 
 * one line per improper
 * line syntax: ID type atom1 atom2 atom3 atom4
-  
+
   .. parsed-literal::
-  
+
        ID = number of improper (1-Nimpropers)
        type = improper type (1-Nimpropertype)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 17 29 13 100
 
 
@@ -1181,17 +1181,17 @@ values in this section must be integers (1, not 1.0).
 
 * one line per line segment
 * line syntax: atom-ID x1 y1 x2 y2
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is a line segment
        x1,y1 = 1st end point
        x2,y2 = 2nd end point
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 1.0 0.0 2.0 0.0
 
 
@@ -1218,16 +1218,16 @@ The *Lines* section must appear after the *Atoms* section.
 
 * one line per atom type
 * line syntax: ID mass
-  
+
   .. parsed-literal::
-  
+
        ID = atom type (1-N)
        mass = mass value
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 1.01
 
 
@@ -1245,9 +1245,9 @@ e.g. :doc:`atom_style sphere <atom_style>`.
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
@@ -1261,16 +1261,16 @@ e.g. :doc:`atom_style sphere <atom_style>`.
 
 * one line per atom type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = atom type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 0.022 2.35197 0.022 2.35197
 
 
@@ -1292,17 +1292,17 @@ script.
 
 * one line per pair of atom types for all I,J with I <= J
 * line syntax: ID1 ID2 coeffs
-  
+
   .. parsed-literal::
-  
+
        ID1 = atom type I = 1-N
        ID2 = atom type J = I-N, with I <= J
        coeffs = list of coeffs
 
 * examples:
-  
+
   .. parsed-literal::
-  
+
        3 3 0.022 2.35197 0.022 2.35197
        3 5 0.022 2.35197 0.022 2.35197
 
@@ -1326,18 +1326,18 @@ script.
 
 * one line per triangle
 * line syntax: atom-ID x1 y1 z1 x2 y2 z2 x3 y3 z3
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is a line segment
        x1,y1,z1 = 1st corner point
        x2,y2,z2 = 2nd corner point
        x3,y3,z3 = 3rd corner point
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0
 
 

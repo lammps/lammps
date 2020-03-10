@@ -19,9 +19,9 @@ Syntax
 * Nbin = # of layers in pdim direction (must be even number)
 * zero or more keyword/value pairs may be appended
 * keyword = *swap* or *target*
-  
+
   .. parsed-literal::
-  
+
        *swap* value = Nswap = number of swaps to perform every N steps
        *vtarget* value = V or INF = target velocity of swap partners (velocity units)
 

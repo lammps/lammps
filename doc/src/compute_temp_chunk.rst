@@ -16,18 +16,18 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * zero or more values can be listed as value1,value2,etc
 * value = *temp* or *kecom* or *internal*
-  
+
   .. parsed-literal::
-  
+
        temp = temperature of each chunk
        kecom = kinetic energy of each chunk based on velocity of center of mass
        internal = internal kinetic energy of each chunk
 
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *bias* or *adof* or *cdof*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
          yes = subtract center-of-mass velocity from each chunk before calculating temperature
          no = do not subtract center-of-mass velocity

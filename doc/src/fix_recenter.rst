@@ -16,9 +16,9 @@ Syntax
 * x,y,z = constrain center-of-mass to these coords (distance units),         any coord can also be NULL or INIT (see below)
 * zero or more keyword/value pairs may be appended
 * keyword = *shift* or *units*
-  
+
   .. parsed-literal::
-  
+
        *shift* value = group-ID
          group-ID = group of atoms whose coords are shifted
        *units* value = *box* or *lattice* or *fraction*

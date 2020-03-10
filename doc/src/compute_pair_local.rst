@@ -15,9 +15,9 @@ Syntax
 * pair/local = style name of this compute command
 * one or more values may be appended
 * value = *dist* or *eng* or *force* or *fx* or *fy* or *fz* or *pN*
-  
+
   .. parsed-literal::
-  
+
        *dist* = pairwise distance
        *eng* = pairwise energy
        *force* = pairwise force
@@ -26,9 +26,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* arg = *type* or *radius*
 
 

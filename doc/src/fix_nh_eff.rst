@@ -19,9 +19,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style\_name = *nvt/eff* or *npt/eff* or *nph/eff*
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate*
        *temp* values = Tstart Tstop Tdamp

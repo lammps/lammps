@@ -18,9 +18,9 @@ Syntax
 * wall/reflect = style name of this fix command
 * one or more face/arg pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
-  
+
   .. parsed-literal::
-  
+
        arg = EDGE or constant or variable
          EDGE = current lo edge of simulation box
          constant = number like 0.0 or 30.0 (distance units)
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units

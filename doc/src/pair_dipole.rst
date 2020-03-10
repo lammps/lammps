@@ -41,17 +41,17 @@ Syntax
 * cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
 * cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units)
 * flag\_lj = *long* or *cut* or *off*
-  
+
   .. parsed-literal::
-  
+
        *long* = use long-range damping on dispersion 1/r\^6 term
        *cut* = use a cutoff on dispersion 1/r\^6 term
        *off* = omit disperion 1/r\^6 term entirely
 
 * flag\_coul = *long* or *off*
-  
+
   .. parsed-literal::
-  
+
        *long* = use long-range damping on Coulombic 1/r and point-dipole terms
        *off* = omit Coulombic and point-dipole terms entirely
 
@@ -92,29 +92,29 @@ interactions are computed by these formulas for the energy (E), force
 
 .. math::
 
-   E_{LJ}  = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E_{LJ}  = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                         \left(\frac{\sigma}{r}\right)^6 \right] \\
    E_{qq}  = & \frac{q_i q_j}{r} \\
    E_{qp}  = & \frac{q}{r^3} (p \bullet \vec{r}) \\
-   E_{pp}  = & \frac{1}{r^3} (\vec{p_i} \bullet \vec{p_j}) - 
+   E_{pp}  = & \frac{1}{r^3} (\vec{p_i} \bullet \vec{p_j}) -
              \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r}) \\
              & \\
    F_{qq}  = & \frac{q_i q_j}{r^3} \vec{r} \\
-   F_{qp}  = & -\frac{q}{r^3} \vec{p} + \frac{3q}{r^5} 
+   F_{qp}  = & -\frac{q}{r^3} \vec{p} + \frac{3q}{r^5}
              (\vec{p} \bullet \vec{r}) \vec{r} \\
    F_{pp}  = & \frac{3}{r^5} (\vec{p_i} \bullet \vec{p_j}) \vec{r} -
-             \frac{15}{r^7} (\vec{p_i} \bullet \vec{r}) 
-             (\vec{p_j} \bullet \vec{r}) \vec{r} + 
-             \frac{3}{r^5} \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + 
+             \frac{15}{r^7} (\vec{p_i} \bullet \vec{r})
+             (\vec{p_j} \bullet \vec{r}) \vec{r} +
+             \frac{3}{r^5} \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} +
              (\vec{p_i} \bullet \vec{r}) \vec{p_j} \right] \\
              & \\
    T_{pq} = T_{ij}  = & \frac{q_j}{r^3} (\vec{p_i} \times \vec{r}) \\
    T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} (\vec{p_j} \times \vec{r}) \\
-   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p_i} \times \vec{p_j}) + 
+   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p_i} \times \vec{p_j}) +
                       \frac{3}{r^5} (\vec{p_j} \bullet \vec{r})
                       (\vec{p_i} \times \vec{r}) \\
-   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) + 
-                      \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) 
+   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) +
+                      \frac{3}{r^5} (\vec{p_i} \bullet \vec{r})
                       (\vec{p_j} \times \vec{r})
 
 
@@ -151,7 +151,7 @@ potentials are computed by these formulas for the energy (E), force
 
    E_{LJ}  = &  4\epsilon \left\{ \left[ \left( \frac{\sigma}{r} \right)^{\!12} -
   \left( \frac{\sigma}{r} \right)^{\!6}  \right] +
-  \left[ 6\left( \frac{\sigma}{r_c} \right)^{\!12} - 
+  \left[ 6\left( \frac{\sigma}{r_c} \right)^{\!12} -
   3\left(\frac{\sigma}{r_c}\right)^{\!6}\right]\left(\frac{r}{r_c}\right)^{\!2}
   - 7\left( \frac{\sigma}{r_c} \right)^{\!12} +
   4\left( \frac{\sigma}{r_c} \right)^{\!6}\right\} \\
@@ -163,14 +163,14 @@ potentials are computed by these formulas for the energy (E), force
   3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p}\bullet\vec{r}) \\
   E_{pp} = & \left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right]\left[\frac{1}{r^3} 
-  (\vec{p_i} \bullet \vec{p_j}) - \frac{3}{r^5} 
+  3\left(\frac{r}{r_c}\right)^{\!4}\right]\left[\frac{1}{r^3}
+  (\vec{p_i} \bullet \vec{p_j}) - \frac{3}{r^5}
   (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r})\right] \\
            & \\
-  
-  F_{LJ}  = & \left\{\left[48\epsilon \left(\frac{\sigma}{r}\right)^{\!12} - 
-  24\epsilon \left(\frac{\sigma}{r}\right)^{\!6} \right]\frac{1}{r^2} - 
-  \left[48\epsilon \left(\frac{\sigma}{r_c}\right)^{\!12} - 24\epsilon 
+
+  F_{LJ}  = & \left\{\left[48\epsilon \left(\frac{\sigma}{r}\right)^{\!12} -
+  24\epsilon \left(\frac{\sigma}{r}\right)^{\!6} \right]\frac{1}{r^2} -
+  \left[48\epsilon \left(\frac{\sigma}{r_c}\right)^{\!12} - 24\epsilon
   \left(\frac{\sigma}{r_c}\right)^{\!6} \right]\frac{1}{r_c^2}\right\}\vec{r}\\
   F_{qq}  = & \frac{q_i q_j}{r}\left(\frac{1}{r^2} -
   \frac{1}{r_c^2}\right)\vec{r} \\
@@ -178,22 +178,22 @@ potentials are computed by these formulas for the energy (E), force
   \left(\frac{r}{r_c}\right)^{\!2}\right](\vec{p}\bullet\vec{r})\vec{r} +
   \frac{q}{r^3}\left[1-3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] \vec{p} \\
-  F_{qp} = & F_{ij}  = \frac{3q}{r^5} \left[ 1 - 
+  F_{qp} = & F_{ij}  = \frac{3q}{r^5} \left[ 1 -
   \left(\frac{r}{r_c}\right)^{\!2}\right] (\vec{p}\bullet\vec{r})\vec{r} -
   \frac{q}{r^3}\left[1-3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] \vec{p} \\
   F_{pp}  = &\frac{3}{r^5}\Bigg\{\left[1-\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[(\vec{p_i}\bullet\vec{p_j}) - \frac{3}{r^2} (\vec{p_i}\bullet\vec{r}) 
+  \left[(\vec{p_i}\bullet\vec{p_j}) - \frac{3}{r^2} (\vec{p_i}\bullet\vec{r})
   (\vec{p_j} \bullet \vec{r})\right] \vec{r} + \\
     & \left[1 -
   4\left(\frac{r}{r_c}\right)^{\!3}+3\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + (\vec{p_i} \bullet \vec{r}) 
+  \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + (\vec{p_i} \bullet \vec{r})
   \vec{p_j} -\frac{2}{r^2} (\vec{p_i} \bullet \vec{r})
   (\vec{p_j} \bullet \vec{r})\vec{r}\right] \Bigg\}
 
 .. math::
 
-   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} \left[ 1 - 
+   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} \left[ 1 -
   3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p_i}\times\vec{r}) \\
   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} \left[ 1 -
@@ -207,8 +207,8 @@ potentials are computed by these formulas for the energy (E), force
   T_{pp} = T_{ji} = & -\frac{1}{r^3}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
   3\left(\frac{r}{r_c}\right)^{\!4}\right](\vec{p_j} \times \vec{p_i}) + \\
                      & \frac{3}{r^5}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \bullet \vec{r}) 
-  (\vec{p_j} \times \vec{r}) 
+  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \bullet \vec{r})
+  (\vec{p_j} \times \vec{r})
 
 
 where :math:`\epsilon` and :math:`\sigma` are the standard LJ

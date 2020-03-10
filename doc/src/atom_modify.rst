@@ -13,9 +13,9 @@ Syntax
 
 * one or more keyword/value pairs may be appended
 * keyword = *id* or *map* or *first* or *sort*
-  
+
   .. parsed-literal::
-  
+
         *id* value = *yes* or *no*
         *map* value = *yes* or *array* or *hash*
         *first* value = group-ID = group whose atoms will appear first in internal atom lists

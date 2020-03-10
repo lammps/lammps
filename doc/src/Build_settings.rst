@@ -12,7 +12,7 @@ explain how to do this for building both with CMake and make.
 * :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
 * :ref:`Memory allocation alignment <align>`
 * :ref:`Workaround for long long integers <longlong>`
-* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library  
+* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library
 
 
 ----------

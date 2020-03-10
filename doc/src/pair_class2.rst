@@ -84,7 +84,7 @@ The *lj/class2* styles compute a 6/9 Lennard-Jones potential given by
 
 .. math::
 
-   E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 - 
+   E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 -
      3 \left(\frac{\sigma}{r}\right)^6 \right]
    \qquad r < r_c
 

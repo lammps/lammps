@@ -15,9 +15,9 @@ Syntax
 * python/invoke = style name of this fix command
 * N = execute every N steps
 * callback = *post\_force* or *end\_of\_step*
-  
+
   .. parsed-literal::
-  
+
        *post_force* = callback after force computations on atoms every N time steps
        *end_of_step* = callback after every N time steps
 

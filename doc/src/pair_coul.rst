@@ -174,8 +174,8 @@ shifted force model described in :ref:`Fennell <Fennell1>`, given by:
 
 .. math::
 
-   E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
-   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
+   E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
 
 
 where :math:`\alpha` is the damping parameter and erfc() is the
@@ -193,9 +193,9 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
 .. math::
 
-   E_i = \frac{1}{2} \sum_{j \neq i} 
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
-   \frac{1}{2} \sum_{j \neq i} 
+   E_i = \frac{1}{2} \sum_{j \neq i}
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{1}{2} \sum_{j \neq i}
    \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 

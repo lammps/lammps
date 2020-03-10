@@ -21,9 +21,9 @@ Syntax
 * nve/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *update* or *disc*
-  
+
   .. parsed-literal::
-  
+
        *update* value = *dipole* or *dipole/dlm*
          dipole = update orientation of dipole moment during integration
          dipole/dlm = use DLM integrator to update dipole orientation

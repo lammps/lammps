@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/wall\_surface = style name of this fix command
 * arg = *file*
-  
+
   .. parsed-literal::
-  
+
         *file* = file name of a triangular mesh in stl format
 
 * type = particle type to be given to the new particles created by this fix

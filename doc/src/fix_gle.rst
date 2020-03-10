@@ -18,9 +18,9 @@ Syntax
 * Amatrix = file to read the drift matrix A from
 * seed = random number seed to use for generating noise (positive integer)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *noneq* or *every*
          *noneq* Cmatrix  = file to read the non-equilibrium covariance matrix from
          *every* stride   = apply the GLE once every time steps. Reduces the accuracy

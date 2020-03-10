@@ -38,7 +38,7 @@ coefficients.
 | LJ sigma of O-O = 3.1536
 | LJ epsilon, sigma of OH, HH = 0.0
 | Coulombic cutoff = 8.5
-| 
+|
 
 For the TIP4/Ice model (J Chem Phys, 122, 234511 (2005);
 http://dx.doi.org/10.1063/1.1931662) these values can be used:
@@ -54,7 +54,7 @@ http://dx.doi.org/10.1063/1.1931662) these values can be used:
 | LJ sigma of O-O = 3.1668
 | LJ epsilon, sigma of OH, HH = 0.0
 | Coulombic cutoff = 8.5
-| 
+|
 
 For the TIP4P/2005 model (J Chem Phys, 123, 234505 (2005);
 http://dx.doi.org/10.1063/1.2121687), these values can be used:
@@ -70,7 +70,7 @@ http://dx.doi.org/10.1063/1.2121687), these values can be used:
 | LJ sigma of O-O = 3.1589
 | LJ epsilon, sigma of OH, HH = 0.0
 | Coulombic cutoff = 8.5
-| 
+|
 
 These are the parameters to use for TIP4P with a long-range Coulombic
 solver (e.g. Ewald or PPPM in LAMMPS):
@@ -85,7 +85,7 @@ solver (e.g. Ewald or PPPM in LAMMPS):
 | LJ epsilon of O-O = 0.16275
 | LJ sigma of O-O = 3.16435
 | LJ epsilon, sigma of OH, HH = 0.0
-| 
+|
 
 Note that the when using the TIP4P pair style, the neighbor list
 cutoff for Coulomb interactions is effectively extended by a distance

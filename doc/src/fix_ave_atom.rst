@@ -18,9 +18,9 @@ Syntax
 * Nfreq = calculate averages every this many timesteps
   one or more input values can be listed
 * value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[i], f\_ID, f\_ID[i], v\_name
-  
+
   .. parsed-literal::
-  
+
        x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)

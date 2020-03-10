@@ -18,9 +18,9 @@ Syntax
 * t\_s = number of steps for the switching procedure
 * zero or more keyword/value pairs may be appended to args
 * keyword = *function*
-  
+
   .. parsed-literal::
-  
+
        *function* value = function-ID
          function-ID = ID of the switching function (1 or 2)
 

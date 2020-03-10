@@ -13,9 +13,9 @@ Syntax
 
 * style = *gpu* or *intel* or *kokkos* or *omp*
 * args = arguments specific to the style
-  
+
   .. parsed-literal::
-  
+
        *gpu* args = Ngpu keyword value ...
          Ngpu = # of GPUs per node
          zero or more keyword/value pairs may be appended

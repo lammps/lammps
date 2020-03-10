@@ -16,9 +16,9 @@ Syntax
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended
 * attribute = *pair* or *kspace* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *pair* args = pstyle pparam I J v_name
          pstyle = pair style name, e.g. lj/cut
          pparam = parameter to adapt over time
@@ -33,9 +33,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *scale* or *reset* or *after*
-  
+
   .. parsed-literal::
-  
+
        *scale* value = *no* or *yes*
          *no* = the variable value is the new setting
          *yes* = the variable value multiplies the original setting

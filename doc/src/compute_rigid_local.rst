@@ -15,9 +15,9 @@ Syntax
 * rigid/local = style name of this compute command
 * rigidID = ID of fix rigid/small command or one of its variants
 * input = one or more rigid body attributes
-  
+
   .. parsed-literal::
-  
+
        possible attributes = id, mol, mass,
                              x, y, z, xu, yu, zu, ix, iy, iz
                              vx, vy, vz, fx, fy, fz,

@@ -22,9 +22,9 @@ Syntax
 * Btarget = desired time boost factor (unitless)
 * zero or more keyword/value pairs may be appended
 * keyword = *bound* or *reset* or *check/ghost* or *check/bias*
-  
+
   .. parsed-literal::
-  
+
        *bound* value = Bfrac
          Bfrac =  -1 or a value >= 0.0
        *reset* value = Rfreq

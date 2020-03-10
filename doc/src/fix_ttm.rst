@@ -19,9 +19,9 @@ Syntax
 * style = *ttm* or *ttm\_mod*
 * seed = random number seed to use for white noise (positive integer)
 * remaining arguments for fix ttm:
-  
+
   .. parsed-literal::
-  
+
        C_e  = electronic specific heat (energy/(electron\*temperature) units)
        rho_e = electronic density (electrons/volume units)
        kappa_e = electronic thermal conductivity (energy/(time\*distance\*temperature) units)
@@ -36,9 +36,9 @@ Syntax
        T_outfile = filename to write TTM temperatures to (only needed if N > 0)
 
 * remaining arguments for fix ttm/mod:
-  
+
   .. parsed-literal::
-  
+
        init_file = file with the parameters to TTM
        Nx = number of thermal solve grid points in the x-direction (positive integer)
        Ny = number of thermal solve grid points in the y-direction (positive integer)
@@ -111,8 +111,8 @@ transfer between the subsystems:
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  C_e \rho_e \frac{\partial T_e}{\partial t} =
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a'
 
 
@@ -200,8 +200,8 @@ heat sources (e.g. laser heating in ablation simulations):
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  C_e \rho_e \frac{\partial T_e}{\partial t} =
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
 
 

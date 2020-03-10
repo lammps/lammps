@@ -53,7 +53,7 @@ formula:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} -
      \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
      \qquad r < r_c + \Delta
 

@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/berendsen = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
-  
+
   .. parsed-literal::
-  
+
        Tstart can be a variable (see below)
 
 * Tdamp = temperature damping parameter (time units)

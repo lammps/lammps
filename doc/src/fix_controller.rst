@@ -19,9 +19,9 @@ Syntax
 * Ki = integral gain in PID equation (unitless)
 * Kd = derivative gain in PID equation (unitless)
 * pvar = process variable of form c\_ID, c\_ID[I], f\_ID, f\_ID[I], or v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID
@@ -100,7 +100,7 @@ the following dynamic equation:
 .. math::
 
    \frac{dc}{dt}  = \hat{E} -\alpha (K_p e + K_i \int_0^t e \, dt + K_d \frac{de}{dt} )
-   
+
 where *c* is the continuous time analog of the control variable,
 *e* =\ *pvar*\ -\ *setpoint* is the error in the process variable, and
 :math:`\alpha`, :math:`K_p`, :math:`K_i` , and :math:`K_d` are constants

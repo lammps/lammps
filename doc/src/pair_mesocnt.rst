@@ -46,17 +46,17 @@ potential.
 In LAMMPS, cylindrical segments are represented by bonds. Each
 segment is defined by its two end points ("nodes") which correspond
 to atoms in LAMMPS. For the exact functional form of the potential
-and implementation details, the reader is referred to the 
-original papers :ref:`(Volkov1) <Volkov1>` and 
+and implementation details, the reader is referred to the
+original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
-The potential requires tabulated data provided in a single ASCII 
-text file specified in the :doc:`pair_coeff <pair_coeff>` command. 
+The potential requires tabulated data provided in a single ASCII
+text file specified in the :doc:`pair_coeff <pair_coeff>` command.
 The first line of the file provides a time stamp and
 general information. The second line lists four integers giving
 the number of data points provided in the subsequent four
-data tables. The third line lists four floating point numbers: 
-the CNT radius R, the LJ parameter sigma and two numerical 
+data tables. The third line lists four floating point numbers:
+the CNT radius R, the LJ parameter sigma and two numerical
 parameters delta1 and delta2. These four parameters are given
 in Angstroms. This is followed by four data tables each separated
 by a single empty line. The first two tables have two columns
@@ -66,11 +66,11 @@ array and list the parameters Phi and uSemiParallel respectively.
 uInfParallel and uSemiParallel are given in eV/Angstrom, Phi is
 given in eV and Gamma is unitless.
 
-Potential files for CNTs can be readily generated using the freely 
+Potential files for CNTs can be readily generated using the freely
 available code provided on
 
 .. parsed-literal::
-  
+
    https://github.com/phankl/cntpot
 
 Using the same approach, it should also be possible to
@@ -89,7 +89,7 @@ boron nitride nanotubes.
 
    The *mesocnt* style requires CNTs to be represented
    as a chain of atoms connected by bonds. Atoms need
-   to be numbered consecutively within one chain. 
+   to be numbered consecutively within one chain.
    Atoms belonging to different CNTs need to be assigned
    different molecule IDs.
 
@@ -108,7 +108,7 @@ This pair style does not support mixing.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`, 
+The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`,
 since it is stored in tabulated potential files.
 Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
@@ -152,5 +152,5 @@ Related commands
 
 
 
-**(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts, 
+**(Volkov2)** Volkov, Simov and Zhigilei, APS Meeting Abstracts,
 Q31.013 (2008).

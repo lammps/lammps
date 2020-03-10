@@ -104,7 +104,7 @@ energy Ei of an atom I is given by
 
 .. math::
 
-   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
+   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) +
          \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
 
 
@@ -376,8 +376,8 @@ given by
 
 .. math::
 
-   E_i = F_\alpha \left(\sum_{j \neq i}\ 
-   \rho_{\alpha\beta} (r_{ij})\right) + 
+   E_i = F_\alpha \left(\sum_{j \neq i}\
+   \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
 
 

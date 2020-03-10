@@ -115,7 +115,7 @@ Note that in this case the specified *Kspring* is in force/distance
 units.
 
 With a value of *ideal*\ , the spring force is computed as suggested in
-ref`(WeinanE) <WeinanE>` 
+ref`(WeinanE) <WeinanE>`
 
 
 .. parsed-literal::

@@ -14,9 +14,9 @@ Syntax
 * file = name of dump file to read
 * Nstep = snapshot timestep to read from file
 * one or more fields may be appended
-  
+
   .. parsed-literal::
-  
+
      field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
        *x*\ ,\ *y*\ ,\ *z* = atom coordinates
        *vx*\ ,\ *vy*\ ,\ *vz* = velocity components
@@ -26,9 +26,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *nfile* or *box* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
-  
+
   .. parsed-literal::
-  
+
        *nfile* value = Nfiles = how many parallel dump files exist
        *box* value = *yes* or *no* = replace simulation box with dump box
        *replace* value = *yes* or *no* = overwrite atoms with dump atoms
@@ -141,16 +141,16 @@ contain multiple directories separated by a colon (or semi-colon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 
-The *adios* format supports reading data that was written by the 
-:doc:`dump adios <dump_adios>` command. The 
+The *adios* format supports reading data that was written by the
+:doc:`dump adios <dump_adios>` command. The
 entire dump is read in parallel across all the processes, dividing
 the atoms evenly among the processes. The number of writers that
 has written the dump file does not matter. Using the adios style for
-dump and read_dump is a convenient way to dump all atoms from *N* 
-writers and read it back by *M* readers. If one is running two 
-LAMMPS instances concurrently where one dumps data and the other is 
-reading it with the rerun command, the timeout option can be specified 
-to wait on the reader side for the arrival of the requested step. 
+dump and read_dump is a convenient way to dump all atoms from *N*
+writers and read it back by *M* readers. If one is running two
+LAMMPS instances concurrently where one dumps data and the other is
+reading it with the rerun command, the timeout option can be specified
+to wait on the reader side for the arrival of the requested step.
 
 Support for other dump format readers may be added in the future.
 
@@ -163,16 +163,16 @@ and box information.
 
 The dump file is scanned for a snapshot with a timestamp that matches
 the specified *Nstep*\ .  This means the LAMMPS timestep the dump file
-snapshot was written on for the *native* or *adios* formats.  
+snapshot was written on for the *native* or *adios* formats.
 
-The list of timestamps available in an adios .bp file is stored in the 
+The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
 .. parsed-literal::
 
   $ bpls dump.bp -d ntimestep
-    uint64_t  ntimestep  5*scalar 
-      (0)    0 50 100 150 200 
+    uint64_t  ntimestep  5*scalar
+      (0)    0 50 100 150 200
 
 
 Note that the *xyz*
@@ -261,7 +261,7 @@ See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
 
 The *adios* format supports all fields that the *native* format supports
-except for the *q* charge field. 
+except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 

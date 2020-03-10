@@ -18,9 +18,9 @@ Syntax
 * region-ID = ID of region within which to perform deletions
 * seed = random number seed to use for choosing atoms to delete
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *molecule*
        *molecule* value = *no* or *yes*
 

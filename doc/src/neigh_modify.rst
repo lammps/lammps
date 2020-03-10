@@ -12,9 +12,9 @@ Syntax
    neigh_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize*
        *delay* value = N
          N = delay building until this many steps since last build

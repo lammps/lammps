@@ -17,9 +17,9 @@ Syntax
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
 * keyword = *Kmax* or *Zone* or *dR\_Ewald* or *c* or *manual* or *echo*
-  
+
   .. parsed-literal::
-  
+
        *Kmax* value = Maximum distance explored from reciprocal space origin
                       (inverse length units)
        *Zone* values = z1 z2 z3

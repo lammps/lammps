@@ -62,7 +62,7 @@ pair\_coeff command should then be used:
 
    pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
 
-The electrostatic part of the energy consists of two components 
+The electrostatic part of the energy consists of two components
 
 self-energy of atom *i* in the form of a second order charge dependent
 polynomial and a long-range Coulombic electrostatic interaction. The
@@ -94,7 +94,7 @@ ffield.SMTBQ.Syst. The energy band term is given by:
 .. math::
 
    E_{cov}^{i(i=M,O)} & = - \biggl\{\eta_i(\mu \xi^{0})^2 f_{cut}^{r_{c1}r_{c2}}(r_{ij})
-   \biggl( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \biggr) 
+   \biggl( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \biggr)
    \delta Q_i \bigl( 2\frac{n_0}{\eta_i} - \delta Q_i \bigr) \biggr\}^{1/2} \\
    \delta Q_i & =  | Q_i^{F} | - | Q_i |
 
@@ -162,7 +162,7 @@ quotation marks ('').
 
 2) Atomic parameters
 
-For the anion (oxygen) 
+For the anion (oxygen)
 
 * Name of element (char) and stoichiometry in oxide
 * Formal charge and mass of element
@@ -240,7 +240,7 @@ For each cations (metal):
 * Parameter if necessary
 * Divider line
 
-9) Verbose 
+9) Verbose
 
 * If you want the code to work in verbose mode or not : 'true' or 'false'
 * If you want to print or not in the file 'Energy\_component.txt' the

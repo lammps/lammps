@@ -46,7 +46,7 @@ Style *cosine/squared* computes a potential of the form
 
 .. math::
 
-   E = 
+   E =
    \begin{cases}
    -\epsilon& \quad r < \sigma \\
    -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)&\quad \sigma \leq r < r_c \\
@@ -72,7 +72,7 @@ specifically the following:
 
 .. math::
 
- E = \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+ E = \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        2\left(\frac{\sigma}{r}\right)^6 + 1\right]
                        , \quad r < \sigma
 

@@ -18,9 +18,9 @@ Syntax
 * nvt/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *disc*
-  
+
   .. parsed-literal::
-  
+
        *disc* value = none = treat particles as 2d discs, not spheres
 
 * additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>` command can be appended

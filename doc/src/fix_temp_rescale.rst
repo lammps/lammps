@@ -15,9 +15,9 @@ Syntax
 * temp/rescale = style name of this fix command
 * N = perform rescaling every N steps
 * Tstart,Tstop = desired temperature at start/end of run (temperature units)
-  
+
   .. parsed-literal::
-  
+
        Tstart can be a variable (see below)
 
 * window = only rescale if temperature is outside this window (temperature units)

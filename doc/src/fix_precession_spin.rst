@@ -14,9 +14,9 @@ Syntax
 * ID, group are documented in :doc:`fix <fix>` command
 * precession/spin = style name of this fix command
 * style = *zeeman* or *anisotropy* or *cubic*
-  
+
   .. parsed-literal::
-  
+
        *zeeman* args = H x y z
          H = intensity of the magnetic field (in Tesla)
          x y z = vector direction of the field
@@ -24,9 +24,9 @@ Syntax
          K = intensity of the magnetic anisotropy (in eV)
          x y z = vector direction of the anisotropy
 
-  
+
   .. parsed-literal::
-  
+
        *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
@@ -73,11 +73,11 @@ rad.THz (in metal units and with :math:`\mu_B = 5.788 eV/T`).
 As a comparison, the figure below displays the simulation of a
 single spin (of norm :math:`\mu_i = 1.0`) submitted to an external
 magnetic field of :math:`\vert B_{ext}\vert = 10.0\; \mathrm{Tesla}` (and oriented along the z
-axis). 
+axis).
 The upper plot shows the average magnetization along the
 external magnetic field axis and the lower plot the Zeeman
 energy, both as a function of temperature.
-The reference result is provided by the plot of the Langevin 
+The reference result is provided by the plot of the Langevin
 function for the same parameters.
 
 .. image:: JPG/zeeman_langevin.jpg
@@ -85,7 +85,7 @@ function for the same parameters.
 
 The temperature effects are accounted for by connecting the spin
 :math:`i` to a thermal bath using a Langevin thermostat (see
-:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of 
+:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of
 this thermostat).
 
 Style *anisotropy* is used to simulate an easy axis or an easy plane

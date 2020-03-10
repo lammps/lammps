@@ -15,9 +15,9 @@ Syntax
 * one or more keyword/value pairs may be appended
 * these keywords apply to various dump styles
 * keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
-  
+
   .. parsed-literal::
-  
+
        *append* arg = *yes* or *no*
        *at* arg = N
          N = index of frame written upon first dump
@@ -68,9 +68,9 @@ Syntax
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
 * keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
-  
+
   .. parsed-literal::
-  
+
        *acolor* args = type color
          type = atom type or range of types (see below)
          color = name of color or color1/color2/...

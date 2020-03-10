@@ -15,9 +15,9 @@ Syntax
 * ackland/atom = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *legacy*
-  
+
   .. parsed-literal::
-  
+
        *legacy* yes/no = use (\ *yes*\ ) or do not use (\ *no*\ ) legacy ackland algorithm implementation
 
 

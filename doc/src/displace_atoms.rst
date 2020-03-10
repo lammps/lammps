@@ -13,9 +13,9 @@ Syntax
 
 * group-ID = ID of group of atoms to displace
 * style = *move* or *ramp* or *random* or *rotate*
-  
+
   .. parsed-literal::
-  
+
        *move* args = delx dely delz
          delx,dely,delz = distance to displace in each dimension (distance units)
          any of delx,dely,delz can be a variable (see below)
@@ -33,9 +33,9 @@ Syntax
          theta = angle of rotation (degrees)
 
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *units*
          value = *box* or *lattice*
 

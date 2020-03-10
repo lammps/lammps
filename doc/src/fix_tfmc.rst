@@ -18,9 +18,9 @@ Syntax
 * seed = random number seed (positive integer)
 * zero or more keyword/arg pairs may be appended
 * keyword = *com* or *rot*
-  
+
   .. parsed-literal::
-  
+
        *com* args = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension
        *rot* args = none

@@ -86,7 +86,7 @@ The python potential file has to start with the following code:
 .. code-block:: python
 
    from __future__ import print_function
-   
+
    class LAMMPSPairPotential(object):
        def __init__(self):
            self.pmap=dict()

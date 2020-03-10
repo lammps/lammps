@@ -17,9 +17,9 @@ Syntax
 * string = text string to print with optional variable names
 * zero or more keyword/value pairs may be appended
 * keyword = *file* or *append* or *screen* or *title*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
        *append* value = filename
        *screen* value = *yes* or *no*

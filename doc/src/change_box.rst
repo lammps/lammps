@@ -13,9 +13,9 @@ Syntax
 
 * group-ID = ID of group of atoms to (optionally) displace
 * one or more parameter/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz* or *boundary* or *ortho* or *triclinic* or *set* or *remap*
        *x*\ , *y*\ , *z* args = style value(s)
          style = *final* or *delta* or *scale* or *volume*
@@ -45,9 +45,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units

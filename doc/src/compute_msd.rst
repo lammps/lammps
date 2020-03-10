@@ -15,9 +15,9 @@ Syntax
 * msd = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *average*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
        *average* value = *yes* or *no*
 

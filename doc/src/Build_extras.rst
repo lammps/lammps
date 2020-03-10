@@ -53,7 +53,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-QUIP <user-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
    * :ref:`USER-SMD <user-smd>`
-   * :ref:`USER-VTK <user-vtk>`   
+   * :ref:`USER-VTK <user-vtk>`
 
 ----------
 
@@ -1230,7 +1230,7 @@ See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 .. parsed-literal::
 
-   CCFLAGS: -fopenmp               # for GNU and Clang Compilers 
+   CCFLAGS: -fopenmp               # for GNU and Clang Compilers
    CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
    LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
    LINKFLAGS: -qopenmp             # for Intel compilers on Linux

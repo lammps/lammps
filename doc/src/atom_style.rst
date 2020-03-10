@@ -12,9 +12,9 @@ Syntax
    atom_style style args
 
 * style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *edpd* or *mdpd* or *tdpd* or *electron* or *ellipsoid* or         *full* or *line* or *meso* or *molecular* or *peri* or *smd* or         *sphere* or *spin* or *tri* or *template* or *hybrid*
-  
+
   .. parsed-literal::
-  
+
        args = none for any style except the following
          *body* args = bstyle bstyle-args
            bstyle = style of body particles

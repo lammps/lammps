@@ -30,7 +30,7 @@ The *helix* dihedral style uses the potential
 
 .. math::
 
-   E = A [1 - \cos(\theta)] + B [1 + \cos(3 \theta)] + 
+   E = A [1 - \cos(\theta)] + B [1 + \cos(3 \theta)] +
        C [1 + \cos(\theta + \frac{\pi}{4})]
 
 

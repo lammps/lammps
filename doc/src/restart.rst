@@ -19,9 +19,9 @@ Syntax
 * file1,file2 = two full filenames, toggle between them when writing file
 * zero or more keyword/value pairs may be appended
 * keyword = *fileper* or *nfile*
-  
+
   .. parsed-literal::
-  
+
        *fileper* arg = Np
          Np = write one file for every this many processors
        *nfile* arg = Nf

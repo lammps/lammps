@@ -17,9 +17,9 @@ Syntax
 * compute-ID = ID of a compute that identifies when an event has occurred
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *dump* or *rebond*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy, used in quenching
          ftol = stopping tolerance for force, used in quenching

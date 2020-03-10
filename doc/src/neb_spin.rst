@@ -17,9 +17,9 @@ Syntax
 * N2 = max # of iterations (timesteps) to run barrier-climbing NEB
 * Nevery = print replica energies and reaction coordinates every this many timesteps
 * file-style = *final* or *each* or *none*
-  
+
   .. parsed-literal::
-  
+
        *final* arg = filename
          filename = file with initial coords for final replica
            coords for intermediate replicas are linearly interpolated
@@ -160,7 +160,7 @@ with :math:`\nu` the image number, Q the total number of images, and
 
 .. math::
 
-   \vec{k}_i =  \frac{\vec{m}_i^I \times \vec{m}_i^F}{\left|\vec{m}_i^I \times \vec{m}_i^F\right|} 
+   \vec{k}_i =  \frac{\vec{m}_i^I \times \vec{m}_i^F}{\left|\vec{m}_i^I \times \vec{m}_i^F\right|}
 
 if the initial and final spins are not aligned.
 If the initial and final spins are aligned, then their cross
@@ -204,7 +204,7 @@ minimization procedure.  To enable
 this, you must first define a
 :doc:`min_style <min_style>`, using either the *spin*\ ,
 *spin/cg*\ , or *spin/lbfgs* style (see
-:doc:`min_spin <min_spin>` for more information).  
+:doc:`min_spin <min_spin>` for more information).
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 

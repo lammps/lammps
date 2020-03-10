@@ -15,9 +15,9 @@ Syntax
 * improper/local = style name of this compute command
 * one or more values may be appended
 * value = *chi*
-  
+
   .. parsed-literal::
-  
+
        *chi* = tabulate improper angles
 
 

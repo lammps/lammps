@@ -13,9 +13,9 @@ Syntax
 
 * ID = user-assigned name for the region
 * style = *delete* or *block* or *cone* or *cylinder* or *plane* or *prism* or *sphere* or *union* or *intersect*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
@@ -51,9 +51,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *side* or *units* or *move* or *rotate* or *open*
-  
+
   .. parsed-literal::
-  
+
        *side* value = *in* or *out*
          *in* = the region is inside the specified geometry
          *out* = the region is outside the specified geometry

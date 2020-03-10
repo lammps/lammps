@@ -13,9 +13,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * chunk/atom = style name of this compute command
-  
+
   .. parsed-literal::
-  
+
      style = *bin/1d* or *bin/2d* or *bin/3d* or *bin/sphere* or *type* or *molecule* or c_ID, c_ID[I], f_ID, f_ID[I], v_name
        *bin/1d* args = dim origin delta
          dim = *x* or *y* or *z*
@@ -51,9 +51,9 @@ Syntax
 
 * zero or more keyword/values pairs may be appended
 * keyword = *region* or *nchunk* or *static* or *compress* or *bound* or *discard* or *pbc* or *units*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to be part of a chunk
        *nchunk* value = *once* or *every*

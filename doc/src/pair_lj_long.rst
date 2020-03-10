@@ -79,7 +79,7 @@ Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones potential:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c \\
 

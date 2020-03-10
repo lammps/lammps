@@ -13,9 +13,9 @@ Syntax
 
 * one or more keyword/value pairs may be listed
 * keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
-  
+
   .. parsed-literal::
-  
+
        *collective* value = *yes* or *no*
        *compute* value = *yes* or *no*
        *cutoff/adjust* value = *yes* or *no*

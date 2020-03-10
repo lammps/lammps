@@ -17,9 +17,9 @@ Syntax
 * shockvel = shock velocity (strictly positive, distance/time units)
 * zero or more keyword value pairs may be appended
 * keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *beta* or *dftb*
-  
+
   .. parsed-literal::
-  
+
        *q* value = cell mass-like parameter (mass\^2/distance\^4 units)
        *mu* value = artificial viscosity (mass/length/time units)
        *p0* value = initial pressure in the shock equations (pressure units)

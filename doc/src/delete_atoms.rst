@@ -12,9 +12,9 @@ Syntax
    delete_atoms style args keyword value ...
 
 * style = *group* or *region* or *overlap* or *porosity*
-  
+
   .. parsed-literal::
-  
+
        *group* args = group-ID
        *region* args = region-ID
        *overlap* args = cutoff group1-ID group2-ID
@@ -28,9 +28,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *compress* or *bond* or *mol*
-  
+
   .. parsed-literal::
-  
+
        *compress* value = *no* or *yes*
        *bond* value = *no* or *yes*
        *mol* value = *no* or *yes*

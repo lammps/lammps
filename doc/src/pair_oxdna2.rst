@@ -74,9 +74,9 @@ excluded volume interaction *oxdna2/excv*\ , the stacking *oxdna2/stk*\ , cross-
 and coaxial stacking interaction *oxdna2/coaxstk*\ , electrostatic Debye-Hueckel interaction *oxdna2/dh*
 as well as the hydrogen-bonding interaction *oxdna2/hbond* between complementary pairs of nucleotides on
 opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
-are supported :ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can be achieved by using 
-more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc. 
-This prevents the hybridization of in principle complementary bases within Ntypes/4 bases 
+are supported :ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can be achieved by using
+more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc.
+This prevents the hybridization of in principle complementary bases within Ntypes/4 bases
 up and down along the backbone.
 
 The exact functional form of the pair styles is rather complex.

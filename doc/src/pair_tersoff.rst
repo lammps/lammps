@@ -64,7 +64,7 @@ The *tersoff* style computes a 3-body Tersoff potential
   b_{ij} & =  \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
   \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
-  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} - 
+  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
 
 

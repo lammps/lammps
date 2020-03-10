@@ -19,9 +19,9 @@ Syntax
 
 * cfile = NULL or name of a control file
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reax fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds

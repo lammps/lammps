@@ -44,9 +44,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style\_name = *nvt* or *npt* or *nph*
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = external temperature at start/end of run
@@ -518,7 +518,7 @@ according to the following factorization of the Liouville propagator
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
-   &\times \left[ 
+   &\times \left[
    \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
@@ -527,12 +527,12 @@ according to the following factorization of the Liouville propagator
    \right]^n \\
    &\times
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right) 
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
    &+ \mathcal{O} \left(\Delta t^3 \right)
 
-   
+
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
 whereas Tuckerman's factorization requires splitting the pressure into

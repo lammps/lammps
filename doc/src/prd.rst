@@ -20,9 +20,9 @@ Syntax
 * random\_seed = random # seed (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *temp* or *vel*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy, used in quenching
          ftol = stopping tolerance for force, used in quenching

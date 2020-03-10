@@ -16,9 +16,9 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more inputs can be listed
 * input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
-  
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global vector calculated by a fix with ID

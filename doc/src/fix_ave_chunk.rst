@@ -19,9 +19,9 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more input values can be listed
 * value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c\_ID, c\_ID[I], f\_ID, f\_ID[I], v\_name
-  
+
   .. parsed-literal::
-  
+
        vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
        density/number, density/mass = number or mass density
        temp = temperature
@@ -33,9 +33,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *norm* arg = *all* or *sample* or *none* = how output on *Nfreq* steps is normalized
          all = output is sum of atoms across all *Nrepeat* samples, divided by atom count
          sample = output is sum of *Nrepeat* sample averages, divided by *Nrepeat*

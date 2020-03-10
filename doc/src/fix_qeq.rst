@@ -32,9 +32,9 @@ Syntax
 * qfile = a filename with QEq parameters or *coul/streitz* or *reax/c*
 * zero or more keyword/value pairs may be appended
 * keyword = *alpha* or *qdamp* or *qstep*
-  
+
   .. parsed-literal::
-  
+
        *alpha* value = Slater type orbital exponent (qeq/slater only)
        *qdamp* value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *qstep* value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only)

@@ -14,16 +14,16 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * aveforce = style name of this fix command
 * fx,fy,fz = force component values (force units)
-  
+
   .. parsed-literal::
-  
+
        any of fx,fy,fz can be a variable (see below)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
 

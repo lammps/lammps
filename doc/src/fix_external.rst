@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * external = style name of this fix command
 * mode = *pf/callback* or *pf/array*
-  
+
   .. parsed-literal::
-  
+
        *pf/callback* args = Ncall Napply
          Ncall = make callback every Ncall steps
          Napply = apply callback forces every Napply steps

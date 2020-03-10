@@ -13,9 +13,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * box/relax = style name of this fix command
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *nreset* or *vmax* or *dilate* or *scaleyz* or *scalexz* or *scalexy* or *fixedpoint*
        *iso* or *aniso* or *tri* value = Ptarget = desired pressure (pressure units)

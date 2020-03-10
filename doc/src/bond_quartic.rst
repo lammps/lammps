@@ -50,7 +50,7 @@ or :doc:`read_restart <read_restart>` commands:
 This potential was constructed to mimic the FENE bond potential for
 coarse-grained polymer chains.  When monomers with :math:`\sigma = \epsilon = 1.0`
 are used, the following choice of parameters gives a quartic potential that
-looks nearly like the FENE potential: 
+looks nearly like the FENE potential:
 
 .. math::
 
@@ -59,7 +59,7 @@ looks nearly like the FENE potential:
    B_2 &= 0.25 \\
    R_c &= 1.3 \\
    U_0 &= 34.6878
-   
+
 Different parameters can be specified using the :doc:`bond_coeff <bond_coeff>`
 command, but you will need to choose them carefully so they form a suitable
 bond potential.

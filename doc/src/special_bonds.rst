@@ -13,9 +13,9 @@ Syntax
 
 * one or more keyword/value pairs may be appended
 * keyword = *amber* or *charmm* or *dreiding* or *fene* or *lj/coul* or *lj* or *coul* or *angle* or *dihedral*
-  
+
   .. parsed-literal::
-  
+
        *amber* values = none
        *charmm* values = none
        *dreiding* values = none

@@ -14,9 +14,9 @@ Syntax
 * Rc = global cutoff, -1 means cutoff of half the shortest box length
 * zero or more keyword/value pairs may be appended
 * keyword = *hartree* or *dproduct* or *uhf* or *free* or *pbc* or *fix* or *harm* or *ermscale* or *flex\_press*
-  
+
   .. parsed-literal::
-  
+
        *hartree* value = none
        *dproduct* value = none
        *uhf* value = none

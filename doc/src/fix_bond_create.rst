@@ -19,9 +19,9 @@ Syntax
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
 * keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype*
-  
+
   .. parsed-literal::
-  
+
        *iparam* values = maxbond, newtype
          maxbond = max # of bonds of bondtype the itype atom can have
          newtype = change the itype atom to this type when maxbonds exist

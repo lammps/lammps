@@ -11,12 +11,12 @@ Syntax
 
    replicate nx ny nz *keyword*
 
-nx,ny,nz = replication factors in each dimension 
+nx,ny,nz = replication factors in each dimension
 
 * optional *keyword* = *bbox*
-  
+
   .. parsed-literal::
-  
+
        *bbox* = only check atoms in replicas that overlap with a processor's sub-domain
 
 

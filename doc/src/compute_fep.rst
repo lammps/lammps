@@ -16,9 +16,9 @@ Syntax
 * temp = external temperature (as specified for constant-temperature run)
 * one or more attributes with args may be appended
 * attribute = *pair* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *pair* args = pstyle pparam I J v_delta
          pstyle = pair style name, e.g. lj/cut
          pparam = parameter to perturb
@@ -31,9 +31,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *tail* or *volume*
-  
+
   .. parsed-literal::
-  
+
        *tail* value = *no* or *yes*
          *no* = ignore tail correction to pair energies (usually small in fep)
          *yes* = include tail correction to pair energies

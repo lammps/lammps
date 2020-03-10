@@ -15,9 +15,9 @@ Syntax
 * style = *regular* or *eskm*
 * delta = finite different displacement length (distance units)
 * one or more keyword/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *file* or *binary*
          *file* name = name of output file for the third order tensor
          *binary* arg = *yes* or *no* or *gzip*

@@ -47,7 +47,7 @@ computed according to the following relation:
 
 .. math::
 
-   U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\ 
+   U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\
 
 
 where *m* is the number of species, :math:`c_{i,j}` is the

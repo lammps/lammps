@@ -17,9 +17,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nph/sphere = style name of this fix command
 * keyword = *disc*
-  
+
   .. parsed-literal::
-  
+
        *disc* value = none = treat particles as 2d discs, not spheres
 
 * additional barostat related keyword/value pairs from the :doc:`fix nph <fix_nh>` command can be appended

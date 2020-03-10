@@ -13,9 +13,9 @@ Syntax
 
 * name = name of variable to define
 * style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *internal* or *equal* or *vector* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *index* args = one or more strings
        *loop* args = N

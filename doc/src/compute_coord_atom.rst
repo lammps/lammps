@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * coord/atom = style name of this compute command
 * cstyle = *cutoff* or *orientorder*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* args = cutoff [group group2-ID] typeN
          cutoff = distance within which to count coordination neighbors (distance units)
          group *group2-ID* = select group-ID to restrict which atoms to consider for coordination number (optional)

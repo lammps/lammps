@@ -54,12 +54,12 @@ Masses:
 
 .. math::
 
-    M' = M + m 
+    M' = M + m
 
 
 .. math::
 
-    m' = \frac {M\, m } {M'} 
+    m' = \frac {M\, m } {M'}
 
 Positions:
 
@@ -70,7 +70,7 @@ Positions:
 
 .. math::
 
-    x' = x - X 
+    x' = x - X
 
 Velocities:
 
@@ -81,13 +81,13 @@ Velocities:
 
 .. math::
 
-    v' = v - V 
+    v' = v - V
 
 Forces:
 
 .. math::
 
-    F' = F + f 
+    F' = F + f
 
 
 .. math::
@@ -99,13 +99,13 @@ This transform conserves the total kinetic energy
 .. math::
 
     \frac 1 2 \, (M\, V^2\ + m\, v^2)
-   = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) 
+   = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2)
 
 and the virial defined with absolute positions
 
 .. math::
 
-    X\, F + x\, f = X'\, F' + x'\, f' 
+    X\, F + x\, f = X'\, F' + x'\, f'
 
 
 ----------

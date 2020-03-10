@@ -14,9 +14,9 @@ Syntax
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
 * one style/arg pair can be used (or multiple for *x*\ ,\ *y*\ ,\ *z*\ )
 * style = *x* or *y* or *z* or *shift* or *rcb*
-  
+
   .. parsed-literal::
-  
+
        *x* args = *uniform* or Px-1 numbers between 0 and 1
          *uniform* = evenly spaced cuts between processors in x dimension
          numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
@@ -37,9 +37,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *weight* or *out*
-  
+
   .. parsed-literal::
-  
+
        *weight* style args = use weighted particle counts for the balancing
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...
@@ -351,7 +351,7 @@ particles in that sub-box.
 .. _weighted\_balance:
 
 This sub-section describes how to perform weighted load balancing
-using the *weight* keyword. 
+using the *weight* keyword.
 
 By default, all particles have a weight of 1.0, which means each
 particle is assumed to require the same amount of computation during a

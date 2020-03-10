@@ -18,9 +18,9 @@ Syntax
 * Nfreq = calculate time window averages every this many timesteps
 * one or more input values can be listed
 * value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global scalar calculated by a fix with ID
@@ -30,9 +30,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *ave* or *start* or *prefactor* or *file* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value

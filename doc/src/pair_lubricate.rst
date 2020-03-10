@@ -53,8 +53,8 @@ Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Bal
 
 .. math::
 
-   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
-   a_{sh} | (\omega_1 + \omega_2) \bullet 
+   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 -
+   a_{sh} | (\omega_1 + \omega_2) \bullet
    (\mathbf{I} - \mathbf{nn}) - 2 \Omega_N |^2 - \\
    &  a_{pu} | (\omega_1 - \omega_2) \bullet (\mathbf{I} - \mathbf{nn}) |^2 -
    a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\

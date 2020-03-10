@@ -17,9 +17,9 @@ Syntax
 * seed = random seed for stochasticity (positive integer)
 * one or more face/args pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
-  
+
   .. parsed-literal::
-  
+
        args = pos temp velx vely velz accomx accomy accomz
          pos = EDGE or constant
            EDGE = current lo or hi edge of simulation box
@@ -33,9 +33,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units

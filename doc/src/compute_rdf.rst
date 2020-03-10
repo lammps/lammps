@@ -18,9 +18,9 @@ Syntax
 * jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below)
 * zero or more keyword/value pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* value = Rcut
          Rcut = cutoff distance for RDF computation (distance units)
 

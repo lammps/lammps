@@ -22,9 +22,9 @@ Syntax
 
 * style = *edpd* or *mdpd* or *mdpd/rhosum* or *tdpd*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *edpd* args = cutoff seed
          cutoff = global cutoff for eDPD interactions (distance units)
          seed = random # seed (integer) (if <= 0, eDPD will use current time as the seed)

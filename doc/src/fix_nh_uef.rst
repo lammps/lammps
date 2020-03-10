@@ -19,9 +19,9 @@ Syntax
 * *Tstart*\ , *Tstop*\ , and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
 * *edot\_x* and *edot\_y* are the strain rates in the x and y directions (1/(time units))
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *ext* or *strain* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure

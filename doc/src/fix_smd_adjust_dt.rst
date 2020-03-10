@@ -14,9 +14,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/adjust\_dt = style name of this fix command
 * arg = *s\_fact*
-  
+
   .. parsed-literal::
-  
+
        *s_fact* = safety factor
 
 

@@ -16,9 +16,9 @@ Syntax
 * face = *zhi*
 * zero or more keyword/value pairs may be appended
 * keyword = *basis* or *size* or *freq* or *temp* or *random* or *units*
-  
+
   .. parsed-literal::
-  
+
        *basis* values = M itype
          M = which basis atom
          itype = atom type (1-N) to assign to this basis atom

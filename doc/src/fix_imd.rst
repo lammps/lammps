@@ -15,9 +15,9 @@ Syntax
 * imd = style name of this fix command
 * port = port number on which the fix listens for an IMD client
 * keyword = *unwrap* or *fscale* or *trate*
-  
+
   .. parsed-literal::
-  
+
        *unwrap* arg = *on* or *off*
          off = coordinates are wrapped back into the principal unit cell (default)
          on = "unwrapped" coordinates using the image flags used

@@ -16,9 +16,9 @@ Syntax
 * Nfreq = perform dynamic load balancing every this many steps
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
 * style = *shift* or *rcb*
-  
+
   .. parsed-literal::
-  
+
        shift args = dimstr Niter stopthresh
          dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
          Niter = # of times to iterate within each dimension of dimstr sequence
@@ -27,9 +27,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *weight* or *out*
-  
+
   .. parsed-literal::
-  
+
        *weight* style args = use weighted particle counts for the balancing
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...

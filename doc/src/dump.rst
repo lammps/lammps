@@ -42,9 +42,9 @@ Syntax
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *atom* args = none
        *atom/gz* args = none
        *atom/mpiio* args = none
@@ -69,9 +69,9 @@ Syntax
        *xyz/mpiio* args = none
 
 * *custom* or *custom/gz* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
-  
+
   .. parsed-literal::
-  
+
          possible attributes = id, mol, proc, procp1, type, element, mass,
                                x, y, z, xs, ys, zs, xu, yu, zu,
                                xsu, ysu, zsu, ix, iy, iz,
@@ -81,9 +81,9 @@ Syntax
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
                                c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
-  
+
   .. parsed-literal::
-  
+
            id = atom ID
            mol = molecule ID
            proc = ID of processor that owns atom
@@ -114,9 +114,9 @@ Syntax
            i_name = per-atom integer vector with name, managed by fix property/atom
 
 * *local* args = list of local attributes
-  
+
   .. parsed-literal::
-  
+
          possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
            index = enumeration of local values
            c_ID = local vector calculated by a compute with ID
@@ -716,7 +716,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`, 
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
 :doc:`dump h5md <dump_h5md>`, :doc:`dump image <dump_image>`,
 :doc:`dump molfile <dump_molfile>`, :doc:`dump_modify <dump_modify>`,
 :doc:`undump <undump>`

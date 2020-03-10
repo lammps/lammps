@@ -624,14 +624,14 @@ replica tool
 --------------------------
 
 The tools/replica directory contains the reorder\_remd\_traj python script which
-can be used to reorder the replica trajectories (resulting from the use of the 
+can be used to reorder the replica trajectories (resulting from the use of the
 temper command) according to temperature. This will produce discontinuous
 trajectories with all frames at the same temperature in each trajectory.
 Additional options can be used to calculate the canonical configurational
 log-weight for each frame at each temperature using the pymbar package. See
 the README.md file for further details. Try out the peptide example provided.
 
-This tool was written by (and is maintained by) Tanmoy Sanyal, 
+This tool was written by (and is maintained by) Tanmoy Sanyal,
 while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
 
 

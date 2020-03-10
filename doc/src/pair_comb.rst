@@ -51,7 +51,7 @@ total energy :math:`E_T` of a system of atoms is given by
 .. math::
 
    E_T  = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
-          & E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})] 
+          & E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})]
 
 
 where :math:`E_i^{self}` is the self-energy of atom *i* (including

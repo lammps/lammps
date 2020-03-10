@@ -19,9 +19,9 @@ Syntax
 
 * style = *lj/mdf* or *buck/mdf* or *lennard/mdf*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *lj/mdf* args = cutoff1 cutoff2
          cutoff1 = inner cutoff for the start of the tapering function
          cutoff1 = out cutoff for the end of the tapering function

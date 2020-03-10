@@ -30,7 +30,7 @@ set to 0.0, it corresponds to the original 1983 TIP3P model
 | r0 of OH bond = 0.9572
 | K of HOH angle = 55
 | theta of HOH angle = 104.52
-| 
+|
 
 These are the parameters to use for TIP3P with a long-range Coulombic
 solver (e.g. Ewald or PPPM in LAMMPS), see :ref:`(Price) <Price1>` for
@@ -47,7 +47,7 @@ details:
 | r0 of OH bond = 0.9572
 | K of HOH angle = 55
 | theta of HOH angle = 104.52
-| 
+|
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 

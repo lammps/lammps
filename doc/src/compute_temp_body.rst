@@ -15,9 +15,9 @@ Syntax
 * temp/body = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *bias* or *dof*
-  
+
   .. parsed-literal::
-  
+
        *bias* value = bias-ID
          bias-ID = ID of a temperature compute that removes a velocity bias
        *dof* value = *all* or *rotate*

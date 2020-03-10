@@ -78,7 +78,7 @@ The transformation is given by the following equation:
     \begin{pmatrix}
       \mathbf{B \times C}  \\
       \mathbf{C \times A}  \\
-      \mathbf{A \times B} 
+      \mathbf{A \times B}
     \end{pmatrix} \cdot \mathbf{X}
 
 where *V* is the volume of the box, **X** is the original vector quantity and

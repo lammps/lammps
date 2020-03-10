@@ -20,9 +20,9 @@ Syntax
 * compute-ID = ID of the compute used for event detection
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *neb* or *min\_style* or *neb\_style* or *neb\_log*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy (energy units)
          ftol = stopping tolerance for force (force units)

@@ -13,9 +13,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * press/berendsen = style name of this fix command
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *iso* or *aniso* or *x* or *y* or *z* or *couple* or *dilate* or *modulus*
        *iso* or *aniso* values = Pstart Pstop Pdamp

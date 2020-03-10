@@ -32,9 +32,9 @@ up to date.
 * Apply the patch by typing the following command from your top-level
   LAMMPS directory, where the redirected file is the name of the patch
   file.
-  
+
   .. code-block:: bash
-  
+
      $ patch -bp1 < patch.12Dec16
 
 * A list of updated files print out to the screen.  The -b switch
@@ -46,9 +46,9 @@ up to date.
   successively, you only need to type this once at the end. The purge
   command removes deprecated src files if any were removed by the patch
   from package sub-directories.
-  
+
   .. code-block:: bash
-  
+
      $ make purge
      $ make package-update
 

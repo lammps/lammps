@@ -21,9 +21,9 @@ Syntax
 * seed\_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *zero*
-  
+
   .. parsed-literal::
-  
+
        *zero* value = *no* or *yes*
          *no* = do not set total random force on centers of mass to zero
          *yes* = set total random force on centers of mass to zero
@@ -60,34 +60,34 @@ Velocities:
 
 .. math::
 
-    V' = \frac {M\, V + m\, v} {M'} 
+    V' = \frac {M\, V + m\, v} {M'}
 
 
 .. math::
 
-    v' = v - V 
+    v' = v - V
 
 Masses:
 
 .. math::
 
-    M' = M + m 
+    M' = M + m
 
 
 .. math::
 
-    m' = \frac {M\, m } {M'} 
+    m' = \frac {M\, m } {M'}
 
 The Langevin forces are computed as
 
 .. math::
 
-    F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' 
+    F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r'
 
 
 .. math::
 
-    f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' 
+    f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r'
 
 :math:`F_r'` is a random force proportional to
 :math:`\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                  {\mathrm dt\, \mathtt{damp\_com} }         }`.
@@ -98,12 +98,12 @@ transform:
 
 .. math::
 
-    F = \frac M {M'}\, F' - f' 
+    F = \frac M {M'}\, F' - f'
 
 
 .. math::
 
-    f = \frac m {M'}\, F' + f' 
+    f = \frac m {M'}\, F' + f'
 
 This fix also thermostats non-polarizable atoms in the group at
 temperature *Tcom*\ , as if they had a massless Drude partner.  The

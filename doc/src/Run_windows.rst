@@ -14,14 +14,11 @@ Note that the serial executable includes support for multi-threading
 parallelization from the styles in the USER-OMP packages.  To run with
 4 threads, you can type this:
 
-
 .. parsed-literal::
 
    lmp_serial -in in.lj -pk omp 4 -sf omp
 
-
 ----------
-
 
 For the MPI executable, which allows you to run LAMMPS under Windows
 in parallel, follow these steps.
@@ -46,7 +43,6 @@ into the MPICH2 installation directory, then into the sub-directory
 
 Then type something like this:
 
-
 .. parsed-literal::
 
    mpiexec -localonly 4 lmp_mpi -in in.file
@@ -62,14 +58,12 @@ patient before the output shows up.
 The parallel executable can also run on a single processor by typing
 something like this:
 
-
 .. parsed-literal::
 
    lmp_mpi -in in.lj
 
 Note that the parallel executable also includes OpenMP
 multi-threading, which can be combined with MPI using something like:
-
 
 .. parsed-literal::
 

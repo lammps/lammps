@@ -33,12 +33,8 @@ tensor. Another approach is to sample the triclinic cell fluctuations
 that occur in an NPT simulation. This method can also be slow to
 converge and requires careful post-processing :ref:`(Shinoda) <Shinoda1>`
 
-
 ----------
 
-
 .. _Shinoda1:
-
-
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).

@@ -6,7 +6,6 @@ package command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    package style args
@@ -100,11 +99,8 @@ Syntax
              yes = threaded neighbor list build (default)
              no = non-threaded neighbor list build
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -165,9 +161,7 @@ See the :doc:`Speed packages <Speed_packages>` doc page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 
-
 ----------
-
 
 The *gpu* style invokes settings associated with the use of the GPU
 package.
@@ -235,7 +229,6 @@ continuing the timestep.
 As an example, if you have two GPUs per node and 8 CPU cores per node,
 and would like to run on 4 nodes (32 cores) with dynamic balancing of
 force calculation across CPU and GPU cores, you could specify
-
 
 .. parsed-literal::
 
@@ -306,9 +299,7 @@ are 64, 128, or 256. A larger block size increases occupancy of
 individual GPU cores, but reduces the total number of thread blocks,
 thus may lead to load imbalance.
 
-
 ----------
-
 
 The *intel* style invokes settings associated with the use of the
 USER-INTEL package.  All of its settings, except the *omp* and *mode*
@@ -437,9 +428,7 @@ to prevent MPI tasks and OpenMP threads from being on separate NUMA
 domains and to prevent offload threads from interfering with other
 processes/threads used for LAMMPS.
 
-
 ----------
-
 
 The *kokkos* style invokes settings associated with the use of the
 KOKKOS package.
@@ -552,9 +541,7 @@ for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 "MV2\_USE\_CUDA" environment variable is set to "1", CrayMPI, and IBM
 Spectrum MPI when the "-gpu" flag is used.
 
-
 ----------
-
 
 The *omp* style invokes settings associated with the use of the
 USER-OMP package.
@@ -578,7 +565,6 @@ performance.
 
 Here are examples of how to set the environment variable when
 launching LAMMPS:
-
 
 .. parsed-literal::
 
@@ -613,13 +599,10 @@ expense of using more memory.  Specifically, neighbor list pages are
 allocated for all threads at the same time and each thread works
 within its own pages.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.

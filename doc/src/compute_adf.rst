@@ -6,7 +6,6 @@ compute adf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
@@ -29,11 +28,8 @@ Syntax
        *ordinate* value = *degree* or *radian* or *cosine*
          Choose the ordinate parameter for the histogram
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -172,7 +168,6 @@ The simplest way to output the results of the compute adf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-
 .. parsed-literal::
 
    compute myADF all adf 32 2 2 2 0.5 3.5 0.5 3.5
@@ -207,7 +202,6 @@ angles per atom satisfying the ADF criteria.
 
 Restrictions
 """"""""""""
-
 
 The ADF is not computed for neighbors outside the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

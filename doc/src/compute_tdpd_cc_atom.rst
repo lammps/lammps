@@ -6,7 +6,6 @@ compute tdpd/cc/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID tdpd/cc/atom index
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -47,7 +45,6 @@ per unit mass.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MESODPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -58,13 +55,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Li2015a:
-
-
 
 **(Li2015)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143:
 014101 (2015).  DOI: 10.1063/1.4923254

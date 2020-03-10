@@ -6,7 +6,6 @@ compute msd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd keyword values ...
@@ -21,11 +20,8 @@ Syntax
        *com* value = *yes* or *no*
        *average* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

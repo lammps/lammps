@@ -6,7 +6,6 @@ fix vector command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID vector Nevery value1 value2 ...
@@ -26,11 +25,8 @@ Syntax
        v_name = value calculated by an equal-style variable with name
        v_name[I] = Ith component of vector-style variable with name
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -51,7 +47,6 @@ One way to to use this command is to accumulate a vector that is
 time-integrated using the :doc:`variable trap() <variable>` function.
 For example the velocity auto-correlation function (VACF) can be
 time-integrated, to yield a diffusion coefficient, as follows:
-
 
 .. parsed-literal::
 
@@ -89,9 +84,7 @@ command with a timestep value that encompasses all the runs.  This is
 so that the vector or array stored by this fix can be allocated to a
 sufficient size.
 
-
 ----------
-
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
@@ -128,9 +121,7 @@ keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying
 quantities to be stored by fix vector.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

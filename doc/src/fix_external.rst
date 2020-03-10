@@ -6,7 +6,6 @@ fix external command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID external mode args
@@ -23,11 +22,8 @@ Syntax
        *pf/array* args = Napply
          Napply = apply array forces every Napply steps
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -43,9 +39,7 @@ This fix allows external programs that are running LAMMPS through its
 properties on specific timesteps, similar to the way other fixes do.
 The external driver can be a :doc:`C/C++ or Fortran program <Howto_library>` or a :doc:`Python script <Python_head>`.
 
-
 ----------
-
 
 If mode is *pf/callback* then the fix will make a callback every
 *Ncall* timesteps or minimization iterations to the external program.
@@ -56,7 +50,6 @@ in the group, once every *Napply* steps, similar to the way the :doc:`fix addfor
 be used multiple times to update atom forces.
 
 The callback function "foo" is invoked by the fix as:
-
 
 .. parsed-literal::
 
@@ -85,11 +78,7 @@ code `Quest <quest_>`_.
 
 .. _quest: http://dft.sandia.gov/Quest
 
-
-
-
 ----------
-
 
 If mode is *pf/array* then the fix simply stores force values in an
 array.  The fix adds these forces to each atom in the group, once
@@ -97,7 +86,6 @@ every *Napply* steps, similar to the way the :doc:`fix addforce <fix_addforce>` 
 
 The name of the public force array provided by the FixExternal
 class is
-
 
 .. parsed-literal::
 
@@ -114,9 +102,7 @@ between calls to the LAMMPS :doc:`run <run>` command, it could retrieve
 atom coordinates from LAMMPS, compute forces, set values in fexternal,
 etc.
 
-
 ----------
-
 
 To use this fix during energy minimization, the energy corresponding
 to the added forces must also be set so as to be consistent with the
@@ -124,7 +110,6 @@ added forces.  Otherwise the minimization will not converge correctly.
 
 This can be done from the external driver by calling this public
 method of the FixExternal class:
-
 
 .. parsed-literal::
 
@@ -136,9 +121,7 @@ atoms.  It should also be provided in :doc:`energy units <units>`
 consistent with the simulation.  See the details below for how to
 insure this energy setting is used appropriately in a minimization.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

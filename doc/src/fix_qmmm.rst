@@ -6,7 +6,6 @@ fix qmmm command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qmmm
@@ -32,8 +31,6 @@ should be possible without changes to LAMMPS itself.
 
 .. _espresso: http://www.quantum-espresso.org
 
-
-
 The interface code for this is in the lib/qmmm directory of the LAMMPS
 distribution and is being made available at this early stage of
 development in order to encourage contributions for interfaces to
@@ -53,7 +50,6 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a

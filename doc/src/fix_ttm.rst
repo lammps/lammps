@@ -9,7 +9,6 @@ fix ttm/mod command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
@@ -47,11 +46,8 @@ Syntax
        N = dump TTM temperatures every this many timesteps, 0 = no dump
        T_outfile = filename to write TTM temperatures to (only needed if N > 0)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -115,7 +111,6 @@ transfer between the subsystems:
   \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a'
 
-
 where C\_e is the specific heat, rho\_e is the density, kappa\_e is the
 thermal conductivity, T is temperature, the "e" and "a" subscripts
 represent electronic and atomic subsystems respectively, g\_p is the
@@ -147,7 +142,6 @@ user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are node
 indices from 0 to nxnodes-1, etc.  For example, the initial electronic
 temperatures on a 1 by 2 by 3 grid could be specified in a *T\_infile*
 as follows:
-
 
 .. parsed-literal::
 
@@ -189,9 +183,7 @@ temperature controlled by another fix - e.g. :doc:`fix nvt <fix_nh>` or
    you should insure that this grid is not too large, else your
    simulation could incur high memory and communication costs.
 
-
 ----------
-
 
 **Additional details for fix ttm/mod**
 
@@ -203,7 +195,6 @@ heat sources (e.g. laser heating in ablation simulations):
   C_e \rho_e \frac{\partial T_e}{\partial t} =
   \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
-
 
 where theta is the Heaviside step function, I\_0 is the (absorbed)
 laser pulse intensity for ablation simulations, l\_skin is the depth
@@ -219,7 +210,6 @@ as
 
   C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
 
-
 where *X* = T\_e/1000, and the thermal conductivity is defined as
 kappa\_e = D\_e\*rho\_e\*C\_e, where D\_e is the thermal diffusion
 coefficient.
@@ -232,7 +222,6 @@ acting on an ion is:
 .. math::
 
   {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
-
 
 where F\_langevin is a force from Langevin thermostat simulating
 electron-phonon coupling, and nabla P\_e/n\_ion is the electron blast
@@ -258,14 +247,12 @@ is calculated as
 
   \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]
 
-
 where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,
 :ref:`(Pisarev) <Pisarev>`)
 
 The fix ttm/mod parameter file *init\_file* has the following syntax/
 Every line with the odd number is considered as a comment and
 ignored. The lines with the even numbers are treated as follows:
-
 
 .. parsed-literal::
 
@@ -292,9 +279,7 @@ ignored. The lines with the even numbers are treated as follows:
    surface_movement: 0 to disable tracking of surface motion, 1 to enable
    T_e_min, temperature units
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -335,7 +320,6 @@ of the :doc:`run <run>` command.  The fixes are not invoked during
 Restrictions
 """"""""""""
 
-
 Fix *ttm* is part of the MISC package. It is only enabled if LAMMPS
 was built with that package.  Fix *ttm/mod* is part of the USER-MISC
 package. It is only enabled if LAMMPS was built with that package.
@@ -352,41 +336,29 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Duffy:
-
-
 
 **(Duffy)** D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,
 016207-016218 (2007).
 
 .. _Rutherford:
 
-
-
 **(Rutherford)** A M Rutherford and D M Duffy, J. Phys.:
 Condens. Matter, 19, 496201-496210 (2007).
 
 .. _Chen:
-
-
 
 **(Chen)** J Chen, D Tzou and J Beraun, Int. J. Heat
 Mass Transfer, 49, 307-316 (2006).
 
 .. _Norman:
 
-
-
 **(Norman)** G E Norman, S V Starikov, V V Stegailov et al., Contrib.
 Plasma Phys., 53, 129-139 (2013).
 
 .. _Pisarev:
-
-
 
 **(Pisarev)** V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
 475401 (2014).

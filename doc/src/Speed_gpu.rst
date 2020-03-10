@@ -27,7 +27,6 @@ It has the following general features:
   NVIDIA support as well as more general OpenCL support, so that the
   same functionality is supported on a variety of hardware.
 
-
 **Required hardware/software:**
 
 To compile and use this package in CUDA mode, you currently need
@@ -77,7 +76,6 @@ automatically append "gpu" to styles that support it.  Use the "-pk
 gpu Ng" :doc:`command-line switch <Run_options>` to set Ng = # of
 GPUs/node to use.
 
-
 .. parsed-literal::
 
    lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
@@ -107,7 +105,6 @@ and use of multiple MPI tasks/GPU is the same.
 
 Use the :doc:`suffix gpu <suffix>` command, or you can explicitly add an
 "gpu" suffix to individual styles in your input script, e.g.
-
 
 .. parsed-literal::
 
@@ -172,9 +169,7 @@ results, since they will typically be faster.
   This is the maximum memory used at one time on the GPU for data
   storage by a single MPI process.
 
-
 Restrictions
 """"""""""""
-
 
 None.

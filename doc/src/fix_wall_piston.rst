@@ -6,7 +6,6 @@ fix wall/piston command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/piston face ... keyword value ...
@@ -33,11 +32,8 @@ Syntax
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -92,9 +88,7 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -106,7 +100,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.

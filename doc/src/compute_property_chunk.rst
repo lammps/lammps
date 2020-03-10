@@ -6,7 +6,6 @@ compute property/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/chunk chunkID input1 input2 ...
@@ -22,11 +21,8 @@ Syntax
          id = original chunk IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`
          coord123 = coordinates for spatial bins calculated by :doc:`compute chunk/atom <compute_chunk_atom>`
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -84,7 +80,6 @@ will be in unitless reduced units (0-1).
 The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
-
 
 .. parsed-literal::
 

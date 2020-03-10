@@ -6,7 +6,6 @@ bond_write command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_write btype N inner outer file keyword itype jtype
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,7 +51,6 @@ and a force (in force units).
 
 Restrictions
 """"""""""""
-
 
 All force field coefficients for bond and other kinds of interactions
 must be set before this command can be invoked.

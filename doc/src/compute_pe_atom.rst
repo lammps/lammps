@@ -6,7 +6,6 @@ compute pe/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pe/atom keyword ...
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -74,7 +72,6 @@ As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
 
-
 .. parsed-literal::
 
    compute        peratom all pe/atom
@@ -99,7 +96,6 @@ The per-atom vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 Related commands
 """"""""""""""""
 
@@ -107,12 +103,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Heyes1:
-
-
 
 **(Heyes)** Heyes, Phys Rev B 49, 755 (1994),

@@ -6,7 +6,6 @@ compute group/group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID group/group group2-ID keyword value ...
@@ -24,11 +23,8 @@ Syntax
        *boundary* value = *yes* or *no*
        *molecule* value = *off* or *inter* or *intra*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -93,9 +89,7 @@ that included in the regular Ewald and PPPM routines.
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
 
-
 ----------
-
 
 The pairwise contributions to the group-group interactions are
 calculated by looping over a neighbor list.  The Kspace contribution
@@ -132,9 +126,7 @@ The individual contributions can be summed in a
 This `document <PDF/kspace.pdf>`_ describes how the long-range
 group-group calculations are performed.
 
-
 ----------
-
 
 **Output info:**
 
@@ -150,7 +142,6 @@ The vector values will be in force :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,
@@ -171,12 +162,8 @@ Default
 The option defaults are pair = yes, kspace = no, boundary = yes,
 molecule = off.
 
-
 ----------
 
-
 .. _Bogusz:
-
-
 
 Bogusz et al, J Chem Phys, 108, 7070 (1998)

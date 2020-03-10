@@ -6,7 +6,6 @@ compute torque/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID torque/chunk chunkID
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -62,7 +60,6 @@ non-zero chunk IDs.
 The simplest way to output the results of the compute torque/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ fix drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID drude flag1 flag2 ... flagN
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -41,7 +39,6 @@ or capital letter (N,C,D):
 
 Restrictions
 """"""""""""
-
 
 This fix should be invoked before any other commands that implement
 the Drude oscillator model, such as :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair_style thole <pair_thole>`.

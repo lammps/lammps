@@ -11,7 +11,6 @@ simulation box, set the z dimensions narrow, but finite, so that the
 create\_atoms command will tile the 3d simulation box with a single z
 plane of atoms - e.g.
 
-
 .. code-block:: LAMMPS
 
    :doc:`create box <create_box>` 1 -10 10 -10 10 -0.25 0.25

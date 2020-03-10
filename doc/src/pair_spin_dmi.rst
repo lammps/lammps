@@ -12,7 +12,6 @@ Syntax
 
 * cutoff = global cutoff pair (distance in metal units)
 
-
 Examples
 """"""""
 
@@ -75,13 +74,10 @@ the norm of the DM vector (in eV), and Dx, Dy and Dz define its direction.
 None of those coefficients is optional.  If not specified, the *spin/dmi*
 pair style cannot be used.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
@@ -95,7 +91,6 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
 .. _Rohart:
@@ -104,7 +99,6 @@ Related commands
 
 **(Rohart)** Rohart and Thiaville,
 Physical Review B, 88(18), 184422. (2013).
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

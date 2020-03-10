@@ -6,7 +6,6 @@ fix orient/fcc command
 fix orient/bcc command
 ======================
 
-
 .. parsed-literal::
 
    fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1
@@ -22,7 +21,6 @@ fix orient/bcc command
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -73,7 +71,6 @@ The potential energy added to atom I is given by these formulas
          = & {\rm dE}\,\frac{1 - \cos(2 \omega_{i})}{2}
    \qquad \mathrm{ for }\qquad \xi_{\rm low} < \xi_{i} < \xi_{\rm high}  \quad \left(6\right) \\
          = & {\rm dE} \quad\qquad\qquad\qquad\textrm{ for } \qquad \xi_{\rm high} < \xi_{i}
-
 
 which are fully explained in :ref:`(Janssens) <Janssens>`.  For fcc crystals
 this order parameter Xi for atom I in equation (1) is a sum over the
@@ -169,7 +166,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -182,41 +178,30 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Janssens:
-
-
 
 **(Janssens)** Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature
 Materials, 5, 124-127 (2006).
 
 .. _Wicaksono1:
 
-
-
 **(Wicaksono1)** Wicaksono, Sinclair, Militzer, Computational Materials
 Science, 117, 397-405 (2016).
 
 .. _Wicaksono2:
 
-
-
 **(Wicaksono2)** Wicaksono, figshare,
 https://dx.doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
-
 ----------
-
 
 For illustration purposes, here are example files that specify a
 Sigma=5 <100> tilt boundary.  This is for a lattice constant of 3.5706
 Angs.
 
 file0:
-
 
 .. parsed-literal::
 
@@ -228,7 +213,6 @@ file0:
         1.596820864092150   -1.785300000000000   -0.798410432046075
 
 file1:
-
 
 .. parsed-literal::
 

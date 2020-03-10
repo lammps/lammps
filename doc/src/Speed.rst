@@ -19,7 +19,6 @@ page, for several of the standard LAMMPS benchmark problems, as a
 function of problem size and number of compute nodes, on different
 hardware platforms.
 
-
 .. toctree::
    :maxdepth: 1
 

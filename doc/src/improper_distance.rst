@@ -13,7 +13,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    improper_style distance
@@ -27,7 +26,6 @@ The *distance* improper style uses the potential
 .. math::
 
    E = K_2 d^2 + K_4 d^4
-
 
 where :math:`d` is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
@@ -50,13 +48,10 @@ file or restart files read by the read\_data or read\_restart commands:
 * :math:`K_2` (energy/distance\^2)
 * :math:`K_4` (energy/distance\^4)
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

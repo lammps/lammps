@@ -51,7 +51,6 @@ fix rigid/nph/small command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style bodystyle args keyword values ...
@@ -110,11 +109,8 @@ Syntax
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -261,9 +257,7 @@ differences may accumulate to produce divergent trajectories.
    and velocity of individual atoms in the body will be reset when time
    integration starts again.
 
-
 ----------
-
 
 Each rigid body must have two or more atoms.  An atom can belong to at
 most one rigid body.  Which atoms are in which bodies can be defined
@@ -364,9 +358,7 @@ rigid or fix rigid/small command which includes all the desired rigid
 bodies.  LAMMPS will allow multiple rigid fixes to be defined, but it
 is more expensive.
 
-
 ----------
-
 
 The constituent particles within a rigid body can be point particles
 (the default in LAMMPS) or finite-size particles, such as spheres or
@@ -385,9 +377,7 @@ commands are used to do this.  For finite-size particles this also
 means the particles can be highly overlapped when creating the rigid
 body.
 
-
 ----------
-
 
 The *rigid*\ , *rigid/nve*\ , *rigid/small*\ , and *rigid/small/nve* styles
 perform constant NVE time integration.  They are referred to below as
@@ -478,7 +468,6 @@ pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
 specifying these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -492,7 +481,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -500,9 +488,7 @@ these 4 keywords:
    z Pstart Pstop Pdamp
    couple none
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -579,9 +565,7 @@ freedom.
    temperature as well without use of the Langevin or Nose/Hoover options
    associated with the fix rigid commands.
 
-
 ----------
-
 
 The *mol* keyword can only be used with the *rigid/small* styles.  It
 must be used when other commands, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add rigid
@@ -603,9 +587,7 @@ Also note that when using the *mol* keyword, extra restart information
 about all rigid bodies is written out whenever a restart file is
 written out.  See the NOTE in the next section for details.
 
-
 ----------
-
 
 The *infile* keyword allows a file of rigid body attributes to be read
 in from a file, rather then having LAMMPS compute them.  There are 5
@@ -627,7 +609,6 @@ attributes overridden.  The file can contain initial blank lines or
 comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
-
 
 .. parsed-literal::
 
@@ -681,9 +662,7 @@ cross periodic boundaries during the simulation.
    auxiliary file will contain one line for every rigid body, even if the
    original file only listed a subset of the rigid bodies.
 
-
 ----------
-
 
 If you use a :doc:`temperature compute <compute>` with a group that
 includes particles in rigid bodies, the degrees-of-freedom removed by
@@ -706,9 +685,7 @@ degrees of freedom (2 translational, 1 rotational).
 The rigid body contribution to the pressure of the system (virial) is
 also accounted for by this fix.
 
-
 ----------
-
 
 If your simulation is a hybrid model with a mixture of rigid bodies
 and non-rigid particles (e.g. solvent) there are several ways these
@@ -746,7 +723,6 @@ choices:
   rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or any
   other thermostat) for the non-rigid particles.
 
-
 In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
@@ -758,9 +734,7 @@ and change the box dimensions, but not time integrate any particles.
 The integration of the rigid bodies will be performed by fix
 rigid/nvt.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -780,9 +754,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -872,13 +844,10 @@ No parameter of these fixes can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  These fixes are not invoked during
 :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These fixes are all part of the RIGID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -895,7 +864,6 @@ workaround for this is to perform a :doc:`run 0 <run>` command, which
 insures all DOFs are accounted for properly, and then rescale the
 temperature to the desired value before performing a simulation.  For
 example:
-
 
 .. parsed-literal::
 
@@ -916,38 +884,26 @@ The option defaults are force \* on on on and torque \* on on on,
 meaning all rigid bodies are acted on by center-of-mass force and
 torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
 
-
 ----------
 
-
 .. _Hoover:
-
-
 
 **(Hoover)** Hoover, Phys Rev A, 31, 1695 (1985).
 
 .. _Kamberaj:
 
-
-
 **(Kamberaj)** Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).
 
 .. _Martyna2:
-
-
 
 **(Martyna)** Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
 Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
 .. _Miller3:
 
-
-
 **(Miller)** Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).
 
 .. _Zhang1:
-
-
 
 **(Zhang)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

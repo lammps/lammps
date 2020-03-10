@@ -6,7 +6,6 @@ fix wall/gran/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID
@@ -31,7 +30,6 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-
   .. parsed-literal::
 
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
@@ -41,7 +39,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -71,9 +68,7 @@ web site.
 .. image:: JPG/gran_mixer_small.jpg
    :target: JPG/gran_mixer.png
 
-
 ----------
-
 
 The distance between a particle and the region boundary is the
 distance to the nearest point on the region surface.  The force the
@@ -228,7 +223,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ compute pressure command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pressure temp-ID keyword ...
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -40,7 +38,6 @@ The pressure is computed by the formula
 .. math::
 
    P = \frac{N k_B T}{V} + \frac{\sum_{i}^{N'} r_i \bullet f_i}{dV}
-
 
 where *N* is the number of atoms in the system (see discussion of DOF
 below), :math:`k_B` is the Boltzmann constant, *T* is the temperature, d
@@ -68,7 +65,6 @@ second term uses components of the virial tensor:
 
    P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} +
    \frac{\sum_{k}^{N'} r_{k_I} f_{k_J}}{V}
-
 
 If no extra keywords are listed, the entire equations above are
 calculated.  This includes a kinetic energy (temperature) term and the
@@ -107,7 +103,6 @@ is calculated by the temperature compute.  See the various :doc:`compute tempera
 A compute of this style with the ID of "thermo\_press" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-
 .. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
@@ -115,9 +110,7 @@ LAMMPS starts up, as if this command were in the input script:
 where "thermo\_temp" is the ID of a similarly defined compute of style
 "temp".  See the "thermo\_style" command for more details.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -137,9 +130,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Output info:**
 
@@ -165,12 +156,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Thompson1:
-
-
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).

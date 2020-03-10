@@ -40,13 +40,9 @@ the SPC and SPC/E models.
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 
-
 ----------
 
-
 .. _howto-Berendsen:
-
-
 
 **(Berendsen)** Berendsen, Grigera, Straatsma, J Phys Chem, 91,
 6269-6271 (1987).

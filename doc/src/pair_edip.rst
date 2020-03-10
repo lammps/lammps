@@ -12,7 +12,6 @@ pair_style edip/multi command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -52,7 +51,6 @@ In EDIP, the energy E of a system of atoms is
           \end{cases} \\
    h(l,Z)  = & \lambda [(1-e^{-Q(Z)(l+\tau(Z))^2}) + \eta Q(Z)(l+\tau(Z))^2 ] \\
    Q(Z)  = & Q_0 e^{-\mu Z} \qquad \tau(Z) = u_1 + u_2 (u_3 e^{-u_4 Z} - e^{-2u_4 Z})
-
 
 where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
@@ -125,9 +123,7 @@ multi-element EDIP parameterization. If you know any and
 you are interest in that, please contact the author of
 the EDIP package.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -147,9 +143,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -164,13 +158,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -192,12 +183,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _EDIP:
-
-
 
 **(EDIP)** J F Justo et al, Phys Rev B 58, 2539 (1998).

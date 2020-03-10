@@ -6,7 +6,6 @@ fix ave/correlate/long command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
@@ -54,11 +53,8 @@ Syntax
        *ncount* args = Ncount
          Ncount = number of values over which succesive correlators are averaged
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -130,7 +126,6 @@ the run command. This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -148,13 +143,9 @@ the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 The option defaults for keywords unique to this command are as
 follows: ncorr=20, nlen=16, ncount=2.
 
-
 ----------
 
-
 .. _Ramirez:
-
-
 
 **(Ramirez)** J. Ramirez, S.K. Sukumaran, B. Vorselaars and
 A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).

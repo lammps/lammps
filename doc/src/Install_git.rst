@@ -16,7 +16,6 @@ commands explained below to communicate with the git servers on
 GitHub.  For people still using subversion (svn), GitHub also
 provides `limited support for subversion clients <svn_>`_.
 
-
 .. warning::
 
    As of October 2016, the official home of public LAMMPS development is
@@ -34,7 +33,6 @@ You can follow LAMMPS development on 3 different git branches:
 
 To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
-
 
 .. code-block:: bash
 
@@ -56,7 +54,6 @@ After initial cloning, as bug fixes and new features are added to
 LAMMPS, as listed on :doc:`this page <Errors_bugs>`, you can stay
 up-to-date by typing the following git commands from within the
 "mylammps" directory:
-
 
 .. code-block:: bash
 
@@ -91,7 +88,6 @@ other desired branch).
 Once you have updated your local files with a "git pull" (or "git
 checkout"), you still need to re-build LAMMPS if any source files have
 changed.  To do this, you should cd to the src directory and type:
-
 
 .. code-block:: bash
 

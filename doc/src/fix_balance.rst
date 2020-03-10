@@ -6,7 +6,6 @@ fix balance command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID balance Nfreq thresh style args keyword args ...
@@ -47,11 +46,8 @@ Syntax
        *out* arg = filename
          filename = write each processor's sub-domain to a file, at each re-balancing
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -147,9 +143,7 @@ forced even if the current balance is perfect (1.0) be specifying a
    :doc:`kspace_style <kspace_style>` command.  Thus you should benchmark
    the run times of a simulation before and after balancing.
 
-
 ----------
-
 
 The method used to perform a load balance is specified by one of the
 listed styles, which are described in detail below.  There are 2 kinds
@@ -171,7 +165,6 @@ applied.
    :target: JPG/balance_nonuniform.jpg
 .. image:: JPG/balance_rcb_small.jpg
    :target: JPG/balance_rcb.jpg
-
 
 The *rcb* style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
@@ -195,9 +188,7 @@ When a "tiling" method is specified, the current domain partitioning
 ("grid" or "tiled") is ignored, and a new partitioning is computed
 from scratch.
 
-
 ----------
-
 
 The *group-ID* is ignored.  However the impact of balancing on
 different groups of atoms can be affected by using the *group* weight
@@ -214,9 +205,7 @@ command settings.
 On re-balance steps, re-balancing will only be attempted if the current
 imbalance factor, as defined above, exceeds the *thresh* setting.
 
-
 ----------
-
 
 The *shift* style invokes a "grid" method for balancing, as described
 above.  It changes the positions of cutting planes between processors
@@ -282,9 +271,7 @@ the normal reneighboring procedure.
    the threshold accuracy is reached (in a dimension) is less iterations
    than *Niter* and exit early.
 
-
 ----------
-
 
 The *rcb* style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
@@ -311,9 +298,7 @@ the box in two.  The recursion continues until every processor is
 assigned a sub-box of the entire simulation domain, and owns the atoms
 in that sub-box.
 
-
 ----------
-
 
 The *out* keyword writes text to the specified *filename* with the
 results of each re-balancing operation.  The file contains the bounds
@@ -322,7 +307,6 @@ completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
 processors for a 2d problem:
-
 
 .. parsed-literal::
 
@@ -371,9 +355,7 @@ rectangle for each processor (1 to 4).
 For a 3d problem, the syntax is similar with 8 vertices listed for
 each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -399,13 +381,10 @@ by this fix are "intensive".
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For 2d simulations, the *z* style cannot be used.  Nor can a "z"
 appear in *dimstr* for the *shift* style.

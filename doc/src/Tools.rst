@@ -18,8 +18,6 @@ visualization for LAMMPS simulations.
 .. _pizza: http://pizza.sandia.gov
 .. _python: http://www.python.org
 
-
-
 Additional tools included in the LAMMPS distribution are described on
 this page.
 
@@ -37,9 +35,7 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-
 ----------
-
 
 Pre-processing tools
 ====================
@@ -72,9 +68,7 @@ Miscellaneous tools
 | :ref:`vim <vim>`         |                      |                   |                    |                                       |
 +--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
 
-
 ----------
-
 
 Tool descriptions
 =================
@@ -95,9 +89,7 @@ version (and maybe with respect to AMBER as well).  Since we don't use
 these tools at Sandia, you will need to experiment with them and make
 necessary modifications yourself.
 
-
 ----------
-
 
 .. _binary:
 
@@ -107,7 +99,6 @@ binary2txt tool
 The file binary2txt.cpp converts one or more binary LAMMPS dump file
 into ASCII text files.  The syntax for running the tool is
 
-
 .. parsed-literal::
 
    binary2txt file1 file2 ...
@@ -116,9 +107,7 @@ which creates file1.txt, file2.txt, etc.  This tool must be compiled
 on a platform that can read the binary file created by a LAMMPS run,
 since binary files are not compatible across all platforms.
 
-
 ----------
-
 
 .. _charmm:
 
@@ -146,9 +135,7 @@ Robert A. Latour (latourr at clemson.edu), David Hyde-Volpe, and
 Tigran Abramyan, (Clemson University) and
 Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 
-
 ----------
-
 
 .. _chain:
 
@@ -162,7 +149,6 @@ chains and solvent atoms can strongly overlap, so LAMMPS needs to run
 the system initially with a "soft" pair potential to un-overlap it.
 The syntax for running the tool is
 
-
 .. parsed-literal::
 
    chain < def.chain > data.file
@@ -171,9 +157,7 @@ See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the system
 for the :doc:`chain benchmark <Speed_bench>`.
 
-
 ----------
-
 
 .. _colvars:
 
@@ -192,7 +176,6 @@ abf\_integrate:
 MC-based integration of multidimensional free energy gradient
 Version 20110511
 
-
 .. parsed-literal::
 
    Syntax: ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0\|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >]
@@ -201,9 +184,7 @@ The LAMMPS interface to the colvars collective variable library, as
 well as these tools, were created by Axel Kohlmeyer (akohlmey at
 gmail.com) at ICTP, Italy.
 
-
 ----------
-
 
 .. _createatoms:
 
@@ -219,9 +200,7 @@ See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
 
-
 ----------
-
 
 .. _doxygen:
 
@@ -236,9 +215,7 @@ See the included README file for details.
 
 The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
-
 ----------
-
 
 .. _drude:
 
@@ -254,9 +231,7 @@ See the header of the polarizer.py file for details.
 The tool is authored by Agilio Padua and Alain Dequidt: agilio.padua
 at univ-bpclermont.fr, alain.dequidt at univ-bpclermont.fr
 
-
 ----------
-
 
 .. _eamdb:
 
@@ -274,9 +249,7 @@ and is based on his paper:
 X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
 144113 (2004).
 
-
 ----------
-
 
 .. _eamgn:
 
@@ -291,9 +264,7 @@ produce are in the potentials directory, and can be used with the
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).
 
-
 ----------
-
 
 .. _eff:
 
@@ -307,9 +278,7 @@ electron force field (eFF).
 These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
 
-
 ----------
-
 
 .. _emacs:
 
@@ -323,9 +292,7 @@ with various highlighting options set up.
 These tools were provided by Aidan Thompson at Sandia
 (athomps at sandia.gov).
 
-
 ----------
-
 
 .. _fep:
 
@@ -341,9 +308,7 @@ Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
 
 See README file in the tools/fep directory.
 
-
 ----------
-
 
 .. _ipi:
 
@@ -363,9 +328,7 @@ See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
 :doc:`fix ipi <fix_ipi>` doc page for further details on running PIMD
 calculations with LAMMPS.
 
-
 ----------
-
 
 .. _ipp:
 
@@ -382,9 +345,7 @@ sandia.gov.
 See two examples in the tools/ipp directory.  One of them is for the
 tools/createatoms tool's input file.
 
-
 ----------
-
 
 .. _kate:
 
@@ -398,9 +359,7 @@ scripts.  See the README.txt file for details.
 The file was provided by Alessandro Luigi Sellerio
 (alessandro.sellerio at ieni.cnr.it).
 
-
 ----------
-
 
 .. _arc:
 
@@ -419,9 +378,7 @@ This tool was written by John Carpenter (Cray), Michael Peachey
 This tool was updated for the current LAMMPS C++ version by Jeff
 Greathouse at Sandia (jagreat at sandia.gov).
 
-
 ----------
-
 
 .. _cfg:
 
@@ -435,9 +392,7 @@ the README file for more information.
 
 This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
-
 ----------
-
 
 .. _matlab:
 
@@ -458,11 +413,7 @@ These scripts were written by Arun Subramaniyan at Purdue Univ
 
 .. _matlabhome: http://www.mathworks.com
 
-
-
-
 ----------
-
 
 .. _micelle:
 
@@ -476,7 +427,6 @@ atoms can strongly overlap, so LAMMPS needs to run the system
 initially with a "soft" pair potential to un-overlap it.  The syntax
 for running the tool is
 
-
 .. parsed-literal::
 
    micelle2d < def.micelle2d > data.file
@@ -485,9 +435,7 @@ See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
 :doc:`micelle example <Examples>`.
 
-
 ----------
-
 
 .. _moltemplate:
 
@@ -505,9 +453,7 @@ supports it.  It has its own WWW page at
 `http://moltemplate.org <http://moltemplate.org>`_.
 The latest sources can be found `on its GitHub page <https://github.com/jewettaij/moltemplate/releases>`_
 
-
 ----------
-
 
 .. _msi:
 
@@ -527,9 +473,7 @@ development, so there are no changes except for the occasional bug fix.
 
 See the README file in the tools/msi2lmp folder for more information.
 
-
 ----------
-
 
 .. _phonon:
 
@@ -547,9 +491,7 @@ for example problems that can be post-processed with this tool.
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
 University.
 
-
 ----------
-
 
 .. _polybond:
 
@@ -566,9 +508,7 @@ See the Manual.pdf for details and example scripts.
 
 This tool was written by Zachary Kraus at Georgia Tech.
 
-
 ----------
-
 
 .. _pymol:
 
@@ -581,11 +521,7 @@ particles into an input file for the `PyMol visualization package <pymolhome_>`_
 
 .. _pymolhome: http://www.pymol.org
 
-
-
 .. _pymolopen: http://sourceforge.net/scm/?type=svn&group\_id=4546
-
-
 
 Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and
@@ -593,9 +529,7 @@ examples directory within pymol\_asphere for more information.
 
 This tool was written by Mike Brown at Sandia.
 
-
 ----------
-
 
 .. _pythontools:
 
@@ -614,9 +548,7 @@ that perform common LAMMPS post-processing tasks, such as:
 These are simple scripts built on `Pizza.py <pizza_>`_ modules.  See the
 README for more info on Pizza.py and how to use these scripts.
 
-
 ----------
-
 
 .. _replica:
 
@@ -634,9 +566,7 @@ the README.md file for further details. Try out the peptide example provided.
 This tool was written by (and is maintained by) Tanmoy Sanyal,
 while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
 
-
 ----------
-
 
 .. _reax\_tool:
 
@@ -650,9 +580,7 @@ the README.txt file for more info.
 
 These tools were written by Aidan Thompson at Sandia.
 
-
 ----------
-
 
 .. _smd:
 
@@ -671,9 +599,7 @@ This tool was written by the USER-SMD package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 
-
 ----------
-
 
 .. _spin:
 
@@ -690,9 +616,7 @@ This tool was written by the SPIN package author, Julien
 Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
 
-
 ----------
-
 
 .. _singularity\_tool:
 
@@ -704,9 +628,7 @@ that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
 
-
 ----------
-
 
 .. _vim:
 
@@ -720,9 +642,7 @@ file for details.
 These files were provided by Gerolf Ziegenhain (gerolf at
 ziegenhain.com)
 
-
 ----------
-
 
 .. _xmgrace:
 

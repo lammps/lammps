@@ -6,7 +6,6 @@ pair_write command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_write itype jtype N style inner outer file keyword Qi Qj
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -66,7 +64,6 @@ and a force (in force units).
 
 Restrictions
 """"""""""""
-
 
 All force field coefficients for pair and other kinds of interactions
 must be set before this command can be invoked.

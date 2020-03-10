@@ -9,7 +9,6 @@ fix nvt/sphere/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/sphere keyword value ...
@@ -27,7 +26,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -69,7 +67,6 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/sphere", as if this command
 had been issued:
 
-
 .. parsed-literal::
 
    compute fix-ID_temp group-ID temp/sphere
@@ -102,9 +99,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -151,7 +146,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the :doc:`atom_style sphere <atom_style>`

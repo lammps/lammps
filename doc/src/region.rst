@@ -6,7 +6,6 @@ region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    region ID style args keyword arg ...
@@ -70,10 +69,8 @@ Syntax
 
 * accelerated styles (with same args) = *block/kk*
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -218,9 +215,7 @@ consisting of the volume that is common to all the listed regions.
    from their list of sub-regions.  Thus you cannot delete the
    sub-regions after defining a *union* or *intersection* region.
 
-
 ----------
-
 
 The *side* keyword determines whether the region is considered to be
 inside or outside of the specified geometry.  Using this keyword in
@@ -266,9 +261,7 @@ define the lattice spacings which are used as follows:
   applied to the sphere center x,y,z.  The spacing in dimension x is
   applied to the sphere radius.
 
-
 ----------
-
 
 If the *move* or *rotate* keywords are used, the region is "dynamic",
 meaning its location or orientation changes with time.  These keywords
@@ -296,7 +289,6 @@ For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
 velocity:
 
-
 .. parsed-literal::
 
    variable dx equal ramp(0,10)
@@ -306,7 +298,6 @@ Note that the initial displacement is 0.0, though that is not required.
 
 Either of these variables would "wiggle" the region back and forth in
 the y direction:
-
 
 .. parsed-literal::
 
@@ -327,9 +318,7 @@ The *move* and *rotate* keywords can be used together.  In this case,
 the displacement specified by the *move* keyword is applied to the *P*
 point of the *rotate* keyword.
 
-
 ----------
-
 
 The *open* keyword can be used (multiple times) to indicate that one
 or more faces of the region are ignored for purposes of particle/wall
@@ -380,9 +369,7 @@ For all other styles, the *open* keyword is ignored.  As indicated
 above, this includes the *intersect* and *union* regions, though their
 sub-regions can be defined with the *open* keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -405,13 +392,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 A prism cannot be of 0.0 thickness in any dimension; use a small z
 thickness for 2d simulations.  For 2d simulations, the xz and yz

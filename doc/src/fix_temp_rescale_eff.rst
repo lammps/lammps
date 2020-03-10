@@ -6,7 +6,6 @@ fix temp/rescale/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/rescale/eff N Tstart Tstop window fraction
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -64,7 +62,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

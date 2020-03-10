@@ -6,7 +6,6 @@ fix filter/corotate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID filter/corotate keyword value ...
@@ -22,11 +21,8 @@ Syntax
        *t* values = one or more atom types
        *m* value = one or more mass values
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -62,9 +58,7 @@ contain the fastest covalent bonds inside clusters.
 
 If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer time-steps of at least 8fs.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -77,7 +71,6 @@ fixes are not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -88,12 +81,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Fath2017:
-
-
 
 **(Fath)** Fath, Hochbruck, Singh, J Comp Phys, 333, 180-198 (2017).

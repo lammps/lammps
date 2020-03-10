@@ -6,7 +6,6 @@ thermo_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    thermo_modify keyword value ...
@@ -27,11 +26,8 @@ Syntax
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

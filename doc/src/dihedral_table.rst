@@ -9,7 +9,6 @@ dihedral_style table/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style table style Ntable
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,14 +62,11 @@ The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
 format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment
 or blank lines.
-
 
 .. parsed-literal::
 
@@ -180,9 +175,7 @@ Note that one file can contain many sections, each with a tabulated
 potential. LAMMPS reads the file section by section until it finds one
 that matches the specified keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -214,7 +207,6 @@ script.
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

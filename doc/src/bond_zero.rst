@@ -6,14 +6,12 @@ bond_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style zero [nocoeff]
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

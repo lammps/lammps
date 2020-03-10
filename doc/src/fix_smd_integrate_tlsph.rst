@@ -6,7 +6,6 @@ fix smd/integrate_tlsph command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID smd/integrate_tlsph keyword values
@@ -16,7 +15,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *limit\_velocity*
 
-
 .. parsed-literal::
 
      *limit_velocity* value = max_vel
@@ -24,7 +22,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -51,7 +48,6 @@ minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

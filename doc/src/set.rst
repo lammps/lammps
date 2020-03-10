@@ -6,7 +6,6 @@ set command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    set style ID keyword values ...
@@ -118,11 +117,8 @@ Syntax
        *i_name* value = value for custom integer vector with name
        *d_name* value = value for custom floating-point vector with name
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -158,9 +154,7 @@ their properties reset.  The remaining keywords specify which
 properties to reset and what the new values are.  Some strings like
 *type* or *mol* can be used as a style and/or a keyword.
 
-
 ----------
-
 
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
@@ -184,9 +178,7 @@ style *region* selects all the atoms in the specified geometric
 region.  See the :doc:`group <group>` and :doc:`region <region>` commands
 for details of how to specify a group or region.
 
-
 ----------
-
 
 This section describes the keyword options for which properties to
 change, for the selected atoms.
@@ -482,7 +474,6 @@ specified as the "name" portion of *i\_name* or *d\_name*.
 
 Restrictions
 """"""""""""
-
 
 You cannot set an atom attribute (e.g. *mol* or *q* or *volume*\ ) if
 the :doc:`atom_style <atom_style>` does not have that attribute.

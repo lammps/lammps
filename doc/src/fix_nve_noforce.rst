@@ -6,7 +6,6 @@ fix nve/noforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

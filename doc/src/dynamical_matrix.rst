@@ -6,7 +6,6 @@ dynamical_matrix command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dynamical_matrix group-ID style gamma args keyword value ...
@@ -22,11 +21,8 @@ Syntax
          *file* name = name of output file for the dynamical matrix
          *binary* arg = *yes* or *no* or *gzip*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -50,7 +46,6 @@ matrix defined by
 .. math::
 
    \Phi_{ij}^{\alpha\beta} = \frac{\partial^2 U}{\partial x_{i,\alpha} \partial x_{j,\beta}}
-
 
 The output for the dynamical matrix is printed three elements at a time.
 The three elements are the three :math:`\beta` elements for a respective

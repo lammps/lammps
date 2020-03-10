@@ -6,7 +6,6 @@ min_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    min_modify keyword values ...
@@ -33,11 +32,8 @@ Syntax
        *tmax* value = factor
          factor = maximum adaptive timestep for fire minimization (adim)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -166,7 +162,6 @@ to the *fire/old* style by using the following set of parameters:
 
 Restrictions
 """"""""""""
-
 
 For magnetic GNEB calculations, only *spin\_none* value for *line*
 keyword can be used when minimization styles *spin/cg* and *spin/lbfgs* are

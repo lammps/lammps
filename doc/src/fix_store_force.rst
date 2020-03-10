@@ -6,7 +6,6 @@ fix store/force command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID store/force
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ compute chunk/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID chunk/atom style args keyword values ...
@@ -82,11 +81,8 @@ Syntax
          yes = use periodic distance for bin/sphere and bin/cylinder styles
        *units* value = *box* or *lattice* or *reduced*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -141,18 +137,14 @@ timesteps it specifies, while it accumulates per-chunk averages.
 
 The details are described below.
 
-
 ----------
-
 
 The different chunk styles operate as follows.  For each style, how it
 calculates *Nchunk* and assigns chunk IDs to atoms is explained.  Note
 that using the optional keywords can change both of those actions, as
 described further below where the keywords are discussed.
 
-
 ----------
-
 
 The *binning* styles perform a spatial binning of atoms, and assign an
 atom the chunk ID corresponding to the bin number it is in.  *Nchunk*
@@ -241,17 +233,13 @@ have moved outside the bounds of all bins.  If an atom is not inside
 any bin, the *discard* keyword is used to determine how a chunk ID is
 assigned to the atom.
 
-
 ----------
-
 
 The *type* style uses the atom type as the chunk ID.  *Nchunk* is set
 to the number of atom types defined for the simulation, e.g. via the
 :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 
-
 ----------
-
 
 The *molecule* style uses the molecule ID of each atom as its chunk
 ID.  *Nchunk* is set to the largest chunk ID.  Note that this excludes
@@ -269,9 +257,7 @@ solvent atoms, have an out-of-range chunk ID.  These atoms are
 discarded (not assigned to any chunk) or assigned to *Nchunk*\ ,
 depending on the value of the *discard* keyword.
 
-
 ----------
-
 
 The *compute/fix/variable* styles set the chunk ID of each atom based
 on a quantity calculated and stored by a compute, fix, or variable.
@@ -308,9 +294,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to
 treat as a chunk ID.
 
-
 ----------
-
 
 Normally, *Nchunk* = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
@@ -335,9 +319,7 @@ the same compute chunk/atom compute.  However, the time windows they
 induce for holding *Nchunk* constant must be identical, else an error
 will be generated.
 
-
 ----------
-
 
 The various optional keywords operate as follows.  Note that some of
 them function differently or are ignored by different chunk styles.
@@ -348,9 +330,7 @@ The *region* keyword applies to all chunk styles.  If used, an atom
 must be in both the specified group and the specified geometric
 :doc:`region <region>` to be assigned to a chunk.
 
-
 ----------
-
 
 The *nchunk* keyword applies to all chunk styles.  It specifies how
 often *Nchunk* is recalculated, which in turn can affect the chunk IDs
@@ -368,9 +348,7 @@ chunk style and other system and keyword settings.  They attempt to
 represent typical use cases for the various chunk styles.  The
 *nchunk* value can always be set explicitly if desired.
 
-
 ----------
-
 
 The *limit* keyword can be used to limit the calculated value of
 *Nchunk* = the number of chunks.  The limit is applied each time
@@ -423,9 +401,7 @@ assigned to them.  Note that in this case, all atoms will end up with
 chunk IDs <= *Nc*\ , and their original values (e.g. molecule ID or
 compute/fix/variable value) will also have been <= *Nc*\ .
 
-
 ----------
-
 
 The *ids* keyword applies to all chunk styles.  If the setting is
 *once* then the chunk IDs assigned to atoms the first time this
@@ -449,9 +425,7 @@ re-calculated on any timestep this compute is invoked.
    quantities will also have the same ID, and thus be initialized
    correctly with chunk IDs from the restart file.
 
-
 ----------
-
 
 The *compress* keyword applies to all chunk styles and affects how
 *Nchunk* is calculated, which in turn affects the chunk IDs assigned
@@ -504,9 +478,7 @@ conjunction with the :doc:`compute property/chunk <compute_property_chunk>` comm
    can affect these costs, depending on which keyword is used first.  So
    use this option with care.
 
-
 ----------
-
 
 The *discard* keyword applies to all chunk styles.  It affects what
 chunk IDs are assigned to atoms that do not match one of the valid
@@ -585,9 +557,7 @@ than *rmin*\ , it will be assigned to the first bin.  If the distance of
 the atom from the origin is greater than *rmax*\ , it will be assigned
 to the last bin.
 
-
 ----------
-
 
 The *bound* keyword only applies to the *bin/1d*\ , *bin/2d*\ , *bin/3d*
 styles and to the axis dimension of the *bin/cylinder* style;
@@ -648,9 +618,7 @@ are scaled by the lattice spacing or reduced value of the 1st
 dimension perpendicular to the cylinder axis.  E.g. y for an x-axis
 cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
-
 ----------
-
 
 **Output info:**
 
@@ -665,7 +633,6 @@ belonging to a chunk.
 
 Restrictions
 """"""""""""
-
 
 Even if the *nchunk* keyword is set to *once*\ , the chunk IDs assigned
 to each atom are not stored in a restart files.  This means you cannot

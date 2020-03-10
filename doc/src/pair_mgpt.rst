@@ -6,14 +6,12 @@ pair_style mgpt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style mgpt
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -39,7 +37,6 @@ elemental bulk material in the form
    + \frac{1}{2} \sum _{i,j} \mbox{}^\prime \ v_2(ij;\Omega )
    + \frac{1}{6} \sum _{i,j,k} \mbox{}^\prime \ v_3(ijk;\Omega )
    + \frac{1}{24} \sum _{i,j,k,l} \mbox{}^\prime \ v_4(ijkl;\Omega )
-
 
 where the prime on each summation sign indicates the exclusion of all
 self-interaction terms from the summation.  The leading volume term
@@ -150,9 +147,7 @@ before proceeding to more complex simulations.
    as provided, it will build with whatever low-level compiler (g++, icc,
    etc) is the default for your MPI installation.
 
-
 ----------
-
 
 **Mixing, shift, table tail correction, restart**\ :
 
@@ -167,13 +162,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MGPT package and is only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -214,41 +206,29 @@ Default
 The options defaults for the :doc:`pair_coeff <pair_coeff>` command are
 volpress yes, nbody 1234, and precision double.
 
-
 ----------
 
-
 .. _Moriarty1:
-
-
 
 **(Moriarty1)** Moriarty, Physical Review B, 38, 3199 (1988).
 
 .. _Moriarty2:
-
-
 
 **(Moriarty2)** Moriarty, Physical Review B, 42, 1609 (1990).
 Moriarty, Physical Review B 49, 12431 (1994).
 
 .. _Moriarty3:
 
-
-
 **(Moriarty3)** Moriarty, Benedict, Glosli, Hood, Orlikowski, Patel, Soderlind, Streitz, Tang, and Yang,
 Journal of Materials Research, 21, 563 (2006).
 
 .. _Glosli:
-
-
 
 **(Glosli)** Glosli, unpublished, 2005.
 Streitz, Glosli, Patel, Chan, Yates, de Supinski, Sexton and Gunnels, Journal of Physics: Conference
 Series, 46, 254 (2006).
 
 .. _Oppelstrup:
-
-
 
 **(Oppelstrup)** Oppelstrup, unpublished, 2015.
 Oppelstrup and Moriarty, to be published.

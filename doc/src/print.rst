@@ -6,7 +6,6 @@ print command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    print string keyword value
@@ -22,11 +21,8 @@ Syntax
        *screen* value = *yes* or *no*
        *universe* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

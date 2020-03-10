@@ -6,7 +6,6 @@ fix srd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
@@ -48,11 +47,8 @@ Syntax
          *rotate* = rescale during velocity rotation, but not collisions
          *collide* = rescale during collisions, but not velocity rotation
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -98,7 +94,6 @@ SRD particles have a mass, temperature, characteristic timestep
 :math:`dt_{SRD}`, and mean free path between collisions
 (:math:`\lambda`).  The fundamental equation relating these 4 quantities
 is
-
 
 .. math::
 
@@ -155,9 +150,7 @@ SRD velocity is chosen randomly.  This collision style imparts torque
 to a big particle.  Thus a time integrator :doc:`fix <fix>` that rotates
 the big particles appropriately should be used.
 
-
 ----------
-
 
 The *overlap* keyword should be set to *yes* if two (or more) big
 particles can ever overlap.  This depends on the pair potential
@@ -204,9 +197,7 @@ bounces between nearby big particles.  Note that if the limit is
 reached, the SRD can be left inside a big particle.  A setting of 0 is
 the same as no limit.
 
-
 ----------
-
 
 There are 2 kinds of bins created and maintained when running an SRD
 simulation.  The first are "SRD bins" which are used to bin SRD
@@ -322,9 +313,7 @@ rescaling off during collisions and the per-bin velocity rotation
 operation.  The *collide* and *rotate* values turn it on for
 one of the operations and off for the other.
 
-
 ----------
-
 
 .. note::
 
@@ -349,9 +338,7 @@ The "delete\_atoms overlap" command may be useful in setting up an SRD
 simulation to insure there are no initial overlaps between big and SRD
 particles.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -388,7 +375,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This command can only be used if LAMMPS was built with the SRD
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
@@ -406,25 +392,17 @@ collision = noslip, overlap = no, inside = error, exact = yes, radius =
 1.0, bounce = 0, search = hgrid, cubic = error 0.01, shift = no, tstat =
 no, and rescale = yes.
 
-
 ----------
 
-
 .. _Hecht:
-
-
 
 **(Hecht)** Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
 
 .. _Petersen1:
 
-
-
 **(Petersen)** Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 
 .. _Lechman:
-
-
 
 **(Lechman)** Lechman, et al, in preparation (2010).

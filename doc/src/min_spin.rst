@@ -12,7 +12,6 @@ min_style spin/lbfgs command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    min_style spin
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -100,7 +98,6 @@ see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 Restrictions
 """"""""""""
 
-
 This minimization procedure is only applied to spin degrees of
 freedom for a frozen lattice configuration.
 
@@ -116,12 +113,8 @@ Default
 The option defaults are *alpha\_damp* = 1.0, *discrete\_factor* =
 10.0, *line* = spin\_none and *norm* = euclidean.
 
-
 ----------
 
-
 .. _Ivanov1:
-
-
 
 **(Ivanov)** Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).

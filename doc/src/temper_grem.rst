@@ -6,7 +6,6 @@ temper/grem command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    temper/grem N M lambda fix-ID thermostat-ID seed1 seed2 index
@@ -22,7 +21,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -54,7 +52,6 @@ which is typically a variable previously set in the input script, so
 that each partition is assigned a different temperature.  See the
 :doc:`variable <variable>` command for more details.  For example:
 
-
 .. parsed-literal::
 
    variable lambda world 400 420 440 460
@@ -84,13 +81,11 @@ replica) which had previously swapped to new lambda.  This is done
 using a variable. For example if the log file listed the following for
 a simulation with 5 replicas:
 
-
 .. parsed-literal::
 
    500000 2 4 0 1 3
 
 then a setting of
-
 
 .. parsed-literal::
 
@@ -100,13 +95,10 @@ would be used to restart the run with a grem command like the example
 above with $\ *walkers* as the last argument. This functionality is
 identical to :doc:`temper <temper>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the :doc:`Build package <Build_package>` doc
@@ -122,7 +114,5 @@ Related commands
 **Default:** none
 
 .. _KimStraub:
-
-
 
 **(Kim)** Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).

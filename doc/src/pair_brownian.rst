@@ -15,7 +15,6 @@ pair_style brownian/poly/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF
@@ -33,7 +32,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -62,9 +60,7 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
-
 ----------
-
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -79,9 +75,7 @@ The two coefficients are optional.  If neither is specified, the two
 cutoffs specified in the pair\_style command are used.  Otherwise both
 must be specified.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -101,9 +95,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`this section <Speed>` of the manual for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -128,13 +120,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

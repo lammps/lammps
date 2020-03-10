@@ -6,7 +6,6 @@ fix print command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID print N string keyword value ...
@@ -26,11 +25,8 @@ Syntax
        *title* value = string
          string =  text to print as 1st line of output file
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -57,7 +53,6 @@ Thus the variable should return timestep values.  See the stagger()
 and logfreq() and stride() math functions for :doc:`equal-style variables <variable>`, as examples of useful functions to use in
 this context. For example, the following commands will print output at
 timesteps 10,20,30,100,200,300,1000,2000,etc:
-
 
 .. parsed-literal::
 
@@ -87,7 +82,6 @@ logfile can be turned on or off as desired.
 The *title* keyword allow specification of the string that will be
 printed as the first line of the output file, assuming the *file*
 keyword was used.  By default, the title line is as follows:
-
 
 .. parsed-literal::
 

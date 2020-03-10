@@ -6,7 +6,6 @@ compute_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    compute_modify compute-ID keyword value ...
@@ -24,11 +23,8 @@ Syntax
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *dynamic* syntax is identical to *dynamic/dof*\ , will be disabled at some point
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

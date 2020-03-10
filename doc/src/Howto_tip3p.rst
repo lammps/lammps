@@ -51,26 +51,18 @@ details:
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 
-
 ----------
 
-
 .. _howto-tip3p:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _Jorgensen1:
 
-
-
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
 .. _Price1:
-
-
 
 **(Price)** Price and Brooks, J Chem Phys, 121, 10096 (2004).

@@ -6,7 +6,6 @@ server mc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    server mc
@@ -15,7 +14,6 @@ mc = the protocol argument to the :doc:`server <server>` command
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -45,9 +43,7 @@ The :doc:`server <server>` doc page gives other options for using LAMMPS
 See an example of how this command is used in
 examples/COUPLE/lammps\_mc/in.server.
 
-
 ----------
-
 
 When using this command, LAMMPS (as the server code) receives
 instructions from a Monte Carlo (MC) driver to displace random atoms,
@@ -73,7 +69,6 @@ Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
 **Client sends one of these kinds of message**\ :
 
-
 .. parsed-literal::
 
    cs->send(NATOMS,0)      # msgID = 1 with no fields
@@ -92,7 +87,6 @@ Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
 **Server replies**\ :
 
-
 .. parsed-literal::
 
    cs->send(NATOMS,1)      # msgID = 1 with 1 field
@@ -109,13 +103,10 @@ Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
    cs->send(RUN,0)         # msgID = 5 with no fields
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

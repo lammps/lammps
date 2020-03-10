@@ -6,7 +6,6 @@ write_dump command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    write_dump group-ID style file dump-args modify dump_modify-args
@@ -18,10 +17,8 @@ Syntax
 * modify = all args after this keyword are passed to :doc:`dump_modify <dump_modify>` (optional)
 * dump-modify-args = args for :doc:`dump_modify <dump_modify>` (optional)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -62,13 +59,10 @@ in the same fashion to create the new filename(s).  Normally, :doc:`dump image <
 for the timestep.  That is not the case for the write\_dump command; no
 wildcard "\*" character is necessary.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All restrictions for the :doc:`dump <dump>` and
 :doc:`dump_modify <dump_modify>` commands apply to this command as well,

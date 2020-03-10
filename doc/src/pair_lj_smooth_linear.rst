@@ -9,7 +9,6 @@ pair_style lj/smooth/linear/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/smooth/linear cutoff
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -41,7 +39,6 @@ continuously to zero at the cutoff Rc :ref:`(Toxvaerd) <Toxvaerd>`:
                        \left(\frac{\sigma}{r}\right)^6 \right] \\
    E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c
 
-
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
@@ -55,9 +52,7 @@ commands, or by mixing as described below:
 The last coefficient is optional. If not specified, the global
 LJ cutoff specified in the pair\_style command is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -77,9 +72,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -106,9 +99,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -121,12 +112,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Toxvaerd:
-
-
 
 **(Toxvaerd)** Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).

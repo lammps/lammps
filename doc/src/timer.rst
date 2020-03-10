@@ -6,7 +6,6 @@ timer command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    timer args
@@ -26,7 +25,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -126,7 +124,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

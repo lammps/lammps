@@ -15,7 +15,6 @@ pair_style gayberne/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style gayberne gamma upsilon mu cutoff
@@ -27,7 +26,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -173,9 +171,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -203,13 +199,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *gayberne* style is part of the ASPHERE package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -241,31 +234,21 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers2:
-
-
 
 **(Everaers)** Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 .. _Berardi:
-
-
 
 **(Berardi)** Berardi, Fava, Zannoni, Chem Phys Lett, 297, 8-14 (1998).
 Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 
 .. _Perram:
 
-
-
 **(Perram)** Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).
 
 .. _Allen3:
-
-
 
 **(Allen)** Allen and Germano, Mol Phys 104, 3225-3235 (2006).

@@ -6,7 +6,6 @@ fix box/relax command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID box/relax keyword value ...
@@ -30,11 +29,8 @@ Syntax
        *fixedpoint* values = x y z
          x,y,z = perform relaxation dilation/contraction around this point (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -54,9 +50,7 @@ close to the specified external tensor.  Conceptually, specifying a
 positive pressure is like squeezing on the simulation box; a negative
 pressure typically allows the box to expand.
 
-
 ----------
-
 
 The external pressure tensor is specified using one or more of the
 *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple*
@@ -138,9 +132,7 @@ displaced by the same amount, different on each iteration.
    new objective function valid for the new box size/shape.  Repeat as
    necessary until the box size/shape has reached its new equilibrium.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -155,9 +147,7 @@ dilated or contracted by the same percentage every timestep.  The
 *Couple xyz* can be used for a 2d simulation; the *z* dimension is
 simply ignored.
 
-
 ----------
-
 
 The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -166,7 +156,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Ptarget" is the same as specifying
 these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -181,7 +170,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Ptarget" is the same as specifying these 4
 keywords:
 
-
 .. parsed-literal::
 
    x Ptarget
@@ -195,7 +183,6 @@ as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Ptarget" is the same as specifying
 these 7 keywords:
 
-
 .. parsed-literal::
 
    x Ptarget
@@ -206,9 +193,7 @@ these 7 keywords:
    xz 0.0
    couple none
 
-
 ----------
-
 
 The *vmax* keyword can be used to limit the fractional change in the
 volume of the simulation box that can occur in one iteration of the
@@ -220,9 +205,7 @@ percent in one iteration when *couple xyz* has been specified.  For
 any other case it means no linear dimension of the simulation box can
 change by more than 1/10 of a percent.
 
-
 ----------
-
 
 With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
@@ -231,7 +214,6 @@ function then is:
 .. math::
 
    E = U + P_t \left(V-V_0 \right) + E_{strain}
-
 
 where *U* is the system potential energy, :math:`P_t` is the desired
 hydrostatic pressure, :math:`V` and :math:`V_0` are the system and reference
@@ -244,7 +226,6 @@ global system stress tensor **P** will satisfy the relation:
 .. math::
 
    \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
-
 
 where **I** is the identity matrix, :math:`\mathbf{h_0}` is the box
 dimension tensor of the reference cell, and ::math:`\mathbf{h_{0d}}`
@@ -297,16 +278,13 @@ from a restart file.
    systems (e.g. liquids) will not sustain a non-hydrostatic applied
    pressure, which means the minimizer will not converge.
 
-
 ----------
-
 
 This fix computes a temperature and pressure each timestep.  The
 temperature is used to compute the kinetic contribution to the
 pressure, even though this is subsequently ignored by default.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
-
 
 .. parsed-literal::
 
@@ -328,9 +306,7 @@ or pressure during thermodynamic output via the :doc:`thermo_style custom <therm
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -367,7 +343,6 @@ result in double-counting of the fix energy in the minimization
 energy. Instead, the fix energy can be explicitly added to the
 potential energy using one of these two variants:
 
-
 .. parsed-literal::
 
    variable emin equal pe+f_1
@@ -384,7 +359,6 @@ described above.
 
 Restrictions
 """"""""""""
-
 
 Only dimensions that are available can be adjusted by this fix.
 Non-periodic dimensions are not available.  *z*\ , *xz*\ , and *yz*\ , are
@@ -411,12 +385,8 @@ Default
 
 The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
 
-
 ----------
 
-
 .. _Parrinello1981:
-
-
 
 **(Parrinello1981)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).

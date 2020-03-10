@@ -6,7 +6,6 @@ neigh_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    neigh_modify keyword values ...
@@ -49,11 +48,8 @@ Syntax
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -132,7 +128,6 @@ sample scenarios where this is useful:
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
 
-
 The *exclude type* option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
 *exclude group* option turns off the interaction if one atom is in the
@@ -204,7 +199,6 @@ binsize of 1/2 the cutoff.
 
 Restrictions
 """"""""""""
-
 
 If the "delay" setting is non-zero, then it must be a multiple of the
 "every" setting.

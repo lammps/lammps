@@ -6,7 +6,6 @@ compute slice command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID slice Nstart Nstop Nskip input1 input2 ...
@@ -26,11 +25,8 @@ Syntax
        f_ID[I] = Ith column of global array calculated by a fix with ID
        v_name = vector calculated by an vector-style variable with name
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -91,9 +87,7 @@ even if the length of the vector is 1.  If multiple inputs are
 specified, then a global array of values is produced, with the number
 of columns equal to the number of inputs specified.
 
-
 ----------
-
 
 **Output info:**
 

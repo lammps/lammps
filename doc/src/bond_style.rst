@@ -6,7 +6,6 @@ bond_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style style args
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -66,9 +64,7 @@ coefficients need to be re-specified.
 In the formulas listed for each bond style, *r* is the distance
 between the 2 atoms in the bond.
 
-
 ----------
-
 
 Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
@@ -104,13 +100,10 @@ accelerated styles exist.
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
 * :doc:`table <bond_table>` - tabulated by bond length
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Bond styles can only be set for atom styles that allow bonds to be
 defined.

@@ -6,7 +6,6 @@ compute pair command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pair pstyle [nstyle] [evalue]
@@ -17,10 +16,8 @@ Syntax
 * nsub = *n*\ -instance of a sub-style, if a pair style is used multiple times in a hybrid style
 * *evalue* = *epair* or *evdwl* or *ecoul* or blank (optional)
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

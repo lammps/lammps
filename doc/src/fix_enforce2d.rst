@@ -9,7 +9,6 @@ fix enforce2d/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID enforce2d
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -32,9 +30,7 @@ Zero out the z-dimension velocity and force on each atom in the group.
 This is useful when running a 2d simulation to insure that atoms do
 not move from their initial z coordinate.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -54,9 +50,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

@@ -6,7 +6,6 @@ compute hma command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID hma temp-ID keyword ...
@@ -23,11 +22,8 @@ Syntax
      *p* = compute will return pressure.  the following keyword must be the difference between the harmonic pressure and lattice pressure as described below
      *cv* = compute will return the heat capacity
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -71,12 +67,10 @@ method.  This is the list of pair styles that currently implement
 
 * :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>`
 
-
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
 averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination
 by noise produced by the already-known harmonic behavior.
 A detailed description of this method can be found in (:ref:`Moustafa <hma-Moustafa>`). The potential energy is computed by the formula:
-
 
 .. math::
 
@@ -89,7 +83,6 @@ atomic force vectors and displacement (from lattice sites) vectors, and :math:`U
 pair, bond, angle, dihedral, improper, kspace (long-range), and fix energies.
 
 The pressure is computed by the formula:
-
 
 .. math::
 
@@ -105,7 +98,6 @@ pressure is sensitive to :math:`\Delta \hat P`; the precision tends to be
 best when :math:`\Delta \hat P` is the actual the difference between the lattice
 pressure and harmonic pressure.
 
-
 .. math::
 
    \left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
@@ -120,7 +112,6 @@ value reported by this compute.  The variance term can cause significant
 round-off error when computing :math:`C_V`.  To address this, the *anharmonic*
 keyword can be passed and/or the output format can be specified with more
 digits.
-
 
 .. parsed-literal::
 
@@ -144,7 +135,6 @@ should be avoided as its extra forces interfere with the HMA implementation.
    The simulation should not be started before this command has been used in the input script.
 
 The following example illustrates the placement of this command in the input script:
-
 
 .. parsed-literal::
 
@@ -178,7 +168,6 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is enabled only
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -195,13 +184,9 @@ this compute.
 
 **Default:** none
 
-
 ----------
 
-
 .. _hma-Moustafa:
-
-
 
 **(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ ,
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_

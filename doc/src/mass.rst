@@ -6,7 +6,6 @@ mass command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    mass I value
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -48,7 +46,6 @@ mass command in an input script, except that no wild-card asterisk can
 be used.  For example, under the "Masses" section of a data file, the
 line that corresponds to the 1st example above would be listed as
 
-
 .. parsed-literal::
 
    1 1.0
@@ -74,7 +71,6 @@ per-atom mass will be used by LAMMPS.
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

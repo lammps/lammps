@@ -25,7 +25,6 @@ LAMMPS to run on the CPU cores and co-processor cores simultaneously.
   rebo, sw, tersoff
 * K-Space Styles: pppm, pppm/disp
 
-
 .. warning::
 
    None of the styles in the USER-INTEL package currently
@@ -58,9 +57,7 @@ Skylake) with "June 2017" LAMMPS built with Intel Parallel Studio
 *src/USER-INTEL/TEST/README* for the raw simulation rates and
 instructions to reproduce.
 
-
 ----------
-
 
 **Accuracy and order of operations:**
 
@@ -88,7 +85,6 @@ order of operations compared to LAMMPS without acceleration:
   Twister generator included in the Intel MKL library (that should be
   more robust than the default Masaglia random number generator)
 
-
 The precision mode (described below) used with the USER-INTEL
 package can change the *accuracy* of the calculations. For the
 default *mixed* precision option, calculations between pairs or
@@ -98,9 +94,7 @@ is performed in double precision to prevent the error from growing
 with the number of atoms in the simulation. *Single* precision
 mode should not be used without appropriate validation.
 
-
 ----------
-
 
 **Quick Start for Experienced Users:**
 
@@ -120,11 +114,9 @@ not *hardware thread*\ .
 * If using *kspace\_style pppm* in the input script, add
   "kspace\_modify diff ad" for better performance
 
-
 For Intel Xeon Phi CPUs:
 
 * Runs should be performed using MCDRAM.
-
 
 For simulations using *kspace\_style pppm* on Intel CPUs supporting
 AVX-512:
@@ -136,17 +128,13 @@ AVX-512:
 * Do not use thread affinity (set KMP\_AFFINITY=none)
 * The "newton off" setting may provide better scalability
 
-
 For Intel Xeon Phi co-processors (Offload):
 
 * Edit src/MAKE/OPTIONS/Makefile.intel\_co-processor as necessary
 * "-pk intel N omp 1" added to command-line where N is the number of
   co-processors per node.
 
-
-
 ----------
-
 
 **Required hardware/software:**
 
@@ -204,7 +192,6 @@ will report every hardware thread as a separate core allowing one to
 determine the number of hardware threads available. On Linux systems,
 this information can normally be obtained with:
 
-
 .. parsed-literal::
 
    cat /proc/cpuinfo
@@ -217,7 +204,6 @@ instructions.  Some additional details are covered here.
 For building with make, several example Makefiles for building with
 the Intel compiler are included with LAMMPS in the src/MAKE/OPTIONS/
 directory:
-
 
 .. parsed-literal::
 
@@ -232,7 +218,6 @@ it explicitly specifies that vectorization should be for Intel Xeon
 Phi x200 processors making it easier to cross-compile. For users with
 recent installations of Intel Parallel Studio, the process can be as
 simple as:
-
 
 .. parsed-literal::
 
@@ -349,7 +334,6 @@ desired.
 Examples (see documentation for your MPI/Machine for differences in
 launching MPI applications):
 
-
 .. parsed-literal::
 
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script                                 # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
@@ -362,14 +346,12 @@ can be edited to enable the USER-INTEL package. This requires adding
 the :doc:`package intel <package>` command to the top of the input
 script. For the second example above, this would be:
 
-
 .. parsed-literal::
 
    package intel 0 omp 2 mode double
 
 To enable the USER-INTEL package only for individual styles, you can
 add an "intel" suffix to the individual style, e.g.:
-
 
 .. parsed-literal::
 
@@ -526,7 +508,6 @@ MPI task.
 
 Restrictions
 """"""""""""
-
 
 When offloading to a co-processor, :doc:`hybrid <pair_hybrid>` styles
 that require skip lists for neighbor builds cannot be offloaded.

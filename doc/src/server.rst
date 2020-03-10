@@ -6,7 +6,6 @@ server command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    server protocol
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -53,13 +51,10 @@ For protocol *md*\ , LAMMPS can be either a client (via the :doc:`fix client/md 
 
 For protocol *mc*\ , LAMMPS can be the server.  See the :doc:`server mc <server_mc>` doc page for details on the protocol.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

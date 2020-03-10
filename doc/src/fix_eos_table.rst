@@ -6,7 +6,6 @@ fix eos/table command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID eos/table style file N keyword
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -51,13 +49,10 @@ The filename specifies a file containing tabulated internal
 temperature and internal energy values.  The keyword specifies a
 section of the file.  The format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -102,13 +97,10 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

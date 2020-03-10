@@ -6,7 +6,6 @@ improper_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_coeff N args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,6 @@ setting for the same improper type.  For example, these commands set
 the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
 
-
 .. code-block:: LAMMPS
 
    improper_coeff * 300.0 0.0
@@ -60,7 +57,6 @@ coefficients for all N types must be listed in the file.  For example,
 under the "Improper Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as
 
-
 .. parsed-literal::
 
    1 300.0 0.0
@@ -70,9 +66,7 @@ this rule, in that an additional argument is used in the input script
 to allow specification of the cross-term coefficients.  See its doc
 page for details.
 
-
 ----------
-
 
 The list of all improper styles defined in LAMMPS is given on the
 :doc:`improper_style <improper_style>` doc page.  They are also listed
@@ -82,13 +76,10 @@ On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
 improper\_coeff command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

@@ -6,14 +6,12 @@ pair_style lcbop command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lcbop
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -42,7 +40,6 @@ to specify the path for the potential file.
 As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C you would use the following pair\_coeff command:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * C.lcbop C C C NULL
@@ -59,9 +56,7 @@ are listed in the C.lcbop file to agree with the original :ref:`(Los and Fasolin
 potential and the way it was fit, so modifying the file should be done
 carefully.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -78,7 +73,6 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-
 
 This pair styles is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -99,13 +93,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Los:
-
-
 
 **(Los and Fasolino)** J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
 (2003).

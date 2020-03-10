@@ -6,7 +6,6 @@ compute voronoi/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID voronoi/atom keyword arg ...
@@ -35,11 +34,8 @@ Syntax
        *neighbors* value = *yes* or *no* = store list of all neighbors or no
        *peratom* value = *yes* or *no* = per-atom quantities accessible or no
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -67,9 +63,7 @@ plus any exterior faces (see note below). If the *peratom* keyword
 is set to "no", the per-atom quantities are still calculated,
 but they are not accessible.
 
-
 ----------
-
 
 If the *only\_group* keyword is specified the tessellation is performed
 only with respect to the atoms contained in the compute group. This is
@@ -91,7 +85,6 @@ can be obtained by running a "reduce sum" compute on c\_2[3]
 If the *radius* keyword is specified with an atom style variable as
 the argument, a poly-disperse Voronoi tessellation is
 performed. Examples for radius variables are
-
 
 .. parsed-literal::
 
@@ -146,7 +139,6 @@ overview of LAMMPS output options. More specifically, the array can be
 accessed by a :doc:`dump local <dump>` command to write a file
 containing all the Voronoi neighbors in a system:
 
-
 .. parsed-literal::
 
    compute 6 all voronoi/atom neighbors yes
@@ -155,9 +147,7 @@ containing all the Voronoi neighbors in a system:
 If the *face\_threshold* keyword is used, then only faces
 with areas greater than the threshold are stored.
 
-
 ----------
-
 
 The Voronoi calculation is performed by the freely available `Voro++ package <voronoi_>`_, written by Chris Rycroft at UC Berkeley and LBL,
 which must be installed on your system when building LAMMPS for use
@@ -165,8 +155,6 @@ with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.
 
 .. _voronoi: http://math.lbl.gov/voro++/
-
-
 
 .. note::
 
@@ -234,7 +222,6 @@ The Voronoi face area will be in distance :doc:`units <units>` squared.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the VORONOI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

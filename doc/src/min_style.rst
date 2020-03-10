@@ -6,7 +6,6 @@ min_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    min_style style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -70,7 +68,6 @@ in :ref:`(Guenole) <Guenole>` that include different time integration
 schemes and defaults parameters. The default parameters can be
 modified with the command :doc:`min_modify <min_modify>`.
 
-
 Style *fire/old* is the original implementation of *fire* in Lammps,
 conserved for backward compatibility. The main differences regarding
 the current version *fire* are: time integration by Explicit Euler
@@ -118,9 +115,7 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
    or minimizations involving the electron radius in :doc:`eFF
    <pair_eff>` models.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -142,9 +137,7 @@ use the :doc:`suffix <suffix>` command in your input script.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -159,14 +152,11 @@ Related commands
 Default
 """""""
 
-
 .. code-block:: LAMMPS
 
    min_style cg
 
-
 ----------
-
 
 .. _Sheppard:
 

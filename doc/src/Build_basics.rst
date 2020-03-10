@@ -10,9 +10,7 @@ CMake and make:
 * :ref:`Build the LAMMPS documentation <doc>`
 * :ref:`Install LAMMPS after a build <install>`
 
-
 ----------
-
 
 .. _serial:
 
@@ -56,7 +54,6 @@ The build with traditional makefiles has to be done inside the source folder `sr
    make mpi                # parallel build, produces lmp_mpi using Makefile.mpi
    make serial             # serial build, produces lmp_serial using Makefile/serial
    make mybox              # uses Makefile.mybox to produce lmp_mybox
-
 
 Any "make machine" command will look up the make settings from a file
 Makefile.machine, create a folder Obj\_machine with all objects and
@@ -154,9 +151,7 @@ while dropping all 'shared()' directives. The script
 'src/USER-OMP/hack\_openmp\_for\_pgi\_gcc9.sh' can be used to automate
 this conversion.
 
-
 ----------
-
 
 .. _compile:
 
@@ -203,7 +198,6 @@ for all the C++ files:
    -D CMAKE_CXX_FLAGS=string             # flags to use with C++ compiler
    -D CMAKE_C_FLAGS=string               # flags to use with C compiler
    -D CMAKE_Fortran_FLAGS=string         # flags to use with Fortran compiler
-
 
 A few example command lines are:
 
@@ -347,7 +341,6 @@ build may generate an error.  This means you will need to install a
 shared library version of the auxiliary library.  The build instructions
 for the library should tell you how to do this.
 
-
 As an example, here is how to build and install the `MPICH library
 <mpich_>`_, a popular open-source version of MPI, as a shared library
 in the default /usr/local/lib location:
@@ -376,7 +369,6 @@ and not through a package manager tool provided by the OS) is generally
 recommended to ensure the integrity of the system software installation.
 
 ----------
-
 
 .. _doc:
 
@@ -412,7 +404,6 @@ LAMMPS source distribution.
   make package_check # check for complete and consistent package lists
   make spelling      # spell-check the manual
 
-
 Thus "make html" will create a "doc/html" directory with the HTML format
 manual pages so that you can browse them with a web browser locally on
 your system.
@@ -422,7 +413,6 @@ your system.
    You can also download a tarball of the documentation for the
    current LAMMPS version (HTML and PDF files), from the website
    `download page <http://lammps.sandia.gov/download.html>`_.
-
 
 **CMake build option**\ :
 
@@ -436,9 +426,7 @@ the "install" step when installing LAMMPS after the CMake build via
 
    -D BUILD_DOC=value       # yes or no (default)
 
-
 ----------
-
 
 .. _tools:
 
@@ -450,7 +438,6 @@ using CMake or Make.
 
 **CMake build3**\ :
 
-
 .. code-block:: bash
 
    -D BUILD_TOOLS=value       # yes or no (default)
@@ -459,7 +446,6 @@ The generated binaries will also become part of the LAMMPS installation
 (see below).
 
 **Traditional make**\ :
-
 
 .. code-block:: bash
 
@@ -470,9 +456,7 @@ The generated binaries will also become part of the LAMMPS installation
    make micelle2d        # build only micelle2d tool
    make thermo_extract   # build only thermo_extract tool
 
-
 ----------
-
 
 .. _install:
 
@@ -486,7 +470,6 @@ that you may need super-user privileges (e.g. sudo) if the directory
 you want to copy files to is protected.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 

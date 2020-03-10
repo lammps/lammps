@@ -13,7 +13,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style meam/c
@@ -47,7 +46,6 @@ given by:
 
    E = \sum_i \left\{ F_i(\bar{\rho}_i)
        + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
-
 
 where *F* is the embedding energy which is a function of the atomic
 electron density :math:`\rho`, and :math:`\phi` is a pair potential
@@ -89,7 +87,6 @@ settings for a variety of elements.  The potentials/SiC.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -149,7 +146,6 @@ finds and ignores the rest.
 Other parameters in the MEAM library file correspond to single-element
 potential parameters:
 
-
 .. parsed-literal::
 
    lat      = lattice structure of reference configuration
@@ -170,7 +166,6 @@ is typically 1.0 for single-element systems.  The ibar parameter
 selects the form of the function G(Gamma) used to compute the electron
 density; options are
 
-
 .. parsed-literal::
 
       0 => G = sqrt(1+Gamma)
@@ -188,7 +183,6 @@ blank and comment lines (start with #) which can appear anywhere, each
 line has one of the following forms.  Each line can also have a
 trailing comment (starting with #) which is ignored.
 
-
 .. parsed-literal::
 
    keyword = value
@@ -199,7 +193,6 @@ trailing comment (starting with #) which is ignored.
 The indices I, J, K correspond to the elements selected from the
 MEAM library file numbered in the order of how those elements were
 selected starting from 1. Thus for the example given below
-
 
 .. code-block:: LAMMPS
 
@@ -213,7 +206,6 @@ Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
 augt1, gsmooth\_factor, re
 
 where
-
 
 .. parsed-literal::
 
@@ -306,7 +298,6 @@ where N is the number of MEAM elements being used.
 
 Thus these lines
 
-
 .. parsed-literal::
 
    rho0(2) = 2.25
@@ -347,7 +338,6 @@ used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
 this function is:
 
-
 .. parsed-literal::
 
    astar = alpha \* (r/re - 1.d0)
@@ -371,9 +361,7 @@ recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
    available using erose\_form = 2.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -393,13 +381,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *meam/c* style is provided in the USER-MEAMC package. It is
 only enabled if LAMMPS was built with that package.
@@ -420,54 +405,36 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Baskes:
-
-
 
 **(Baskes)** Baskes, Phys Rev B, 46, 2727-2742 (1992).
 
 .. _Gullet:
-
-
 
 **(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
 This report may be accessed on-line via `this link <sandreport_>`_.
 
 .. _sandreport: http://infoserve.sandia.gov/sand\_doc/2003/038782.pdf
 
-
-
 .. _Lee:
-
-
 
 **(Lee)** Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
 
 .. _Lee2:
 
-
-
 **(Lee2)** Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
 
 .. _Valone:
-
-
 
 **(Valone)** Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
 
 .. _Wang2:
 
-
-
 **(Wang)** Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 .. _ZBL:
-
-
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
 of Ions in Matter", Vol 1, 1985, Pergamon Press.

@@ -12,7 +12,6 @@ compute aggregate/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID cluster/atom cutoff
@@ -25,7 +24,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

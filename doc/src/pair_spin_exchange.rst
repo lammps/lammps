@@ -6,17 +6,14 @@ pair_style spin/exchange command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style spin/exchange cutoff
 
 * cutoff = global cutoff pair (distance in metal units)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -89,13 +86,10 @@ of the function :math:`J(r_{ij})` defined above.
 None of those coefficients is optional. If not specified, the
 *spin/exchange* pair style cannot be used.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
@@ -111,13 +105,9 @@ Related commands
 
 none
 
-
 ----------
 
-
 .. _Tranchida3:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

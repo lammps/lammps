@@ -6,7 +6,6 @@ compute cnp/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID cnp/atom cutoff
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -44,7 +42,6 @@ This parameter is computed using the following formula from
 
    Q_{i} = \frac{1}{n_i}\sum_{j = 1}^{n_i} | \sum_{k = 1}^{n_{ij}}  \vec{R}_{ik} + \vec{R}_{jk} |^2
 
-
 where the index *j* goes over the :math:`n_i` nearest neighbors of atom
 *i*\ , and the index *k* goes over the :math:`n_{ij}` common nearest neighbors
 between atom *i* and atom *j*\ . :math:`\vec{R}_{ik}` and
@@ -65,7 +62,6 @@ obtain a good cutoff distance:
   r_{c}^{bcc} = & \frac{1}{2}(\sqrt{2} + 1) \mathrm{a} \simeq 1.207 \:\mathrm{a} \\
   r_{c}^{hcp} = & \frac{1}{2}\left(1+\sqrt{\frac{4+2x^{2}}{3}}\right) \mathrm{a}
 
-
 where a is the lattice constant for the crystal structure concerned
 and in the HCP case, x = (c/a) / 1.633, where 1.633 is the ideal c/a
 for HCP crystals.
@@ -77,7 +73,6 @@ following relation should also be satisfied:
 .. math::
 
   r_c + r_s > 2*{\rm cutoff}
-
 
 where :math:`r_c` is the cutoff distance of the potential, :math:`r_s` is
 the skin
@@ -101,7 +96,6 @@ LAMMPS output options.
 The per-atom vector values will be real positive numbers. Some typical CNP
 values:
 
-
 .. parsed-literal::
 
    FCC lattice = 0.0
@@ -115,7 +109,6 @@ values:
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -127,12 +120,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Tsuzuki2:
-
-
 
 **(Tsuzuki)** Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007).

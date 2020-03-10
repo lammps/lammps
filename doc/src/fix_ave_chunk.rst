@@ -6,7 +6,6 @@ fix ave/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/chunk Nevery Nrepeat Nfreq chunkID value1 value2 ... keyword args ...
@@ -62,11 +61,8 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -82,13 +78,11 @@ with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <comput
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:
 
-
 .. parsed-literal::
 
    fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 
 could be replaced by:
-
 
 .. parsed-literal::
 
@@ -154,7 +148,6 @@ had been listed one by one.  E.g. these 2 fix ave/chunk commands are
 equivalent, since the :doc:`compute property/atom <compute_property_atom>` command creates, in this
 case, a per-atom array with 3 columns:
 
-
 .. parsed-literal::
 
    compute myAng all property/atom angmomx angmomy angmomz
@@ -173,9 +166,7 @@ case, a per-atom array with 3 columns:
    computational cost (summing across processors), so be careful to
    define a reasonable number of chunks.
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be accessed and contribute to the
@@ -219,9 +210,7 @@ discussed below.
    the size of each bin can vary at each timestep if the simulation box
    size changes, e.g. for an NPT simulation.
 
-
 ----------
-
 
 The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
 As noted above, any other atom attributes can be used as input values
@@ -303,9 +292,7 @@ attributes, or invoke other computes, fixes, or variables when they
 are evaluated, so this is a very general means of generating per-atom
 quantities to average within chunks.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix
 and its outputs.
@@ -430,7 +417,6 @@ values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows:
 
-
 .. parsed-literal::
 
    # Chunk-averaged data for fix ID and group name
@@ -468,9 +454,7 @@ be in unitless reduced units (0-1).  This is not true for the Coord1 value
 of style *bin/sphere* or *bin/cylinder* which both represent radial
 dimensions.  Those values are always in distance :doc:`units <units>`.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

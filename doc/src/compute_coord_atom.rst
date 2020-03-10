@@ -6,7 +6,6 @@ compute coord/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID coord/atom cstyle args ...
@@ -25,11 +24,8 @@ Syntax
          orientorderID = ID of an orientorder/atom compute
          threshold = minimum value of the product of two "connected" atoms
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -145,13 +141,9 @@ Default
 
 group = all
 
-
 ----------
 
-
 .. _tenWolde1:
-
-
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

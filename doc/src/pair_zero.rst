@@ -6,7 +6,6 @@ pair_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style zero cutoff [nocoeff]
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -60,9 +58,7 @@ specified in the pair\_style command is used. If the pair\_style has
 been specified with the optional *nocoeff* flag, then a cutoff
 pair coefficient is ignored.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -78,9 +74,7 @@ to be specified in an input script that reads a restart file.
 This pair style supports the use of the *inner*\ , *middle*\ ,
 and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

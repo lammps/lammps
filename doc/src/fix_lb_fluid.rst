@@ -6,7 +6,6 @@ fix lb/fluid command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/fluid nevery LBtype viscosity density keyword values ...
@@ -48,11 +47,8 @@ Syntax
        *bodyforce* values = bodyforcex bodyforcey bodyforcez = the x,y and z components of a constant body force added to the fluid.
        *printfluid* values = N = print the fluid density and velocity at each grid point every N timesteps.
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -74,13 +70,11 @@ the Navier Stokes equations,
    \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= & 0 \\
    \partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = & \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
 
-
 with,
 
 .. math::
 
    \eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
-
 
 where :math:`\rho` is the fluid density, *u* is the local
 fluid velocity, :math:`\sigma` is the stress tensor, *F* is a local external
@@ -91,7 +85,6 @@ respectively.  Here, we have implemented
 
    \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
 
-
 with :math:`a_0` set to :math:`\frac{1}{3} \frac{dx}{dt}^2` by default.
 
 The algorithm involves tracking the time evolution of a set of partial
@@ -101,7 +94,6 @@ discretized version of the Boltzmann equation,
 .. math::
 
    \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
-
 
 where the first term on the right hand side represents a single time
 relaxation towards the equilibrium distribution function, and :math:`\tau` is a
@@ -134,7 +126,6 @@ calculated as:
 
    {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
 
-
 where :math:`\mathbf{v}_n` is the velocity of the MD particle,
 :math:`\mathbf{u}_f` is the fluid
 velocity interpolated to the particle location, and :math:`\gamma` is the force
@@ -155,7 +146,6 @@ according to
 .. math::
 
    \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
-
 
 Here, :math:`m_v` is the mass of the MD particle, :math:`m_u` is a
 representative fluid mass at the particle location, and :math:`\Delta
@@ -325,18 +315,14 @@ If the *printfluid* keyword is used, followed by a positive integer, N,
 the fluid densities and velocities at each lattice site are printed to the
 screen every N timesteps.
 
-
 ----------
-
 
 For further details, as well as descriptions and results of several
 test runs, see :ref:`Mackay et al. <fluid-Mackay>`.  Please include a citation to
 this paper if the lb\_fluid fix is used in work contributing to
 published research.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -353,7 +339,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -389,7 +374,6 @@ By default, the force coupling constant is set according to
 
    \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
 
-
 and an area of :math:`dx_{LB}^2` per node, used to calculate the fluid mass at
 the particle node location, is assumed.
 
@@ -401,30 +385,20 @@ The Peskin stencil is used as the default interpolation method.
 The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
 If walls are present, they are assumed to be stationary.
 
-
 ----------
 
-
 .. _Ollila:
-
-
 
 **(Ollila et al.)** Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.
 
 .. _fluid-Mackay:
 
-
-
 **(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
 
 .. _Mackay2:
 
-
-
 **(Mackay and Denniston)** Mackay, F. E., and Denniston, C., Coupling MD particles to a lattice-Boltzmann fluid through the use of conservative forces, J. Comput. Phys. 237 (2013) 289-298.
 
 .. _Adhikari:
-
-
 
 **(Adhikari et al.)** Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.

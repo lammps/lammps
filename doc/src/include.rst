@@ -6,7 +6,6 @@ include command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    include file
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

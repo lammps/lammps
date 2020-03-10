@@ -6,7 +6,6 @@ compute property/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/atom input1 input2 ...
@@ -35,7 +34,6 @@ Syntax
                              spin, eradius, ervel, erforce,
                              rho, drho, e, de, cv,
                              i_name, d_name
-
 
   .. parsed-literal::
 
@@ -66,13 +64,11 @@ Syntax
            corner123x, corner123y, corner123z = corner points of triangle
            nbonds = number of bonds assigned to an atom
 
-
   .. parsed-literal::
 
            PERI package per-atom properties:
            vfrac = ???
            s0 = ???
-
 
   .. parsed-literal::
 
@@ -81,7 +77,6 @@ Syntax
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
-
 
   .. parsed-literal::
 
@@ -92,18 +87,14 @@ Syntax
            de = ???
            cv = ???
 
-
   .. parsed-literal::
 
            :doc:`fix property/atom <fix_property_atom>` per-atom properties:
            i_name = custom integer vector with name
            d_name = custom integer vector with name
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ fix efield command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID efield ex ey ez keyword value ...
@@ -25,11 +24,8 @@ Syntax
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added E-field
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -71,9 +67,7 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
-
 ----------
-
 
 Adding a force or torque to atoms implies a change in their potential
 energy as they move or rotate due to the applied E-field.
@@ -118,9 +112,7 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -168,7 +160,6 @@ the iteration count during the minimization.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -9,7 +9,6 @@ fix property/atom/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID property/atom vec1 vec2 ... keyword value ...
@@ -33,11 +32,8 @@ Syntax
 
        *ghost* value = *no* or *yes* for whether ghost atom info in communicated
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -136,9 +132,7 @@ new properties are also defined for the ghost atoms.
    a 'run 0' command should be issued to properly initialize the storage
    created by this fix.
 
-
 ----------
-
 
 This fix is one of a small number that can be defined in an input
 script before the simulation box is created or atoms are defined.
@@ -154,14 +148,12 @@ passing it the fix-ID of this fix.
 
 Thus these commands:
 
-
 .. parsed-literal::
 
    fix prop all property/atom mol d_flag
    read_data data.txt fix prop NULL Molecules
 
 would allow a data file to have a section like this:
-
 
 .. parsed-literal::
 
@@ -185,7 +177,6 @@ Another way of initializing the new properties is via the
 defined for every set of 10 atoms, based on their atom-IDs,
 these commands could be used:
 
-
 .. parsed-literal::
 
    fix prop all property/atom mol
@@ -204,9 +195,7 @@ molecule IDs could be read-in from a separate file and assigned by the
 :doc:`set <set>` command.  This allows you to initialize new per-atom
 properties in a completely general fashion.
 
-
 ----------
-
 
 For new atom properties specified as *i\_name* or *d\_name*, the
 :doc:`compute property/atom <compute_property_atom>` command can access
@@ -215,16 +204,13 @@ their values.  This means that the values can be output via the :doc:`dump custo
 For example, these commands will output two new properties to a custom
 dump file:
 
-
 .. parsed-literal::
 
    fix prop all property/atom i_flag1 d_flag2
    compute 1 all property/atom i_flag1 d_flag2
    dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2]
 
-
 ----------
-
 
 If you wish to add new :doc:`pair styles <pair_style>`,
 :doc:`fixes <fix>`, or :doc:`computes <compute>` that use the per-atom
@@ -232,13 +218,9 @@ properties defined by this fix, see the :doc:`Modify atom <Modify_atom>`
 doc page which has details on how the properties can be accessed from
 added classes.
 
-
 ----------
 
-
 .. _isotopes:
-
-
 
 Example for using per-atom masses with TIP4P water to
 study isotope effects. When setting up simulations with the :doc:`TIP4P pair styles <Howto_tip4p>` for water, you have to provide exactly
@@ -250,7 +232,6 @@ replaced by per-atom masses. Asumming you have a working input deck
 for regular TIP4P water, where water oxygen is atom type 1 and water
 hydrogen is atom type 2, the following lines of input script convert
 this to using per-atom masses:
-
 
 .. parsed-literal::
 
@@ -265,7 +246,6 @@ existing data file and just add this *Isotopes* section with
 one line per atom containing atom-ID and mass. Either way, the
 extended data file can be read back with:
 
-
 .. parsed-literal::
 
    fix Isotopes all property/atom rmass ghost yes
@@ -276,16 +256,13 @@ and the second to the name of the section. The following input
 script code will now change the first 100 water molecules in this
 example to heavy water:
 
-
 .. parsed-literal::
 
    group hwat id 2:300:3
    group hwat id 3:300:3
    set group hwat mass 2.0141018
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -305,9 +282,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

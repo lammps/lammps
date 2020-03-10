@@ -18,7 +18,6 @@ pair_style sw/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sw
@@ -50,7 +49,6 @@ potential for the energy E of a system of atoms as
                     \cos \theta_{0ijk} \right]^2
                     \exp \left( \frac{\gamma_{ij} \sigma_{ij}}{r_{ij} - a_{ij} \sigma_{ij}} \right)
                     \exp \left( \frac{\gamma_{ik} \sigma_{ik}}{r_{ik} - a_{ik} \sigma_{ik}} \right)
-
 
 where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
@@ -165,9 +163,7 @@ used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*\ , :math:`\gamma`)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -192,9 +188,7 @@ These parameters are common for modeling silicon and water.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -213,13 +207,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -240,12 +231,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Stillinger2:
-
-
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).

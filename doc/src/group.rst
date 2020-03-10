@@ -6,7 +6,6 @@ group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    group ID style args
@@ -46,11 +45,8 @@ Syntax
            *every* value = N = update group every this many timesteps
        *static* = no args
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -159,7 +155,6 @@ For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
 potential energy is above the threshold value -3.0.
 
-
 .. parsed-literal::
 
    compute         1 all pe/atom
@@ -171,7 +166,6 @@ potential energy is above the threshold value -3.0.
    group           hienergy variable eatom
 
 Note that these lines
-
 
 .. parsed-literal::
 
@@ -224,9 +218,7 @@ The *intersect* style takes a list of two or more existing group names
 as arguments.  Atoms that belong to every one of the listed groups are
 added to the specified group.
 
-
 ----------
-
 
 The *dynamic* style flags an existing or new group as dynamic.  This
 means atoms will be (re)assigned to the group periodically as a
@@ -274,7 +266,6 @@ used to model a quench of the system, freezing atoms outside the
 shrinking sphere, then converting the remaining atoms to a static
 group and running further.
 
-
 .. parsed-literal::
 
    variable        nsteps equal 5000
@@ -298,13 +289,10 @@ The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are
 those currently in the dynamic group.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 There can be no more than 32 groups defined at one time, including
 "all".

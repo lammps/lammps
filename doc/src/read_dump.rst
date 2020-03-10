@@ -6,7 +6,6 @@ read_dump command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    read_dump file Nstep field1 field2 ... keyword values ...
@@ -50,11 +49,8 @@ Syntax
            style = *dcd* or *xyz* or others supported by molfile plugins
            path = optional path for location of molfile plugins
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -99,9 +95,7 @@ way, e.g. in a data file read in by a :doc:`read_data <read_data>`
 command, before using the read\_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
-
 ----------
-
 
 If the dump filename specified as *file* ends with ".gz", the dump
 file is read in gzipped format.  You cannot (yet) read a dump file
@@ -154,9 +148,7 @@ to wait on the reader side for the arrival of the requested step.
 
 Support for other dump format readers may be added in the future.
 
-
 ----------
-
 
 Global information is first read from the dump file, namely timestep
 and box information.
@@ -173,7 +165,6 @@ variable *ntimestep*:
   $ bpls dump.bp -d ntimestep
     uint64_t  ntimestep  5*scalar
       (0)    0 50 100 150 200
-
 
 Note that the *xyz*
 and *molfile* formats do not store the timestep.  For these formats,
@@ -201,9 +192,7 @@ orthogonal/triclinic box shape is available.  The USER-MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
 always work perfectly.
 
-
 ----------
-
 
 Per-atom information from the dump file snapshot is then read from the
 dump file snapshot.  This corresponds to the specified *fields* listed
@@ -214,7 +203,6 @@ For dump files in *native* format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
 appear, e.g. the label "vy" for the field *vy*\ .  For the *x*\ , *y*\ , *z*
 fields any of the following labels are considered a match:
-
 
 .. parsed-literal::
 
@@ -271,10 +259,7 @@ The list of fields stored in an adios .bp file is recorded in the attributes
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}
     string    columnstr          attr   = "id type x y z vx vy vz "
 
-
-
 ----------
-
 
 Information from the dump file snapshot is used to overwrite or
 replace properties of the current system.  There are various options
@@ -330,9 +315,7 @@ Any other attributes (e.g. charge or particle diameter for spherical
 particles) will be set to default values, the same as if the
 :doc:`create_atoms <create_atoms>` command were used.
 
-
 ----------
-
 
 Atom coordinates read from the dump file are first converted into
 unscaled coordinates, relative to the box dimensions of the snapshot.
@@ -382,13 +365,10 @@ coordinates are scaled and the simulation box is triclinic, then all 3
 of the *x*\ , *y*\ , *z* fields must be specified, since they are all
 needed to generate absolute, unscaled coordinates.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`

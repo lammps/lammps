@@ -12,7 +12,6 @@ fix gravity/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group gravity magnitude style args
@@ -36,11 +35,8 @@ Syntax
          x y z = vector direction to apply the acceleration
          x or y or z can be a variable (see below)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -98,9 +94,7 @@ keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent gravitational
 field.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -120,9 +114,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

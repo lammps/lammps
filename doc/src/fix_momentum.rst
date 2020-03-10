@@ -9,7 +9,6 @@ fix momentum/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID momentum N keyword values ...
@@ -26,16 +25,12 @@ Syntax
          xflag,yflag,zflag = 0/1 to exclude/include each dimension
        *angular* values = none
 
-
   .. parsed-literal::
 
        *rescale* values = none
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -70,9 +65,7 @@ of atoms by rescaling the velocities after the momentum was removed.
 Note that the :doc:`velocity <velocity>` command can be used to create
 initial velocities with zero aggregate linear and/or angular momentum.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.

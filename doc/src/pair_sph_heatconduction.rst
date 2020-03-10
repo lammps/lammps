@@ -6,14 +6,12 @@ pair_style sph/heatconduction command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sph/heatconduction
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -36,9 +34,7 @@ above.
 * D diffusion coefficient (length\^2/time units)
 * h kernel function cutoff (distance units)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -56,7 +52,6 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-SPH package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

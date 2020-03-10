@@ -6,7 +6,6 @@ pair_style e3b command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style e3b Otype
@@ -43,7 +42,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style e3b 1
@@ -69,7 +67,6 @@ The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :r
    \displaystyle\frac{(R_f-r)^2(R_f-3R_s+2r)}{(R_f-R_s)^3} & R_s\leq r\leq R_f \\
    0 & r>R_f\\
    \end{cases}
-
 
 This potential was developed as a water model that includes the three-body cooperativity of hydrogen bonding explicitly.
 To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair\_style hybrid/overlay*.
@@ -116,9 +113,7 @@ The 4 values correspond to the terms in the first equation above: the E2 term, t
 
 See the examples/USER/misc/e3b directory for a complete example script.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -131,13 +126,10 @@ script that reads a restart file.
 
 This pair style is incompatible with :doc:`respa <run_style>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MISC package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -161,22 +153,16 @@ Default
 
 The option default for the *neigh* keyword is 10.
 
-
 ----------
 
-
 .. _Kumar:
-
-
 
 .. _Tainter2011:
 
 **(Kumar)** Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)
 
-
 .. _Tainter2015:
 
 **(Tainter 2011)** Tainter, Pieniazek, Lin, and Skinner, J. Chem. Phys., 134, 184501 (2011)
-
 
 **(Tainter 2015)** Tainter, Shi, and Skinner, 11, 2268 (2015)

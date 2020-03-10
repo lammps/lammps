@@ -6,7 +6,6 @@ newton command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    newton flag
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -54,7 +52,6 @@ communication in the innermost loop.
 Restrictions
 """"""""""""
 
-
 The newton bond setting cannot be changed after the simulation box is
 defined by a :doc:`read_data <read_data>` or
 :doc:`create_box <create_box>` command.
@@ -66,7 +63,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

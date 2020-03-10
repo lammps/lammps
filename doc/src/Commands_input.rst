@@ -16,7 +16,6 @@ simulation with all the settings.  Rather, the input script is read
 one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
-
 .. code-block:: LAMMPS
 
    timestep 0.5
@@ -24,7 +23,6 @@ Thus this sequence of commands:
    run      100
 
 does something different than this sequence:
-
 
 .. code-block:: LAMMPS
 

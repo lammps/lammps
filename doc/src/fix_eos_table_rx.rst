@@ -9,7 +9,6 @@ fix eos/table/rx/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID eos/table/rx style file1 N keyword ...
@@ -27,7 +26,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -48,7 +46,6 @@ computed according to the following relation:
 .. math::
 
    U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\
-
 
 where *m* is the number of species, :math:`c_{i,j}` is the
 concentration of species *j* in particle *i*\ , :math:`u_j` is the
@@ -92,13 +89,10 @@ value for the single species.  Additionally, the energy correction and
 temperature correction coefficients may also be specified as fix
 arguments.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -138,13 +132,10 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 The format of a heat of formation file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -166,7 +157,6 @@ three additional columns that correspond to the energy correction,
 the temperature correction coefficient and molecule correction
 coefficient.  In this case, the format of the file is as follows:
 
-
 .. parsed-literal::
 
    # HEAT OF FORMATION TABLE     (one or more comment or blank lines)
@@ -178,9 +168,7 @@ coefficient.  In this case, the format of the file is as follows:
    ...
    no      0.93 0.00 0.000 -1.76
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -200,13 +188,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

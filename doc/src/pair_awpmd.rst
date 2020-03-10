@@ -6,7 +6,6 @@ pair_style awpmd/cut command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style awpmd/cut Rc keyword value ...
@@ -31,11 +30,8 @@ Syntax
          factor = scaling between electron mass and width variable mass
        *flex_press* value = none
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -99,9 +95,7 @@ For *awpmd/cut*\ , the cutoff coefficient is optional.  If it is not
 used (as in some of the examples above), the default global value
 specified in the pair\_style command is used.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -115,9 +109,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

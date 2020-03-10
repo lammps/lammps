@@ -6,7 +6,6 @@ pair_style drip command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip [styles ...]
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -45,7 +43,6 @@ The total potential energy of a system is
    E = & \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\
    \phi_{ij} = &f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right]
 
-
 where the :math:`r^{-6}` term models the attractive London dispersion,
 the exponential term is designed to capture the registry effect due to
 overlapping *pi* bonds, and *fc* is a cutoff function.
@@ -72,9 +69,7 @@ If you want, you can enforce this by assigning different atom types to atoms in
 different layers, and apply an intralayer potential to one atom type.
 See :doc:`pair_hybrid <pair_hybrid>` for details.
 
-
 ----------
-
 
 The :doc:`pair_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
 *N* is the number of LAMMPS atom types. The fist three arguments must be fixed
@@ -83,7 +78,6 @@ and the remaining N arguments specifying the mapping between element in the
 parameter file and atom types. For example, if your LAMMPS simulation has 3 atom
 types and you want all of them to be C, you would use the following pair\_coeff
 command:
-
 
 .. code-block:: LAMMPS
 
@@ -94,7 +88,6 @@ could be useful when DRIP is used to model part of the system where other
 element exists. Suppose you have a hydrocarbon system, with C of atom type 1
 and H of atom type 2, you can use the following command to inform DRIP not to
 model H atoms:
-
 
 .. code-block:: LAMMPS
 
@@ -109,9 +102,7 @@ model H atoms:
    additional parameter "normal\_cutoff", specific to the LAMMPS implementation, is
    used to find the three nearest neighbors of an atom to construct the normal.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, and restart info**\ :
 
@@ -124,7 +115,6 @@ pair\_coeff commands in an input script that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MISC package. It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc
@@ -147,19 +137,13 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
-
 ----------
 
-
 .. _Wen2018:
-
-
 
 **(Wen)** M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B,
 98, 235404 (2018)
 
 .. _Kolmogorov2005:
-
-
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)

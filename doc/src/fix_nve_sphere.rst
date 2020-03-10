@@ -12,7 +12,6 @@ fix nve/sphere/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/sphere
@@ -29,11 +28,8 @@ Syntax
          dipole/dlm = use DLM integrator to update dipole orientation
        *disc* value = none = treat particles as 2d discs, not spheres
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -72,9 +68,7 @@ simulations, as defined by the :doc:`dimension <dimension>` keyword.
 The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -94,9 +88,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -108,7 +100,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the :doc:`atom_style sphere <atom_style>`
@@ -129,13 +120,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _nve-Dullweber:
-
-
 
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).

@@ -9,7 +9,6 @@ fix rx/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID rx file localTemp matrix solver minSteps ...
@@ -28,7 +27,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -50,13 +48,11 @@ For a general reaction such that
 
    \nu_{A}A + \nu_{B}B \rightarrow \nu_{C}C
 
-
 the reaction rate equation is defined to be of the form
 
 .. math::
 
    r = k(T)[A]^{\nu_{A}}[B]^{\nu_{B}}
-
 
 In the current implementation, the exponents are defined to be equal
 to the stoichiometric coefficients.  A given reaction set consisting
@@ -107,9 +103,7 @@ statistics per MPI process can be useful to examine any load imbalance caused by
 adaptive ODE solver. (Some DPD particles can take longer to solve than others. This
 can lead to an imbalance across the MPI processes.)
 
-
 ----------
-
 
 The filename specifies a file that contains the entire set of reaction
 kinetic equations and corresponding Arrhenius parameters.  The format of
@@ -129,7 +123,6 @@ Arrhenius equation:
 
    k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
 
-
 where *A* is the Arrhenius factor in time units or concentration/time
 units, *n* is the unitless exponent of the temperature dependence, and
 :math:`E_a` is the activation energy in energy units.  The temperature
@@ -146,13 +139,11 @@ particle internal temperature is defined as:
 
    \theta_i^{-1} = \frac{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)\theta_j^{-1}}{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)}
 
-
 where the Lucy function is expressed as:
 
 .. math::
 
    \omega_{Lucy}\left(r_{ij}\right) = \left( 1 + \frac{3r_{ij}}{r_c} \right) \left( 1 - \frac{r_{ij}}{r_c} \right)^3
-
 
 The self-particle interaction is included in the above equation.
 
@@ -167,13 +158,10 @@ numbers <= 3), a fast exponential function is used. This can save significant
 computational time so users are encouraged to use integer coefficients
 where possible.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -209,9 +197,7 @@ should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_
 fix          foo all rx reaction.file ...
 read\_data    data.dpd fix foo\_SPECIES NULL Species
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -231,13 +217,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

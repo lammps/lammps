@@ -26,7 +26,6 @@ The 5 standard problems are as follow:
    particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
    integration
 
-
 Input files for these 5 problems are provided in the bench directory
 of the LAMMPS distribution.  Each has 32,000 atoms and runs for 100
 timesteps.  The size of the problem (number of atoms) can be varied
@@ -53,9 +52,7 @@ of the Benchmarks web page has performance data for very large
 benchmark runs of simple Lennard-Jones (LJ) models, which use the
 bench/in.lj input script.
 
-
 ----------
-
 
 For all the benchmarks, a useful metric is the CPU cost per atom per
 timestep.  Since performance scales roughly linearly with problem size

@@ -6,7 +6,6 @@ compute orientorder/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID orientorder/atom keyword values ...
@@ -25,11 +24,8 @@ Syntax
        *wl/hat* value = yes or no
        *components* value = ldegree
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -171,9 +167,7 @@ The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
 *degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
 *wl* = no, *wl/hat* = no, and *components* off
 
-
 ----------
-
 
 .. _Steinhardt:
 
@@ -186,7 +180,6 @@ Phys. Rev. B 28, 784 (1983).
 J. Chem. Phys. 138, 044501 (2013).
 
 .. _tenWolde2:
-
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

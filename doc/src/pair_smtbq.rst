@@ -6,14 +6,12 @@ pair_style smtbq command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style smtbq
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -36,7 +34,6 @@ is given by three contributions:
    E_{OO}  & =  \sum_{i,j}^{i,j = O}{\biggl[Cexp( -\frac{r_{ij}}{\rho} ) - Df_{cut}^{r_1^{OO}r_2^{OO}}(r_{ij}) exp(Br_{ij})\biggr]}  \\
    E_{MO}  & =  \sum_i{E_{cov}^{i} + \sum_{j\neq i}{ Af_{cut}^{r_{c1}r_{c2}}(r_{ij})exp\bigl[-p(\frac{r_{ij}}{r_0} -1) \bigr] } }
 
-
 where :math:`E_{tot}` is the total potential energy of the system,
 :math:`E_{ES}` is the electrostatic part of the total energy,
 :math:`E_{OO}` is the interaction between oxygen atoms and
@@ -56,7 +53,6 @@ filename in the pair\_coeff command. Note that atom type 1 must always
 correspond to oxygen atoms. As an example, to simulate a :math:`\mathrm{TiO_2}` system,
 atom type 1 has to be oxygen and atom type 2 Ti. The following
 pair\_coeff command should then be used:
-
 
 .. code-block:: LAMMPS
 
@@ -98,7 +94,6 @@ ffield.SMTBQ.Syst. The energy band term is given by:
    \delta Q_i \bigl( 2\frac{n_0}{\eta_i} - \delta Q_i \bigr) \biggr\}^{1/2} \\
    \delta Q_i & =  | Q_i^{F} | - | Q_i |
 
-
 where :math:`\eta_i` is the stoichiometry of atom *i*\ ,
 :math:`\delta Q_i` is the charge delocalization of atom *i*\ ,
 compared to its formal charge
@@ -125,7 +120,6 @@ relationship:
 
    \xi^0 & = \frac{\xi_O}{m} = \frac{\xi_C}{n} \\
    \frac{\beta_O}{\sqrt{m}} & = \frac{\beta_C}{\sqrt{n}} = \xi^0 \frac{\sqrt{m}+\sqrt{n}}{2}
-
 
 Thus parameter :math:`\mu`, indicated above, is given by :math:`\mu = \frac{1}{2}(\sqrt{n}+\sqrt{m})`
 

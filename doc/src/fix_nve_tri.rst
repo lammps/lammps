@@ -6,7 +6,6 @@ fix nve/tri command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/tri
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -45,7 +43,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ pair_style coul/shield command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style coul/shield cutoff tap_flag
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -48,7 +46,6 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
                           84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
                           35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
 
-
 Where Tap(:math:`r_{ij}`) is the taper function which provides a continuous cutoff
 (up to third derivative) for inter-atomic separations larger than :math:`r_c`
 :ref:`(Leven1) <Leven3>`, :ref:`(Leven2) <Leven4>` and :ref:`(Maaravi) <Maaravi1>`.
@@ -63,9 +60,7 @@ in the example above, or in the data file or restart files read by the
 
 The global cutoff (:math:`r_c`) specified in the pair\_style command is used.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -86,7 +81,6 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 This style is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -98,24 +92,16 @@ Related commands
 
 **Default:** tap\_flag = 1
 
-
 ----------
 
-
 .. _Leven3:
-
-
 
 **(Leven1)** I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 .. _Leven4:
 
-
-
 **(Leven2)** I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 .. _Maaravi1:
-
-
 
 **(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).

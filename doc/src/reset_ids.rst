@@ -6,14 +6,12 @@ reset_ids command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    reset_ids
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

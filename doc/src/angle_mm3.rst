@@ -6,14 +6,12 @@ angle_style mm3 command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style mm3
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -29,7 +27,6 @@ as defined in :ref:`(Allinger) <mm3-allinger1989>`
 .. math::
 
    E = K (\theta - \theta_0)^2 \left[ 1 - 0.014(\theta - \theta_0) + 5.6(10)^{-5} (\theta - \theta_0)^2 - 7.0(10)^{-7} (\theta - \theta_0)^3 + 9(10)^{-10} (\theta - \theta_0)^4 \right]
-
 
 where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
 prefactor. The anharmonic prefactors have units :math:`\deg^{-n}`, for example
@@ -48,7 +45,6 @@ internally; hence the units of :math:`K` are in energy/radian\^2.
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 USER\_YAFF package.  See the :doc:`Build package <Build_package>` doc

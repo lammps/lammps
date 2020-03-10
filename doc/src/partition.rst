@@ -6,7 +6,6 @@ partition command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    partition style N command ...
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

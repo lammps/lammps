@@ -6,7 +6,6 @@ compute msd/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd/chunk chunkID
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -100,7 +98,6 @@ compute command was first invoked.
 The simplest way to output the results of the compute msd/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
-
 
 .. parsed-literal::
 

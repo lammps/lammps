@@ -6,7 +6,6 @@ bond_style hybrid command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style hybrid style1 style2 ...
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block: LAMMPS
 
@@ -47,7 +45,6 @@ If bond coefficients are specified in the data file read via the
 E.g. "harmonic" or "fene" must be added after the bond type, for each
 line in the "Bond Coeffs" section, e.g.
 
-
 .. parsed-literal::
 
    Bond Coeffs
@@ -61,13 +58,10 @@ place of a bond style, either in a input script bond\_coeff command or
 in the data file, if you desire to turn off interactions for specific
 bond types.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more

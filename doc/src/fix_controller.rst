@@ -6,7 +6,6 @@ fix controller command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID controller Nevery alpha Kp Ki Kd pvar setpoint cvar
@@ -31,10 +30,8 @@ Syntax
 * setpoint = desired value of process variable (same units as process variable)
 * cvar = name of control variable
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -111,7 +108,6 @@ keywords described above. The discretized version of this equation is:
 
    c_n  = \hat{E} c_{n-1} -\alpha \left( K_p \tau e_n + K_i \tau^2 \sum_{i=1}^n e_i + K_d (e_n - e_{n-1}) \right)
 
-
 where :math:`\tau = \mathtt{Nevery} \cdot \mathtt{timestep}` is the time
 interval between updates,
 and the subscripted variables indicate the values of *c* and *e* at
@@ -149,9 +145,7 @@ fix performs its first update of *cvar* after *Nevery* timesteps.  On
 the first update, the value of the derivative term is set to zero,
 because the value of :math:`e_n-1` is not yet defined.
 
-
 ----------
-
 
 The process variable *pvar* can be specified as the output of a
 :doc:`compute <compute>` or :doc:`fix <fix>` or the evaluation of a
@@ -194,9 +188,7 @@ variable.  It must be an internal-style variable, because this fix
 updates its value directly.  Note that other commands can use an
 equal-style versus internal-style variable interchangeably.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

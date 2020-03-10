@@ -6,7 +6,6 @@ fix move command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID move style args keyword values ...
@@ -37,11 +36,8 @@ Syntax
 
        *units* value = *box* or *lattice*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -83,14 +79,11 @@ whose movement can influence nearby atoms.
    (e.g. to 0) before invoking this fix by using the :doc:`set image <set>`
    command.
 
-
 ----------
-
 
 The *linear* style moves atoms at a constant velocity, so that their
 position *X* = (x,y,z) as a function of time is given in vector
 notation as
-
 
 .. parsed-literal::
 
@@ -109,7 +102,6 @@ Note that the *linear* style is identical to using the *variable*
 style with an :doc:`equal-style variable <variable>` that uses the
 vdisplace() function.  E.g.
 
-
 .. parsed-literal::
 
    variable V equal 10.0
@@ -119,7 +111,6 @@ vdisplace() function.  E.g.
 The *wiggle* style moves atoms in an oscillatory fashion, so that
 their position *X* = (x,y,z) as a function of time is given in vector
 notation as
-
 
 .. parsed-literal::
 
@@ -138,7 +129,6 @@ corresponding force component on the atom.
 Note that the *wiggle* style is identical to using the *variable*
 style with :doc:`equal-style variables <variable>` that use the
 swiggle() and cwiggle() functions.  E.g.
-
 
 .. parsed-literal::
 
@@ -211,9 +201,7 @@ been previously used to define the lattice spacing.  Each of these 3
 quantities may be dependent on the x,y,z dimension, since the lattice
 spacings can be different in x,y,z.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

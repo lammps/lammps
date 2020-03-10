@@ -6,7 +6,6 @@ fix bond/create command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ...
@@ -38,11 +37,8 @@ Syntax
        *itype* value = impropertype
          impropertype = type of created impropers
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -218,9 +214,7 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
    thermostat your system to compensate for energy changes resulting from
    created bonds (and angles, dihedrals, impropers).
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -241,7 +235,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`

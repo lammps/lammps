@@ -6,7 +6,6 @@ compute improper/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID improper/local value1 value2 ...
@@ -20,11 +19,8 @@ Syntax
 
        *chi* = tabulate improper angles
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -57,7 +53,6 @@ with data from this command and output by the :doc:`dump local <dump>`
 command in a consistent way.
 
 Here is an example of how to do this:
-
 
 .. parsed-literal::
 

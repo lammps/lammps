@@ -9,7 +9,6 @@ fix drude/transform/inverse command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style keyword value ...
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,7 +54,6 @@ Masses:
 
     M' = M + m
 
-
 .. math::
 
     m' = \frac {M\, m } {M'}
@@ -66,7 +63,6 @@ Positions:
 .. math::
 
     X' = \frac {M\, X + m\, x} {M'}
-
 
 .. math::
 
@@ -78,7 +74,6 @@ Velocities:
 
     V' = \frac {M\, V + m\, v} {M'}
 
-
 .. math::
 
     v' = v - V
@@ -88,7 +83,6 @@ Forces:
 .. math::
 
     F' = F + f
-
 
 .. math::
 
@@ -107,9 +101,7 @@ and the virial defined with absolute positions
 
     X\, F + x\, f = X'\, F' + x'\, f'
 
-
 ----------
-
 
 This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the :doc:`fix drude <fix_drude>` command to
@@ -123,9 +115,7 @@ specify the Drude status of each atom type.
    electrons or non-polarizable atoms in the group. The non-polarizable
    atoms will simply not be transformed.
 
-
 ----------
-
 
 This fix does NOT perform time integration. It only transform masses,
 coordinates, velocities and forces. Thus you must use separate time
@@ -141,7 +131,6 @@ acting on two distinct groups.
    command must appear after any Nose-Hoover thermostatting fixes.
 
 Example:
-
 
 .. parsed-literal::
 
@@ -168,7 +157,6 @@ pressure *thermo\_press*.
 
 Example:
 
-
 .. parsed-literal::
 
    compute cTEMP_CORE gCORES temp/com
@@ -188,14 +176,11 @@ In order to avoid the flying ice cube problem (irreversible transfer
 of linear momentum to the center of mass of the system), you may need
 to add a *fix momentum* command:
 
-
 .. parsed-literal::
 
    fix fMOMENTUM all momentum 100 linear 1 1 1
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -215,12 +200,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lamoureux1:
-
-
 
 **(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).

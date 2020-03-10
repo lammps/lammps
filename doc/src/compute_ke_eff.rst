@@ -6,7 +6,6 @@ compute ke/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/eff
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -78,7 +76,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

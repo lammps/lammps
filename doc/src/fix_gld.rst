@@ -6,7 +6,6 @@ fix gld command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID gld Tstart Tstop N_k seed series c_1 tau_1 ... c_N_k tau_N_k keyword values ...
@@ -31,11 +30,8 @@ Syntax
          *no* = do not set total random force to zero
          *yes* = set total random force to zero
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -67,7 +63,6 @@ With this fix active, the force on the *j*\ th atom is given as
    {\bf F}_{j}(t) = & {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
    \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\
    \langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
-
 
 Here, the first term is representative of all conservative (pairwise,
 bonded, etc) forces external to this fix, the second is the temporally
@@ -105,9 +100,7 @@ generate its own unique seed and its own stream of random
 numbers. Thus the dynamics of the system will not be identical on two
 runs on different numbers of processors.
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -128,9 +121,7 @@ to zero by subtracting off an equal part of it from each atom in the
 group. As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-
 ----------
-
 
 **Restart, run start/stop, minimize info:**
 
@@ -154,7 +145,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -169,12 +159,8 @@ Default
 
 The option defaults are frozen = no, zero = no.
 
-
 ----------
 
-
 .. _Baczewski:
-
-
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).

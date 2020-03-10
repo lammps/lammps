@@ -6,7 +6,6 @@ thermo command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    thermo N
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -47,7 +45,6 @@ options for :doc:`equal-style variables <variable>`.
 For example, the following commands will output thermodynamic info at
 timesteps 0,10,20,30,100,200,300,1000,2000,etc:
 
-
 .. parsed-literal::
 
    variable        s equal logfreq(10,3,10)
@@ -64,7 +61,6 @@ Related commands
 
 Default
 """""""
-
 
 .. parsed-literal::
 

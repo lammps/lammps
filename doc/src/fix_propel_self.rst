@@ -17,11 +17,8 @@ fix ID group-ID propel/self mode magnitude keyword values ...
 
   *types* values = one or more atom types
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -56,9 +53,7 @@ By default, this fix is applied to all atoms in the group. You can
 override this behavior by specifying the atom types the fix should work
 on through the *types* keyword.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -68,7 +63,6 @@ This fix is not imposed  during minimization.
 
 Restrictions
 """"""""""""
-
 
 In quat mode, this fix makes use of per-atom quaternions to take
 into account the fact that the orientation can rotate and hence the
@@ -82,26 +76,18 @@ Related commands
 
 .. _Erdmann:
 
-
-
 **(Erdmann)** U. Erdmann , W. Ebeling, L. Schimansky-Geier, and F. Schweitzer,
 Eur. Phys. J. B 15, 105-113, 2000.
 
 .. _Henkes:
 
-
-
 **(Henkes)** Henkes, S, Fily, Y., and Marchetti, M. C. Phys. Rev. E, 84, 040301(R), 2011.
 
 .. _Bialke:
 
-
-
 **(Bialke)** J. Bialke, T. Speck, and H Loewen, Phys. Rev. Lett. 108, 168301, 2012.
 
 .. _Fily:
-
-
 
 **(Fily)** Y. Fily and M.C. Marchetti, Phys. Rev. Lett. 108, 235702, 2012.
 

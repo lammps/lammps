@@ -6,7 +6,6 @@ fix qbmsst command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qbmsst dir shockvel keyword value ...
@@ -34,11 +33,8 @@ Syntax
        *beta* value = the quantum temperature is updated every beta time steps (positive integer)
        *T_init* value = quantum temperature for the initial state (temperature units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -146,9 +142,7 @@ For all pressure styles, the simulation box stays orthorhombic in
 shape. Parrinello-Rahman boundary conditions (tilted box) are
 supported by LAMMPS, but are not implemented for QBMSST.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -180,7 +174,6 @@ headers, the following LAMMPS commands are suggested. Here the
 the thermo keyword *etotal* to print the quantity :math:`E^{tot}`.  See
 also the :doc:`thermo_style <thermo_style>` command.
 
-
 .. parsed-literal::
 
    fix             fix_id all msst z
@@ -200,13 +193,10 @@ under the :doc:`thermo_style <thermo_style>` command print the
 instantaneous classical temperature :math:`T^{cl}` as described
 in the command :doc:`fix qtb <fix_qtb>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the USER-QTB package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -215,18 +205,14 @@ All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The QBMSST fix has been tested only for the group-ID
 all.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""
 
 :doc:`fix qtb <fix_qtb>`, :doc:`fix msst <fix_msst>`
 
-
 ----------
-
 
 Default
 """""""
@@ -235,18 +221,12 @@ The keyword defaults are q = 10, mu = 0, tscale = 0.01, damp = 1, seed
 = 880302, f\_max = 200.0, N\_f = 100, eta = 1.0, beta = 100, and
 T\_init=300.0. e0, p0, and v0 are calculated on the first step.
 
-
 ----------
 
-
 .. _Goldman1:
-
-
 
 **(Goldman)** Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
 
 .. _Qi:
-
-
 
 **(Qi)** Qi and Reed, J. Phys. Chem. A 116, 10451 (2012).

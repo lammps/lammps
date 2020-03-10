@@ -62,20 +62,14 @@ auto-correlation.  See the doc page for the :doc:`compute heat/flux <compute_hea
 that calculates the thermal conductivity of solid Ar via the GK
 formalism.
 
-
 ----------
 
-
 .. _howto-Ikeshoji:
-
-
 
 **(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).
 
 .. _howto-Wirnsberger:
-
-
 
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
 (2015).

@@ -6,7 +6,6 @@ fix recenter command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID recenter x y z keyword value ...
@@ -23,11 +22,8 @@ Syntax
          group-ID = group of atoms whose coords are shifted
        *units* value = *box* or *lattice* or *fraction*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -118,7 +114,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM

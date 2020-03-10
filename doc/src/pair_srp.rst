@@ -21,11 +21,8 @@ Syntax
        *bptype* value = atom type for bond particles
        *exclude* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -62,7 +59,6 @@ bond-pairwise potential, such that the force on bond *i* due to bond
 
    F^{SRP}_{ij} & = C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c
 
-
 where *r* and :math:`\hat{r}_{ij}` are the distance and unit vector
 between the two bonds.  Note that *btype* can be specified as an
 asterisk "\*", which case the interaction is applied to all bond types.
@@ -76,7 +72,6 @@ lever rule,
 
    F_{i1}^{SRP} & = F^{SRP}_{ij}(L) \\
    F_{i2}^{SRP} & = F^{SRP}_{ij}(1-L)  
-
 
 where *L* is the normalized distance from the atom to the point of
 closest approach of bond *i* and *j*\ . The *mid* option takes *L* as
@@ -124,9 +119,7 @@ by particle number, as if the command :doc:`thermo_modify norm no <thermo_modify
 The pairwise energy associated with style *srp* is shifted to be zero
 at the cutoff distance :math:`r_c`.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -151,13 +144,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MISC package. It is only enabled
 if LAMMPS was built with that package. See the Making LAMMPS section
@@ -181,13 +171,9 @@ Default
 
 The default keyword value is exclude = yes.
 
-
 ----------
 
-
 .. _Sirk2:
-
-
 
 **(Sirk)** Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.

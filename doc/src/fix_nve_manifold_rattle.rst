@@ -6,7 +6,6 @@ fix nve/manifold/rattle command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/manifold/rattle tol maxit manifold manifold-args keyword value ...
@@ -25,11 +24,8 @@ Syntax
        *every* values = N
          N = print info about iteration every N steps. N = 0 means no output
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -59,7 +55,6 @@ write a script.
 
 The manifold args may be equal-style variables, like so:
 
-
 .. parsed-literal::
 
    variable R equal "ramp(5.0,3.0)"
@@ -72,9 +67,7 @@ the particles.  Note that if the manifold has to exert work on the
 particles because of these changes, the total energy might not be
 conserved.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -84,20 +77,15 @@ by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MANIFOLD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""
@@ -106,19 +94,13 @@ Related commands
 
 **Default:** every = 0, tchain = 3
 
-
 ----------
 
-
 .. _Andersen1:
-
-
 
 **(Andersen)** Andersen, J. Comp. Phys. 52, 24, (1983).
 
 .. _Paquay2:
-
-
 
 **(Paquay)** Paquay and Kusters, Biophys. J., 110, 6, (2016).
 preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.

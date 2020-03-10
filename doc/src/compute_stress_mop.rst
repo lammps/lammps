@@ -9,7 +9,6 @@ compute stress/mop/profile command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID style dir args keywords ...
@@ -19,7 +18,6 @@ Syntax
 * dir = *x* or *y* or *z* is the direction normal to the plane
 * args = argument specific to the compute style
 * keywords = *kin* or *conf* or *total* (one of more can be specified)
-
 
 .. parsed-literal::
 
@@ -90,7 +88,6 @@ The values produced by this compute can be accessed by various :doc:`output comm
 Restrictions
 """"""""""""
 
-
 These styles are part of the USER-MISC package. They are only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page on for more info.
@@ -110,13 +107,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _mop-todd:
-
-
 
 **(Todd)** B. D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids",
 Phys. Rev. E 52, 1627 (1995).

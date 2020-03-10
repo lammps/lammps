@@ -6,7 +6,6 @@ label command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    label ID
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

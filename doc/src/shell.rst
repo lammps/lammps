@@ -6,7 +6,6 @@ shell command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    shell cmd args
@@ -30,11 +29,8 @@ Syntax
          var=value = one of more definitions of environment variables
        anything else is passed as a command to the shell for direct execution
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -93,7 +89,6 @@ Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,
 these lines in your input script:
 
-
 .. parsed-literal::
 
    variable n equal 10
@@ -101,7 +96,6 @@ these lines in your input script:
    shell my_setup file1 $n ${foo}
 
 would be the same as invoking
-
 
 .. parsed-literal::
 
@@ -112,7 +106,6 @@ with 3 arguments: file1 10 file2.
 
 Restrictions
 """"""""""""
-
 
 LAMMPS does not detect errors or print warnings when any of these
 commands execute.  E.g. if the specified directory does not exist,

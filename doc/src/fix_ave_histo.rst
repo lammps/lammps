@@ -9,7 +9,6 @@ fix ave/histo/weight command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ...
@@ -63,11 +62,8 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file, only for vector mode
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -138,7 +134,6 @@ vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
 3 columns:
 
-
 .. parsed-literal::
 
    compute myCOM all com/chunk
@@ -155,9 +150,7 @@ corresponding weight is tallied.  E.g. The Nth entry (weight) in the
 second vector is tallied to the bin corresponding to the Nth entry in
 the first vector.
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -176,9 +169,7 @@ histogram on timestep 100.  Similarly for timesteps
 = 100, then no time averaging of the histogram is done; a histogram is
 simply generated on timesteps 100,200,etc.
 
-
 ----------
-
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
@@ -237,9 +228,7 @@ thermodynamic keywords, or they can invoke other computes, fixes, or
 variables when they are evaluated, so this is a very general means of
 specifying quantities to histogram.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix.
 
@@ -327,7 +316,6 @@ values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows:
 
-
 .. parsed-literal::
 
    # Histogram for fix ID
@@ -339,9 +327,7 @@ describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

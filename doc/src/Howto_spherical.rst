@@ -38,7 +38,6 @@ The dipole style does not actually define finite-size particles, but
 is often used in conjunction with spherical particles, via a command
 like
 
-
 .. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole

@@ -6,7 +6,6 @@ third_order command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    third_order group-ID style delta args keyword value ...
@@ -22,11 +21,8 @@ Syntax
          *file* name = name of output file for the third order tensor
          *binary* arg = *yes* or *no* or *gzip*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -55,7 +51,6 @@ will simplify operations using dynamical matrices with third order tensors.
 
 Restrictions
 """"""""""""
-
 
 The command collects a 9 times the number of atoms in the group on every single MPI rank,
 so the memory requirements can be very significant for large systems.

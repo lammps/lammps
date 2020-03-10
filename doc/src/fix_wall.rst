@@ -24,7 +24,6 @@ fix wall/morse command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style face args ... keyword value ...
@@ -80,11 +79,8 @@ Syntax
          *yes* = allow periodic boundary in a wall dimension
          *no* = require non-perioidic boundaries in any wall dimension
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -110,7 +106,6 @@ For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
-
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
@@ -118,7 +113,6 @@ For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
  E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
@@ -128,7 +122,6 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
                        \left(\frac{\sigma}{r}\right)^4 -
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
-
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
 of the :doc:`pair_style colloid <pair_colloid>` potential:
@@ -140,7 +133,6 @@ of the :doc:`pair_style colloid <pair_colloid>` potential:
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
     \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
-
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
 
@@ -148,14 +140,12 @@ potential:
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-
 For style *wall/morse*\ , the energy E is given by a Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
-
 
 In all cases, *r* is the distance from the particle to the wall at
 position *coord*\ , and :math:`r_c` is the *cutoff* distance at which the
@@ -288,15 +278,12 @@ then particles may interact with both the wall and with periodic
 images on the other side of the box, which is probably not what you
 want.
 
-
 ----------
-
 
 Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.  The wall interaction parameters (epsilon,
 sigma) could be varied with additional variable definitions.
-
 
 .. parsed-literal::
 
@@ -321,7 +308,6 @@ The swiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, where omega = 2 PI
 / period:
 
-
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
@@ -331,14 +317,11 @@ oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:
 
-
 .. parsed-literal::
 
    position = c0 + A (1 - cos(omega\*delta))
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -379,9 +362,7 @@ invoked by the :doc:`minimize <minimize>` command.
    minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -401,9 +382,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -421,13 +400,9 @@ Default
 
 The option defaults units = lattice, fld = no, and pbc = no.
 
-
 ----------
 
-
 .. _Magda:
-
-
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).

@@ -6,7 +6,6 @@ fix wall/gran command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
@@ -30,7 +29,6 @@ Syntax
              gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
-
 
   .. parsed-literal::
 
@@ -59,11 +57,8 @@ Syntax
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -156,7 +151,6 @@ be wiggled in the z dimension.
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
 
-
 .. parsed-literal::
 
    position = coord + A - A cos (omega \* delta)
@@ -194,7 +188,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

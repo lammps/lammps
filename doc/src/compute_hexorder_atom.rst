@@ -6,7 +6,6 @@ compute hexorder/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID hexorder/atom keyword values ...
@@ -22,11 +21,8 @@ Syntax
        *nnn* value = number of nearest neighbors
        *degree* value = degree *n* of order parameter
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -45,7 +41,6 @@ is a complex number (stored as two real numbers) defined as follows:
 .. math::
 
    q_n = \frac{1}{nnn}\sum_{j = 1}^{nnn} e^{n i \theta({\bf r}_{ij})}
-
 
 where the sum is over the *nnn* nearest neighbors
 of the central atom. The angle :math:`\theta`
@@ -126,12 +121,8 @@ Default
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 6, *degree* = 6
 
-
 ----------
 
-
 .. _Nelson:
-
-
 
 **(Nelson)** Nelson, Halperin, Phys Rev B, 19, 2457 (1979).

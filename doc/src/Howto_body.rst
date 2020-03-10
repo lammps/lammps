@@ -33,9 +33,7 @@ style are described below.
 More styles may be added in the future.  See the :doc:`Modify body <Modify_body>` doc page for details on how to add a new body
 style to the code.
 
-
 ----------
-
 
 **When to use body particles:**
 
@@ -104,9 +102,7 @@ particles of different styles
 The pair styles defined for use with specific body styles are listed
 in the sections below.
 
-
 ----------
-
 
 **Specifics of body style nparticle:**
 
@@ -118,7 +114,6 @@ duplicates its functionality.
 
 The atom\_style body command for this body style takes two additional
 arguments:
-
 
 .. parsed-literal::
 
@@ -132,7 +127,6 @@ structures used internally by each particle.
 When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
-
 
 .. parsed-literal::
 
@@ -170,7 +164,6 @@ For output purposes via the :doc:`compute body/local <compute_body_local>` and :
 commands, this body style produces one datum for each of the N
 sub-particles in a body particle.  The datum has 3 values:
 
-
 .. parsed-literal::
 
    1 = x position of sub-particle
@@ -188,9 +181,7 @@ collection of spheres, one for each sub-particle.  The size of each
 sphere is determined by the *bflag1* parameter for the *body* keyword.
 The *bflag2* argument is ignored.
 
-
 ----------
-
 
 **Specifics of body style rounded/polygon:**
 
@@ -207,7 +198,6 @@ described in :ref:`Fraige <body-Fraige>`.
 Similar to body style *nparticle*\ , the atom\_style body command for
 this body style takes two additional arguments:
 
-
 .. parsed-literal::
 
    atom_style body rounded/polygon Nmin Nmax
@@ -220,7 +210,6 @@ structures used internally by each particle.
 When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
-
 
 .. parsed-literal::
 
@@ -262,7 +251,6 @@ orientation of the square is aligned with the xy coordinate axes which
 is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
 1 1 4 0 0 0. Note that only Izz matters in 2D simulations.
 
-
 .. parsed-literal::
 
    3 1 27
@@ -281,7 +269,6 @@ is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
 A rod in 2D, whose length is 4.0, mass 1.0, rounded at two ends
 by circles of diameter 0.5, is specified as follows:
 
-
 .. parsed-literal::
 
    1 1 13
@@ -292,7 +279,6 @@ by circles of diameter 0.5, is specified as follows:
    0.5
 
 A disk, whose diameter is 3.0, mass 1.0, is specified as follows:
-
 
 .. parsed-literal::
 
@@ -308,9 +294,7 @@ interactions.  The :doc:`fix wall/body/polygon <fix_wall_body_polygon>`
 command can be used with this body style to compute the interaction of
 body particles with a wall.
 
-
 ----------
-
 
 **Specifics of body style rounded/polyhedron:**
 
@@ -330,7 +314,6 @@ This body style is for 3d discrete element models, as described in
 Similar to body style *rounded/polygon*\ , the atom\_style body command
 for this body style takes two additional arguments:
 
-
 .. parsed-literal::
 
    atom_style body rounded/polyhedron Nmin Nmax
@@ -343,7 +326,6 @@ structures used internally by each particle.
 When the :doc:`read_data <read_data>` command reads a data file for this
 body style, the following information must be provided for each entry
 in the *Bodies* section of the data file:
-
 
 .. parsed-literal::
 
@@ -401,7 +383,6 @@ The orientation of the cube is aligned with the xyz coordinate axes
 which is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz
 iyz = 0.667 0.667 0.667 0 0 0.
 
-
 .. parsed-literal::
 
    1 3 79
@@ -438,7 +419,6 @@ iyz = 0.667 0.667 0.667 0 0 0.
 A rod in 3D, whose length is 4.0, mass 1.0 and rounded at two ends
 by circles of diameter 0.5, is specified as follows:
 
-
 .. parsed-literal::
 
    1 1 13
@@ -449,7 +429,6 @@ by circles of diameter 0.5, is specified as follows:
    0.5
 
 A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
-
 
 .. parsed-literal::
 
@@ -465,14 +444,11 @@ be used with this body style to compute body/body interactions.  The
 used with this body style to compute the interaction of body particles
 with a wall.
 
-
 ----------
-
 
 For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
 commands, this body style produces one datum for each of the N
 sub-particles in a body particle.  The datum has 3 values:
-
 
 .. parsed-literal::
 
@@ -495,20 +471,14 @@ tangent to the spheres).  The drawn diameter of each line segment is
 determined by the *bflag1* parameter for the *body* keyword.  The
 *bflag2* argument is ignored.
 
-
 ----------
 
-
 .. _body-Fraige:
-
-
 
 **(Fraige)** F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
 
 .. _body-Wang:
-
-
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).

@@ -6,7 +6,6 @@ pair_style ilp/graphene/hbn command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style [hybrid/overlay ...] ilp/graphene/hbn cutoff tap_flag
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -54,7 +52,6 @@ in :ref:`(Kolmogorov) <Kolmogorov2>`.
                            70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
                            84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
                            35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
-
 
 Where :math:`\mathrm{Tap}(r_{ij})` is the taper function which provides
 a continuous cutoff (up to third derivative) for interatomic separations
@@ -119,7 +116,6 @@ The 2 values correspond to the following sub-categories:
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute 0 all pair ilp/graphene/hbn
@@ -127,9 +123,7 @@ headings) the following commands could be included in an input script:
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -143,7 +137,6 @@ that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -171,42 +164,28 @@ Related commands
 
 **Default:** tap\_flag = 1
 
-
 ----------
 
-
 .. _Leven1:
-
-
 
 **(Leven1)** I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 .. _Leven2:
 
-
-
 **(Leven2)** I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 .. _Maaravi2:
-
-
 
 **(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
 
 .. _Kolmogorov2:
 
-
-
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
 
 .. _Ouyang1:
 
-
-
 **(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
 
 .. _Ouyang2:
-
-
 
 **(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

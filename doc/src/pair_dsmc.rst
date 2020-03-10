@@ -6,7 +6,6 @@ pair_style dsmc command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
@@ -20,7 +19,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -61,9 +59,7 @@ simulation box such that an integer number of cells are created in
 each direction for each processor's sub-domain.  Cell lengths are
 adjusted up to the user-specified maximum cell size.
 
-
 ----------
-
 
 To perform a DSMC simulation with LAMMPS, several additional options
 should be set in your input script, though LAMMPS does not check for
@@ -72,7 +68,6 @@ these settings.
 Since this pair style does not compute particle forces, you should use
 the "fix nve/noforce" time integration fix for the DSMC particles,
 e.g.
-
 
 .. code-block:: LAMMPS
 
@@ -83,7 +78,6 @@ neighboring processors every timestep as they move.  This makes it
 possible to perform all collisions between pairs of particles that are
 on the same processor.  To ensure this occurs, you should use
 these commands:
-
 
 .. code-block:: LAMMPS
 
@@ -104,14 +98,11 @@ uniform, which will not give good DSMC collision rates. Specify
 "dist gaussian" when using the :doc:`velocity <velocity>` command
 as in the following:
 
-
 .. code-block:: LAMMPS
 
    velocity all create 594.6 87287 loop geom dist gaussian
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -141,13 +132,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the MC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -161,13 +149,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Bird:
-
-
 
 **(Bird)** G. A. Bird, "Molecular Gas Dynamics and the Direct Simulation
 of Gas Flows" (1994).

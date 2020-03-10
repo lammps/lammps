@@ -18,7 +18,6 @@ dihedral_style charmmfsw command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style style
@@ -27,7 +26,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -45,7 +43,6 @@ The *charmm* and *charmmfsw* dihedral styles use the potential
 .. math::
 
    E = K [ 1 + \cos (n \phi - d) ]
-
 
 See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM
 force field.  This dihedral style can also be used for the AMBER force
@@ -126,9 +123,7 @@ interactions.  Likewise the *charmm* or *charmmfsw* styles are
 identical in this case since no 1-4 non-bonded interactions are
 computed.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -148,13 +143,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 When using run\_style :doc:`respa <run_style>`, these dihedral styles
 must be assigned to the same r-RESPA level as *pair* or *outer*\ .
@@ -175,20 +167,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _dihedral-Cornell:
-
-
 
 **(Cornell)** Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 .. _dihedral-MacKerell:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).

@@ -6,7 +6,6 @@ dihedral_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_coeff N args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -45,7 +43,6 @@ Note that using a dihedral\_coeff command can override a previous setting
 for the same dihedral type.  For example, these commands set the coeffs
 for all dihedral types, then overwrite the coeffs for just dihedral type 2:
 
-
 .. code-block:: LAMMPS
 
    dihedral_coeff * 80.0 1 3
@@ -57,7 +54,6 @@ script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Dihedral Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as
-
 
 .. parsed-literal::
 
@@ -79,9 +75,7 @@ page for details.
    to define *K* appropriately to account for this difference if
    necessary.
 
-
 ----------
-
 
 The list of all dihedral styles defined in LAMMPS is given on the
 :doc:`dihedral_style <dihedral_style>` doc page.  They are also listed
@@ -91,13 +85,10 @@ On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
 dihedral\_coeff command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

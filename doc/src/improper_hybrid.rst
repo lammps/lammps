@@ -6,7 +6,6 @@ improper_style hybrid command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style hybrid style1 style2 ...
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -54,13 +52,10 @@ An improper style of *none* can be specified as the 2nd argument to
 the improper\_coeff command, if you desire to turn off certain improper
 types.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

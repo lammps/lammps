@@ -6,7 +6,6 @@ pair_style local/density command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style arg
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,9 +51,7 @@ upon initialization.
    hybrid/overlay option, the corresponding pair\_coeff command must be supplied
    \*  \* as placeholders for the atom types.
 
-
 ----------
-
 
 **System with a single CG atom type:**
 
@@ -66,7 +62,6 @@ potential would have an energy given by:
 
    U_{LD} = \sum_i F(\rho_i)
 
-
 where :math:`\rho_i` is the LD at atom *i* and :math:`F(\rho)` is
 similar in spirit to the embedding function used in EAM potentials. The
 LD at atom *i* is given by the sum
@@ -74,7 +69,6 @@ LD at atom *i* is given by the sum
 .. math::
 
    \rho_i = \sum_{j \neq i} \varphi(r_{ij})
-
 
 where :math:`\varphi` is an indicator function that is one at r=0 and
 zero beyond a cutoff distance R2. The choice of the functional form of
@@ -104,9 +98,7 @@ It can be shown that the total force between two atoms due to the LD potential
 takes the form of a pair force, which motivates its designation as a LAMMPS
 pair style. Please see :ref:`(Sanyal1) <Sanyal1>` for details of the derivation.
 
-
 ----------
-
 
 **Systems with arbitrary numbers of atom types:**
 
@@ -116,13 +108,11 @@ The potential is easily generalized to systems involving multiple atom types:
 
    U_{LD} = \sum_i a_\alpha F(\rho_i)
 
-
 with the LD expressed as
 
 .. math::
 
    \rho_i = \sum_{j \neq i} b_\beta \varphi(r_{ij})
-
 
 where :math:`\alpha` gives the type of atom *i*\ , :math:`\beta` the
 type of atom *j*\ , and the coefficients *a* and *b* filter for atom
@@ -155,14 +145,12 @@ pair\_style local/density is:
 
    U_{LD} = \sum_k U_{LD}^{(k)} = \sum_i \left[ \sum_k a_\alpha^{(k)} F^{(k)} \left(\rho_i^{(k)}\right) \right]
 
-
 where, *k* is an index that spans the (arbitrary) number of applied LD
 potentials N\_LD. Each LD is calculated as before with:
 
 .. math::
 
    \rho_i^{(k)} = \sum_j b_\beta^{(k)} \varphi^{(k)} (r_{ij})
-
 
 The superscript on the indicator function phi simply indicates that it is
 associated with specific values of the cutoff distances R1(k) and R2(k). In
@@ -177,7 +165,6 @@ one must specify:
 ----------
 
 **Tabulated input file format:**
-
 
 .. parsed-literal::
 
@@ -227,13 +214,10 @@ The local/density pair style does not write its information to :doc:`binary rest
 Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The local/density pair style is a part of the USER-MISC package. It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -245,23 +229,16 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Sanyal1:
-
-
 
 .. _Sanyal2:
 
 **(Sanyal1)** Sanyal and Shell, Journal of Chemical Physics, 2016, 145 (3), 034109.
 
-
 **(Sanyal2)** Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 
 .. _Rosenberger:
-
-
 
 **(Rosenberger)** Rosenberger, Sanyal, Shell and van der Vegt,  Journal of Chemical Physics, 2019, 151 (4), 044111.

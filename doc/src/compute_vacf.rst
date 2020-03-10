@@ -6,7 +6,6 @@ compute vacf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID vacf
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -42,7 +40,6 @@ averaged over atoms in the group.
 The integral of the VACF versus time is proportional to the diffusion
 coefficient of the diffusing atoms.  This can be computed in the
 following manner, using the :doc:`variable trap() <variable>` function:
-
 
 .. parsed-literal::
 

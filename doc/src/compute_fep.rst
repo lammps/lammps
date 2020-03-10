@@ -6,7 +6,6 @@ compute fep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID fep temp attribute args ... keyword value ...
@@ -41,11 +40,8 @@ Syntax
          *no* = ignore volume changes (e.g. in *NVE* or *NVT* trajectories)
          *yes* = include volume changes (e.g. in *NpT* trajectories)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -151,9 +147,7 @@ the reference and perturbed states, or along the alchemical
 transformation route.  This compute command does not change bond
 lengths or other internal coordinates :ref:`(Boresch, Karplus) <BoreschKarplus>`.
 
-
 ----------
-
 
 The *pair* attribute enables various parameters of potentials defined
 by the :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
@@ -252,9 +246,7 @@ The *v\_name* argument for keyword *pair* is the name of an
 this compute is invoked.  It should be specified as v\_name, where name
 is the variable name.
 
-
 ----------
-
 
 The *atom* attribute enables atom properties to be changed.  The
 *aparam* argument is the name of the parameter to change.  This is the
@@ -267,9 +259,7 @@ The *v\_name* argument for keyword *pair* is the name of an
 this compute is invoked.  It should be specified as v\_name, where name
 is the variable name.
 
-
 ----------
-
 
 The *tail* keyword controls the calculation of the tail correction to
 "van der Waals" pair energies beyond the cutoff, if this has been
@@ -288,7 +278,6 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
    \right>_{\lambda_i}}{\left< V \right>_{\lambda_i}}
 
 ----------
-
 
 **Output info:**
 
@@ -311,7 +300,6 @@ The values calculated by this compute are "extensive".
 Restrictions
 """"""""""""
 
-
 This compute is distributed as the USER-FEP package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -326,9 +314,7 @@ Default
 
 The option defaults are *tail* = *no*\ , *volume* = *no*\ .
 
-
 ----------
-
 
 .. _Pearlman:
 

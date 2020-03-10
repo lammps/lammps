@@ -6,14 +6,12 @@ pair_style kolmogorov/crespi/z command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style [hybrid/overlay ...] kolmogorov/crespi/z cutoff
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -39,8 +37,6 @@ which is to take all normals along the z-axis.
    \rho_{ij}^2 = & \rho_{ji}^2  =  x_{ij}^2 + y_{ij}^2 \qquad \qquad (\mathbf{n}_i \equiv \mathbf{\hat{z}}) \\
    f(\rho)  = &  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} \left( \rho/\delta \right)^{2n}
 
-
-
 It is important to have a sufficiently large cutoff to ensure smooth forces.
 Energies are shifted so that they go continuously to zero at the cutoff assuming
 that the exponential part of :math:`V_{ij}` (first term) decays sufficiently fast.
@@ -62,7 +58,6 @@ Other interactions can be set to zero using pair\_style *none*\ .
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -79,19 +74,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _KC05:
-
-
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
 .. _vanWijk:
-
-
 
 **(vanWijk)** M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino,
 Physical Review Letters, 113, 135504 (2014)

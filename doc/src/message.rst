@@ -6,7 +6,6 @@ message command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    message which protocol mode arg
@@ -26,11 +25,8 @@ Syntax
        *mpi/two* arg = filename
          filename = file used to establish communication between 2 MPI jobs
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -60,9 +56,7 @@ one code is the "client" and sends request messages to a "server"
 code.  The server responds to each request with a reply message.  This
 enables the two codes to work in tandem to perform a simulation.
 
-
 ----------
-
 
 The *which* argument defines LAMMPS to be the client or the server.
 
@@ -70,9 +64,7 @@ As explained below the *quit* option should be used when LAMMPS is
 finished as a client.  It sends a message to the server to tell it to
 shut down.
 
-
 ----------
-
 
 The *protocol* argument defines the format and content of messages
 that will be exchanged between the two codes.  The current options
@@ -86,9 +78,7 @@ For protocol *md*\ , LAMMPS can be either a client or server.  See the
 
 For protocol *mc*\ , LAMMPS can be the server.  See the :doc:`server mc <server_mc>` doc page for details on the protocol.
 
-
 ----------
-
 
 The *mode* argument specifies how messages are exchanged between the
 client and server codes.  Both codes must use the same mode and use
@@ -107,7 +97,6 @@ installed on your system.  The client specifies an IP address (IPv4
 format) or the DNS name of the machine the server code is running on,
 followed by a 4-digit port ID for the socket, separated by a colon.
 E.g.
-
 
 .. parsed-literal::
 
@@ -131,7 +120,6 @@ what the client specifies.
 For mode *mpi/one*\ , the 2 codes communicate via MPI and are launched
 by the same mpirun command, e.g. with this syntax for OpenMPI:
 
-
 .. parsed-literal::
 
    mpirun -np 2 lmp_mpi -mpicolor 0 -in in.client -log log.client : -np 4 othercode args  # LAMMPS is client
@@ -148,9 +136,7 @@ inter-communicator can be established to enable the 2 codes to send
 MPI messages to each other.  Both codes must be able to access the
 path/file in a common filesystem.
 
-
 ----------
-
 
 Normally, the message client or message server command should be used
 at the top of a LAMMPS input script.  It performs an initial handshake
@@ -186,13 +172,10 @@ the client).  As an example, this can be performed in a loop to use a
 quantum code as a server to compute quantum forces for multiple LAMMPS
 data files or periodic snapshots while running dynamics.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ echo command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    echo style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -41,7 +39,6 @@ Restrictions
 
 Default
 """""""
-
 
 .. parsed-literal::
 

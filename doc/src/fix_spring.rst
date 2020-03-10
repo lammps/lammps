@@ -6,7 +6,6 @@ fix spring command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring keyword values
@@ -27,11 +26,8 @@ Syntax
          x,y,z = direction of spring
          R0 = equilibrium distance of spring (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

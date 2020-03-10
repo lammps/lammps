@@ -6,7 +6,6 @@ suffix command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    suffix style args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -58,7 +56,6 @@ These are the variants these packages provide:
 * OPT = a handful of pair styles, cache-optimized for faster CPU
   performance
 * HYBRID = a combination of two packages can be specified (see below)
-
 
 As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, lj/cut/intel, or lj/cut/kk.  A variant styles

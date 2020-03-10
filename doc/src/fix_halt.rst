@@ -6,7 +6,6 @@ fix halt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID halt N attribute operator avalue keyword value ...
@@ -32,11 +31,8 @@ Syntax
        *error* value = *hard* or *soft* or *continue*
        *message* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -90,7 +86,6 @@ computing some attribute of the current system.  For example, the
 following "bondmax" variable will calculate the same quantity as the
 hstyle = bondmax option.
 
-
 .. parsed-literal::
 
    compute         bdist all bond/local dist
@@ -98,7 +93,6 @@ hstyle = bondmax option.
    variable        bondmax equal c_bmax
 
 Thus these two versions of a fix halt command will do the same thing:
-
 
 .. parsed-literal::
 
@@ -117,9 +111,7 @@ it is "false".
 
 The specified *avalue* must be a numeric value.
 
-
 ----------
-
 
 The optional *error* keyword determines how the current run is halted.
 If its value is *hard*\ , then LAMMPS will stop with an error message.

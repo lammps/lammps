@@ -15,7 +15,6 @@ pair_style hbond/dreiding/morse/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
@@ -29,7 +28,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -60,7 +58,6 @@ force field, given by:
    S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
    \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
    { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
-
 
 where :math:`r_{\rm in}` is the inner spline distance cutoff,
 :math:`r_{\rm out}` is the outer distance cutoff, :math:`\theta_c` is
@@ -118,9 +115,7 @@ on the DREIDING force field.
    special\_bonds command (e.g. "special\_bonds lj 0.0 0.0 1.0") to turn
    these interactions on.
 
-
 ----------
-
 
 The following coefficients must be defined for pairs of eligible
 donor/acceptor types via the :doc:`pair_coeff <pair_coeff>` command as
@@ -196,9 +191,7 @@ in the pair\_style command are used.  If you wish to only override the
 2nd or 3rd optional parameter, you must also specify the preceding
 optional parameters.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -218,9 +211,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -252,7 +243,6 @@ command as a vector of values of length 2.
 To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute hb all pair hbond/dreiding/lj
@@ -260,9 +250,7 @@ heading) the following commands could be included in an input script:
    variable E_hbond equal c_hb[2] #hbond energy
    thermo_style custom step temp epair v_E_hbond
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -275,20 +263,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _pair-Mayo:
-
-
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
 
 .. _Liu:
-
-
 
 **(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)

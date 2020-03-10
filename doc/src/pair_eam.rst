@@ -69,7 +69,6 @@ pair_style eam/fs/opt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -78,7 +77,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -106,7 +104,6 @@ energy Ei of an atom I is given by
 
    E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) +
          \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
-
 
 where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
@@ -147,7 +144,6 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:
 
-
 .. parsed-literal::
 
    http://www.ctcms.nist.gov/potentials
@@ -160,9 +156,7 @@ and described on this page.  The NIST site is maintained by Chandler
 Becker (cbecker at nist.gov) who is good resource for info on
 interatomic potentials and file formats.
 
-
 ----------
-
 
 For style *eam*\ , potential values are read from a file that is in the
 DYNAMO single-element *funcfl* format.  If the DYNAMO file was created
@@ -180,7 +174,6 @@ single argument:
 * filename
 
 Thus the following command
-
 
 .. code-block:: LAMMPS
 
@@ -232,16 +225,13 @@ sqrt(Hartree \* Bohr-radii).  For two interacting atoms i,j this is used
 by LAMMPS to compute the pair potential term in the EAM energy
 expression as r\*phi, in units of eV-Angstroms, via the formula
 
-
 .. math::
 
    r \cdot \phi = 27.2 \cdot 0.529 \cdot Z_i \cdot Z_j
 
 where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
-
 ----------
-
 
 Style *eam/alloy* computes pairwise interactions using the same
 formula as style *eam*\ .  However the associated
@@ -275,7 +265,6 @@ page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
 be Ni, and the 4th to be Al, you would use the following pair\_coeff
 command:
-
 
 .. code-block:: LAMMPS
 
@@ -334,9 +323,7 @@ the tabulated values for each phi function are listed in *setfl* files
 directly as r\*phi (in units of eV-Angstroms), since they are for atom
 pairs.
 
-
 ----------
-
 
 Style *eam/cd* is similar to the *eam/alloy* style, except that it
 computes alloy pairwise interactions using the concentration-dependent
@@ -365,9 +352,7 @@ the input EAM file are always taken as the *A* and *B* species.
 *CD-EAM* files in the *potentials* directory of the LAMMPS
 distribution have a ".cdeam" suffix.
 
-
 ----------
-
 
 Style *eam/fs* computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
@@ -379,7 +364,6 @@ given by
    E_i = F_\alpha \left(\sum_{j \neq i}\
    \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
-
 
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,
@@ -400,7 +384,6 @@ FS potential files.
 
 For style *eam/fs*\ , the form of the pair\_coeff command is exactly the
 same as for style *eam/alloy*\ , e.g.
-
 
 .. code-block:: LAMMPS
 
@@ -451,9 +434,7 @@ eV-Angstroms) as in EAM *setfl* files.  Note that in Finnis/Sinclair,
 the phi(r) arrays are still symmetric, so only phi arrays for i >= j
 are listed.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -473,9 +454,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -495,13 +474,10 @@ The eam pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All of these styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -513,45 +489,31 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ackland1:
-
-
 
 **(Ackland1)** Ackland, Condensed Matter (2005).
 
 .. _Ackland2:
-
-
 
 **(Ackland2)** Ackland, Mendelev, Srolovitz, Han and Barashev, Journal
 of Physics: Condensed Matter, 16, S2629 (2004).
 
 .. _Daw:
 
-
-
 **(Daw)** Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).
 Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 .. _Finnis1:
 
-
-
 **(Finnis)** Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
 
 .. _Stukowski:
-
-
 
 **(Stukowski)** Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
 Materials Science & Engineering, 7, 075005 (2009).
 
 .. _Caro:
-
-
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)

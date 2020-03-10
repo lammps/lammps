@@ -9,16 +9,13 @@ Richard Berger (Temple U) has also written a `more comprehensive guide <https://
 for how to use CMake to build LAMMPS.  If you are new to CMake it is a
 good place to start.
 
-
 ----------
-
 
 Building LAMMPS with CMake is a two-step process.  First you use CMake
 to create a build environment in a new directory.  On Linux systems,
 this will be based on makefiles for use with make.  Then you use the
 make command to build LAMMPS, which uses the created
 Makefile(s). Example:
-
 
 .. code-block:: bash
 
@@ -51,7 +48,6 @@ even more.
 After compilation, you may optionally install the LAMMPS executable into
 your system with:
 
-
 .. code-block:: bash
 
    make install    # optional, copy LAMMPS executable & library elsewhere
@@ -62,9 +58,7 @@ manpages, potential and force field files. The location of the installation
 tree is set by the CMake variable "CMAKE\_INSTALL\_PREFIX" which defaults
 to ${HOME}/.local
 
-
 ----------
-
 
 There are 3 variants of CMake: a command-line version (cmake), a text mode
 UI version (ccmake), and a graphical GUI version (cmake-GUI).  You can use
@@ -106,12 +100,9 @@ ccmake or cmake-gui) again from the same build directory and alter
 various options; see details below.  Or you can remove the entire build
 folder, recreate the directory and start over.
 
-
 ----------
 
-
 **Command-line version of CMake**\ :
-
 
 .. code-block:: bash
 
@@ -123,7 +114,6 @@ cmake directory which contains the CMakeLists.txt file.
 
 The argument can be preceeded or followed by various CMake
 command-line options.  Several useful ones are:
-
 
 .. code-block:: bash
 
@@ -168,12 +158,9 @@ In these cases it is usually better to first remove all the
 files/directories in the build directory, or start with a fresh build
 directory.
 
-
 ----------
 
-
 **Curses version (terminal-style menu) of CMake**\ :
-
 
 .. code-block:: bash
 
@@ -186,12 +173,9 @@ required to edit some of the entries of CMake configuration variables
 in between.  Please see the `ccmake manual <https://cmake.org/cmake/help/latest/manual/ccmake.1.html>`_ for
 more information.
 
-
 ----------
 
-
 **GUI version of CMake**\ :
-
 
 .. code-block:: bash
 
@@ -205,14 +189,11 @@ edit some of the entries of CMake configuration variables in between.
 Please see the `cmake-gui manual <https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html>`_
 for more information.
 
-
 ----------
-
 
 **Installing CMake**
 
 Check if your machine already has CMake installed:
-
 
 .. code-block:: bash
 
@@ -222,7 +203,6 @@ Check if your machine already has CMake installed:
 
 On clusters or supercomputers which use environment modules to manage
 software packages, do this:
-
 
 .. code-block:: bash
 

@@ -6,7 +6,6 @@ pair_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -79,9 +77,7 @@ to this are that pair\_style *table* and *hybrid* settings cannot be
 reset.  A new pair\_style command for these styles will wipe out all
 previously specified pair\_coeff values.
 
-
 ----------
-
 
 Here is an alphabetic list of pair styles defined in LAMMPS.  They are
 also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc page.
@@ -327,13 +323,10 @@ accelerated styles exist.
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must be used before any coefficients are set by the
 :doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`, or
@@ -352,7 +345,6 @@ Related commands
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

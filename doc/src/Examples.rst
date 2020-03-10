@@ -38,9 +38,7 @@ particular quantity.
 
 Lists of both kinds of directories are given below.
 
-
 ----------
-
 
 Lowercase directories
 ---------------------
@@ -157,7 +155,6 @@ Lowercase directories
 
 Here is how you can run and visualize one of the sample problems:
 
-
 .. parsed-literal::
 
    cd indent
@@ -180,14 +177,11 @@ like ImageMagick or QuickTime or various Windows-based tools.  See the
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
 
-
 .. parsed-literal::
 
    % convert -loop 1 \*.jpg foo.gif
 
-
 ----------
-
 
 Uppercase directories
 ---------------------

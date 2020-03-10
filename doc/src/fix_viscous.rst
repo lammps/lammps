@@ -6,7 +6,6 @@ fix viscous command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID viscous gamma keyword values ...
@@ -23,11 +22,8 @@ Syntax
          type = atom type (1-N)
          ratio = factor to scale the damping coefficient by
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

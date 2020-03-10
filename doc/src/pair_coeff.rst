@@ -6,7 +6,6 @@ pair_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_coeff I J args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -55,7 +53,6 @@ Note that a pair\_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J
 pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff \* \* 1.0 1.0 2.5
@@ -71,7 +68,6 @@ the number of atom types.  For this reason, the wild-card asterisk
 should also not be used as part of the I argument.  Thus in a data
 file, the line corresponding to the 1st example above would be listed
 as
-
 
 .. parsed-literal::
 
@@ -108,13 +104,11 @@ for
 
 csh, tcsh:
 
-
 .. parsed-literal::
 
    % setenv LAMMPS_POTENTIALS /path/to/lammps/potentials
 
 bash:
-
 
 .. parsed-literal::
 
@@ -122,14 +116,11 @@ bash:
 
 Windows:
 
-
 .. parsed-literal::
 
    % set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
 
-
 ----------
-
 
 The alphabetic list of pair styles defined in LAMMPS is given on the
 :doc:`pair_style <pair_style>` doc page.  They are also listed in more
@@ -138,13 +129,10 @@ compact form on the :doc:`Commands pair <Commands_pair>` doc page.
 Click on the style to display the formula it computes and its
 coefficients as specified by the associated pair\_coeff command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

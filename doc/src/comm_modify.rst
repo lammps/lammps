@@ -6,7 +6,6 @@ comm_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    comm_modify keyword value ...
@@ -24,11 +23,8 @@ Syntax
        *group* value = group-ID = only communicate atoms in the group
        *vel* value = *yes* or *no* = do or do not communicate velocity info with ghost atoms
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -164,7 +160,6 @@ that boundary (e.g. due to dilation or shear).
 
 Restrictions
 """"""""""""
-
 
 Communication mode *multi* is currently only available for
 :doc:`comm_style <comm_style>` *brick*\ .

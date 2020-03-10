@@ -12,7 +12,6 @@ pair_style lj96/cut/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj96/cut cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -41,7 +39,6 @@ of the standard 12/6 potential, given by
    \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-
 :math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
@@ -57,9 +54,7 @@ commands, or by mixing as described below:
 The last coefficient is optional.  If not specified, the global LJ
 cutoff specified in the pair\_style command is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,9 +74,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -109,9 +102,7 @@ pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

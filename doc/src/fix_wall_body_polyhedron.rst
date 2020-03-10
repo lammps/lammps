@@ -6,7 +6,6 @@ fix wall/body/polyhedron command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/body/polyhedron k_n c_n c_t wallstyle args keyword values ...
@@ -35,8 +34,6 @@ Syntax
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)
          period = time of oscillation (time units)
-
-
 
 Examples
 """"""""
@@ -78,7 +75,6 @@ the z dimension.
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
 
-
 .. parsed-literal::
 
    position = coord + A - A cos (omega \* delta)
@@ -98,7 +94,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

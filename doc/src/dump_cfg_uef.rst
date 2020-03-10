@@ -6,7 +6,6 @@ dump cfg/uef command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID cfg/uef N file mass type xs ys zs args
@@ -20,11 +19,8 @@ Syntax
 
      args = same as args for :doc:`dump custom <dump>`
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -45,7 +41,6 @@ reference frame as the atomic positions.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.

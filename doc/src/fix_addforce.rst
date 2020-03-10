@@ -6,7 +6,6 @@ fix addforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID addforce fx fy fz keyword value ...
@@ -31,11 +30,8 @@ Syntax
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added force field
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -76,9 +72,7 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
-
 ----------
-
 
 Adding a force to atoms implies a change in their potential energy as
 they move due to the applied force field.  For dynamics via the "run"
@@ -115,9 +109,7 @@ were a spring-like F = kx, then the energy formula should be E =
 -0.5kx\^2.  If you don't do this correctly, the minimization will not
 converge properly.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -137,9 +129,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

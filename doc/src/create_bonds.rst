@@ -6,13 +6,11 @@ create_bonds command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    create_bonds style args ... keyword value ...
 
 * style = *many* or *single/bond* or *single/angle* or *single/dihedral*
-
 
 .. parsed-literal::
 
@@ -42,11 +40,8 @@ Syntax
 
      *special* value = *yes* or *no*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -105,9 +100,7 @@ data file for a complex system of molecules.
    "extra/bond/per/atom" arguments.  And similarly for angles, dihedrals and
    impropers.  See the doc pages for these 2 commands for details.
 
-
 ----------
-
 
 The *many* style will create bonds between pairs of atoms I,J where I
 is in one of the two specified groups, and J is in the other.  The two
@@ -146,9 +139,7 @@ executes, e.g. if you wish to use long-range Coulombic interactions
 via the :doc:`kspace_style <kspace_style>` command for your subsequent
 simulation.
 
-
 ----------
-
 
 The *single/bond* style creates a single bond of type *btype* between
 two atoms with IDs *batom1* and *batom2*\ .  *Btype* must be a value
@@ -176,9 +167,7 @@ read by the :doc:`read_data <read_data>` command.  I.e. the 4 atoms are ordered
 linearly within the improper.  *itype* must be a value between 1 and
 the number of improper types defined.
 
-
 ----------
-
 
 The keyword *special* controls whether an internal list of special
 bonds is created after one or more bonds, or a single angle, dihedral or
@@ -197,7 +186,6 @@ the same time, by using this command repeatedly, it is more efficient
 to only trigger the internal list to be created once, after the last
 bond (or angle, or dihedral, or improper) is added:
 
-
 .. code-block:: LAMMPS
 
    create_bonds single/bond 5 52 98 special no
@@ -211,13 +199,10 @@ bond (angle, dihedral, improper) is added, before performing a simulation.
 Otherwise pairwise interactions will not be properly excluded or
 weighted.  LAMMPS does NOT check that you have done this correctly.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command cannot be used with molecular systems defined using
 molecule template files via the :doc:`molecule <molecule>` and

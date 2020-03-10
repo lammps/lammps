@@ -200,7 +200,6 @@ an orthogonal bounding box which encloses the triclinic simulation box
 is output, along with the 3 tilt factors (xy, xz, yz) of the triclinic
 box, formatted as follows:
 
-
 .. parsed-literal::
 
    ITEM: BOX BOUNDS xy xz yz
@@ -211,7 +210,6 @@ box, formatted as follows:
 This bounding box is convenient for many visualization programs and is
 calculated from the 9 triclinic box parameters
 (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:
-
 
 .. parsed-literal::
 

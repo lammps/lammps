@@ -9,7 +9,6 @@ compute temp/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -59,7 +57,6 @@ needed, the subtracted degrees-of-freedom can be altered using the
 A compute of this style with the ID of "thermo\_temp" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-
 .. parsed-literal::
 
    compute thermo_temp all temp
@@ -70,9 +67,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -92,9 +87,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Output info:**
 

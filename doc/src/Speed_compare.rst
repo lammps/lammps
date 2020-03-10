@@ -77,7 +77,6 @@ section below for examples where this has been done.
   to unlock this potential, an Intel compiler is required. The package code
   will compile with GNU gcc, but it will not be as efficient.
 
-
 **Differences between the GPU and KOKKOS packages:**
 
 * The GPU package accelerates only pair force, neighbor list, and (parts

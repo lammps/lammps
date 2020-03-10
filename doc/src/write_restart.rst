@@ -6,7 +6,6 @@ write_restart command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    write_restart file keyword value ...
@@ -22,11 +21,8 @@ Syntax
        *nfile* arg = Nf
          Nf = write this many files, one from each of Nf processors
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -62,7 +58,6 @@ file via the MPI-IO library, which is part of the MPI standard for
 versions 2.0 and above.  Using MPI-IO requires two steps.  First,
 build LAMMPS with its MPIIO package installed, e.g.
 
-
 .. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
@@ -92,9 +87,7 @@ another machine.  In this case, you can use the :doc:`-r command-line switch <Ru
    :doc:`read_restart <read_restart>` command for general information about
    what is stored in a restart file.
 
-
 ----------
-
 
 The optional *nfile* or *fileper* keywords can be used in conjunction
 with the "%" wildcard character in the specified restart file name.
@@ -114,13 +107,10 @@ file for every Np processors.  For example, if Np = 4, every 4th
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a restart file.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command requires inter-processor communication to migrate atoms
 before the restart file is written.  This means that your system must

@@ -6,7 +6,6 @@ fix temp/rescale command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/rescale N Tstart Tstop window fraction
@@ -23,10 +22,8 @@ Syntax
 * window = only rescale if temperature is outside this window (temperature units)
 * fraction = rescale to target temperature by this fraction
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -94,7 +91,6 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if one of this command had
 been issued:
 
-
 .. parsed-literal::
 
    compute fix-ID_temp group-ID temp
@@ -126,9 +122,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

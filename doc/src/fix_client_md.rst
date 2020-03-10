@@ -6,7 +6,6 @@ fix client/md command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID client/md
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -66,9 +64,7 @@ the "client" and/or "server" code for this kind of client/server MD
 simulation.  The examples/message/README file explains how to launch
 LAMMPS and another code in tandem to perform a coupled simulation.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -93,7 +89,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

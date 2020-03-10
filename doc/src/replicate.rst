@@ -6,7 +6,6 @@ replicate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    replicate nx ny nz *keyword*
@@ -19,11 +18,8 @@ nx,ny,nz = replication factors in each dimension
 
        *bbox* = only check atoms in replicas that overlap with a processor's sub-domain
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -65,7 +61,6 @@ replicated.
 
 Restrictions
 """"""""""""
-
 
 A 2d simulation cannot be replicated in the z dimension.
 

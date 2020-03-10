@@ -6,7 +6,6 @@ dihedral_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -82,9 +80,7 @@ coefficients you specify.
    :doc:`dihedral_coeff <dihedral_coeff>` command to account for this
    difference if necessary.
 
-
 ----------
-
 
 Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
@@ -119,13 +115,10 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`table <dihedral_table>` - tabulated dihedral
 * :doc:`table/cut <dihedral_table_cut>` - tabulated dihedral with analytic cutoff
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.

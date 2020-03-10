@@ -6,7 +6,6 @@ fix smd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID smd type values keyword values
@@ -35,11 +34,8 @@ Syntax
          x,y,z = direction of spring, automatically computed with 'auto'
          R0 = distance of end of spring (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -139,7 +135,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -153,13 +148,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Izrailev:
-
-
 
 **(Izrailev)** Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
 Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
@@ -168,12 +159,8 @@ Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
 
 .. _Park:
 
-
-
 **(Park)** Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
 
 .. _Jarzynski:
-
-
 
 **(Jarzynski)** Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)

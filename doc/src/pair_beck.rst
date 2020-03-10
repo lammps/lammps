@@ -12,7 +12,6 @@ pair_style beck/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style beck Rc
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -40,7 +38,6 @@ includes truncation at a cutoff distance Rc.
 
    E(r) &= A \exp\left[-\alpha r - \beta r^6\right] - \frac{B}{\left(r^2+a^2\right)^3} \left(1+\frac{2.709+3a^2}{r^2+a^2}\right) \qquad r < R_c \\
 
-
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
@@ -57,9 +54,7 @@ commands.
 The last coefficient is optional.  If not specified, the global cutoff
 :math:`R_c` is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,9 +74,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -104,9 +97,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -119,12 +110,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Beck:
-
-
 
 **(Beck)** Beck, Molecular Physics, 14, 311 (1968).

@@ -6,7 +6,6 @@ fix heat command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID heat N eflux
@@ -24,11 +23,8 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 

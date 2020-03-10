@@ -6,7 +6,6 @@ fix aveforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID aveforce fx fy fz keyword value ...
@@ -27,11 +26,8 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
 
-
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -73,9 +69,7 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -95,9 +89,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

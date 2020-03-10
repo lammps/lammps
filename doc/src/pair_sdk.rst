@@ -30,14 +30,12 @@ pair_style lj/sdk/coul/msm/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/sdk* or *lj/sdk/coul/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -49,7 +47,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -81,7 +78,6 @@ given by
    E = &  4 \epsilon  \left[ \left(\frac{\sigma}{r}\right)^{12} -
                          \left(\frac{\sigma}{r}\right)^6 \right]
                          \qquad r < r_c
-
 
 as required for the SDK Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>` and :ref:`(DeVane) <DeVane>`.  Rc is the cutoff.
@@ -121,9 +117,7 @@ specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair\_style command.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp* or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -143,9 +137,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, and rRESPA info**\ :
 
@@ -170,13 +162,10 @@ not need to be specified in an input script that reads a restart file.
 The lj/sdk and lj/cut/coul/long pair styles do not support
 the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All of the lj/sdk pair styles are part of the USER-CGSDK package.  The
 *lj/sdk/coul/long* style also requires the KSPACE package to be built
@@ -191,18 +180,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Shinoda3:
-
-
 
 **(Shinoda)** Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
 
 .. _DeVane:
-
-
 
 **(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).

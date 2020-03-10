@@ -6,7 +6,6 @@ timestep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    timestep dt
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

@@ -6,7 +6,6 @@ pair_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_modify keyword values ...
@@ -39,10 +38,8 @@ Syntax
           w1,w2,w3 = 1-2, 1-3, 1-4 weights from 0.0 to 1.0 inclusive
        *compute/tally* value = *yes* or *no*
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -92,7 +89,6 @@ performed.
 
 - mix *geometric*
 
-
   .. math::
 
      \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
@@ -100,14 +96,12 @@ performed.
 
 - mix *arithmetic*
 
-
   .. math::
 
     \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
     \sigma_{ij}   = & \frac{1}{2} (\sigma_i + \sigma_j)
 
 - mix *sixthpower*
-
 
   .. math::
 
@@ -207,7 +201,6 @@ including the following:
   pressure reported by the simulation include an estimated
   contribution from those interactions.
 
-
 The *compute* keyword allows pairwise computations to be turned off,
 even though a :doc:`pair_style <pair_style>` is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
@@ -227,7 +220,6 @@ defined.
 The *nofdotr* keyword allows to disable an optimization that computes
 the global stress tensor from the total forces and atom positions
 rather than from summing forces between individual pairs of atoms.
-
 
 ----------
 
@@ -289,9 +281,7 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
    The "pair_modify pair compute/tally" command must be issued
    **before** the corresponding compute style is defined.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -317,18 +307,12 @@ tabinner = sqrt(2.0), tail = no, and compute = yes.
 Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.
 
-
 ----------
 
-
 .. _Wolff1:
-
-
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 .. _Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B, 102, 7338-7364 (1998).

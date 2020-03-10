@@ -6,7 +6,6 @@ fix wall/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/region region-ID style args ... cutoff
@@ -32,10 +31,8 @@ Syntax
 
 * cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
-
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -138,7 +135,6 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
-
 For style *lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
@@ -146,7 +142,6 @@ For style *lj126*\ , the energy E is given by the 12/6 potential:
  E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
@@ -156,7 +151,6 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
                        \left(\frac{\sigma}{r}\right)^4 -
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
-
 
 For style *colloid*\ , the energy E is given by an integrated form of
 the :doc:`pair_style colloid <pair_colloid>` potential:
@@ -168,7 +162,6 @@ the :doc:`pair_style colloid <pair_colloid>` potential:
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
     \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
-
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential (the distance parameter is ignored):
 
@@ -176,14 +169,12 @@ potential (the distance parameter is ignored):
 
    E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-
 For style *wall/morse*\ , the energy E is given by the Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
-
 
 Unlike other styles, this requires three parameters (:math:`D_0`,
 :math:`\alpha`, and :math:`r_0` in this order) instead of two like

@@ -6,7 +6,6 @@ next command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    next variables
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -84,7 +82,6 @@ command with an *index*\ -style variable.  If this input script is named
 in.polymer, 8 simulations would be run using data files from
 directories run1 through run8.
 
-
 .. parsed-literal::
 
    variable d index run1 run2 run3 run4 run5 run6 run7 run8
@@ -106,7 +103,6 @@ finished.
 Jump and next commands can also be nested to enable multi-level loops.
 For example, this script will run 15 simulations in a double loop.
 
-
 .. parsed-literal::
 
    variable i loop 3
@@ -124,7 +120,6 @@ For example, this script will run 15 simulations in a double loop.
 Here is an example of a double loop which uses the :doc:`if <if>` and
 :doc:`jump <jump>` commands to break out of the inner loop when a
 condition is met, then continues iterating through the outer loop.
-
 
 .. parsed-literal::
 
@@ -145,7 +140,6 @@ condition is met, then continues iterating through the outer loop.
 
 Restrictions
 """"""""""""
-
 
 As described above.
 

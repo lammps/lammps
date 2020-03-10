@@ -24,7 +24,6 @@ pair_style gran/hertz/history/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style Kn Kt gamma_n gamma_t xmu dampflag
@@ -36,7 +35,6 @@ Syntax
 * gamma\_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
-
 
 .. note::
 
@@ -51,7 +49,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -77,7 +74,6 @@ The two Hookean styles use this formula:
    (k_t \mathbf{ \Delta s}_t +
    m_{eff} \gamma_t \mathbf{v}_t)
 
-
 The Hertzian style uses this formula:
 
 .. math::
@@ -88,7 +84,6 @@ The Hertzian style uses this formula:
        m_{eff} \: \gamma_n \mathbf{ v}_n) -
        (k_t \mathbf{ \Delta s}_t +
        m_{eff} \: \gamma_t \mathbf{v}_t) \Big]
-
 
 In both equations the first parenthesized term is the normal force
 between the two particles and the second parenthesized term is the
@@ -203,7 +198,6 @@ All settings are global and are made via the pair\_style command.
 However you must still use the :doc:`pair_coeff <pair_coeff>` for all
 pairs of granular atom types.  For example the command
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * *
@@ -214,9 +208,7 @@ potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then
 pair\_coeff command to determine which atoms interact via a granular
 potential.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -236,9 +228,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -267,13 +257,10 @@ tangential direction.
 These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*\ , *p2*\ , ...,
 *p10*\ .
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the granular pair styles are part of the GRANULAR package.  It is
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -299,26 +286,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Brilliantov:
-
-
 
 **(Brilliantov)** Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
 p 5382-5392 (1996).
 
 .. _Silbert:
 
-
-
 **(Silbert)** Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
 E, 64, p 051302 (2001).
 
 .. _Zhang3:
-
-
 
 **(Zhang)** Zhang and Makse, Phys Rev E, 72, p 011301 (2005).

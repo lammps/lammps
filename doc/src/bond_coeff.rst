@@ -6,7 +6,6 @@ bond_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_coeff N args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -46,7 +44,6 @@ Note that using a bond\_coeff command can override a previous setting
 for the same bond type.  For example, these commands set the coeffs
 for all bond types, then overwrite the coeffs for just bond type 2:
 
-
 .. code-block:: LAMMPS
 
    bond_coeff * 100.0 1.2
@@ -59,14 +56,11 @@ coefficients for all N types must be listed in the file.  For example,
 under the "Bond Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as
 
-
 .. parsed-literal::
 
    5 80.0 1.2
 
-
 ----------
-
 
 The list of all bond styles defined in LAMMPS is given on the
 :doc:`bond_style <bond_style>` doc page.  They are also listed in more
@@ -76,13 +70,10 @@ On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
 bond\_coeff command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

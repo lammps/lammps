@@ -43,7 +43,7 @@ distribution in the Coulomb potential, following the formulation of
 
 .. math::
 
-   E  =  \frac{Cq_iq_j}{\epsilon r} \left( 1- \left( 1 + \frac{r_{ij}}{\lamda} exp\left( -2r_{ij}/\lamda \right) \right) \right)                       \qquad r < r_c 
+   E  =  \frac{Cq_iq_j}{\epsilon r} \left( 1- \left( 1 + \frac{r_{ij}}{\lambda} exp\left( -2r_{ij}/\lambda \right) \right) \right)                       \qquad r < r_c 
 
 
 where :math:`r_c` is the cutoff distance and :math:`\lamda` is the decay length of the charge.

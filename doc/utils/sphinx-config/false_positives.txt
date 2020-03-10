@@ -1023,6 +1023,7 @@ Gmask
 gneb
 GNEB
 Goldfarb
+González-Melchor
 googlemail
 Gordan
 GPa
@@ -1285,6 +1286,7 @@ Izvekov
 izz
 Izz
 Jacobsen
+Jadhav
 jagreat
 Jalalvand
 james
@@ -1653,6 +1655,7 @@ maxwell
 Maxwellian
 maxX
 Mayergoyz
+Mayoral
 mbt
 Mbytes
 MBytes
@@ -1681,6 +1684,7 @@ mediumvioletred
 Mees
 Mehl
 Mei
+Melchor
 Meloni
 Melrose
 Mem
@@ -2819,6 +2823,7 @@ tfmc
 tfMC
 th
 Thakkar
+Thaokar
 thb
 thei
 Theodorou
@@ -3011,6 +3016,7 @@ uwo
 Uzdin
 vacf
 Vaid
+Vaiwala
 valent
 Valeriu
 valgrind
@@ -3039,6 +3045,7 @@ Vectorization
 vectorized
 Vegt
 vel
+Velázquez
 Verlag
 verlet
 Verlet

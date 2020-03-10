@@ -1023,7 +1023,7 @@ Gmask
 gneb
 GNEB
 Goldfarb
-González-Melchor
+Gonzalez-Melchor
 googlemail
 Gordan
 GPa

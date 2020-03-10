@@ -2250,6 +2250,7 @@ polyA
 polybond
 polydisperse
 polydispersity
+polyelectrolyte
 polyhedra
 popen
 Popov
@@ -2760,6 +2761,7 @@ superset
 supersphere
 Supinski
 Surblys
+surfactant
 surfactants
 Suter
 Sutmann

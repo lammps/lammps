@@ -32,7 +32,7 @@ template <typename real>
 struct alignas(2*sizeof(real)) SNAComplex
 {
   real re,im;
-  
+
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
@@ -172,7 +172,7 @@ inline
   static KOKKOS_FORCEINLINE_FUNCTION
   void caxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y);
 
-  // efficient complex FMA, conjugate of scalar 
+  // efficient complex FMA, conjugate of scalar
   static KOKKOS_FORCEINLINE_FUNCTION
   void caconjxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y);
 
@@ -201,7 +201,7 @@ inline
   void grow_rij(int, int);
 
   int twojmax, diagonalstyle;
-  
+
   t_sna_2d_ll blist;
   t_sna_2c_ll ulisttot;
   t_sna_2c_ll zlist;

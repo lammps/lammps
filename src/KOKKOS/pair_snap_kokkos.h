@@ -38,7 +38,7 @@ struct TagPairSNAPComputeNeigh{};
 struct TagPairSNAPPreUi{};
 struct TagPairSNAPComputeUi{};
 struct TagPairSNAPComputeUiTot{}; // accumulate ulist into ulisttot separately
-struct TagPairSNAPComputeUiCPU{}; 
+struct TagPairSNAPComputeUiCPU{};
 struct TagPairSNAPComputeZi{};
 struct TagPairSNAPComputeBi{};
 struct TagPairSNAPZeroYi{};

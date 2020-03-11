@@ -50,7 +50,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python pForce input 2 v_x 20.0 return v_f format fff file force.py
    python pForce invoke
@@ -58,7 +58,7 @@ Examples
    python factorial input 1 myN return v_fac format ii here """
    def factorial(n):
      if n == 1: return n
-     return n \* factorial(n-1)
+     return n * factorial(n-1)
     """
 
    python loop input 1 SELF return v_value format pf here """
@@ -69,10 +69,10 @@ Examples
      # loop N times, increasing cutoff each time
 
      for i in range(N):
-       cut = cut0 + i\*0.1
-       lmp.set_variable("cut",cut)                 # set a variable in LAMMPS
+       cut = cut0 + i*0.1
+       lmp.set_variable("cut",cut)               # set a variable in LAMMPS
        lmp.command("pair_style lj/cut ${cut}")   # LAMMPS commands
-       lmp.command("pair_coeff \* \* 1.0 1.0")
+       lmp.command("pair_coeff * * 1.0 1.0")
        lmp.command("run 100")
     """
 
@@ -163,7 +163,7 @@ variable.  This must match the *func* setting for this command.  For
 example these two commands would be self-consistent:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable foo python myMultiply
    python myMultiply return v_foo format f file funcs.py
@@ -262,7 +262,7 @@ consider this function loaded with two global variables defined
 outside the function:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    nsteplast = -1
    nvaluelast = 0
@@ -328,7 +328,7 @@ a pointer to LAMMPS.  The mechanism for doing this in your
 Python function is as follows:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    def foo(lmpptr,...):
      from lammps import lammps
@@ -337,15 +337,15 @@ Python function is as follows:
      ...
 
 The function definition must include a variable (lmpptr in this case)
-which corresponds to SELF in the python command.  The first line of
-the function imports the Python module lammps.py in the python dir of
+which corresponds to SELF in the python command.  The first line of the
+function imports the Python module lammps.py in the python directory of
 the distribution.  The second line creates a Python object "lmp" which
-wraps the instance of LAMMPS that called the function.  The
-"ptr=lmpptr" argument is what makes that happen.  The third line
-invokes the command() function in the LAMMPS library interface.  It
-takes a single string argument which is a LAMMPS input script command
-for LAMMPS to execute, the same as if it appeared in your input
-script.  In this case, LAMMPS should output
+wraps the instance of LAMMPS that called the function.  The "ptr=lmpptr"
+argument is what makes that happen.  The third line invokes the
+command() function in the LAMMPS library interface.  It takes a single
+string argument which is a LAMMPS input script command for LAMMPS to
+execute, the same as if it appeared in your input script.  In this case,
+LAMMPS should output
 
 
 .. parsed-literal::
@@ -356,7 +356,7 @@ to the screen and log file.  Note that since the LAMMPS print command
 itself takes a string in quotes as its argument, the Python string
 must be delimited with a different style of quotes.
 
-The :doc:`Pytnon library <Python_library>` doc page describes the syntax
+The :doc:`Python library <Python_library>` doc page describes the syntax
 for how Python wraps the various functions included in the LAMMPS
 library interface.
 
@@ -364,7 +364,7 @@ A more interesting example is in the examples/python/in.python script
 which loads and runs the following function from examples/python/funcs.py:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    def loop(N,cut0,thresh,lmpptr):
      print "LOOP ARGS",N,cut0,thresh,lmpptr
@@ -373,13 +373,13 @@ which loads and runs the following function from examples/python/funcs.py:
      natoms = lmp.get_natoms()
 
      for i in range(N):
-       cut = cut0 + i\*0.1
+       cut = cut0 + i*0.1
 
        lmp.set_variable("cut",cut)                 # set a variable in LAMMPS
        lmp.command("pair_style lj/cut ${cut}")     # LAMMPS command
        #lmp.command("pair_style lj/cut %d" % cut)  # LAMMPS command option
 
-       lmp.command("pair_coeff \* \* 1.0 1.0")       # ditto
+       lmp.command("pair_coeff * * 1.0 1.0")       # ditto
        lmp.command("run 10")                       # ditto
        pe = lmp.extract_compute("thermo_pe",0,0)   # extract total PE from LAMMPS
        print "PE",pe/natoms,thresh
@@ -486,7 +486,7 @@ in your Python function is failing, because you have not initialized the
 variable foo:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    foo += 1
 
@@ -494,7 +494,7 @@ If you put one (or more) statements inside a "try" statement,
 like this:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    import exceptions
    print "Inside simple function"
@@ -549,8 +549,3 @@ Related commands
 :doc:`shell <shell>`, :doc:`variable <variable>`, :doc:`fix python/invoke <fix_python_invoke>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

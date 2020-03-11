@@ -1,27 +1,24 @@
-.. index:: pair\_style meam/c
+.. index:: pair_style meam/c
 
-pair\_style meam/c command
-==========================
+pair_style meam/c command
+=========================
 
 Syntax
 """"""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_style style
-
-style = *meam/c*
+   pair_style meam/c
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/c
-   pair_coeff \* \* ../potentials/library.meam Si ../potentials/si.meam Si
-   pair_coeff \* \* ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
+   pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
+   pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 
 Description
 """""""""""
@@ -46,19 +43,22 @@ the 12 December 2018 release.
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
 
-.. image:: Eqs/pair_meam.jpg
-   :align: center
+.. math::
 
-where F is the embedding energy which is a function of the atomic
-electron density rho, and phi is a pair potential interaction.  The
-pair interaction is summed over all neighbors J of atom I within the
-cutoff distance.  As with EAM, the multi-body nature of the MEAM
-potential is a result of the embedding energy term.  Details of the
-computation of the embedding and pair energies, as implemented in
+   E = \sum_i \left\{ F_i(\bar{\rho}_i)
+       + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
+
+
+where *F* is the embedding energy which is a function of the atomic
+electron density :math:`\rho`, and :math:`\phi` is a pair potential
+interaction.  The pair interaction is summed over all neighbors J of
+atom I within the cutoff distance.  As with EAM, the multi-body nature
+of the MEAM potential is a result of the embedding energy term.  Details
+of the computation of the embedding and pair energies, as implemented in
 LAMMPS, are given in :ref:`(Gullet) <Gullet>` and references therein.
 
 The various parameters in the MEAM formulas are listed in two files
-which are specified by the :doc:`pair\_coeff <pair_coeff>` command.
+which are specified by the :doc:`pair_coeff <pair_coeff>` command.
 These are ASCII text files in a format consistent with other MD codes
 that implement MEAM potentials, such as the serial DYNAMO code and
 Warp.  Several MEAM potential files with parameters for different
@@ -81,7 +81,7 @@ command, where N is the number of LAMMPS atom types:
 * MEAM parameter file
 * N element names = mapping of MEAM elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential files.
 
 As an example, the potentials/library.meam file has generic MEAM
@@ -91,9 +91,9 @@ LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The two filenames are for the library and parameter file respectively.
@@ -201,9 +201,9 @@ MEAM library file numbered in the order of how those elements were
 selected starting from 1. Thus for the example given below
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 an index of 1 would refer to Si and an index of 2 to C.
 
@@ -382,7 +382,7 @@ two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
 specify a pair\_coeff command with I != J arguments for this style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -390,7 +390,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -415,8 +415,8 @@ limit on the number of atoms types.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style eam <pair_eam>`,
-:doc:`pair\_style meam/spline <pair_meam_spline>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style eam <pair_eam>`,
+:doc:`pair_style meam/spline <pair_meam_spline>`
 
 **Default:** none
 
@@ -471,8 +471,3 @@ This report may be accessed on-line via `this link <sandreport_>`_.
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
 of Ions in Matter", Vol 1, 1985, Pergamon Press.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

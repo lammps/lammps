@@ -88,21 +88,23 @@ Essentially, a Hugoniostat simulation is an NPT simulation in which the
 user-specified target temperature is replaced with a time-dependent
 target temperature Tt obtained from the following equation:
 
-.. image:: Eqs/fix_nphug.jpg
-   :align: center
+.. math::
 
-where T and Tt are the instantaneous and target temperatures,
-P and P0 are the instantaneous and reference pressures or axial stresses,
+   T_t - T = \frac{\left(\frac{1}{2}\left(P + P_0\right)\left(V_0 - V\right) + E_0 - E\right)}{N_{dof} k_B } = \Delta
+
+
+where *T* and :math:`T_t` are the instantaneous and target temperatures,
+*P* and :math:`P_0` are the instantaneous and reference pressures or axial stresses,
 depending on whether hydrostatic or uniaxial compression is being
-performed, V and V0 are the instantaneous and reference volumes,
-E and E0 are the instantaneous and reference internal energy (potential
-plus kinetic), Ndof is the number of degrees of freedom used in the
-definition of temperature, and kB is the Boltzmann constant. Delta is the
+performed, *V* and :math:`V_0` are the instantaneous and reference volumes,
+*E* and :math:`E_0` are the instantaneous and reference internal energy (potential
+plus kinetic), :math:`N_{dof}` is the number of degrees of freedom used in the
+definition of temperature, and :math:`k_B` is the Boltzmann constant. :math:`\Delta` is the
 negative deviation of the instantaneous temperature from the target temperature.
-When the system reaches a stable equilibrium, the value of Delta should
+When the system reaches a stable equilibrium, the value of :math:`\Delta` should
 fluctuate about zero.
 
-The values of E0, V0, and P0 are the instantaneous values at the start of
+The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the instantaneous values at the start of
 the simulation. These can be overridden using the fix\_modify keywords *e0*\ ,
 *v0*\ , and *p0* described below.
 
@@ -143,11 +145,11 @@ the new computes is "all" since pressure is computed for the entire
 system.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
@@ -179,21 +181,22 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-This fix writes the values of E0, V0, and P0, as well as the
-state of all the thermostat and barostat
-variables to :doc:`binary restart files <restart>`.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
+This fix writes the values of :math:`E_0`, :math:`V_0`, and :math:`P_0`,
+as well as the state of all the thermostat and barostat variables to
+:doc:`binary restart files <restart>`.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an input
+script that reads a restart file, so that the operation of the fix
+continues in an uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *e0*\ , *v0* and *p0* keywords
-can be used to define the values of E0, V0, and P0. Note the
-the values for *e0* and *v0* are extensive, and so must correspond
-to the total energy and volume of the entire system, not energy and
-volume per atom. If any of these quantities are not specified, then the
-instantaneous value in the system at the start of the simulation is used.
+The :doc:`fix_modify <fix_modify>` *e0*\ , *v0* and *p0* keywords can be
+used to define the values of :math:`E_0`, :math:`V_0`, and
+:math:`P_0`. Note the the values for *e0* and *v0* are extensive, and so
+must correspond to the total energy and volume of the entire system, not
+energy and volume per atom. If any of these quantities are not
+specified, then the instantaneous value in the system at the start of
+the simulation is used.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by these fixes.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its thermostatting or barostatting procedure, as described above.
@@ -202,7 +205,7 @@ temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by these
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting
 and barostatting to the system's potential energy as part of
 :doc:`thermodynamic output <thermo_style>`. Either way, this energy is \*not\*
@@ -216,7 +219,7 @@ values are "intensive".
 
 The scalar is the cumulative energy change due to the fix.
 
-The vector stores three quantities unique to this fix (Delta, Us, and up),
+The vector stores three quantities unique to this fix (:math:`\Delta`, Us, and up),
 followed by all the internal Nose/Hoover thermostat and barostat
 variables defined for :doc:`fix npt <fix_nh>`. Delta is the deviation
 of the temperature from the target temperature, given by the above equation.
@@ -236,7 +239,7 @@ plus the additional ones mentioned above.
 Related commands
 """"""""""""""""
 
-:doc:`fix msst <fix_msst>`, :doc:`fix npt <fix_nh>`, :doc:`fix\_modify <fix_modify>`
+:doc:`fix msst <fix_msst>`, :doc:`fix npt <fix_nh>`, :doc:`fix_modify <fix_modify>`
 
 Default
 """""""
@@ -252,8 +255,3 @@ The keyword defaults are the same as those for :doc:`fix npt <fix_nh>`
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

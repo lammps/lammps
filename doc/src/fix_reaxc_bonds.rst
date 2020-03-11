@@ -31,7 +31,7 @@ Description
 """""""""""
 
 Write out the bond information computed by the ReaxFF potential specified
-by :doc:`pair\_style reax/c <pair_reaxc>` in the exact same format as the
+by :doc:`pair_style reax/c <pair_reaxc>` in the exact same format as the
 original stand-alone ReaxFF code of Adri van Duin.  The bond information
 is written to *filename* on timesteps that are multiples of *Nevery*\ ,
 including timestep 0.  For time-averaged chemical species analysis,
@@ -64,7 +64,7 @@ version, but will also take longer to write.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -101,7 +101,7 @@ Restrictions
 """"""""""""
 
 
-The fix reax/c/bonds command requires that the :doc:`pair\_style reax/c <pair_reaxc>` is invoked.  This fix is part of the
+The fix reax/c/bonds command requires that the :doc:`pair_style reax/c <pair_reaxc>` is invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
@@ -112,11 +112,6 @@ To write gzipped bond files, you must compile LAMMPS with the
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style reax/c <pair_reaxc>`, :doc:`fix reax/c/species <fix_reaxc_species>`
+:doc:`pair_style reax/c <pair_reaxc>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

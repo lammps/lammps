@@ -29,8 +29,12 @@ Description
 
 The fix applies a force to atoms given by the potential
 
-.. image:: Eqs/fix_rhok.jpg
-   :align: center
+.. math::
+
+   U  = &  \frac{1}{2} K (|\rho_{\vec{k}}| - a)^2 \\
+   \rho_{\vec{k}}  = & \sum_j^N \exp(-i\vec{k} \cdot \vec{r}_j )/\sqrt{N} \\
+   \vec{k}  = & (2\pi n_x /L_x , 2\pi n_y  /L_y , 2\pi n_z/L_z )
+
 
 as described in :ref:`(Pedersen) <Pedersen>`.
 
@@ -51,7 +55,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`thermo\_style <thermo_style>`
+:doc:`thermo_style <thermo_style>`
 
 **Default:** none
 
@@ -64,8 +68,3 @@ Related commands
 
 
 **(Pedersen)** Pedersen, J. Chem. Phys., 139, 104102 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

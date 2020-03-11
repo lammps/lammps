@@ -1,19 +1,19 @@
-.. index:: pair\_style thole
+.. index:: pair_style thole
 
-pair\_style thole command
-=========================
+pair_style thole command
+========================
 
-pair\_style lj/cut/thole/long command
-=====================================
+pair_style lj/cut/thole/long command
+====================================
 
-pair\_style lj/cut/thole/long/omp command
-=========================================
+pair_style lj/cut/thole/long/omp command
+========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -35,12 +35,12 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay ... thole 2.6 12.0
    pair_coeff 1 1 thole 1.0
    pair_coeff 1 2 thole 1.0 2.6 10.0
-   pair_coeff \* 2 thole 1.0 2.6
+   pair_coeff * 2 thole 1.0 2.6
 
    pair_style lj/cut/thole/long 2.6 12.0
 
@@ -53,7 +53,7 @@ describes how to use the :doc:`thermalized Drude oscillator model <Howto_drude>`
 discussed on the :doc:`Howto polarizable <Howto_polarizable>` doc page.
 
 The *thole* pair style should be used as a sub-style within in the
-:doc:`pair\_hybrid/overlay <pair_hybrid>` command, in conjunction with a
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command, in conjunction with a
 main pair style including Coulomb interactions, i.e. any pair style
 containing *coul/cut* or *coul/long* in its style name.
 
@@ -73,9 +73,9 @@ short distances by a function
 
 .. math::
 
-   \begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
+   T_{ij}(r_{ij}) = 1 - \left( 1 +
    \frac{s_{ij} r_{ij} }{2} \right)
-   \exp \left( - s_{ij} r_{ij} \right) \end{equation}
+   \exp \left( - s_{ij} r_{ij} \right)
 
 This function results from an adaptation to point charges
 :ref:`(Noskov) <Noskov1>` of the dipole screening scheme originally proposed
@@ -90,9 +90,9 @@ between the atom-specific values.
 
 .. math::
 
-   \begin{equation} s_{ij} = \frac{ a_{ij} }{
+   s_{ij} = \frac{ a_{ij} }{
    (\alpha_{ij})^{1/3} } = \frac{ (a_i + a_j)/2 }{
-   [(\alpha_i\alpha_j)^{1/2}]^{1/3} } \end{equation}
+   [(\alpha_i\alpha_j)^{1/2}]^{1/3} }
 
 The damping function is only applied to the interactions between the
 point charges representing the induced dipoles on polarizable sites,
@@ -103,17 +103,17 @@ is not applied to the full charge of the core particle :math:`q_i`, but
 only to the :math:`-q_{D,i}` part of it.
 
 The interactions between core charges are subject to the weighting
-factors set by the :doc:`special\_bonds <special_bonds>` command. The
+factors set by the :doc:`special_bonds <special_bonds>` command. The
 interactions between Drude particles and core charges or
 non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
 For pair\_style *thole*\ , the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>` command
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
-* alpha (distance units\^3)
+* :math:`\alpha` (distance units\^3)
 * damp
 * cutoff (distance units)
 
@@ -123,13 +123,13 @@ command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
 For pair style *lj/cut/thole/long*\ , the following coefficients must be
-defined for each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
-* epsilon (energy units)
-* sigma (length units)
-* alpha (distance units\^3)
-* damps
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (length units)
+* :math:`\alpha` (distance units\^3)
+* damp
 * LJ cutoff (distance units)
 
 The last two coefficients are optional and default to the global values from
@@ -168,12 +168,9 @@ are defined using
 
 .. math::
 
-   \begin{equation} \alpha_{ij} = \sqrt{\alpha_i\alpha_j}\end{equation}
-
-
-.. math::
-
-   \begin{equation} a_{ij} = \frac 1 2 (a_i + a_j)\end{equation}
+   \alpha_{ij} = & \sqrt{\alpha_i\alpha_j} \\
+   & \\
+   a_{ij} = & \frac 1 2 (a_i + a_j)
 
 Restrictions
 """"""""""""
@@ -194,7 +191,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`
-:doc:`pair\_style lj/cut/coul/long <pair_lj>`
+:doc:`pair_style lj/cut/coul/long <pair_lj>`
 
 **Default:** none
 
@@ -213,8 +210,3 @@ Related commands
 
 
 **(Thole)** Chem Phys, 59, 341 (1981).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

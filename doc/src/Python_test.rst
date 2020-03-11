@@ -38,7 +38,7 @@ If an error occurs, carefully go through the steps on the
 library and the :doc:`Python\_install <Python_install>` doc page about
 insuring Python can find the necessary two files it needs.
 
-**Test LAMMPS and Python in serial:**
+Test LAMMPS and Python in serial:
 -------------------------------------
 
 To run a LAMMPS test in serial, type these lines into Python
@@ -67,7 +67,7 @@ typed something like:
 
    lmp_g++ -in in.lj
 
-**Test LAMMPS and Python in parallel:**
+Test LAMMPS and Python in parallel:
 ---------------------------------------
 
 To run LAMMPS in parallel, assuming you have installed the
@@ -128,7 +128,7 @@ described in the PyPar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.
 
-**Running Python scripts:**
+Running Python scripts:
 ---------------------------
 
 Note that any Python script (not just for LAMMPS) can be invoked in
@@ -163,8 +163,3 @@ With the "-i" flag, you will be left in the Python interpreter when
 the script finishes, so you can type subsequent commands.  As
 mentioned above, you can only run Python interactively when running
 Python on a single processor, not in parallel.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

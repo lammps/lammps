@@ -17,7 +17,7 @@ General commands
 An alphabetic list of all general LAMMPS commands.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
@@ -46,7 +46,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
-   * :doc:`dump adios <dump_adios>`
+   * :doc:`dump atom/adios <dump_adios>`
+   * :doc:`dump custom/adios <dump_adios>`
    * :doc:`dump image <dump_image>`
    * :doc:`dump movie <dump_image>`
    * :doc:`dump netcdf <dump_netcdf>`
@@ -135,7 +136,3 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
-   *
-   *
-   *
-   *

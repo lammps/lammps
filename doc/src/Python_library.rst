@@ -274,7 +274,3 @@ following steps:
 .. autoclass:: lammps.NeighList
    :members:
    :no-undoc-members:
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

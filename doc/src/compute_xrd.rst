@@ -57,21 +57,16 @@ of wavelength lambda.
 The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
 is computed from the structure factor, F, using the equations:
 
-.. image:: Eqs/compute_xrd1.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/compute_xrd2.jpg
-   :align: center
+   I =             & Lp(\theta)\frac{F^{*}F}{N} \\
+   F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j) \\
+   Lp(\theta)    = & \frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)} \\
+   \frac{sin(\theta)}{\lambda} = & \frac{\left | \mathbf{k} \right |}{2}
 
-.. image:: Eqs/compute_xrd3.jpg
-   :align: center
-
-.. image:: Eqs/compute_xrd4.jpg
-   :align: center
-
-Here, K is the location of the reciprocal lattice node, rj is the
-position of each atom, fj are atomic scattering factors, LP is the
-Lorentz-polarization factor, and theta is the scattering angle of
+Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
+position of each atom, :math:`f_j` are atomic scattering factors, *Lp* is the
+Lorentz-polarization factor, and :math:`\theta` is the scattering angle of
 diffraction.  The Lorentz-polarization factor can be turned off using
 the optional *LP* keyword.
 
@@ -114,8 +109,10 @@ for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
 :ref:`(Colliex) <Colliex>`:
 
-.. image:: Eqs/compute_xrd5.jpg
-   :align: center
+.. math::
+
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 
+   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
@@ -271,8 +268,3 @@ Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 **(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

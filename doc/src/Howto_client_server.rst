@@ -68,8 +68,8 @@ programs.
 .. note::
 
    For client/server coupling to work between LAMMPS and another
-   code, the other code also has to use the CSlib.  This can often be
-   done without any modification to the other code by simply wrapping it
+   code, the other code also has to use the CSlib.  This can sometimes be
+   done without any modifications to the other code by simply wrapping it
    with a Python script that exchanges CSlib messages with LAMMPS and
    prepares input for or processes output from the other code.  The other
    code also has to implement a matching protocol for the format and
@@ -94,17 +94,23 @@ client or server code:
 * examples/message
 * examples/COUPLE/README
 * examples/COUPLE/lammps\_mc
+* examples/COUPLE/lammps\_nwchem
 * examples/COUPLE/lammps\_vasp
 
-The examples/message dir couples a client instance of LAMMPS to a
+The examples/message directory couples a client instance of LAMMPS to a
 server instance of LAMMPS.
 
-The lammps\_mc dir shows how to couple LAMMPS as a server to a simple
-Monte Carlo client code as the driver.
+The files in the *lammps\_mc* folder show how to couple LAMMPS as
+a server to a simple Monte Carlo client code as the driver.
 
-The lammps\_vasp dir shows how to couple LAMMPS as a client code
-running MD timestepping to VASP acting as a server providing quantum
-DFT forces, through a Python wrapper script on VASP.
+The files in the *lammps\_nwchem* folder show how to couple LAMMPS
+as a client code running MD timestepping to NWChem acting as a
+server providing quantum DFT forces, through a Python wrapper script
+on NWChem.
+
+The files in the *lammps\_vasp* folder show how to couple LAMMPS as
+a client code running MD timestepping to VASP acting as a server
+providing quantum DFT forces, through a Python wrapper script on VASP.
 
 Here is how to launch a client and server code together for any of the
 4 modes of message exchange that the :doc:`message <message>` command
@@ -129,7 +135,7 @@ together to exchange MPI messages between them.
 For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 1 lmp_mpi -log log.client < in.client &
    % mpirun -np 2 lmp_mpi -log log.server < in.server
@@ -145,7 +151,7 @@ For message exchange in *mpi/one* mode:
 Launch both codes in a single mpirun command:
 
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -log log.server
 
@@ -157,8 +163,3 @@ command-line option as their its option, where color is an integer
 label that will be used to distinguish one executable from another in
 the multiple executables that the mpirun command launches.  In this
 example the client was colored with a 0, and the server with a 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

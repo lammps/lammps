@@ -1,22 +1,22 @@
-.. index:: kim\_init
+.. index:: kim_init, kim_interactions, kim_query, kim_param
 
-kim\_init command
+kim_init command
 =================
 
-kim\_interactions command
+kim_interactions command
 =========================
 
-kim\_query command
+kim_query command
 ==================
 
-kim\_param command
+kim_param command
 ==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init model user_units unitarg
    kim_interactions typeargs
@@ -56,7 +56,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    kim_interactions Si
@@ -195,7 +195,7 @@ the simulation box is created (normally at the top of the file).
 This command sets the OpenKIM IM that will be used and may issue
 additional commands changing LAMMPS default settings that are required
 for using the selected IM (such as :doc:`units <units>` or
-:doc:`atom\_style <atom_style>`). If needed, those settings can be overridden,
+:doc:`atom_style <atom_style>`). If needed, those settings can be overridden,
 however, typically a script containing a *kim\_init* command
 would not include *units* and *atom\_style* commands.
 
@@ -216,7 +216,7 @@ printed to help diagnose any incompatible changes to input script or
 command syntax between the two LAMMPS versions.
 
 Based on the selected model *kim\_init* may modify the
-:doc:`atom\_style <atom_style>`.
+:doc:`atom_style <atom_style>`.
 Some SMs have requirements for this setting. If this is the case, then
 *atom\_style* will be set to the required style. Otherwise, the value is left
 unchanged (which in the absence of an *atom\_style* command in the input script
@@ -238,7 +238,7 @@ of a face-centered cubic (fcc) lattice for the Ercolessi and Adams (1994)
 potential for Al:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
    boundary         p p p
@@ -293,15 +293,15 @@ meters, computes the total energy, and prints the cohesive energy in
 Joules regardless of the units of the IM.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 si unit_conversion_mode
    boundary         p p p
-   lattice          fcc 4.032e-10\*${_u_distance}
+   lattice          fcc 4.032e-10*${_u_distance}
    region           simbox block 0 1 0 1 0 1 units lattice
    create_box       1 simbox
    create_atoms     1 box
-   mass             1 4.480134e-26\*${_u_mass}
+   mass             1 4.480134e-26*${_u_mass}
    kim_interactions Al
    run              0
    variable         Ec_in_J equal (pe/count(all))/${_u_energy}
@@ -316,15 +316,15 @@ will work correctly for any IM for Al (KIM PM or SM) selected by the
 
 Care must be taken to apply unit conversion to dimensional variables read in
 from a file. For example, if a configuration of atoms is read in from a
-dump file using the :doc:`read\_dump <read_dump>` command, the following can
+dump file using the :doc:`read_dump <read_dump>` command, the following can
 be done to convert the box and all atomic positions to the correct units:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable xyfinal equal xy\*${_u_distance}
-   variable xzfinal equal xz\*${_u_distance}
-   variable yzfinal equal yz\*${_u_distance}
+   variable xyfinal equal xy*${_u_distance}
+   variable xzfinal equal xz*${_u_distance}
+   variable yzfinal equal yz*${_u_distance}
    change_box all x scale ${_u_distance} &
                           y scale ${_u_distance} &
                           z scale ${_u_distance} &
@@ -345,7 +345,7 @@ OpenKIM IM Execution (*kim\_interactions*)
 The second and final step in using an OpenKIM IM is to execute the
 *kim\_interactions* command. This command must be preceded by a *kim\_init*
 command and a command that defines the number of atom types *N* (such as
-:doc:`create\_box <create_box>`).
+:doc:`create_box <create_box>`).
 The *kim\_interactions* command has one argument *typeargs*\ . This argument
 contains either a list of *N* chemical species, which defines a mapping between
 atom types in LAMMPS to the available species in the OpenKIM IM, or the
@@ -360,26 +360,26 @@ If the LAMMPS simulation has four atom types, where the first three are Si,
 and the fourth is C, the following *kim\_interactions* command would be used:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_interactions Si Si Si C
 
 Alternatively, for a model with a fixed mapping the command would be:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_interactions fixed_types
 
 The *kim\_interactions* command performs all the necessary steps to set up
 the OpenKIM IM selected in the *kim\_init* command. The specific actions depend
 on whether the IM is a KIM PM or a KIM SM.  For a KIM PM,
-a :doc:`pair\_style kim <pair_kim>` command is executed followed by
+a :doc:`pair_style kim <pair_kim>` command is executed followed by
 the appropriate *pair\_coeff* command. For example, for the
 Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
    ...
@@ -390,10 +390,10 @@ Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
 the *kim\_interactions* command executes the following LAMMPS input commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style kim EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005
-   pair_coeff \* \* Al
+   pair_coeff * * Al
 
 For a KIM SM, the generated input commands may be more complex
 and require that LAMMPS is built with the required packages included
@@ -403,7 +403,7 @@ For example, for the Strachan et al. (2003) ReaxFF SM
 set by the following commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
    ...
@@ -414,10 +414,10 @@ set by the following commands:
 the *kim\_interactions* command executes the following LAMMPS input commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style reax/c lmp_control safezone 2.0 mincap 100
-   pair_coeff \* \* ffield.reax.rdx C H N O
+   pair_coeff * * ffield.reax.rdx C H N O
    fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
 
 Note that the files *lmp\_control*, *ffield.reax.rdx* and *param.qeq*
@@ -449,7 +449,7 @@ of an IM set by *kim\_init* for material properties archived in
 The syntax for the *kim\_query* command is as follows:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_query variable formatarg query_function queryargs
 
@@ -509,7 +509,7 @@ or analysis phases of LAMMPS simulations. Some examples are given below.
 **Define an equilibrium fcc crystal**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
    boundary         p p p
@@ -533,7 +533,7 @@ changed to: "lattice fcc ${a0}\*${\_u_distance}".
 **Define an equilibrium hcp crystal**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal
    boundary         p p p
@@ -556,14 +556,14 @@ input script more readable.
 **Define a crystal at finite temperature accounting for thermal expansion**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
    boundary         p p p
    kim_query        a0 get_lattice_constant_cubic crystal=["fcc"] species=["Al"] units=["angstrom"]
    kim_query        alpha get_linear_thermal_expansion_coefficient_cubic  crystal=["fcc"] species=["Al"] units=["1/K"] temperature=[293.15] temperature_units=["K"]
    variable         DeltaT equal 300
-   lattice          fcc ${a0}\*${alpha}\*${DeltaT}
+   lattice          fcc ${a0}*${alpha}*${DeltaT}
    ...
 
 As in the previous example, the equilibrium lattice constant is obtained
@@ -587,7 +587,7 @@ potential.
 **Compute defect formation energy**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
    ...
@@ -595,7 +595,7 @@ potential.
    ... which is stored in the variable *Etot*
    ...
    kim_query        Ec get_cohesive_energy_cubic crystal=["fcc"] species=["Al"] units=["eV"]
-   variable         Eform equal ${Etot} - count(all)\*${Ec}
+   variable         Eform equal ${Etot} - count(all)*${Ec}
    ...
 
 The defect formation energy *Eform* is computed by subtracting from *Etot* the
@@ -654,7 +654,7 @@ for details).
 The syntax for the *kim\_param* command is as follows:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_param get param_name index_range variable formatarg
    kim_param set param_name index_range values
@@ -715,7 +715,7 @@ clarifications are provided below.
 **Getting a scalar parameter**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    ...
@@ -729,7 +729,7 @@ LAMMPS variable.
 **Getting multiple scalar parameters with a single call**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    ...
@@ -744,7 +744,7 @@ There are several options when getting a range of values from a parameter
 determined by the *formatarg* argument.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
@@ -767,7 +767,7 @@ lambda retrieved by the *get* operation are placed in the LAMMPS variables
    is provided at the top of the model page.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
@@ -789,7 +789,7 @@ as shown in the example. At each iteration of the loop *LAM\_VALUE*
 contains the current value of lambda.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
@@ -804,7 +804,7 @@ the lambda array is appended to create the variable names.
 **Setting a scalar parameter**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    ...
@@ -816,7 +816,7 @@ and *set* commands work together, so that a *get* following a *set*
 operation will return the new value that was set. For example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    ...
    kim_interactions Si
@@ -849,7 +849,7 @@ be used when setting parameters.
 **Setting a range of values of a parameter**
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
@@ -894,7 +894,7 @@ must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style kim <pair_kim>`
+:doc:`pair_style kim <pair_kim>`
 
 
 ----------
@@ -913,8 +913,3 @@ doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-
 
 **(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

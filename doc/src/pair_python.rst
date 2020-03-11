@@ -1,13 +1,13 @@
-.. index:: pair\_style python
+.. index:: pair_style python
 
-pair\_style python command
-==========================
+pair_style python command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python cutoff
 
@@ -17,14 +17,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python 2.5
-   pair_coeff \* \* py_pot.LJCutMelt lj
+   pair_coeff * * py_pot.LJCutMelt lj
 
    pair_style hybrid/overlay coul/long 12.0 python 12.0
-   pair_coeff \* \* coul/long
-   pair_coeff \* \* python py_pot.LJCutSPCE OW NULL
+   pair_coeff * * coul/long
+   pair_coeff * * python py_pot.LJCutSPCE OW NULL
 
 Description
 """""""""""
@@ -38,7 +38,7 @@ interpreted language, however, the performance of this pair style is
 going to be significantly slower (often between 20x and 100x) than
 corresponding compiled code. This penalty can be significantly reduced
 through generating tabulations from the python code through the
-:doc:`pair\_write <pair_write>` command, which is supported by this style.
+:doc:`pair_write <pair_write>` command, which is supported by this style.
 
 Only a single pair\_coeff command is used with the *python* pair style
 which specifies a python class inside a python module or file that
@@ -62,9 +62,9 @@ two are supposed to be using the 'LJ1' parameters and the third the
 'LJ2' parameters, then you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* py_pot.LJCutMelt LJ1 LJ1 LJ2
+   pair_coeff * * py_pot.LJCutMelt LJ1 LJ1 LJ2
 
 The first two arguments **must** be \* \* so as to span all LAMMPS atom
 types.  The first two LJ1 arguments map LAMMPS atom types 1 and 2 to
@@ -83,10 +83,10 @@ placeholders for atom types that will be used with other potentials.
 The python potential file has to start with the following code:
 
 
-.. parsed-literal::
+.. code-block:: python
 
-   from __future_\_ import print_function
-   #
+   from __future__ import print_function
+   
    class LAMMPSPairPotential(object):
        def __init__(self):
            self.pmap=dict()
@@ -115,7 +115,7 @@ Here is an example for a single type Lennard-Jones potential class
 which the parameters epsilon and sigma are both 1.0:
 
 
-.. parsed-literal::
+.. code-block:: python
 
    class LJCutMelt(LAMMPSPairPotential):
        def __init__(self):
@@ -140,7 +140,7 @@ value of the internal potential parameter data structure. Following
 the *LJCutMelt* example, here are the two functions:
 
 
-.. parsed-literal::
+.. code-block:: python
 
       def compute_force(self,rsq,itype,jtype):
            coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
@@ -177,14 +177,14 @@ the *LJCutMelt* example, here are the two functions:
    computation pair-wise interactions quite significantly. However, this
    can be largely worked around through using the python pair style not
    for the actual simulation, but to generate tabulated potentials on the
-   fly using the :doc:`pair\_write <pair_write>` command. Please see below
+   fly using the :doc:`pair_write <pair_write>` command. Please see below
    for an example LAMMPS input of how to build a table file:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style python 2.5
-   pair_coeff \* \* py_pot.LJCutMelt lj
+   pair_coeff * * py_pot.LJCutMelt lj
    shell rm -f melt.table
    pair_write  1 1 2000 rsq 0.01 2.5 lj1_lj2.table lj
 
@@ -199,7 +199,7 @@ After switching the pair style to *table*\ , the potential tables need
 to be assigned to the LAMMPS atom types like this:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style      table linear 2000
    pair_coeff      1  1  melt.table lj
@@ -219,7 +219,7 @@ energy computation can be correctly performed for all pairs of atom
 types as they are mapped to the atom type labels inside the python
 potential class.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -227,7 +227,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -244,12 +244,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_write <pair_write>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`,
 :doc:`pair style table <pair_table>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

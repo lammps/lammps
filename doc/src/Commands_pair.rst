@@ -26,6 +26,10 @@ OPT.
    * :doc:`zero <pair_zero>`
    * :doc:`hybrid (k) <pair_hybrid>`
    * :doc:`hybrid/overlay (k) <pair_hybrid>`
+   * :doc:`kim <pair_kim>`
+   * :doc:`list <pair_list>`
+   *
+   *
    *
    *
    *
@@ -91,7 +95,7 @@ OPT.
    * :doc:`eam/fs (gikot) <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
-   * :doc:`edpd <pair_meso>`
+   * :doc:`edpd <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
    * :doc:`exp6/rx (k) <pair_exp6_rx>`
@@ -108,14 +112,12 @@ OPT.
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
-   * :doc:`kim <pair_kim>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`line/lj <pair_line_lj>`
-   * :doc:`list <pair_list>`
    * :doc:`lj/charmm/coul/charmm (iko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
@@ -169,11 +171,12 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
-   * :doc:`mdpd <pair_meso>`
-   * :doc:`mdpd/rhosum <pair_meso>`
+   * :doc:`mdpd <pair_mesodpd>`
+   * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam/c <pair_meamc>`
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
+   * :doc:`mesocnt <pair_mesocnt>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
@@ -239,7 +242,7 @@ OPT.
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
-   * :doc:`tdpd <pair_meso>`
+   * :doc:`tdpd <pair_mesodpd>`
    * :doc:`tersoff (giko) <pair_tersoff>`
    * :doc:`tersoff/mod (gko) <pair_tersoff_mod>`
    * :doc:`tersoff/mod/c (o) <pair_tersoff_mod>`
@@ -256,5 +259,3 @@ OPT.
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`
-   *
-   *

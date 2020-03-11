@@ -7,7 +7,7 @@ Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/stress
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/ulsph/stress
 
@@ -59,8 +59,3 @@ Related commands
 :doc:`compute smd/ulsph/strain <compute_smd_ulsph_strain>`, :doc:`compute smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` :doc:`compute smd/tlsph/stress <compute_smd_tlsph_stress>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

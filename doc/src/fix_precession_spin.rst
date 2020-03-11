@@ -85,7 +85,7 @@ function for the same parameters.
 
 The temperature effects are accounted for by connecting the spin
 :math:`i` to a thermal bath using a Langevin thermostat (see
-:doc:`fix\_langevin\_spin <fix_langevin_spin>` for the definition of 
+:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of 
 this thermostat).
 
 Style *anisotropy* is used to simulate an easy axis or an easy plane
@@ -142,7 +142,7 @@ Those styles can be combined within one single command line.
 
 By default, the energy associated to this fix is not added to the potential
 energy of the system.
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this fix
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix
 to add this magnetic potential energy to the potential energy of the system,
 
 
@@ -167,7 +167,7 @@ atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` d
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style spin <atom_style>`
+:doc:`atom_style spin <atom_style>`
 
 **Default:**
 

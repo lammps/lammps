@@ -1,13 +1,13 @@
-.. index:: write\_dump
+.. index:: write_dump
 
-write\_dump command
-===================
+write_dump command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_dump group-ID style file dump-args modify dump_modify-args
 
@@ -15,23 +15,23 @@ Syntax
 * style = any of the supported :doc:`dump styles <dump>`
 * file = name of file to write dump info to
 * dump-args = any additional args needed for a particular :doc:`dump style <dump>`
-* modify = all args after this keyword are passed to :doc:`dump\_modify <dump_modify>` (optional)
-* dump-modify-args = args for :doc:`dump\_modify <dump_modify>` (optional)
+* modify = all args after this keyword are passed to :doc:`dump_modify <dump_modify>` (optional)
+* dump-modify-args = args for :doc:`dump_modify <dump_modify>` (optional)
 
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_dump all atom dump.atom
    write_dump subgroup atom dump.run.bin
-   write_dump all custom dump.myforce.\* id type x y vx fx
+   write_dump all custom dump.myforce.* id type x y vx fx
    write_dump flow custom dump.%.myforce id type c_myF[3] v_ke modify sort id
    write_dump all xyz system.xyz modify sort id element O H
-   write_dump all image snap\*.jpg type type size 960 960 modify backcolor white
-   write_dump all image snap\*.jpg element element &
+   write_dump all image snap*.jpg type type size 960 960 modify backcolor white
+   write_dump all image snap*.jpg element element &
       bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &
       modify backcolor white element C C O H N C C C O H H S O H
 
@@ -45,11 +45,11 @@ dump style to write out snapshots periodically during a running
 simulation.
 
 The syntax for this command is mostly identical to that of the
-:doc:`dump <dump>` and :doc:`dump\_modify <dump_modify>` commands as if
+:doc:`dump <dump>` and :doc:`dump_modify <dump_modify>` commands as if
 they were concatenated together, with the following exceptions: There
 is no need for a dump ID or dump frequency and the keyword *modify* is
 added.  The latter is so that the full range of
-:doc:`dump\_modify <dump_modify>` options can be specified for the single
+:doc:`dump_modify <dump_modify>` options can be specified for the single
 snapshot, just as they can be for multiple snapshots.  The *modify*
 keyword separates the arguments that would normally be passed to the
 *dump* command from those that would be given the *dump\_modify*.  Both
@@ -71,7 +71,7 @@ Restrictions
 
 
 All restrictions for the :doc:`dump <dump>` and
-:doc:`dump\_modify <dump_modify>` commands apply to this command as well,
+:doc:`dump_modify <dump_modify>` commands apply to this command as well,
 with the exception of the :doc:`dump image <dump_image>` filename not
 requiring a wildcard "\*" character, as noted above.
 
@@ -90,16 +90,11 @@ Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump image <dump_image>`,
-:doc:`dump\_modify <dump_modify>`
+:doc:`dump_modify <dump_modify>`
 
 Default
 """""""
 
 The defaults are listed on the doc pages for the :doc:`dump <dump>` and
-:doc:`dump image <dump_image>` and :doc:`dump\_modify <dump_modify>`
+:doc:`dump image <dump_image>` and :doc:`dump_modify <dump_modify>`
 commands.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

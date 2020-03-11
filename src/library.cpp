@@ -540,35 +540,19 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
 
     if (style == 1) {
       if (!compute->peratom_flag) return NULL;
-      if (type == 1) {
-        if (compute->invoked_peratom != lmp->update->ntimestep)
-          compute->compute_peratom();
-        return (void *) compute->vector_atom;
-      }
-      if (type == 2) {
-        if (compute->invoked_peratom != lmp->update->ntimestep)
-          compute->compute_peratom();
-        return (void *) compute->array_atom;
-      }
+      if (compute->invoked_peratom != lmp->update->ntimestep)
+        compute->compute_peratom();
+      if (type == 1) return (void *) compute->vector_atom;
+      if (type == 2) return (void *) compute->array_atom;
     }
 
     if (style == 2) {
       if (!compute->local_flag) return NULL;
-      if (type == 0) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) &compute->size_local_rows;
-      }
-      if (type == 1) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) compute->vector_local;
-      }
-      if (type == 2) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) compute->array_local;
-      }
+      if (compute->invoked_local != lmp->update->ntimestep)
+        compute->compute_local();
+      if (type == 0) return (void *) &compute->size_local_rows;
+      if (type == 1) return (void *) compute->vector_local;
+      if (type == 2) return (void *) compute->array_local;
     }
   }
   END_CAPTURE
@@ -640,6 +624,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
 
     if (style == 2) {
       if (!fix->local_flag) return NULL;
+      if (type == 0) return (void *) &fix->size_local_rows;
       if (type == 1) return (void *) fix->vector_local;
       if (type == 2) return (void *) fix->array_local;
     }

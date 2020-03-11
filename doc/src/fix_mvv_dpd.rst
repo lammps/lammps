@@ -50,10 +50,14 @@ The modified velocity-Verlet (MVV) algorithm aims to improve the
 stability of the time integrator by using an extrapolated version of
 the velocity for the force evaluation:
 
-.. image:: Eqs/fix_mvv_dpd.jpg
-   :align: center
+.. math::
 
-where the parameter <font size="4">&lambda;</font> depends on the
+   v(t+\frac{\Delta t}{2}) = & v(t) + \frac{\Delta t}{2}\cdot a(t) \\
+   r(t+\Delta t) = & r(t) + \Delta t\cdot v(t+\frac{\Delta t}{2}) \\
+   a(t+\Delta t) = & \frac{1}{m}\cdot F\left[ r(t+\Delta t), v(t) +\lambda \cdot \Delta t\cdot a(t)\right] \\
+   v(t+\Delta t) = & v(t+\frac{\Delta t}{2}) + \frac{\Delta t}{2}\cdot a(t+\Delta t)
+
+where the parameter :math:`\lambda` depends on the
 specific choice of DPD parameters, and needs to be tuned on a
 case-by-case basis.  Specification of a *lambda* value is optional.
 If specified, the setting must be from 0.0 to 1.0.  If not specified,
@@ -62,15 +66,15 @@ standard velocity-Verlet (VV) scheme.  For more details, see
 :ref:`Groot <Groot2>`.
 
 Fix *mvv/dpd* updates the position and velocity of each atom.  It can
-be used with the :doc:`pair\_style mdpd <pair_meso>` command or other
+be used with the :doc:`pair_style mdpd <pair_mesodpd>` command or other
 pair styles such as :doc:`pair dpd <pair_dpd>`.
 
 Fix *mvv/edpd* updates the per-atom temperature, in addition to
-position and velocity, and must be used with the :doc:`pair\_style edpd <pair_meso>` command.
+position and velocity, and must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.
 
 Fix *mvv/tdpd* updates the per-atom chemical concentration, in
 addition to position and velocity, and must be used with the
-:doc:`pair\_style tdpd <pair_meso>` command.
+:doc:`pair_style tdpd <pair_mesodpd>` command.
 
 
 ----------
@@ -78,7 +82,7 @@ addition to position and velocity, and must be used with the
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -88,14 +92,14 @@ Restrictions
 """"""""""""
 
 
-This fix is part of the USER-MESO package. It is only enabled if
+This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style mdpd <pair_meso>`, :doc:`pair\_style edpd <pair_meso>`,
-:doc:`pair\_style tdpd <pair_meso>`
+:doc:`pair_style mdpd <pair_mesodpd>`, :doc:`pair_style edpd <pair_mesodpd>`,
+:doc:`pair_style tdpd <pair_mesodpd>`
 
 Default
 """""""
@@ -112,8 +116,3 @@ The default value for the optional *lambda* parameter is 0.5.
 
 **(Groot)** Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:
 10.1063/1.474784
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

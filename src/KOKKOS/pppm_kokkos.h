@@ -22,10 +22,31 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 #ifndef LMP_PPPM_KOKKOS_H
 #define LMP_PPPM_KOKKOS_H
 
-#include "pppm.h"
 #include "gridcomm_kokkos.h"
-#include "kokkos_base.h"
+#include "remap_kokkos.h"
+#include "fft3d_kokkos.h"
+#include "kokkos_base_fft.h"
+#include "fftdata_kokkos.h"
 #include "kokkos_type.h"
+
+// fix up FFT defines for KOKKOS with CUDA
+
+#if defined(KOKKOS_ENABLE_CUDA)
+# if defined(FFT_FFTW)
+#  undef FFT_FFTW
+# endif
+# if defined(FFT_FFTW3)
+#  undef FFT_FFTW3
+# endif
+# if defined(FFT_MKL)
+#  undef FFT_MKL
+# endif
+# if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
+#  define FFT_KISSFFT
+# endif
+#endif
+
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
@@ -87,10 +108,11 @@ struct TagPPPM_slabcorr4{};
 struct TagPPPM_timing_zero{};
 
 template<class DeviceType>
-class PPPMKokkos : public PPPM, public KokkosBase {
+class PPPMKokkos : public PPPM, public KokkosBaseFFT {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   PPPMKokkos(class LAMMPS *);
   virtual ~PPPMKokkos();
@@ -288,7 +310,7 @@ class PPPMKokkos : public PPPM, public KokkosBase {
 
   int nx,ny,nz;
   typename AT::t_int_1d_um d_list_index;
-  typename AT::t_FFT_SCALAR_1d_um d_buf;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf;
 
   DAT::tdual_int_scalar k_flag;
 
@@ -303,36 +325,36 @@ class PPPMKokkos : public PPPM, public KokkosBase {
 
   int factors[3];
 
-  typename AT::t_FFT_SCALAR_3d d_density_brick;
-  typename AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
-  typename AT::t_FFT_SCALAR_3d d_u_brick;
-  typename AT::t_FFT_SCALAR_3d d_v0_brick,d_v1_brick,d_v2_brick;
-  typename AT::t_FFT_SCALAR_3d d_v3_brick,d_v4_brick,d_v5_brick;
+  typename FFT_AT::t_FFT_SCALAR_3d d_density_brick;
+  typename FFT_AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
+  typename FFT_AT::t_FFT_SCALAR_3d d_u_brick;
+  typename FFT_AT::t_FFT_SCALAR_3d d_v0_brick,d_v1_brick,d_v2_brick;
+  typename FFT_AT::t_FFT_SCALAR_3d d_v3_brick,d_v4_brick,d_v5_brick;
   typename AT::t_float_1d d_greensfn;
   typename AT::t_virial_array d_vg;
   typename AT::t_float_1d d_fkx;
   typename AT::t_float_1d d_fky;
   typename AT::t_float_1d d_fkz;
-  DAT::tdual_FFT_SCALAR_1d k_density_fft;
-  DAT::tdual_FFT_SCALAR_1d k_work1;
-  DAT::tdual_FFT_SCALAR_1d k_work2;
-  typename AT::t_FFT_SCALAR_1d d_density_fft;
-  typename AT::t_FFT_SCALAR_1d d_work1;
-  typename AT::t_FFT_SCALAR_1d d_work2;
+  FFT_DAT::tdual_FFT_SCALAR_1d k_density_fft;
+  FFT_DAT::tdual_FFT_SCALAR_1d k_work1;
+  FFT_DAT::tdual_FFT_SCALAR_1d k_work2;
+  typename FFT_AT::t_FFT_SCALAR_1d d_density_fft;
+  typename FFT_AT::t_FFT_SCALAR_1d d_work1;
+  typename FFT_AT::t_FFT_SCALAR_1d d_work2;
 
   DAT::tdual_float_1d k_gf_b;
   typename AT::t_float_1d d_gf_b;
 
   //FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  typename AT::t_FFT_SCALAR_2d_3 d_rho1d;
-  DAT::tdual_FFT_SCALAR_2d k_rho_coeff;
-  typename AT::t_FFT_SCALAR_2d d_rho_coeff;
-  HAT::t_FFT_SCALAR_2d h_rho_coeff;
+  typename FFT_AT::t_FFT_SCALAR_2d_3 d_rho1d;
+  FFT_DAT::tdual_FFT_SCALAR_2d k_rho_coeff;
+  typename FFT_AT::t_FFT_SCALAR_2d d_rho_coeff;
+  FFT_HAT::t_FFT_SCALAR_2d h_rho_coeff;
   //double **acons;
   typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host acons;
 
-  class FFT3d *fft1,*fft2;
-  class Remap *remap;
+  FFT3dKokkos<DeviceType> *fft1,*fft2;
+  RemapKokkos<DeviceType> *remap;
   GridCommKokkos<DeviceType> *cg;
   GridCommKokkos<DeviceType> *cg_peratom;
 

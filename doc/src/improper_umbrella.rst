@@ -1,16 +1,16 @@
-.. index:: improper\_style umbrella
+.. index:: improper_style umbrella
 
-improper\_style umbrella command
-================================
+improper_style umbrella command
+===============================
 
-improper\_style umbrella/omp command
-====================================
+improper_style umbrella/omp command
+===================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
    improper_coeff 1 100.0 180.0
@@ -30,29 +30,32 @@ The *umbrella* improper style uses the following potential, which is
 commonly referred to as a classic inversion and used in the
 :doc:`DREIDING <Howto_bioFF>` force field:
 
-.. image:: Eqs/improper_umbrella.jpg
-   :align: center
+.. math::
 
-where K is the force constant and omega is the angle between the IL
+   E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
+   E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
+
+
+where :math:`K` is the force constant and :math:`\omega` is the angle between the IL
 axis and the IJK plane:
 
 .. image:: JPG/umbrella.jpg
    :align: center
 
-If omega0 = 0 the potential term has a minimum for the planar
-structure.  Otherwise it has two minima at +/- omega0, with a barrier
-in between.
+If :math:`\omega_0 = 0` the potential term has a minimum for the planar
+structure.  Otherwise it has two minima at :math:`\omega +/- \omega_0`,
+with a barrier in between.
 
 See :ref:`(Mayo) <umbrella-Mayo>` for a description of the DREIDING force field.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* omega0 (degrees)
+* :math:`K` (energy)
+* :math:`\omega_0` (degrees)
 
 
 ----------
@@ -91,7 +94,7 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
 
@@ -105,8 +108,3 @@ Related commands
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

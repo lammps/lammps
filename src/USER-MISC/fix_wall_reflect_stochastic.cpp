@@ -116,7 +116,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
         // DIFFUSIVE = no accomodation coeffs
         // MAXWELL = one for all dimensions
-        // CLL = one for each dimension
+        // CCL = one for each dimension
 
         if (rstyle == CCL)
           wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+6]);
@@ -198,9 +198,9 @@ FixWallReflectStochastic::~FixWallReflectStochastic()
 void FixWallReflectStochastic::wall_particle(int m, int which, double coord)
 {
   int i, dir, dim, side, sign;
-  double vsave,factor,timecol,difftest,theta;
+  double factor,timecol,difftest,theta;
 
-  double *rmass;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
 
   // coord = current position of wall

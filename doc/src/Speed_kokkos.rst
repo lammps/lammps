@@ -444,8 +444,3 @@ Restrictions
 
 Currently, there are no precision options with the KOKKOS package. All
 compilation and computation is performed in double precision.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

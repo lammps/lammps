@@ -931,9 +931,9 @@ void PairADP::grab(FILE *fp, char *filename, int n, double *list)
     utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     r_token = line;
     ptr = utils::strtok_r(r_token," \t\n\r\f",&r_token);
-    list[i++] = atof(ptr);
+    if (ptr) list[i++] = atof(ptr);
     while ((ptr = utils::strtok_r(NULL," \t\n\r\f",&r_token))) list[i++] = atof(ptr);
-  }
+}
 }
 
 /* ---------------------------------------------------------------------- */

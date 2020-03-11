@@ -1,13 +1,13 @@
-.. index:: pair\_style drip
+.. index:: pair_style drip
 
-pair\_style drip command
-========================
+pair_style drip command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip [styles ...]
 
@@ -17,19 +17,19 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip
-   pair_coeff \* \* none
-   pair_coeff \* \* drip  C.drip  C
+   pair_coeff * * none
+   pair_coeff * * drip  C.drip  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C
-   pair_coeff \* \* rebo  CH.airebo  C
+   pair_coeff * * drip  C.drip     C
+   pair_coeff * * rebo  CH.airebo  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 Description
 """""""""""
@@ -40,10 +40,13 @@ in :ref:`(Wen) <Wen2018>`, which is based on the :ref:`(Kolmogorov) <Kolmogorov2
 potential and provides an improved prediction for forces.
 The total potential energy of a system is
 
-.. image:: Eqs/pair_drip.jpg
-   :align: center
+.. math::
 
-where the *r\^-6* term models the attractive London dispersion,
+   E = & \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\
+   \phi_{ij} = &f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right]
+
+
+where the :math:`r^{-6}` term models the attractive London dispersion,
 the exponential term is designed to capture the registry effect due to
 overlapping *pi* bonds, and *fc* is a cutoff function.
 
@@ -67,13 +70,13 @@ potentials (e.g. 2 Angstrom for :doc:`REBO <pair_airebo>`) is much smaller than
 the equilibrium layer distance of graphene layers (about 3.4 Angstrom).
 If you want, you can enforce this by assigning different atom types to atoms in
 different layers, and apply an intralayer potential to one atom type.
-See :doc:`pair\_hybrid <pair_hybrid>` for details.
+See :doc:`pair_hybrid <pair_hybrid>` for details.
 
 
 ----------
 
 
-The :doc:`pair\_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
+The :doc:`pair_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
 *N* is the number of LAMMPS atom types. The fist three arguments must be fixed
 to be *\* \* drip*, the fourth argument is the path to the DRIP parameter file,
 and the remaining N arguments specifying the mapping between element in the
@@ -82,9 +85,9 @@ types and you want all of them to be C, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* drip  C.drip  C C C
+   pair_coeff * * drip  C.drip  C C C
 
 If a mapping value is specified as NULL, the mapping is not performed. This
 could be useful when DRIP is used to model part of the system where other
@@ -93,11 +96,11 @@ and H of atom type 2, you can use the following command to inform DRIP not to
 model H atoms:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 .. note::
 
@@ -139,10 +142,10 @@ simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style lebedeva\_z <pair_lebedeva_z>`,
-:doc:`pair\_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
-:doc:`pair\_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
-:doc:`pair\_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
+:doc:`pair_style lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
+:doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
+:doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
 
 ----------
@@ -160,8 +163,3 @@ Related commands
 
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

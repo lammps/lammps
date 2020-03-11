@@ -542,7 +542,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"inpfile") == 0) {
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;

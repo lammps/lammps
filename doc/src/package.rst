@@ -387,7 +387,7 @@ process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver
 from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
-the :doc:`run\_style <run_style>` with the *verlet/lrt/intel* style that
+the :doc:`run_style <run_style>` with the *verlet/lrt/intel* style that
 is identical to the default *verlet* style aside from supporting the
 LRT feature. This feature requires setting the pre-processor flag
 -DLMP\_INTEL\_USELRT in the makefile when compiling LAMMPS.
@@ -483,7 +483,7 @@ CPUs a value of *on* is the default since it can often be faster, just
 as it is for non-accelerated pair styles
 
 The *binsize* keyword sets the size of bins used to bin atoms in
-neighbor list builds. The same value can be set by the :doc:`neigh\_modify binsize <neigh_modify>` command. Making it an option in the package
+neighbor list builds. The same value can be set by the :doc:`neigh_modify binsize <neigh_modify>` command. Making it an option in the package
 kokkos command allows it to be set from the command line. The default
 value for CPUs is 0.0, which means the LAMMPS default will be used,
 which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
@@ -622,7 +622,7 @@ Restrictions
 
 
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the :doc:`Build package <Build_package>` doc
@@ -682,8 +682,3 @@ defaults are neigh = yes.  These settings are made automatically if
 the "-sf omp" :doc:`command-line switch <Run_options>` is used.  If it
 is not used, you must invoke the package omp command in your input
 script or via the "-pk omp" :doc:`command-line switch <Run_options>`.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

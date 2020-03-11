@@ -1,13 +1,12 @@
-.. index:: pair\_style none
+.. index:: pair_style none
 
-pair\_style none command
-========================
+pair_style none command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
@@ -15,7 +14,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
@@ -38,21 +37,16 @@ distance is small, then these data structures can consume a large
 amount of memory.  So you should either set the neighbor style to
 *nsq* or set the skin distance to a larger value.
 
-See the :doc:`pair\_style zero <pair_zero>` for a way to trigger the
+See the :doc:`pair_style zero <pair_zero>` for a way to trigger the
 building of a neighbor lists, but compute no pairwise interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style zero <pair_zero>`
+:doc:`pair_style zero <pair_zero>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

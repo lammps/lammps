@@ -1,19 +1,19 @@
-.. index:: pair\_style lj/cubic
+.. index:: pair_style lj/cubic
 
-pair\_style lj/cubic command
-============================
+pair_style lj/cubic command
+===========================
 
-pair\_style lj/cubic/gpu command
-================================
+pair_style lj/cubic/gpu command
+===============================
 
-pair\_style lj/cubic/omp command
-================================
+pair_style lj/cubic/omp command
+===============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
 
@@ -21,10 +21,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cubic
-   pair_coeff \* \* 1.0 0.8908987
+   pair_coeff * * 1.0 0.8908987
 
 Description
 """""""""""
@@ -39,33 +39,37 @@ point.  The cubic coefficient A3 is chosen so that both energy and
 force go to zero at the cutoff distance.  Outside the cutoff distance
 the energy and force are zero.
 
-.. image:: Eqs/pair_lj_cubic.jpg
-   :align: center
+.. math::
 
-The location of the inflection point rs is defined
-by the LJ diameter, rs/sigma = (26/7)\^1/6. The cutoff distance
-is defined by rc/rs = 67/48 or rc/sigma = 1.737....
+   E & = u_{LJ}(r) \qquad r \leq r_s \\
+     & = u_{LJ}(r_s) + (r-r_s) u'_{LJ}(r_s) - \frac{1}{6} A_3 (r-r_s)^3 \qquad r_s < r \leq r_c \\
+     & = 0 \qquad r > r_c 
+
+
+The location of the inflection point :math:`r_s` is defined
+by the LJ diameter, :math:`r_s/\sigma = (26/7)^{1/6}`. The cutoff distance
+is defined by :math:`r_c/r_s = 67/48` or :math:`r_c/\sigma = 1.737...`
 The analytic expression for the
 the cubic coefficient
-A3\*rmin\^3/epsilon = 27.93... is given in the paper by
+:math:`A_3 r_{min}^3/\epsilon = 27.93...` is given in the paper by
 Holian and Ravelo :ref:`(Holian) <Holian>`.
 
 This potential is commonly used to study the shock mechanics of FCC
 solids, as in Ravelo et al. :ref:`(Ravelo) <Ravelo2>`.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the example above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the example above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 
-Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum, which is
-located at rmin = 2\^(1/6)\*sigma. In the above example, sigma =
-0.8908987, so rmin = 1.
+Note that :math:`\sigma` is defined in the LJ formula as the
+zero-crossing distance for the potential, not as the energy minimum,
+which is located at :math:`r_{min} = 2^{\frac{1}{6}} \sigma`. In the
+above example, :math:`\sigma = 0.8908987`, so :math:`r_{min} = 1.0`.
 
 
 ----------
@@ -101,15 +105,15 @@ The default mix value is *geometric*\ .  See the "pair\_modify" command
 for details.
 
 The lj/cubic pair style does not support the
-:doc:`pair\_modify <pair_modify>` shift option,
+:doc:`pair_modify <pair_modify>` shift option,
 since pair interaction is already smoothed to 0.0 at the
 cutoff.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
 The lj/cubic pair style does not support the
-:doc:`pair\_modify <pair_modify>` tail option for adding long-range tail
+:doc:`pair_modify <pair_modify>` tail option for adding long-range tail
 corrections to energy and pressure, since there are no corrections for
 a potential that goes to 0.0 at the cutoff.
 
@@ -117,7 +121,7 @@ The lj/cubic pair style writes its information to :doc:`binary restart files <re
 not need to be specified in an input script that reads a restart file.
 
 The lj/cubic pair style can only be used via the *pair*
-keyword of the :doc:`run\_style respa <run_style>` command.  It does not
+keyword of the :doc:`run_style respa <run_style>` command.  It does not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -131,7 +135,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -149,8 +153,3 @@ Related commands
 
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

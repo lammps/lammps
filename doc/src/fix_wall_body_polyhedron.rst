@@ -56,7 +56,7 @@ the :doc:`Howto body <Howto_body>` doc page for more details on using
 body particles.
 
 The parameters *k\_n*, *c\_n*, *c\_t* have the same meaning and units as
-those specified with the :doc:`pair\_style body/rounded/polyhedron <pair_body_rounded_polyhedron>` command.
+those specified with the :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>` command.
 
 The *wallstyle* can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
@@ -90,7 +90,7 @@ to the derivative of this expression.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -108,11 +108,6 @@ Any dimension (xyz) that has a wall must be non-periodic.
 Related commands
 """"""""""""""""
 
-:doc:`atom\_style body <atom_style>`, :doc:`pair\_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
+:doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

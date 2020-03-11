@@ -1,37 +1,37 @@
-.. index:: pair\_style lj/sdk
+.. index:: pair_style lj/sdk
 
-pair\_style lj/sdk command
-==========================
+pair_style lj/sdk command
+=========================
 
-pair\_style lj/sdk/gpu command
-==============================
-
-pair\_style lj/sdk/kk command
+pair_style lj/sdk/gpu command
 =============================
 
-pair\_style lj/sdk/omp command
-==============================
+pair_style lj/sdk/kk command
+============================
 
-pair\_style lj/sdk/coul/long command
-====================================
+pair_style lj/sdk/omp command
+=============================
 
-pair\_style lj/sdk/coul/long/gpu command
-========================================
-
-pair\_style lj/sdk/coul/long/omp command
-========================================
-
-pair\_style lj/sdk/coul/msm command
+pair_style lj/sdk/coul/long command
 ===================================
 
-pair\_style lj/sdk/coul/msm/omp command
+pair_style lj/sdk/coul/long/gpu command
 =======================================
+
+pair_style lj/sdk/coul/long/omp command
+=======================================
+
+pair_style lj/sdk/coul/msm command
+==================================
+
+pair_style lj/sdk/coul/msm/omp command
+======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -51,7 +51,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/sdk 2.5
    pair_coeff 1 1 lj12_6 1 1.1 2.8
@@ -70,24 +70,34 @@ Description
 The *lj/sdk* styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
 given by
 
-.. image:: Eqs/pair_cmm.jpg
-   :align: center
+.. math::
+
+   E = & \frac{27}{4} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right] 
+                         \qquad r < r_c \\
+   E = & \frac{3\sqrt{3}}{2} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^4 \right] 
+                         \qquad r < r_c \\
+   E = &  4 \epsilon  \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                         \left(\frac{\sigma}{r}\right)^6 \right] 
+                         \qquad r < r_c
+
 
 as required for the SDK Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>` and :ref:`(DeVane) <DeVane>`.  Rc is the cutoff.
 
 Style *lj/sdk/coul/long* computes the adds Coulombic interactions
 with an additional damping factor applied so it can be used in
-conjunction with the :doc:`kspace\_style <kspace_style>` command and
+conjunction with the :doc:`kspace_style <kspace_style>` command and
 its *ewald* or *pppm* or *pppm/cg* option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within
 this distance are computed directly; interactions outside that
 distance are computed in reciprocal space.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cg\_type (lj9\_6, lj12\_4, or lj12\_6)
@@ -147,18 +157,18 @@ command. Defining then in a data file is also not supported, due to
 limitations of that file format.
 
 All of the lj/sdk pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the
+:doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
 The *lj/sdk/coul/long* pair styles support the
-:doc:`pair\_modify <pair_modify>` table option since they can tabulate
+:doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
 All of the lj/sdk pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The lj/sdk and lj/cut/coul/long pair styles do not support
-the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run\_style respa <run_style>` command.
+the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 
 ----------
@@ -177,7 +187,7 @@ doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`angle\_style sdk <angle_sdk>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`angle_style sdk <angle_sdk>`
 
 **Default:** none
 
@@ -196,8 +206,3 @@ Related commands
 
 
 **(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

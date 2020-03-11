@@ -98,8 +98,3 @@ This can be achieved using the *kspace\_modify mix/disp none* command.
 Note that the code does not check automatically whether any mixing
 rule is fulfilled. If mixing rules do not apply, the user will have
 to specify this command explicitly.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

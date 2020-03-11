@@ -1,76 +1,76 @@
-.. index:: pair\_style eam
+.. index:: pair_style eam
 
-pair\_style eam command
-=======================
+pair_style eam command
+======================
 
-pair\_style eam/gpu command
-===========================
-
-pair\_style eam/intel command
-=============================
-
-pair\_style eam/kk command
+pair_style eam/gpu command
 ==========================
 
-pair\_style eam/omp command
-===========================
+pair_style eam/intel command
+============================
 
-pair\_style eam/opt command
-===========================
+pair_style eam/kk command
+=========================
 
-pair\_style eam/alloy command
-=============================
+pair_style eam/omp command
+==========================
 
-pair\_style eam/alloy/gpu command
-=================================
+pair_style eam/opt command
+==========================
 
-pair\_style eam/alloy/intel command
-===================================
+pair_style eam/alloy command
+============================
 
-pair\_style eam/alloy/kk command
+pair_style eam/alloy/gpu command
 ================================
 
-pair\_style eam/alloy/omp command
-=================================
-
-pair\_style eam/alloy/opt command
-=================================
-
-pair\_style eam/cd command
-==========================
-
-pair\_style eam/cd/omp command
-==============================
-
-pair\_style eam/cd/old command
-==============================
-
-pair\_style eam/cd/old/omp command
+pair_style eam/alloy/intel command
 ==================================
 
-pair\_style eam/fs command
-==========================
+pair_style eam/alloy/kk command
+===============================
 
-pair\_style eam/fs/gpu command
-==============================
-
-pair\_style eam/fs/intel command
+pair_style eam/alloy/omp command
 ================================
 
-pair\_style eam/fs/kk command
+pair_style eam/alloy/opt command
+================================
+
+pair_style eam/cd command
+=========================
+
+pair_style eam/cd/omp command
 =============================
 
-pair\_style eam/fs/omp command
-==============================
+pair_style eam/cd/old command
+=============================
 
-pair\_style eam/fs/opt command
-==============================
+pair_style eam/cd/old/omp command
+=================================
+
+pair_style eam/fs command
+=========================
+
+pair_style eam/fs/gpu command
+=============================
+
+pair_style eam/fs/intel command
+===============================
+
+pair_style eam/fs/kk command
+============================
+
+pair_style eam/fs/omp command
+=============================
+
+pair_style eam/fs/opt command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -80,20 +80,20 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eam
-   pair_coeff \* \* cuu3
-   pair_coeff 1\*3 1\*3 niu3.eam
+   pair_coeff * * cuu3
+   pair_coeff 1*3 1\*3 niu3.eam
 
    pair_style eam/alloy
-   pair_coeff \* \* ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
+   pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
 
    pair_style eam/cd
-   pair_coeff \* \* ../potentials/FeCr.cdeam Fe Cr
+   pair_coeff * * ../potentials/FeCr.cdeam Fe Cr
 
    pair_style eam/fs
-   pair_coeff \* \* NiAlH_jea.eam.fs Ni Al Ni Ni
+   pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
 
 Description
 """""""""""
@@ -102,8 +102,11 @@ Style *eam* computes pairwise interactions for metals and metal alloys
 using embedded-atom method (EAM) potentials :ref:`(Daw) <Daw>`.  The total
 energy Ei of an atom I is given by
 
-.. image:: Eqs/pair_eam.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
+         \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
@@ -114,7 +117,7 @@ within the cutoff distance.
 
 The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
-the :doc:`pair\_coeff <pair_coeff>` command.  These are ASCII text files
+the :doc:`pair_coeff <pair_coeff>` command.  These are ASCII text files
 in a DYNAMO-style format which is described below.  DYNAMO was the
 original serial EAM MD code, written by the EAM originators.  Several
 DYNAMO potential files for different metals are included in the
@@ -179,13 +182,13 @@ single argument:
 Thus the following command
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \*2 1\*2 cuu3.eam
+   pair_coeff *2 1*2 cuu3.eam
 
 will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
-1,2 and 2,1 are ignored).  See the :doc:`pair\_coeff <pair_coeff>` doc
+1,2 and 2,1 are ignored).  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
 In effect, this makes atom types 1 and 2 in LAMMPS be Cu atoms.
 Different single-element files can be assigned to different atom types
@@ -230,9 +233,9 @@ by LAMMPS to compute the pair potential term in the EAM energy
 expression as r\*phi, in units of eV-Angstroms, via the formula
 
 
-.. parsed-literal::
+.. math::
 
-   r\*phi = 27.2 \* 0.529 \* Zi \* Zj
+   r \cdot \phi = 27.2 \cdot 0.529 \cdot Z_i \cdot Z_j
 
 where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
@@ -242,7 +245,7 @@ where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
 Style *eam/alloy* computes pairwise interactions using the same
 formula as style *eam*\ .  However the associated
-:doc:`pair\_coeff <pair_coeff>` command reads a DYNAMO *setfl* file
+:doc:`pair_coeff <pair_coeff>` command reads a DYNAMO *setfl* file
 instead of a *funcfl* file.  *Setfl* files can be used to model a
 single-element or alloy system.  In the alloy case, as explained
 above, *setfl* files contain explicit tabulated values for alloy
@@ -267,16 +270,16 @@ where N is the number of LAMMPS atom types:
 
 As an example, the potentials/NiAlH\_jea.eam.alloy file is a *setfl*
 file which has tabulated EAM values for 3 elements and their alloy
-interactions: Ni, Al, and H.  See the :doc:`pair\_coeff <pair_coeff>` doc
+interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
 be Ni, and the 4th to be Al, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* NiAlH_jea.eam.alloy Ni Ni Ni Al
+   pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
@@ -371,8 +374,12 @@ alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
 given by
 
-.. image:: Eqs/pair_eam_fs.jpg
-   :align: center
+.. math::
+
+   E_i = F_\alpha \left(\sum_{j \neq i}\ 
+   \rho_{\alpha\beta} (r_{ij})\right) + 
+   \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
+
 
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,
@@ -380,7 +387,7 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
-The associated :doc:`pair\_coeff <pair_coeff>` command for style *eam/fs*
+The associated :doc:`pair_coeff <pair_coeff>` command for style *eam/fs*
 reads a DYNAMO *setfl* file that has been extended to include
 additional rho\_alpha\_beta arrays of tabulated values.  A discussion of
 how FS EAM differs from conventional EAM alloy potentials is given in
@@ -395,12 +402,12 @@ For style *eam/fs*\ , the form of the pair\_coeff command is exactly the
 same as for style *eam/alloy*\ , e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* NiAlH_jea.eam.fs Ni Ni Ni Al
+   pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
 
 where there are N additional arguments after the filename, where N is
-the number of LAMMPS atom types.  See the :doc:`pair\_coeff <pair_coeff>`
+the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
 elements in the file, as described above for style *eam/alloy*\ .  As
@@ -477,7 +484,7 @@ two different element types, mixing is performed by LAMMPS as
 described above with the individual styles.  You never need to specify
 a pair\_coeff command with I != J arguments for the eam styles.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The eam pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
@@ -485,7 +492,7 @@ Thus, you need to re-specify the pair\_style and pair\_coeff commands in
 an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -502,7 +509,7 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -548,8 +555,3 @@ Materials Science & Engineering, 7, 075005 (2009).
 
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,32 +1,32 @@
-.. index:: pair\_style oxdna2/excv
+.. index:: pair_style oxdna2/excv
 
-pair\_style oxdna2/excv command
-===============================
-
-pair\_style oxdna2/stk command
+pair_style oxdna2/excv command
 ==============================
 
-pair\_style oxdna2/hbond command
-================================
+pair_style oxdna2/stk command
+=============================
 
-pair\_style oxdna2/xstk command
+pair_style oxdna2/hbond command
 ===============================
 
-pair\_style oxdna2/coaxstk command
-==================================
+pair_style oxdna2/xstk command
+==============================
 
-pair\_style oxdna2/dh command
-=============================
+pair_style oxdna2/coaxstk command
+=================================
+
+pair_style oxdna2/dh command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style1
 
-   pair_coeff \* \* style2 args
+   pair_coeff * * style2 args
 
 * style1 = *hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh*
 
@@ -53,17 +53,17 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
-   pair_coeff \* \* oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
-   pair_coeff \* \* oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
-   pair_coeff \* \* oxdna2/hbond   seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+   pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+   pair_coeff * * oxdna2/hbond   seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
    pair_coeff 1 4 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
    pair_coeff 2 3 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
-   pair_coeff \* \* oxdna2/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
-   pair_coeff \* \* oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
-   pair_coeff \* \* oxdna2/dh      0.1 0.5 0.815
+   pair_coeff * * oxdna2/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
+   pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
+   pair_coeff * * oxdna2/dh      0.1 0.5 0.815
 
 Description
 """""""""""
@@ -90,7 +90,7 @@ and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 fo
 
    These pair styles have to be used together with the related oxDNA2 bond style
    *oxdna2/fene* for the connectivity of the phosphate backbone (see also documentation of
-   :doc:`bond\_style oxdna2/fene <bond_oxdna>`). Most of the coefficients
+   :doc:`bond_style oxdna2/fene <bond_oxdna>`). Most of the coefficients
    in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
    Exceptions are the first four coefficients after *oxdna2/stk* (seq=seqdep, T=0.1, xi=1.3523 and kappa=2.6717 in the above example),
    the first coefficient after *oxdna2/hbond* (seq=seqdep in the above example) and the three coefficients
@@ -124,9 +124,9 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`pair\_style oxdna/excv <pair_oxdna>`,
-:doc:`bond\_style oxrna2/fene <bond_oxdna>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`,
+:doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`,
+:doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 **Default:** none
@@ -153,8 +153,3 @@ Related commands
 .. _Ouldridge2:
 
 **(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

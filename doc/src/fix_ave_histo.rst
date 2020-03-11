@@ -345,7 +345,7 @@ the histogram.
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix produces a global vector and global array which can be
@@ -388,8 +388,3 @@ Related commands
 The option defaults are mode = scalar, kind = figured out from input
 arguments, ave = one, start = 0, no file output, beyond = ignore, and
 title 1,2,3 = strings as described above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

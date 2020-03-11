@@ -67,7 +67,7 @@ varied together during the minimization.
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
-dimensions (x,y,z,xy,xz,yz).  The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>` commands
+dimensions (x,y,z,xy,xz,yz).  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 
@@ -228,23 +228,28 @@ With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
 function then is:
 
-.. image:: Eqs/fix_box_relax1.jpg
-   :align: center
+.. math::
 
-where *U* is the system potential energy, *P*\ \_t is the desired
-hydrostatic pressure, *V* and *V*\ \_0 are the system and reference
-volumes, respectively.  *E*\ \_\ *strain* is the strain energy expression
+   E = U + P_t \left(V-V_0 \right) + E_{strain}
+
+
+where *U* is the system potential energy, :math:`P_t` is the desired
+hydrostatic pressure, :math:`V` and :math:`V_0` are the system and reference
+volumes, respectively.  :math:`E_{strain}` is the strain energy expression
 proposed by Parrinello and Rahman :ref:`(Parrinello1981) <Parrinello1981>`.
 Taking derivatives of *E* w.r.t. the box dimensions, and setting these
 to zero, we find that at the minimum of the objective function, the
 global system stress tensor **P** will satisfy the relation:
 
-.. image:: Eqs/fix_box_relax2.jpg
-   :align: center
+.. math::
 
-where **I** is the identity matrix, **h**\ \_0 is the box dimension tensor of
-the reference cell, and **h**\ \_0\ *d* is the diagonal part of
-**h**\ \_0. **S**\ \_\ *t* is a symmetric stress tensor that is chosen by LAMMPS
+   \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
+
+
+where **I** is the identity matrix, :math:`\mathbf{h_0}` is the box
+dimension tensor of the reference cell, and ::math:`\mathbf{h_{0d}}`
+is the diagonal part of :math:`\mathbf{h_0}`. :math:`\mathbf{S_t}`
+is a symmetric stress tensor that is chosen by LAMMPS
 so that the upper-triangular components of **P** equal the stress tensor
 specified by the user.
 
@@ -315,11 +320,11 @@ as the fix group.  Also note that the pressure compute does not
 include a kinetic component.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
 and *thermo\_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
 It also means that changing attributes of *thermo\_temp* or
 *thermo\_press* will have no effect on this fix.
 
@@ -331,7 +336,7 @@ It also means that changing attributes of *thermo\_temp* or
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* and *press* options are
+The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by this fix.  You can use them to assign a
 :doc:`compute <compute>` you have defined to this fix which will be used
 in its temperature and pressure calculation, as described above.  Note
@@ -357,7 +362,7 @@ energy, plus the strain energy, if it exists, as described above.  The
 energy values reported at the end of a minimization run under
 "Minimization stats" include this energy, and so differ from what
 LAMMPS normally reports as potential energy. This fix does not support
-the :doc:`fix\_modify <fix_modify>` *energy* option, because that would
+the :doc:`fix_modify <fix_modify>` *energy* option, because that would
 result in double-counting of the fix energy in the minimization
 energy. Instead, the fix energy can be explicitly added to the
 potential energy using one of these two variants:
@@ -385,8 +390,8 @@ Only dimensions that are available can be adjusted by this fix.
 Non-periodic dimensions are not available.  *z*\ , *xz*\ , and *yz*\ , are
 not available for 2D simulations. *xy*\ , *xz*\ , and *yz* are only
 available if the simulation domain is non-orthogonal.  The
-:doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and
-:doc:`read\_restart <read_restart>` commands specify whether the
+:doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
+:doc:`read_restart <read_restart>` commands specify whether the
 simulation box is orthogonal or non-orthogonal (triclinic) and explain
 the meaning of the xy,xz,yz tilt factors.
 
@@ -415,8 +420,3 @@ The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
 
 
 **(Parrinello1981)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

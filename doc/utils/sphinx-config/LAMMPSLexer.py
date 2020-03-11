@@ -35,7 +35,7 @@ class LAMMPSLexer(RegexLexer):
             (r'[\w_\.\[\]]+', Name),
             (r'\$[\w_]+', Name.Variable),
             (r'\s+', Whitespace),
-            (r'[\+\-\*\/&=<>]', Operator),
+            (r'[\+\-\*\^\|\/\!%&=<>]', Operator),
         ],
         'variable' : [
             ('[^\}]+', Name.Variable),

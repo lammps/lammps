@@ -57,12 +57,15 @@ int ReaderNative::read_time(bigint &ntimestep)
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
 
-  // skip over unit information, if present.
+  // skip over unit and time information, if present.
 
-  if (strstr(line,"ITEM: UNITS") == line)
+  if (utils::strmatch(line,"^\\s*ITEM: UNITS\\s*$"))
     read_lines(2);
 
-  if (strstr(line,"ITEM: TIMESTEP") != line)
+  if (utils::strmatch(line,"^\\s*ITEM: TIME\\s*$"))
+    read_lines(2);
+
+  if (!utils::strmatch(line,"^\\s*ITEM: TIMESTEP\\s*$"))
     error->one(FLERR,"Dump file is incorrectly formatted");
 
   read_lines(1);

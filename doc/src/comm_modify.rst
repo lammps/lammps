@@ -1,13 +1,13 @@
-.. index:: comm\_modify
+.. index:: comm_modify
 
-comm\_modify command
-====================
+comm_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify keyword value ...
 
@@ -30,14 +30,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify mode multi
    comm_modify mode multi group solvent
-   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2\*4 15.0
+   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
    comm_modify vel yes
    comm_modify mode single cutoff 5.0 vel yes
-   comm_modify cutoff/multi \* 0.0
+   comm_modify cutoff/multi * 0.0
 
 Description
 """""""""""
@@ -50,8 +50,8 @@ processors and stored as properties of ghost atoms.
 .. note::
 
    These options apply to the currently defined comm style.  When
-   you specify a :doc:`comm\_style <comm_style>` or
-   :doc:`read\_restart <read_restart>` command, all communication settings
+   you specify a :doc:`comm_style <comm_style>` or
+   :doc:`read_restart <read_restart>` command, all communication settings
    are restored to their default or stored values, including those
    previously reset by a comm\_modify command.  Thus if your input script
    specifies a comm\_style or read\_restart command, you should use the
@@ -138,17 +138,17 @@ find the needed atoms.
    side of the simulation box, across a periodic boundary.  This will
    typically lead to bad dynamics (i.e. the bond length is now the
    simulation box length).  To detect if this is happening, see the
-   :doc:`neigh\_modify cluster <neigh_modify>` command.
+   :doc:`neigh_modify cluster <neigh_modify>` command.
 
 The *group* keyword will limit communication to atoms in the specified
 group.  This can be useful for models where no ghost atoms are needed
 for some kinds of particles.  All atoms (not just those in the
 specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
-:doc:`atom\_modify first <atom_modify>` command.
+:doc:`atom_modify first <atom_modify>` command.
 
 The *vel* keyword enables velocity information to be communicated with
-ghost particles.  Depending on the :doc:`atom\_style <atom_style>`,
+ghost particles.  Depending on the :doc:`atom_style <atom_style>`,
 velocity info includes the translational velocity, angular velocity,
 and angular momentum of a particle.  If the *vel* option is set to
 *yes*\ , then ghost atoms store these quantities; if *no* then they do
@@ -167,12 +167,12 @@ Restrictions
 
 
 Communication mode *multi* is currently only available for
-:doc:`comm\_style <comm_style>` *brick*\ .
+:doc:`comm_style <comm_style>` *brick*\ .
 
 Related commands
 """"""""""""""""
 
-:doc:`comm\_style <comm_style>`, :doc:`neighbor <neighbor>`
+:doc:`comm_style <comm_style>`, :doc:`neighbor <neighbor>`
 
 Default
 """""""
@@ -180,8 +180,3 @@ Default
 The option defaults are mode = single, group = all, cutoff = 0.0, vel =
 no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
 cutoff = pairwise force cutoff + neighbor skin.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

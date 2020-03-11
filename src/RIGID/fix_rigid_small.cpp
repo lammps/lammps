@@ -217,7 +217,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"inpfile") == 0) {
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;

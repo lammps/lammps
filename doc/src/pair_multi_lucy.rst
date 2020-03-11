@@ -1,13 +1,13 @@
-.. index:: pair\_style multi/lucy
+.. index:: pair_style multi/lucy
 
-pair\_style multi/lucy command
-==============================
+pair_style multi/lucy command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy style N keyword ...
 
@@ -18,10 +18,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy linear 1000
-   pair_coeff \* \* multibody.table ENTRY1 7.0
+   pair_coeff * * multibody.table ENTRY1 7.0
 
 Description
 """""""""""
@@ -30,29 +30,37 @@ Style *multi/lucy* computes a density-dependent force following from
 the many-body form described in :ref:`(Moore) <Moore1>` and
 :ref:`(Warren) <Warren1>` as
 
-.. image:: Eqs/pair_multi_lucy.jpg
-   :align: center
+.. math::
 
-which consists of a density-dependent function, A(rho), and a
-radial-dependent weight function, omegaDD(rij).  The radial-dependent
-weight function, omegaDD(rij), is taken as the Lucy function:
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
 
-.. image:: Eqs/pair_multi_lucy2.jpg
-   :align: center
+
+which consists of a density-dependent function, :math:`A(\rho)`, and a
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`, is taken
+as the Lucy function:
+
+.. math::
+
+   \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
+
 
 The density-dependent energy for a given particle is given by:
 
-.. image:: Eqs/pair_multi_lucy_energy.jpg
-   :align: center
+.. math::
+
+   u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
+
 
 See the supporting information of :ref:`(Brennan) <Brennan1>` or the
 publication by :ref:`(Moore) <Moore1>` for more details on the functional
 form.
 
-An interpolation table is used to evaluate the density-dependent
-energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
-pre-factor to the energy is computed after the interpolation, thus the
-Integral(A(rho)drho will have units of energy / length\^4.
+An interpolation table is used to evaluate the density-dependent energy
+(:math:`\int A(\rho') d\rho'`) and force (:math:`A(\rho')`).  Note that
+the pre-factor to the energy is computed after the interpolation, thus
+the :math:`\int A(\rho') d \rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting
 cubic splines to the file values and interpolating the
@@ -70,7 +78,7 @@ table values from which the density-dependent energy and force are
 computed by linear interpolation.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * filename
@@ -117,7 +125,7 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`pair\_style multi/lucy <pair_multi_lucy>` command.
+specified in the :doc:`pair_style multi/lucy <pair_multi_lucy>` command.
 Let Ntable = *N* in the pair\_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
@@ -137,23 +145,24 @@ as-is to perform spline interpolation.  In this case, the table values
 can be spaced in *density* uniformly or however you wish to position table
 values in regions of large gradients.
 
-If used, the parameters "R" or "RSQ" are followed by 2 values *rlo*
-and *rhi*\ .  If specified, the density associated with each density-dependent
-energy and force value is computed from these 2 values (at high accuracy), rather
-than using the (low-accuracy) value listed in each line of the table.
-The density values in the table file are ignored in this case.
-For "R", distances uniformly spaced between *rlo* and *rhi* are
-computed; for "RSQ", squared distances uniformly spaced between
-*rlo\*rlo* and *rhi\*rhi* are computed.
+If used, the parameters "R" or "RSQ" are followed by 2 values *rlo* and
+*rhi*\ .  If specified, the density associated with each
+density-dependent energy and force value is computed from these 2 values
+(at high accuracy), rather than using the (low-accuracy) value listed in
+each line of the table.  The density values in the table file are
+ignored in this case.  For "R", distances uniformly spaced between *rlo*
+and *rhi* are computed; for "RSQ", squared distances uniformly spaced
+between *rlo\*rlo* and *rhi\*rhi* are computed.
 
 .. note::
 
-   If you use "R" or "RSQ", the tabulated distance values in the
-   file are effectively ignored, and replaced by new values as described
-   in the previous paragraph.  If the density value in the table is not
-   very close to the new value (i.e. round-off difference), then you will
-   be assigning density-dependent energy and force values to a different density,
-   which is probably not what you want.  LAMMPS will warn if this is occurring.
+   If you use "R" or "RSQ", the tabulated distance values in the file
+   are effectively ignored, and replaced by new values as described in
+   the previous paragraph.  If the density value in the table is not
+   very close to the new value (i.e. round-off difference), then you
+   will be assigning density-dependent energy and force values to a
+   different density, which is probably not what you want.  LAMMPS will
+   warn if this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is
@@ -174,7 +183,7 @@ one that matches the specified keyword.
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-The :doc:`pair\_modify <pair_modify>` shift, table, and tail options are
+The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
 This pair style writes the settings for the "pair\_style multi/lucy" command
@@ -185,7 +194,7 @@ file, since it is tabulated in the potential files.  Thus, pair\_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -202,7 +211,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -227,8 +236,3 @@ Related commands
 
 
 **(Moore)** Moore, J Chem Phys, 144, 104501 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

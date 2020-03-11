@@ -579,9 +579,6 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
   // loop over neighbors of owned atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (ILP_numneigh[i] == -1) {
-      continue;
-    }
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -592,9 +589,6 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      if (ILP_numneigh[j] == -1) {
-        continue;
-      }
       jtype = type[j];
 
       delx = xtmp - x[j][0];
@@ -744,17 +738,8 @@ void PairILPGrapheneHBN::ILP_neigh()
     } // loop over jj
 
     ILP_firstneigh[i] = neighptr;
-    if (n == 3) {
-      ILP_numneigh[i] = n;
-    }
-    else if (n < 3) {
-      if (i < inum) {
-        ILP_numneigh[i] = n;
-      } else {
-        ILP_numneigh[i] = -1;
-      }
-    }
-    else if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    ILP_numneigh[i] = n;
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
 
     ipage->vgot(n);
     if (ipage->status())
@@ -817,9 +802,6 @@ void PairILPGrapheneHBN::calc_normal()
       }
     }
 
-    if (ILP_numneigh[i] == -1) {
-      continue;
-    }
     xtp = x[i][0];
     ytp = x[i][1];
     ztp = x[i][2];

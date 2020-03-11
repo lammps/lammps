@@ -1,28 +1,28 @@
-.. index:: pair\_style tersoff/mod
+.. index:: pair_style tersoff/mod
 
-pair\_style tersoff/mod command
-===============================
+pair_style tersoff/mod command
+==============================
 
-pair\_style tersoff/mod/c command
-=================================
+pair_style tersoff/mod/c command
+================================
 
-pair\_style tersoff/mod/gpu command
-===================================
-
-pair\_style tersoff/mod/kk command
+pair_style tersoff/mod/gpu command
 ==================================
 
-pair\_style tersoff/mod/omp command
-===================================
+pair_style tersoff/mod/kk command
+=================================
 
-pair\_style tersoff/mod/c/omp command
-=====================================
+pair_style tersoff/mod/omp command
+==================================
+
+pair_style tersoff/mod/c/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
 
@@ -31,14 +31,13 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
-   pair_coeff \* \* Si.tersoff.mod Si Si
+   pair_coeff * * Si.tersoff.mod Si Si
 
    pair_style tersoff/mod/c
-   pair_coeff \* \* Si.tersoff.modc Si Si
+   pair_coeff * * Si.tersoff.modc Si Si
 
 Description
 """""""""""
@@ -49,21 +48,40 @@ potential :ref:`(Tersoff\_1) <Tersoff_12>`, :ref:`(Tersoff\_2) <Tersoff_22>` wit
 modified cutoff function and angular-dependent term, giving the energy
 E of a system of atoms as
 
-.. image:: Eqs/pair_tersoff_mod.jpg
-   :align: center
+.. math::
 
-where f\_R is a two-body term and f\_A includes three-body interactions.
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+     1 & r < R - D \\
+     \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
+       R-D < r < R + D \\
+     0 & r > R + D
+     \end{array} \right. \\
+   f_R(r) & = A \exp (-\lambda_1 r) \\
+   f_A(r) & = -B \exp (-\lambda_2 r) \\
+   b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
+   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+                    \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
+   g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
+   g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
+   g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
+
+
+where :math:`f_R` is a two-body term and :math:`f_A` includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
 The *tersoff/mod/c* style differs from *tersoff/mod* only in the
 formulation of the V\_ij term, where it contains an additional c0 term.
 
-.. image:: Eqs/pair_tersoff_mod_c.jpg
-   :align: center
+.. math::
 
-The modified cutoff function f\_C proposed by :ref:`(Murty) <Murty>` and
+   V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
+
+
+The modified cutoff function :math:`f_C` proposed by :ref:`(Murty) <Murty>` and
 having a continuous second-order differential is employed. The
-angular-dependent term g(theta) was modified to increase the
+angular-dependent term :math:`g(\theta)` was modified to increase the
 flexibility of the potential.
 
 The *tersoff/mod* potential is fitted to both the elastic constants
@@ -86,9 +104,9 @@ If your LAMMPS simulation has 3 Si atoms types, you would use the following
 pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Si.tersoff_mod Si Si Si
+   pair_coeff * * Si.tersoff_mod Si Si Si
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element
@@ -105,30 +123,30 @@ not blank or comments (starting with #) define parameters for a triplet
 of elements.  The parameters in a single entry correspond to
 coefficients in the formulae above:
 
-element 1 (the center atom in a 3-body interaction)
-element 2 (the atom bonded to the center atom)
-element 3 (the atom influencing the 1-2 bond in a bond-order sense)
-beta
-alpha
-h
-eta
-beta\_ters = 1 (dummy parameter)
-lambda2 (1/distance units)
-B (energy units)
-R (distance units)
-D (distance units)
-lambda1 (1/distance units)
-A (energy units)
-n
-c1
-c2
-c3
-c4
-c5
-c0 (energy units, tersoff/mod/c only):ul
+* element 1 (the center atom in a 3-body interaction)
+* element 2 (the atom bonded to the center atom)
+* element 3 (the atom influencing the 1-2 bond in a bond-order sense)
+* :math:`\beta`
+* :math:`\alpha`
+* h
+* :math:`\eta`
+* :math:`\beta_{ters}` = 1 (dummy parameter)
+* :math:`\lambda_2` (1/distance units)
+* B (energy units)
+* R (distance units)
+* D (distance units)
+* :math:`\lambda_1` (1/distance units)
+* A (energy units)
+* n
+* c1
+* c2
+* c3
+* c4
+* c5
+* c0 (energy units, tersoff/mod/c only):ul
 
-The n, eta, lambda2, B, lambda1, and A parameters are only used for
-two-body interactions.  The beta, alpha, c1, c2, c3, c4, c5, h
+The n, :math:`\eta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A parameters are only used for
+two-body interactions.  The :math:`\beta`, :math:`\alpha`, c1, c2, c3, c4, c5, h
 parameters are only used for three-body interactions. The R and D
 parameters are used for both two-body and three-body interactions.
 The c0 term applies to *tersoff/mod/c* only. The non-annotated
@@ -173,7 +191,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -181,7 +199,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -207,7 +225,7 @@ appropriate units if your simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -245,8 +263,3 @@ Comp. Mat. Science, 39, 457 (2007).
 
 
 **(Schelling)** Patrick K. Schelling, Comp. Mat. Science, 44, 274 (2008).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

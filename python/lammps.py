@@ -486,6 +486,7 @@ class lammps(object):
         return None
       elif style == 2:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
         return ptr[0]
     if type == 1:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
@@ -509,6 +510,10 @@ class lammps(object):
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
+    elif (style == 2) and (type == 0):
+      self.lib.lammps_extract_fix.restype = POINTER(c_int)
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
+      return ptr[0]
     elif (style == 1) or (style == 2):
       if type == 1:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
@@ -1029,10 +1034,19 @@ def get_thermo_data(output):
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
         elif in_run and len(columns) > 0:
-            values = [float(x) for x in line.split()]
+            items = line.split()
+            # Convert thermo output and store it.
+            # It must have the same number of columns and
+            # all of them must be convertable to floats.
+            # Otherwise we ignore the line
+            if len(items) == len(columns):
+                try:
+                    values = [float(x) for x in items]
+                    for i, col in enumerate(columns):
+                        current_run[col].append(values[i])
+                except ValueError:
+                  pass
 
-            for i, col in enumerate(columns):
-                current_run[col].append(values[i])
     return runs
 
 class PyLammps(object):

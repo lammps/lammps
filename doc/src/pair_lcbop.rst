@@ -1,13 +1,13 @@
-.. index:: pair\_style lcbop
+.. index:: pair_style lcbop
 
-pair\_style lcbop command
-=========================
+pair_style lcbop command
+========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lcbop
 
@@ -15,10 +15,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lcbop
-   pair_coeff \* \* ../potentials/C.lcbop C
+   pair_coeff * * ../potentials/C.lcbop C
 
 Description
 """""""""""
@@ -36,16 +36,16 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of LCBOP elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C you would use the following pair\_coeff command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* C.lcbop C C C NULL
+   pair_coeff * * C.lcbop C C C NULL
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first C argument maps LAMMPS atom type 1 to the C element in the
@@ -65,7 +65,7 @@ carefully.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
@@ -73,7 +73,7 @@ need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 Restrictions
@@ -95,7 +95,7 @@ appropriate units if your simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_airebo <pair_airebo>`, :doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_airebo <pair_airebo>`, :doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
@@ -109,8 +109,3 @@ Related commands
 
 **(Los and Fasolino)** J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

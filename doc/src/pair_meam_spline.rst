@@ -1,16 +1,16 @@
-.. index:: pair\_style meam/spline
+.. index:: pair_style meam/spline
 
-pair\_style meam/spline command
-===============================
+pair_style meam/spline command
+==============================
 
-pair\_style meam/spline/omp command
-===================================
+pair_style meam/spline/omp command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/spline
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code:: LAMMPS
 
    pair_style meam/spline
-   pair_coeff \* \* Ti.meam.spline Ti
-   pair_coeff \* \* Ti.meam.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.spline Ti
+   pair_coeff * * Ti.meam.spline Ti Ti Ti
 
 Description
 """""""""""
@@ -32,31 +32,35 @@ using a variant of modified embedded-atom method (MEAM) potentials
 :ref:`(Lenosky) <Lenosky1>`.  For a single species ("old-style") MEAM,
 the total energy E is given by
 
-.. image:: Eqs/pair_meam_spline.jpg
-   :align: center
+.. math::
 
-where rho\_i is the density at atom I, theta\_jik is the angle between
-atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
-f, and g are represented by cubic splines.
+   E & =\sum_{i<j}\phi(r_{ij})+\sum_{i}U(n_{i}) \\
+   n_{i} & =\sum_{j}\rho(r_{ij})+\sum_{\substack{j<k,\\j,k\neq i}}f(r_{ij})f(r_{ik})g[\cos(\theta_{jik})]
+
+where :math:`\rho_i` is the density at atom I, :math:`\theta_{jik}` is
+the angle between atoms J, I, and K centered on atom I. The five
+functions :math:`\phi, U, \rho, f,` and *g* are represented by cubic splines.
 
 The *meam/spline* style also supports a new style multicomponent
 modified embedded-atom method (MEAM) potential :ref:`(Zhang) <Zhang4>`, where
 the total energy E is given by
 
-.. image:: Eqs/pair_meam_spline_multicomponent.jpg
-   :align: center
+.. math::
 
-where the five functions Phi, U, rho, f, and g depend on the chemistry
-of the atoms in the interaction.  In particular, if there are N different
-chemistries, there are N different U, rho, and f functions, while there
-are N(N+1)/2 different Phi and g functions.  The new style multicomponent
-MEAM potential files are indicated by the second line in the file starts
-with "meam/spline" followed by the number of elements and the name of each
-element.
+   E &= \sum_{i<j}\phi_{ij}(r_{ij})+\sum_{i}U_i(n_{i}) \\
+   n_{i} & = \sum_{j\ne i}\rho_j(r_{ij})+\sum_{\substack{j<k,\\j,k\neq i}}f_{j}(r_{ij})f_{k}(r_{ik})g_{jk}[\cos(\theta_{jik})]
+
+where the five functions :math:`\phi, U, \rho, f,` and *g* depend on the
+chemistry of the atoms in the interaction.  In particular, if there are
+N different chemistries, there are N different *U*\ , :math:`\rho`, and
+*f* functions, while there are N(N+1)/2 different :math:`\phi` and *g*
+functions.  The new style multicomponent MEAM potential files are
+indicated by the second line in the file starts with "meam/spline"
+followed by the number of elements and the name of each element.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
-:doc:`pair\_coeff <pair_coeff>` command.  Parameter files for different
+:doc:`pair_coeff <pair_coeff>` command.  Parameter files for different
 elements are included in the "potentials" directory of the LAMMPS
 distribution and have a ".meam.spline" file suffix.  All of these
 files are parameterized in terms of LAMMPS :doc:`metal units <units>`.
@@ -79,7 +83,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of spline-based MEAM elements to atom types
 
-See the :doc:`pair\_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.spline file has values for Ti (old style).  If
@@ -88,9 +92,9 @@ treated with this potentials, you would use the following pair\_coeff
 command:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* Ti.meam.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.spline Ti Ti Ti
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
@@ -105,9 +109,9 @@ An example with a two component spline (new style) is TiO.meam.spline, where
 the command
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* TiO.meam.spline Ti O
+   pair_coeff * * TiO.meam.spline Ti O
 
 will map the 1st atom type to Ti and the second atom type to O. Note
 in this case that the species names need to match exactly with the
@@ -143,7 +147,7 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The *meam/spline* pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in an external
@@ -151,7 +155,7 @@ potential parameter file.  Thus, you need to re-specify the pair\_style
 and pair\_coeff commands in an input script that reads a restart file.
 
 The *meam/spline* pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -172,7 +176,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style meam/c <pair_meamc>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`
 
 **Default:** none
 
@@ -193,8 +197,3 @@ Kress, Modelling Simulation Materials Science Engineering, 8, 825
 
 
 **(Zhang)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

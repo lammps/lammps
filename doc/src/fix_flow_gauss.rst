@@ -93,7 +93,7 @@ fluctuating in time, the work cannot be computed from a potential. As
 a result, computing the work is slightly more computationally
 expensive than usual, so it is not performed by default. To invoke the
 work calculation, use the *energy* keyword. The
-:doc:`fix\_modify <fix_modify>` *energy* option also invokes the work
+:doc:`fix_modify <fix_modify>` *energy* option also invokes the work
 calculation, and overrides an *energy no* setting here. If neither
 *energy yes* or *fix\_modify energy yes* are set, the global scalar
 computed by the fix will return zero.
@@ -109,7 +109,7 @@ If this fix is used in a simulation with the :doc:`rRESPA <run_style>`
 integrator, the applied acceleration must be computed and applied at the same
 rRESPA level as the interactions between the flowing fluid and the obstacle.
 The rRESPA level at which the acceleration is applied can be changed using
-the :doc:`fix\_modify <fix_modify>` *respa* option discussed below. If the
+the :doc:`fix_modify <fix_modify>` *respa* option discussed below. If the
 flowing fluid and the obstacle interact through multiple interactions that are
 computed at different rRESPA levels, then there must be a separate flow/gauss
 fix for each level. For example, if the flowing fluid and obstacle interact
@@ -129,11 +129,11 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to subtract the work done from the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by this
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows the user to set at which level of the :doc:`rRESPA <run_style>`
 integrator the fix computes and adds the external acceleration. Default is the
 outermost level.
@@ -183,8 +183,3 @@ The option default for the *energy* keyword is energy = no.
 
 
 **(Zhu)** Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

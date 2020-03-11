@@ -83,7 +83,7 @@ internal energy and extrapolated velocity are also updated.
    are stored by the fix in "unwrapped" form, by using the image flags
    associated with each particle.  See the :doc:`dump custom <dump>` command
    for a discussion of "unwrapped" coordinates.  See the Atoms section of
-   the :doc:`read\_data <read_data>` command for a discussion of image flags
+   the :doc:`read_data <read_data>` command for a discussion of image flags
    and how they are set for each particle.  You can reset the image flags
    (e.g. to 0) before invoking this fix by using the :doc:`set image <set>`
    command.
@@ -220,7 +220,7 @@ spacings can be different in x,y,z.
 
 This fix writes the original coordinates of moving particles to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the
-:doc:`read\_restart <read_restart>` command for info on how to re-specify
+:doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
@@ -231,7 +231,7 @@ operation of the fix continues in an uninterrupted fashion.
    different value after reading a restart file, if you expect a fix move
    command to work in an uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix produces a per-atom array which can be accessed by various
@@ -252,7 +252,7 @@ This fix is part of the USER-SDPD package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms store density and internal energy as
-defined by the :doc:`atom\_style meso <atom_style>` command.
+defined by the :doc:`atom_style meso <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
 
@@ -260,14 +260,9 @@ Related commands
 """"""""""""""""
 
 :doc:`fix move <fix_move>`, :doc:`fix meso <fix_meso>`,
-:doc:`displace\_atoms <displace_atoms>`
+:doc:`displace_atoms <displace_atoms>`
 
 Default
 """""""
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

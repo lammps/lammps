@@ -1,13 +1,12 @@
-.. index:: thermo\_style
+.. index:: thermo_style
 
-thermo\_style command
-=====================
+thermo_style command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style style args
 
@@ -51,7 +50,7 @@ Syntax
            ke = kinetic energy
            etotal = total energy (pe + ke)
            enthalpy = enthalpy (etotal + press\*vol)
-           evdwl = VanderWaal pairwise energy (includes etail)
+           evdwl = van der Waals pairwise energy (includes etail)
            ecoul = Coulombic pairwise energy
            epair = pairwise energy (evdwl + ecoul + elong)
            ebond = bond energy
@@ -60,7 +59,7 @@ Syntax
            eimp = improper energy
            emol = molecular energy (ebond + eangle + edihed + eimp)
            elong = long-range kspace energy
-           etail = VanderWaal energy long-range tail correction
+           etail = van der Waals energy long-range tail correction
            vol = volume
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z
@@ -89,13 +88,12 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style multi
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
-   thermo_style custom step temp etotal c_myTemp[\*] v_abc
+   thermo_style custom step temp etotal c_myTemp[*] v_abc
 
 Description
 """""""""""
@@ -131,7 +129,7 @@ include values from previous timesteps, can be output by using the
 f\_ID keyword and accessing a fix that does time-averaging such as the
 :doc:`fix ave/time <fix_ave_time>` command.
 
-Options invoked by the :doc:`thermo\_modify <thermo_modify>` command can
+Options invoked by the :doc:`thermo_modify <thermo_modify>` command can
 be used to set the one- or multi-line format of the print-out, the
 normalization of thermodynamic output (total values versus per-atom
 values for extensive quantities (ones which scale with the number of
@@ -141,7 +139,7 @@ atoms in the system), and the numeric precision of each printed value.
 
    When you use a "thermo\_style" command, all thermodynamic
    settings are restored to their default values, including those
-   previously set by a :doc:`thermo\_modify <thermo_modify>` command.  Thus
+   previously set by a :doc:`thermo_modify <thermo_modify>` command.  Thus
    if your input script specifies a thermo\_style command, you should use
    the thermo\_modify command after it.
 
@@ -155,18 +153,18 @@ default this is done by using a *temperature* compute which is created
 when LAMMPS starts up, as if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
 See the :doc:`compute temp <compute_temp>` command for details.  Note
 that the ID of this compute is *thermo\_temp* and the group is *all*\ .
 You can change the attributes of this temperature (e.g. its
-degrees-of-freedom) via the :doc:`compute\_modify <compute_modify>`
+degrees-of-freedom) via the :doc:`compute_modify <compute_modify>`
 command.  Alternatively, you can directly assign a new compute (that
 calculates temperature) which you have defined, to be used for
 calculating any thermodynamic quantity that requires a temperature.
-This is done via the :doc:`thermo\_modify <thermo_modify>` command.
+This is done via the :doc:`thermo_modify <thermo_modify>` command.
 
 Several of the thermodynamic quantities require a pressure to be
 computed: "press", "enthalpy", "pxx", etc.  By default this is done by
@@ -174,18 +172,18 @@ using a *pressure* compute which is created when LAMMPS starts up, as
 if this command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 
 See the :doc:`compute pressure <compute_pressure>` command for details.
 Note that the ID of this compute is *thermo\_press* and the group is
 *all*\ .  You can change the attributes of this pressure via the
-:doc:`compute\_modify <compute_modify>` command.  Alternatively, you can
+:doc:`compute_modify <compute_modify>` command.  Alternatively, you can
 directly assign a new compute (that calculates pressure) which you
 have defined, to be used for calculating any thermodynamic quantity
 that requires a pressure.  This is done via the
-:doc:`thermo\_modify <thermo_modify>` command.
+:doc:`thermo_modify <thermo_modify>` command.
 
 Several of the thermodynamic quantities require a potential energy to
 be computed: "pe", "etotal", "ebond", etc.  This is done by using a
@@ -193,36 +191,36 @@ be computed: "pe", "etotal", "ebond", etc.  This is done by using a
 command had been issued:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
 See the :doc:`compute pe <compute_pe>` command for details.  Note that
 the ID of this compute is *thermo\_pe* and the group is *all*\ .  You can
 change the attributes of this potential energy via the
-:doc:`compute\_modify <compute_modify>` command.
+:doc:`compute_modify <compute_modify>` command.
 
 
 ----------
 
 
 The kinetic energy of the system *ke* is inferred from the temperature
-of the system with 1/2 Kb T of energy for each degree of freedom.
-Thus, using different :doc:`compute commands <compute>` for calculating
-temperature, via the :doc:`thermo\_modify temp <thermo_modify>` command,
-may yield different kinetic energies, since different computes that
-calculate temperature can subtract out different non-thermal
-components of velocity and/or include different degrees of freedom
-(translational, rotational, etc).
+of the system with :math:`\frac{1}{2} k_B T` of energy for each degree
+of freedom.  Thus, using different :doc:`compute commands <compute>` for
+calculating temperature, via the :doc:`thermo_modify temp
+<thermo_modify>` command, may yield different kinetic energies, since
+different computes that calculate temperature can subtract out different
+non-thermal components of velocity and/or include different degrees of
+freedom (translational, rotational, etc).
 
 The potential energy of the system *pe* will include contributions
-from fixes if the :doc:`fix\_modify thermo <fix_modify>` option is set
+from fixes if the :doc:`fix_modify thermo <fix_modify>` option is set
 for a fix that calculates such a contribution.  For example, the :doc:`fix wall/lj93 <fix_wall>` fix calculates the energy of atoms
 interacting with the wall.  See the doc pages for "individual fixes"
 to see which ones contribute.
 
-A long-range tail correction *etail* for the VanderWaal pairwise
-energy will be non-zero only if the :doc:`pair\_modify tail <pair_modify>` option is turned on.  The *etail* contribution
+A long-range tail correction *etail* for the van der Waals pairwise
+energy will be non-zero only if the :doc:`pair_modify tail <pair_modify>` option is turned on.  The *etail* contribution
 is included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
 corresponding tail correction to the pressure is included in *press*
 and *pxx*\ , *pyy*\ , etc.
@@ -286,7 +284,7 @@ if the timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
 
@@ -302,7 +300,7 @@ printed with the end-of-run statistics.  The *nbuild* keyword is the
 number of re-builds during the current run.  The *ndanger* keyword is
 the number of re-builds that LAMMPS considered potentially
 "dangerous".  If atom movement triggered neighbor list rebuilding (see
-the :doc:`neigh\_modify <neigh_modify>` command), then dangerous
+the :doc:`neigh_modify <neigh_modify>` command), then dangerous
 reneighborings are those that were triggered on the first timestep
 atom movement was checked for.  If this count is non-zero you may wish
 to reduce the delay factor to insure no force interactions are missed
@@ -337,10 +335,10 @@ are equivalent, since the :doc:`compute temp <compute_temp>` command
 creates a global vector with 6 values.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp
-   thermo_style custom step temp etotal c_myTemp[\*]
+   thermo_style custom step temp etotal c_myTemp[*]
    thermo_style custom step temp etotal &
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
@@ -372,7 +370,7 @@ kinetic energy that are summed over all atoms in the compute group.
 Intensive quantities are printed directly without normalization by
 thermo\_style custom.  Extensive quantities may be normalized by the
 total number of atoms in the simulation (NOT the number of atoms in
-the compute group) when output, depending on the :doc:`thermo\_modify norm <thermo_modify>` option being used.
+the compute group) when output, depending on the :doc:`thermo_modify norm <thermo_modify>` option being used.
 
 The *f\_ID* and *f\_ID[I]* and *f\_ID[I][J]* keywords allow global
 values calculated by a fix to be output.  As discussed on the
@@ -396,7 +394,7 @@ energy that are summed over all atoms in the fix group.  Intensive
 quantities are printed directly without normalization by thermo\_style
 custom.  Extensive quantities may be normalized by the total number of
 atoms in the simulation (NOT the number of atoms in the fix group)
-when output, depending on the :doc:`thermo\_modify norm <thermo_modify>`
+when output, depending on the :doc:`thermo_modify norm <thermo_modify>`
 option being used.
 
 The *v\_name* keyword allow the current value of a variable to be
@@ -427,25 +425,20 @@ Restrictions
 
 
 This command must come after the simulation box is defined by a
-:doc:`read\_data <read_data>`, :doc:`read\_restart <read_restart>`, or
-:doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
+:doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`thermo <thermo>`, :doc:`thermo\_modify <thermo_modify>`,
-:doc:`fix\_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
+:doc:`thermo <thermo>`, :doc:`thermo_modify <thermo_modify>`,
+:doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`compute pressure <compute_pressure>`
 
 Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style one
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -14,8 +14,8 @@ Specifically, LAMMPS was not conceived and designed for:
 * visualize your MD simulation interactively
 * plot your output data
 
-Although over the years these limitations have been somewhat
-reduced through features added to LAMMPS or external tools
+Over the years some of these limitations have been reduced or
+removed, through features added to LAMMPS or external tools
 that either closely interface with LAMMPS or extend LAMMPS.
 
 Here are suggestions on how to perform these tasks:
@@ -80,8 +80,3 @@ Here are suggestions on how to perform these tasks:
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <http://www.python.org>`_
   and is available for download from `this page <http://www.cs.sandia.gov/~sjplimp/download.html>`_.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

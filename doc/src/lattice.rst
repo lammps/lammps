@@ -61,13 +61,13 @@ of the lattice command can be used to define a wide variety of
 crystallographic lattices.
 
 A lattice is used by LAMMPS in two ways.  First, the
-:doc:`create\_atoms <create_atoms>` command creates atoms on the lattice
+:doc:`create_atoms <create_atoms>` command creates atoms on the lattice
 points inside the simulation box.  Note that the
-:doc:`create\_atoms <create_atoms>` command allows different atom types
+:doc:`create_atoms <create_atoms>` command allows different atom types
 to be assigned to different basis atoms of the lattice.  Second, the
 lattice spacing in the x,y,z dimensions implied by the lattice, can be
 used by other commands as distance units
-(e.g. :doc:`create\_box <create_box>`, :doc:`region <region>` and
+(e.g. :doc:`create_box <create_box>`, :doc:`region <region>` and
 :doc:`velocity <velocity>`), which are often convenient to use when the
 underlying problem geometry is atoms on a lattice.
 
@@ -89,7 +89,7 @@ Note that the lattice command can be used multiple times in an input
 script.  Each time it is invoked, the lattice attributes are
 re-defined and are used for all subsequent commands (that use lattice
 attributes).  For example, a sequence of lattice,
-:doc:`region <region>`, and :doc:`create\_atoms <create_atoms>` commands
+:doc:`region <region>`, and :doc:`create_atoms <create_atoms>` commands
 can be repeated multiple times to build a poly-crystalline model with
 different geometric regions populated with atoms in different lattice
 orientations.
@@ -99,7 +99,7 @@ orientations.
 
 
 A lattice of style *none* does not define a unit cell and basis set,
-so it cannot be used with the :doc:`create\_atoms <create_atoms>`
+so it cannot be used with the :doc:`create_atoms <create_atoms>`
 command.  However it does define a lattice spacing via the specified
 scale parameter.  As explained above the lattice spacings in x,y,z can
 be used by other commands as distance units.  No additional
@@ -242,7 +242,7 @@ factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
    of the periodicity of the lattice in that direction.  Thus, if you
    create an orthogonal periodic simulation box whose size in a dimension
    is a multiple of the lattice spacing, and then fill it with atoms via
-   the :doc:`create\_atoms <create_atoms>` command, you will NOT necessarily
+   the :doc:`create_atoms <create_atoms>` command, you will NOT necessarily
    create a periodic system.  I.e. atoms may overlap incorrectly at the
    faces of the simulation box.
 
@@ -314,7 +314,7 @@ The *a1,a2,a3,basis* keywords can only be used with style *custom*\ .
 Related commands
 """"""""""""""""
 
-:doc:`dimension <dimension>`, :doc:`create\_atoms <create_atoms>`,
+:doc:`dimension <dimension>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
 Default
@@ -328,8 +328,3 @@ Default
 For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,
 a2 = 0 1 0, and a3 = 0 0 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

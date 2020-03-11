@@ -1,13 +1,13 @@
-.. index:: pair\_style line/lj
+.. index:: pair_style line/lj
 
-pair\_style line/lj command
-===========================
+pair_style line/lj command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj cutoff
 
@@ -17,10 +17,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style line/lj 3.0
-   pair_coeff \* \* 1.0 1.0 1.0 0.8 1.12
+   pair_coeff * * 1.0 1.0 1.0 0.8 1.12
    pair_coeff 1 2 1.0 2.0 1.0 1.5 1.12 5.0
    pair_coeff 1 2 1.0 0.0 1.0 1.0 2.5
 
@@ -28,13 +28,13 @@ Description
 """""""""""
 
 Style *line/lj* treats particles which are line segments as a set of
-small spherical particles that tile the line segment length as
-explained below.  Interactions between two line segments, each with N1
-and N2 spherical particles, are calculated as the pairwise sum of
-N1\*N2 Lennard-Jones interactions.  Interactions between a line segment
-with N spherical particles and a point particle are treated as the
-pairwise sum of N Lennard-Jones interactions.  See the :doc:`pair\_style lj/cut <pair_lj>` doc page for the definition of Lennard-Jones
-interactions.
+small spherical particles that tile the line segment length as explained
+below.  Interactions between two line segments, each with N1 and N2
+spherical particles, are calculated as the pairwise sum of N1\*N2
+Lennard-Jones interactions.  Interactions between a line segment with N
+spherical particles and a point particle are treated as the pairwise sum
+of N Lennard-Jones interactions.  See the :doc:`pair_style lj/cut
+<pair_lj>` doc page for the definition of Lennard-Jones interactions.
 
 The set of non-overlapping spherical sub-particles that represent a
 line segment are generated in the following manner.  Their size is a
@@ -50,10 +50,10 @@ each pair of points.
 
 The LJ interaction between 2 spheres on different line segments (or a
 sphere on a line segment and a point particles) is computed with
-sub-particle epsilon, sigma, and cutoff values that are set by the
-pair\_coeff command, as described below.  If the distance between the 2
-spheres is greater than the sub-particle cutoff, there is no
-interaction.  This means that some pairs of sub-particles on 2 line
+sub-particle :math:`\epsilon`, :math:`\sigma`, and *cutoff* values that
+are set by the pair\_coeff command, as described below.  If the distance
+between the 2 spheres is greater than the sub-particle cutoff, there is
+no interaction.  This means that some pairs of sub-particles on 2 line
 segments may interact, but others may not.
 
 For purposes of creating the neighbor list for pairs of interacting
@@ -79,15 +79,15 @@ the pair of particles to be included in the neighbor list.
    are using and the sub-particle cutoff settings.
 
 For style *line/lj*\ , the following coefficients must be defined for
-each pair of atom types via the :doc:`pair\_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above, or in the data file or restart files read by
-the :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * sizeI (distance units)
 * sizeJ (distance units)
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * subcutoff (distance units)
 * cutoff (distance units)
 
@@ -102,11 +102,11 @@ sizeI will apply to all segments of type I.  If typeI or typeJ refers
 to point particles, the corresponding sizeI or sizeJ is ignored; it
 can be set to 0.0.
 
-The *epsilon*\ , *sigma*\ , and *subcutoff* coefficients are used to
-compute an LJ interactions between a pair of sub-particles on 2 line
-segments (of type I and J), or between a sub particle/point particle
-pair.  As discussed above, the *subcutoff* and *cutoff* params are
-different.  The latter is only used for building the neighbor list
+The :math:`\epsilon`, :math:`\sigma`, and *subcutoff* coefficients are
+used to compute an LJ interactions between a pair of sub-particles on 2
+line segments (of type I and J), or between a sub particle/point
+particle pair.  As discussed above, the *subcutoff* and *cutoff* params
+are different.  The latter is only used for building the neighbor list
 when the distance between centers of two line segments or one segment
 and a point particle is calculated.
 
@@ -122,13 +122,13 @@ cutoff is used.
 For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -144,16 +144,11 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 Defining particles to be line segments so they participate in
 line/line or line/particle interactions requires the use the
-:doc:`atom\_style line <atom_style>` command.
+:doc:`atom_style line <atom_style>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style tri/lj <pair_tri_lj>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style tri/lj <pair_tri_lj>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

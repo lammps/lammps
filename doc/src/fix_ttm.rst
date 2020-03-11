@@ -109,8 +109,12 @@ Energy transport within the electronic subsystem is solved according
 to the heat diffusion equation with added source terms for heat
 transfer between the subsystems:
 
-.. image:: Eqs/fix_ttm.jpg
-   :align: center
+.. math::
+
+  C_e \rho_e \frac{\partial T_e}{\partial t} = 
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  g_p (T_e - T_a) + g_s T_a'
+
 
 where C\_e is the specific heat, rho\_e is the density, kappa\_e is the
 thermal conductivity, T is temperature, the "e" and "a" subscripts
@@ -194,8 +198,12 @@ temperature controlled by another fix - e.g. :doc:`fix nvt <fix_nh>` or
 Fix ttm/mod uses the heat diffusion equation with possible external
 heat sources (e.g. laser heating in ablation simulations):
 
-.. image:: Eqs/fix_ttm_mod.jpg
-   :align: center
+.. math::
+
+  C_e \rho_e \frac{\partial T_e}{\partial t} = 
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
+
 
 where theta is the Heaviside step function, I\_0 is the (absorbed)
 laser pulse intensity for ablation simulations, l\_skin is the depth
@@ -207,8 +215,10 @@ Fix ttm/mod also allows users to specify the dependencies of C\_e and
 kappa\_e on the electronic temperature. The specific heat is expressed
 as
 
-.. image:: Eqs/fix_ttm_ce.jpg
-   :align: center
+.. math::
+
+  C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
+
 
 where *X* = T\_e/1000, and the thermal conductivity is defined as
 kappa\_e = D\_e\*rho\_e\*C\_e, where D\_e is the thermal diffusion
@@ -219,8 +229,10 @@ for the blast force acting on ions because of electronic pressure
 gradient (see :ref:`(Chen) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
 acting on an ion is:
 
-.. image:: Eqs/fix_ttm_blast.jpg
-   :align: center
+.. math::
+
+  {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
+
 
 where F\_langevin is a force from Langevin thermostat simulating
 electron-phonon coupling, and nabla P\_e/n\_ion is the electron blast
@@ -242,8 +254,10 @@ initial borders of vacuum can be set in the *init\_file* via *lsurface*
 and *rsurface* parameters. In this case, electronic pressure gradient
 is calculated as
 
-.. image:: Eqs/fix_ttm_blast1.jpg
-   :align: center
+.. math::
+
+  \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]
+
 
 where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,
 :ref:`(Pisarev) <Pisarev>`)
@@ -285,7 +299,7 @@ ignored. The lines with the even numbers are treated as follows:
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
 These fixes write the state of the electronic subsystem and the energy
-exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>` command
+exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -296,7 +310,7 @@ fix, where the simulation continues on the same as if no restart had
 taken place.  However, in a statistical sense, a restarted simulation
 should produce the same behavior.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to these
+None of the :doc:`fix_modify <fix_modify>` options are relevant to these
 fixes.
 
 Both fixes compute 2 output quantities stored in a vector of length 2,
@@ -376,8 +390,3 @@ Plasma Phys., 53, 129-139 (2013).
 
 **(Pisarev)** V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
 475401 (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

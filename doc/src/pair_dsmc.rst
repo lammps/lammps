@@ -1,13 +1,13 @@
-.. index:: pair\_style dsmc
+.. index:: pair_style dsmc
 
-pair\_style dsmc command
-========================
+pair_style dsmc command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
 
@@ -22,10 +22,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dsmc 2.5 34387 10 1.0 100 20
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0
 
 Description
@@ -48,9 +48,9 @@ There is no pairwise energy or virial contributions associated with
 this pair style.
 
 The following coefficient must be defined for each pair of atoms types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * sigma (area units, i.e. distance-squared)
@@ -74,7 +74,7 @@ the "fix nve/noforce" time integration fix for the DSMC particles,
 e.g.
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/noforce
 
@@ -85,7 +85,7 @@ on the same processor.  To ensure this occurs, you should use
 these commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neighbor 0.0 bin
    neigh_modify every 1 delay 0 check no
@@ -105,7 +105,7 @@ uniform, which will not give good DSMC collision rates. Specify
 as in the following:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 594.6 87287 loop geom dist gaussian
 
@@ -118,13 +118,13 @@ as in the following:
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -138,7 +138,7 @@ be the same as they would have been if the original simulation had
 continued past the restart time.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
 
@@ -155,9 +155,9 @@ was built with that package.  See the :doc:`Build package <Build_package>` doc p
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
-:doc:`neigh\_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
-:doc:`comm\_modify <comm_modify>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
+:doc:`neigh_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
+:doc:`comm_modify <comm_modify>`
 
 **Default:** none
 
@@ -171,8 +171,3 @@ Related commands
 
 **(Bird)** G. A. Bird, "Molecular Gas Dynamics and the Direct Simulation
 of Gas Flows" (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1670,7 +1670,7 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_atomic, const int &i) const
 {
   // The density_brick array is atomic for Half/Thread neighbor style
-  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
+  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
 
   int nx = d_part2grid(i,0);
   int ny = d_part2grid(i,1);

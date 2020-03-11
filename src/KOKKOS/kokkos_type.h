@@ -163,6 +163,20 @@ t_scalar3<Scalar> operator *
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
 
+
+// Need to use Cuda UVM memory space for Host execution space
+
+template<class DeviceType>
+class KKDevice {
+public:
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+  typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
+#else
+  typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
+#endif
+};
+
+
 // set ExecutionSpace stuct with variable "space"
 
 template<class Device>

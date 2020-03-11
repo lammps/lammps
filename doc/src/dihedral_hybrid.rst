@@ -1,13 +1,13 @@
-.. index:: dihedral\_style hybrid
+.. index:: dihedral_style hybrid
 
-dihedral\_style hybrid command
-==============================
+dihedral_style hybrid command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style hybrid style1 style2 ...
 
@@ -17,11 +17,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style hybrid harmonic helix
    dihedral_coeff 1 harmonic 6.0 1 3
-   dihedral_coeff 2\* helix 10 10 10
+   dihedral_coeff 2* helix 10 10 10
 
 Description
 """""""""""

@@ -1,16 +1,16 @@
-.. index:: pair\_style multi/lucy/rx
+.. index:: pair_style multi/lucy/rx
 
-pair\_style multi/lucy/rx command
-=================================
+pair_style multi/lucy/rx command
+================================
 
-pair\_style multi/lucy/rx/kk command
-====================================
+pair_style multi/lucy/rx/kk command
+===================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx style N keyword ...
 
@@ -22,13 +22,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx linear 1000
    pair_style multi/lucy/rx linear 1000 fractional
    pair_style multi/lucy/rx linear 1000 molecular
-   pair_coeff \* \* multibody.table ENTRY1 h2o h2o 7.0
-   pair_coeff \* \* multibody.table ENTRY1 h2o 1fluid 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0
 
 Description
 """""""""""
@@ -43,29 +43,37 @@ particle through a site-site interaction potential model.  Style
 following from the many-body form described in :ref:`(Moore) <Moore2>` and
 :ref:`(Warren) <Warren2>` as
 
-.. image:: Eqs/pair_multi_lucy.jpg
-   :align: center
+.. math::
 
-which consists of a density-dependent function, A(rho), and a
-radial-dependent weight function, omegaDD(rij).  The radial-dependent
-weight function, omegaDD(rij), is taken as the Lucy function:
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
 
-.. image:: Eqs/pair_multi_lucy2.jpg
-   :align: center
+
+which consists of a density-dependent function, :math:`A(\rho)`, and a
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`, is taken
+as the Lucy function:
+
+.. math::
+
+   \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
+
 
 The density-dependent energy for a given particle is given by:
 
-.. image:: Eqs/pair_multi_lucy_energy.jpg
-   :align: center
+.. math::
+
+   u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
+
 
 See the supporting information of :ref:`(Brennan) <Brennan2>` or the
 publication by :ref:`(Moore) <Moore2>` for more details on the functional
 form.
 
-An interpolation table is used to evaluate the density-dependent
-energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
-pre-factor to the energy is computed after the interpolation, thus the
-Integral(A(rho)drho will have units of energy / length\^4.
+An interpolation table is used to evaluate the density-dependent energy
+(:math:`\int A(\rho') d \rho'`) and force (:math:`A(\rho')`).  Note that
+the pre-factor to the energy is computed after the interpolation, thus
+the :math:`\int A(\rho') d\rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting
 cubic splines to the file values and interpolating the

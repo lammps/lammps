@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pressure thermo_temp
    compute 1 all pressure NULL pair bond
@@ -37,23 +37,25 @@ of atoms via the :doc:`compute reduce <compute_reduce>` command.
 
 The pressure is computed by the formula
 
-.. image:: Eqs/pressure.jpg
-   :align: center
+.. math::
 
-where N is the number of atoms in the system (see discussion of DOF
-below), Kb is the Boltzmann constant, T is the temperature, d is the
-dimensionality of the system (2 or 3 for 2d/3d), and V is the system
-volume (or area in 2d).  The second term is the virial, equal to
+   P = \frac{N k_B T}{V} + \frac{\sum_{i}^{N'} r_i \bullet f_i}{dV}
+
+
+where *N* is the number of atoms in the system (see discussion of DOF
+below), :math:`k_B` is the Boltzmann constant, *T* is the temperature, d
+is the dimensionality of the system (2 or 3 for 2d/3d), and *V* is the
+system volume (or area in 2d).  The second term is the virial, equal to
 -dU/dV, computed for all pairwise as well as 2-body, 3-body, 4-body,
-many-body, and long-range interactions, where r\_i and f\_i are the
-position and force vector of atom i, and the black dot indicates a dot
-product.  When periodic boundary conditions are used, N' necessarily
-includes periodic image (ghost) atoms outside the central box, and the
-position and force vectors of ghost atoms are thus included in the
-summation.  When periodic boundary conditions are not used, N' = N =
-the number of atoms in the system.  :doc:`Fixes <fix>` that impose
-constraints (e.g. the :doc:`fix shake <fix_shake>` command) also
-contribute to the virial term.
+many-body, and long-range interactions, where :math:`r_i` and
+:math:`f_i` are the position and force vector of atom *i*, and the black
+dot indicates a dot product.  When periodic boundary conditions are
+used, N' necessarily includes periodic image (ghost) atoms outside the
+central box, and the position and force vectors of ghost atoms are thus
+included in the summation.  When periodic boundary conditions are not
+used, N' = N = the number of atoms in the system.  :doc:`Fixes <fix>`
+that impose constraints (e.g. the :doc:`fix shake <fix_shake>` command)
+also contribute to the virial term.
 
 A symmetric pressure tensor, stored as a 6-element vector, is also
 calculated by this compute.  The 6 components of the vector are
@@ -62,8 +64,11 @@ ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 the first term uses components of the kinetic energy tensor and the
 second term uses components of the virial tensor:
 
-.. image:: Eqs/pressure_tensor.jpg
-   :align: center
+.. math::
+
+   P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} + 
+   \frac{\sum_{k}^{N'} r_{k_I} f_{k_J}}{V}
+
 
 If no extra keywords are listed, the entire equations above are
 calculated.  This includes a kinetic energy (temperature) term and the
@@ -103,7 +108,7 @@ A compute of this style with the ID of "thermo\_press" is created when
 LAMMPS starts up, as if this command were in the input script:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 

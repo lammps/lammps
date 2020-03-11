@@ -55,6 +55,7 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+  cut_respa = NULL;
 
   // short-range/long-range flag accessed by DihedralCharmmfsw
 

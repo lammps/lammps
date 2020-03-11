@@ -1,13 +1,13 @@
-.. index:: pair\_style coul/shield
+.. index:: pair_style coul/shield
 
-pair\_style coul/shield command
-===============================
+pair_style coul/shield command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/shield cutoff tap_flag
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/shield 16.0 1
    pair_coeff 1 2 0.70
@@ -39,22 +39,29 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
    molecule id and is recommended to use the "full" atom style, so that
    charge and molecule ID information is included.
 
-.. image:: Eqs/pair_coul_shield.jpg
-   :align: center
+.. math::
 
-Where Tap(r\_ij) is the taper function which provides a continuous cutoff
-(up to third derivative) for inter-atomic separations larger than r\_c
+   E      = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\
+   {\rm Tap}(r_{ij}) = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+                          70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
+                          84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
+                          35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
+
+
+Where Tap(:math:`r_{ij}`) is the taper function which provides a continuous cutoff
+(up to third derivative) for inter-atomic separations larger than :math:`r_c`
 :ref:`(Leven1) <Leven3>`, :ref:`(Leven2) <Leven4>` and :ref:`(Maaravi) <Maaravi1>`.
-Here *lambda* is the shielding parameter that
+Here :math:`\lambda` is the shielding parameter that
 eliminates the short-range singularity of the classical mono-polar
 electrostatic interaction expression :ref:`(Maaravi) <Maaravi1>`.
 
-The shielding parameter *lambda* (1/distance units) must be defined for
+The shielding parameter :math:`\lambda` (1/distance units) must be defined for
 each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as
 in the example above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
-The global cutoff (r\_c) specified in the pair\_style command is used.
+The global cutoff (:math:`r_c`) specified in the pair\_style command is used.
 
 
 ----------

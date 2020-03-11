@@ -46,8 +46,10 @@ dz\*dz)\*(dx\*dx + dy\*dy + dz\*dz), summed and averaged over atoms in the
 group.  The 3rd component is the nonGaussian diffusion parameter NGP =
 3\*drfourth/(5\*drsquared\*drsquared), i.e.
 
-.. image:: Eqs/compute_msd_nongauss.jpg
-   :align: center
+.. math::
+
+ NGP(t) = 3<(r(t)-r(0))^4>/(5<(r(t)-r(0))^2>^2) - 1
+
 
 The NGP is a commonly used quantity in studies of dynamical
 heterogeneity.  Its minimum theoretical value (-0.4) occurs when all

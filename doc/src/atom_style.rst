@@ -338,7 +338,7 @@ The *electron* style is part of the USER-EFF package for :doc:`electronic force 
 The *dpd* style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
-The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESO package
+The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package
 for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.

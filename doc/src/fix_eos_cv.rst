@@ -27,17 +27,19 @@ Description
 """""""""""
 
 Fix *eos/cv* applies a mesoparticle equation of state to relate the
-particle internal energy (u\_i) to the particle internal temperature
-(dpdTheta\_i).  The *eos/cv* mesoparticle equation of state requires
+particle internal energy (:math:`u_i`) to the particle internal temperature
+(:math:`\theta_i`).  The *eos/cv* mesoparticle equation of state requires
 the constant-volume heat capacity, and is defined as follows:
 
-.. image:: Eqs/fix_eos-cv.jpg
-   :align: center
+.. math::
 
-where Cv is the constant-volume heat capacity, u\_cond is the internal
-conductive energy, and u\_mech is the internal mechanical energy.  Note
-that alternative definitions of the mesoparticle equation of state are
-possible.
+   u_{i} = u^{mech}_{i} + u^{cond}_{i} = C_{V} \theta_{i}
+
+
+where :math:`C_V` is the constant-volume heat capacity, :math:`u^{cond}`
+is the internal conductive energy, and :math:`u^{mech}` is the internal
+mechanical energy.  Note that alternative definitions of the mesoparticle
+equation of state are possible.
 
 
 ----------

@@ -16,7 +16,7 @@ means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you'll need to look in the source
+occurs and is not self-explanatory, you will need to look in the source
 code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`
@@ -509,14 +509,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Bond/react: Atom affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the superimpose
+   reaction is too close to an 'edge' atom defined in the map
    file. This could cause incorrect assignment of bonds, angle, etc.
    Generally, this means you must include more atoms in your templates,
    such that there are at least two atoms between each atom involved in
    the reaction and an edge atom.
 
 *Bond/react: Fix bond/react needs ghost atoms from farther away*
-   This is because a processor needs to superimpose the entire unreacted
+   This is because a processor needs to map the entire unreacted
    molecule template onto simulation atoms it knows about. The
    comm\_modify cutoff command can be used to extend the communication
    range.

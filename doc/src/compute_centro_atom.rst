@@ -52,20 +52,23 @@ in the specified compute group.
 This parameter is computed using the following formula from
 :ref:`(Kelchner) <Kelchner>`
 
-.. image:: Eqs/centro_symmetry.jpg
-   :align: center
+.. math::
 
-where the *N* nearest neighbors of each atom are identified and Ri and
-Ri+N/2 are vectors from the central atom to a particular pair of
-nearest neighbors.  There are N\*(N-1)/2 possible neighbor pairs that
-can contribute to this formula.  The quantity in the sum is computed
-for each, and the N/2 smallest are used.  This will typically be for
-pairs of atoms in symmetrically opposite positions with respect to the
-central atom; hence the i+N/2 notation.
+   CS = \sum_{i = 1}^{N/2} | \vec{R}_i + \vec{R}_{i+N/2} |^2
 
-*N* is an input parameter, which should be set to correspond to the
-number of nearest neighbors in the underlying lattice of atoms.  If
-the keyword *fcc* or *bcc* is used, *N* is set to 12 and 8
+
+where the :math:`N` nearest neighbors of each atom are identified and
+:math:`\vec{R}_i` and :math:`\vec{R}_{i+N/2}` are vectors from the
+central atom to a particular pair of nearest neighbors.  There are
+:math:`N (N-1)/2` possible neighbor pairs that can contribute to this
+formula.  The quantity in the sum is computed for each, and the
+:math:`N/2` smallest are used.  This will typically be for pairs of
+atoms in symmetrically opposite positions with respect to the central
+atom; hence the :math:`i+N/2` notation.
+
+:math:`N` is an input parameter, which should be set to correspond to
+the number of nearest neighbors in the underlying lattice of atoms.
+If the keyword *fcc* or *bcc* is used, *N* is set to 12 and 8
 respectively.  More generally, *N* can be set to a positive, even
 integer.
 
@@ -74,9 +77,9 @@ lattice, the centro-symmetry parameter will be 0.  It will be near 0
 for small thermal perturbations of a perfect lattice.  If a point
 defect exists, the symmetry is broken, and the parameter will be a
 larger positive value.  An atom at a surface will have a large
-positive parameter.  If the atom does not have *N* neighbors (within
-the potential cutoff), then its centro-symmetry parameter is set to
-0.0.
+positive parameter.  If the atom does not have :math:`N` neighbors
+(within the potential cutoff), then its centro-symmetry parameter is
+set to 0.0.
 
 If the keyword *axes* has the setting *yes*\ , then this compute also
 estimates three symmetry axes for each atom's local neighborhood.  The
@@ -95,7 +98,7 @@ of any atom.
 
 Only atoms within the cutoff of the pairwise neighbor list are
 considered as possible neighbors.  Atoms not in the compute group are
-included in the *N* neighbors used in this calculation.
+included in the :math:`N` neighbors used in this calculation.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (e.g. each time a snapshot of atoms

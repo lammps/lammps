@@ -1,22 +1,22 @@
-.. index:: pair\_style zbl
+.. index:: pair_style zbl
 
-pair\_style zbl command
-=======================
+pair_style zbl command
+======================
 
-pair\_style zbl/gpu command
-===========================
-
-pair\_style zbl/kk command
+pair_style zbl/gpu command
 ==========================
 
-pair\_style zbl/omp command
-===========================
+pair_style zbl/kk command
+=========================
+
+pair_style zbl/omp command
+==========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style zbl inner outer
 
@@ -27,10 +27,10 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style zbl 3.0 4.0
-   pair_coeff \* \* 73.0 73.0
+   pair_coeff * * 73.0 73.0
    pair_coeff 1 1 14.0 14.0
 
 Description
@@ -43,12 +43,16 @@ that ramps the energy, force, and curvature smoothly to zero
 between an inner and outer cutoff. The potential
 energy due to a pair of atoms at a distance r\_ij is given by:
 
-.. image:: Eqs/pair_zbl.jpg
-   :align: center
+.. math::
 
-where e is the electron charge, epsilon\_0 is the electrical
-permittivity of vacuum, and Z\_i and Z\_j are the nuclear charges of the
-two atoms.  The switching function S(r) is identical to that used by
+   E^{ZBL}_{ij} & = \frac{1}{4\pi\epsilon_0} \frac{Z_i Z_j \,e^2}{r_{ij}} \phi(r_{ij}/a)+ S(r_{ij})\\
+   a & =  \frac{0.46850}{Z_{i}^{0.23} + Z_{j}^{0.23}}\\
+   \phi(x) & =  0.18175e^{-3.19980x} + 0.50986e^{-0.94229x} + 0.28022e^{-0.40290x} + 0.02817e^{-0.20162x}\\
+
+where *e* is the electron charge, :math:`\epsilon_0` is the electrical
+permittivity of vacuum, and :math:`Z_i` and :math:`Z_j` are the nuclear
+charges of the
+two atoms.  The switching function :math:`S(r)` is identical to that used by
 :doc:`pair_style lj/gromacs <pair_gromacs>`.  Here, the inner and outer
 cutoff are the same for all pairs of atom types.
 
@@ -56,16 +60,17 @@ The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the LAMMPS data file.
 
-* Z\_i (atomic number for first atom type, e.g. 13.0 for aluminum)
+* :math:`Z_i` (atomic number for first atom type, e.g. 13.0 for aluminum)
 
-* Z\_j (ditto for second atom type)
+* :math:`Z_j` (ditto for second atom type)
 
-The values of Z\_i and Z\_j are normally equal to the atomic
+The values of :math:`Z_i` and :math:`Z_j` are normally equal to the atomic
 numbers of the two atom types. Thus, the user may optionally
-specify only the coefficients for each I==I pair, and rely
+specify only the coefficients for each :math:`i==i` pair, and rely
 on the obvious mixing rule for cross interactions (see below).
-Note that when I==I it is required that Z\_i == Z\_j. When used
-with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
+Note that when :math:`i==i` it is required that :math:`Z_i == Z_j`.
+When used with :doc:`hybrid/overlay <pair_hybrid>` and pairs are
+assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style must
 be included in a pair\_coeff command.
@@ -108,9 +113,11 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-For atom type pairs I,J and I != J, the Z\_i and Z\_j coefficients
-can be mixed by taking Z\_i and Z\_j from the values specified for
-I == I and J == J cases. When used
+For atom type pairs *i,j* and :math:`i \neq i`, the :math:`Z_i` and
+:math:`Z_j` coefficients
+can be mixed by taking :math:`Z_i` and :math:`Z_j` from the values
+specified for
+:math:`i == i` and :math:`j == j` cases. When used
 with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style

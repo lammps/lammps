@@ -1,22 +1,22 @@
-.. index:: pair\_style table
+.. index:: pair_style table
 
-pair\_style table command
-=========================
+pair_style table command
+========================
 
-pair\_style table/gpu command
-=============================
-
-pair\_style table/kk command
+pair_style table/gpu command
 ============================
 
-pair\_style table/omp command
-=============================
+pair_style table/kk command
+===========================
+
+pair_style table/omp command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table style N keyword ...
 
@@ -29,14 +29,13 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style table linear 1000
    pair_style table linear 1000 pppm
    pair_style table bitmap 12
-   pair_coeff \* 3 morse.table ENTRY1
-   pair_coeff \* 3 morse.table ENTRY1 7.0
+   pair_coeff * 3 morse.table ENTRY1
+   pair_coeff * 3 morse.table ENTRY1 7.0
 
 Description
 """""""""""
@@ -276,7 +275,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

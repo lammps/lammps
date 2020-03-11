@@ -1,19 +1,19 @@
-.. index:: dihedral\_style fourier
+.. index:: dihedral_style fourier
 
-dihedral\_style fourier command
-===============================
+dihedral_style fourier command
+==============================
 
-dihedral\_style fourier/intel command
-=====================================
+dihedral_style fourier/intel command
+====================================
 
-dihedral\_style fourier/omp command
-===================================
+dihedral_style fourier/omp command
+==================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style fourier
 
@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style fourier
    dihedral_coeff 1 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0
@@ -33,7 +33,7 @@ The *fourier* dihedral style uses the potential:
 
 .. math::
 
-  E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
+   E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
 
 
 The following coefficients must be defined for each dihedral type via the

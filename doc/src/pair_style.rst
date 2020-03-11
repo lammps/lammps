@@ -1,13 +1,13 @@
-.. index:: pair\_style
+.. index:: pair_style
 
-pair\_style command
-===================
+pair_style command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
    pair_style eam/alloy
@@ -162,7 +162,7 @@ accelerated styles exist.
 * :doc:`eam/fs <pair_eam>` - Finnis-Sinclair EAM
 * :doc:`edip <pair_edip>` - three-body EDIP potential
 * :doc:`edip/multi <pair_edip>` - multi-element EDIP potential
-* :doc:`edpd <pair_meso>` - eDPD particle interactions
+* :doc:`edpd <pair_mesodpd>` - eDPD particle interactions
 * :doc:`eff/cut <pair_eff>` - electron force field with a cutoff
 * :doc:`eim <pair_eim>` - embedded ion method (EIM)
 * :doc:`exp6/rx <pair_exp6_rx>` - reactive DPD potential
@@ -239,8 +239,8 @@ accelerated styles exist.
 * :doc:`lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
 * :doc:`lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
 * :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
-* :doc:`mdpd <pair_meso>` - mDPD particle interactions
-* :doc:`mdpd/rhosum <pair_meso>` - mDPD particle interactions for mass density
+* :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
+* :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
 * :doc:`meam/c <pair_meamc>` - modified embedded atom method (MEAM) in C
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
@@ -309,7 +309,7 @@ accelerated styles exist.
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
-* :doc:`tdpd <pair_meso>` - tDPD particle interactions
+* :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions
 * :doc:`tersoff <pair_tersoff>` - Tersoff 3-body potential
 * :doc:`tersoff/mod <pair_tersoff_mod>` - modified Tersoff 3-body potential
 * :doc:`tersoff/mod/c <pair_tersoff_mod>` -
@@ -354,6 +354,6 @@ Default
 """""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none

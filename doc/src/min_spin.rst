@@ -1,19 +1,19 @@
-.. index:: min\_style spin
+.. index:: min_style spin
 
-min\_style spin command
-=======================
+min_style spin command
+======================
 
-min\_style spin/cg command
-==========================
+min_style spin/cg command
+=========================
 
-min\_style spin/lbfgs command
-=============================
+min_style spin/lbfgs command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style spin 
    min_style spin/cg 
@@ -23,7 +23,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style  spin/lbfgs
    min_modify line spin_cubic discrete_factor 10.0
@@ -38,7 +38,8 @@ Style *spin* defines a damped spin dynamics with an adaptive
 timestep, according to:
 
 .. math::
-    \frac{d \vec{s}_{i}}{dt} = \lambda\, \vec{s}_{i} \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right)
+
+   \frac{d \vec{s}_{i}}{dt} = \lambda\, \vec{s}_{i} \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right)
 
 with :math:`\lambda` a damping coefficient (similar to a Gilbert
 damping). :math:`\lambda` can be defined by setting the
@@ -50,7 +51,8 @@ by the largest precession frequency that has to be solved in the
 system:
 
 .. math::
-    {\Delta t}_{\rm max} = \frac{2\pi}{\kappa \left|\vec{\omega}_{\rm max} \right|}
+
+   {\Delta t}_{\rm max} = \frac{2\pi}{\kappa \left|\vec{\omega}_{\rm max} \right|}
 
 with :math:`\left|\vec{\omega}_{\rm max}\right|` the norm of the largest precession
 frequency in the system (across all processes, and across all replicas if a

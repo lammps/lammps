@@ -58,8 +58,22 @@ accounted for in measuring the grain boundary velocity.
 
 The potential energy added to atom I is given by these formulas
 
-.. image:: Eqs/fix_orient_fcc.jpg
-   :align: center
+.. math::
+
+   \xi_{i} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(1\right) \\
+   \\
+  \xi_{\rm IJ} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j}^{\rm J} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(2\right)\\
+  \\
+  \xi_{\rm low}  = & {\rm cutlo} \, \xi_{\rm IJ}  \qquad\qquad\qquad\left(3\right)\\
+  \xi_{\rm high}  = & {\rm cuthi} \, \xi_{\rm IJ} \qquad\qquad\qquad\left(4\right) \\
+  \\
+  \omega_{i} = & \frac{\pi}{2} \frac{\xi_{i} - \xi_{\rm low}}{\xi_{\rm high} - \xi_{\rm low}} \qquad\qquad\left(5\right)\\
+  \\
+  u_{i}  = & 0 \quad\quad\qquad\qquad\qquad \textrm{ for } \qquad \xi_{i} < \xi_{\rm low}\\
+         = & {\rm dE}\,\frac{1 - \cos(2 \omega_{i})}{2}
+   \qquad \mathrm{ for }\qquad \xi_{\rm low} < \xi_{i} < \xi_{\rm high}  \quad \left(6\right) \\
+         = & {\rm dE} \quad\qquad\qquad\qquad\textrm{ for } \qquad \xi_{\rm high} < \xi_{i}
+
 
 which are fully explained in :ref:`(Janssens) <Janssens>`.  For fcc crystals
 this order parameter Xi for atom I in equation (1) is a sum over the

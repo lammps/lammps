@@ -324,7 +324,7 @@ ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE n
     DOUBLE_TYPE c[4];
     x = r * rscalelookup;
     nl = static_cast<int>(floor(x));
-    if (nl < 0) {
+    if (nl <= 0) {
         fprintf(stderr, "Encountered very small distance.\n Stopping.");
         exit(EXIT_FAILURE);
     }

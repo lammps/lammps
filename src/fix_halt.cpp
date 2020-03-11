@@ -306,21 +306,25 @@ double FixHalt::tlimit()
 /* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
-#if defined(__linux)
+#if defined(__linux) || defined(__APPLE__)
 #include <sys/statvfs.h>
 #endif
 double FixHalt::diskfree()
 {
-#if defined(__linux)
+#if defined(__linux) || defined(__APPLE__)
   struct statvfs fs;
   double disk_free = -1.0;
 
   if (dlimit_path) {
     disk_free = 1.0e100;
     int rv = statvfs(dlimit_path,&fs);
-    if (rv == 0)
+    if (rv == 0) {
+#if defined(__linux)
       disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
-    else
+#elif defined(__APPLE__)
+      disk_free = fs.f_bavail*fs.f_frsize/1048576.0;
+#endif
+    } else
       disk_free = -1.0;
 
     MPI_Bcast(&disk_free,1,MPI_DOUBLE,0,world);

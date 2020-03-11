@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary gle 6 300 300 31415 smart.A
    fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C

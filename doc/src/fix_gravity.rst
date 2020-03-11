@@ -38,7 +38,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all gravity 1.0 chute 24.0
    fix 1 all gravity v_increase chute 24.0

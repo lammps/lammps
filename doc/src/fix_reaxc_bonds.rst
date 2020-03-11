@@ -21,7 +21,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all reax/c/bonds 100 bonds.reaxc
 

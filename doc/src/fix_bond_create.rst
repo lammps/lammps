@@ -40,7 +40,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all bond/create 10 1 2 0.8 1
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3

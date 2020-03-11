@@ -22,7 +22,7 @@ fix orient/bcc command
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix gb all orient/fcc 0 1 4.032008 0.001 0.25 0.75 xi.vec chi.vec
    fix gb all orient/bcc 0 1 2.882 0.001 0.25 0.75 ngb.left ngb.right

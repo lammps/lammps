@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all box/relax iso 0.0 vmax 0.001
    fix 2 water box/relax aniso 0.0 dilate partial
@@ -286,7 +286,7 @@ pressure, even though this is subsequently ignored by default.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp virial
@@ -343,7 +343,7 @@ result in double-counting of the fix energy in the minimization
 energy. Instead, the fix energy can be explicitly added to the
 potential energy using one of these two variants:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable emin equal pe+f_1
 

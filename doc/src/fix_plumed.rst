@@ -22,7 +22,9 @@ Syntax
 Examples
 """"""""
 
-fix pl all plumed all plumed plumedfile plumed.dat outfile p.log
+.. code-block:: LAMMPS
+
+   fix pl all plumed all plumed plumedfile plumed.dat outfile p.log
 
 Description
 """""""""""

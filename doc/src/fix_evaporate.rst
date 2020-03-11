@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 solvent evaporate 1000 10 surface 49892
    fix 1 solvent evaporate 1000 10 surface 38277 molecule yes

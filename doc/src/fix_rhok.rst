@@ -15,7 +15,7 @@ fix rhok command
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix bias all rhok 16 0 0 4.0 16.0
    fix 1 all npt temp 0.8 0.8 4.0 z 2.2 2.2 8.0

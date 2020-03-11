@@ -16,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 all nve/asphere/noforce
+.. code-block:: LAMMPS
+
+   fix 1 all nve/asphere/noforce
 
 Description
 """""""""""

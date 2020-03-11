@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 sphere lb/momentum
    fix 1 all lb/momentum linear 1 1 0

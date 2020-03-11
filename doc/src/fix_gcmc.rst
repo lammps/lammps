@@ -56,7 +56,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
    fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
@@ -150,7 +150,7 @@ thermal equilibrium with the simulation cell. Also, it is important
 that the temperature used by fix nvt be dynamic/dof, which can be
 achieved as follows:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mdtemp mdatoms temp
    compute_modify mdtemp dynamic/dof yes
@@ -357,7 +357,7 @@ therefore, you will want to use the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute_modify thermo_temp dynamic yes
 

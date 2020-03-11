@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 qin heat 1 1.0
    fix 3 qin heat 10 v_flux

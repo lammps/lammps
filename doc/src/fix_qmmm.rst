@@ -16,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 qmol qmmm
+.. code-block:: LAMMPS
+
+   fix 1 qmol qmmm
 
 Description
 """""""""""

@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix el all electron/stopping 10.0 elstop-table.txt
    fix el all electron/stopping 10.0 elstop-table.txt minneigh 3

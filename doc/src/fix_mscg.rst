@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all mscg 1
    fix 1 all mscg 1 range name A B

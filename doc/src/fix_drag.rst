@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix center small-molecule drag 0.0 10.0 0.0 5.0 2.0
 

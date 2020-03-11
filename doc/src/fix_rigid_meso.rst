@@ -43,7 +43,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 ellipsoid rigid/meso single
    fix 1 rods      rigid/meso molecule

@@ -45,7 +45,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/eff temp 300.0 300.0 0.1
    fix 1 part npt/eff temp 300.0 300.0 0.1 iso 0.0 0.0 1.0

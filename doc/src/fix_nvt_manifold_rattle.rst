@@ -32,7 +32,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 all nvt/manifold/rattle 1e-4 10 cylinder 3.0 temp 1.0 1.0 10.0
+.. code-block:: LAMMPS
+
+   fix 1 all nvt/manifold/rattle 1e-4 10 cylinder 3.0 temp 1.0 1.0 10.0
 
 Description
 """""""""""

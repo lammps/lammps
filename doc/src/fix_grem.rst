@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix             fxgREM all grem 400 -0.01 -30000 fxnpt
    thermo_modify   press fxgREM_press

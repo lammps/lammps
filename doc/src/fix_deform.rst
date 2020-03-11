@@ -81,7 +81,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all deform 1 x final 0.0 9.0 z final 0.0 5.0 units box
    fix 1 all deform 1 x trate 0.1 y volume z volume
@@ -280,12 +280,12 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 x variable v_displace v_rate remap v
 
 For the *scale*\ , *vel*\ , *erate*\ , *trate*\ , *volume*\ , *wiggle*\ , and
@@ -425,12 +425,12 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 xy variable v_displace v_rate remap v
 
 ----------

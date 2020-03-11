@@ -41,7 +41,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
    fix 1 all phonon 20 5000 200000 map.in EAM3D

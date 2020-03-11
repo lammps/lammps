@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1
    fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1 drag 0.2

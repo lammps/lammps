@@ -16,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 flow lb/viscous
+.. code-block:: LAMMPS
+
+   fix 1 flow lb/viscous
 
 Description
 """""""""""

@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all mvv/dpd
    fix 1 all mvv/dpd 0.5

@@ -54,7 +54,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+.. code-block:: LAMMPS
+
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
 
 Description
 """""""""""
@@ -379,7 +381,7 @@ This fix compute a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if one of these sets of commands had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp
    compute fix-ID_press all pressure fix-ID_temp

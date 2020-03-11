@@ -31,7 +31,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix GD fluid flow/gauss 1 0 0
    fix GD fluid flow/gauss 1 1 1 energy yes

@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 surface qeq/comb 10 0.0001
 

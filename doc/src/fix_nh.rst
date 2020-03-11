@@ -84,7 +84,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt temp 300.0 300.0 100.0
    fix 1 water npt temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
@@ -153,9 +153,9 @@ by the velocity/position update portion of the integration.
    via using an :doc:`immediate variable <variable>` expression accessing
    the thermo property 'dt', which is the length of the time step. Example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix 1 all nvt temp 300.0 300.0 $(100.0\*dt)
+   fix 1 all nvt temp 300.0 300.0 $(100.0*dt)
 
 ----------
 
@@ -437,11 +437,15 @@ style "temp" and "pressure", as if one of these sets of commands had
 been issued:
 
 For fix nvt:
-compute fix-ID\_temp group-ID temp
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   For fix npt and fix nph:
+   compute fix-ID_temp group-ID temp
+
+For fix npt and fix nph:
+
+.. code-block:: LAMMPS
+
    compute fix-ID_temp all temp
    compute fix-ID_press all pressure fix-ID_temp
 

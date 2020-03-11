@@ -65,7 +65,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
    fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8

@@ -34,7 +34,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all hyper/local 1.0 0.3 0.8 300.0
    fix 1 all hyper/local 1.0 0.3 0.8 300.0 bound 0.1 reset 0
@@ -248,7 +248,7 @@ well for many solid-state systems.
    pair\_style cutoff, which will typically be < *Dcut*\ .  The :doc:`comm_modify cutoff <comm_modify>` command should be used to override the ghost
    cutoff explicitly, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify cutoff 12.0
 

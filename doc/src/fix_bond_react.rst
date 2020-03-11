@@ -59,7 +59,7 @@ Examples
 
 For unabridged example scripts and files, see examples/USER/reaction.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule mol1 pre_reacted_topology.txt
    molecule mol2 post_reacted_topology.txt
@@ -466,7 +466,7 @@ atoms currently involved in a reaction. For example, adding the
 following command would add an additional thermostat to the group of
 all currently-reacting atoms:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 

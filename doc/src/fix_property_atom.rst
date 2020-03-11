@@ -35,7 +35,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all property/atom mol
    fix 1 all property/atom i_myflag1 i_myflag2
@@ -148,7 +148,7 @@ passing it the fix-ID of this fix.
 
 Thus these commands:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom mol d_flag
    read_data data.txt fix prop NULL Molecules
@@ -177,11 +177,11 @@ Another way of initializing the new properties is via the
 defined for every set of 10 atoms, based on their atom-IDs,
 these commands could be used:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom mol
    variable cluster atom ((id-1)/10)+1
-   set atom \* mol v_cluster
+   set atom * mol v_cluster
 
 The :doc:`atom-style variable <variable>` will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the
@@ -204,7 +204,7 @@ their values.  This means that the values can be output via the :doc:`dump custo
 For example, these commands will output two new properties to a custom
 dump file:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom i_flag1 d_flag2
    compute 1 all property/atom i_flag1 d_flag2
@@ -233,7 +233,7 @@ for regular TIP4P water, where water oxygen is atom type 1 and water
 hydrogen is atom type 2, the following lines of input script convert
 this to using per-atom masses:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix Isotopes all property/atom rmass ghost yes
    set type 1 mass 15.9994
@@ -246,7 +246,7 @@ existing data file and just add this *Isotopes* section with
 one line per atom containing atom-ID and mass. Either way, the
 extended data file can be read back with:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix Isotopes all property/atom rmass ghost yes
    read_data tip4p-isotopes.data fix Isotopes NULL Isotopes
@@ -256,7 +256,7 @@ and the second to the name of the section. The following input
 script code will now change the first 100 water molecules in this
 example to heavy water:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group hwat id 2:300:3
    group hwat id 3:300:3

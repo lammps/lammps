@@ -30,7 +30,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
    fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
@@ -145,7 +145,7 @@ specify the Drude status of each atom type.
    correctly.  You must use the :doc:`comm_modify <comm_modify>` command to
    enable this, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
 
@@ -220,7 +220,7 @@ command.
 
 Usage example for rigid bodies in the NPT ensemble:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
    fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes

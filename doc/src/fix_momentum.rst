@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all momentum 1 linear 1 1 0
    fix 1 all momentum 1 linear 1 1 1 rescale

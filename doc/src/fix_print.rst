@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix extra all print 100 "Coords of marker atom = $x $y $z"
    fix extra all print 100 "Coords of marker atom = $x $y $z" file coord.txt
@@ -54,7 +54,7 @@ and logfreq() and stride() math functions for :doc:`equal-style variables <varia
 this context. For example, the following commands will print output at
 timesteps 10,20,30,100,200,300,1000,2000,etc:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        s equal logfreq(10,3,10)
    fix extra all print v_s "Coords of marker atom = $x $y $z"

@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix kick external-field efield 1.0 0.0 0.0
    fix kick external-field efield 0.0 0.0 v_oscillate

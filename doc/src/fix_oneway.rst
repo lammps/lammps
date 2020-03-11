@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ions oneway 10 semi -x
    fix all oneway 1 left -z

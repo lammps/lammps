@@ -34,7 +34,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 active neb 10.0
    fix 2 all neb 1.0 perp 1.0 end last

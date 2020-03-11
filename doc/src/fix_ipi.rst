@@ -20,8 +20,10 @@ Syntax
 Examples
 """"""""
 
-fix 1 all ipi my.server.com 12345
-fix 1 all ipi mysocket 666 unix reset
+.. code-block:: LAMMPS
+
+   fix 1 all ipi my.server.com 12345
+   fix 1 all ipi mysocket 666 unix reset
 
 Description
 """""""""""

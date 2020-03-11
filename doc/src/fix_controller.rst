@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all controller 100 1.0 0.5 0.0 0.0 c_thermo_temp 1.5 tcontrol
    fix 1 all controller 100 0.2 0.5 0 100.0 v_pxxwall 1.01325 xwall

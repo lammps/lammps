@@ -23,7 +23,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all nve/spin lattice moving
    fix 1 all nve/spin lattice frozen
@@ -64,7 +64,7 @@ info.
 To use the spin algorithm, it is necessary to define a map with
 the atom\_modify command. Typically, by adding the command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_modify map array
 

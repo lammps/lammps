@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 8
    run_style respa 3 2 8 bond 1 pair 2 kspace 3

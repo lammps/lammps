@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix            myCMAP all cmap ../potentials/cmap36.data
    read_data      proteinX.data fix myCMAP crossterm CMAP

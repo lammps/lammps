@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all eos/table linear eos.table 100000 KEYWORD
 

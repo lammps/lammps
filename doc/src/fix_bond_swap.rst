@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all bond/swap 50 0.5 1.3 598934
 
@@ -119,7 +119,7 @@ This fix computes a temperature each time it is invoked for use by the
 Boltzmann criterion.  To do this, the fix creates its own compute of
 style *temp*\ , as if this command had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp
 

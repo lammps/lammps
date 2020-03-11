@@ -39,7 +39,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 boundary meso/move wiggle 3.0 0.0 0.0 1.0 units box
    fix 2 boundary meso/move rotate 0.0 0.0 0.0 0.0 0.0 1.0 5.0
@@ -107,7 +107,7 @@ Note that the *linear* style is identical to using the *variable*
 style with an :doc:`equal-style variable <variable>` that uses the
 vdisplace() function.  E.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable V equal 10.0
    variable x equal vdisplace(0.0,$V)
@@ -135,13 +135,13 @@ Note that the *wiggle* style is identical to using the *variable*
 style with :doc:`equal-style variables <variable>` that use the
 swiggle() and cwiggle() functions.  E.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 10.0
    variable T equal 5.0
-   variable omega equal 2.0\*PI/$T
+   variable omega equal 2.0*PI/$T
    variable x equal swiggle(0.0,$A,$T)
-   variable v equal v_omega\*($A-cwiggle(0.0,$A,$T))
+   variable v equal v_omega*($A-cwiggle(0.0,$A,$T))
    fix 1 boundary move variable v_x NULL NULL v_v NULL NULL
 
 The *rotate* style rotates particles around a rotation axis *R* =

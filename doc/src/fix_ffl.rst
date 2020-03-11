@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary ffl 10 300 300 31415
    fix 1 all ffl 100 500 500 9265 soft

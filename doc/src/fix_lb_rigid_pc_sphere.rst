@@ -38,7 +38,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 spheres lb/rigid/pc/sphere
    fix 1 all lb/rigid/pc/sphere force 1 0 0 innerNodes ForceAtoms

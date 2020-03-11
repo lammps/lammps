@@ -21,7 +21,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 active neb/spin 1.0
+.. code-block:: LAMMPS
+
+   fix 1 active neb/spin 1.0
 
 Description
 """""""""""

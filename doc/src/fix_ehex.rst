@@ -31,7 +31,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    # Lennard-Jones, from examples/in.ehex.lj
 

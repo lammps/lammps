@@ -17,7 +17,9 @@ Syntax
 Examples
 """"""""
 
-fix constrain all manifoldforce sphere 5.0
+.. code-block:: LAMMPS
+
+   fix constrain all manifoldforce sphere 5.0
 
 Description
 """""""""""

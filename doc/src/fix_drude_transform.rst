@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all drude/transform/direct
    fix 1 all drude/transform/inverse
@@ -132,7 +132,7 @@ acting on two distinct groups.
 
 Example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix fDIRECT all drude/transform/direct
    fix fNVT gCORES nvt temp 300.0 300.0 100
@@ -157,7 +157,7 @@ pressure *thermo\_press*.
 
 Example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cTEMP_CORE gCORES temp/com
    fix fDIRECT all drude/transform/direct
@@ -176,7 +176,7 @@ In order to avoid the flying ice cube problem (irreversible transfer
 of linear momentum to the center of mass of the system), you may need
 to add a *fix momentum* command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix fMOMENTUM all momentum 100 linear 1 1 1
 

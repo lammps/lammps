@@ -15,7 +15,7 @@ pymodule.CLASS = use class **CLASS** in module/file **pymodule** to compute how 
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix  1 all python/move py_nve.NVE
    fix  1 all python/move py_nve.NVE_OPT
@@ -39,9 +39,9 @@ performance penalty can be limited through effective use of NumPy.
 
 The python module file has to start with the following code:
 
-.. parsed-literal::
+.. code-block:: python
 
-   from __future_\_ import print_function
+   from __future__ import print_function
    import lammps
    import ctypes
    import traceback

@@ -41,7 +41,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
    fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2

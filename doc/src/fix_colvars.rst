@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
    fix abf all colvars colvars.inp tstat 1

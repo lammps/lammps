@@ -30,7 +30,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all dt/reset 10 1.0e-5 0.01 0.1
    fix 5 all dt/reset 10 0.01 2.0 0.2 units box

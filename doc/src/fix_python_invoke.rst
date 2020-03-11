@@ -23,7 +23,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python post_force_callback here """
    from lammps import lammps

@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all drude 1 1 0 1 0 2 2 2
    fix 1 all drude C C N C N D D D

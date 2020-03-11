@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all external pf/callback 1 1
    fix 1 all external pf/callback 100 1
@@ -51,23 +51,25 @@ be used multiple times to update atom forces.
 
 The callback function "foo" is invoked by the fix as:
 
-.. parsed-literal::
+.. code-block:: c++
 
-   foo(void \*ptr, bigint timestep, int nlocal, int \*ids, double \*\*x, double \*\*fexternal);
+   foo(void *ptr, bigint timestep, int nlocal, tagint *ids, double **x, double **fexternal);
 
 The arguments are as follows:
 
-* ptr = pointer provided by and simply passed back to external driver
-* timestep = current LAMMPS timestep
-* nlocal = # of atoms on this processor
-* ids = list of atom IDs on this processor
-* x = coordinates of atoms on this processor
-* fexternal = forces to add to atoms on this processor
+* *ptr* = pointer provided by and simply passed back to external driver
+* *timestep* = current LAMMPS timestep
+* *nlocal* = # of atoms on this processor
+* *ids* = list of atom IDs on this processor
+* *x* = coordinates of atoms on this processor
+* *fexternal* = forces to add to atoms on this processor
 
-Note that timestep is a "bigint" which is defined in src/lmptype.h,
-typically as a 64-bit integer.
-
-Fexternal are the forces returned by the driver program.
+Note that *timestep* is a "bigint" which is defined in src/lmptype.h,
+typically as a 64-bit integer. And *ids* is a pointer to type "tagint"
+which is typically a 32-bit integer unless LAMMPS is compiled with
+-DLAMMPS\_BIGBIG. For more info please see the :ref:`build settings
+<size>` section of the manual.  Finally, *fexternal* are the forces
+returned by the driver program.
 
 The fix has a set\_callback() method which the external driver can call
 to pass a pointer to its foo() function.  See the
@@ -87,9 +89,9 @@ every *Napply* steps, similar to the way the :doc:`fix addforce <fix_addforce>` 
 The name of the public force array provided by the FixExternal
 class is
 
-.. parsed-literal::
+.. code-block:: c++
 
-   double \*\*fexternal;
+   double **fexternal;
 
 It is allocated by the FixExternal class as an (N,3) array where N is
 the number of atoms owned by a processor.  The 3 corresponds to the
@@ -111,7 +113,7 @@ added forces.  Otherwise the minimization will not converge correctly.
 This can be done from the external driver by calling this public
 method of the FixExternal class:
 
-.. parsed-literal::
+.. code-block:: c++
 
    void set_energy(double eng);
 

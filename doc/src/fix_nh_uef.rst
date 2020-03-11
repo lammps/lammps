@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix uniax_nvt all nvt/uef temp 400 400 100 erate 0.00001 -0.000005
    fix biax_nvt all nvt/uef temp 400 400 100 erate 0.000005 0.000005
@@ -116,7 +116,7 @@ pressure (Pxx+Pyy)/2 will be controlled.
 This example command will control the total hydrostatic pressure under
 uniaxial tension:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f1 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xyz
 
@@ -124,7 +124,7 @@ This example command will control the average stress in compression
 directions, which would typically correspond to free surfaces under
 drawing with uniaxial tension:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f2 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xy
 
@@ -140,14 +140,14 @@ method.
 
 For example, the following commands will work:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f3 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 y 1 1 5 erate -0.5 -0.5
    fix f4 all npt/uef temp 0.7 0.7 0.5 z 1 1 5 erate 0.5 0.5
 
 The following commands will not work:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f5 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 1 1 5 erate -0.5 -0.5
    fix f6 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 2 2 5 erate 0.5 0.5
@@ -159,7 +159,7 @@ this, it creates its own computes of style "temp/uef" and
 "pressure/uef", as if one of these two sets of commands had been
 issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/uef
    compute fix-ID_press group-ID pressure/uef fix-ID_temp

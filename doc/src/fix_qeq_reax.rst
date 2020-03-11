@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq

@@ -42,7 +42,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all indent 10.0 sphere 0.0 0.0 15.0 3.0
    fix 1 all indent 10.0 sphere v_x v_y 0.0 v_radius side in
@@ -62,9 +62,9 @@ must set one of those 3 keywords.
 
 A spherical indenter exerts a force of magnitude
 
-.. parsed-literal::
+.. math::
 
-   F(r) = - K (r - R)\^2
+   F(r) = - K \left( r - R \right)^2
 
 on each atom where *K* is the specified force constant, *r* is the
 distance from the atom to the center of the indenter, and *R* is the
@@ -117,27 +117,27 @@ then this variable definition will keep it's center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
 the right edge, even if the box size changes:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable x equal "xlo + 0.25\*lx"
+   variable x equal "xlo + 0.25*lx"
 
 Similarly, either of these variable definitions will move the indenter
 from an initial position at 2.5 at a constant velocity of 5:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable x equal "2.5 + 5\*elaplong\*dt"
+   variable x equal "2.5 + 5*elaplong*dt"
    variable x equal vdisplace(2.5,5)
 
 If a spherical indenter's radius is specified as v\_r, then these
 variable definitions will grow the size of the indenter at a specified
 rate.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable r0 equal 0.0
    variable rate equal 1.0
-   variable r equal "v_r0 + step\*dt\*v_rate"
+   variable r equal "v_r0 + step*dt*v_rate"
 
 If the *side* keyword is specified as *out*\ , which is the default,
 then particles outside the indenter are pushed away from its outer
@@ -171,7 +171,7 @@ lattice spacing, you can define K with a variable whose formula
 contains *xlat*\ , *ylat*\ , *zlat* keywords of the
 :doc:`thermo_style <thermo_style>` command, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable k equal 100.0/xlat/xlat
    fix 1 all indent $k sphere ...

@@ -30,7 +30,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all press/berendsen iso 0.0 0.0 1000.0
    fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial
@@ -171,7 +171,7 @@ This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp

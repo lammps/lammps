@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/manifold/rattle 1e-4 10 sphere 5.0
    fix step all nve/manifold/rattle 1e-8 100 ellipsoid 2.5 2.5 5.0 every 25
@@ -55,7 +55,7 @@ write a script.
 
 The manifold args may be equal-style variables, like so:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable R equal "ramp(5.0,3.0)"
    fix shrink_sphere all nve/manifold/rattle 1e-4 10 sphere v_R

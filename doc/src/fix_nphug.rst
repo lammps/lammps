@@ -44,7 +44,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0
    fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0
@@ -120,7 +120,7 @@ This fix computes a temperature and pressure at each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if one of these two sets of commands had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp

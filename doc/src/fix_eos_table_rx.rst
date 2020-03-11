@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD thermo.table
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD 1.5

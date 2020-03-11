@@ -22,7 +22,7 @@ Syntax:
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 fluid poems group clump1 clump2 clump3
    fix 3 fluid poems file cluster.list

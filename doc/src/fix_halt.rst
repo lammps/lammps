@@ -34,7 +34,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 10 all halt 1 bondmax > 1.5
    fix 10 all print 10 v_myCheck != 0 error soft
@@ -86,7 +86,7 @@ computing some attribute of the current system.  For example, the
 following "bondmax" variable will calculate the same quantity as the
 hstyle = bondmax option.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         bdist all bond/local dist
    compute         bmax all reduce max c_bdist
@@ -94,7 +94,7 @@ hstyle = bondmax option.
 
 Thus these two versions of a fix halt command will do the same thing:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 10 all halt 1 bondmax > 1.5
    fix 10 all halt 1 v_bondmax > 1.5

@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all recenter 0.0 0.5 0.0
    fix 1 all recenter INIT INIT NULL

@@ -6,7 +6,9 @@ fix propel/self command
 Syntax
 """"""
 
-fix ID group-ID propel/self mode magnitude keyword values ...
+.. parsed-literal::
+
+   fix ID group-ID propel/self mode magnitude keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * propel/self = style name of this fix command
@@ -20,7 +22,7 @@ fix ID group-ID propel/self mode magnitude keyword values ...
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix active_group all propel/self velocity 1.0
    fix constant_velocity all viscous 1.0

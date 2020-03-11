@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nph/sphere iso 0.0 0.0 1000.0
    fix 2 all nph/sphere x 5.0 5.0 1000.0
@@ -74,7 +74,7 @@ This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp/sphere" and
 "pressure", as if these commands had been issued:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp/sphere
    compute fix-ID_press all pressure fix-ID_temp

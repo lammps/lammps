@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all pimd method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
 
@@ -128,14 +128,14 @@ To run a PIMD simulation with M quasi-beads in each ring polymer using
 N MPI tasks for each partition's domain-decomposition, you would use P
 = MxN processors (cores) and run the simulation as follows:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np P lmp_mpi -partition MxN -in script
 
 Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a :doc:`uloop-style variable <variable>` such as
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ibead uloop M pad
 
@@ -143,7 +143,7 @@ where M is the number of quasi-beads (partitions) used in the
 calculation.  The uloop variable can then be used to manage I/O
 related tasks for each of the partitions, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump dcd all dcd 10 system_${ibead}.dcd
    restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
@@ -163,7 +163,7 @@ To avoid this, users can simply initialize velocities with different
 random number seeds assigned to each partition, as defined by the
 uloop variable, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 1234${ibead} rot yes dist gaussian
 

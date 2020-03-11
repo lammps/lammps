@@ -99,17 +99,18 @@ void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmax
     DOUBLE_TYPE t;
 
     // l=0, m=0
-    plm(0, 0) = Y00; //= sq1o4pi;
+    //plm(0, 0) = Y00/sq1o4pi; //= sq1o4pi;
+    plm(0, 0) = Y00; //= 1;
     dplm(0, 0) = 0.0;
 
     if (lmaxi > 0) {
 
         // l=1, m=0
-        plm(1, 0) = sq3o4pi * rz;
-        dplm(1, 0) = sq3o4pi;
+        plm(1, 0) = Y00 * sq3 * rz;
+        dplm(1, 0) = Y00 * sq3;
 
         // l=1, m=1
-        plm(1, 1) = -sq3o8pi;
+        plm(1, 1) = -sq3o2 * Y00;
         dplm(1, 1) = 0.0;
 
         // loop l = 2, lmax

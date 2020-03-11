@@ -12,13 +12,13 @@
 
 using namespace std;
 
-
-const DOUBLE_TYPE sq3o4pi = 0.48860251190291992158; // sqrt(3/(4*pi))
 const DOUBLE_TYPE sq1o4pi = 0.28209479177387814347; // sqrt(1/(4*pi))
-const DOUBLE_TYPE sq3o8pi = 0.34549414947133547927; // sqrt(3/(8*pi))
+const DOUBLE_TYPE sq3 = 1.73205080756887719318;//sqrt(3), numpy
+const DOUBLE_TYPE sq3o2 = 1.22474487139158894067;//sqrt(3/2), numpy
 
 //definition of common factor for spherical harmonics = Y00
-const DOUBLE_TYPE Y00 = sq1o4pi;
+//const DOUBLE_TYPE Y00 = sq1o4pi;
+const DOUBLE_TYPE Y00 = 1;
 
 /**
 Class to store spherical harmonics and their associated functions. \n

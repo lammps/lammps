@@ -58,12 +58,12 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/time 100 5 1000 c_myTemp c_thermo_temp file temp.profile
    fix 1 all ave/time 100 5 1000 c_thermo_press[2] ave window 20 &
                                  title1 "My output values"
-   fix 1 all ave/time 100 5 1000 c_thermo_press[\*]
+   fix 1 all ave/time 100 5 1000 c_thermo_press[*]
    fix 1 all ave/time 1 100 1000 f_indent f_indent[1] file temp.indent off 1
 
 Description
@@ -128,10 +128,10 @@ vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/time commands are equivalent, since the :doc:`compute rdf <compute_rdf>` command creates, in this case, a global array
 with 3 columns, each of length 50:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myRDF all rdf 50 1 2
-   fix 1 all ave/time 100 1 100 c_myRDF[\*] file tmp1.rdf mode vector
+   fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp1.rdf mode vector
    fix 2 all ave/time 100 1 100 c_myRDF[1] c_myRDF[2] c_myRDF[3] file tmp2.rdf mode vector
 
 ----------

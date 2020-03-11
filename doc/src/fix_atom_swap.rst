@@ -35,7 +35,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
    fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6

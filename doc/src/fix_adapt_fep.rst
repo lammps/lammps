@@ -49,11 +49,11 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all adapt/fep 1 pair soft a 1 1 v_prefactor
-   fix 1 all adapt/fep 1 pair soft a 2\* 3 v_prefactor
-   fix 1 all adapt/fep 1 pair lj/cut epsilon \* \* v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
+   fix 1 all adapt/fep 1 pair soft a 2* 3 v_prefactor
+   fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
 
 Description
@@ -234,10 +234,10 @@ For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable prefactor equal ramp(10,30)
-   fix 1 all adapt 1 pair soft a \* \* v_prefactor
+   fix 1 all adapt 1 pair soft a * * v_prefactor
 
 ----------
 
@@ -279,10 +279,10 @@ For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable size equal ramp(1.0,0.1)
-   fix 1 center adapt 10 atom diameter \* v_size
+   fix 1 center adapt 10 atom diameter * v_size
 
 For :doc:`rRESPA time integration <run_style>`, this fix changes
 parameters on the outermost rRESPA level.

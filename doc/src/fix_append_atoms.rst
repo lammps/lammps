@@ -40,7 +40,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all append/atoms zhi size 5.0 freq 295 units lattice
    fix 4 all append/atoms zhi size 15.0 freq 5 units box

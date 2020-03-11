@@ -112,21 +112,21 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 clump rigid single reinit yes
    fix 1 clump rigid/small molecule
    fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
    fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0 reinit no
-   fix 1 polychains rigid molecule force 1\*5 off off off force 6\*10 off off on
+   fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
    fix 1 polychains rigid/small molecule langevin 1.0 1.0 1.0 428984
-   fix 2 fluid rigid group 3 clump1 clump2 clump3 torque \* off off off
+   fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off
    fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
    fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
    fix 1 water rigid/nph molecule iso 0.5 0.5 1.0
    fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0
 
-   variable bodyid atom 1.0\*gmask(clump1)+2.0\*gmask(clump2)+3.0\*gmask(clump3)
+   variable bodyid atom 1.0*gmask(clump1)+2.0*gmask(clump2)+3.0*gmask(clump3)
    fix 1 clump rigid custom v_bodyid
 
    variable bodyid atomfile bodies.txt
@@ -865,7 +865,7 @@ insures all DOFs are accounted for properly, and then rescale the
 temperature to the desired value before performing a simulation.  For
 example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 12345
    run 0                             # temperature may not be 300K

@@ -30,11 +30,11 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/atom 1 100 100 vx vy vz
    fix 1 all ave/atom 10 20 1000 c_my_stress[1]
-   fix 1 all ave/atom 10 20 1000 c_my_stress[\*]
+   fix 1 all ave/atom 10 20 1000 c_my_stress[*]
 
 Description
 """""""""""
@@ -79,10 +79,10 @@ had been listed one by one.  E.g. these 2 fix ave/atom commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute my_stress all stress/atom NULL
-   fix 1 all ave/atom 10 20 1000 c_my_stress[\*]
+   fix 1 all ave/atom 10 20 1000 c_my_stress[*]
    fix 1 all ave/atom 10 20 1000 c_my_stress[1] c_my_stress[2] &
                                  c_my_stress[3] c_my_stress[4] &
                                  c_my_stress[5] c_my_stress[6]

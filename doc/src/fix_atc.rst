@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix AtC internal atc thermal Ar_thermal.dat
    fix AtC internal atc two_temperature Ar_ttm.mat
@@ -41,9 +41,10 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or an on-th
 .. image:: JPG/atc_nanotube.jpg
    :align: center
 
-.. parsed-literal::
+The following coupling example is typical, but non-exhaustive:
 
-   The following coupling example is typical, but non-exhaustive:
+.. code-block:: LAMMPS
+
     # ... commands to create and initialize the MD system
 
     # initial fix to designate coupling type and group to apply it to
@@ -70,7 +71,7 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or an on-th
 
 likewise for this post-processing example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     # ... commands to create and initialize the MD system
 
@@ -102,7 +103,7 @@ likewise for this post-processing example:
 the mesh's linear interpolation functions can be used as the localization function
 by using the field option:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     fix AtC internal atc field
     fix_modify AtC mesh create 1 1 1 box p p p

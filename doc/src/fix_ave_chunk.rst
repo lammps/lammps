@@ -64,7 +64,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/chunk 10000 1 10000 binchunk c_myCentro title1 "My output values"
    fix 1 flow ave/chunk 100 10 1000 molchunk vx vz norm sample file vel.profile
@@ -78,13 +78,13 @@ with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <comput
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 
 could be replaced by:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 flow chunk/atom bin/1d y 0.0 1.0
    fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
@@ -148,10 +148,10 @@ had been listed one by one.  E.g. these 2 fix ave/chunk commands are
 equivalent, since the :doc:`compute property/atom <compute_property_atom>` command creates, in this
 case, a per-atom array with 3 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myAng all property/atom angmomx angmomy angmomz
-   fix 1 all ave/chunk 100 1 100 cc1 c_myAng[\*] file tmp.angmom
+   fix 1 all ave/chunk 100 1 100 cc1 c_myAng[*] file tmp.angmom
    fix 2 all ave/chunk 100 1 100 cc1 c_myAng[1] c_myAng[2] c_myAng[3] file tmp.angmom
 
 .. note::

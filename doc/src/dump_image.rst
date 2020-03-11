@@ -114,15 +114,20 @@ has been run, using the :doc:`rerun <rerun>` command to read snapshots
 from an existing dump file, and using these dump commands in the rerun
 script to generate the images/movie.
 
-Here are two sample images, rendered as 1024x1024 JPEG files.  Click
-to see the full-size images:
+Here are two sample images, rendered as 1024x1024 JPEG files.
 
-.. image:: JPG/dump1_small.jpg
+.. raw:: html
+
+   Click to see the full-size images:
+
+.. |dump1| image:: JPG/dump1_small.jpg
    :target: JPG/dump1.jpg
    :width: 48%
-.. image:: JPG/dump2_small.jpg
+.. |dump2| image:: JPG/dump2_small.jpg
    :target: JPG/dump2.jpg
    :width: 48%
+
+|dump1|  |dump2|
 
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also

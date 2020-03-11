@@ -49,7 +49,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all balance 1000 1.05 shift x 10 1.05
    fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
@@ -159,12 +159,17 @@ the simulation box across processors (one sub-box for each of 16
 processors); the middle diagram is after a "grid" method has been
 applied.
 
-.. image:: JPG/balance_uniform_small.jpg
+.. |bal_uni| image:: JPG/balance_uniform_small.jpg
    :target: JPG/balance_uniform.jpg
-.. image:: JPG/balance_nonuniform_small.jpg
+   :width: 31%
+.. |bal_non| image:: JPG/balance_nonuniform_small.jpg
    :target: JPG/balance_nonuniform.jpg
-.. image:: JPG/balance_rcb_small.jpg
+   :width: 31%
+.. |bal_rcb| image:: JPG/balance_rcb_small.jpg
    :target: JPG/balance_rcb.jpg
+   :width: 31%
+
+|bal_uni|  |bal_non|  |bal_rcb|
 
 The *rcb* style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with

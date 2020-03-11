@@ -64,6 +64,7 @@ templates include:
 * :doc:`fix rigid/small <fix_rigid>`
 * :doc:`fix shake <fix_shake>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix bond/react <fix_bond_react>`
 * :doc:`create_atoms <create_atoms>`
 * :doc:`atom_style template <atom_style>`
 
@@ -148,7 +149,7 @@ appear if the value(s) are different than the default.
 * Na *angles* = # of angles Na in molecule, default = 0
 * Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
 * Ni *impropers* = # of impropers Ni in molecule, default = 0
-* Ng *groups* = # of groups in molecule, default = 0
+* Nf *fragments* = # of fragments in molecule, default = 0
 * Mtotal *mass* = total mass of molecule
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
@@ -171,7 +172,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Molecules, Groups, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Fragments, Charges, Diameters, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -244,13 +245,13 @@ listed in order from 1 to Nlines, but LAMMPS does not check for this.
 ----------
 
 
-*Groups* section:
+*Fragments* section:
 
-* one line per group
+* one line per fragment
 * line syntax: ID a b c d ...
-* a,b,c,d,... = IDs of atoms in group
+* a,b,c,d,... = IDs of atoms in fragment
 
-The ID of a group can only contain alphanumeric characters and
+The ID of a fragment can only contain alphanumeric characters and
 underscores.  The atom IDs should be values from 1 to Natoms, where
 Natoms = # of atoms in the molecule.
 

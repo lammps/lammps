@@ -30,13 +30,13 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
-  int ntypes,nmolecules,ngroups;
+  int ntypes,nmolecules,nfragments;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nibody,ndbody;
 
-  // group info
-  char **groupnames;
-  int **groupmask; // ngroups by natoms
+  // fragment info
+  char **fragmentnames;
+  int **fragmentmask; // nfragments by natoms
 
   // max bond,angle,etc per atom
 
@@ -45,7 +45,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined in file, 0 if not
 
-  int xflag,typeflag,moleculeflag,groupflag,qflag,radiusflag,rmassflag;
+  int xflag,typeflag,moleculeflag,fragmentflag,qflag,radiusflag,rmassflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
@@ -123,7 +123,7 @@ class Molecule : protected Pointers {
   void compute_mass();
   void compute_com();
   void compute_inertia();
-  int findgroup(const char *);
+  int findfragment(const char *);
   void check_attributes(int);
 
  private:
@@ -138,7 +138,7 @@ class Molecule : protected Pointers {
   void coords(char *);
   void types(char *);
   void molecules(char *);
-  void groups(char *);
+  void fragments(char *);
   void charges(char *);
   void diameters(char *);
   void masses(char *);
@@ -379,7 +379,7 @@ E: Invalid Molecules section in molecule file
 
 Self-explanatory.
 
-E: Invalid atom ID in Groups section of molecule file
+E: Invalid atom ID in Fragments section of molecule file
 
 Self-explanatory.
 

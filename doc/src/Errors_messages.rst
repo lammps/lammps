@@ -4801,7 +4801,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Atom IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Groups section of molecule file*
+*Invalid atom ID in Fragments section of molecule file*
    Self-explanatory.
 
 *Invalid atom ID in Impropers section of data file*

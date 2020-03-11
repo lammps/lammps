@@ -46,7 +46,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
   shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
   dbodyparams(NULL), dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL),
-  fp(NULL), count(NULL), groupmask(NULL)
+  fp(NULL), count(NULL), fragmentmask(NULL)
 {
   me = comm->me;
 
@@ -447,8 +447,8 @@ void Molecule::read(int flag)
     } else if (strstr(line,"impropers")) {
       nmatch = sscanf(line,"%d",&nimpropers);
       nwant = 1;
-    } else if (strstr(line,"groups")) {
-      nmatch = sscanf(line,"%d",&ngroups);
+    } else if (strstr(line,"fragments")) {
+      nmatch = sscanf(line,"%d",&nfragments);
       nwant = 1;
     } else if (strstr(line,"mass")) {
       massflag = 1;
@@ -526,10 +526,10 @@ void Molecule::read(int flag)
       moleculeflag = 1;
       if (flag) molecules(line);
       else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Groups") == 0) {
-      groupflag = 1;
-      if (flag) groups(line);
-      else skip_lines(ngroups,line);
+    } else if (strcmp(keyword,"Fragments") == 0) {
+      fragmentflag = 1;
+      if (flag) fragments(line);
+      else skip_lines(nfragments,line);
     } else if (strcmp(keyword,"Charges") == 0) {
       qflag = 1;
       if (flag) charges(line);
@@ -729,28 +729,28 @@ void Molecule::molecules(char *line)
 }
 
 /* ----------------------------------------------------------------------
-   read groups from file
+   read fragments from file
 ------------------------------------------------------------------------- */
 
-void Molecule::groups(char *line)
+void Molecule::fragments(char *line)
 {
   int n,m,atomID,nwords;
   char **words = new char*[natoms+1];
 
-  for (int i = 0; i < ngroups; i++) {
+  for (int i = 0; i < nfragments; i++) {
     readline(line);
     nwords = parse(line,words,natoms+1);
     if (nwords > natoms+1)
-      error->all(FLERR,"Invalid atom ID in Groups section of molecule file");
+      error->all(FLERR,"Invalid atom ID in Fragments section of molecule file");
     n = strlen(words[0]) + 1;
-    groupnames[i] = new char[n];
-    strcpy(groupnames[i],words[0]);
+    fragmentnames[i] = new char[n];
+    strcpy(fragmentnames[i],words[0]);
 
     for (m = 1; m < nwords; m++) {
       atomID = atoi(words[m]);
       if (atomID <= 0 || atomID > natoms)
-        error->all(FLERR,"Invalid atom ID in Groups section of molecule file");
-      groupmask[i][atomID-1] = 1;
+        error->all(FLERR,"Invalid atom ID in Fragments section of molecule file");
+      fragmentmask[i][atomID-1] = 1;
     }
   }
 
@@ -1423,13 +1423,13 @@ void Molecule::body(int flag, int pflag, char *line)
 }
 
 /* ----------------------------------------------------------------------
-   return group index if name matches existing group, -1 if no such group
+   return fragment index if name matches existing fragment, -1 if no such fragment
 ------------------------------------------------------------------------- */
 
-int Molecule::findgroup(const char *name)
+int Molecule::findfragment(const char *name)
 {
-  for (int igroup = 0; igroup < ngroups; igroup++)
-    if (groupnames[igroup] && strcmp(name,groupnames[igroup]) == 0) return igroup;
+  for (int i = 0; i < nfragments; i++)
+    if (fragmentnames[i] && strcmp(name,fragmentnames[i]) == 0) return i;
   return -1;
 }
 
@@ -1513,7 +1513,7 @@ void Molecule::initialize()
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;
 
-  xflag = typeflag = moleculeflag = groupflag = qflag = radiusflag = rmassflag = 0;
+  xflag = typeflag = moleculeflag = fragmentflag = qflag = radiusflag = rmassflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
@@ -1569,10 +1569,10 @@ void Molecule::allocate()
   if (xflag) memory->create(x,natoms,3,"molecule:x");
   if (typeflag) memory->create(type,natoms,"molecule:type");
   if (moleculeflag) memory->create(molecule,natoms,"molecule:molecule");
-  if (groupflag) groupnames = new char*[ngroups];
-  if (groupflag) memory->create(groupmask,ngroups,natoms,"molecule:groupmask");
-  for (int i = 0; i < ngroups; i++)
-    for (int j = 0; j < natoms; j++) groupmask[i][j] = 0;
+  if (fragmentflag) fragmentnames = new char*[nfragments];
+  if (fragmentflag) memory->create(fragmentmask,nfragments,natoms,"molecule:fragmentmask");
+  for (int i = 0; i < nfragments; i++)
+    for (int j = 0; j < natoms; j++) fragmentmask[i][j] = 0;
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
@@ -1665,10 +1665,10 @@ void Molecule::deallocate()
   memory->destroy(radius);
   memory->destroy(rmass);
 
-  memory->destroy(groupmask);
-  if (groupflag) {
-    for (int i = 0; i < ngroups; i++) delete [] groupnames[i];
-    delete [] groupnames;
+  memory->destroy(fragmentmask);
+  if (fragmentflag) {
+    for (int i = 0; i < nfragments; i++) delete [] fragmentnames[i];
+    delete [] fragmentnames;
   }
 
   memory->destroy(num_bond);

@@ -41,8 +41,8 @@ void ACE::init() {
     DCR_cache.init(1, "DCR_cache");
     DCR_cache.fill(0);
 
-    rhos.init(basis_set->ndensitymax, "rhos");
-    dF_drho.init(basis_set->ndensitymax, "dF_drho");
+    rhos.init(basis_set->ndensitymax + 1, "rhos"); // +1 density for core repulsion
+    dF_drho.init(basis_set->ndensitymax + 1, "dF_drho"); // +1 density for core repulsion
 
     dB_flatten.init(basis_set->max_dB_array_size, "dB_flatten");
 
@@ -112,24 +112,24 @@ void ACE::compute(ACEAtomicEnvironment &atomic_environment, bool verbose) {
 
 #ifdef FINE_TIMING
     if (verbose) {
-        printf("   Total time: %lld microseconds\n", ACE_TIMER_MICROSECONDS(total_time_calc));
-        printf("Per atom time:    %lld microseconds\n",
+        printf("   Total time: %ld microseconds\n", ACE_TIMER_MICROSECONDS(total_time_calc));
+        printf("Per atom time:    %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(per_atom_calc) / atomic_environment.n_atoms_tot);
 
 
-        printf("Loop_over_nei/atom: %lld microseconds\n",
+        printf("Loop_over_nei/atom: %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(loop_over_neighbour) / atomic_environment.n_atoms_tot);
 
-        printf("       Energy/atom: %lld microseconds\n",
+        printf("       Energy/atom: %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(energy_calc) / atomic_environment.n_atoms_tot);
 
-        printf("       Forces/atom: %lld microseconds\n",
+        printf("       Forces/atom: %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(forces_calc_loop) / atomic_environment.n_atoms_tot);
 
-        printf("phi_recalcs/atom: %lld microseconds\n",
+        printf("phi_recalcs/atom: %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(phi_recalc) / atomic_environment.n_atoms_tot);
 
-        printf("     forces_neig: %lld microseconds\n",
+        printf("     forces_neig: %ld microseconds\n",
                ACE_TIMER_MICROSECONDS(forces_calc_neighbour) / atomic_environment.n_atoms_tot);
 
     }
@@ -178,7 +178,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
          << x[i][1] << ","
          << x[i][2] << ")" << endl;
 #endif
-    DOUBLE_TYPE evdwl = 0, ecore = 0;
+    DOUBLE_TYPE evdwl = 0, evdwl_cut = 0, rho_core = 0;
     DOUBLE_TYPE r_norm;
     DOUBLE_TYPE xn, yn, zn, r_xyz;
     DOUBLE_TYPE R, GR, DGR, R_over_r, DR, DCR;
@@ -230,6 +230,9 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     ACECTildeBasisFunction *basis_rank1 = basis_set->basis_rank1[mu];
     ACECTildeBasisFunction *basis = basis_set->basis[mu];
 
+    DOUBLE_TYPE rho_cut, drho_cut, fcut, dfcut;
+    DOUBLE_TYPE dF_drho_core;
+
     //TODO: lmax -> lmaxi
     const LS_TYPE lmaxi = basis_set->lmax;
 
@@ -242,6 +245,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     neighbours_forces.resize(jnum, 3);
     neighbours_forces.fill(0);
 
+    //TODO: shift nullifications to place where arrays are used
     weights.fill({0});
     weights_rank1.fill(0);
     A.fill({0});
@@ -282,7 +286,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     }
 
 
-    //ALGORITHM 1: Atomic base construction
+    //ALGORITHM 1: Atomic base A
     for (jj = 0; jj < jnum; ++jj) {
         r_norm = r_norms[jj];
         elej = elements[jj];
@@ -328,7 +332,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 #ifdef DEBUG_ENERGY_CALCULATIONS
                     printf("Y(lm=%d,%d)=(%f, %f)\n", l, m, Y.real, Y.img);
 #endif
-                    A_lm(l, m) += Y * R; //accumulation sum over neighbours
+                    A_lm(l, m) += R * Y; //accumulation sum over neighbours
                     Y_jj(l, m) = Y;
                     DY_jj(l, m) = dylm(l, m);
                 }
@@ -336,7 +340,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
         }
 
         //hard-core repulsion
-        ecore += basis_set->radial_functions.cr;
+        rho_core += basis_set->radial_functions.cr;
         DCR_cache(jj) = basis_set->radial_functions.dcr;
 
     } //end loop over neighbours
@@ -361,7 +365,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 
     ACE_TIMER_START(energy_calc)
 
-    //ALGORITHM 2+3+4: B-basis functions with iterative product and density rho(p) calculation
+    //ALGORITHM 2: Basis functions B with iterative product and density rho(p) calculation
     //rank=1
     for (int f_ind = 0; f_ind < total_basis_size_rank1; ++f_ind) {
         ACECTildeBasisFunction *func = &basis_rank1[f_ind];
@@ -376,7 +380,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 #endif
         for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
             //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
-            rhos(p) += A_cur * func->ctildes[p];
+            rhos(p) += func->ctildes[p] * A_cur;
         }
     } // end loop for rank=1
 
@@ -448,11 +452,31 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 
 #ifdef DEBUG_FORCES_CALCULATIONS
     printf("rhos = ");
-    for(DENSITY_TYPE p =0; p<ndensity; ++p) printf(" %f ",rhos(p));
+    for(DENSITY_TYPE p =0; p<ndensity; ++p) printf(" %.20f ",rhos(p));
     printf("\n");
 #endif
 
+
+
+
+    // energy cutoff
+//    printf("rho_core = %.20f\n", rho_core);
+    rho_cut = basis_set->rho_core_cutoffs(mu);
+    drho_cut = basis_set->drho_core_cutoffs(mu);
+    basis_set->inner_cutoff(rho_core, rho_cut, drho_cut, fcut, dfcut);
+//    printf("fcut = %.20f dcut = %.20f\n", fcut, dfcut);
+
     basis_set->FS_values_and_derivatives(rhos, evdwl, dF_drho, ndensity);
+//    printf("evdwvl = %.20f\n", evdwl);
+
+    dF_drho_core = evdwl * dfcut + 1;
+    for (DENSITY_TYPE p = 0; p < ndensity; ++p) dF_drho(p) *= fcut;
+
+    evdwl_cut = evdwl * fcut + rho_core;
+
+//    printf("dF_drho_core = %.20f\n", dF_drho_core);
+//    printf("evdwl_cut = %.20f\n", evdwl_cut);
+
 
 #ifdef DEBUG_FORCES_CALCULATIONS
     printf("dFrhos = ");
@@ -460,13 +484,12 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     printf("\n");
 #endif
 
-    //Algorithm 5 + 6 - weights and theta calculation
+    //ALGORITHM 3: Weights and theta calculation
     // rank = 1
     for (int f_ind = 0; f_ind < total_basis_size_rank1; ++f_ind) {
         ACECTildeBasisFunction *func = &basis_rank1[f_ind];
         ndensity = func->ndensity;
         for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
-            //TODO: multiply by dF/dRho (on store in different densities-dimensions)
             //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
             weights_rank1(func->mus[0], func->ns[0] - 1) += dF_drho(p) * func->ctildes[p];
         }
@@ -487,7 +510,7 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
             ms = &func->ms_combs[ms_ind * rank];
             theta = 0;
             for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
-                theta += dF_drho(p) * func->ctildes[ms_ind * ndensity + p]; //*0.5 ?
+                theta += dF_drho(p) * func->ctildes[ms_ind * ndensity + p];
 #ifdef DEBUG_FORCES_CALCULATIONS
                 printf("(p=%d) theta += dF_drho[p] * func.ctildes[ms_ind * ndensity + p] = %f * %f = %f\n",p, dF_drho(p), func->ctildes[ms_ind * ndensity + p],dF_drho(p)*func->ctildes[ms_ind * ndensity + p]);
                 printf("theta=%f\n",theta);
@@ -498,19 +521,19 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
                 m_t = ms[t];
                 factor = (m_t % 2 == 0 ? 1 : -1);
                 dB = dB_flatten(func_ms_t_ind);
-                weights(mus[t], ns[t] - 1, ls[t], m_t) += dB * theta * 0.5; // Theta_array(func_ms_ind);
+                weights(mus[t], ns[t] - 1, ls[t], m_t) += theta * dB * 0.5; // Theta_array(func_ms_ind);
                 // update -m_t (that could also be positive), because the basis is half_basis
                 weights(mus[t], ns[t] - 1, ls[t], -m_t) +=
-                        (dB).conjugated() * factor * theta * 0.5;// Theta_array(func_ms_ind);
+                        theta * (dB).conjugated() * factor * 0.5;// Theta_array(func_ms_ind);
 
 #ifdef DEBUG_FORCES_CALCULATIONS
                 printf("dB(n,l,m)(%d,%d,%d) = (%f, %f)\n", ns[t], ls[t], m_t, (dB).real, (dB).img);
                 printf("theta = %f\n",theta);
-                printf("weights(n,l,m)(%d,%d,%d) += (%f, %f)\n", ns[t], ls[t], m_t, (dB * theta * 0.5).real,
-                       (dB * theta * 0.5).img);
+                printf("weights(n,l,m)(%d,%d,%d) += (%f, %f)\n", ns[t], ls[t], m_t, (theta * dB * 0.5).real,
+                       (theta * dB * 0.5).img);
                 printf("weights(n,l,-m)(%d,%d,%d) += (%f, %f)\n", ns[t], ls[t], -m_t,
-                       ( (dB).conjugated() * factor * theta * 0.5).real,
-                       ( (dB).conjugated() * factor * theta * 0.5).img);
+                       ( theta * (dB).conjugated() * factor * 0.5).real,
+                       ( theta * (dB).conjugated() * factor * 0.5).img);
 #endif
             }
         }
@@ -615,9 +638,9 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
 #ifdef   DEBUG_FORCES_CALCULATIONS
         printf("DCR = %f\n",DCR);
 #endif
-        f_ji[0] += DCR * r_hat[0];
-        f_ji[1] += DCR * r_hat[1];
-        f_ji[2] += DCR * r_hat[2];
+        f_ji[0] += dF_drho_core * DCR * r_hat[0];
+        f_ji[1] += dF_drho_core * DCR * r_hat[1];
+        f_ji[2] += dF_drho_core * DCR * r_hat[2];
 
         neighbours_forces(jj, 0) = f_ji[0];
         neighbours_forces(jj, 1) = f_ji[1];
@@ -627,8 +650,9 @@ void ACE::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnu
     ACE_TIMER_STOP(forces_calc_loop)
 
     //now, energies and forces are ready
-    //printf("ecore = %f\n",ecore);
-    energies(i) = evdwl + ecore;
+    //energies(i) = evdwl + rho_core;
+    energies(i) = evdwl_cut;
+
 #ifdef PRINT_INTERMEDIATE_VALUES
     cout << "energies(i) = FS(...rho_p_accum...) = " << evdwl <<
          endl;

@@ -75,6 +75,10 @@ public:
     SHORT_INT_TYPE num_ctilde_max;
     SHORT_INT_TYPE num_ms_combinations_max;
 
+    //energy-based inner cuttoff
+    Array1D<DOUBLE_TYPE> rho_core_cutoffs;
+    Array1D<DOUBLE_TYPE> drho_core_cutoffs;
+
     ACEBasisSet() = default;
 
     // copy constructor, operator= and destructor (see. Rule of Three)
@@ -87,6 +91,9 @@ public:
 
     void FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value, Array1D<DOUBLE_TYPE> &derivatives,
                                    DENSITY_TYPE ndensity);
+
+    static void inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut, DOUBLE_TYPE &fcut,
+                             DOUBLE_TYPE &dfcut);
 
     //TODO: implement write basis to file
     void save(const string &filename);

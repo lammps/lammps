@@ -123,6 +123,16 @@ Overloading of arithmetical operators
 
 };
 
+// double * complex for commutativity with complex * double
+inline ACEComplex operator*(const DOUBLE_TYPE &real, const ACEComplex &cm) {
+    return cm * real;
+}
+
+// double + complex for commutativity with complex + double
+inline ACEComplex operator+(const DOUBLE_TYPE &real, const ACEComplex &cm) {
+    return cm + real;
+}
+
 /**
 A structure to store the derivative of \f$ Y_{lm} \f$
 */

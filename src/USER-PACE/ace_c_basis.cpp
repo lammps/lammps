@@ -154,6 +154,22 @@ void ACEBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_T
 }
 
 
+void ACEBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut,
+                               DOUBLE_TYPE &fcut, DOUBLE_TYPE &dfcut) {
+
+    DOUBLE_TYPE rho_low = rho_cut - drho_cut;
+    if (rho_core >= rho_cut) {
+        fcut = 0;
+        dfcut = 0;
+    } else if (rho_core <= rho_low) {
+        fcut = 1;
+        dfcut = 0;
+    } else {
+        fcut = 0.5 * (1 + cos(pi * (rho_core - rho_low) / drho_cut));
+        dfcut = -0.5 * sin(pi * (rho_core - rho_low) / drho_cut) * pi / drho_cut;
+    }
+}
+
 //re-pack the constinuent dynamic arrays of all basis functions in contiguous arrays
 void ACEBasisSet::pack_flatten_basis() {
 
@@ -377,11 +393,18 @@ void ACEBasisSet::save(const string &filename) {
     }
     fprintf(fptr, "\n");
 
+    //hard-core repulsion
     fprintf(fptr, "core repulsion parameters: ");
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j)
             fprintf(fptr, "%.18f %.18f\n", radial_functions.prehc(mu_i, mu_j), radial_functions.lambdahc(mu_j, mu_j));
 
+    //hard-core energy cutoff repulsion
+    fprintf(fptr, "core energy-cutoff parameters: ");
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
+        fprintf(fptr, "%.18f %.18f\n", rho_core_cutoffs(mu_i), drho_core_cutoffs(mu_i));
+
+    //elements mapping
     fprintf(fptr, "elements:");
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu)
         fprintf(fptr, " %s", elements_name[mu].c_str());
@@ -544,7 +567,10 @@ void ACEBasisSet::load(string filename) {
     FILE *fptr;
     char buffer[1024], buffer2[1024];
     fptr = fopen(filename.c_str(), "r");
-
+    if (fptr == NULL) {
+        printf("Could not open file %s.\n", filename.c_str());
+        exit(EXIT_FAILURE);
+    }
     res = fscanf(fptr, "lmax=%s", buffer);
     if (res != 1) {
         printf("Error while reading file");
@@ -634,7 +660,8 @@ void ACEBasisSet::load(string filename) {
                           ntot,
                           nelements,
                           cutoff);
-
+    rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
+    drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
 
     for (int i = 0; i < parameters.size(); ++i) {
         res = fscanf(fptr, "%s", buffer);
@@ -665,6 +692,25 @@ void ACEBasisSet::load(string filename) {
 //            printf("Read: prehc(mu_i, mu_j)=%f\n",radial_functions.prehc(mu_i, mu_j));
 //            printf("Read: lambdahc(mu_i, mu_j)=%f\n",radial_functions.lambdahc(mu_i, mu_j));
         }
+
+    //hard-core energy cutoff repulsion
+    res = fscanf(fptr, " core energy-cutoff parameters:");
+    if (res != 0) {
+        printf("Error while reading core energy-cutoff parameters\n");
+        exit(EXIT_FAILURE);
+    }
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i) {
+        res = fscanf(fptr, "%s %s", buffer, buffer2);
+        if (res != 2) {
+            printf("Error while reading file core energy-cutoff parameters (values)\n");
+            exit(EXIT_FAILURE);
+        }
+        rho_core_cutoffs(mu_i) = stod(buffer);
+        drho_core_cutoffs(mu_i) = stod(buffer2);
+
+        printf("Read: rho_core_cutoffs(mu_i)=%f\n", rho_core_cutoffs(mu_i));
+        printf("Read: drho_core_cutoffs(mu_i)=%f\n", drho_core_cutoffs(mu_i));
+    }
 
 
     //elements mapping

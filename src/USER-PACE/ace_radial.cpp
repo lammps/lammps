@@ -42,9 +42,8 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     cheb2.init(nradbase + 1, "cheb2");
 
 
-    lutfrs.init(nelements, nelements, ntot + 1, 1 + lmax, nradial, 4, "lutfrs");
+    lutfrs.init(nelements, nelements, ntot + 1, lmax + 1, nradial, 4, "lutfrs");
     lutgrs.init(nelements, nelements, ntot + 1, nradbase, 4, "lutgrs");
-
     luthcs.init(nelements, nelements, ntot + 1, 4, "luthcs");
 
     lambda.init(nelements, nelements, "lambda");

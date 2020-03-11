@@ -235,25 +235,5 @@ void ACECartesianSphericalHarmonics::compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry,
         }
     }
 
-    //fill-in m<0
-//    for (LS_TYPE l = 1; l <= lmaxi; l++) {
-//        for (MS_TYPE m = 1; m <= l; m++) {
-//            auto phase = DOUBLE_TYPE(abs(m) % 2 == 0 ? 1 : -1);
-//
-//            //Y_l,{-m} = (-1)^m (Y_l,{m})c.c.
-//            ylm(l, -m) = ylm(l, m) * phase;
-//            ylm(l, -m).img *= -1;
-//
-//            //DY_l,{-m} = (-1)^m (DY_l,{m})c.c.
-//            dylm(l, -m) = dylm(l, m);
-//            dylm(l, -m) *= phase;
-//            //complex conjugate
-//            dylm(l, -m).a[0].img *= -1;
-//            dylm(l, -m).a[1].img *= -1;
-//            dylm(l, -m).a[2].img *= -1;
-//
-//
-//        }
-//    }
 }
 

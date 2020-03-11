@@ -1594,7 +1594,7 @@ Mackay
 Mackrodt
 Macromolecules
 macroparticle
-macOS
+MacOS
 Madura
 Magda
 Magdeburg

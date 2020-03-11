@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all rx kinetics.rx none dense lammps_rk4
    fix 1 all rx kinetics.rx none sparse lammps_rk4 1

@@ -59,14 +59,14 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/correlate 5 100 1000 c_myTemp file temp.correlate
    fix 1 all ave/correlate 1 50 10000 &
              c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
              type upper ave running title1 "My correlation data"
 
-fix 1 all ave/correlate 1 50 10000 c\_thermo\_press[\*]
+   fix 1 all ave/correlate 1 50 10000 c_thermo_press[*]
 
 Description
 """""""""""
@@ -120,10 +120,10 @@ vector had been listed one by one.  E.g. these 2 fix ave/correlate
 commands are equivalent, since the :doc:`compute pressure <compute_pressure>` command creates a global vector with 6
 values.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all pressure NULL
-   fix 1 all ave/correlate 1 50 10000 c_myPress[\*]
+   fix 1 all ave/correlate 1 50 10000 c_myPress[*]
    fix 1 all ave/correlate 1 50 10000 &
              c_myPress[1] c_myPress[2] c_myPress[3] &
              c_myPress[4] c_myPress[5] c_myPress[6]

@@ -21,7 +21,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 analytic 66476.015 968 2 245030.10 8962.20
 
@@ -37,7 +37,7 @@ Dunn and Noid in :ref:`(Dunn1) <bocs-Dunn1>` to the standard MTTK
 barostat by Martyna et. al. in :ref:`(Martyna) <bocs-Martyna>` .
 The first half of the command mimics a standard fix npt command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all bocs temp Tstart Tstop Tcoupl cgiso Pstart Pstop Pdamp
 

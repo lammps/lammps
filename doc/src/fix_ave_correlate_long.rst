@@ -56,7 +56,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/correlate/long 5 1000 c_myTemp file temp.correlate
    fix 1 all ave/correlate/long 1 10000 &

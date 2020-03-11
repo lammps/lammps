@@ -65,11 +65,11 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
    fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[2] c_thermo_press[3] title1 "My output values"
-   fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[\*]
+   fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[*]
    fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra
    fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD[1] c_XRD[2]
 
@@ -134,10 +134,10 @@ vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
 3 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM[\*] file tmp1.com mode vector
+   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
    fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must

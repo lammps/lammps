@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix pressdown topwall aveforce 0.0 -1.0 0.0
    fix 2 bottomwall aveforce NULL -1.0 0.0 region top

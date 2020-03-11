@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix kick flow addforce 1.0 0.0 0.0
    fix kick flow addforce 1.0 0.0 v_oscillate

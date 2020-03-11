@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix kick bead addtorque 2.0 3.0 5.0
    fix kick bead addtorque 0.0 0.0 v_oscillate

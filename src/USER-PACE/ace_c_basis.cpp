@@ -616,7 +616,9 @@ void ACEBasisSet::load(string filename) {
         printf("Error while reading file");
         exit(EXIT_FAILURE);
     }
-    cutoff = stod(buffer);
+    //cutoff = stod(buffer);
+    //TODO: write-read it properly
+    cutoff = cutoffmax;
 
     int parameters_size;
     res = fscanf(fptr, "%s parameters:", buffer);

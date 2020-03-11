@@ -22,7 +22,7 @@ public:
 
     void calcCheb(NS_TYPE n, DOUBLE_TYPE x);
 
-    void radbase(DOUBLE_TYPE lam, DOUBLE_TYPE r_c, DOUBLE_TYPE d_r_c, DOUBLE_TYPE r);
+    void radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r);
 
     static void
     radcore(DOUBLE_TYPE r, DOUBLE_TYPE pre, DOUBLE_TYPE lambda, DOUBLE_TYPE cutoff, DOUBLE_TYPE &cr, DOUBLE_TYPE &dcr);
@@ -31,7 +31,7 @@ public:
 
     void radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej);
 
-    void lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SPECIES_TYPE elei, SPECIES_TYPE elej);
+    void lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE elei, SPECIES_TYPE elej);
 
     /**
     Arrays to store radial functions.

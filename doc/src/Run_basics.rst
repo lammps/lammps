@@ -11,7 +11,7 @@ Using the "-in in.file" variant is recommended:
    $ lmp_serial < in.file
    $ /path/to/lammps/src/lmp_serial -i in.file
    $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpirun -np 8 /path/to//lammps/src/lmp_mpi -in in.file
+   $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
    $ mpirun -np 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input

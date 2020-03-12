@@ -119,7 +119,7 @@ that will be used with other potentials.
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
    example above.  However, if the 2nd filename is not NULL (as in the
    example above), it contains settings that are Fortran-indexed for the
-   elements that preceed it.  Thus you need to insure you list the
+   elements that precede it.  Thus you need to insure you list the
    elements between the filenames in an order consistent with how the
    values in the 2nd filename are indexed.  See details below on the
    syntax for settings in the 2nd file.
@@ -230,7 +230,7 @@ where
                    hcp = hexagonal close-packed
                    dim = dimer
                    dia = diamond (interlaced fcc for alloy)
-                   dia3= diamond structure with primary 1NN and secondary 3NN interation
+                   dia3= diamond structure with primary 1NN and secondary 3NN interaction
                    b1  = rock salt (NaCl structure)
                    c11 = MoSi2 structure
                    l12 = Cu3Au structure (lower case L, followed by 12)

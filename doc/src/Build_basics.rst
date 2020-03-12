@@ -317,7 +317,7 @@ Several options are available and "mode=exe" is the default.
 .. code-block:: bash
 
    make machine               # build LAMMPS executable lmp_machine
-   mkae mode=exe machine      # same as "make machine"
+   make mode=exe machine      # same as "make machine"
    make mode=lib machine      # build LAMMPS static lib liblammps_machine.a
    make mode=shlib machine    # build LAMMPS shared lib liblammps_machine.so
    make mode=shexe machine    # same as "mode=exe" but uses objects from "mode=shlib"

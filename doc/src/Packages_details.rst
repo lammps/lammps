@@ -746,7 +746,7 @@ invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switch
 have styles optimized for CPU performance.
 
 **Authors:** James Fischer (High Performance Technologies), David Richie,
-and Vincent Natoli (Stone Ridge Technolgy).
+and Vincent Natoli (Stone Ridge Technology).
 
 **Install:**
 

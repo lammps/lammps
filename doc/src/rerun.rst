@@ -53,7 +53,7 @@ computed on the shapshot to produce thermodynamic or other output.
 This can be useful in the following kinds of scenarios, after an
 initial simulation produced the dump file:
 
-* Compute the energy and forces of snaphots using a different potential.
+* Compute the energy and forces of snapshots using a different potential.
 * Calculate one or more diagnostic quantities on the snapshots that
   weren't computed in the initial run.  These can also be computed with
   settings not used in the initial run, e.g. computing an RDF via the

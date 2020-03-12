@@ -83,7 +83,7 @@ likewise for this post-processing example:
     fix AtC kernel quartic_sphere 10.0
 
     # create a uniform 1 x 1 x 1 mesh that covers region contain the group
-    # with periodicity this effectively creats a system average
+    # with periodicity this effectively creates a system average
     fix_modify AtC mesh create 1 1 1 box p p p
 
     # change from default lagrangian map to eulerian

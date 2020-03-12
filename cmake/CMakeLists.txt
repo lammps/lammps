@@ -587,10 +587,25 @@ if(BUILD_TOOLS)
   add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-  # ninja-build currently does not support fortran. thus we skip building this tool
+  # ninja-build<1.10 does not support fortran. thus we skip building this tool
   if(CMAKE_GENERATOR STREQUAL "Ninja")
-    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
+    set(CMAKE_GENERATOR_SUPPORT_FORTRAN FALSE)
+    execute_process(COMMAND "${CMAKE_MAKE_PROGRAM}" --version
+      OUTPUT_VARIABLE NINJA_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE _Ninja_version_result
+    )
+    if(_Ninja_version_result)
+      message(WARNING "Unable to determine ninja version: ${_Ninja_version_result}")
+    elseif(NINJA_VERSION VERSION_LESS "1.10")
+      message(WARNING "Ninja build tool too old, skipping building 'chain.x' due to lack of Fortran support, please install ninja-1.10 or newer")
+    else()
+      set(CMAKE_GENERATOR_SUPPORT_FORTRAN TRUE)
+    endif()
   else()
+    set(CMAKE_GENERATOR_SUPPORT_FORTRAN TRUE)
+  endif()
+  if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})

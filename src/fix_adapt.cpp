@@ -235,7 +235,7 @@ int FixAdapt::setmask()
 
 void FixAdapt::post_constructor()
 {
-  if (!resetflag) return;
+  // Create local Fix Store even when ressetflag == false, to be able to use `scale` keyword for charge and diameter
   if (!diamflag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
@@ -251,7 +251,7 @@ void FixAdapt::post_constructor()
   newarg[4] = (char *) "1";
   newarg[5] = (char *) "1";
 
-  if (diamflag) {
+  if (diamflag && atom->radius_flag) {// Previously unsafe! The radius_flag was not checked, could run an atom_style w/o radius attribute and get here without a previous check / error !
     int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
     id_fix_diam = new char[n];
     strcpy(id_fix_diam,id);
@@ -274,7 +274,7 @@ void FixAdapt::post_constructor()
     }
   }
 
-  if (chgflag) {
+  if (chgflag && atom->q_flag) {// Previously unsafe! The q_flag was not checked, could run an atom_style w/o charge attribute and get here without a previous check / error !
     int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
     id_fix_chg = new char[n];
     strcpy(id_fix_chg,id);
@@ -455,7 +455,7 @@ void FixAdapt::init()
   }
 
   // fixes that store initial per-atom values
-
+  /* Unnecessary ? `fix_diam` and `fix_chg` seem to be already defined in FixAdapt::post_constructor(), commenting them out does not crash my MWE
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
@@ -465,7 +465,7 @@ void FixAdapt::init()
     int ifix = modify->find_fix(id_fix_chg);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
     fix_chg = (FixStore *) modify->fix[ifix];
-  }
+  }*/
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -568,38 +568,39 @@ void FixAdapt::change_settings()
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
-        int mflag = 0;
-        if (atom->rmass_flag) mflag = 1;
+				/* `mflag` unnecessary ? the test if (!atom->radius_flag) in FixAdapt::init() should perevent `atom->rmass_flag == false`. Unless there can be combinations of atoms with `radius` but without `rmass`
+				It could also be unsafe since rmass_flag could be added using `fix property/atom` even for an atom_style that does not have radius attributes */
         double density;
 
-        double *radius = atom->radius;
+        double *vec = fix_diam->vstore; // Get initial radius to use `scale` keyword
+				double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (mflag == 0) {
-          for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit)
-              radius[i] = 0.5*value;
-        } else {
-          for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit) {
-              density = rmass[i] / (4.0*MY_PI/3.0 *
-                                    radius[i]*radius[i]*radius[i]);
-              radius[i] = 0.5*value;
-              rmass[i] = 4.0*MY_PI/3.0 *
-                radius[i]*radius[i]*radius[i] * density;
-            }
-        }
+        for (i = 0; i < nall; i++)
+          if (mask[i] & groupbit) {
+						density = rmass[i] / (4.0*MY_PI/3.0 *
+                                  radius[i]*radius[i]*radius[i]);
+						if (scaleflag) radius[i] = value * vec[i];
+						else radius[i] = 0.5*value;
+            rmass[i] = 4.0*MY_PI/3.0 *
+              radius[i]*radius[i]*radius[i] * density;
+          }
+
       } else if (ad->aparam == CHARGE) {
-        double *q = atom->q;
+        double *vec = fix_chg->vstore; // Get initial charge to use `scale` keyword
+				double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
         for (i = 0; i < nall; i++)
-          if (mask[i] & groupbit) q[i] = value;
+          if (mask[i] & groupbit) {
+						if (scaleflag) q[i] = value * vec[i];
+						else q[i] = value;
+					}
       }
     }
   }
@@ -607,7 +608,7 @@ void FixAdapt::change_settings()
   modify->addstep_compute(update->ntimestep + nevery);
 
   // re-initialize pair styles if any PAIR settings were changed
-  // ditto for bond styles if any BOND setitings were changes
+  // ditto for bond styles if any BOND settings were changed
   // this resets other coeffs that may depend on changed values,
   //   and also offset and tail corrections
 

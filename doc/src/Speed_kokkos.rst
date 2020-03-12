@@ -9,8 +9,8 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_. Kokkos is part
-of `Trilinos <http://trilinos.sandia.gov/packages/kokkos>`_. The Kokkos
+Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_. Kokkos is
+part of `Trilinos <https://www.trilinos.org/>`_. The Kokkos
 library was written primarily by Carter Edwards, Christian Trott, and
 Dan Sunderland (all Sandia).
 

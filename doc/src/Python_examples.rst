@@ -44,12 +44,12 @@ AtomEye WWW pages `here <atomeye_>`_ or `here <atomeye3_>`_ for more details:
 
 .. parsed-literal::
 
-   http://mt.seas.upenn.edu/Archive/Graphics/A
-   http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html
+   http://li.mit.edu/Archive/Graphics/A/
+   http://li.mit.edu/Archive/Graphics/A3/A3.html
 
-.. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
+.. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
-.. _atomeye3: http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html
+.. _atomeye3: http://li.mit.edu/Archive/Graphics/A3/A3.html
 
 The latter link is to AtomEye 3 which has the scripting
 capability needed by these Python scripts.

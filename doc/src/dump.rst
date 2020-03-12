@@ -305,7 +305,7 @@ be cut and pasted directly into a data file read by the
 
 Style *cfg* has the same command syntax as style *custom* and writes
 extended CFG format files, as used by the
-`AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_ visualization
+`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualization
 package.  Since the extended CFG format uses a single snapshot of the
 system per file, a wildcard "\*" must be included in the filename, as
 discussed below.  The list of atom attributes for style *cfg* must

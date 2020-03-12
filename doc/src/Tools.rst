@@ -450,7 +450,7 @@ See the README.txt file for more information.
 
 This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
-`http://moltemplate.org <http://moltemplate.org>`_.
+`https://moltemplate.org <https://moltemplate.org>`_.
 The latest sources can be found `on its GitHub page <https://github.com/jewettaij/moltemplate/releases>`_
 
 ----------

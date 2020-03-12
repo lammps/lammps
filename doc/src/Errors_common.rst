@@ -71,7 +71,7 @@ Some commands allow for using variable references in place of numeric
 constants so that the value can be evaluated and may change over the
 course of a run.  This is typically done with the syntax *v\_name* for a
 parameter, where name is the name of the variable. On the other hand,
-immediate variable expansion with the syntax $\ *name* is performed while
+immediate variable expansion with the syntax ${name} is performed while
 reading the input and before parsing commands,
 
 .. note::

@@ -21,7 +21,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "${steps} > 1000" then quit
    if "${myString} == a10" then quit
@@ -75,7 +75,7 @@ above.
 Note that by using the line continuation character "&", the if command
 can be spread across many lines, though it is still a single command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$a < $b" then &
      "print 'Minimum value = $a'" &
@@ -99,7 +99,7 @@ checked, so long as it is current on the timestep when the run
 completes.  As explained on the :doc:`variable <variable>` doc page,
 this can be insured by including the variable in thermodynamic output.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable myTemp equal temp
    label loop
@@ -115,19 +115,19 @@ Here is an example of a double loop which uses the if and
 :doc:`jump <jump>` commands to break out of the inner loop when a
 condition is met, then continues iterating through the outer loop.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label       loopa
    variable    a loop 5
      label     loopb
      variable  b loop 5
-     print     "A,B = $a,$b"
-     run       10000
-     if        "$b > 2" then "jump SELF break"
+       print     "A,B = $a,$b"
+       run       10000
+       if        "$b > 2" then "jump SELF break"
      next      b
      jump      in.script loopb
-   label       break
-   variable    b delete
+     label       break
+     variable    b delete
    next        a
    jump        SELF loopa
 

@@ -25,9 +25,9 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix top_velocity top_group setvel 1.0 0.0 0.0
+   fix top_velocity top_group smd/setvel 1.0 0.0 0.0
 
 Description
 """""""""""

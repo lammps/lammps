@@ -41,15 +41,15 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   processors \* \* 5
+   processors * * 5
    processors 2 4 4
-   processors \* \* 8 map xyz
-   processors \* \* \* grid numa
-   processors \* \* \* grid twolevel 4 \* \* 1
+   processors * * 8 map xyz
+   processors * * * grid numa
+   processors * * * grid twolevel 4 * * 1
    processors 4 8 16 grid custom myfile
-   processors \* \* \* part 1 2 multiple
+   processors * * * part 1 2 multiple
 
 Description
 """""""""""
@@ -93,7 +93,7 @@ Px,Py,Pz values for different partitions.
 You can use the :doc:`partition <partition>` command to specify
 different processor grids for different partitions, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 4 4 4
    partition yes 2 processors 2 3 2

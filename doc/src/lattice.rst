@@ -38,7 +38,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    lattice fcc 3.52
    lattice hex 0.85
@@ -254,11 +254,11 @@ in commands that use the spacings should be decipherable.
 Example commands for generating a Wurtzite crystal (courtesy
 of Aidan Thompson), with its 8 atom unit cell.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable a equal  4.340330
-   variable b equal  $a\*sqrt(3.0)
-   variable c equal  $a\*sqrt(8.0/3.0)
+   variable b equal  $a*sqrt(3.0)
+   variable c equal  $a*sqrt(8.0/3.0)
 
    variable 1_3 equal 1.0/3.0
    variable 2_3 equal 2.0/3.0
@@ -304,7 +304,7 @@ Related commands
 Default
 """""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    lattice none 1.0
 

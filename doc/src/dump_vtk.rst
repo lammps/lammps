@@ -20,10 +20,10 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   dump dmpvtk all vtk 100 dump\*.myforce.vtk id type vx fx
-   dump dmpvtp flow vtk 100 dump\*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
+   dump dmpvtk all vtk 100 dump*.myforce.vtk id type vx fx
+   dump dmpvtp flow vtk 100 dump*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
 
 Description
 """""""""""

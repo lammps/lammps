@@ -21,10 +21,10 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump mf1 all molfile 10 melt1.xml hoomd
-   dump mf2 all molfile 10 melt2-\*.pdb pdb .
+   dump mf2 all molfile 10 melt2-*.pdb pdb .
    dump mf3 all molfile 50 melt3.xyz xyz .:/home/akohlmey/vmd/plugins/LINUX/molfile
 
 Description

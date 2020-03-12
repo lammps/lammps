@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    newton off
    newton on off
@@ -64,6 +64,6 @@ Related commands
 Default
 """""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    newton on

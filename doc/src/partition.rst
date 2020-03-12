@@ -17,12 +17,12 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 4 10 6
    partition no 5 print "Active partition"
-   partition yes \*5 fix all nve
-   partition yes 6\* fix all nvt temp 1.0 1.0 0.1
+   partition yes *5 fix all nve
+   partition yes 6* fix all nvt temp 1.0 1.0 0.1
 
 Description
 """""""""""

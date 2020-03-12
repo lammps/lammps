@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    shell cd sub1
    shell cd ..
@@ -89,7 +89,7 @@ Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,
 these lines in your input script:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable n equal 10
    variable foo string file2
@@ -97,7 +97,7 @@ these lines in your input script:
 
 would be the same as invoking
 
-.. parsed-literal::
+.. code-block:: bash
 
    % my_setup file1 10 file2
 

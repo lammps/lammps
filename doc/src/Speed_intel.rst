@@ -192,7 +192,7 @@ will report every hardware thread as a separate core allowing one to
 determine the number of hardware threads available. On Linux systems,
 this information can normally be obtained with:
 
-.. parsed-literal::
+.. code-block:: bash
 
    cat /proc/cpuinfo
 
@@ -219,7 +219,7 @@ Phi x200 processors making it easier to cross-compile. For users with
 recent installations of Intel Parallel Studio, the process can be as
 simple as:
 
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-user-intel
    source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
@@ -334,7 +334,7 @@ desired.
 Examples (see documentation for your MPI/Machine for differences in
 launching MPI applications):
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script                                 # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script -pk intel 0 omp 2 mode double   # Don't use any co-processors that might be available, use 2 OpenMP threads for each task, use double precision
@@ -346,14 +346,14 @@ can be edited to enable the USER-INTEL package. This requires adding
 the :doc:`package intel <package>` command to the top of the input
 script. For the second example above, this would be:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    package intel 0 omp 2 mode double
 
 To enable the USER-INTEL package only for individual styles, you can
 add an "intel" suffix to the individual style, e.g.:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/intel 2.5
 

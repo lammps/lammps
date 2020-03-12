@@ -71,7 +71,7 @@ Kokkos. E.g. the mpirun command in OpenMPI does this via its -np and
 Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -in in.lj        # 1 node, 16 MPI tasks/node, no multi-threading
    mpirun -np 2 -ppn 1 lmp_kokkos_omp -k on t 16 -sf kk -in in.lj  # 2 nodes, 1 MPI task/node, 16 threads/task
@@ -119,7 +119,7 @@ below.
    page for details and default settings. Experimenting with its options
    can provide a speed-up for specific calculations. For example:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half comm no -in in.lj       # Newton on, Half neighbor list, non-threaded comm
 
@@ -180,9 +180,9 @@ tasks.
 
 Examples of mpirun commands that follow these rules are shown below.
 
-.. parsed-literal::
+.. code-block:: bash
 
-   Intel KNL node with 68 cores (272 threads/node via 4x hardware threading):
+   # Running on an Intel KNL node with 68 cores (272 threads/node via 4x hardware threading):
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 64 MPI tasks/node, 4 threads/task
    mpirun -np 66 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 66 MPI tasks/node, 4 threads/task
    mpirun -np 32 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj      # 1 node, 32 MPI tasks/node, 8 threads/task
@@ -205,7 +205,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    details and default settings. Experimenting with its options can provide
    a speed-up for specific calculations. For example:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax      #  Newton on, half neighbor list, threaded comm
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton off neigh full comm no -in in.lj      # Newton off, full neighbor list, non-threaded comm
@@ -246,7 +246,7 @@ then the number of MPI tasks/node should not exceed N.
 Here are examples of how to use the KOKKOS package for GPUs, assuming
 one or more nodes, each with two GPUs:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj          # 1 node,   2 MPI tasks/node, 2 GPUs/node
    mpirun -np 32 -ppn 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj  # 16 nodes, 2 MPI tasks/node, 2 GPUs/node (32 GPUs total)
@@ -266,7 +266,7 @@ one or more nodes, each with two GPUs:
    default settings. Experimenting with its options can provide a speed-up
    for specific calculations. For example:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
 
@@ -308,7 +308,7 @@ hardware options appropriate to your system, as documented above.
 You can use the :doc:`suffix kk <suffix>` command, or you can explicitly add a
 "kk" suffix to individual styles in your input script, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/kk 2.5
 
@@ -323,7 +323,7 @@ used together in a few special cases. In the Makefile, the
 KOKKOS\_DEVICES variable must include both "Cuda" and "OpenMP", as is
 the case for /src/MAKE/OPTIONS/Makefile.kokkos\_cuda\_mpi
 
-.. parsed-literal::
+.. code-block:: bash
 
    KOKKOS_DEVICES=Cuda,OpenMP
 
@@ -340,7 +340,7 @@ as "t Nt" and the number of GPUs as "g Ng"
 
 For example, the command to run with 1 GPU and 8 OpenMP threads is then:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 t 8 -sf kk
 

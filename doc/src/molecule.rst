@@ -39,7 +39,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule 1 mymol.txt
    molecule 1 co2.txt h2o.txt

@@ -34,7 +34,7 @@ keyword = *verbose*
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neb 0.1 0.0 1000 500 50 final coords.final
    neb 0.0 0.001 1000 500 50 each coords.initial.$i
@@ -147,7 +147,7 @@ For a *file-style* setting of *each*\ , a filename is specified which is
 assumed to be unique to each replica.  This can be done by using a
 variable in the filename, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable i equal part
    neb 0.0 0.001 1000 500 50 each coords.initial.$i

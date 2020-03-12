@@ -15,7 +15,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    unfix 2
    unfix lower-boundary

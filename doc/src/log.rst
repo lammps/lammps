@@ -16,7 +16,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    log log.equil
    log log.equil append

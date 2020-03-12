@@ -102,7 +102,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    package gpu 1
    package gpu 1 split 0.75
@@ -230,7 +230,7 @@ As an example, if you have two GPUs per node and 8 CPU cores per node,
 and would like to run on 4 nodes (32 cores) with dynamic balancing of
 force calculation across CPU and GPU cores, you could specify
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 32 -sf gpu -in in.script    # launch command
    package gpu 2 split -1                 # input script command
@@ -566,7 +566,7 @@ performance.
 Here are examples of how to set the environment variable when
 launching LAMMPS:
 
-.. parsed-literal::
+.. code-block:: bash
 
    env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
    env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script

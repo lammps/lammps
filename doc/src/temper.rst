@@ -21,7 +21,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    temper 100000 100 $t tempfix 0 58728
    temper 40000 100 $t tempfix 0 32285 $w
@@ -50,7 +50,7 @@ variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the :doc:`variable <variable>`
 command for more details.  For example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t world 300.0 310.0 320.0 330.0
    fix myfix all nvt temp $t $t 100.0
@@ -102,10 +102,10 @@ screen.N files as time proceeds.
 You can have each replica create its own dump file in the following
 manner:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable rep world 0 1 2 3 4 5 6 7
-   dump 1 all atom 1000 dump.temper.$\ *rep*
+   dump 1 all atom 1000 dump.temper.${rep}
 
 .. note::
 
@@ -143,7 +143,7 @@ log file listed the following for a simulation with 5 replicas:
 
 then a setting of
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable w world 2 4 0 1 3
 

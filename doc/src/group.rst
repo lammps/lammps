@@ -48,7 +48,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group edge region regstrip
    group water type 3 4
@@ -155,7 +155,7 @@ For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
 potential energy is above the threshold value -3.0.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         1 all pe/atom
    compute         2 all reduce sum c_1
@@ -167,7 +167,7 @@ potential energy is above the threshold value -3.0.
 
 Note that these lines
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all reduce sum c_1
    thermo_style    custom step temp pe c_2
@@ -266,7 +266,7 @@ used to model a quench of the system, freezing atoms outside the
 shrinking sphere, then converting the remaining atoms to a static
 group and running further.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        nsteps equal 5000
    variable        rad equal 18-(step/v_nsteps)\*(18-5)

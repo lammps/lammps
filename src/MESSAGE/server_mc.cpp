@@ -13,6 +13,7 @@
 
 #include "server_mc.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "integrate.h"
 #include "input.h"

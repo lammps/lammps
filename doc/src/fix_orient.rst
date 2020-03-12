@@ -205,7 +205,7 @@ Science, 117, 397-405 (2016).
 
 
 **(Wicaksono2)** Wicaksono, figshare,
-https://dx.doi.org/10.6084/m9.figshare.1488628.v1 (2015).
+https://doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
 
 ----------

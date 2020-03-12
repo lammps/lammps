@@ -2515,8 +2515,8 @@ The expressions and their use are discussed in the following papers
 
 which discuss the `QuickFF <quickff_>`_ methodology.
 
-.. _vanduyfhuys2015: http://dx.doi.org/10.1002/jcc.23877
-.. _vanduyfhuys2018: http://dx.doi.org/10.1002/jcc.25173
+.. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
+.. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
 .. _quickff: http://molmod.github.io/QuickFF
 .. _yaff: https://github.com/molmod/yaff
 

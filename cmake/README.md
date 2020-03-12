@@ -1383,8 +1383,8 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   Some potentials that are also implemented in the Yet Another Force Field (YAFF) code.
   The expressions and their use are discussed in the following papers:
   <ul>
-    <li><a href="http://dx.doi.org/10.1002/jcc.23877" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015)</a></li>
-    <li><a href="http://dx.doi.org/10.1002/jcc.25173" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018)</a></li>
+    <li><a href="https://doi.org/10.1002/jcc.23877" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015)</a></li>
+    <li><a href="https://doi.org/10.1002/jcc.25173" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018)</a></li>
   </ul>
   </td>
   <td>

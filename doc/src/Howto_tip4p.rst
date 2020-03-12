@@ -41,7 +41,7 @@ coefficients.
 | 
 
 For the TIP4/Ice model (J Chem Phys, 122, 234511 (2005);
-http://dx.doi.org/10.1063/1.1931662) these values can be used:
+https://doi.org/10.1063/1.1931662) these values can be used:
 
 | O mass = 15.9994
 | H mass =  1.008
@@ -57,7 +57,7 @@ http://dx.doi.org/10.1063/1.1931662) these values can be used:
 | 
 
 For the TIP4P/2005 model (J Chem Phys, 123, 234505 (2005);
-http://dx.doi.org/10.1063/1.2121687), these values can be used:
+https://doi.org/10.1063/1.2121687), these values can be used:
 
 | O mass = 15.9994
 | H mass =  1.008

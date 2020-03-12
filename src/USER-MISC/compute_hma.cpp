@@ -31,16 +31,16 @@ More information about HMA is available in these publications:
 A. J. Schultz, D. A. Kofke, “Comprehensive high-precision high-accuracy
 equation of state and coexistence properties for classical Lennard-Jones
 crystals and low-temperature fluid phases”, J. Chem. Phys. 149, 204508 (2018)
-https://dx.doi.org/10.1063/1.5053714
+https://doi.org/10.1063/1.5053714
 
 S. G. Moustafa, A. J. Schultz, D. A. Kofke, “Harmonically Assisted Methods for
 Computing the Free Energy of Classical Crystals by Molecular Simulation: A
 Comparative Study”, J. Chem. Theory Comput. 13, 825-834 (2017)
-https://dx.doi.org/10.1021/acs.jctc.6b01082
+https://doi.org/10.1021/acs.jctc.6b01082
 
 S. G. Moustafa, A. J. Schultz, D. A. Kofke, “Very fast averaging of thermal
 properties of crystals by molecular simulation”, Phys. Rev. E 92, 043303 (2015)
-https://dx.doi.org/10.1103/PhysRevE.92.043303
+https://doi.org/10.1103/PhysRevE.92.043303
 ------------------------------------------------------------------------- */
 
 #include <cmath>

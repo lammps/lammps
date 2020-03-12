@@ -12,7 +12,7 @@
 
    Common Neighbor Parameter as proposed in:
    Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007)
-   Cite: http://dx.doi.org/10.1063/1.2197987
+   Cite: https://doi.org/10.1063/1.2197987
 
 ------------------------------------------------------------------------- */
 

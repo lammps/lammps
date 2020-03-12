@@ -6,17 +6,17 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <http://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <http://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov
 .. _pizza: https://pizza.sandia.gov
-.. _python: http://www.python.org
+.. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
 this page.
@@ -519,9 +519,9 @@ The pymol\_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
 particles into an input file for the `PyMol visualization package <pymolhome_>`_ or its `open source variant <pymolopen_>`_.
 
-.. _pymolhome: http://www.pymol.org
+.. _pymolhome: https://www.pymol.org
 
-.. _pymolopen: http://sourceforge.net/scm/?type=svn&group\_id=4546
+.. _pymolopen: https://github.com/schrodinger/pymol-open-source
 
 Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and

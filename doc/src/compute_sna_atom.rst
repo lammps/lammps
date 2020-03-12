@@ -48,7 +48,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 rmin0 0.0
    compute db all sna/atom 1.4 0.95 6 2.0 1.0
@@ -181,7 +181,7 @@ The stress calculation uses a compute called *snap\_press* that is
 automatically created behind the scenes, according to the following
 command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute snap_press all pressure NULL virial
 

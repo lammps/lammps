@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp
    compute newtemp flow temp/partial 1 1 0
@@ -129,7 +129,7 @@ Three computes are always created, named "thermo\_temp",
 "thermo\_press", and "thermo\_pe", as if these commands had been invoked
 in the input script:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
    compute thermo_press all pressure thermo_temp

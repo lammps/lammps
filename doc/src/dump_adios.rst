@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump adios1 all atom/adios   100 atoms.bp
    dump 4a     all custom/adios 100 dump_adios.bp id v_p x y z
@@ -49,7 +49,7 @@ It is possible to use these dump styles with the
 must not be set at all.  The write\_dump command can be used to
 create a new file at each individual dump.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump 4     all atom/adios 100 dump.bp
    write_dump all atom/adios singledump.bp

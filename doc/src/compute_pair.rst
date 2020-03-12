@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pair gauss
    compute 1 all pair lj/cut/coul/cut ecoul

@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp
    compute myTemp mobile temp
@@ -57,7 +57,7 @@ needed, the subtracted degrees-of-freedom can be altered using the
 A compute of this style with the ID of "thermo\_temp" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 

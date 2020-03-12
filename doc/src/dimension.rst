@@ -15,7 +15,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension 2
 
@@ -52,6 +52,6 @@ Related commands
 Default
 """""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension 3

@@ -96,7 +96,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/atom xs vx fx mux
    compute 2 all property/atom type

@@ -21,7 +21,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 mobile stress/atom NULL
    compute 1 mobile stress/atom myRamp
@@ -195,11 +195,11 @@ is the total pressure of the system.
 These lines in an input script for a 3d system should yield that
 result. I.e. the last 2 columns of thermo output will be the same:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute        peratom all stress/atom NULL
    compute        p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
-   variable       press equal -(c_p[1]+c_p[2]+c_p[3])/(3\*vol)
+   variable       press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
    thermo_style   custom step temp etotal press v_press
 
 .. note::

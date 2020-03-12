@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pressure/cylinder -10.0 10.0 15.0 0.25
 

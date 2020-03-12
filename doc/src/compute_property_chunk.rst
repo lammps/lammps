@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/chunk count
    compute 1 all property/chunk ID coord1
@@ -81,12 +81,12 @@ The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk1 all property/chunk cc1 count
    compute myChunk2 all com/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
 
 **Output info:**
 

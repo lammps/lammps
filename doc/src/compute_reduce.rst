@@ -47,7 +47,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all reduce sum c_force
    compute 1 all reduce/region subbox sum c_force
@@ -108,10 +108,10 @@ had been listed one by one.  E.g. these 2 compute reduce commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all stress/atom NULL
-   compute 2 all reduce min c_myPress[\*]
+   compute 2 all reduce min c_myPress[*]
    compute 2 all reduce min c_myPress[1] c_myPress[2] c_myPress[3] &
                             c_myPress[4] c_myPress[5] c_myPress[6]
 
@@ -166,7 +166,7 @@ stored index is used to select the Nth element of the *vec1* vector.
 Thus, for example, if you wish to use this compute to find the bond
 with maximum stretch, you can do it as follows:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2
    compute 2 all bond/local dist

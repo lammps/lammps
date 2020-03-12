@@ -26,13 +26,13 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rdf 100
    compute 1 all rdf 100 1 1
-   compute 1 all rdf 100 \* 3 cutoff 5.0
+   compute 1 all rdf 100 * 3 cutoff 5.0
    compute 1 fluid rdf 500 1 1 1 2 2 1 2 2
-   compute 1 fluid rdf 500 1\*3 2 5 \*10 cutoff 3.5
+   compute 1 fluid rdf 500 1*3 2 5 *10 cutoff 3.5
 
 Description
 """""""""""
@@ -147,10 +147,10 @@ The simplest way to output the results of the compute rdf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myRDF all rdf 50
-   fix 1 all ave/time 100 1 100 c_myRDF[\*] file tmp.rdf mode vector
+   fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp.rdf mode vector
 
 **Output info:**
 

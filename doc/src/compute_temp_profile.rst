@@ -36,7 +36,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp flow temp/profile 1 1 1 x 10
    compute myTemp flow temp/profile 1 1 1 x 10 out bin

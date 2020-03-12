@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all slice 1 100 10 c_msdmol[4]
    compute 1 all slice 301 400 1 c_msdmol[4] v_myVec

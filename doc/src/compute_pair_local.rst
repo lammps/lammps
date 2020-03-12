@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pair/local eng
    compute 1 all pair/local dist eng force
@@ -115,7 +115,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local patom1 patom2
    compute 2 all pair/local dist eng force

@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd/nongauss
    compute 1 upper msd/nongauss com yes

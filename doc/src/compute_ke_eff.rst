@@ -16,7 +16,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/eff
 
@@ -56,7 +56,7 @@ freedom.
    :doc:`thermo_modify <thermo_modify>` command, as shown in the following
    example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press

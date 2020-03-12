@@ -120,6 +120,6 @@ The default options are plumedfile = NULL and outfile = NULL
 
 **(PLUMED)** G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
-.. _plumeddocs: http://www.plumed.org/doc.html
+.. _plumeddocs: https://www.plumed.org/doc.html
 
-.. _plumedhome: http://www.plumed.org/
+.. _plumedhome: https://www.plumed.org/

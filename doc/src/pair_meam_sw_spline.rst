@@ -6,14 +6,12 @@ pair_style meam/sw/spline command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style meam/sw/spline
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -96,9 +94,7 @@ potentials.
 Example input scripts that use this pair style are provided
 in the examples/USER/misc/meam\_sw\_spline directory.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -117,13 +113,10 @@ The *meam/sw/spline* pair style can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -140,26 +133,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lenosky2:
-
-
 
 **(Lenosky)** Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 
 .. _Stillinger1:
 
-
-
 **(Stillinger)** Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
 
 .. _Nicklas:
-
-
 
 **(Nicklas)**
 The spline-based MEAM+SW format was first devised and used to develop

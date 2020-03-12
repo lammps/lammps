@@ -15,7 +15,6 @@ fix nve/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve
@@ -26,8 +25,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve
 
@@ -39,9 +37,7 @@ atoms in the group each timestep.  V is volume; E is energy.  This
 creates a system trajectory consistent with the microcanonical
 ensemble.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -61,9 +57,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

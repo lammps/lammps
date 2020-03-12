@@ -9,32 +9,29 @@ pair_style buck/long/coul/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
 
 * flag\_buck = *long* or *cut*
-  
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the dispersion term 1/r\^6
        *cut* = use a cutoff
 
 * flag\_coul = *long* or *off*
-  
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the Coulombic term 1/r
        *off* = omit the Coulombic term
 
 * cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units)
 * cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -111,9 +108,7 @@ Similarly, if you are using *flag\_coul* set to *long*\ , you cannot
 specify a Coulombic cutoff for an atom type pair, since only one
 global Coulombic cutoff is allowed.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -133,9 +128,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -163,13 +156,10 @@ pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -181,13 +171,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ismail:
-
-
 
 **(Ismail)** Ismail, Tsige, In 't Veld, Grest, Molecular Physics
 (accepted) (2007).

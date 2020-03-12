@@ -6,7 +6,6 @@ fix bond/create command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ...
@@ -19,9 +18,9 @@ Syntax
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
 * keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype*
-  
+
   .. parsed-literal::
-  
+
        *iparam* values = maxbond, newtype
          maxbond = max # of bonds of bondtype the itype atom can have
          newtype = change the itype atom to this type when maxbonds exist
@@ -38,13 +37,10 @@ Syntax
        *itype* value = impropertype
          impropertype = type of created impropers
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all bond/create 10 1 2 0.8 1
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
@@ -218,9 +214,7 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
    thermostat your system to compensate for energy changes resulting from
    created bonds (and angles, dihedrals, impropers).
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -241,7 +235,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`

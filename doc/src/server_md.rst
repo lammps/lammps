@@ -6,7 +6,6 @@ server md command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    server md
@@ -16,8 +15,7 @@ md = the protocol argument to the :doc:`server <server>` command
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    server md
 
@@ -45,9 +43,7 @@ The :doc:`server <server>` doc page gives other options for using LAMMPS
 in server mode.  See an example of how this command is used in
 examples/message/in.message.server.
 
-
 ----------
-
 
 When using this command, LAMMPS (as the server code) receives the
 current coordinates of all particles from the client code each
@@ -64,7 +60,7 @@ forces, and pressure values from the server code.
 The format and content of the exchanged messages are explained here in
 a conceptual sense.  Python-style pseudo code for the library calls to
 the CSlib is shown, which performs the actual message exchange between
-the two codes.  See the `CSlib website <http://cslib.sandia.gov>`_ doc
+the two codes.  See the `CSlib website <https://cslib.sandia.gov>`_ doc
 pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 
@@ -78,7 +74,6 @@ The following pseudo-code uses these values, defined as enums.
 
 Define:
 
-
 .. parsed-literal::
 
    SETUP=1, STEP=2
@@ -86,7 +81,6 @@ Define:
    FORCES=1, ENERGY=2, PRESSURE=3, ERROR=4
 
 **Client sends 2 kinds of messages**\ :
-
 
 .. parsed-literal::
 
@@ -117,7 +111,6 @@ Define:
 
 **Server replies to either kind of message**\ :
 
-
 .. parsed-literal::
 
    # required fields: FORCES, ENERGY, PRESSURE
@@ -129,9 +122,7 @@ Define:
    cs->pack(PRESSURE,6,press)   # global pressure tensor (6-vector)
    cs->pack_int(ERROR,flag)     # server had an error (e.g. DFT non-convergence)
 
-
 ----------
-
 
 The units for various quantities that are sent and received iva
 messages are defined for atomic-scale simulations in the table below.
@@ -151,13 +142,10 @@ If you wish to run LAMMPS in another its non-atomic units, e.g. :doc:`lj units <
 message as indicated above, and both the client and server should
 agree on the units for the data they exchange.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

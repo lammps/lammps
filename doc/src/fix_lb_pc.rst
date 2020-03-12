@@ -6,7 +6,6 @@ fix lb/pc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/pc
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all lb/pc
 
@@ -42,7 +40,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -57,12 +54,8 @@ Related commands
 
 **Default:** None.
 
-
 ----------
 
-
 .. _Mackay1:
-
-
 
 **(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

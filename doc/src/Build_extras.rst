@@ -4,7 +4,6 @@ Packages with extra build options
 When building with some packages, additional steps may be required,
 in addition to:
 
-
 .. code-block:: bash
 
    $ cmake -D PKG_NAME=yes
@@ -53,10 +52,9 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-QUIP <user-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
    * :ref:`USER-SMD <user-smd>`
-   * :ref:`USER-VTK <user-vtk>`   
+   * :ref:`USER-VTK <user-vtk>`
 
 ----------
-
 
 .. _compress:
 
@@ -70,7 +68,6 @@ available on your system.
 
 If CMake cannot find the library, you can set these variables:
 
-
 .. code-block:: bash
 
    -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
@@ -82,9 +79,7 @@ If make cannot find the library, you can edit the file
 lib/compress/Makefile.lammps to specify the paths and library
 name.
 
-
 ----------
-
 
 .. _gpu:
 
@@ -95,7 +90,6 @@ To build with this package, you must choose options for precision and
 which GPU hardware to build for.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -146,7 +140,6 @@ You can also build the library in one step from the lammps/src dir,
 using a command like these, which simply invoke the lib/gpu/Install.py
 script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-gpu               # print help message
@@ -188,9 +181,7 @@ lib/gpu/Makefile.lammps may need to be edited.
    package uses the library settings from the lib/gpu/Makefile.machine
    used to build the GPU library.
 
-
 ----------
-
 
 .. _kim:
 
@@ -213,7 +204,6 @@ the KIM API library with all its models, may take a long time (tens of
 minutes to hours) to build.  Of course you only need to do that once.)
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -251,7 +241,6 @@ follow the instructions in lib/kim/README.  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
 invoke the lib/kim/Install.py script with the specified args.
 
-
 .. code-block:: bash
 
   $ make lib-kim              # print help message
@@ -271,7 +260,6 @@ using.  For example:
    LMP_INC =       -DLMP_NO_SSL_CHECK
 
 ----------
-
 
 .. _kokkos:
 
@@ -323,7 +311,6 @@ case-sensitive values, e.g. BDW, not bdw.
 
 For multicore CPUs using OpenMP, set these 2 variables.
 
-
 .. code-block:: bash
 
    -D KOKKOS_ARCH=archCPU         # archCPU = CPU from list above
@@ -331,14 +318,12 @@ For multicore CPUs using OpenMP, set these 2 variables.
 
 For Intel KNLs using OpenMP, set these 2 variables:
 
-
 .. code-block:: bash
 
    -D KOKKOS_ARCH=KNL
    -D KOKKOS_ENABLE_OPENMP=yes
 
 For NVIDIA GPUs using CUDA, set these 4 variables:
-
 
 .. code-block:: bash
 
@@ -352,7 +337,6 @@ The wrapper value is the Cuda nvcc compiler wrapper provided in the
 Kokkos library: lib/kokkos/bin/nvcc\_wrapper.  The setting should
 include the full path name to the wrapper, e.g.
 
-
 .. code-block:: bash
 
    -D CMAKE_CXX_COMPILER=/home/username/lammps/lib/kokkos/bin/nvcc_wrapper
@@ -365,7 +349,6 @@ src/MAKE/OPTIONS/Makefile.kokkos\* files for examples.
 
 For multicore CPUs using OpenMP:
 
-
 .. code-block:: make
 
    KOKKOS_DEVICES = OpenMP
@@ -373,14 +356,12 @@ For multicore CPUs using OpenMP:
 
 For Intel KNLs using OpenMP:
 
-
 .. code-block:: make
 
    KOKKOS_DEVICES = OpenMP
    KOKKOS_ARCH = KNL
 
 For NVIDIA GPUs using CUDA:
-
 
 .. code-block:: make
 
@@ -396,16 +377,13 @@ The 2 lines define a nvcc wrapper compiler, which will use nvcc for
 compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
 files.
 
-
 .. code-block:: make
 
    KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
    export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
    CC =            mpicxx
 
-
 ----------
-
 
 .. _latte:
 
@@ -416,7 +394,6 @@ To build with this package, you must download and build the LATTE
 library.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -437,7 +414,6 @@ one step from the lammps/src dir, using a command like these, which
 simply invokes the lib/latte/Install.py script with the specified
 args:
 
-
 .. code-block:: bash
 
   $ make lib-latte                          # print help message
@@ -452,9 +428,7 @@ dir.  When LAMMPS itself is built it will use these links.  You should
 also check that the Makefile.lammps file you create is appropriate for
 the compiler you use on your system to build LATTE.
 
-
 ----------
-
 
 .. _message:
 
@@ -466,7 +440,6 @@ using the open-source `ZeroMQ library <http://zeromq.org>`_, which must
 be installed on your system.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -482,7 +455,6 @@ follow the instructions in lib/message/README.  You can also do it in
 one step from the lammps/src dir, using a command like these, which
 simply invoke the lib/message/Install.py script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-message               # print help message
@@ -494,9 +466,7 @@ and lib/message/Makefile.lammps.  The latter is copied from an
 existing Makefile.lammps.\* and has settings to link with the ZeroMQ
 library if requested in the build.
 
-
 ----------
-
 
 .. _mscg:
 
@@ -510,7 +480,6 @@ headers and libraries are installed on your machine.  See the
 lib/mscg/README and MSCG/Install files for more details.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -532,7 +501,6 @@ follow the instructions in lib/mscg/README.  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
 invoke the lib/mscg/Install.py script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-mscg             # print help message
@@ -547,9 +515,7 @@ be created in lib/mscg to point to the MS-CG src/installation dir.
 When LAMMPS is built in src it will use these links.  You should not
 need to edit the lib/mscg/Makefile.lammps file.
 
-
 ----------
-
 
 .. _opt:
 
@@ -567,9 +533,7 @@ package when using Intel compilers.  It should be added to the CCFLAGS
 line of your Makefile.machine.  See src/MAKE/OPTIONS/Makefile.opt for
 an example.
 
-
 ----------
-
 
 .. _poems:
 
@@ -588,7 +552,6 @@ lib/poems/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/poems/Install.py script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-poems                   # print help message
@@ -604,9 +567,7 @@ necessary, you can edit/create a new lib/poems/Makefile.machine file
 for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
 
-
 ----------
-
 
 .. _python:
 
@@ -619,7 +580,6 @@ version, 2.6 or later.  Python 3 is not yet supported.  See
 lib/python/README for more details.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -639,9 +599,7 @@ process to find Python.  You should only need to create a new
 Makefile.lammps.\* file (and copy it to Makefile.lammps) if the LAMMPS
 build fails.
 
-
 ----------
-
 
 .. _voronoi:
 
@@ -652,10 +610,7 @@ To build with this package, you must download and build the `Voro++ library <vor
 
 .. _voro-home: http://math.lbl.gov/voro++
 
-
-
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -678,7 +633,6 @@ one step from the lammps/src dir, using a command like these, which
 simply invoke the lib/voronoi/Install.py script with the specified
 args:
 
-
 .. code-block:: bash
 
   $ make lib-voronoi                          # print help message
@@ -691,9 +645,7 @@ created in lib/voronoi to point to the Voro++ src dir.  When LAMMPS
 builds in src it will use these links.  You should not need to edit
 the lib/voronoi/Makefile.lammps file.
 
-
 ----------
-
 
 .. _user-adios:
 
@@ -709,7 +661,6 @@ installation and the instructions below are followed for the respective build sy
 
 **CMake build**\ :
 
-
 .. code-block:: bash
 
    -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
@@ -719,21 +670,17 @@ installation and the instructions below are followed for the respective build sy
 
 Turn on the USER-ADIOS package before building LAMMPS. If the ADIOS 2.x software is installed in PATH, there is nothing else to do:
 
-
 .. code-block:: bash
 
   $ make yes-user-adios
 
 otherwise, set ADIOS2\_DIR environment variable when turning on the package:
 
-
 .. code-block:: bash
 
   $ ADIOS2_DIR=path make yes-user-adios   # path is where ADIOS 2.x is installed
 
-
 ----------
-
 
 .. _user-atc:
 
@@ -754,7 +701,6 @@ You can do this manually if you prefer; follow the instructions in
 lib/atc/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/atc/Install.py script with the specified args:
-
 
 .. code-block:: bash
 
@@ -777,7 +723,6 @@ can either exist on your system, or you can use the files provided in
 lib/linalg.  In the latter case you also need to build the library in
 lib/linalg with a command like these:
 
-
 .. code-block:: bash
 
   $ make lib-linalg                     # print help message
@@ -785,9 +730,7 @@ lib/linalg with a command like these:
   $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
   $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
-
 ----------
-
 
 .. _user-awpmd:
 
@@ -805,7 +748,6 @@ You can do this manually if you prefer; follow the instructions in
 lib/awpmd/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/awpmd/Install.py script with the specified args:
-
 
 .. code-block:: bash
 
@@ -828,7 +770,6 @@ these can either exist on your system, or you can use the files
 provided in lib/linalg.  In the latter case you also need to build the
 library in lib/linalg with a command like these:
 
-
 .. code-block:: bash
 
   $ make lib-linalg                     # print help message
@@ -836,9 +777,7 @@ library in lib/linalg with a command like these:
   $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
   $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
-
 ----------
-
 
 .. _user-colvars:
 
@@ -880,7 +819,6 @@ LAMMPS.  This is best carried out from the LAMMPS src directory using a
 command like these, which simply invoke the lib/colvars/Install.py script with
 the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-colvars                      # print help message
@@ -905,16 +843,14 @@ The build should produce two files: the library lib/colvars/libcolvars.a
 lib/colvars/Makefile.lammps.  The latter is auto-generated, and normally does
 not need to be edited.
 
-
 ----------
-
 
 .. _user-plumed:
 
 USER-PLUMED package
 -------------------------------------
 
-.. _plumedinstall: http://plumed.github.io/doc-master/user-doc/html/\_installation.html
+.. _plumedinstall: https://plumed.github.io/doc-master/user-doc/html/\_installation.html
 
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
@@ -922,7 +858,6 @@ from LAMMPS using the generic `plumed installation instructions <plumedinstall_>
 The USER-PLUMED package has been tested to work with Plumed versions
 2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
 with a different version of the Plumed kernel.
-
 
 PLUMED can be linked into MD codes in three different modes: static,
 shared, and runtime.  With the "static" mode, all the code that PLUMED
@@ -959,7 +894,6 @@ must ensure that GSL is installed in locations that are specified in
 your environment.  There are then two additional commands that control
 the manner in which PLUMED is obtained and linked into LAMMPS.
 
-
 .. code-block:: bash
 
    -D DOWNLOAD_PLUMED=value   # download PLUMED for build, value = no (default) or yes
@@ -995,7 +929,6 @@ discussion of PLUMED linkage modes, please see above.
 Download/compilation/configuration of the plumed library can be done
 from the src folder through the following make args:
 
-
 .. code-block:: bash
 
   $ make lib-plumed                         # print help message
@@ -1010,7 +943,6 @@ use. A new file lib/plumed/Makefile.lammps is also created with settings
 suitable for LAMMPS to compile and link PLUMED using the desired linkage
 mode. After this step is completed, you can install the USER-PLUMED
 package and compile LAMMPS in the usual manner:
-
 
 .. code-block:: bash
 
@@ -1031,9 +963,7 @@ lib-plumed" with the desired settings **and** do a re-install if the
 USER-PLUMED package with "make yes-user-plumed" to update the required
 makefile settings with the changes in the lib/plumed folder.
 
-
 ----------
-
 
 .. _user-h5md:
 
@@ -1062,7 +992,6 @@ lib/h5md/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/h5md/Install.py script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-h5md                     # print help message
@@ -1076,9 +1005,7 @@ lib/h5md/Makefile.machine file for your system, which should define an
 EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
 
-
 ----------
-
 
 .. _user-intel:
 
@@ -1092,7 +1019,6 @@ used in tandem with the USER-INTEL package to good effect, as explained
 on the :doc:`Speed intel <Speed_intel>` doc page.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -1120,7 +1046,6 @@ additional information.
 
 For CPUs:
 
-
 .. code-block:: make
 
    OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
@@ -1130,7 +1055,6 @@ For CPUs:
 
 For KNLs:
 
-
 .. code-block:: make
 
    OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
@@ -1138,9 +1062,7 @@ For KNLs:
    LINKFLAGS =     -g -qopenmp $(OPTFLAGS)
    LIB =           -ltbbmalloc
 
-
 ----------
-
 
 .. _user-molfile:
 
@@ -1148,7 +1070,6 @@ USER-MOLFILE package
 ---------------------------------------
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -1176,9 +1097,7 @@ default headers, but these are not compatible with all VMD versions,
 so it is often best to change this setting to the location of the
 same include files of the local VMD installation in use.
 
-
 ----------
-
 
 .. _user-netcdf:
 
@@ -1205,9 +1124,7 @@ and library files which LAMMPS needs to build with this package.  If
 the settings are not valid for your system, you will need to edit the
 Makefile.lammps file.  See lib/netcdf/README for details.
 
-
 ----------
-
 
 .. _user-omp:
 
@@ -1227,10 +1144,9 @@ styles supporting OpenMP) the following compile and link flags must
 be added to your Makefile.machine file.
 See src/MAKE/OPTIONS/Makefile.omp for an example.
 
-
 .. parsed-literal::
 
-   CCFLAGS: -fopenmp               # for GNU and Clang Compilers 
+   CCFLAGS: -fopenmp               # for GNU and Clang Compilers
    CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
    LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
    LINKFLAGS: -qopenmp             # for Intel compilers on Linux
@@ -1239,9 +1155,7 @@ For other platforms and compilers, please consult the documentation
 about OpenMP support for your compiler. Please see the note about
 how to address compatibility :ref:`issues with the 'default(none)' directive <default-none-issues>` of some compilers.
 
-
 ----------
-
 
 .. _user-qmmm:
 
@@ -1282,7 +1196,6 @@ go back to the lib/qmmm folder and follow the instructions on the
 README file to build the combined LAMMPS/QE QM/MM executable
 (pwqmmm.x) in the lib/qmmm folder.  You need to make certain, that
 
-
 **Traditional make**\ :
 
 Before building LAMMPS, you must build the QMMM library in lib/qmmm.
@@ -1290,7 +1203,6 @@ You can do this manually if you prefer; follow the first two steps
 explained in lib/qmmm/README.  You can also do it in one step from the
 lammps/src dir, using a command like these, which simply invoke the
 lib/qmmm/Install.py script with the specified args:
-
 
 .. code-block:: bash
 
@@ -1316,7 +1228,6 @@ lib/qmmm folder.
 
 ----------
 
-
 .. _user-quip:
 
 USER-QUIP package
@@ -1329,7 +1240,6 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
 lib/quip/README file for details on how to do this.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -1349,9 +1259,7 @@ LAMMPS with this package.  You should only need to edit
 Makefile.lammps if the LAMMPS build can not use its settings to
 successfully build on your system.
 
-
 ----------
-
 
 .. _user-scafacos:
 
@@ -1362,10 +1270,7 @@ To build with this package, you must download and build the `ScaFaCoS Coulomb so
 
 .. _scafacos-home: http://www.scafacos.de
 
-
-
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -1397,9 +1302,7 @@ created in lib/scafacos to point to the ScaFaCoS src dir.  When LAMMPS
 builds in src it will use these links.  You should not need to edit
 the lib/scafacos/Makefile.lammps file.
 
-
 ----------
-
 
 .. _user-smd:
 
@@ -1410,7 +1313,6 @@ To build with this package, you must download the Eigen3 library.
 Eigen3 is a template library, so you do not need to build it.
 
 **CMake build**\ :
-
 
 .. code-block:: bash
 
@@ -1429,7 +1331,6 @@ instructions in lib/smd/README.  You can also do it in one step from
 the lammps/src dir, using a command like these, which simply invoke
 the lib/smd/Install.py script with the specified args:
 
-
 .. code-block:: bash
 
   $ make lib-smd                         # print help message
@@ -1441,9 +1342,7 @@ lib/smd to point to the Eigen dir.  When LAMMPS builds it will use
 this link.  You should not need to edit the lib/smd/Makefile.lammps
 file.
 
-
 ----------
-
 
 .. _user-vtk:
 

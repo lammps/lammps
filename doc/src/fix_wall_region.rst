@@ -6,7 +6,6 @@ fix wall/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/region region-ID style args ... cutoff
@@ -16,28 +15,26 @@ Syntax
 * region-ID = region whose boundary will act as wall
 * style = *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic* or *morse*
 * args for styles *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic* =
-  
+
   .. parsed-literal::
-  
+
         epsilon = strength factor for wall-particle interaction (energy or energy/distance\^2 units)
         sigma = size factor for wall-particle interaction (distance units)
 
 * args for style *morse* =
-  
+
   .. parsed-literal::
-  
+
         D_0 = depth of the potential (energy units)
         alpha = width parameter (1/distance units)
         r_0 = distance of the potential minimum from wall position (distance units)
 
 * cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wall all wall/region mySphere lj93 1.0 1.0 2.5
    fix wall all wall/region mySphere harmonic 1.0 0.0 2.5
@@ -134,40 +131,36 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
 
 .. math::
 
- E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} -
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
-
 
 For style *lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
 .. math::
 
- E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} -
                        \left(\frac{\sigma}{r}\right)^4 -
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
-
 
 For style *colloid*\ , the energy E is given by an integrated form of
 the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
 
-   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560}
    \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
-    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
-
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential (the distance parameter is ignored):
@@ -176,14 +169,12 @@ potential (the distance parameter is ignored):
 
    E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-
 For style *wall/morse*\ , the energy E is given by the Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
-
 
 Unlike other styles, this requires three parameters (:math:`D_0`,
 :math:`\alpha`, and :math:`r_0` in this order) instead of two like

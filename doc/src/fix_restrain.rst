@@ -6,7 +6,6 @@ fix restrain command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID restrain keyword args ...
@@ -15,9 +14,9 @@ Syntax
 * restrain = style name of this fix command
 * one or more keyword/arg pairs may be appended
 * keyword = *bond* or *angle* or *dihedral*
-  
+
   .. parsed-literal::
-  
+
        *bond* args = atom1 atom2 Kstart Kstop r0
          atom1,atom2 = IDs of 2 atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
@@ -33,11 +32,8 @@ Syntax
          keyword/value = optional keyword value pairs. supported keyword/value pairs:
            *mult* n = dihedral multiplicity n (integer >= 0, default = 1)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -106,7 +102,6 @@ molecule with particular restraints (e.g. for fitting force field
 parameters or constructing a potential energy surface), commands such
 as the following may be useful:
 
-
 .. code-block:: LAMMPS
 
    # minimize molecule energy with restraints
@@ -126,9 +121,7 @@ as the following may be useful:
    unfix REST
    run 0
 
-
 ----------
-
 
 The *bond* keyword applies a bond restraint to the specified atoms
 using the same functional form used by the :doc:`bond_style harmonic <bond_harmonic>` command.  The potential associated with
@@ -138,7 +131,6 @@ the restraint is
 
    E = K (r - r_0)^2
 
-
 with the following coefficients:
 
 * :math:`K` (energy/distance\^2)
@@ -147,9 +139,7 @@ with the following coefficients:
 :math:`K` and :math:`r_0` are specified with the fix.  Note that the usual 1/2 factor
 is included in :math:`K`.
 
-
 ----------
-
 
 The *angle* keyword applies an angle restraint to the specified atoms
 using the same functional form used by the :doc:`angle_style harmonic <angle_harmonic>` command.  The potential associated with
@@ -167,9 +157,7 @@ with the following coefficients:
 :math:`K` and :math:`\theta_0` are specified with the fix.  Note that the usual 1/2
 factor is included in :math:`K`.
 
-
 ----------
-
 
 The *dihedral* keyword applies a dihedral restraint to the specified
 atoms using a simplified form of the function used by the
@@ -179,7 +167,6 @@ associated with the restraint is
 .. math::
 
    E = K [ 1 + \cos (n \phi - d) ]
-
 
 with the following coefficients:
 
@@ -193,9 +180,7 @@ optional *mult* keyword to set it to a different positive integer.
 Also note that the energy will be a minimum when the
 current dihedral angle :math:`\phi` is equal to :math:`\phi_0`.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

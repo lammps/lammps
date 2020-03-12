@@ -6,7 +6,6 @@ dump h5md command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID h5md N file.h5 args
@@ -30,8 +29,6 @@ Syntax
      create_group value = *yes* or *no*
      author value = quoted string
 
-
-
 Note that at least one element must be specified and image may only be
 present if position is specified first.
 
@@ -40,18 +37,14 @@ sub-interval may be specified to write the data only every N\_element
 iterations of the dump (i.e. every N\*N\_element time steps). This is
 specified by this option directly following the element declaration:
 
-
 .. parsed-literal::
 
    every N_element
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump h5md1 all h5md 100 dump_h5md.h5 position image
    dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10
@@ -72,8 +65,6 @@ refers (via *file\_from*) to an already open dump ID and that concerns
 another particle group must specify *create\_group yes*.
 
 .. _h5md: http://nongnu.org/h5md/
-
-
 
 Each data element is written every N\*N\_element steps. For *image*\ , no
 sub-interval is needed as it must be present at the same interval as
@@ -100,19 +91,15 @@ Typically, the *species* data is fixed. The following two commands
 store the position data every 100 timesteps, with the image data, and
 store once the species data in the same file.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump h5md1 all h5md 100 dump.h5 position image
    write_dump all h5md dump.h5 file_from h5md1 species
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The number of atoms per snapshot cannot change with the h5md style.
 The position data is stored wrapped (box boundaries not enforced, see
@@ -128,24 +115,16 @@ provided by the HDF5 library.
 
 .. _HDF5-ws: http://www.hdfgroup.org/HDF5/
 
-
-
-
 ----------
-
 
 Related commands
 """"""""""""""""
 
 :doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
 
-
 ----------
 
-
 .. _h5md\_cpc:
-
-
 
 **(de Buyl)** de Buyl, Colberg and Hofling, H5MD: A structured,
 efficient, and portable file format for molecular data,

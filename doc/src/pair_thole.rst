@@ -12,14 +12,12 @@ pair_style lj/cut/thole/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *thole* or *lj/cut/thole/long* or *lj/cut/thole/long/omp*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -33,7 +31,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -70,7 +67,6 @@ Drude particles.
 The *thole* pair styles compute the Coulomb interaction damped at
 short distances by a function
 
-
 .. math::
 
    T_{ij}(r_{ij}) = 1 - \left( 1 +
@@ -86,7 +82,6 @@ a value of 2.6, but in certain force fields the value can depend upon
 the atom types. The mixing rule for Thole damping parameters is the
 arithmetic average, and for polarizabilities the geometric average
 between the atom-specific values.
-
 
 .. math::
 
@@ -135,9 +130,7 @@ command.
 The last two coefficients are optional and default to the global values from
 the *pair\_style* command line.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -165,7 +158,6 @@ for all I,J pairs must be specified explicitly.
 The *lj/cut/thole/long* pair style does support mixing. Mixed coefficients
 are defined using
 
-
 .. math::
 
    \alpha_{ij} = & \sqrt{\alpha_i\alpha_j} \\
@@ -174,7 +166,6 @@ are defined using
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the USER-DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -195,18 +186,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Noskov1:
-
-
 
 **(Noskov)** Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 .. _Thole1:
-
-
 
 **(Thole)** Chem Phys, 59, 341 (1981).

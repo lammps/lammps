@@ -6,7 +6,6 @@ fix deposit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID deposit N type M seed keyword values ...
@@ -19,9 +18,9 @@ Syntax
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
 * keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *mol* or *rigid* or *shake* or *units*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region to use as insertion volume
        *id* value = *max* or *next*
@@ -63,13 +62,10 @@ Syntax
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
    fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
@@ -298,7 +294,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

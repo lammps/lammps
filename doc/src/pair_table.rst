@@ -15,7 +15,6 @@ pair_style table/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style table style N keyword ...
@@ -103,9 +102,7 @@ short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj>`.  
 the tabulated values for each pair of atom types has the correct
 functional form to be compatible with the matching long-range solver.
 
-
 ----------
-
 
 Here are some guidelines for using the pair\_style table command to
 best effect:
@@ -125,14 +122,10 @@ best effect:
 * Use as large an inner cutoff as possible.  This avoids fitting splines
   to very steep parts of the potential.
 
-
-
 ----------
-
 
 The format of a tabulated file is a series of one or more sections,
 defined as follows (without the parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -224,9 +217,7 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -246,9 +237,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -269,9 +258,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -284,12 +271,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Wolff2:
-
-
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).

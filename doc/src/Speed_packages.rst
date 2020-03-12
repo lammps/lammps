@@ -132,7 +132,6 @@ packages.  As an example, here is a command that builds with all the
 GPU related packages installed (GPU, KOKKOS with Cuda), including
 settings to build the needed auxiliary GPU libraries for Kepler GPUs:
 
-
 .. parsed-literal::
 
    Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi   -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi
@@ -146,7 +145,7 @@ sub-directories with Make.py commands and input scripts for using all
 the accelerator packages on various machines.  See the README files in
 those directories.
 
-As mentioned above, the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
+As mentioned above, the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
 performance results for the various accelerator packages for several
 of the standard LAMMPS benchmark problems, as a function of problem
 size and number of compute nodes, on different hardware platforms.
@@ -177,7 +176,6 @@ are in the individual accelerator sections.
 * Styles with an "opt" suffix are part of the OPT package and typically
   speed-up the pairwise calculations of your simulation by 5-25% on a
   CPU.
-
 
 The individual accelerator package doc pages explain:
 

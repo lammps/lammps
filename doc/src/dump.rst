@@ -30,7 +30,6 @@ dump command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID style N file args
@@ -42,9 +41,9 @@ Syntax
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *atom* args = none
        *atom/gz* args = none
        *atom/mpiio* args = none
@@ -69,9 +68,9 @@ Syntax
        *xyz/mpiio* args = none
 
 * *custom* or *custom/gz* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
-  
+
   .. parsed-literal::
-  
+
          possible attributes = id, mol, proc, procp1, type, element, mass,
                                x, y, z, xs, ys, zs, xu, yu, zu,
                                xsu, ysu, zsu, ix, iy, iz,
@@ -81,9 +80,8 @@ Syntax
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
                                c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
-  
   .. parsed-literal::
-  
+
            id = atom ID
            mol = molecule ID
            proc = ID of processor that owns atom
@@ -114,9 +112,9 @@ Syntax
            i_name = per-atom integer vector with name, managed by fix property/atom
 
 * *local* args = list of local attributes
-  
+
   .. parsed-literal::
-  
+
          possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
            index = enumeration of local values
            c_ID = local vector calculated by a compute with ID
@@ -124,24 +122,21 @@ Syntax
            f_ID = local vector calculated by a fix with ID
            f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump myDump all atom 100 dump.atom
    dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump 2 subgroup atom 50 dump.run.bin
    dump 2 subgroup atom 50 dump.run.mpiio.bin
-   dump 4a all custom 100 dump.myforce.\* id type x y vx fx
+   dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[\*] v_ke
-   dump 2 inner cfg 10 dump.snap.\*.cfg mass type xs ys zs vx vy vz
-   dump snap all cfg 100 dump.config.\*.cfg mass type xs ys zs id type c_Stress[2]
+   dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
+   dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
    dump 1 all xtc 1000 file.xtc
 
 Description
@@ -216,9 +211,7 @@ The precision of values output to text-based dump files can be
 controlled by the :doc:`dump_modify format <dump_modify>` command and
 its options.
 
-
 ----------
-
 
 The *style* keyword determines what atom quantities are written to the
 file and in what format.  Settings made via the
@@ -228,7 +221,7 @@ individual values and the file itself.
 The *atom*\ , *local*\ , and *custom* styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Some of the
 LAMMPS post-processing tools described on the :doc:`Tools <Tools>` doc
-page, including `Pizza.py <http://www.sandia.gov/~sjplimp/pizza.html>`_,
+page, including `Pizza.py <https://pizza.sandia.gov>`_,
 work with this format, as does the :doc:`rerun <rerun>` command.
 
 For post-processing purposes the *atom*\ , *local*\ , and *custom* text
@@ -236,7 +229,6 @@ files are self-describing in the following sense.
 
 The dimensions of the simulation box are included in each snapshot.
 For an orthogonal simulation box this information is formatted as:
-
 
 .. parsed-literal::
 
@@ -257,7 +249,6 @@ For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
-
 
 .. parsed-literal::
 
@@ -314,7 +305,7 @@ be cut and pasted directly into a data file read by the
 
 Style *cfg* has the same command syntax as style *custom* and writes
 extended CFG format files, as used by the
-`AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_ visualization
+`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualization
 package.  Since the extended CFG format uses a single snapshot of the
 system per file, a wildcard "\*" must be included in the filename, as
 discussed below.  The list of atom attributes for style *cfg* must
@@ -378,9 +369,7 @@ Note that *atom*\ , *custom*\ , *dcd*\ , *xtc*\ , and *xyz* style dump files
 can be read directly by `VMD <http://www.ks.uiuc.edu/Research/vmd>`_, a
 popular molecular viewing program.
 
-
 ----------
-
 
 Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
@@ -436,8 +425,7 @@ library, which is part of the MPI standard for versions 2.0 and above.
 Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
 package installed, e.g.
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
    make mpi          # build LAMMPS for your platform
@@ -474,9 +462,7 @@ be about 3x smaller than the text version, but will also take longer
 to write.  This option is not available for the *dcd* and *xtc*
 styles.
 
-
 ----------
-
 
 Note that in the discussion which follows, for styles which can
 reference values from a compute or fix, like the *custom*\ , *cfg*\ , or
@@ -495,17 +481,14 @@ had been listed one by one.  E.g. these 2 dump commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all stress/atom NULL
-   dump 2 all custom 100 tmp.dump id myPress[\*]
+   dump 2 all custom 100 tmp.dump id myPress[*]
    dump 2 all custom 100 tmp.dump id myPress[1] myPress[2] myPress[3] &
                                      myPress[4] myPress[5] myPress[6]
 
-
 ----------
-
 
 This section explains the local attributes that can be specified as
 part of the *local* style.
@@ -554,16 +537,13 @@ values.
 Here is an example of how to dump bond info for a system, including
 the distance and energy of each bond:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2 btype
    compute 2 all bond/local dist eng
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
 
-
 ----------
-
 
 This section explains the atom attributes that can be specified as
 part of the *custom* and *cfg* styles.
@@ -688,13 +668,10 @@ See the :doc:`Modify <Modify>` doc page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
 which could then be output into dump files.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 To write gzipped dump files, you must either compile LAMMPS with the
 -DLAMMPS\_GZIP option or use the styles from the COMPRESS package.
@@ -716,7 +693,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`, 
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
 :doc:`dump h5md <dump_h5md>`, :doc:`dump image <dump_image>`,
 :doc:`dump molfile <dump_molfile>`, :doc:`dump_modify <dump_modify>`,
 :doc:`undump <undump>`

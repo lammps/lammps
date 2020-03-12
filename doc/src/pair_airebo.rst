@@ -30,7 +30,6 @@ pair_style rebo/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style cutoff LJ_flag TORSION_flag cutoff_min
@@ -43,7 +42,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -84,8 +82,8 @@ The AIREBO potential consists of three terms:
 
 .. math::
 
-   E & = \frac{1}{2} \sum_i \sum_{j \neq i} 
-   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} + 
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i}
+   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} +
     \sum_{k \neq i,j} \sum_{l \neq i,j,k} E^{\text{TORSION}}_{kijl} \right] \\
 
 By default, all three terms are included.  For the *airebo* style, if
@@ -135,9 +133,7 @@ optional arguments are given.
 The :math:`E^{\text{TORSION}}` term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.
 
-
 ----------
-
 
 Only a single pair_coeff command is used with the *airebo*\ , *airebo*
 or *rebo* style which specifies an AIREBO, REBO, or AIREBO-M potential
@@ -156,7 +152,6 @@ to specify the path for the potential file.
 As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C, and the 4th to be H, you would use the following
 pair_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -194,7 +189,6 @@ The 3 values correspond to the following sub-categories:
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute 0 all pair airebo
@@ -203,9 +197,7 @@ headings) the following commands could be included in an input script:
    variable TORSION  equal c_0[3]
    thermo_style custom step temp epair v_REBO v_LJ v_TORSION
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -225,9 +217,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -244,7 +234,6 @@ These pair styles can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -266,26 +255,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Stuart:
-
-
 
 **(Stuart)** Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486
 (2000).
 
 .. _Brenner:
 
-
-
 **(Brenner)** Brenner, Shenderova, Harrison, Stuart, Ni, Sinnott, J
 Physics: Condensed Matter, 14, 783-802 (2002).
 
 .. _OConnor:
-
-
 
 **(O'Connor)** O'Connor et al., J. Chem. Phys. 142, 024903 (2015).

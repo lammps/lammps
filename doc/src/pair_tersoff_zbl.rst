@@ -15,14 +15,12 @@ pair_style tersoff/zbl/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style tersoff/zbl
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -62,9 +60,8 @@ system of atoms as
   b_{ij} & = \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
-  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} - 
+  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
-
 
 The :math:`f_F` term is a fermi-like function used to smoothly connect the ZBL
 repulsive potential with the Tersoff potential.  There are 2
@@ -104,7 +101,6 @@ As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -216,7 +212,6 @@ using the Tersoff\_2 mixing rules:
    R_{i,j} & = (R_{i}R_{j})^{1/2}\\
    S_{i,j} & = (S_{i}S_{j})^{1/2}\\
 
-
 Tersoff\_2 parameters R and S must be converted to the LAMMPS
 parameters R and D (R is different in both forms), using the following
 relations: R=(R'+S')/2 and D=(S'-R')/2, where the primes indicate the
@@ -237,9 +232,7 @@ for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.  Also thanks to Ram Devanathan for
 providing the base ZBL implementation.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -259,9 +252,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -280,13 +271,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -308,32 +296,22 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _zbl-Tersoff\_1:
-
-
 
 **(Tersoff\_1)** J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
 .. _zbl-ZBL:
-
-
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges
 of Ions in Matter' Vol 1, 1985, Pergamon Press.
 
 .. _zbl-Albe:
 
-
-
 **(Albe)** J. Nord, K. Albe, P. Erhart and K. Nordlund, J. Phys.:
 Condens. Matter, 15, 5649(2003).
 
 .. _zbl-Tersoff\_2:
-
-
 
 **(Tersoff\_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)

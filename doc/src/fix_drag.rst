@@ -6,7 +6,6 @@ fix drag command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID drag x y z fmag delta
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix center small-molecule drag 0.0 10.0 0.0 5.0 2.0
 

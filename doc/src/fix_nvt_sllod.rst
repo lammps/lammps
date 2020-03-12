@@ -12,7 +12,6 @@ fix nvt/sllod/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/sllod keyword value ...
@@ -24,8 +23,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/sllod temp 300.0 300.0 100.0
    fix 1 all nvt/sllod temp 300.0 300.0 100.0 drag 0.2
@@ -87,8 +85,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/deform", as if this command had
 been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/deform
 
@@ -120,9 +117,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -170,7 +165,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix works best without Nose-Hoover chain thermostats, i.e. using
 tchain = 1.  Setting tchain to larger values can result in poor
 equilibration.
@@ -186,25 +180,17 @@ Default
 
 Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 
-
 ----------
 
-
 .. _Evans3:
-
-
 
 **(Evans and Morriss)** Evans and Morriss, Phys Rev A, 30, 1528 (1984).
 
 .. _Daivis:
 
-
-
 **(Daivis and Todd)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 
 .. _Daivis-sllod:
-
-
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

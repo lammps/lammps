@@ -9,14 +9,12 @@ pair_style meam/spline/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style meam/spline
 
 Examples
 """"""""
-
 
 .. code:: LAMMPS
 
@@ -91,7 +89,6 @@ your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potentials, you would use the following pair\_coeff
 command:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * Ti.meam.spline Ti Ti Ti
@@ -108,7 +105,6 @@ on the command line to that single type.
 An example with a two component spline (new style) is TiO.meam.spline, where
 the command
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * TiO.meam.spline Ti O
@@ -119,9 +115,7 @@ names of the elements in the TiO.meam.spline file; otherwise an
 error will be raised. This behavior is different than the old style
 MEAM files.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -141,9 +135,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -158,13 +150,10 @@ The *meam/spline* pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -180,20 +169,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lenosky1:
-
-
 
 **(Lenosky)** Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
 
 .. _Zhang4:
-
-
 
 **(Zhang)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

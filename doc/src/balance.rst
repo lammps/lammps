@@ -6,7 +6,6 @@ balance command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    balance thresh style args ... keyword args ...
@@ -14,9 +13,9 @@ Syntax
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
 * one style/arg pair can be used (or multiple for *x*\ ,\ *y*\ ,\ *z*\ )
 * style = *x* or *y* or *z* or *shift* or *rcb*
-  
+
   .. parsed-literal::
-  
+
        *x* args = *uniform* or Px-1 numbers between 0 and 1
          *uniform* = evenly spaced cuts between processors in x dimension
          numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
@@ -37,9 +36,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *weight* or *out*
-  
+
   .. parsed-literal::
-  
+
        *weight* style args = use weighted particle counts for the balancing
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...
@@ -57,13 +56,10 @@ Syntax
        *out* arg = filename
          filename = write each processor's sub-domain to a file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    balance 0.9 x uniform y 0.4 0.5 0.6
    balance 1.2 shift xz 5 1.1
@@ -168,9 +164,7 @@ fractions of the box length) are also printed.
    :doc:`kspace_style <kspace_style>` command.  Thus you should benchmark
    the run times of a simulation before and after balancing.
 
-
 ----------
-
 
 The method used to perform a load balance is specified by one of the
 listed styles (or more in the case of *x*\ ,\ *y*\ ,\ *z*\ ), which are
@@ -192,7 +186,6 @@ sub-box for each of 16 processors); the middle diagram is after a
    :target: JPG/balance_nonuniform.jpg
 .. image:: JPG/balance_rcb_small.jpg
    :target: JPG/balance_rcb.jpg
-
 
 The *rcb* style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
@@ -220,9 +213,7 @@ When a "tiling" method is specified, the current domain partitioning
 ("grid" or "tiled") is ignored, and a new partitioning is computed
 from scratch.
 
-
 ----------
-
 
 The *x*\ , *y*\ , and *z* styles invoke a "grid" method for balancing, as
 described above.  Note that any or all of these 3 styles can be
@@ -250,9 +241,7 @@ there are 2 processors in the x dimension, you specify a single value
 such as 0.75, which would make the left processor's sub-domain 3x
 larger than the right processor's sub-domain.
 
-
 ----------
-
 
 The *shift* style invokes a "grid" method for balancing, as
 described above.  It changes the positions of cutting planes between
@@ -307,9 +296,7 @@ the balance procedure ends.
    the same number of iterations to converge even if the cutting plane is
    initially close to the target value.
 
-
 ----------
-
 
 The *rcb* style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
@@ -344,14 +331,12 @@ box in two.  The recursion continues until every processor is assigned
 a sub-box of the entire simulation domain, and owns the (weighted)
 particles in that sub-box.
 
-
 ----------
-
 
 .. _weighted\_balance:
 
 This sub-section describes how to perform weighted load balancing
-using the *weight* keyword. 
+using the *weight* keyword.
 
 By default, all particles have a weight of 1.0, which means each
 particle is assumed to require the same amount of computation during a
@@ -483,9 +468,7 @@ these custom per-atom properties can be output in a :doc:`dump <dump>`
 file, so this is a way to examine, debug, or visualize the
 per-particle weights computed during the load-balancing operation.
 
-
 ----------
-
 
 The *out* keyword writes a text file to the specified *filename* with
 the results of the balancing operation.  The file contains the bounds
@@ -494,7 +477,6 @@ completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
 processors for a 2d problem:
-
 
 .. parsed-literal::
 
@@ -543,13 +525,10 @@ rectangle for each processor (1 to 4).
 For a 3d problem, the syntax is similar with 8 vertices listed for
 each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For 2d simulations, the *z* style cannot be used.  Nor can a "z"
 appear in *dimstr* for the *shift* style.
@@ -563,6 +542,6 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`,
 :doc:`fix balance <fix_balance>`, :doc:`comm_style <comm_style>`
 
-.. _pizza: http://pizza.sandia.gov
+.. _pizza: https://pizza.sandia.gov
 
 **Default:** none

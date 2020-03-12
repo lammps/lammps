@@ -6,14 +6,12 @@ pair_style nb3b/harmonic command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style nb3b/harmonic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -28,8 +26,7 @@ energy E of a system of atoms as
 
 .. math::
 
-   E = K (\theta - \theta_0)^2 
-
+   E = K (\theta - \theta_0)^2
 
 where :math:`\theta_0` is the equilibrium value of the angle and *K* is a
 prefactor. Note that the usual 1/2 factor is included in *K*\ . The form
@@ -52,7 +49,6 @@ As an example, imagine a file SiC.nb3b.harmonic has potential values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -96,13 +92,10 @@ parameters should be set to zero. The potential file can also
 contain entries for additional elements which are not used in
 a particular simulation; LAMMPS ignores those entries.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style can only be used if LAMMPS was built with the MANYBODY
 package.  See the :doc:`Build package <Build_package>` doc page for more

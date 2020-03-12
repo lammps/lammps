@@ -6,7 +6,6 @@ fix print command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID print N string keyword value ...
@@ -17,22 +16,19 @@ Syntax
 * string = text string to print with optional variable names
 * zero or more keyword/value pairs may be appended
 * keyword = *file* or *append* or *screen* or *title*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
        *append* value = filename
        *screen* value = *yes* or *no*
        *title* value = string
          string =  text to print as 1st line of output file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix extra all print 100 "Coords of marker atom = $x $y $z"
    fix extra all print 100 "Coords of marker atom = $x $y $z" file coord.txt
@@ -58,8 +54,7 @@ and logfreq() and stride() math functions for :doc:`equal-style variables <varia
 this context. For example, the following commands will print output at
 timesteps 10,20,30,100,200,300,1000,2000,etc:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        s equal logfreq(10,3,10)
    fix extra all print v_s "Coords of marker atom = $x $y $z"
@@ -87,7 +82,6 @@ logfile can be turned on or off as desired.
 The *title* keyword allow specification of the string that will be
 printed as the first line of the output file, assuming the *file*
 keyword was used.  By default, the title line is as follows:
-
 
 .. parsed-literal::
 

@@ -5,14 +5,13 @@ LAMMPS is run from the command line, reading commands from a file via
 the -in command line flag, or from standard input.
 Using the "-in in.file" variant is recommended:
 
-
 .. code-block:: bash
 
    $ lmp_serial -in in.file
    $ lmp_serial < in.file
    $ /path/to/lammps/src/lmp_serial -i in.file
    $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpirun -np 8 /path/to//lammps/src/lmp_mpi -in in.file
+   $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
    $ mpirun -np 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input
@@ -68,7 +67,6 @@ If the LAMMPS command(s) you are using support multi-threading, you
 can set the number of threads per MPI task via the environment
 variable OMP\_NUM\_THREADS, before you launch LAMMPS:
 
-
 .. code-block:: bash
 
    $ export OMP_NUM_THREADS=2     # bash
@@ -80,9 +78,7 @@ package command.  See the :doc:`package <package>` command or
 :doc:`Speed <Speed>` doc pages for more details about which accelerator
 packages and which commands support multi-threading.
 
-
 ----------
-
 
 You can experiment with running LAMMPS using any of the input scripts
 provided in the examples or bench directory.  Input scripts are named

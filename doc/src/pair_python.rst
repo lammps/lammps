@@ -6,7 +6,6 @@ pair_style python command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style python cutoff
@@ -15,7 +14,6 @@ cutoff = global cutoff for interactions in python potential classes
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -61,7 +59,6 @@ input and you would have defined 3 atom types, out of which the first
 two are supposed to be using the 'LJ1' parameters and the third the
 'LJ2' parameters, then you would use the following pair\_coeff command:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * py_pot.LJCutMelt LJ1 LJ1 LJ2
@@ -76,17 +73,14 @@ skipped. This can be used when a *python* potential is used as part of
 the *hybrid* or *hybrid/overlay* pair style. The NULL values are then
 placeholders for atom types that will be used with other potentials.
 
-
 ----------
 
-
 The python potential file has to start with the following code:
-
 
 .. code-block:: python
 
    from __future__ import print_function
-   
+
    class LAMMPSPairPotential(object):
        def __init__(self):
            self.pmap=dict()
@@ -114,7 +108,6 @@ Here is an example for a single type Lennard-Jones potential class
 *LJCutMelt* in reduced units, which defines an atom type *lj* for
 which the parameters epsilon and sigma are both 1.0:
 
-
 .. code-block:: python
 
    class LJCutMelt(LAMMPSPairPotential):
@@ -138,7 +131,6 @@ and use the result as return value. The functions need to use the
 *pmap* dictionary to convert the LAMMPS atom type number to the symbolic
 value of the internal potential parameter data structure. Following
 the *LJCutMelt* example, here are the two functions:
-
 
 .. code-block:: python
 
@@ -167,9 +159,7 @@ the *LJCutMelt* example, here are the two functions:
    multiplied by delta x, delta y, and delta z to conveniently obtain the
    three components of the force vector between these two atoms.
 
-
 ----------
-
 
 .. note::
 
@@ -179,7 +169,6 @@ the *LJCutMelt* example, here are the two functions:
    for the actual simulation, but to generate tabulated potentials on the
    fly using the :doc:`pair_write <pair_write>` command. Please see below
    for an example LAMMPS input of how to build a table file:
-
 
 .. code-block:: LAMMPS
 
@@ -198,7 +187,6 @@ table file is first deleted.
 After switching the pair style to *table*\ , the potential tables need
 to be assigned to the LAMMPS atom types like this:
 
-
 .. code-block:: LAMMPS
 
    pair_style      table linear 2000
@@ -207,9 +195,7 @@ to be assigned to the LAMMPS atom types like this:
 This can also be done for more complex systems.  Please see the
 *examples/python* folders for a few more examples.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -230,13 +216,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the PYTHON package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

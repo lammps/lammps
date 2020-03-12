@@ -6,7 +6,6 @@ fix electron/stopping command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID electron/stopping Ecut file keyword value ...
@@ -17,21 +16,18 @@ Syntax
 * file = name of the file containing the electronic stopping power table
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *minneigh*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = region, whose atoms will be affected by this fix
        *minneigh* value = minneigh
          minneigh = minimum number of neighbors an atom to have stopping applied
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix el all electron/stopping 10.0 elstop-table.txt
    fix el all electron/stopping 10.0 elstop-table.txt minneigh 3
@@ -51,7 +47,6 @@ considered, the simulated range of the ions can be severely overestimated
 
 The electronic stopping is implemented by applying a friction force
 to each atom as:
-
 
 .. math::
 
@@ -97,9 +92,7 @@ geometric :doc:`region <region>` in order to have electronic stopping applied to
 it. This is useful if the position of the bulk material is fixed. By default
 the electronic stopping is applied everywhere in the simulation cell.
 
-
 ----------
-
 
 The energy ranges and stopping powers are read from the file *file*\ .
 Lines starting with *#* and empty lines are ignored. Otherwise each
@@ -114,7 +107,6 @@ intermediate energy values are calculated with linear interpolation between
 2 nearest points.
 
 For example:
-
 
 .. parsed-literal::
 
@@ -154,7 +146,6 @@ on this fix.
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -164,42 +155,28 @@ Default
 
 The default is no limitation by region, and minneigh = 1.
 
-
 ----------
 
-
 .. _elstopping:
-
-
 
 **(electronic stopping)** Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping\_power\_%28particle\_radiation%29
 
 .. _Nordlund98:
 
-
-
 **(Nordlund98)** Nordlund, Kai, et al.  Physical Review B 57.13 (1998): 7556.
 
 .. _Nordlund95:
-
-
 
 **(Nordlund95)** Nordlund, Kai. Computational materials science 3.4 (1995): 448-456.
 
 .. _SRIM:
 
-
-
 **(SRIM)** SRIM webpage: http://www.srim.org/
 
 .. _CasP:
 
-
-
 **(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp\_en.html
 
 .. _PASS:
-
-
 
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS

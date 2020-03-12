@@ -21,7 +21,6 @@ pair_style lj/expand/coul/long/gpu command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/expand cutoff
@@ -30,7 +29,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,10 +51,9 @@ formula:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} -
      \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
      \qquad r < r_c + \Delta
-
 
 :math:`r_c` is the cutoff which does not include the :math:`\Delta`
 distance.  I.e. the actual force cutoff is the sum of :math:`r_c +
@@ -103,9 +100,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -133,9 +128,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

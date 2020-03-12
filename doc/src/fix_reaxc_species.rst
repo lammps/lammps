@@ -9,7 +9,6 @@ fix reax/c/species/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID reax/c/species Nevery Nrepeat Nfreq filename keyword value ...
@@ -22,9 +21,9 @@ Syntax
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
 * keyword = *cutoff* or *element* or *position*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* value = I J Cutoff
          I, J = atom types
          Cutoff = Bond-order cutoff value for this pair of atom types
@@ -33,13 +32,10 @@ Syntax
          posfreq = write position files every this many timestep
          filepos = name of position output file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all reax/c/species 10 10 100 species.out
    fix 1 all reax/c/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
@@ -97,9 +93,7 @@ character appears in *filepos*\ , then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the bond-order values are sampled to get the average bond
@@ -116,9 +110,7 @@ For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order
 values on timesteps 90,92,94,96,98,100 will be used to compute the
 average bond-order for the species analysis output on timestep 100.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -143,9 +135,7 @@ any atom in the molecule.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -166,13 +156,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`Speed <Speed>` of the manual for
 more instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The "fix reax/c/species" currently only works with :doc:`pair_style reax/c <pair_reaxc>` and it requires that the :doc:`pair_style reax/c <pair_reaxc>` be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that

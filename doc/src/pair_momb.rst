@@ -6,7 +6,6 @@ pair_style momb command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style momb cutoff s6 d
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -40,7 +38,6 @@ dispersion in density functional theory calculations.
 
    E & = D_0 [\exp^{-2 \alpha (r-r_0)} - 2\exp^{-\alpha (r-r_0)}] - s_6 \frac{C_6}{r^6} f_{damp}(r,R_r) \\
   f_{damp}(r,R_r) & = \frac{1}{1 + \exp^{-d(r/R_r - 1)}}
-
 
 For the *momb* pair style, the following coefficients must be defined
 for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
@@ -69,9 +66,7 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _Grimme:
 

@@ -58,7 +58,6 @@ details.
    The added functions can access or change any internal LAMMPS data you
    wish.
 
-
 .. code-block:: c
 
    void lammps_open(int, char **, MPI_Comm, void **)
@@ -136,7 +135,6 @@ information from LAMMPS and setting value within LAMMPS.  Again, see
 the documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:
 
-
 .. code-block:: c
 
    int lammps_extract_setting(void *, char *)
@@ -163,7 +161,6 @@ is not listed.  For the other extract functions, the underlying
 storage may be reallocated as LAMMPS runs, so you need to re-call the
 function to assure a current pointer or returned value(s).
 
-
 .. code-block:: c
 
    double lammps_get_thermo(void *, char *)
@@ -186,7 +183,6 @@ access the variable.
 The lammps\_reset\_box() function resets the size and shape of the
 simulation box, e.g. as part of restoring a previously extracted and
 saved state of a simulation.
-
 
 .. code-block:: c
 
@@ -229,7 +225,6 @@ atoms in the system, ordered by atom ID, from 1 to N, and assigns
 those values to each atom in the system.  The
 lammps\_scatter\_atoms\_subset() function takes a subset of IDs as an
 argument and only scatters those values to the owning atoms.
-
 
 .. code-block:: c
 

@@ -6,7 +6,6 @@ compute body/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID body/local input1 input2 ...
@@ -15,20 +14,17 @@ Syntax
 * body/local = style name of this compute command
 * one or more keywords may be appended
 * keyword = *id* or *type* or *integer*
-  
+
   .. parsed-literal::
-  
+
        *id* = atom ID of the body particle
        *type* = atom type of the body particle
        *integer* = 1,2,3,etc = index of fields defined by body style
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    compute 1 all body/local 3 6
@@ -73,8 +69,7 @@ body sub-particles are x,y,z coordinates, then the dump file will be
 formatted similar to the output of a :doc:`dump atom or custom <dump>`
 command.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4]

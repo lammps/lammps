@@ -73,7 +73,6 @@ in the LAMMPS distribution.  Typing "make machine" uses
 use Makefile.serial and Makefile.mpi, respectively.  Other makefiles
 are in these directories:
 
-
 .. parsed-literal::
 
    OPTIONS      # Makefiles which enable specific options
@@ -92,7 +91,6 @@ for optimized performance.  Please note, however, that some of these
 customized machine Makefile are contributed by users.  Since both
 compilers, OS configurations, and LAMMPS itself keep changing, their
 settings may become outdated:
-
 
 .. code-block:: bash
 

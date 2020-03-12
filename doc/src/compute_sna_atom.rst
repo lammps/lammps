@@ -15,12 +15,11 @@ compute snap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID sna/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
    compute ID group-ID snad/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-   compute ID group-ID snav/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ... 
+   compute ID group-ID snav/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
    compute ID group-ID snap rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
@@ -32,9 +31,9 @@ Syntax
 * w\_1, w\_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
 * keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag*
-  
+
   .. parsed-literal::
-  
+
        *rmin0* value = parameter in distance to angle conversion (distance units)
        *switchflag* value = *0* or *1*
           *0* = do not use switching function
@@ -49,8 +48,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 rmin0 0.0
    compute db all sna/atom 1.4 0.95 6 2.0 1.0
@@ -63,7 +61,7 @@ Description
 Define a computation that calculates a set of quantities related to the
 bispectrum components of the atoms in a group. These computes are
 used primarily for calculating the dependence of energy, force, and
-stress components on the linear coefficients in the 
+stress components on the linear coefficients in the
 :doc:`snap pair\_style <pair_snap>`, which is useful when training a
 SNAP potential to match target data.
 
@@ -84,7 +82,6 @@ polar angle *theta0* defined by,
 
   \theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
 
-
 In this way, all possible neighbor positions are mapped on to a subset
 of the 3-sphere.  Points south of the latitude *theta0max=rfac0\*Pi*
 are excluded.
@@ -103,8 +100,7 @@ coefficient as
 
 .. math::
 
-  u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)} 
-
+  u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)}
 
 The *w\_i'* neighbor weights are dimensionless numbers that are chosen
 to distinguish atoms of different types, while the central atom is
@@ -117,7 +113,6 @@ the contribution of each neighbor atom goes smoothly to zero at
   f_c(r)   = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
            = & 0,  r > R_{ii'}
 
-
 The expansion coefficients *u\^j\_m,m'* are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
 under rotation of the polar coordinate frame. However, the following
@@ -126,13 +121,12 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
 
 .. math::
 
-   B_{j_1,j_2,j}  = 
+   B_{j_1,j_2,j}  =
    \sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^j_{m,m'})^*
    H {\scriptscriptstyle \begin{array}{l} {j} {m} {m'} \\
         {j_1} {m_1} {m'_1} \\
         {j_2} {m_2} {m'_2} \end{array}}
         u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
-
 
 The constants *H\^jmm'\_j1m1m1'\_j2m2m2'* are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
@@ -154,7 +148,6 @@ summed separately for each atom type:
 
    -\sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
 
-
 The sum is over all atoms *i'* of atom type *I*\ .  For each atom *i*\ ,
 this compute evaluates the above expression for each direction, each
 atom type, and each bispectrum component.  See section below on output
@@ -167,7 +160,6 @@ derivatives:
 
   -{\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}
 
-
 Again, the sum is over all atoms *i'* of atom type *I*\ .  For each atom
 *i*\ , this compute evaluates the above expression for each of the six
 virial components, each atom type, and each bispectrum component.  See
@@ -175,7 +167,7 @@ section below on output for a detailed explanation.
 
 Compute *snap* calculates a global array contains information related
 to all three of the above per-atom computes *sna/atom*\ , *snad/atom*\ ,
-and *snav/atom*\ . The first row of the array contains the summation of 
+and *snav/atom*\ . The first row of the array contains the summation of
 *sna/atom* over all atoms, but broken out by type. The last six rows
 of the array contain the summation of *snav/atom* over all atoms, broken
 out by type. In between these are 3\*\ *N* rows containing the same values
@@ -189,8 +181,7 @@ The stress calculation uses a compute called *snap\_press* that is
 automatically created behind the scenes, according to the following
 command:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute snap_press all pressure NULL virial
 
@@ -259,7 +250,6 @@ of columns and the identity of the bispectrum component contained in
 each column depend of the value of *twojmax*\ , as
 described by the following piece of python code:
 
-
 .. parsed-literal::
 
    for j1 in range(0,twojmax+1):
@@ -288,12 +278,12 @@ block contains six sub-blocks corresponding to the *xx*\ , *yy*\ , *zz*\ ,
 notation.  Each of these sub-blocks contains one column for each
 bispectrum component, the same as for compute *sna/atom*
 
-Compute *snap* evaluates a global array. 
+Compute *snap* evaluates a global array.
 The columns are arranged into
 *ntypes* blocks, listed in order of atom type *I*\ . Each block
 contains one column for each bispectrum component, the same as for compute
 *sna/atom*\ . A final column contains the corresponding energy, force component
-on an atom, or virial stress component. The rows of the array appear 
+on an atom, or virial stress component. The rows of the array appear
 in the following order:
 
 * 1 row: *sna/atom* quantities summed for all atoms of type *I*
@@ -329,7 +319,6 @@ page for an overview of LAMMPS output options.
 Restrictions
 """"""""""""
 
-
 These computes are part of the SNAP package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -344,32 +333,22 @@ Default
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
 
-
 ----------
 
-
 .. _Thompson20141:
-
-
 
 **(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
 available at `arXiv:1409.3880 <http://arxiv.org/abs/1409.3880>`_
 
 .. _Bartok20101:
 
-
-
 **(Bartok)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 .. _Meremianin2006:
 
-
-
 **(Meremianin)** Meremianin, J. Phys. A,  39, 3099 (2006).
 
 .. _Varshalovich1987:
-
-
 
 **(Varshalovich)** Varshalovich, Moskalev, Khersonskii, Quantum Theory
 of Angular Momentum, World Scientific, Singapore (1987).

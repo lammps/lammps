@@ -21,14 +21,12 @@ pair_style lj/long/tip4p/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/long/coul/long* or *lj/long/tip4p/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -58,7 +56,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/long/coul/long cut off 2.5
@@ -79,7 +76,7 @@ Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones potential:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c \\
 
@@ -89,7 +86,6 @@ potential parameters, plus the Coulomb potential, given by:
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
-
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j` are the charges on
 the 2 atoms, :math:`\epsilon` is the dielectric constant which can be set by
@@ -181,18 +177,14 @@ since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair\_style command.
 
-
 ----------
-
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
 the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
 only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -212,9 +204,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -244,13 +234,10 @@ command, meaning the pairwise forces can be partitioned by distance at
 different levels of the rRESPA hierarchy.  See the
 :doc:`run_style <run_style>` command for details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the KSPACE package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -262,19 +249,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Veld2:
-
-
 
 **(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
 
 .. _Jorgensen4:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).

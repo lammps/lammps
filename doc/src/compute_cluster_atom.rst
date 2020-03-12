@@ -12,7 +12,6 @@ compute aggregate/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID cluster/atom cutoff
@@ -26,8 +25,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all cluster/atom 3.5
    compute 1 all fragment/atom

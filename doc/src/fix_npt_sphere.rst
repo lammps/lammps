@@ -9,7 +9,6 @@ fix npt/sphere/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID npt/sphere keyword value ...
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all npt/sphere temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
    fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0
@@ -78,16 +76,13 @@ only the particles in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of particles in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-
 ----------
-
 
 This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp/sphere" and
 "pressure", as if these commands had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp/sphere
    compute fix-ID_press all pressure fix-ID_temp
@@ -120,9 +115,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -176,7 +169,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the :doc:`atom_style sphere <atom_style>`

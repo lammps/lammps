@@ -6,7 +6,6 @@ pair_style sph/rhosum command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sph/rhosum Nstep
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -37,9 +35,7 @@ above.
 
 * h (distance units)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -57,7 +53,6 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-SPH package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -12,7 +12,6 @@ fix qeq/reax/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params args
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
@@ -57,7 +55,6 @@ and the file must contain one line for each atom type.  The latter
 form must be used when performing QeQ with a non-ReaxFF potential.
 Each line should be formatted as follows:
 
-
 .. parsed-literal::
 
    itype chi eta gamma
@@ -82,9 +79,7 @@ with the *start/stop* keywords of the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -104,13 +99,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-REAXC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -126,26 +118,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Rappe2:
-
-
 
 **(Rappe)** Rappe and Goddard III, Journal of Physical Chemistry, 95,
 3358-3363 (1991).
 
 .. _Nakano2:
 
-
-
 **(Nakano)** Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 .. _qeq-Aktulga:
-
-
 
 **(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).

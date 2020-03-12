@@ -6,15 +6,14 @@ atom_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    atom_style style args
 
 * style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *edpd* or *mdpd* or *tdpd* or *electron* or *ellipsoid* or         *full* or *line* or *meso* or *molecular* or *peri* or *smd* or         *sphere* or *spin* or *tri* or *template* or *hybrid*
-  
+
   .. parsed-literal::
-  
+
        args = none for any style except the following
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
@@ -28,10 +27,8 @@ Syntax
 
 * accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -262,9 +259,7 @@ Note that there may be additional arguments required along with the
 *bstyle* specification, in the atom\_style body command.  These
 arguments are described on the :doc:`Howto body <Howto_body>` doc page.
 
-
 ----------
-
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -287,9 +282,7 @@ per-atom basis.
 LAMMPS can be extended with new atom styles as well as new body
 styles; see the :doc:`Modify <Modify>` doc page.
 
-
 ----------
-
 
 Styles with a *kk* suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
@@ -314,7 +307,6 @@ instructions on how to use the accelerated styles effectively.
 
 Restrictions
 """"""""""""
-
 
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
@@ -361,13 +353,9 @@ Default
 
 atom\_style atomic
 
-
 ----------
 
-
 .. _Grime:
-
-
 
 **(Grime)** Grime and Voth, to appear in J Chem Theory & Computation
 (2014).

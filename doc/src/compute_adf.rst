@@ -6,7 +6,6 @@ compute adf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
@@ -23,19 +22,16 @@ Syntax
 * RkouterN =  outer radius of K atom shell for Nth ADF histogram (distance units)
 * zero or one keyword/value pairs may be appended
 * keyword = *ordinate*
-  
+
   .. parsed-literal::
-  
+
        *ordinate* value = *degree* or *radian* or *cosine*
          Choose the ordinate parameter for the histogram
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid adf 32 1 1 1 0.0 1.2 0.0 1.2 &
                           1 1 2 0.0 1.2 0.0 1.5 &
@@ -43,7 +39,7 @@ Examples
                           2 1 1 0.0 1.2 0.0 1.2 &
                           2 1 2 0.0 1.5 2.0 3.5 &
                           2 2 2 2.0 3.5 2.0 3.5
-   compute 1 fluid adf 32 1\*2 1\*2 1\*2 0.5 3.5
+   compute 1 fluid adf 32 1*2 1*2 1*2 0.5 3.5
    compute 1 fluid adf 32
 
 Description
@@ -172,11 +168,10 @@ The simplest way to output the results of the compute adf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myADF all adf 32 2 2 2 0.5 3.5 0.5 3.5
-   fix 1 all ave/time 100 1 100 c_myADF[\*] file tmp.adf mode vector
+   fix 1 all ave/time 100 1 100 c_myADF[*] file tmp.adf mode vector
 
 **Output info:**
 
@@ -207,7 +202,6 @@ angles per atom satisfying the ADF criteria.
 
 Restrictions
 """"""""""""
-
 
 The ADF is not computed for neighbors outside the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

@@ -6,7 +6,6 @@ dump vtk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dump ID group-ID vtk N file args
@@ -21,11 +20,10 @@ Syntax
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   dump dmpvtk all vtk 100 dump\*.myforce.vtk id type vx fx
-   dump dmpvtp flow vtk 100 dump\*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
+   dump dmpvtk all vtk 100 dump*.myforce.vtk id type vx fx
+   dump dmpvtp flow vtk 100 dump*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
 
 Description
 """""""""""
@@ -74,9 +72,7 @@ determine the kind of output.
 For the *vtk* style, sorting is off by default. See the
 :doc:`dump_modify <dump_modify>` doc page for details.
 
-
 ----------
-
 
 The dimensions of the simulation box are written to a separate file
 for each snapshot (either in legacy VTK or XML format depending on the
@@ -109,9 +105,7 @@ a wildcard "\*" must be included in the filename, as discussed below.
 Otherwise the dump files will get overwritten with the new snapshot
 each time.
 
-
 ----------
-
 
 Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
@@ -161,13 +155,10 @@ If *dump\_modify binary* is used, the dump file (or files, if "\*" or
 will be about the same size as a text version, but will typically
 write out much faster.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *vtk* style does not support writing of gzipped dump files.
 

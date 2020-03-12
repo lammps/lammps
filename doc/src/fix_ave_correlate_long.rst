@@ -6,7 +6,6 @@ fix ave/correlate/long command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
@@ -17,9 +16,9 @@ Syntax
 * Nfreq = save state of the time correlation functions every this many timesteps
 * one or more input values can be listed
 * value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID
@@ -28,9 +27,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *p* or *m*
-  
+
   .. parsed-literal::
-  
+
        *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value
@@ -52,15 +51,12 @@ Syntax
        *nlen* args = Nlen
          Nlen = length of each correlator
        *ncount* args = Ncount
-         Ncount = number of values over which succesive correlators are averaged
-
-
+         Ncount = number of values over which successive correlators are averaged
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/correlate/long 5 1000 c_myTemp file temp.correlate
    fix 1 all ave/correlate/long 1 10000 &
@@ -130,7 +126,6 @@ the run command. This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -148,13 +143,9 @@ the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 The option defaults for keywords unique to this command are as
 follows: ncorr=20, nlen=16, ncount=2.
 
-
 ----------
 
-
 .. _Ramirez:
-
-
 
 **(Ramirez)** J. Ramirez, S.K. Sukumaran, B. Vorselaars and
 A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).

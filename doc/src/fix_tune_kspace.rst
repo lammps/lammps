@@ -6,7 +6,6 @@ fix tune/kspace command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID tune/kspace N
@@ -15,12 +14,10 @@ Syntax
 * tune/kspace = style name of this fix command
 * N = invoke this fix every N steps
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all tune/kspace 100
 
@@ -82,7 +79,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the KSPACE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

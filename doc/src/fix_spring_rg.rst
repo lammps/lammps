@@ -6,7 +6,6 @@ fix spring/rg command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring/rg K RG0
@@ -16,7 +15,6 @@ Syntax
 * K = harmonic force constant (force/distance units)
 * RG0 = target radius of gyration to constrain to (distance units)
 
-
 .. parsed-literal::
 
      if RG0 = NULL, use the current RG as the target value
@@ -24,8 +22,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 protein spring/rg 5.0 10.0
    fix 2 micelle spring/rg 5.0 NULL
@@ -51,7 +48,6 @@ than the target value RG0.
    E & = K\left( R_G - R_{G0} \right)^{2} \\
    F_{i} & = 2K\frac{m_{i}}{M}\left( 1-\frac{R_{G0}}{R_G}
    \right)\left( x_{i} - \frac{1}{M}\sum_{j}^{N}{m_{j}x_{j}} \right)
-
 
 The (:math:`x_i` - center-of-mass) term is computed taking into account
 periodic boundary conditions, :math:`m_i` is the mass of the atom, and

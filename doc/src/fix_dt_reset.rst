@@ -6,7 +6,6 @@ fix dt/reset command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
@@ -20,7 +19,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *emax* or *units*
 
-
 .. parsed-literal::
 
      *emax* value = Emax
@@ -32,8 +30,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all dt/reset 10 1.0e-5 0.01 0.1
    fix 5 all dt/reset 10 0.01 2.0 0.2 units box

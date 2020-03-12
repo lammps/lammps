@@ -6,7 +6,6 @@ write_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    write_coeff file
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -36,13 +34,10 @@ the Coeffs sections from a data file into a separate file.
    some pair styles do not output their coefficient information.
    This means you will need to add/copy this information manually.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 none
 

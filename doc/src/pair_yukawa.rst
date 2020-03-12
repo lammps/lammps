@@ -15,7 +15,6 @@ pair_style yukawa/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style yukawa kappa cutoff
@@ -25,7 +24,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -42,7 +40,6 @@ Style *yukawa* computes pairwise interactions with the formula
 
    E = A \frac{e^{- \kappa r}}{r} \qquad r < r_c
 
-
 :math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
@@ -57,9 +54,7 @@ commands, or by mixing as described below:
 The last coefficient is optional.  If not specified, the global yukawa
 cutoff is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,9 +74,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -107,9 +100,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

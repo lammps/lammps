@@ -6,7 +6,6 @@ fix wall/srd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/srd face arg ... keyword value ...
@@ -15,9 +14,9 @@ Syntax
 * wall/srd = style name of this fix command
 * one or more face/arg pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
-  
+
   .. parsed-literal::
-  
+
        *xlo*\ ,\ *ylo*\ ,\ *zlo* arg = EDGE or constant or variable
          EDGE = current lo edge of simulation box
          constant = number like 0.0 or -30.0 (distance units)
@@ -29,20 +28,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix xwalls all wall/srd xlo EDGE xhi EDGE
    fix walls all wall/srd xlo 0.0 ylo 10.0 units box
@@ -137,16 +133,13 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
 
-
 ----------
-
 
 Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ramp equal ramp(0,10)
    fix 1 all wall/srd xlo v_ramp
@@ -160,33 +153,29 @@ in a time-dependent fashion using equal-style
    variable wiggle equal cwiggle(0.0,5.0,3.0)
    fix 1 all wall/srd xlo v_wiggle
 
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The displace(c0,velocity) function does
-something similar using the equation position = c0 + velocity\*delta,
-where delta is the elapsed time.
+The *ramp(lo,hi)* function adjusts the wall position linearly from *lo*
+to *hi* over the course of a run.  The *vdisplace(c0,velocity)* function
+does something similar using the equation *position = c0 +
+velocity\*delta*, where *delta* is the elapsed time.
 
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
-
+The *swiggle(c0,A,period)* function causes the wall position to
+oscillate sinusoidally according to this equation, where *omega = 2 PI
+/ period*\ :
 
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
 
-The cwiggle(c0,A,period) function causes the wall position to
+The *cwiggle(c0,A,period)* function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:
-
 
 .. parsed-literal::
 
    position = c0 + A (1 - cos(omega\*delta))
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -208,7 +197,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 Any dimension (xyz) that has an SRD wall must be non-periodic.
 

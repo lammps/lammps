@@ -6,7 +6,6 @@ server mc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    server mc
@@ -16,8 +15,7 @@ mc = the protocol argument to the :doc:`server <server>` command
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    server mc
 
@@ -45,9 +43,7 @@ The :doc:`server <server>` doc page gives other options for using LAMMPS
 See an example of how this command is used in
 examples/COUPLE/lammps\_mc/in.server.
 
-
 ----------
-
 
 When using this command, LAMMPS (as the server code) receives
 instructions from a Monte Carlo (MC) driver to displace random atoms,
@@ -61,7 +57,7 @@ runs.
 The format and content of the exchanged messages are explained here in
 a conceptual sense.  Python-style pseudo code for the library calls to
 the CSlib is shown, which performs the actual message exchange between
-the two codes.  See the `CSlib website <http://cslib.sandia.gov>`_ doc
+the two codes.  See the `CSlib website <https://cslib.sandia.gov>`_ doc
 pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 
@@ -72,7 +68,6 @@ example of how an MC driver code can use these messages.
 Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
 **Client sends one of these kinds of message**\ :
-
 
 .. parsed-literal::
 
@@ -92,7 +87,6 @@ Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
 **Server replies**\ :
 
-
 .. parsed-literal::
 
    cs->send(NATOMS,1)      # msgID = 1 with 1 field
@@ -109,13 +103,10 @@ Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
    cs->send(RUN,0)         # msgID = 5 with no fields
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

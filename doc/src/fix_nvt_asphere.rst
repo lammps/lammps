@@ -9,7 +9,6 @@ fix nvt/asphere/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/asphere keyword value ...
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/asphere temp 300.0 300.0 100.0
    fix 1 all nvt/asphere temp 300.0 300.0 100.0 drag 0.2
@@ -55,8 +53,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/asphere", as if this command
 had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/asphere
 
@@ -88,9 +85,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -137,7 +132,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ create_box command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    create_box N region-ID keyword value ...
@@ -15,9 +14,9 @@ Syntax
 * region-ID = ID of region to use as simulation domain
 * zero or more keyword/value pairs may be appended
 * keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom*
-  
+
   .. parsed-literal::
-  
+
        *bond/types* value = # of bond types
        *angle/types* value = # of angle types
        *dihedral/types* value = # of dihedral types
@@ -28,11 +27,8 @@ Syntax
        *extra/improper/per/atom* value = # of impropers per atom
        *extra/special/per/atom* value = # of special neighbors per atom
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -119,9 +115,7 @@ using the :doc:`change box <change_box>` command with its *ortho* and
    a parallel simulation to lose atoms the first time that LAMMPS
    shrink-wraps the box around the atoms.
 
-
 ----------
-
 
 The optional keywords can be used to create a system that allows for
 bond (angle, dihedral, improper) interactions, or for molecules with
@@ -145,13 +139,10 @@ this.  If the added molecule contained more than 1 special bond
 (allowed by default), an extra/special/per/atom keyword would also
 need to be specified.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 An :doc:`atom_style <atom_style>` and :doc:`region <region>` must have
 been previously defined to use this command.

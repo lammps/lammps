@@ -12,16 +12,15 @@ pair_style reax/c/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style reax/c cfile keyword value
 
 * cfile = NULL or name of a control file
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reax fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
@@ -29,11 +28,8 @@ Syntax
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -188,7 +184,6 @@ code):
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute reax all pair reax/c
@@ -226,17 +221,13 @@ elements are ordered as C, H, O, N in the *ffield* file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
 H, you would use the following pair\_coeff command:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * ffield.reax C C N H
 
-
 ----------
 
-
 The format of a line in the control file is as follows:
-
 
 .. parsed-literal::
 
@@ -303,9 +294,7 @@ bond\_info: 1 prints bonds in the trajectory file (default = 0)
 
 angle\_info: 1 prints angles in the trajectory file (default = 0)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -320,9 +309,7 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -342,13 +329,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-REAXC package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -370,27 +354,19 @@ Default
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
 safezone = 1.2, mincap = 50.
 
-
 ----------
 
-
 .. _Chenoweth\_20082:
-
-
 
 **(Chenoweth\_2008)** Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-
-
 (Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
 .. _Liu\_2011:
-
-
 
 **(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).

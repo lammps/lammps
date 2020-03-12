@@ -12,7 +12,6 @@ pair_style colloid/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style colloid cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,7 @@ The colloid-colloid interaction energy is given by
    \frac{2 a_1 a_2}{r^2-\left(a_1+a_2\right)^2}
    + \frac{2 a_1 a_2}{r^2 - \left(a_1 - a_2\right)^2}
      + \mathrm{ln}
-       \left( 
+       \left(
   \frac{r^2-\left(a_1+a_2\right)^2}{r^2-\left(a_1-a_2\right)^2}
    \right)
   \right] \\
@@ -75,9 +73,9 @@ The colloid-solvent interaction energy is given by
 
 .. math::
 
-   U = \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3} 
+   U = \frac{2 ~ a^3 ~ \sigma^3 ~ A_{cs}}{9 \left( a^2 - r^2 \right)^3}
    \left[ 1 - \frac{\left(5 ~ a^6+45~a^4~r^2+63~a^2~r^4+15~r^6\right) \sigma^6}
-   {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c 
+   {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c
 
 where :math:A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
 particle, and :math:`r_c` is the cutoff.  This formula is derived from the
@@ -161,9 +159,7 @@ colloid-solvent cutoff in this case.
    commands for efficiency: :doc:`neighbor multi <neighbor>` and
    :doc:`comm_modify multi <comm_modify>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -183,9 +179,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -212,13 +206,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the COLLOID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -241,12 +232,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers1:
-
-
 
 **(Everaers)** Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).

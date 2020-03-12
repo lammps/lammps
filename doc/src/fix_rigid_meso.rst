@@ -6,7 +6,6 @@ fix rigid/meso command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID rigid/meso bodystyle args keyword values ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rigid/meso = style name of this fix command
 * bodystyle = *single* or *molecule* or *group*
-  
+
   .. parsed-literal::
-  
+
        *single* args = none
        *molecule* args = none
        *custom* args = *i_propname* or *v_varname*
@@ -28,9 +27,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *reinit* or *force* or *torque* or *infile*
-  
+
   .. parsed-literal::
-  
+
        *reinit* = *yes* or *no*
        *force* values = M xflag yflag zflag
          M = which rigid body from 1-Nbody (see asterisk form below)
@@ -41,13 +40,10 @@ Syntax
        *infile* filename
          filename = file with per-body values of mass, center-of-mass, moments of inertia
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 ellipsoid rigid/meso single
    fix 1 rods      rigid/meso molecule
@@ -119,9 +115,7 @@ internal energy and extrapolated velocity are also updated.
    and velocity of individual particles in the body will be reset when time
    integration starts again.
 
-
 ----------
-
 
 Each rigid body must have two or more particles.  A particle can belong
 to at most one rigid body.  Which particles are in which bodies can be
@@ -203,9 +197,7 @@ rigid/meso command which includes all the desired rigid bodies. LAMMPS
 will allow multiple rigid/meso fixes to be defined, but it is more
 expensive.
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -217,9 +209,7 @@ unphysical manipulations between runs or when properties cannot be
 easily re-computed (e.g. when read from a file). When using the *infile*
 keyword, the *reinit* option is automatically set to *no*\ .
 
-
 ----------
-
 
 The *infile* keyword allows a file of rigid body attributes to be read
 in from a file, rather then having LAMMPS compute them.  There are 5
@@ -241,7 +231,6 @@ attributes overridden.  The file can contain initial blank lines or
 comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
-
 
 .. parsed-literal::
 
@@ -295,9 +284,7 @@ cross periodic boundaries during the simulation.
    auxiliary file will contain one line for every rigid body, even if the
    original file only listed a subset of the rigid bodies.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -349,13 +336,10 @@ the :doc:`run <run>` command.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SDPD package and also depends on the RIGID
 package.  It is only enabled if LAMMPS was built with both packages. See
@@ -379,13 +363,9 @@ The option defaults are force \* on on on and torque \* on on on,
 meaning all rigid bodies are acted on by center-of-mass force and
 torque. Also reinit = yes.
 
-
 ----------
 
-
 .. _Miller:
-
-
 
 **(Miller)** Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).

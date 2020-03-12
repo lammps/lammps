@@ -6,13 +6,11 @@ pair_style cosine/squared command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style cosine/squared cutoff
 
 * cutoff = global cutoff for cosine-squared interactions (distance units)
-
 
 .. code-block:: LAMMPS
 
@@ -30,7 +28,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
@@ -46,13 +43,12 @@ Style *cosine/squared* computes a potential of the form
 
 .. math::
 
-   E = 
+   E =
    \begin{cases}
    -\epsilon& \quad r < \sigma \\
    -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)&\quad \sigma \leq r < r_c \\
    0& \quad r \geq r_c
    \end{cases}
-
 
 between two point particles, where (:math:`\sigma, -\epsilon`) is the
 location of the (rightmost) minimum of the potential, as explained in
@@ -72,10 +68,9 @@ specifically the following:
 
 .. math::
 
- E = \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+ E = \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        2\left(\frac{\sigma}{r}\right)^6 + 1\right]
                        , \quad r < \sigma
-
 
 In this case, and this case only, the :math:`\sigma` parameter can be equal to
 *cutoff* (:math:`\sigma =` cutoff) which will result in ONLY the WCA potential
@@ -91,9 +86,7 @@ in the graphs below:
 .. image:: JPG/pair_cosine_squared_graphs.jpg
    :align: center
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -108,13 +101,10 @@ These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *cosine/squared* style is part of the "USER-MISC" package. It is only
 enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -129,12 +119,8 @@ Related commands
 
 .. _CKD:
 
-
-
 **(Cooke)** "Cooke, Kremer and Deserno, Phys. Rev. E, 72, 011506 (2005)"
 
 .. _WCA:
-
-
 
 **(Weeks)** "Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)"

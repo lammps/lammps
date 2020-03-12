@@ -6,7 +6,6 @@ neb command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    neb etol ftol N1 N2 Nevery file-style arg keyword
@@ -17,9 +16,9 @@ Syntax
 * N2 = max # of iterations (timesteps) to run barrier-climbing NEB
 * Nevery = print replica energies and reaction coordinates every this many timesteps
 * file-style = *final* or *each* or *none*
-  
+
   .. parsed-literal::
-  
+
        *final* arg = filename
          filename = file with initial coords for final replica
            coords for intermediate replicas are linearly interpolated
@@ -35,8 +34,7 @@ keyword = *verbose*
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neb 0.1 0.0 1000 500 50 final coords.final
    neb 0.0 0.001 1000 500 50 each coords.initial.$i
@@ -114,9 +112,7 @@ from such an initial path.  In this case, you will want to generate
 initial states for the intermediate replicas that are geometrically
 closer to the MEP and read them in.
 
-
 ----------
-
 
 For a *file-style* setting of *final*\ , a filename is specified which
 contains atomic coordinates for zero or more atoms, in the format
@@ -151,8 +147,7 @@ For a *file-style* setting of *each*\ , a filename is specified which is
 assumed to be unique to each replica.  This can be done by using a
 variable in the filename, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable i equal part
    neb 0.0 0.001 1000 500 50 each coords.initial.$i
@@ -185,9 +180,7 @@ that a long calculation can be restarted if needed.
    must thus be in the correct initial configuration at the time the neb
    command is issued.
 
-
 ----------
-
 
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure, performed via damped dynamics.  To enable
@@ -246,9 +239,7 @@ configuration at (close to) the saddle point of the transition. The
 potential energies for the set of replicas represents the energy
 profile of the transition along the MEP.
 
-
 ----------
-
 
 A few other settings in your input script are required or advised to
 perform a NEB calculation.  See the NOTE about the choice of timestep
@@ -271,9 +262,7 @@ Euler integration step.  Thus you must define an appropriate
 will often converge more quickly if you use a timestep about 10x
 larger than you would normally use for dynamics simulations.
 
-
 ----------
-
 
 Each file read by the neb command containing atomic coordinates used
 to initialize one or more replicas must be formatted as follows.
@@ -283,7 +272,6 @@ suffix).  The file can contain initial blank lines or comment lines
 starting with "#" which are ignored.  The first non-blank, non-comment
 line should list N = the number of lines to follow.  The N successive
 lines contain the following information:
-
 
 .. parsed-literal::
 
@@ -306,9 +294,7 @@ Also note there is no requirement that the atoms in the file
 correspond to the NEB atoms in the group defined by the :doc:`fix neb <fix_neb>` command.  Not every NEB atom need be in the file,
 and non-NEB atoms can be listed in the file.
 
-
 ----------
-
 
 Four kinds of output can be generated during a NEB calculation: energy
 barrier statistics, thermodynamic output by each replica, dump files,
@@ -415,21 +401,16 @@ image.
 .. image:: JPG/hop2_small.jpg
    :target: JPG/hop2.jpg
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""
@@ -442,32 +423,22 @@ Default
 
 none
 
-
 ----------
 
-
 .. _HenkelmanA:
-
-
 
 **(HenkelmanA)** Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
 .. _HenkelmanB:
-
-
 
 **(HenkelmanB)** Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 .. _Nakano3:
 
-
-
 **(Nakano)** Nakano, Comp Phys Comm, 178, 280-289 (2008).
 
 .. _Maras2:
-
-
 
 **(Maras)** Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
 Comp Phys Comm, 205, 13-21 (2016)

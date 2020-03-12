@@ -6,16 +6,15 @@ fix press/berendsen command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID press/berendsen keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * press/berendsen = style name of this fix command
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *iso* or *aniso* or *x* or *y* or *z* or *couple* or *dilate* or *modulus*
        *iso* or *aniso* values = Pstart Pstop Pdamp
@@ -28,13 +27,10 @@ Syntax
        *modulus* value = bulk modulus of system (pressure units)
        *dilate* value = *all* or *partial*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all press/berendsen iso 0.0 0.0 1000.0
    fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial
@@ -68,9 +64,7 @@ unchanged and controlling the pressure of a surrounding fluid.
 See the :doc:`Howto baroostat <Howto_barostat>` doc page for a
 discussion of different ways to perform barostatting.
 
-
 ----------
-
 
 The barostat is specified using one or more of the *iso*\ , *aniso*\ ,
 *x*\ , *y*\ , *z*\ , and *couple* keywords.  These keywords give you the
@@ -126,9 +120,7 @@ means to relax the pressure in a timespan of (roughly) 10 time units
    too small for solids.  Thus you should experiment to find appropriate
    values of *Pdamp* and/or the *modulus* when using this fix.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -143,9 +135,7 @@ dilated or contracted by the same percentage every timestep.  The
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
-
 ----------
-
 
 The *iso* and *aniso* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -154,7 +144,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
 specifying these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -169,7 +158,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -177,16 +165,13 @@ these 4 keywords:
    z Pstart Pstop Pdamp
    couple none
 
-
 ----------
-
 
 This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp
@@ -230,7 +215,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 Any dimension being adjusted by this fix must be periodic.
 
 Related commands
@@ -245,13 +229,9 @@ Default
 The keyword defaults are dilate = all, modulus = 10.0 in units of
 pressure for whatever :doc:`units <units>` are defined.
 
-
 ----------
 
-
 .. _Berendsen1:
-
-
 
 **(Berendsen)** Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
 Phys, 81, 3684 (1984).

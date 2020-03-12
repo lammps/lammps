@@ -6,7 +6,6 @@ fix spring/self command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring/self K dir
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix tether boundary-atoms spring/self 10.0
    fix zrest  move spring/self 10.0 z

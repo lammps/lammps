@@ -6,7 +6,6 @@ improper_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -58,9 +56,7 @@ to be re-specified.
    turn off (or weight) the pairwise interaction that would otherwise
    exist between a group of 4 bonded atoms.
 
-
 ----------
-
 
 Here is an alphabetic list of improper styles defined in LAMMPS.
 Click on the style to display the formula it computes and coefficients
@@ -94,13 +90,10 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 :doc:`sqdistharm <improper_sqdistharm>` - improper that is harmonic in the square of the out-of-plane distance
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Improper styles can only be set for atom\_style choices that allow
 impropers to be defined.
@@ -116,7 +109,6 @@ Related commands
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

@@ -6,7 +6,6 @@ compute pressure/cylinder command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pressure/cylinder zlo zhi Rmax bin_width
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pressure/cylinder -10.0 10.0 15.0 0.25
 
@@ -59,7 +57,6 @@ inverse volume :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute currently calculates the pressure tensor contributions
 for pair styles only (i.e. no bond, angle, dihedral, etc. contributions
 and in the presence of bonded interactions, the result will be incorrect
@@ -80,12 +77,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Addington1:
-
-
 
 **(Addington)** Addington, Long, Gubbins, J Chem Phys, 149, 084109 (2018).

@@ -6,7 +6,6 @@ fix spring command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring keyword values
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * spring = style name of this fix command
 * keyword = *tether* or *couple*
-  
+
   .. parsed-literal::
-  
+
        *tether* values = K x y z R0
          K = spring constant (force/distance units)
          x,y,z = point to which spring is tethered
@@ -27,13 +26,10 @@ Syntax
          x,y,z = direction of spring
          R0 = equilibrium distance of spring (distance units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 5.0

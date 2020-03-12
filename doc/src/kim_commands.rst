@@ -15,7 +15,6 @@ kim_param command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    kim_init model user_units unitarg
@@ -26,17 +25,15 @@ Syntax
 
 .. _formatarg\_options:
 
-
-
 * model = name of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
 * user\_units = the LAMMPS :doc:`units <units>` style assumed in the LAMMPS input script
 * unitarg = *unit\_conversion\_mode* (optional)
 * typeargs = atom type to species mapping (one entry per atom type) or *fixed\_types* for models with a preset fixed mapping
 * variable(s) = single name or list of names of (string style) LAMMPS variable(s) where a query result or parameter get result is stored. Variables that do not exist will be created by the command.
 * formatarg = *list, split, or explicit* (optional):
-  
+
   .. parsed-literal::
-  
+
      *list* = returns a single string with a list of space separated values
             (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
             defined by the *variable* argument. [default for *kim_query*]
@@ -44,7 +41,7 @@ Syntax
             on the prefix specified in *variable* and a number appended to
             indicate which element in the list of values is in the variable.
      *explicit* = returns the values separately in one more more variable names
-            provided as arguments that preceed *formatarg*\ . [default for *kim_param*]
+            provided as arguments that precede *formatarg*\ . [default for *kim_param*]
 
 * query\_function = name of the OpenKIM web API query function to be used
 * queryargs = a series of *keyword=value* pairs that represent the web query; supported keywords depend on the query function
@@ -54,7 +51,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -109,16 +105,12 @@ Convenience
 
 .. _IM\_types:
 
-
-
 Types of IMs in OpenKIM
 -----------------------
 
 There are two types of IMs archived in OpenKIM:
 
 .. _PM\_type:
-
-
 
 1. The first type is called a *KIM Portable Model* (PM). A KIM PM is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran) that conforms to the KIM Application Programming Interface (`KIM API <https://openkim.org/kim-api/>`_) Portable Model Interface (PMI) standard. A KIM PM will work seamlessly with any simulation code that supports the KIM API/PMI standard (including LAMMPS; see `complete list of supported codes <https://openkim.org/projects-using-kim/>`_).
 2. The second type is called a *KIM Simulator Model* (SM). A KIM SM is an IM that is implemented natively within a simulation code (\ *simulator*\ ) that supports the KIM API Simulator Model Interface (SMI); in this case LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS.
@@ -137,7 +129,6 @@ which begins with an IM code
 followed by a unique 12-digit code and a 3-digit version identifier.
 By convention SM prefixes begin with *Sim\_* to readily identify them.
 
-
 .. parsed-literal::
 
    SW_StillingerWeber_1985_Si__MO_405512056662_005
@@ -151,14 +142,12 @@ access to raw files, and other information.
 The URL for the Model Page is constructed from the
 `extended KIM ID <https://openkim.org/doc/schema/kim-ids/>`_ of the IM:
 
-
 .. parsed-literal::
 
    https://openkim.org/id/extended_KIM_ID
 
 For example, for the Stillinger--Weber potential
 listed above the Model Page is located at:
-
 
 .. parsed-literal::
 
@@ -237,7 +226,6 @@ Here is an example of a LAMMPS script to compute the cohesive energy
 of a face-centered cubic (fcc) lattice for the Ercolessi and Adams (1994)
 potential for Al:
 
-
 .. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
@@ -263,7 +251,6 @@ are defined for all :doc:`physical quantities <units>` (mass, distance, etc.).
 (Note that converting to or from the "lj" unit style is not supported.)
 These factors are stored as :doc:`internal style variables <variable>` with
 the following standard names:
-
 
 .. parsed-literal::
 
@@ -292,7 +279,6 @@ script constructs an fcc lattice with a lattice parameter defined in
 meters, computes the total energy, and prints the cohesive energy in
 Joules regardless of the units of the IM.
 
-
 .. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 si unit_conversion_mode
@@ -318,7 +304,6 @@ Care must be taken to apply unit conversion to dimensional variables read in
 from a file. For example, if a configuration of atoms is read in from a
 dump file using the :doc:`read_dump <read_dump>` command, the following can
 be done to convert the box and all atomic positions to the correct units:
-
 
 .. code-block:: LAMMPS
 
@@ -359,13 +344,11 @@ For example, consider an OpenKIM IM that supports Si and C species.
 If the LAMMPS simulation has four atom types, where the first three are Si,
 and the fourth is C, the following *kim\_interactions* command would be used:
 
-
 .. code-block:: LAMMPS
 
    kim_interactions Si Si Si C
 
 Alternatively, for a model with a fixed mapping the command would be:
-
 
 .. code-block:: LAMMPS
 
@@ -378,7 +361,6 @@ a :doc:`pair_style kim <pair_kim>` command is executed followed by
 the appropriate *pair\_coeff* command. For example, for the
 Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
 
-
 .. code-block:: LAMMPS
 
    kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
@@ -388,7 +370,6 @@ Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
    kim_interactions Al
 
 the *kim\_interactions* command executes the following LAMMPS input commands:
-
 
 .. code-block:: LAMMPS
 
@@ -402,7 +383,6 @@ is defined in the SM specification file, which is part of the SM package.
 For example, for the Strachan et al. (2003) ReaxFF SM
 set by the following commands:
 
-
 .. code-block:: LAMMPS
 
    kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
@@ -412,7 +392,6 @@ set by the following commands:
    kim_interactions C H N O
 
 the *kim\_interactions* command executes the following LAMMPS input commands:
-
 
 .. code-block:: LAMMPS
 
@@ -447,7 +426,6 @@ of an IM set by *kim\_init* for material properties archived in
    The *kim\_query* command must be preceded by a *kim\_init* command.
 
 The syntax for the *kim\_query* command is as follows:
-
 
 .. code-block:: LAMMPS
 
@@ -508,7 +486,6 @@ or analysis phases of LAMMPS simulations. Some examples are given below.
 
 **Define an equilibrium fcc crystal**
 
-
 .. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
@@ -532,7 +509,6 @@ changed to: "lattice fcc ${a0}\*${\_u_distance}".
 
 **Define an equilibrium hcp crystal**
 
-
 .. code-block:: LAMMPS
 
    kim_init         EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal
@@ -554,7 +530,6 @@ created if they do not already exist.) For convenience the variables
 input script more readable.
 
 **Define a crystal at finite temperature accounting for thermal expansion**
-
 
 .. code-block:: LAMMPS
 
@@ -585,7 +560,6 @@ potential.
    given *query function*\ .
 
 **Compute defect formation energy**
-
 
 .. code-block:: LAMMPS
 
@@ -653,7 +627,6 @@ for details).
 
 The syntax for the *kim\_param* command is as follows:
 
-
 .. code-block:: LAMMPS
 
    kim_param get param_name index_range variable formatarg
@@ -714,7 +687,6 @@ clarifications are provided below.
 
 **Getting a scalar parameter**
 
-
 .. code-block:: LAMMPS
 
    kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
@@ -727,7 +699,6 @@ in the remainder of the input script in the same manner as any other
 LAMMPS variable.
 
 **Getting multiple scalar parameters with a single call**
-
 
 .. code-block:: LAMMPS
 
@@ -742,7 +713,6 @@ them in the LAMMPS variables *VARA* and *VARB*\ .
 
 There are several options when getting a range of values from a parameter
 determined by the *formatarg* argument.
-
 
 .. code-block:: LAMMPS
 
@@ -766,7 +736,6 @@ lambda retrieved by the *get* operation are placed in the LAMMPS variables
    provided with the driver for the PM being used. A link to the driver
    is provided at the top of the model page.
 
-
 .. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
@@ -788,7 +757,6 @@ by spaces, e.g "1.0 2.0 3.0". This can be used in LAMMPS with an
 as shown in the example. At each iteration of the loop *LAM\_VALUE*
 contains the current value of lambda.
 
-
 .. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
@@ -803,7 +771,6 @@ the lambda array is appended to create the variable names.
 
 **Setting a scalar parameter**
 
-
 .. code-block:: LAMMPS
 
    kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
@@ -814,7 +781,6 @@ the lambda array is appended to create the variable names.
 Here, the SW potential's gamma parameter is set to 2.6.  Note that the *get*
 and *set* commands work together, so that a *get* following a *set*
 operation will return the new value that was set. For example:
-
 
 .. code-block:: LAMMPS
 
@@ -831,7 +797,6 @@ potential, while *NEW\_GAMMA* will contain the value 2.6.
 
 **Setting multiple scalar parameters with a single call**
 
-
 .. parsed-literal::
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
@@ -847,7 +812,6 @@ respectively. This example also shows how LAMMPS variables can
 be used when setting parameters.
 
 **Setting a range of values of a parameter**
-
 
 .. code-block:: LAMMPS
 
@@ -878,7 +842,6 @@ and enables open source efforts like OpenKIM to function.
 Restrictions
 """"""""""""
 
-
 The set of *kim\_commands* is part of the KIM package.  It is only enabled if
 LAMMPS is built with that package. A requirement for the KIM package,
 is the KIM API library that must be downloaded from the
@@ -896,20 +859,14 @@ Related commands
 
 :doc:`pair_style kim <pair_kim>`
 
-
 ----------
 
-
 .. _kim-mainpaper:
-
-
 
 **(Tadmor)** Tadmor, Elliott, Sethna, Miller and Becker, JOM, 63, 17 (2011).
 doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-011-0102-6>`_
 
 .. _kim-api:
-
-
 
 **(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_

@@ -9,33 +9,28 @@ fix temp/csld command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
-
    fix ID group-ID temp/csld Tstart Tstop Tdamp seed
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/csvr or temp/csld = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
-  
+
   .. parsed-literal::
-  
+
        Tstart can be a variable (see below)
 
 * Tdamp = temperature damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all temp/csvr 300.0 300.0 100.0 54324
-
    fix 1 all temp/csld 100.0 300.0 10.0 123321
 
 Description
@@ -97,8 +92,7 @@ These fixes compute a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
 
@@ -129,9 +123,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -157,7 +149,6 @@ is "extensive".
 Restrictions
 """"""""""""
 
-
 These fixes are not compatible with :doc:`fix shake <fix_shake>`.
 
 The fix can be used with dynamic groups as defined by the
@@ -177,17 +168,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Bussi1:
-
-
 
 .. _Bussi2:
 
 **(Bussi1)** Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
-
 
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)

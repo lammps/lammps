@@ -12,7 +12,6 @@ pair_style yukawa/colloid/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style yukawa/colloid kappa cutoff
@@ -22,7 +21,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -38,7 +36,6 @@ Style *yukawa/colloid* computes pairwise interactions with the formula
 .. math::
 
    E = \frac{A}{\kappa} e^{- \kappa (r - (r_i + r_j))} \qquad r < r_c
-
 
 where :math:`r_i` and :math:`r_j` are the radii of the two particles
 and :math:`r_c` is the cutoff.
@@ -73,7 +70,6 @@ that the A for this potential style has different units than the A
 used in :doc:`pair_style yukawa <pair_yukawa>`.  For low surface
 potentials, i.e. less than about 25 mV, A can be written as:
 
-
 .. math::
 
    A = 2 \pi R\varepsilon\varepsilon_0 \kappa \psi^2
@@ -89,9 +85,7 @@ where
 The last coefficient is optional.  If not specified, the global
 yukawa/colloid cutoff is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -111,9 +105,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -139,13 +131,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the COLLOID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -166,13 +155,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Safran:
-
-
 
 **(Safran)** Safran, Statistical Thermodynamics of Surfaces, Interfaces,
 And Membranes, Westview Press, ISBN: 978-0813340791 (2003).

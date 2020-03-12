@@ -6,14 +6,12 @@ pair_style smtbq command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style smtbq
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -36,7 +34,6 @@ is given by three contributions:
    E_{OO}  & =  \sum_{i,j}^{i,j = O}{\biggl[Cexp( -\frac{r_{ij}}{\rho} ) - Df_{cut}^{r_1^{OO}r_2^{OO}}(r_{ij}) exp(Br_{ij})\biggr]}  \\
    E_{MO}  & =  \sum_i{E_{cov}^{i} + \sum_{j\neq i}{ Af_{cut}^{r_{c1}r_{c2}}(r_{ij})exp\bigl[-p(\frac{r_{ij}}{r_0} -1) \bigr] } }
 
-
 where :math:`E_{tot}` is the total potential energy of the system,
 :math:`E_{ES}` is the electrostatic part of the total energy,
 :math:`E_{OO}` is the interaction between oxygen atoms and
@@ -57,12 +54,11 @@ correspond to oxygen atoms. As an example, to simulate a :math:`\mathrm{TiO_2}` 
 atom type 1 has to be oxygen and atom type 2 Ti. The following
 pair\_coeff command should then be used:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
 
-The electrostatic part of the energy consists of two components 
+The electrostatic part of the energy consists of two components
 
 self-energy of atom *i* in the form of a second order charge dependent
 polynomial and a long-range Coulombic electrostatic interaction. The
@@ -94,10 +90,9 @@ ffield.SMTBQ.Syst. The energy band term is given by:
 .. math::
 
    E_{cov}^{i(i=M,O)} & = - \biggl\{\eta_i(\mu \xi^{0})^2 f_{cut}^{r_{c1}r_{c2}}(r_{ij})
-   \biggl( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \biggr) 
+   \biggl( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \biggr)
    \delta Q_i \bigl( 2\frac{n_0}{\eta_i} - \delta Q_i \bigr) \biggr\}^{1/2} \\
    \delta Q_i & =  | Q_i^{F} | - | Q_i |
-
 
 where :math:`\eta_i` is the stoichiometry of atom *i*\ ,
 :math:`\delta Q_i` is the charge delocalization of atom *i*\ ,
@@ -125,7 +120,6 @@ relationship:
 
    \xi^0 & = \frac{\xi_O}{m} = \frac{\xi_C}{n} \\
    \frac{\beta_O}{\sqrt{m}} & = \frac{\beta_C}{\sqrt{n}} = \xi^0 \frac{\sqrt{m}+\sqrt{n}}{2}
-
 
 Thus parameter :math:`\mu`, indicated above, is given by :math:`\mu = \frac{1}{2}(\sqrt{n}+\sqrt{m})`
 
@@ -162,7 +156,7 @@ quotation marks ('').
 
 2) Atomic parameters
 
-For the anion (oxygen) 
+For the anion (oxygen)
 
 * Name of element (char) and stoichiometry in oxide
 * Formal charge and mass of element
@@ -240,7 +234,7 @@ For each cations (metal):
 * Parameter if necessary
 * Divider line
 
-9) Verbose 
+9) Verbose
 
 * If you want the code to work in verbose mode or not : 'true' or 'false'
 * If you want to print or not in the file 'Energy\_component.txt' the

@@ -6,7 +6,6 @@ pair_style line/lj command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style line/lj cutoff
@@ -15,7 +14,6 @@ cutoff = global cutoff for interactions (distance units)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -113,9 +111,7 @@ and a point particle is calculated.
 The *cutoff* coefficient is optional.  If not specified, the global
 cutoff is used.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -131,13 +127,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

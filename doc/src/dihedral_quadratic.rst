@@ -9,14 +9,12 @@ dihedral_style quadratic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style quadratic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -30,8 +28,7 @@ The *quadratic* dihedral style uses the potential:
 
 .. math::
 
-   E = K (\phi - \phi_0)^2 
-
+   E = K (\phi - \phi_0)^2
 
 This dihedral potential can be used to keep a dihedral in a predefined
 value (cis=zero, right-hand convention is used).
@@ -45,9 +42,7 @@ commands:
 * :math:`K` (energy/radian\^2)
 * :math:`\phi_0` (degrees)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -67,13 +62,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 USER\_MISC package.  See the :doc:`Build package <Build_package>` doc

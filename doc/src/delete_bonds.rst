@@ -6,16 +6,15 @@ delete_bonds command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    delete_bonds group-ID style arg keyword ...
 
 * group-ID = group ID
 * style = *multi* or *atom* or *bond* or *angle* or *dihedral* or *improper* or *stats*
-  
+
   .. parsed-literal::
-  
+
        *multi* arg = none
        *atom* arg = an atom type or range of types (see below)
        *bond* arg = a bond type or range of types (see below)
@@ -27,10 +26,8 @@ Syntax
 * zero or more keywords may be appended
 * keyword = *any* or *undo* or *remove* or *special*
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -135,7 +132,6 @@ have been modified by the delete\_bonds command.
 
 Restrictions
 """"""""""""
-
 
 This command requires inter-processor communication to acquire ghost
 atoms, to coordinate the deleting of bonds, angles, etc between atoms

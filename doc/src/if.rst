@@ -6,7 +6,6 @@ if command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    if boolean then t1 t2 ... elif boolean f1 f2 ... elif boolean f1 f2 ... else e1 e2 ...
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "${steps} > 1000" then quit
    if "${myString} == a10" then quit
@@ -77,8 +75,7 @@ above.
 Note that by using the line continuation character "&", the if command
 can be spread across many lines, though it is still a single command:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$a < $b" then &
      "print 'Minimum value = $a'" &
@@ -102,8 +99,7 @@ checked, so long as it is current on the timestep when the run
 completes.  As explained on the :doc:`variable <variable>` doc page,
 this can be insured by including the variable in thermodynamic output.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable myTemp equal temp
    label loop
@@ -119,26 +115,23 @@ Here is an example of a double loop which uses the if and
 :doc:`jump <jump>` commands to break out of the inner loop when a
 condition is met, then continues iterating through the outer loop.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label       loopa
    variable    a loop 5
      label     loopb
      variable  b loop 5
-     print     "A,B = $a,$b"
-     run       10000
-     if        "$b > 2" then "jump SELF break"
+       print     "A,B = $a,$b"
+       run       10000
+       if        "$b > 2" then "jump SELF break"
      next      b
      jump      in.script loopb
-   label       break
-   variable    b delete
+     label       break
+     variable    b delete
    next        a
    jump        SELF loopa
 
-
 ----------
-
 
 The Boolean expressions for the if and elif keywords have a C-like
 syntax.  Note that each expression is a single argument within the if
@@ -149,14 +142,12 @@ An expression is built out of numbers (which start with a digit or
 period or minus sign) or strings (which start with a letter and can
 contain alphanumeric characters or underscores):
 
-
 .. parsed-literal::
 
    0.2, 100, 1.0e20, -15.4, etc
    InP, myString, a123, ab_23_cd, etc
 
 and Boolean operators:
-
 
 .. parsed-literal::
 
@@ -202,9 +193,7 @@ strings.
 The overall Boolean expression produces a TRUE result if the result is
 non-zero.  If the result is zero, the expression result is FALSE.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

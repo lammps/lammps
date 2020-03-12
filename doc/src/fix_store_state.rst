@@ -6,7 +6,6 @@ fix store/state command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID store/state N input1 input2 ... keyword value ...
@@ -15,9 +14,9 @@ Syntax
 * store/state = style name of this fix command
 * N = store atom attributes every N steps, N = 0 for initial store only
 * input = one or more atom attributes
-  
+
   .. parsed-literal::
-  
+
        possible attributes = id, mol, type, mass,
                              x, y, z, xs, ys, zs, xu, yu, zu, xsu, ysu, zsu, ix, iy, iz,
                              vx, vy, vz, fx, fy, fz,
@@ -27,9 +26,8 @@ Syntax
                              c_ID, c_ID[N], f_ID, f_ID[N], v_name,
                              d_name, i_name
 
-  
   .. parsed-literal::
-  
+
            id = atom ID
            mol = molecule ID
            type = atom type
@@ -58,18 +56,15 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *com*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all store/state 0 x y z
    fix 1 all store/state 0 xu yu zu com yes

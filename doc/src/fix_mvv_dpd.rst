@@ -12,7 +12,6 @@ fix mvv/tdpd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID mvv/dpd lambda
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all mvv/dpd
    fix 1 all mvv/dpd 0.5
@@ -76,9 +74,7 @@ Fix *mvv/tdpd* updates the per-atom chemical concentration, in
 addition to position and velocity, and must be used with the
 :doc:`pair_style tdpd <pair_mesodpd>` command.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -90,7 +86,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -106,13 +101,9 @@ Default
 
 The default value for the optional *lambda* parameter is 0.5.
 
-
 ----------
 
-
 .. _Groot2:
-
-
 
 **(Groot)** Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:
 10.1063/1.474784

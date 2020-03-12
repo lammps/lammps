@@ -9,7 +9,6 @@ fix dpd/energy/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID dpd/energy
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all dpd/energy
 
@@ -49,9 +47,7 @@ be specified by using fix *dpd/energy*\ , fix *nph* and pair\_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
 examples/USER/dpd directory.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -71,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -99,13 +92,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lisal1:
-
-
 
 **(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and
@@ -113,8 +102,6 @@ isoenthalpic conditions using Shardlow-like splitting algorithms.",
 J. Chem. Phys., 135, 204105 (2011).
 
 .. _Larentzos3:
-
-
 
 **(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative

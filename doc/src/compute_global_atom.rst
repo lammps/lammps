@@ -6,7 +6,6 @@ compute global/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID style index input1 input2 ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * global/atom = style name of this compute command
 * index = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID
        f_ID = per-atom vector calculated by a fix with ID
@@ -25,25 +24,22 @@ Syntax
 
 * one or more inputs can be listed
 * input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global vector calculated by a fix with ID
        f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
        v_name = global vector calculated by a vector-style variable with name
 
-
-
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   compute 1 all global/atom c_chunk c_com[1\] c_com[2\] c_com[3\]
-   compute 1 all global/atom c_chunk c_com[\*\]
+   compute 1 all global/atom c_chunk c_com[1] c_com[2] c_com[3]
+   compute 1 all global/atom c_chunk c_com[*]
 
 Description
 """""""""""
@@ -84,17 +80,16 @@ of each atom from the center-of-mass of the molecule it is in, and
 dump those values to a dump file.  In this case, each molecule is a
 chunk.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all com/chunk cc1
    compute prop all property/atom xu yu zu
-   compute glob all global/atom c_cc1 c_myChunk[\*]
+   compute glob all global/atom c_cc1 c_myChunk[*]
    variable dx atom c_prop[1]-c_glob[1]
    variable dy atom c_prop[2]-c_glob[2]
    variable dz atom c_prop[3]-c_glob[3]
-   variable dist atom sqrt(v_dx\*v_dx+v_dy\*v_dy+v_dz\*v_dz)
+   variable dist atom sqrt(v_dx*v_dx+v_dy*v_dy+v_dz*v_dz)
    dump 1 all custom 100 tmp.dump id xu yu zu c_glob[1] c_glob[2] c_glob[3] &
         v_dx v_dy v_dz v_dist
    dump_modify 1 sort id
@@ -102,9 +97,7 @@ chunk.
 You can add these commands to the bench/in.chain script to see how
 they work.
 
-
 ----------
-
 
 Note that for input values from a compute or fix, the bracketed index
 I can be specified using a wildcard asterisk with the index to
@@ -121,17 +114,14 @@ had been listed one by one.  E.g. these 2 compute global/atom commands
 are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>`
 command creates a global array with 3 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute com all com/chunk cc1
    compute 1 all global/atom c_cc1 c_com[1] c_com[2] c_com[3]
-   compute 1 all global/atom c_cc1 c_com[\*]
-
+   compute 1 all global/atom c_cc1 c_com[*]
 
 ----------
-
 
 This section explains the *index* parameter.  Note that it must
 reference per-atom values, as contrasted with the *input* values which
@@ -175,9 +165,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to use
 as *index*\ .
 
-
 ----------
-
 
 This section explains the kinds of *input* values that can be used.
 Note that inputs reference global values, as contrasted with the
@@ -215,9 +203,7 @@ evaluated, so this is a very general means of generating a vector of
 global quantities which the *index* parameter will reference for
 assignment of global values to atoms.
 
-
 ----------
-
 
 **Output info:**
 

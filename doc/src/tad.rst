@@ -6,7 +6,6 @@ tad command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    tad N t_event T_lo T_hi delta tmax compute-ID keyword value ...
@@ -20,9 +19,9 @@ Syntax
 * compute-ID = ID of the compute used for event detection
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *neb* or *min\_style* or *neb\_style* or *neb\_log*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy (energy units)
          ftol = stopping tolerance for force (force units)
@@ -39,13 +38,10 @@ Syntax
          dtneb = timestep for NEB damped dynamics minimization
        *neb_log* value = file where NEB statistics are printed
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    tad 2000 50 1800 2300 0.01 0.01 event
    tad 2000 50 1800 2300 0.01 0.01 event &
@@ -103,7 +99,6 @@ page for further discussion of multi-replica simulations.
 A TAD run has several stages, which are repeated each time an event is
 performed.  The logic for a TAD run is as follows:
 
-
 .. parsed-literal::
 
    while (time remains):
@@ -154,9 +149,7 @@ the :doc:`timestep <timestep>` command is used by TAD for performing
 dynamics, there is a *neb\_step* keyword which can be used to set a
 larger timestep for each NEB calculation if desired.
 
-
 ----------
-
 
 A key aspect of the TAD method is setting the stopping criterion
 appropriately.  If this criterion is too conservative, then many
@@ -177,9 +170,7 @@ large a value introduces errors due to anharmonicity (not accounted
 for within hTST). Once again, for any given system, experimentation is
 necessary to determine the best value of *t\_hi*.
 
-
 ----------
-
 
 Five kinds of output can be generated during a TAD run: event
 statistics, NEB statistics, thermodynamic output by each replica, dump
@@ -276,13 +267,10 @@ files do not always increase monotonically. However, the timestep
 values printed to the master log file, dump files, and restart files
 are always monotonically increasing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
@@ -316,19 +304,13 @@ The option defaults are *min* = 0.1 0.1 40 50, *neb* = 0.01 100 100
 10, *neb\_style* = *quickmin*\ , *neb\_step* = the same timestep set by
 the :doc:`timestep <timestep>` command, and *neb\_log* = "none".
 
-
 ----------
 
-
 .. _Voter2000:
-
-
 
 **(Voter2000)** Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
 .. _Voter2002:
-
-
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

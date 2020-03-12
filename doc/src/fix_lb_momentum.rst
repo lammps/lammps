@@ -6,7 +6,6 @@ fix lb/momentum command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/momentum nevery keyword values ...
@@ -16,19 +15,16 @@ Syntax
 * nevery = adjust the momentum every this many timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *linear*
-  
+
   .. parsed-literal::
-  
+
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension.
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 sphere lb/momentum
    fix 1 all lb/momentum linear 1 1 0
@@ -64,7 +60,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this

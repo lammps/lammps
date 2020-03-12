@@ -24,14 +24,12 @@ pair_style lj/gromacs/coul/gromacs/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/gromacs* or *lj/gromacs/coul/gromacs*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -43,7 +41,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -66,7 +63,7 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
 .. math::
 
-   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
             \left(\frac{\sigma}{r}\right)^6 \right] + S_{LJ}(r)
                        \qquad r < r_c \\
    E_C  = & \frac{C q_i q_j}{\epsilon  r} + S_C(r) \qquad r < r_c \\
@@ -75,7 +72,6 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
    A = & (-3 E'(r_c) + (r_c - r_1) E''(r_c))/(r_c - r_1)^2 \\
    B = & (2 E'(r_c) - (r_c - r_1) E''(r_c))/(r_c - r_1)^3 \\
    C = & -E(r_c) + \frac{1}{2} (r_c - r_1) E'(r_c) - \frac{1}{12} (r_c - r_1)^2 E''(r_c)
-
 
 :math:`r_1` is the inner cutoff; :math:`r_c` is the outer cutoff.  The
 coefficients A, B, and C are computed by LAMMPS to perform the shifting
@@ -117,9 +113,7 @@ The last 2 coefficients cannot be used with style
 varying cutoffs for individual atom pairs; all pairs use the global
 cutoff(s) specified in the pair\_style command.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -139,9 +133,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -170,9 +162,7 @@ All of the GROMACS pair styles can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -185,12 +175,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Marrink:
-
-
 
 **(Marrink)** Marrink, de Vries, Mark, J Phys Chem B, 108, 750-760 (2004).

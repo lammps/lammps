@@ -6,7 +6,6 @@ fix nve/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/eff
 
@@ -42,7 +40,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

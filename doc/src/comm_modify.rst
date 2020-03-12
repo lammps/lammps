@@ -6,16 +6,15 @@ comm_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    comm_modify keyword value ...
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mode* or *cutoff* or *cutoff/multi* or *group* or *vel*
-  
+
   .. parsed-literal::
-  
+
        *mode* value = *single* or *multi* = communicate atoms within a single or multiple distances
        *cutoff* value = Rcut (distance units) = communicate atoms from this far away
        *cutoff/multi* type value
@@ -24,11 +23,8 @@ Syntax
        *group* value = group-ID = only communicate atoms in the group
        *vel* value = *yes* or *no* = do or do not communicate velocity info with ghost atoms
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -164,7 +160,6 @@ that boundary (e.g. due to dilation or shear).
 
 Restrictions
 """"""""""""
-
 
 Communication mode *multi* is currently only available for
 :doc:`comm_style <comm_style>` *brick*\ .

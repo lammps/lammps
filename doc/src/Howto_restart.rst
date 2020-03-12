@@ -21,7 +21,6 @@ Look at the *in.chain* input script provided in the *bench* directory
 of the LAMMPS distribution to see the original script that these 2
 scripts are based on.  If that script had the line
 
-
 .. code-block:: LAMMPS
 
    restart         50 tmp.restart
@@ -31,7 +30,6 @@ and tmp.restart.100) as it ran.
 
 This script could be used to read the 1st restart file and re-run the
 last 50 timesteps:
-
 
 .. code-block:: LAMMPS
 
@@ -62,13 +60,11 @@ uses random numbers in a way that does not allow for perfect restarts.
 As an alternate approach, the restart file could be converted to a data
 file as follows:
 
-
 .. code-block:: LAMMPS
 
    lmp_g++ -r tmp.restart.50 tmp.restart.data
 
 Then, this script could be used to re-run the last 50 steps:
-
 
 .. code-block:: LAMMPS
 

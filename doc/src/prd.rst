@@ -6,7 +6,6 @@ prd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    prd N t_event n_dephase t_dephase t_correlate compute-ID seed keyword value ...
@@ -20,9 +19,9 @@ Syntax
 * random\_seed = random # seed (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *temp* or *vel*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy, used in quenching
          ftol = stopping tolerance for force, used in quenching
@@ -37,13 +36,10 @@ Syntax
          *steps* = simulation runs for N timesteps on each replica (default)
          *clock* = simulation runs for N timesteps across all replicas
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    prd 5000 100 10 10 100 1 54982
    prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200
@@ -99,7 +95,6 @@ potentials, etc should be the same for every replica.
 A PRD run has several stages, which are repeated each time an "event"
 occurs in one of the replicas, as explained below.  The logic for a
 PRD run is as follows:
-
 
 .. parsed-literal::
 
@@ -186,9 +181,7 @@ elapsed.  This aggregate time is the "clock" time defined below, which
 typically advances nearly M times faster than the timestepping on a
 single replica, where M is the number of replicas.
 
-
 ----------
-
 
 Four kinds of output can be generated during a PRD run: event
 statistics, thermodynamic output by each replica, dump files, and
@@ -246,9 +239,7 @@ replicas is too large, or *t\_event* is too large.
 The replica number is the ID of the replica (from 0 to M-1) in which
 the event occurred.
 
-
 ----------
-
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For
@@ -262,9 +253,7 @@ After the PRD command completes, timing statistics for the PRD run are
 printed in each replica's log file, giving a breakdown of how much CPU
 time was spent in each stage (dephasing, dynamics, quenching, etc).
 
-
 ----------
-
 
 Any :doc:`dump files <dump>` defined in the input script, will be
 written to during a PRD run at timesteps corresponding to both
@@ -280,9 +269,7 @@ snapshot corresponding to the initial minimum state used for event
 detection is written to the dump file at the beginning of each PRD
 run.
 
-
 ----------
-
 
 If the :doc:`restart <restart>` command is used, a single restart file
 for all the partitions is generated, which allows a PRD run to be
@@ -309,13 +296,10 @@ However, it is assumed that *t\_correlate* in the new PRD command is
 the same as it was previously.  If not, the calculation of the "clock"
 value for the first event in the new run will be slightly off.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
@@ -348,19 +332,13 @@ Default
 The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
 geom gaussian, and time = steps.
 
-
 ----------
 
-
 .. _Voter1998:
-
-
 
 **(Voter1998)** Voter, Phys Rev B, 57, 13985 (1998).
 
 .. _Voter2002prd:
-
-
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

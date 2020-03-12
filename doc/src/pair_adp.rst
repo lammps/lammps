@@ -9,14 +9,12 @@ pair_style adp/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style adp
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -38,7 +36,6 @@ which is a generalization of the :doc:`embedded atom method (EAM) potential <pai
    \mu_i^s        & = \sum_{j\neq i}u_{\alpha\beta}(r_{ij})r_{ij}^s\\
    \lambda_i^{st} & = \sum_{j\neq i}w_{\alpha\beta}(r_{ij})r_{ij}^sr_{ij}^t\\
    \nu_i          & = \sum_s\lambda_i^{ss}
-
 
 where :math:`F` is the embedding energy which is a function of the atomic
 electron density :math:`\rho`, :math:`\phi` is a pair potential interaction,
@@ -64,7 +61,6 @@ command to specify them.
 
 ----------
 
-
 Only a single pair\_coeff command is used with the *adp* style which
 specifies an extended DYNAMO *setfl* file, which contains information
 for :math:`M` elements.  These are mapped to LAMMPS atom types by specifying :math:`N`
@@ -83,7 +79,6 @@ file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
 the following pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -137,9 +132,7 @@ same order with the same assumptions of symmetry.  Directly following
 the :math:`u(r)`, the :math:`w(r)` arrays are listed.  Note that :math:`\phi(r)` is the only
 array tabulated with a scaling by :math:`r`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -159,9 +152,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -180,13 +171,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.
@@ -198,19 +186,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mishin:
-
-
 
 **(Mishin)** Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029
 (2005).
 
 .. _Singh:
-
-
 
 **(Singh)** Singh and Warner, Acta Mater, 58, 5797-5805 (2010),

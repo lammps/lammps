@@ -9,7 +9,6 @@ fix ave/histo/weight command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ...
@@ -23,9 +22,9 @@ Syntax
 * Nbin = # of histogram bins
 * one or more input values can be listed
 * value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+
   .. parsed-literal::
-  
+
        x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
        c_ID = scalar or vector calculated by a compute with ID
        c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID, I can include wildcard (see below)
@@ -36,9 +35,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *mode* or *file* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *mode* arg = *scalar* or *vector*
          scalar = all input values are scalars
          vector = all input values are vectors
@@ -63,17 +62,14 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file, only for vector mode
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
    fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[2] c_thermo_press[3] title1 "My output values"
-   fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[\*]
+   fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[*]
    fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra
    fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD[1] c_XRD[2]
 
@@ -138,11 +134,10 @@ vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
 3 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM[\*] file tmp1.com mode vector
+   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
    fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must
@@ -155,9 +150,7 @@ corresponding weight is tallied.  E.g. The Nth entry (weight) in the
 second vector is tallied to the bin corresponding to the Nth entry in
 the first vector.
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -176,9 +169,7 @@ histogram on timestep 100.  Similarly for timesteps
 = 100, then no time averaging of the histogram is done; a histogram is
 simply generated on timesteps 100,200,etc.
 
-
 ----------
-
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
@@ -237,9 +228,7 @@ thermodynamic keywords, or they can invoke other computes, fixes, or
 variables when they are evaluated, so this is a very general means of
 specifying quantities to histogram.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix.
 
@@ -327,7 +316,6 @@ values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows:
 
-
 .. parsed-literal::
 
    # Histogram for fix ID
@@ -339,9 +327,7 @@ describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

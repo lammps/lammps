@@ -9,8 +9,8 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_. Kokkos is part
-of `Trilinos <http://trilinos.sandia.gov/packages/kokkos>`_. The Kokkos
+Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_. Kokkos is
+part of `Trilinos <https://www.trilinos.org/>`_. The Kokkos
 library was written primarily by Carter Edwards, Christian Trott, and
 Dan Sunderland (all Sandia).
 
@@ -71,8 +71,7 @@ Kokkos. E.g. the mpirun command in OpenMPI does this via its -np and
 Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -in in.lj        # 1 node, 16 MPI tasks/node, no multi-threading
    mpirun -np 2 -ppn 1 lmp_kokkos_omp -k on t 16 -sf kk -in in.lj  # 2 nodes, 1 MPI task/node, 16 threads/task
@@ -84,7 +83,6 @@ kokkos" :doc:`command-line switches <Run_options>` in your mpirun
 command.  You must use the "-k on" :doc:`command-line switch <Run_options>` to enable the KOKKOS package. It takes
 additional arguments for hardware settings appropriate to your system.
 For OpenMP use:
-
 
 .. parsed-literal::
 
@@ -121,8 +119,7 @@ below.
    page for details and default settings. Experimenting with its options
    can provide a speed-up for specific calculations. For example:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half comm no -in in.lj       # Newton on, Half neighbor list, non-threaded comm
 
@@ -154,7 +151,6 @@ they do not migrate during a simulation.
 If you are not certain MPI tasks are being bound (check the defaults
 for your MPI installation), binding can be forced with these flags:
 
-
 .. parsed-literal::
 
    OpenMPI 1.8: mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
@@ -184,10 +180,9 @@ tasks.
 
 Examples of mpirun commands that follow these rules are shown below.
 
+.. code-block:: bash
 
-.. parsed-literal::
-
-   Intel KNL node with 68 cores (272 threads/node via 4x hardware threading):
+   # Running on an Intel KNL node with 68 cores (272 threads/node via 4x hardware threading):
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 64 MPI tasks/node, 4 threads/task
    mpirun -np 66 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 66 MPI tasks/node, 4 threads/task
    mpirun -np 32 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj      # 1 node, 32 MPI tasks/node, 8 threads/task
@@ -210,8 +205,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    details and default settings. Experimenting with its options can provide
    a speed-up for specific calculations. For example:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax      #  Newton on, half neighbor list, threaded comm
    mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton off neigh full comm no -in in.lj      # Newton off, full neighbor list, non-threaded comm
@@ -245,7 +239,6 @@ avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for
 multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 
-
 .. parsed-literal::
 
    -k on g Ng
@@ -253,8 +246,7 @@ then the number of MPI tasks/node should not exceed N.
 Here are examples of how to use the KOKKOS package for GPUs, assuming
 one or more nodes, each with two GPUs:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj          # 1 node,   2 MPI tasks/node, 2 GPUs/node
    mpirun -np 32 -ppn 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj  # 16 nodes, 2 MPI tasks/node, 2 GPUs/node (32 GPUs total)
@@ -274,8 +266,7 @@ one or more nodes, each with two GPUs:
    default settings. Experimenting with its options can provide a speed-up
    for specific calculations. For example:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
 
@@ -317,8 +308,7 @@ hardware options appropriate to your system, as documented above.
 You can use the :doc:`suffix kk <suffix>` command, or you can explicitly add a
 "kk" suffix to individual styles in your input script, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/kk 2.5
 
@@ -333,8 +323,7 @@ used together in a few special cases. In the Makefile, the
 KOKKOS\_DEVICES variable must include both "Cuda" and "OpenMP", as is
 the case for /src/MAKE/OPTIONS/Makefile.kokkos\_cuda\_mpi
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    KOKKOS_DEVICES=Cuda,OpenMP
 
@@ -345,15 +334,13 @@ style in the input script, the Kokkos OpenMP (CPU) version of that
 specific style will be used instead.  Set the number of OpenMP threads
 as "t Nt" and the number of GPUs as "g Ng"
 
-
 .. parsed-literal::
 
    -k on t Nt g Ng
 
 For example, the command to run with 1 GPU and 8 OpenMP threads is then:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 t 8 -sf kk
 
@@ -394,8 +381,7 @@ Generally speaking, the following rules of thumb apply:
 * When running on Intel hardware, KOKKOS is not as fast as
   the USER-INTEL package, which is optimized for that hardware.
 
-
-See the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 
@@ -440,7 +426,6 @@ GPUs.
 
 Restrictions
 """"""""""""
-
 
 Currently, there are no precision options with the KOKKOS package. All
 compilation and computation is performed in double precision.

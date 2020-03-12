@@ -6,7 +6,6 @@ dihedral_style table/cut command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style table/cut style Ntable
@@ -70,7 +69,6 @@ cutoff function:
    f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
    f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
 
-
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.
 
@@ -85,14 +83,11 @@ The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
 format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment
 or blank lines.
-
 
 .. parsed-literal::
 
@@ -214,7 +209,6 @@ script.
 Restrictions
 """"""""""""
 
-
 This dihedral style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
@@ -227,7 +221,5 @@ Related commands
 **Default:** none
 
 .. _dihedralcut-Salerno:
-
-
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).

@@ -12,14 +12,12 @@ dihedral_style class2/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style class2
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -47,7 +45,6 @@ The *class2* dihedral style uses the potential
               & (\theta_{jkl} - \theta_2) [ E_1 \cos (\phi) + E_2 \cos (2\phi) + E_3 \cos (3\phi) ] \\
    E_{aat}  = & M (\theta_{ijk} - \theta_1) (\theta_{jkl} - \theta_2) \cos (\phi) \\
    E_{bb13} = & N (r_{ij} - r_1) (r_{kl} - r_3)
-
 
 where :math:`E_d` is the dihedral term, :math:`E_{mbt}` is a middle-bond-torsion term,
 :math:`E_{ebt}` is an end-bond-torsion term, :math:`E_{at}` is an angle-torsion term, :math:`E_{aat}`
@@ -155,9 +152,7 @@ listed under a *BondBond13 Coeffs* heading and you must leave out the
 * :math:`r_1` (distance)
 * :math:`r_3` (distance)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -177,13 +172,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 CLASS2 package.  See the :doc:`Build package <Build_package>` doc
@@ -196,12 +188,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _dihedral-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

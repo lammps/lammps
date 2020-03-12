@@ -54,14 +54,12 @@ pair_style lj/charmmfsw/coul/long command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/charmm/coul/charmm* or *lj/charmm/coul/charmm/implicit* or *lj/charmm/coul/long* or *lj/charmm/coul/msm* or *lj/charmmfsw/coul/charmmfsh* or *lj/charmmfsw/coul/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -86,7 +84,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -168,13 +165,12 @@ artifacts.
    E = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
      = & S(r) * C(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
      = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
-   LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
            \left(\frac{\sigma}{r}\right)^6 \right] \\
    C(r) = & \frac{C q_i q_j}{ \epsilon r} \\
-   S(r) = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
-     \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
+   S(r) = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
+     \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
    { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
-
 
 where S(r) is the energy switching function mentioned above for the
 *charmm* styles.  See the :ref:`(Steinbach) <Steinbach>` paper for the
@@ -237,9 +233,7 @@ because the CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
 the pair\_style command.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -259,9 +253,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -298,13 +290,10 @@ hierarchy.  The other styles only support the *pair* keyword of
 run\_style respa.  See the :doc:`run_style <run_style>` command for
 details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the styles with *coul/charmm* or *coul/charmmfsh* styles are part
 of the MOLECULE package.  All the styles with *coul/long* style are
@@ -319,25 +308,17 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Brooks1:
-
-
 
 **(Brooks)** Brooks, et al, J Comput Chem, 30, 1545 (2009).
 
 .. _pair-MacKerell:
 
-
-
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _Steinbach:
-
-
 
 **(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994).

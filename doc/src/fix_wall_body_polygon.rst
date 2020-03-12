@@ -6,7 +6,6 @@ fix wall/body/polygon command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/body/polygon k_n c_n c_t wallstyle args keyword values ...
@@ -18,9 +17,9 @@ Syntax
 * c\_t = tangential damping coefficient (force/distance or pressure units)
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *xplane* or *yplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
        *zcylinder* args = radius
@@ -28,20 +27,20 @@ Syntax
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle*
-  
+
   .. parsed-literal::
-  
+
        *wiggle* values = dim amplitude period
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)
          period = time of oscillation (time units)
 
-
-
 Examples
 """"""""
 
-fix 1 all wall/body/polygon 1000.0 20.0 5.0 xplane -10.0 10.0
+.. code-block:: LAMMPS
+
+   fix 1 all wall/body/polygon 1000.0 20.0 5.0 xplane -10.0 10.0
 
 Description
 """""""""""
@@ -79,7 +78,6 @@ the z dimension.
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
 
-
 .. parsed-literal::
 
    position = coord + A - A cos (omega \* delta)
@@ -99,7 +97,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

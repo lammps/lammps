@@ -6,16 +6,15 @@ atom_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    atom_modify keyword values ...
 
 * one or more keyword/value pairs may be appended
 * keyword = *id* or *map* or *first* or *sort*
-  
+
   .. parsed-literal::
-  
+
         *id* value = *yes* or *no*
         *map* value = *yes* or *array* or *hash*
         *first* value = group-ID = group whose atoms will appear first in internal atom lists
@@ -23,11 +22,8 @@ Syntax
           Nfreq = sort atoms spatially every this many time steps
           binsize = bin size for spatial sorting (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -160,7 +156,6 @@ cache locality will be undermined.
 Restrictions
 """"""""""""
 
-
 The *first* and *sort* options cannot be used together.  Since sorting
 is on by default, it will be turned off if the *first* keyword is
 used with a group-ID that is not "all".
@@ -179,12 +174,8 @@ frequency of 1000 and a binsize of 0.0, which means the neighbor
 cutoff will be used to set the bin size. If no neighbor cutoff is
 defined, sorting will be turned off.
 
-
 ----------
 
-
 .. _Meloni:
-
-
 
 **(Meloni)** Meloni, Rosati and Colombo, J Chem Phys, 126, 121102 (2007).

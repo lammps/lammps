@@ -9,7 +9,6 @@ fix shardlow/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID shardlow
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all shardlow
 
@@ -53,9 +51,7 @@ be specified by using fix shardlow, fix *nph* and pair\_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
 examples/USER/dpd directory.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -75,13 +71,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -104,13 +97,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lisal:
-
-
 
 **(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics as isothermal, isobaric, isoenergetic, and
@@ -119,16 +108,12 @@ J. Chem. Phys., 135, 204105 (2011).
 
 .. _Larentzos1sh:
 
-
-
 **(Larentzos1)** J.P. Larentzos, J.K. Brennan, J.D. Moore, M. Lisal and
 W.D. Mattson, "Parallel Implementation of Isothermal and Isoenergetic
 Dissipative Particle Dynamics Using Shardlow-Like Splitting
 Algorithms", Comput. Phys. Commun., 185, 1987-1998 (2014).
 
 .. _Larentzos2sh:
-
-
 
 **(Larentzos2)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative

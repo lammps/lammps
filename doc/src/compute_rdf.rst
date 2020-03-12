@@ -6,7 +6,6 @@ compute rdf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... keyword/value ...
@@ -18,25 +17,22 @@ Syntax
 * jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below)
 * zero or more keyword/value pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* value = Rcut
          Rcut = cutoff distance for RDF computation (distance units)
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rdf 100
    compute 1 all rdf 100 1 1
-   compute 1 all rdf 100 \* 3 cutoff 5.0
+   compute 1 all rdf 100 * 3 cutoff 5.0
    compute 1 fluid rdf 500 1 1 1 2 2 1 2 2
-   compute 1 fluid rdf 500 1\*3 2 5 \*10 cutoff 3.5
+   compute 1 fluid rdf 500 1*3 2 5 *10 cutoff 3.5
 
 Description
 """""""""""
@@ -151,11 +147,10 @@ The simplest way to output the results of the compute rdf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myRDF all rdf 50
-   fix 1 all ave/time 100 1 100 c_myRDF[\*] file tmp.rdf mode vector
+   fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp.rdf mode vector
 
 **Output info:**
 
@@ -178,7 +173,6 @@ also numbers >= 0.0.
 
 Restrictions
 """"""""""""
-
 
 The RDF is not computed for distances longer than the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

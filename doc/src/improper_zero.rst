@@ -6,14 +6,12 @@ improper_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style zero [nocoeff]
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

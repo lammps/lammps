@@ -6,16 +6,15 @@ velocity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    velocity group-ID style args keyword value ...
 
 * group-ID = ID of group of atoms whose velocity will be changed
 * style = *create* or *set* or *scale* or *ramp* or *zero*
-  
+
   .. parsed-literal::
-  
+
        *create* args = temp seed
          temp = temperature value (temperature units)
          seed = random # seed (positive integer)
@@ -35,9 +34,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *dist* or *sum* or *mom* or *rot* or *temp* or *bias* or *loop* or *units*
-  
+
   .. parsed-literal::
-  
+
        *dist* value = *uniform* or *gaussian*
        *sum* value = *no* or *yes*
        *mom* value = *no* or *yes*
@@ -49,13 +48,10 @@ Syntax
          fix-ID = ID of rigid body fix
        *units* value = *box* or *lattice*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 4928459 rot yes dist gaussian
    velocity border set NULL 4.0 v_vz sum yes units box
@@ -124,9 +120,7 @@ coordinates depend on whether the *units* keyword is set to *box* or
 For all styles, no atoms are assigned z-component velocities if the
 simulation is 2d; see the :doc:`dimension <dimension>` command.
 
-
 ----------
-
 
 The keyword/value options are used in the following ways by the
 various styles.
@@ -145,9 +139,7 @@ The *mom* and *rot* keywords are used by *create*\ .  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 
-
 ----------
-
 
 If specified, the *temp* keyword is used by *create* and *scale* to
 specify a :doc:`compute <compute>` that calculates temperature in a
@@ -156,8 +148,7 @@ discussed on the :doc:`Howto thermostat <Howto_thermostat>` doc page.
 If this keyword is not specified, *create* and *scale* calculate
 temperature using a compute that is defined internally as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute velocity_temp group-ID temp
 
@@ -190,9 +181,7 @@ specifying the ID of a :doc:`compute temp/ramp <compute_temp_ramp>` or
 :doc:`compute temp/profile <compute_temp_profile>` command, and the
 *bias* keyword set to a *yes* value.
 
-
 ----------
-
 
 The *loop* keyword is used by *create* in the following ways.
 
@@ -226,9 +215,7 @@ This is because the computations based on xyz coordinates are
 sensitive to tiny differences in the double-precision value for a
 coordinate as stored on a particular machine.
 
-
 ----------
-
 
 The *rigid* keyword only has meaning when used with the *zero* style.
 It allows specification of a fix-ID for one of the :doc:`rigid-body fix <fix_rigid>` variants which defines a set of rigid bodies.  The
@@ -243,13 +230,10 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The :doc:`lattice <lattice>`
 command must have been previously used to define the lattice spacing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Assigning a temperature via the *create* style to a system with :doc:`rigid bodies <fix_rigid>` or :doc:`SHAKE constraints <fix_shake>` may not
 have the desired outcome for two reasons.  First, the velocity command
@@ -262,8 +246,7 @@ temperature than desired.  A workaround for this is to perform a :doc:`run 0 <ru
 properly, and then rescale the temperature to the desired value before
 performing a simulation.  For example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 12345
    run 0                             # temperature may not be 300K

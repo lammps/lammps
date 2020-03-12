@@ -12,9 +12,9 @@ Syntax
 
 * style = *one* or *multi* or *custom*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *one* args = none
        *multi* args = none
        *custom* args = list of keywords
@@ -83,8 +83,6 @@ Syntax
            v_name = value calculated by an equal-style variable with name
            v_name[I] = value calculated by a vector-style variable with name
 
-
-
 Examples
 """"""""
 
@@ -143,15 +141,12 @@ atoms in the system), and the numeric precision of each printed value.
    if your input script specifies a thermo\_style command, you should use
    the thermo\_modify command after it.
 
-
 ----------
-
 
 Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx", etc.  By
 default this is done by using a *temperature* compute which is created
 when LAMMPS starts up, as if this command had been issued:
-
 
 .. code-block:: LAMMPS
 
@@ -171,7 +166,6 @@ computed: "press", "enthalpy", "pxx", etc.  By default this is done by
 using a *pressure* compute which is created when LAMMPS starts up, as
 if this command had been issued:
 
-
 .. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
@@ -190,7 +184,6 @@ be computed: "pe", "etotal", "ebond", etc.  This is done by using a
 *pe* compute which is created when LAMMPS starts up, as if this
 command had been issued:
 
-
 .. code-block:: LAMMPS
 
    compute thermo_pe all pe
@@ -200,9 +193,7 @@ the ID of this compute is *thermo\_pe* and the group is *all*\ .  You can
 change the attributes of this potential energy via the
 :doc:`compute_modify <compute_modify>` command.
 
-
 ----------
-
 
 The kinetic energy of the system *ke* is inferred from the temperature
 of the system with :math:`\frac{1}{2} k_B T` of energy for each degree
@@ -225,9 +216,7 @@ is included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
 corresponding tail correction to the pressure is included in *press*
 and *pxx*\ , *pyy*\ , etc.
 
-
 ----------
-
 
 The *step*\ , *elapsed*\ , and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
@@ -283,7 +272,6 @@ If the timeout timer is inactive, the value of this keyword is 0.0 and
 if the timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
-
 .. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
@@ -314,9 +302,7 @@ of triclinic periodic cells, including a precise definition of these
 quantities in terms of the internal LAMMPS cell dimensions *lx*\ , *ly*\ ,
 *lz*\ , *yz*\ , *xz*\ , *xy*\ .
 
-
 ----------
-
 
 For output values from a compute or fix, the bracketed index I used to
 index a vector, as in *c\_ID[I]* or *f\_ID[I]*, can be specified
@@ -334,7 +320,6 @@ vector had been listed one by one.  E.g. these 2 thermo\_style commands
 are equivalent, since the :doc:`compute temp <compute_temp>` command
 creates a global vector with 6 values.
 
-
 .. code-block:: LAMMPS
 
    compute myTemp all temp
@@ -343,9 +328,7 @@ creates a global vector with 6 values.
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
 
-
 ----------
-
 
 The *c\_ID* and *c\_ID[I]* and *c\_ID[I][J]* keywords allow global
 values calculated by a compute to be output.  As discussed on the
@@ -416,13 +399,10 @@ produce "intensive" global quantities, which are thus printed as-is,
 without normalization by thermo\_style custom.  You can include a
 division by "natoms" in the variable formula if this is not the case.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
@@ -437,7 +417,6 @@ Related commands
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

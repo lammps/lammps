@@ -6,14 +6,12 @@ pair_style sph/lj command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sph/lj
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -40,9 +38,7 @@ above.
 * :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -61,7 +57,6 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 Restrictions
 """"""""""""
 
-
 As noted above, the Lennard-Jones parameters epsilon and sigma are set
 to unity.
 
@@ -75,19 +70,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ree:
-
-
 
 **(Ree)** Ree, Journal of Chemical Physics, 73, 5401 (1980).
 
 .. _Monoghan:
-
-
 
 **(Monaghan)** Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).

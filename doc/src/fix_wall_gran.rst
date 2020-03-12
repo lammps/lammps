@@ -6,7 +6,6 @@ fix wall/gran command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
@@ -14,15 +13,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/gran = style name of this fix command
 * fstyle = style of force interactions between particles and wall
-  
+
   .. parsed-literal::
-  
+
        possible choices: hooke, hooke/history, hertz/history, granular
 
 * fstyle\_params = parameters associated with force interaction style
-  
+
   .. parsed-literal::
-  
+
        For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
@@ -31,16 +30,15 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-  
   .. parsed-literal::
-  
+
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *xplane* or *yplane* or *zplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
        *zcylinder* args = radius
@@ -48,9 +46,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle* or *shear*
-  
+
   .. parsed-literal::
-  
+
        *wiggle* values = dim amplitude period
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)
@@ -59,13 +57,10 @@ Syntax
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
    fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
@@ -116,7 +111,8 @@ material.
 
 .. note::
 
-   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`, versions of LAMMPS before 9Jan09 used a
+   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`,
+   versions of LAMMPS before 9Jan09 used a
    different equation for Hertzian interactions.  This means Hertizian
    wall/particle interactions have also changed.  They now include a
    sqrt(radius) term which was not present before.  Also the previous
@@ -156,7 +152,6 @@ be wiggled in the z dimension.
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
 
-
 .. parsed-literal::
 
    position = coord + A - A cos (omega \* delta)
@@ -194,7 +189,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

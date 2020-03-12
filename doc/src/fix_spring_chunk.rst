@@ -6,7 +6,6 @@ fix spring/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring/chunk K chunkID comID
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix restrain all spring/chunk 100 chunkID comID
 

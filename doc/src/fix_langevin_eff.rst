@@ -6,7 +6,6 @@ fix langevin/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/eff Tstart Tstop damp seed keyword values ...
@@ -17,9 +16,9 @@ Syntax
 * damp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *scale* or *tally* or *zero*
        *scale* values = type ratio
          type = atom type (1-N)
@@ -28,18 +27,14 @@ Syntax
          *no* = do not tally the energy added/subtracted to atoms
          *yes* = do tally the energy added/subtracted to atoms
 
-  
   .. parsed-literal::
-  
+
        *zero* value = *no* or *yes*
          *no* = do not set total random force to zero
          *yes* = set total random force to zero
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -54,13 +49,11 @@ to a group of nuclei and electrons in the :doc:`electron force field <pair_eff>`
 this command performs Brownian dynamics (BD), since the total force on
 each atom will have the form:
 
-
 .. math::
 
    F   = & F_c + F_f + F_r \\
    F_f = & - \frac{m}{\mathrm{damp}} v \\
    F_r \propto &  \sqrt{\frac{k_B T m}{dt~\mathrm{damp}}}
-
 
 :math:`F_c` is the conservative force computed via the usual
 inter-particle interactions (:doc:`pair_style <pair_style>`).
@@ -121,18 +114,12 @@ Default
 
 The option defaults are scale = 1.0 for all types and tally = no.
 
-
 ----------
 
-
 .. _Dunweg2:
-
-
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
 .. _Schneider2:
-
-
 
 **(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).

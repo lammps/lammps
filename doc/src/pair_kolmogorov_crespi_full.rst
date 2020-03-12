@@ -6,7 +6,6 @@ pair_style kolmogorov/crespi/full command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -42,7 +40,6 @@ No simplification is made,
   \rho_{ij}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot {\bf n}_{i})^2 \\
   \rho_{ji}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot  {\bf n}_{j})^2 \\
   f(\rho) & =  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} { (\rho/\delta) }^{2n}
-
 
 It is important to have a sufficiently large cutoff to ensure smooth
 forces and to include all the pairs to build the neighbor list for
@@ -99,7 +96,6 @@ The 2 values correspond to the following sub-categories:
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute 0 all pair kolmogorov/crespi/full
@@ -107,9 +103,7 @@ headings) the following commands could be included in an input script:
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -123,7 +117,6 @@ that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -150,24 +143,16 @@ Related commands
 
 **Default:** tap\_flag = 0
 
-
 ----------
 
-
 .. _Kolmogorov1:
-
-
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
 .. _Ouyang3:
 
-
-
 **(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
 
 .. _Ouyang4:
-
-
 
 **(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

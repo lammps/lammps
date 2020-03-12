@@ -6,7 +6,6 @@ fix heat command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID heat N eflux
@@ -18,19 +17,16 @@ Syntax
 * eflux can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 qin heat 1 1.0
    fix 3 qin heat 10 v_flux

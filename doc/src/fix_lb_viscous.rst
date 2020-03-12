@@ -6,7 +6,6 @@ fix lb/viscous command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/viscous
@@ -17,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 flow lb/viscous
+.. code-block:: LAMMPS
+
+   fix 1 flow lb/viscous
 
 Description
 """""""""""
@@ -41,18 +42,14 @@ opposite force to the fluid).
    value is used, then this fix provides the only method for adding the
    hydrodynamic forces to the particles.
 
-
 ----------
-
 
 For further details, as well as descriptions and results of several
 test runs, see :ref:`Mackay et al. <Mackay3>`.  Please include a citation to
 this paper if this fix is used in work contributing to published
 research.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -73,7 +70,6 @@ for details."
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -92,12 +88,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mackay3:
-
-
 
 **(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

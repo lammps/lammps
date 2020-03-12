@@ -6,16 +6,15 @@ kspace_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
 * keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
-  
+
   .. parsed-literal::
-  
+
        *collective* value = *yes* or *no*
        *compute* value = *yes* or *no*
        *cutoff/adjust* value = *yes* or *no*
@@ -56,11 +55,8 @@ Syntax
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -75,9 +71,7 @@ Set parameters used by the kspace solvers defined by the
 :doc:`kspace_style <kspace_style>` command.  Not all parameters are
 relevant to all kspace styles.
 
-
 ----------
-
 
 The *collective* keyword applies only to PPPM.  It is set to *no* by
 default, except on IBM BlueGene machines.  If this option is set to
@@ -87,9 +81,7 @@ This is faster on IBM BlueGene machines, and may also be faster on
 other machines if they have an efficient implementation of MPI
 collective operations and adequate hardware.
 
-
 ----------
-
 
 The *compute* keyword allows Kspace computations to be turned off,
 even though a :doc:`kspace_style <kspace_style>` is defined.  This is
@@ -100,9 +92,7 @@ defining a :doc:`kspace_style <kspace_style>`, but a Kspace-compatible
 :doc:`pair_style <pair_style>` requires a kspace style to be defined.
 This keyword gives you that option.
 
-
 ----------
-
 
 The *cutoff/adjust* keyword applies only to MSM. If this option is
 turned on, the Coulombic cutoff will be automatically adjusted at the
@@ -113,9 +103,7 @@ grid that minimizes cost using an estimate given by
 :ref:`(Hardy) <Hardy1>`. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 
-
 ----------
-
 
 The *diff* keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
@@ -140,9 +128,7 @@ always used for MSM.
    Currently, not all PPPM styles support the *ad* option.  Support
    for those PPPM variants will be added later.
 
-
 ----------
-
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
 generate PPPM parameters automatically. If set to *no*\ , parameters have
@@ -155,18 +141,14 @@ will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
 parameters, see the :doc:`How-To <Howto_dispersion>` discussion.
 
-
 ----------
-
 
 The *fftbench* keyword applies only to PPPM. It is off by default. If
 this option is turned on, LAMMPS will perform a short FFT benchmark
 computation and report its timings, and will thus finish a some seconds
 later than it would if this option were off.
 
-
 ----------
-
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and space computations for the dispersion part
@@ -174,9 +156,7 @@ of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`, optimal
 performance and accuracy in the results is obtained when these values
 are different.
 
-
 ----------
-
 
 The *force* keyword overrides the relative accuracy parameter set by
 the :doc:`kspace_style <kspace_style>` command with an absolute
@@ -188,9 +168,7 @@ conjunction with the pairwise cutoff to determine the number of
 K-space vectors for style *ewald*\ , the FFT grid size for style
 *pppm*\ , or the real space grid size for style *msm*\ .
 
-
 ----------
-
 
 The *gewald* keyword sets the value of the Ewald or PPPM G-ewald
 parameter for charge as *rinv* in reciprocal distance units.  Without
@@ -203,17 +181,13 @@ and G-ewald parameter automatically.  If the value is set to 0.0,
 LAMMPS will choose the G-ewald parameter automatically.  MSM does not
 use the *gewald* parameter.
 
-
 ----------
-
 
 The *gewald/disp* keyword sets the value of the Ewald or PPPM G-ewald
 parameter for dispersion as *rinv* in reciprocal distance units.  It
 has the same meaning as the *gewald* setting for Coulombics.
 
-
 ----------
-
 
 The *kmax/ewald* keyword sets the number of kspace vectors in each
 dimension for kspace style *ewald*\ .  The three values must be positive
@@ -223,9 +197,7 @@ consistent with the user-specified accuracy and pairwise cutoff. In
 any case, if kspace style *ewald* is invoked, the values used are
 printed to the screen and the log file at the start of the run.
 
-
 ----------
-
 
 The *mesh* keyword sets the grid size for kspace style *pppm* or
 *msm*\ .  In the case of PPPM, this is the FFT mesh, and each dimension
@@ -236,9 +208,7 @@ or MSM solver chooses its own grid size, consistent with the
 user-specified accuracy and pairwise cutoff.  Values for x,y,z of
 0,0,0 unset the option.
 
-
 ----------
-
 
 The *mesh/disp* keyword sets the grid size for kspace style
 *pppm/disp*\ .  This is the FFT mesh for long-range dispersion and ach
@@ -247,9 +217,7 @@ option is not set, the PPPM solver chooses its own grid size,
 consistent with the user-specified accuracy and pairwise cutoff.
 Values for x,y,z of 0,0,0 unset the option.
 
-
 ----------
-
 
 The *minorder* keyword allows LAMMPS to reduce the *order* setting if
 necessary to keep the communication of ghost grid point limited to
@@ -266,9 +234,7 @@ error if the grid communication is non-nearest-neighbor and *overlap*
 is set to *no*\ . The *minorder* keyword is not currently supported in
 MSM.
 
-
 ----------
-
 
 The *mix/disp* keyword selects the mixing rule for the dispersion
 coefficients.  With *pair*\ , the dispersion coefficients of unlike
@@ -288,9 +254,7 @@ dispersion coefficients is approximated. This leads to faster
 computations, but the accuracy in the reciprocal space computations of
 the dispersion part is decreased.
 
-
 ----------
-
 
 The *order* keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the grid in kspace style *pppm* or *msm*\ .
@@ -314,18 +278,14 @@ be generated indicating the order parameter is being reduced to allow
 LAMMPS to run the problem. Automatic adjustment of the order parameter
 is not supported in MSM.
 
-
 ----------
-
 
 The *order/disp* keyword determines how many grid spacings an atom's
 dispersion term extends when it is mapped to the grid in kspace style
 *pppm/disp*\ .  It has the same meaning as the *order* setting for
 Coulombics.
 
-
 ----------
-
 
 The *overlap* keyword can be used in conjunction with the *minorder*
 keyword with the PPPM styles to adjust the amount of communication
@@ -342,9 +302,7 @@ communication will be limited to nearest-neighbor processors and the
 *minorder* keyword discussion. The *overlap* keyword is always set to
 *yes* in MSM.
 
-
 ----------
-
 
 The *pressure/scalar* keyword applies only to MSM. If this option is
 turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
@@ -356,9 +314,7 @@ instead of using the virial equation. This option cannot be used to access
 individual components of the pressure tensor, to compute per-atom virial,
 or with suffix kspace/pair styles of MSM, like OMP or GPU.
 
-
 ----------
-
 
 The *scafacos* keyword is used for settings that are passed to the
 ScaFaCoS library when using :doc:`kspace_style scafacos <kspace_style>`.
@@ -417,9 +373,7 @@ with a homogeneous charge distribution. The default for this option is
 therefore *0*\ . The FMM internal tuning is performed once, when the
 solver is set up.
 
-
 ----------
-
 
 The *slab* keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
@@ -456,9 +410,7 @@ slab correction has also been extended to point dipole interactions
    dielectric constant due to the Yeh/Berkowitz :ref:`(Yeh) <Yeh>` correction
    not being compatible with how :doc:`fix efield <fix_efield>` works.
 
-
 ----------
-
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and space computations for the dispersion part
@@ -477,9 +429,7 @@ provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended.  For guidelines on how to obtain good
 parameters, see the :doc:`Howto dispersion <Howto_dispersion>` doc page.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -504,39 +454,27 @@ order = order/disp = 7.  For scafacos settings, the scafacos tolerance
 option depends on the method chosen, as documented above.  The
 scafacos fmm\_tuning default = 0.
 
-
 ----------
 
-
 .. _Hockney1:
-
-
 
 **(Hockney)** Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 
 .. _Yeh:
 
-
-
 **(Yeh)** Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
 
 .. _Ballenegger:
-
-
 
 **(Ballenegger)** Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
 (2009).
 
 .. _Klapp:
 
-
-
 **(Klapp)** Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 
 .. _Hardy1:
-
-
 
 **(Hardy)** David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
@@ -544,20 +482,14 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Hummer:
 
-
-
 **(Hummer)** Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
 .. _Isele-Holder1:
-
-
 
 **(Isele-Holder)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
 Chem Theory Comput, 9, 5412 (2013).
 
 .. _Wennberg:
-
-
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).

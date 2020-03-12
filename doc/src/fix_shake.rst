@@ -9,7 +9,6 @@ fix rattle command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style tol iter N constraint values ... keyword value ...
@@ -21,9 +20,9 @@ Syntax
 * N = print SHAKE statistics every this many timesteps (0 = never)
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
-  
+
   .. parsed-literal::
-  
+
        *b* values = one or more bond types
        *a* values = one or more angle types
        *t* values = one or more atom types
@@ -31,19 +30,16 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mol*
-  
+
   .. parsed-literal::
-  
+
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
    fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
@@ -79,14 +75,12 @@ molecule. The distance vector between sites *i* and *j* is given by
 
    \mathbf r^{n+1}_{ij} = \mathbf r^n_j - \mathbf r^n_i
 
-
 The constraints can then be formulated as
 
 .. math::
 
    \mathbf r^{n+1}_{ij} \cdot \mathbf r^{n+1}_{ij} &= d^2_{ij} \quad \text{and} \\
    \mathbf v^{n+1}_{ij} \cdot \mathbf r^{n+1}_{ij} &= 0
-
 
 The SHAKE algorithm satisfies the first condition, i.e. the sites at
 time *n+1* will have the desired separations Dij immediately after the
@@ -152,9 +146,7 @@ for.
    defined in your input script after any other fixes which add or change
    forces (to atoms that fix shake operates on).
 
-
 ----------
-
 
 The *mol* keyword should be used when other commands, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add molecules
 on-the-fly during a simulation, and you wish to constrain the new
@@ -167,9 +159,7 @@ file.  See the :doc:`molecule <molecule>` command for details.  The only
 settings required to be in this file (by this command) are the SHAKE
 info of atoms in the molecule.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -189,9 +179,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **RATTLE:**
 
@@ -210,9 +198,7 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
    correctly by setting the value of RATTLE\_DEBUG in src/fix\_rattle.cpp
    to 1 and recompiling LAMMPS.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -229,7 +215,6 @@ fixes are not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 These fixes are part of the RIGID package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -252,19 +237,13 @@ make a linear molecule rigid.
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ryckaert:
-
-
 
 **(Ryckaert)** J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen,
 J of Comp Phys, 23, 327-341 (1977).
 
 .. _Andersen3:
-
-
 
 **(Andersen)** H. Andersen, J of Comp Phys, 52, 24-34 (1983).

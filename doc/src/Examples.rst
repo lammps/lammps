@@ -18,7 +18,7 @@ files and image files.
 
 If you uncomment the :doc:`dump <dump>` command in the input script, a
 text dump file will be produced, which can be animated by various
-`visualization programs <http://lammps.sandia.gov/viz.html>`_.
+`visualization programs <https://lammps.sandia.gov/viz.html>`_.
 
 If you uncomment the :doc:`dump image <dump>` command in the input
 script, and assuming you have built LAMMPS with a JPG library, JPG
@@ -38,9 +38,7 @@ particular quantity.
 
 Lists of both kinds of directories are given below.
 
-
 ----------
-
 
 Lowercase directories
 ---------------------
@@ -157,7 +155,6 @@ Lowercase directories
 
 Here is how you can run and visualize one of the sample problems:
 
-
 .. parsed-literal::
 
    cd indent
@@ -167,7 +164,7 @@ Here is how you can run and visualize one of the sample problems:
 Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
 variety of 3rd-party tools highlighted on the
-`Visualization <http://lammps.sandia.gov/viz.html>`_ page of the LAMMPS
+`Visualization <https://lammps.sandia.gov/viz.html>`_ page of the LAMMPS
 web site.
 
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
@@ -180,14 +177,11 @@ like ImageMagick or QuickTime or various Windows-based tools.  See the
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
 
-
 .. parsed-literal::
 
    % convert -loop 1 \*.jpg foo.gif
 
-
 ----------
-
 
 Uppercase directories
 ---------------------
@@ -229,4 +223,4 @@ instructions.  See the :doc:`Packages\_details <Packages_details>` doc
 page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov

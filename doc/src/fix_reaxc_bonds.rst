@@ -9,7 +9,6 @@ fix reax/c/bonds/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID reaxc/bonds Nevery filename
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all reax/c/bonds 100 bonds.reaxc
 
@@ -58,9 +56,7 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text
 version, but will also take longer to write.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -70,9 +66,7 @@ by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -93,13 +87,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`Speed <Speed>` of the manual for
 more instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The fix reax/c/bonds command requires that the :doc:`pair_style reax/c <pair_reaxc>` is invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that

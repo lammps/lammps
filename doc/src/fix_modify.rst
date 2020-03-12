@@ -6,7 +6,6 @@ fix_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix_modify fix-ID keyword value ...
@@ -14,9 +13,9 @@ Syntax
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces*
-  
+
   .. parsed-literal::
-  
+
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
        *energy* value = *yes* or *no*
@@ -27,11 +26,8 @@ Syntax
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

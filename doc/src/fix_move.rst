@@ -6,7 +6,6 @@ fix move command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID move style args keyword values ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * move = style name of this fix command
 * style = *linear* or *wiggle* or *rotate* or *variable*
-  
+
   .. parsed-literal::
-  
+
        *linear* args = Vx Vy Vz
          Vx,Vy,Vz = components of velocity vector (velocity units), any component can be specified as NULL
        *wiggle* args = Ax Ay Az period
@@ -32,18 +31,15 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *box* or *lattice*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 boundary move wiggle 3.0 0.0 0.0 1.0 units box
    fix 2 boundary move rotate 0.0 0.0 0.0 0.0 0.0 1.0 5.0
@@ -83,14 +79,11 @@ whose movement can influence nearby atoms.
    (e.g. to 0) before invoking this fix by using the :doc:`set image <set>`
    command.
 
-
 ----------
-
 
 The *linear* style moves atoms at a constant velocity, so that their
 position *X* = (x,y,z) as a function of time is given in vector
 notation as
-
 
 .. parsed-literal::
 
@@ -109,8 +102,7 @@ Note that the *linear* style is identical to using the *variable*
 style with an :doc:`equal-style variable <variable>` that uses the
 vdisplace() function.  E.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable V equal 10.0
    variable x equal vdisplace(0.0,$V)
@@ -119,7 +111,6 @@ vdisplace() function.  E.g.
 The *wiggle* style moves atoms in an oscillatory fashion, so that
 their position *X* = (x,y,z) as a function of time is given in vector
 notation as
-
 
 .. parsed-literal::
 
@@ -139,14 +130,13 @@ Note that the *wiggle* style is identical to using the *variable*
 style with :doc:`equal-style variables <variable>` that use the
 swiggle() and cwiggle() functions.  E.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 10.0
    variable T equal 5.0
-   variable omega equal 2.0\*PI/$T
+   variable omega equal 2.0*PI/$T
    variable x equal swiggle(0.0,$A,$T)
-   variable v equal v_omega\*($A-cwiggle(0.0,$A,$T))
+   variable v equal v_omega*($A-cwiggle(0.0,$A,$T))
    fix 1 boundary move variable v_x NULL NULL v_v NULL NULL
 
 The *rotate* style rotates atoms around a rotation axis *R* =
@@ -211,9 +201,7 @@ been previously used to define the lattice spacing.  Each of these 3
 quantities may be dependent on the x,y,z dimension, since the lattice
 spacings can be different in x,y,z.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

@@ -6,7 +6,6 @@ fix wall/gran/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID
@@ -14,15 +13,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
 * fstyle = style of force interactions between particles and wall
-  
+
   .. parsed-literal::
-  
+
        possible choices: hooke, hooke/history, hertz/history, granular
 
 * fstyle\_params = parameters associated with force interaction style
-  
+
   .. parsed-literal::
-  
+
        For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
@@ -31,9 +30,8 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-  
   .. parsed-literal::
-  
+
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
@@ -42,8 +40,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wall all wall/gran/region hooke/history 1000.0 200.0 200.0 100.0 0.5 1 region myCone
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
@@ -62,7 +59,7 @@ non-granular particles and simpler wall geometries, respectively.
 Here are snapshots of example models using this command.
 Corresponding input scripts can be found in examples/granregion.
 Click on the images to see a bigger picture.  Movies of these
-simulations are `here on the Movies page <http://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
+simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
 web site.
 
 .. image:: JPG/gran_funnel_small.jpg
@@ -71,9 +68,7 @@ web site.
 .. image:: JPG/gran_mixer_small.jpg
    :target: JPG/gran_mixer.png
 
-
 ----------
-
 
 The distance between a particle and the region boundary is the
 distance to the nearest point on the region surface.  The force the
@@ -228,7 +223,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

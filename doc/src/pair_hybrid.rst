@@ -15,7 +15,6 @@ pair_style hybrid/overlay/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid style1 args style2 args ...
@@ -25,7 +24,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -100,7 +98,6 @@ For example, consider a simulation with 3 atom types: types 1 and 2
 are Ni atoms, type 3 are LJ atoms with charges.  The following
 commands would set up a hybrid simulation:
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
@@ -113,7 +110,6 @@ simulation with 2 atom types.  Type 1 is Si, type 2 is C.  The
 following commands would model the Si atoms with Tersoff, the C atoms
 with Tersoff, and the cross-interactions with Lennard-Jones:
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid lj/cut 2.5 tersoff tersoff
@@ -125,7 +121,6 @@ If pair coefficients are specified in the data file read via the
 :doc:`read_data <read_data>` command, then the same rule applies.
 E.g. "eam/alloy" or "lj/cut" must be added after the atom type, for
 each line in the "Pair Coeffs" section, e.g.
-
 
 .. parsed-literal::
 
@@ -158,7 +153,6 @@ the new pair coefficients simply override the previous ones, as in the
 normal usage of the pair\_coeff command.  E.g. these two sets of
 commands are the same:
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
@@ -189,13 +183,11 @@ so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for *hybrid* and *hybrid/overlay* simulations, you
 can use this form of the pair\_coeff command in your input script:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff        2 3 none
 
 or this form in the "Pair Coeffs" section of the data file:
-
 
 .. parsed-literal::
 
@@ -210,9 +202,7 @@ command in your input script, if atoms in the simulation will need
 attributes from several atom styles, due to using multiple pair
 potentials.
 
-
 ----------
-
 
 Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
@@ -229,7 +219,6 @@ Here is an example for mixing CHARMM and AMBER: The global *amber*
 setting sets the 1-4 interactions to non-zero scaling factors and
 then overrides them with 0.0 only for CHARMM:
 
-
 .. code-block:: LAMMPS
 
    special_bonds amber
@@ -237,7 +226,6 @@ then overrides them with 0.0 only for CHARMM:
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
 The this input achieves the same effect:
-
 
 .. code-block:: LAMMPS
 
@@ -252,7 +240,6 @@ a data file that defines bonds for all atoms where for the
 Tersoff part of the system the force constants for the bonded
 interactions have been set to 0. Note the global settings are
 effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
-
 
 .. code-block:: LAMMPS
 
@@ -269,16 +256,12 @@ the compute tally styles, for example, if those pair styles
 See the :doc:`pair_modify <pair_modify>` doc page for details on
 the specific syntax, requirements and restrictions.
 
-
 ----------
-
 
 The potential energy contribution to the overall system due to an
 individual sub-style can be accessed and output via the :doc:`compute pair <compute_pair>` command.
 
-
 ----------
-
 
 .. note::
 
@@ -322,7 +305,6 @@ to use a Tersoff potential to compute interactions within each
 surface, but not between surfaces.  Then either of these two command
 sequences would implement that model:
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid tersoff
@@ -343,7 +325,6 @@ potentials together, in an overlapping manner.  Imagine you have CNT
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid/overlay tersoff airebo 3.0
@@ -355,9 +336,7 @@ interactions, you would need to modify the SiC.tersoff file to turn
 off C/C interaction, i.e. by setting the appropriate coefficients to
 0.0.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -383,9 +362,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -422,7 +399,6 @@ their sub-styles do.
 
 Restrictions
 """"""""""""
-
 
 When using a long-range Coulombic solver (via the
 :doc:`kspace_style <kspace_style>` command) with a hybrid pair\_style,

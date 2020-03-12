@@ -30,7 +30,6 @@ zero. The (half-)stiffness of the :doc:`harmonic bond <bond_harmonic>`
 :math:`K_D = k_D/2` and the Drude charge :math:`q_D` are related to the atom
 polarizability :math:`\alpha` by
 
-
 .. math::
 
    K_D = \frac 1 2\, \frac {q_D^2} \alpha
@@ -45,7 +44,6 @@ fields:
 * :ref:`Lamoureux and Roux <Lamoureux2>` suggest adopting a global half-stiffness, :math:`K_D` = 500 kcal/(mol Ang :math:`{}^2`) - which corresponds to a force constant :math:`k_D` = 4184 kJ/(mol Ang :math:`{}^2`) - for all types of core-Drude bond, a global mass :math:`m_D` = 0.4 g/mol (or u) for all types of Drude particles, and to calculate the Drude charges for individual atom types from the atom polarizabilities using equation (1). This choice is followed in the polarizable CHARMM force field.
 * Alternately :ref:`Schroeder and Steinhauser <Schroeder>` suggest adopting a global charge :math:`q_D` = -1.0e and a global mass :math:`m_D` = 0.1 g/mol (or u) for all Drude particles, and to calculate the force constant for each type of core-Drude bond from equation (1). The timesteps used by these authors are between 0.5 and 2 fs, with the degrees of freedom of the Drude oscillators kept cold at 1 K.
 * In both these force fields hydrogen atoms are treated as non-polarizable.
-
 
 The motion of of the Drude particles can be calculated by minimizing
 the energy of the induced dipoles at each timestep, by an iterative,
@@ -85,7 +83,6 @@ You can use the *polarizer* tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
 *data.102494.lmp*\ ) to a polarizable data file (\ *data-p.lmp*\ )
 
-
 .. parsed-literal::
 
    polarizer -q -f phenol.dff data.102494.lmp data-p.lmp
@@ -95,7 +92,6 @@ The masses and charges of DCs and DPs are computed
 from *phenol.dff*\ , as well as the DC-DP bond constants.  The file
 *phenol.dff* contains the polarizabilities of the atom types
 and the mass of the Drude particles, for instance:
-
 
 .. parsed-literal::
 
@@ -113,7 +109,6 @@ have to be specified as comments at the end of lines of the *Masses*
 section.  You probably need to edit it to add these names. It should
 look like
 
-
 .. parsed-literal::
 
    Masses
@@ -124,9 +119,7 @@ look like
    4 1.008  # HA
    5 1.008  # HO
 
-
 ----------
-
 
 **Basic input file**
 
@@ -137,7 +130,6 @@ The *polarizer* tool also outputs certain lines related to the input
 script (the use of these lines will be explained below).  In order for
 LAMMPS to recognize that you are using Drude oscillators, you should
 use the fix *drude*\ . The command is
-
 
 .. code-block:: LAMMPS
 
@@ -159,7 +151,6 @@ command.  With our phenol, there is 1 more special neighbor for which
 space is required.  Otherwise LAMMPS crashes and gives the required
 value.
 
-
 .. code-block:: LAMMPS
 
    read_data data-p.lmp extra/special/per/atom 1
@@ -173,7 +164,6 @@ include Coulomb interactions, for instance *lj/cut/coul/long* with
 *kspace\_style pppm*. For example, with a cutoff of 10. and a precision
 1.e-4:
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/cut/coul/long 10.0
@@ -184,13 +174,11 @@ to be added for the DPs.  Since the DPs have no Lennard-Jones
 interactions, their :math:`\epsilon` is 0. so the only *pair\_coeff* line
 that needs to be added is
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * 6* 0.0 0.0 # All-DPs
 
 Now for the thermalization, the simplest choice is to use the :doc:`fix langevin/drude <fix_langevin_drude>`.
-
 
 .. code-block:: LAMMPS
 
@@ -205,7 +193,6 @@ atoms need to be in this fix's group.  LAMMPS will thermostat the DPs
 together with their DC.  For this, ghost atoms need to know their
 velocities. Thus you need to add the following command:
 
-
 .. code-block:: LAMMPS
 
    comm_modify vel yes
@@ -216,7 +203,6 @@ can add the *zero yes* option at the end of the fix line.
 
 If the fix *shake* is used to constrain the C-H bonds, it should be
 invoked after the fix *langevin/drude* for more accuracy.
-
 
 .. code-block:: LAMMPS
 
@@ -231,7 +217,6 @@ Since the fix *langevin/drude* does not perform time integration (just
 modification of forces but no position/velocity updates), the fix
 *nve* should be used in conjunction.
 
-
 .. code-block:: LAMMPS
 
    fix NVE all nve
@@ -239,7 +224,6 @@ modification of forces but no position/velocity updates), the fix
 Finally, do not forget to update the atom type elements if you use
 them in a *dump\_modify ... element ...* command, by adding the element
 type of the DPs. Here for instance
-
 
 .. code-block:: LAMMPS
 
@@ -254,7 +238,6 @@ standard atoms in his default compute.  If you want to output the
 temperatures of the DC-DP pair centers of mass and of the DPs relative
 to their DCs, you should use the :doc:`compute temp\_drude <compute_temp_drude>`
 
-
 .. code-block:: LAMMPS
 
    compute TDRUDE all temp/drude
@@ -263,14 +246,11 @@ And then output the correct temperatures of the Drude oscillators
 using *thermo\_style custom* with respectively *c\_TDRUDE[1]* and
 *c\_TDRUDE[2]*. These should be close to 300.0 and 1.0 on average.
 
-
 .. code-block:: LAMMPS
 
    thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2]
 
-
 ----------
-
 
 **Thole screening**
 
@@ -289,7 +269,6 @@ the interactions between the charges representing the induced dipoles.
 It is to be used as *hybrid/overlay* with any standard *coul* pair
 style.  In our example, we would use
 
-
 .. code-block:: LAMMPS
 
    pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0
@@ -304,7 +283,6 @@ coefficients of all the pairs of atom types with i < j should be
 explicitly defined.  The output of the *polarizer* script can be used
 to complete the *pair\_coeff* section of the input file.  In our
 example, this will look like:
-
 
 .. code-block:: LAMMPS
 
@@ -349,7 +327,6 @@ For the *thole* pair style the coefficients are
    specified by the pair\_style command)
 #. the cutoff (optional, default value defined by the pair\_style command)
 
-
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the *coul* factors of the *special\_bonds*
 command (0.0, 0.0, and 0.5 in the example above).  Without using the
@@ -361,15 +338,12 @@ example 1-2 neighbors: using the pair\_style *thole*\ , their dipoles
 will see each other (despite the *coul* factor being 0.) and the
 interactions between these dipoles will be damped by Thole's function.
 
-
 ----------
-
 
 **Thermostats and barostats**
 
 Using a Nose-Hoover barostat with the *langevin/drude* thermostat is
 straightforward using fix *nph* instead of *nve*\ .  For example:
-
 
 .. code-block:: LAMMPS
 
@@ -385,7 +359,6 @@ with respect to their DC. The *fix drude/transform/inverse* performs
 the reverse transformation.  For a NVT simulation, with the DCs and
 atoms at 300 K and the DPs at 1 K relative to their DC one would use
 
-
 .. code-block:: LAMMPS
 
    fix DIRECT all drude/transform/direct
@@ -394,7 +367,6 @@ atoms at 300 K and the DPs at 1 K relative to their DC one would use
    fix INVERSE all drude/transform/inverse
 
 For our phenol example, the groups would be defined as
-
 
 .. code-block:: LAMMPS
 
@@ -408,7 +380,6 @@ times and for the forces also).  To avoid the flying ice cube artifact
 :ref:`(Lamoureux) <Lamoureux2>`, where the atoms progressively freeze and the
 center of mass of the whole system drifts faster and faster, the *fix
 momentum* can be used. For instance:
-
 
 .. code-block:: LAMMPS
 
@@ -424,7 +395,6 @@ the temperature to correspond to the fix group only.  We must then use
 the *fix\_modify* command for this.  In the end, the block of
 instructions for thermostatting and barostatting will look like
 
-
 .. code-block:: LAMMPS
 
    compute TATOMS ATOMS temp
@@ -434,9 +404,7 @@ instructions for thermostatting and barostatting will look like
    fix NVT DRUDES nvt temp 1. 1. 20
    fix INVERSE all drude/transform/inverse
 
-
 ----------
-
 
 **Rigid bodies**
 
@@ -448,7 +416,6 @@ review the different thermostats and ensemble combinations.
 
 NVT ensemble using Langevin thermostat:
 
-
 .. code-block:: LAMMPS
 
    comm_modify vel yes
@@ -457,7 +424,6 @@ NVT ensemble using Langevin thermostat:
    fix NVE DRUDES nve
 
 NVT ensemble using Nose-Hoover thermostat:
-
 
 .. code-block:: LAMMPS
 
@@ -468,7 +434,6 @@ NVT ensemble using Nose-Hoover thermostat:
 
 NPT ensemble with Langevin thermostat:
 
-
 .. code-block:: LAMMPS
 
    comm_modify vel yes
@@ -477,7 +442,6 @@ NPT ensemble with Langevin thermostat:
    fix NVE DRUDES nve
 
 NPT ensemble using Nose-Hoover thermostat:
-
 
 .. code-block:: LAMMPS
 
@@ -488,45 +452,31 @@ NPT ensemble using Nose-Hoover thermostat:
    fix NVT DRUDES nvt temp 1. 1. 20
    fix INVERSE all drude/transform/inverse
 
-
 ----------
 
-
 .. _Lamoureux2:
-
-
 
 **(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 .. _Schroeder:
-
-
 
 **(Schroeder)**  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).
 
 .. _Jiang2:
 
-
-
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
  J Phys Chem Lett, 2, 87-92 (2011).
 
 .. _Thole2:
 
-
-
 **(Thole)** Chem Phys, 59, 341 (1981).
 
 .. _Noskov2:
 
-
-
 **(Noskov)** Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 .. _SWM4-NDP:
-
-
 
 **(SWM4-NDP)** Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
 Let, 418, 245-249 (2006)

@@ -6,7 +6,6 @@ fix langevin/drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
@@ -21,20 +20,17 @@ Syntax
 * seed\_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *zero*
-  
+
   .. parsed-literal::
-  
+
        *zero* value = *no* or *yes*
          *no* = do not set total random force on centers of mass to zero
          *yes* = set total random force on centers of mass to zero
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
    fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
@@ -60,34 +56,31 @@ Velocities:
 
 .. math::
 
-    V' = \frac {M\, V + m\, v} {M'} 
-
+    V' = \frac {M\, V + m\, v} {M'}
 
 .. math::
 
-    v' = v - V 
+    v' = v - V
 
 Masses:
 
 .. math::
 
-    M' = M + m 
-
+    M' = M + m
 
 .. math::
 
-    m' = \frac {M\, m } {M'} 
+    m' = \frac {M\, m } {M'}
 
 The Langevin forces are computed as
 
 .. math::
 
-    F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' 
-
+    F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r'
 
 .. math::
 
-    f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' 
+    f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r'
 
 :math:`F_r'` is a random force proportional to
 :math:`\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                  {\mathrm dt\, \mathtt{damp\_com} }         }`.
@@ -98,12 +91,11 @@ transform:
 
 .. math::
 
-    F = \frac M {M'}\, F' - f' 
-
+    F = \frac M {M'}\, F' - f'
 
 .. math::
 
-    f = \frac m {M'}\, F' + f' 
+    f = \frac m {M'}\, F' + f'
 
 This fix also thermostats non-polarizable atoms in the group at
 temperature *Tcom*\ , as if they had a massless Drude partner.  The
@@ -132,9 +124,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the :doc:`fix drude <fix_drude>` command to
@@ -155,14 +145,11 @@ specify the Drude status of each atom type.
    correctly.  You must use the :doc:`comm_modify <comm_modify>` command to
    enable this, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
 
-
 ----------
-
 
 *Tcom* is the target temperature of the centers of mass, which would
 be used to thermostat the non-polarizable atoms.  *Tdrude* is the
@@ -229,14 +216,11 @@ center-of-mass and relative coordinates, respectively, can be
 calculated using the :doc:`compute temp/drude <compute_temp_drude>`
 command.
 
-
 ----------
-
 
 Usage example for rigid bodies in the NPT ensemble:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
    fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
@@ -270,10 +254,7 @@ Comments:
   the cores. That's why the command *fix\_modify* should be called in
   that case.
 
-
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -309,13 +290,9 @@ Default
 
 The option defaults are zero = no.
 
-
 ----------
 
-
 .. _Jiang1:
-
-
 
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).

@@ -6,7 +6,6 @@ compute coord/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID coord/atom cstyle args ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * coord/atom = style name of this compute command
 * cstyle = *cutoff* or *orientorder*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* args = cutoff [group group2-ID] typeN
          cutoff = distance within which to count coordination neighbors (distance units)
          group *group2-ID* = select group-ID to restrict which atoms to consider for coordination number (optional)
@@ -25,17 +24,14 @@ Syntax
          orientorderID = ID of an orientorder/atom compute
          threshold = minimum value of the product of two "connected" atoms
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all coord/atom cutoff 2.0
    compute 1 all coord/atom cutoff 6.0 1 2
-   compute 1 all coord/atom cutoff 6.0 2\*4 5\*8 \*
+   compute 1 all coord/atom cutoff 6.0 2*4 5*8 *
    compute 1 solute coord/atom cutoff 2.0 group solvent
    compute 1 all coord/atom orientorder 2 0.5
 
@@ -145,13 +141,9 @@ Default
 
 group = all
 
-
 ----------
 
-
 .. _tenWolde1:
-
-
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

@@ -6,7 +6,6 @@ angle_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -56,9 +54,7 @@ file; angle coefficients need to be re-specified.
 In the formulas listed for each angle style, *theta* is the angle
 between the 3 atoms in the angle.
 
-
 ----------
-
 
 Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
@@ -97,13 +93,10 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`sdk <angle_sdk>` - harmonic angle with repulsive SDK pair style between 1-3 atoms
 * :doc:`table <angle_table>` - tabulated by angle
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Angle styles can only be set for atom\_styles that allow angles to be
 defined.
@@ -119,7 +112,6 @@ Related commands
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

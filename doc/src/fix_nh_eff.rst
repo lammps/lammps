@@ -12,16 +12,15 @@ fix nph/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style\_name = *nvt/eff* or *npt/eff* or *nph/eff*
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate*
        *temp* values = Tstart Tstop Tdamp
@@ -43,13 +42,10 @@ Syntax
        *drag* value = drag factor added to barostat/thermostat (0.0 = no drag)
        *dilate* value = *all* or *partial*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/eff temp 300.0 300.0 0.1
    fix 1 part npt/eff temp 300.0 300.0 0.1 iso 0.0 0.0 1.0
@@ -117,7 +113,6 @@ for details.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -146,31 +141,21 @@ Default
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
 
-
 ----------
 
-
 .. _Martyna1:
-
-
 
 **(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 .. _Parrinello:
 
-
-
 **(Parrinello)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
 .. _Tuckerman1:
-
-
 
 **(Tuckerman)** Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 .. _Shinoda2:
-
-
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).

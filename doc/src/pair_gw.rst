@@ -9,7 +9,6 @@ pair_style gw/zbl command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -58,7 +57,6 @@ As an example, imagine a file SiC.gw has Gao-Weber values for Si and C.
 If your LAMMPS simulation has 4 atoms types and you want the first 3 to
 be Si, and the 4th to be C, you would use the following pair\_coeff command:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.gw Si Si Si C
@@ -79,9 +77,7 @@ is similar to other many-body potentials supported by LAMMPS.
 You have to refer to the comments in the files and the literature
 to learn more details.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -100,13 +96,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package. It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -127,13 +120,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Gao:
-
-
 
 **(Gao)** Gao and Weber, Nuclear Instruments and Methods in Physics
 Research B 191 (2012) 504.

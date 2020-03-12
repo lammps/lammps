@@ -6,7 +6,6 @@ fix npt/cauchy command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name keyword value ...
@@ -52,12 +51,12 @@ Syntax
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
 
-
-
 Examples
 """"""""
 
-fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+.. code-block:: LAMMPS
+
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
 
 Description
 """""""""""
@@ -91,9 +90,7 @@ energy proposed by Parrinello and Rahman in
 follow the time-reversible measure-preserving Verlet and rRESPA
 integrators derived by Tuckerman et al in :ref:`(Tuckerman) <nc-Tuckerman>`.
 
-
 ----------
-
 
 The thermostat parameters are specified using the *temp* keyword.
 Other thermostat-related keywords are *tchain*\ , *tloop* and *drag*\ ,
@@ -120,9 +117,7 @@ by the velocity/position update portion of the integration.
    100 timesteps.  Note that this is NOT the same as 100 time units for
    most :doc:`units <units>` settings.
 
-
 ----------
-
 
 The barostat parameters are specified using one or more of the *iso*\ ,
 *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple* keywords.
@@ -188,9 +183,7 @@ group, a separate time integration fix like :doc:`fix nve <fix_nve>` or
 :doc:`fix nvt <fix_nh>` can be used on them, independent of whether they
 are dilated or not.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -205,9 +198,7 @@ dilated or contracted by the same percentage every timestep.  The
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
-
 ----------
-
 
 The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -216,7 +207,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
 specifying these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -231,7 +221,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -245,7 +234,6 @@ as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Pstart Pstop Pdamp" is the same as
 specifying these 7 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -256,9 +244,7 @@ specifying these 7 keywords:
    xz 0.0 0.0 Pdamp
    couple none
 
-
 ----------
-
 
 In some cases (e.g. for solids) the pressure (volume) and/or
 temperature of the system can oscillate undesirably when a Nose/Hoover
@@ -340,9 +326,7 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
 
-
 ----------
-
 
 .. note::
 
@@ -391,16 +375,13 @@ See the :doc:`Howto thermostat <Howto_thermostat>` and :doc:`Howto barostat <How
 ways to compute temperature and perform thermostatting and
 barostatting.
 
-
 ----------
-
 
 This fix compute a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if one of these sets of commands had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp
    compute fix-ID_press all pressure fix-ID_temp
@@ -434,9 +415,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 This fix can be used with either the *verlet* or *respa*
 :doc:`integrators <run_style>`. When using this fix
@@ -451,7 +430,7 @@ according to the following factorization of the Liouville propagator
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
-   &\times \left[ 
+   &\times \left[
    \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
@@ -460,8 +439,8 @@ according to the following factorization of the Liouville propagator
    \right]^n \\
    &\times
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right) 
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
    &+ \mathcal{O} \left(\Delta t^3 \right)
 
@@ -486,9 +465,7 @@ of the underlying non-Hamiltonian equations of motion.
    resetting the momentum at infrequent intervals using the
    :doc:`fix momentum <fix_momentum>` command.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -568,13 +545,10 @@ how to do this.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -655,38 +629,26 @@ cauchystat = no,
 scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
-
 ----------
 
-
 .. _nc-Martyna:
-
-
 
 **(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 .. _nc-Parrinello:
 
-
-
 **(Parrinello)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
 .. _nc-Tuckerman:
-
-
 
 **(Tuckerman)** Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 .. _nc-Shinoda:
 
-
-
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 .. _nc-Miller:
-
-
 
 **(Miller)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).

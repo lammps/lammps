@@ -12,16 +12,14 @@ min_style spin/lbfgs command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
-   min_style spin 
-   min_style spin/cg 
+   min_style spin
+   min_style spin/cg
    min_style spin/lbfgs
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -63,11 +61,11 @@ the definition of this timestep.  *discrete\_factor* can be defined with
 the :doc:`min_modify <min_modify>` command.
 
 Style *spin/cg* defines an orthogonal spin optimization
-(OSO) combined to a conjugate gradient (CG) algorithm. 
+(OSO) combined to a conjugate gradient (CG) algorithm.
 The :doc:`min_modify <min_modify>` command can be used to
-couple the *spin/cg* to a line search procedure, and to modify the 
+couple the *spin/cg* to a line search procedure, and to modify the
 discretization factor *discrete\_factor*.
-By default, style *spin/cg* does not employ the line search procedure 
+By default, style *spin/cg* does not employ the line search procedure
 and uses the adaptive time-step technique in the same way as style *spin*\ .
 
 Style *spin/lbfgs* defines an orthogonal spin optimization (OSO)
@@ -83,7 +81,7 @@ The :doc:`min_modify <min_modify>` command can be used to
 activate the line search procedure, and to modify the
 discretization factor *discrete\_factor*.
 
-For more information about styles *spin/cg* and *spin/lbfgs*\ , 
+For more information about styles *spin/cg* and *spin/lbfgs*\ ,
 see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 
 .. note::
@@ -100,7 +98,6 @@ see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 Restrictions
 """"""""""""
 
-
 This minimization procedure is only applied to spin degrees of
 freedom for a frozen lattice configuration.
 
@@ -116,12 +113,8 @@ Default
 The option defaults are *alpha\_damp* = 1.0, *discrete\_factor* =
 10.0, *line* = spin\_none and *norm* = euclidean.
 
-
 ----------
 
-
 .. _Ivanov1:
-
-
 
 **(Ivanov)** Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).

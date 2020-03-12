@@ -6,7 +6,6 @@ fix neb command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID neb Kspring keyword value
@@ -35,8 +34,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 active neb 10.0
    fix 2 all neb 1.0 perp 1.0 end last
@@ -66,7 +64,6 @@ interatomic force Fi = -Grad(V) for each replica I is altered.  For
 all intermediate replicas (i.e. for 1 < I < N, except the climbing
 replica) the force vector becomes:
 
-
 .. parsed-literal::
 
    Fi = -Grad(V) + (Grad(V) dot T') T' + Fnudge_parallel + Fnudge_perp
@@ -90,22 +87,18 @@ In the second stage of the NEB calculation, the interatomic force Fi
 for the climbing replica (the replica of highest energy after the
 first stage) is changed to:
 
-
 .. parsed-literal::
 
    Fi = -Grad(V) + 2 (Grad(V) dot T') T'
 
 and the relaxation procedure is continued to a new converged MEP.
 
-
 ----------
-
 
 The keyword *parallel* specifies how the parallel nudging force is
 computed.  With a value of *neigh*\ , the parallel nudging force is
 computed as in :ref:`(Henkelman1) <Henkelman1>` by connecting each
 intermediate replica with the previous and the next image:
-
 
 .. parsed-literal::
 
@@ -115,8 +108,7 @@ Note that in this case the specified *Kspring* is in force/distance
 units.
 
 With a value of *ideal*\ , the spring force is computed as suggested in
-ref`(WeinanE) <WeinanE>` 
-
+ref`(WeinanE) <WeinanE>`
 
 .. parsed-literal::
 
@@ -132,9 +124,7 @@ in force units.
 Note that the *ideal* form of nudging can often be more effective at
 keeping the replicas equally spaced.
 
-
 ----------
-
 
 The keyword *perp* specifies if and how a perpendicular nudging force
 is computed.  It adds a spring force perpendicular to the path in
@@ -144,7 +134,6 @@ resolution is poor.  I.e. when few replicas are used; see
 :ref:`(Maras) <Maras1>` for details.
 
 The perpendicular spring force is given by
-
 
 .. parsed-literal::
 
@@ -158,9 +147,7 @@ acute.  F(Ri-1 Ri R+1) is defined in :ref:`(Jonsson) <Jonsson>`.
 If *Kspring2* is set to 0.0 (the default) then no perpendicular spring
 force is added.
 
-
 ----------
-
 
 By default, no additional forces act on the first and last replicas
 during the NEB relaxation, so these replicas simply relax toward their
@@ -170,7 +157,6 @@ them to relax toward a MEP while constraining their energy E to the
 target energy ETarget.
 
 If ETarget>E, the interatomic force Fi for the specified replica becomes:
-
 
 .. parsed-literal::
 
@@ -232,7 +218,6 @@ as invoked by the :doc:`minimize <minimize>` command via the
 Restrictions
 """"""""""""
 
-
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
@@ -248,40 +233,28 @@ Default
 The option defaults are parallel = neigh, perp = 0.0, ends is not
 specified (no inter-replica force on the end replicas).
 
-
 ----------
 
-
 .. _Henkelman1:
-
-
 
 **(Henkelman1)** Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
 .. _Henkelman2:
-
-
 
 **(Henkelman2)** Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 .. _WeinanE:
 
-
-
 **(WeinanE)** E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
 
 .. _Jonsson:
-
-
 
 **(Jonsson)** Jonsson, Mills and Jacobsen, in Classical and Quantum
 Dynamics in Condensed Phase Simulations, edited by Berne, Ciccotti,
 and Coker World Scientific, Singapore, 1998, p 385.
 
 .. _Maras1:
-
-
 
 **(Maras)** Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
 Comp Phys Comm, 205, 13-21 (2016).

@@ -6,7 +6,6 @@ fix nve/awpmd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/awpmd
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/awpmd
 
@@ -33,9 +31,7 @@ ensemble.
 The operation of this fix is exactly like that described by the :doc:`fix nve <fix_nve>` command, except that the width and width-velocity of
 the electron wave functions are also updated.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -47,7 +43,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-AWPMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

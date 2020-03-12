@@ -6,7 +6,6 @@ compute ke/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/eff
 
@@ -58,7 +56,7 @@ freedom.
    :doc:`thermo_modify <thermo_modify>` command, as shown in the following
    example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press
@@ -78,7 +76,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

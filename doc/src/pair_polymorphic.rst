@@ -6,7 +6,6 @@ pair_style polymorphic command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style polymorphic
@@ -15,7 +14,6 @@ style = *polymorphic*
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,13 +62,12 @@ Stillinger-Weber potential (:ref:`SW <SW>`) if we set
    \left\{\begin{array}{l}
    \eta_{ij} = \delta_{ij},\xi_{IJ}=0 \\
    U_{IJ}\left(r\right)=A_{IJ}\cdot\epsilon_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^q\cdot \left[B_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^{p-q}-1\right]\cdot exp\left(\frac{\sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   V_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\ 
+   V_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
    F_{IJ}\left(X\right)=-X \\
-   P_{IJ}\left(\Delta r\right)=1 \\ 
+   P_{IJ}\left(\Delta r\right)=1 \\
    W_{IJ}\left(r\right)=\sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
    G_{JIK}\left(\theta\right)=\left(cos\theta+\frac{1}{3}\right)^2
    \end{array}\right.
-
 
 The potential reduces to Tersoff types of potential
 (:ref:`Tersoff <Tersoff>` or :ref:`Albe <poly-Albe>`) if we set
@@ -82,11 +79,10 @@ The potential reduces to Tersoff types of potential
    U_{IJ}\left(r\right)=\frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}\left(r-r_{e,IJ}\right)}\right]\cdot f_{c,IJ}\left(r\right) \\
    V_{IJ}\left(r\right)=\frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}\left(r-r_{e,IJ}\right)}\right]\cdot f_{c,IJ}\left(r\right) \\
    F_{IJ}\left(X\right)=\left(1+X\right)^{-\frac{1}{2}} \\
-   P_{IJ}\left(\Delta r\right)=exp\left(2\mu_{IK}\cdot \Delta r\right) \\ 
+   P_{IJ}\left(\Delta r\right)=exp\left(2\mu_{IK}\cdot \Delta r\right) \\
    W_{IJ}\left(r\right)=f_{c,IK}\left(r\right) \\
    G_{JIK}\left(\theta\right)=\gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}\right]
    \end{array}\right.
-
 
 .. math::
 
@@ -95,7 +91,6 @@ The potential reduces to Tersoff types of potential
    \frac{1}{2}+\frac{1}{2} cos \left[\frac{\pi \left(r-r_{s,IJ}\right)}{r_{c,IJ}-r_{s,IJ}}\right], & r_{s,IJ}<r<r_{c,IJ} \\
    0, & r \geq r_{c,IJ} \\
    \end{array}\right.
-
 
 The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
 
@@ -114,11 +109,10 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    B_{IJ} \cdot exp\left(-\lambda_{2,IJ}\cdot r\right)\cdot f_{c,IJ}\left(r\right)+A_{IJ}\cdot exp\left(-\lambda_{1,IJ}\cdot r\right)\cdot & \\ ~~~~~~ f_{c,IJ}\left(r\right) & r \ge r_{c,1,IJ}
    \end{array}\right. \\
    F_{IJ}\left(X\right)=\left[1+\left(\beta_{IJ}\cdot X\right)^{n_{IJ}}\right]^{-\frac{1}{2n_{IJ}}} \\
-   P_{IJ}\left(\Delta r\right)=exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\ 
+   P_{IJ}\left(\Delta r\right)=exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\
    W_{IJ}\left(r\right)=f_{c,IK}\left(r\right) \\
    G_{JIK}\left(\theta\right)=1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
    \end{array}\right.
-
 
 .. math::
 
@@ -128,7 +122,6 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    0, & r \geq r_{c,IJ} \\
    \end{array}\right.
 
-
 .. math::
 
    f_{c,1,IJ}=\left\{\begin{array}{lr}
@@ -136,7 +129,6 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    \frac{1}{2}+\frac{1}{2} cos \left[\frac{\pi \left(r-r_{s,1,IJ}\right)}{r_{c,1,IJ}-r_{s,1,IJ}}\right], & r_{s,1,IJ}<r<r_{c,1,IJ} \\
    0, & r \geq r_{c,1,IJ} \\
    \end{array}\right.
-
 
 The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
 
@@ -147,11 +139,10 @@ The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
    U_{IJ}\left(r\right)=\phi_{IJ}\left(r\right) \\
    V_{IJ}\left(r\right)=1 \\
    F_{II}\left(X\right)=-2F_I\left(X\right) \\
-   P_{IJ}\left(\Delta r\right)=1 \\ 
+   P_{IJ}\left(\Delta r\right)=1 \\
    W_{IJ}\left(r\right)=f_{K}\left(r\right) \\
    G_{JIK}\left(\theta\right)=1
    \end{array}\right.
-
 
 In the embedded atom method case, :math:`\phi_{IJ}(r_{ij})` is the pair
 energy, :math:`F_I(X)` is the embedding energy, *X* is the local
@@ -189,7 +180,6 @@ functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
 would use the following pair\_coeff command:
 
-
 .. parsed-literal::
 
    pair_coeff \* \* SiC_tersoff.poly Si Si Si C
@@ -208,7 +198,6 @@ have a ".poly" suffix. At the beginning of the files, an unlimited
 number of lines starting with '#' are used to describe the potential
 and are ignored by LAMMPS. The next line lists two numbers:
 
-
 .. parsed-literal::
 
    ntypes :math:`\eta`
@@ -222,7 +211,6 @@ set to :math:`\delta_{ij}`. The next ntypes lines each lists two numbers
 and a character string representing atomic number, atomic mass, and name
 of the species of the ntypes elements:
 
-
 .. parsed-literal::
 
    atomic_number atomic-mass element (1)
@@ -231,7 +219,6 @@ of the species of the ntypes elements:
    atomic_number atomic-mass element (ntypes)
 
 The next ntypes\*(ntypes+1)/2 lines contain two numbers:
-
 
 .. parsed-literal::
 
@@ -280,13 +267,10 @@ This pair style does not write their information to :doc:`binary restart files <
 need to re-specify the pair\_style and pair\_coeff commands in an input
 script that reads a restart file.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 If using create\_atoms command, atomic masses must be defined in the
 input script. If using read\_data, atomic masses must be defined in the
@@ -308,44 +292,30 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-
 ----------
 
-
 .. _Zhou3:
-
-
 
 **(Zhou)** X. W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and
 F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
 .. _SW:
 
-
-
 **(SW)** F. H. Stillinger-Weber, and T. A. Weber, Phys. Rev. B, 31, 5262 (1985).
 
 .. _Tersoff:
 
-
-
 **(Tersoff)** J. Tersoff, Phys. Rev. B, 39, 5566 (1989).
 
 .. _poly-Albe:
-
-
 
 **(Albe)** K. Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B,
 66, 035205 (2002).
 
 .. _Wang3:
 
-
-
 **(Wang)** J. Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
 .. _poly-Daw:
-
-
 
 **(Daw)** M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).

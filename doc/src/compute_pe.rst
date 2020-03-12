@@ -6,7 +6,6 @@ compute pe command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pe keyword ...
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pe
    compute molPE all pe bond angle dihedral improper
@@ -59,16 +57,13 @@ potential energy.
 A compute of this style with the ID of "thermo\_pe" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
 See the "thermo\_style" command for more details.
 
-
 ----------
-
 
 **Output info:**
 

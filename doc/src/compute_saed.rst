@@ -6,7 +6,6 @@ compute saed command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID saed lambda type1 type2 ... typeN keyword value ...
@@ -17,9 +16,9 @@ Syntax
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
 * keyword = *Kmax* or *Zone* or *dR\_Ewald* or *c* or *manual* or *echo*
-  
+
   .. parsed-literal::
-  
+
        *Kmax* value = Maximum distance explored from reciprocal space origin
                       (inverse length units)
        *Zone* values = z1 z2 z3
@@ -34,13 +33,10 @@ Syntax
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
    compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
@@ -63,7 +59,6 @@ is computed from the structure factor F using the equations:
 
   I = & \frac{F^{*}F}{N} \\
   F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k} \cdot \mathbf{r}_j)
-
 
 Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
 position of each atom, :math:`f_j` are atomic scattering factors.
@@ -123,7 +118,6 @@ The analytic approximation is computed using the formula
 
   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
-
 
 Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
@@ -250,7 +244,6 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -267,27 +260,19 @@ Default
 The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR\_Ewald =
 0.01.
 
-
 ----------
 
-
 .. _saed-Coleman:
-
-
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
 .. _Brown:
 
-
-
 **(Brown)** Brown et al. International Tables for Crystallography
 Volume C: Mathematical and Chemical Tables, 554-95 (2004).
 
 .. _Fox:
-
-
 
 **(Fox)** Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
 (1989).

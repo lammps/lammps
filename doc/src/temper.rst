@@ -6,7 +6,6 @@ temper command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    temper N M temp fix-ID seed1 seed2 index
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    temper 100000 100 $t tempfix 0 58728
    temper 40000 100 $t tempfix 0 32285 $w
@@ -52,8 +50,7 @@ variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the :doc:`variable <variable>`
 command for more details.  For example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t world 300.0 310.0 320.0 330.0
    fix myfix all nvt temp $t $t 100.0
@@ -80,7 +77,6 @@ The main screen and log file (log.lammps) will list information about
 which temperature is assigned to each replica at each thermodynamic
 output timestep.  E.g. for a simulation with 16 replicas:
 
-
 .. parsed-literal::
 
    Running on 16 partitions of processors
@@ -106,11 +102,10 @@ screen.N files as time proceeds.
 You can have each replica create its own dump file in the following
 manner:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable rep world 0 1 2 3 4 5 6 7
-   dump 1 all atom 1000 dump.temper.$\ *rep*
+   dump 1 all atom 1000 dump.temper.${rep}
 
 .. note::
 
@@ -123,9 +118,9 @@ manner:
    dump file with snapshots at 300K (from all replicas), another with
    snapshots at 310K, etc.  Note that these new dump files will not
    contain "continuous trajectories" for individual atoms, because two
-   successive snapshots (in time) may be from different replicas. The 
-   reorder\_remd\_traj python script can do the reordering for you 
-   (and additionally also calculated configurational log-weights of 
+   successive snapshots (in time) may be from different replicas. The
+   reorder\_remd\_traj python script can do the reordering for you
+   (and additionally also calculated configurational log-weights of
    trajectory snapshots in the canonical ensemble). The script can be found
    in the tools/replica directory while instructions on how to use it is
    available in doc/Tools (in brief) and as a README file in tools/replica
@@ -142,28 +137,23 @@ the variable to the *N* values listed in the log file for the previous
 run for the replica temperatures at that timestep.  For example if the
 log file listed the following for a simulation with 5 replicas:
 
-
 .. parsed-literal::
 
    500000 2 4 0 1 3
 
 then a setting of
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable w world 2 4 0 1 3
 
 would be used to restart the run with a tempering command like the
 example above with $w as the last argument.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc

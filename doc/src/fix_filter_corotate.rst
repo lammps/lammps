@@ -6,7 +6,6 @@ fix filter/corotate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID filter/corotate keyword value ...
@@ -14,21 +13,18 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
-  
+
   .. parsed-literal::
-  
+
        *b* values = one or more bond types
        *a* values = one or more angle types
        *t* values = one or more atom types
        *m* value = one or more mass values
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 8
    run_style respa 3 2 8 bond 1 pair 2 kspace 3
@@ -62,9 +58,7 @@ contain the fastest covalent bonds inside clusters.
 
 If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer time-steps of at least 8fs.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -77,7 +71,6 @@ fixes are not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -88,12 +81,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Fath2017:
-
-
 
 **(Fath)** Fath, Hochbruck, Singh, J Comp Phys, 333, 180-198 (2017).

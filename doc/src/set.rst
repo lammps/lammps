@@ -6,7 +6,6 @@ set command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    set style ID keyword values ...
@@ -15,9 +14,9 @@ Syntax
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i\_name* or *d\_name*
-  
+
   .. parsed-literal::
-  
+
        *type* value = atom type
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
@@ -118,22 +117,19 @@ Syntax
        *i_name* value = value for custom integer vector with name
        *d_name* value = value for custom floating-point vector with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set group solvent type 2
    set group solvent type/fraction 2 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
-   set type 1\*3 charge 0.5
-   set atom \* charge v_atomfile
-   set atom 100\*200 x 0.5 y 1.0
+   set type 1*3 charge 0.5
+   set atom * charge v_atomfile
+   set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
 
@@ -158,9 +154,7 @@ their properties reset.  The remaining keywords specify which
 properties to reset and what the new values are.  Some strings like
 *type* or *mol* can be used as a style and/or a keyword.
 
-
 ----------
-
 
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
@@ -184,9 +178,7 @@ style *region* selects all the atoms in the specified geometric
 region.  See the :doc:`group <group>` and :doc:`region <region>` commands
 for details of how to specify a group or region.
 
-
 ----------
-
 
 This section describes the keyword options for which properties to
 change, for the selected atoms.
@@ -482,7 +474,6 @@ specified as the "name" portion of *i\_name* or *d\_name*.
 
 Restrictions
 """"""""""""
-
 
 You cannot set an atom attribute (e.g. *mol* or *q* or *volume*\ ) if
 the :doc:`atom_style <atom_style>` does not have that attribute.

@@ -9,7 +9,6 @@ pair_style eim/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -81,9 +79,7 @@ atoms in the atomic pair.
    EIM potential infers the charge on an atom from the equation above for
    q\_i; you do not assign charges explicitly.
 
-
 ----------
-
 
 All the EIM parameters are listed in a potential file which is
 specified by the :doc:`pair_coeff <pair_coeff>` command.  This is an
@@ -116,7 +112,6 @@ As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
 types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
 use the following pair\_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -159,9 +154,7 @@ r\_(s,psi), and p.
 The lines in the file can be in any order; LAMMPS extracts the info it
 needs.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -181,13 +174,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the MANYBODY package.  It is only enabled if
 LAMMPS was built with that package.
@@ -199,13 +189,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Zhou2:
-
-
 
 **(Zhou)** Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.

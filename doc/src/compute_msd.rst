@@ -6,7 +6,6 @@ compute msd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd keyword values ...
@@ -15,19 +14,16 @@ Syntax
 * msd = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *average*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
        *average* value = *yes* or *no*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd
    compute 1 upper msd com yes average yes

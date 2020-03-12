@@ -6,7 +6,6 @@ fix nve/body command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/body
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/body
 
@@ -44,7 +42,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

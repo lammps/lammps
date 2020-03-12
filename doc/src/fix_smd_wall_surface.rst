@@ -6,7 +6,6 @@ fix smd/wall_surface command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID smd/wall_surface arg type mol-ID
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/wall\_surface = style name of this fix command
 * arg = *file*
-  
+
   .. parsed-literal::
-  
+
         *file* = file name of a triangular mesh in stl format
 
 * type = particle type to be given to the new particles created by this fix
@@ -24,7 +23,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -59,7 +57,6 @@ minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

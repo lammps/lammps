@@ -7,7 +7,6 @@ documentation for the offending command may help.  Error messages also
 list the source file and line number where the error was generated.
 For example, a message like this:
 
-
 .. parsed-literal::
 
    ERROR: Illegal velocity command (velocity.cpp:78)
@@ -21,11 +20,7 @@ code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`
 
-
 ----------
-
-
-
 
 *1-3 bond count is inconsistent*
    An inconsistency was detected when computing the number of 1-3
@@ -3850,7 +3845,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix orient/fcc found self twice*
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
-   `developers <http://lammps.sandia.gov/authors.html>`_.
+   `developers <https://lammps.sandia.gov/authors.html>`_.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.

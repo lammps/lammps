@@ -12,16 +12,15 @@ pair_style lennard/mdf command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/mdf* or *buck/mdf* or *lennard/mdf*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *lj/mdf* args = cutoff1 cutoff2
          cutoff1 = inner cutoff for the start of the tapering function
          cutoff1 = out cutoff for the end of the tapering function
@@ -32,11 +31,8 @@ Syntax
          cutoff1 = inner cutoff for the start of the tapering function
          cutoff1 = out cutoff for the end of the tapering function
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,7 +60,6 @@ inner and outer cutoff.
 
    E_{smooth}(r) = E(r)*f(r)
 
-
 The tapering, *f(r)*\ , is done by using the Mei, Davenport, Fernando
 function :ref:`(Mei) <Mei>`.
 
@@ -80,13 +75,10 @@ where
 
    x = \frac{(r-r_m)}{(r_{cut}-r_m)}
 
-
 Here :math:`r_m` is the inner cutoff radius and :math:`r_{cut}` is the
 outer cutoff radius.
 
-
 ----------
-
 
 For the *lj/mdf* pair\_style, the potential energy, *E(r)*\ , is the
 standard 12-6 Lennard-Jones written in the epsilon/sigma form:
@@ -94,7 +86,6 @@ standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 .. math::
 
    E(r) = 4\epsilon\biggl[\bigl(\frac{\sigma}{r}\bigr)^{12} - \bigl(\frac{\sigma}{r}\bigr)^6\biggr]
-
 
 Either the first two or all of the following coefficients must be
 defined for each pair of atoms types via the pair\_coeff command as in
@@ -119,7 +110,6 @@ global values:
 
    E(r) = A e^{(-r/\rho)} -\frac{C}{r^6}
 
-
 * *A* (energy units)
 * :math:`\rho` (distance units)
 * *C* (energy-distance\^6 units)
@@ -134,7 +124,6 @@ standard 12-6 Lennard-Jones written in the A/B form:
 .. math::
 
    E(r) = \frac{A}{r^{12}} - \frac{B}{r^{6}}
-
 
 The following coefficients must be defined for each pair of atoms
 types via the pair\_coeff command as in the examples above, or in the
@@ -184,12 +173,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mei:
-
-
 
 **(Mei)** Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)

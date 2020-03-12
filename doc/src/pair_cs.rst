@@ -33,14 +33,12 @@ pair_style lj/cut/coul/long/cs command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -69,7 +67,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -142,7 +139,6 @@ pair is treated, as follows
 
    E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
 
-
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the core and shell, epsilon is the dielectric
 constant and :math:`r_{min}` is the minimal distance.
@@ -152,9 +148,7 @@ For styles that are not used with a long-range solver, i.e. those with
 a minimal distance to avoid the possible r = 0.0 case for a core/shell
 pair.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -174,9 +168,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -184,13 +176,10 @@ See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
 restarting, and rRESPA are handled by theses pair styles.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the CORESHELL package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -203,13 +192,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _MitchellFinchham2:
-
-
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

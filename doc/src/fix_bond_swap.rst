@@ -6,7 +6,6 @@ fix bond/swap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/swap Nevery fraction cutoff seed
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all bond/swap 50 0.5 1.3 598934
 
@@ -115,16 +113,13 @@ ends of a chain swap with each other.
    running dynamics, but can affect calculation of some diagnostic
    quantities or the printing of unwrapped coordinates to a dump file.
 
-
 ----------
-
 
 This fix computes a temperature each time it is invoked for use by the
 Boltzmann criterion.  To do this, the fix creates its own compute of
 style *temp*\ , as if this command had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp
 
@@ -142,9 +137,7 @@ during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` co
 It also means that changing attributes of *thermo\_temp* will have no
 effect on this fix.
 
-
 ----------
-
 
 **Restart, fix\_modify, thermo output, run start/stop, minimize info:**
 
@@ -177,7 +170,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -199,13 +191,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Sides:
-
-
 
 **(Sides)** Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42,
 199-208 (2004).

@@ -78,7 +78,7 @@ The transformation is given by the following equation:
     \begin{pmatrix}
       \mathbf{B \times C}  \\
       \mathbf{C \times A}  \\
-      \mathbf{A \times B} 
+      \mathbf{A \times B}
     \end{pmatrix} \cdot \mathbf{X}
 
 where *V* is the volume of the box, **X** is the original vector quantity and
@@ -200,7 +200,6 @@ an orthogonal bounding box which encloses the triclinic simulation box
 is output, along with the 3 tilt factors (xy, xz, yz) of the triclinic
 box, formatted as follows:
 
-
 .. parsed-literal::
 
    ITEM: BOX BOUNDS xy xz yz
@@ -211,7 +210,6 @@ box, formatted as follows:
 This bounding box is convenient for many visualization programs and is
 calculated from the 9 triclinic box parameters
 (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:
-
 
 .. parsed-literal::
 

@@ -6,17 +6,14 @@ pair_style spin/neel command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style spin/neel cutoff
 
 * cutoff = global cutoff pair (distance in metal units)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -76,13 +73,10 @@ calculations only).
 More details about the derivation of these torques/forces are reported
 in :ref:`(Tranchida) <Tranchida6>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
@@ -98,13 +92,9 @@ Related commands
 
 none
 
-
 ----------
 
-
 .. _Tranchida6:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

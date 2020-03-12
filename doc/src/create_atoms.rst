@@ -6,16 +6,15 @@ create_atoms command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    create_atoms type style args keyword values ...
 
 * type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *random*
-  
+
   .. parsed-literal::
-  
+
        *box* args = none
        *region* args = region-ID
          region-ID = particles will only be created if contained in the region
@@ -28,9 +27,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
-  
+
   .. code-block:: LAMMPS
-  
+
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          seed = random # seed (positive integer)
@@ -55,11 +54,8 @@ Syntax
          *lattice* = the geometry is defined in lattice units
          *box* = the geometry is defined in simulation box units
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -167,9 +163,7 @@ used to remove overlapping atoms or molecules.
    example of how to do this, using the create\_atoms *single* style to
    insert a new atom outside the current simulation box.
 
-
 ----------
-
 
 Individual atoms are inserted by this command, unless the *mol*
 keyword is used.  It specifies a *template-ID* previously defined
@@ -208,9 +202,7 @@ not overlap, regardless of their relative orientations.
    because by default, the :doc:`create_box <create_box>` command sets up a
    non-molecular system which doesn't allow molecules to be added.
 
-
 ----------
-
 
 This is the meaning of the other allowed keywords.
 
@@ -268,7 +260,6 @@ the sinusoid would appear to be "smoother".  Also note the use of the
 converts lattice spacings to distance.  Click on the image for a
 larger version.
 
-
 .. code-block:: LAMMPS
 
    dimension       2
@@ -304,9 +295,7 @@ the :doc:`units <units>` command, e.g. Angstroms for units = real or
 metal.  A *lattice* value means the distance units are in lattice
 spacings.
 
-
 ----------
-
 
 Atom IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
@@ -358,13 +347,10 @@ and thus also set the mass for the particle to 1.0.
 The :doc:`set <set>` command can be used to override many of these
 default settings.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 An :doc:`atom_style <atom_style>` must be previously defined to use this
 command.

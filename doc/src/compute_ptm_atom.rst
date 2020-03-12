@@ -6,7 +6,6 @@ compute ptm/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ptm/atom structures threshold group2-ID
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ptm/atom default 0.1 all
    compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15 all
@@ -68,7 +66,6 @@ The deviation is calculated as:
    \text{RMSD}(\mathbf{u}, \mathbf{v}) = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
    {\left|\left| s[\vec{u_i} - \overline{\mathbf{u}}] - \mathbf{Q} \vec{v_i} \right|\right|}^2}
 
-
 Here, u and v contain the coordinates of the local and ideal structures respectively,
 s is a scale factor, and Q is a rotation.  The best match is identified by the
 lowest RMSD value, using the optimal scaling, rotation, and correspondence between the
@@ -114,7 +111,6 @@ For atoms that are not within the compute group-ID, all values are set to zero.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-PTM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -126,12 +122,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Larsen:
-
-
 
 **(Larsen)** Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).

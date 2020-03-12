@@ -6,7 +6,6 @@ fix smd/adjust_dt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group-ID smd/adjust_dt arg
@@ -14,16 +13,13 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/adjust\_dt = style name of this fix command
 * arg = *s\_fact*
-  
+
   .. parsed-literal::
-  
+
        *s_fact* = safety factor
-
-
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -56,7 +52,6 @@ Currently, no part of USER-SMD supports restarting nor minimization.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

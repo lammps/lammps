@@ -6,7 +6,6 @@ fix controller command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID controller Nevery alpha Kp Ki Kd pvar setpoint cvar
@@ -19,9 +18,9 @@ Syntax
 * Ki = integral gain in PID equation (unitless)
 * Kd = derivative gain in PID equation (unitless)
 * pvar = process variable of form c\_ID, c\_ID[I], f\_ID, f\_ID[I], or v\_name
-  
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID
@@ -31,12 +30,10 @@ Syntax
 * setpoint = desired value of process variable (same units as process variable)
 * cvar = name of control variable
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all controller 100 1.0 0.5 0.0 0.0 c_thermo_temp 1.5 tcontrol
    fix 1 all controller 100 0.2 0.5 0 100.0 v_pxxwall 1.01325 xwall
@@ -100,7 +97,7 @@ the following dynamic equation:
 .. math::
 
    \frac{dc}{dt}  = \hat{E} -\alpha (K_p e + K_i \int_0^t e \, dt + K_d \frac{de}{dt} )
-   
+
 where *c* is the continuous time analog of the control variable,
 *e* =\ *pvar*\ -\ *setpoint* is the error in the process variable, and
 :math:`\alpha`, :math:`K_p`, :math:`K_i` , and :math:`K_d` are constants
@@ -110,7 +107,6 @@ keywords described above. The discretized version of this equation is:
 .. math::
 
    c_n  = \hat{E} c_{n-1} -\alpha \left( K_p \tau e_n + K_i \tau^2 \sum_{i=1}^n e_i + K_d (e_n - e_{n-1}) \right)
-
 
 where :math:`\tau = \mathtt{Nevery} \cdot \mathtt{timestep}` is the time
 interval between updates,
@@ -149,9 +145,7 @@ fix performs its first update of *cvar* after *Nevery* timesteps.  On
 the first update, the value of the derivative term is set to zero,
 because the value of :math:`e_n-1` is not yet defined.
 
-
 ----------
-
 
 The process variable *pvar* can be specified as the output of a
 :doc:`compute <compute>` or :doc:`fix <fix>` or the evaluation of a
@@ -194,9 +188,7 @@ variable.  It must be an internal-style variable, because this fix
 updates its value directly.  Note that other commands can use an
 equal-style versus internal-style variable interchangeably.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 

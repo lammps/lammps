@@ -6,7 +6,6 @@ compute ti command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group ti keyword args ...
@@ -15,9 +14,9 @@ Syntax
 * ti = style name of this compute command
 * one or more attribute/arg pairs may be appended
 * keyword = pair style (lj/cut, gauss, born, etc) or *tail* or *kspace*
-  
+
   .. parsed-literal::
-  
+
        pair style args = atype v_name1 v_name2
          atype = atom type (see asterisk form below)
          v_name1 = variable with name1 that is energy scale factor and function of lambda
@@ -31,16 +30,13 @@ Syntax
          v_name1 = variable with name1 that is K-Space scale factor and function of lambda
          v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
-   compute 1 all ti lj/cut 1\*3 v_lj v_dlj coul/long \* v_c v_dc kspace \* v_ks v_dks
+   compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks
 
 Description
 """""""""""
@@ -65,13 +61,11 @@ command does.
 Assume that the unscaled energy of a pair\_style or kspace\_style is
 given by U.  Then the scaled energy is
 
-
 .. parsed-literal::
 
    Us = f(lambda) U
 
 where f() is some function of lambda.  What this compute calculates is
-
 
 .. parsed-literal::
 
@@ -117,9 +111,7 @@ command.
 More details about the exact functional forms for the computation of
 du/dl can be found in the paper by :ref:`Eike <Eike>`.
 
-
 ----------
-
 
 **Output info:**
 
@@ -135,7 +127,6 @@ The scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -146,12 +137,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Eike:
-
-
 
 **(Eike)** Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).

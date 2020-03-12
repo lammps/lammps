@@ -12,11 +12,9 @@ explain how to do this for building both with CMake and make.
 * :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
 * :ref:`Memory allocation alignment <align>`
 * :ref:`Workaround for long long integers <longlong>`
-* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library  
-
+* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library
 
 ----------
-
 
 .. _cxx11:
 
@@ -35,7 +33,6 @@ flags to enable C++11 compliance.  Example for GNU c++ 4.8.x:
 
 ----------
 
-
 .. _fft:
 
 FFT library
@@ -48,7 +45,6 @@ library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
 **CMake variables**\ :
-
 
 .. code-block:: bash
 
@@ -69,7 +65,6 @@ OpenMP threads are enabled and a packages like KOKKOS or USER-OMP is
 used.  If CMake cannot detect the FFT library, you can set these variables
 to assist:
 
-
 .. code-block:: bash
 
    -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
@@ -80,7 +75,6 @@ to assist:
    -D MKL_LIBRARIES=path
 
 **Makefile.machine settings**\ :
-
 
 .. code-block:: make
 
@@ -93,7 +87,6 @@ to assist:
 
 # default is FFT\_PACK\_ARRAY if not specified
 
-
 .. code-block:: make
 
    FFT_INC =       -I/usr/local/include
@@ -102,7 +95,7 @@ to assist:
    FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
    FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
    FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compier, serial interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
    FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
    FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
@@ -159,7 +152,6 @@ library a second time with support for single-precision.
 For FFTW3, do the following, which should produce the additional
 library libfftw3f.a or libfftw3f.so.
 
-
 .. code-block:: bash
 
    make clean
@@ -172,9 +164,7 @@ Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.
 
-
 ----------
-
 
 .. _size:
 
@@ -187,13 +177,11 @@ adequate.
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
 **Makefile.machine setting**\ :
-
 
 .. code-block:: make
 
@@ -249,9 +237,7 @@ compiled with the same size setting, or the link will fail.  A CMake
 build does this automatically.  When building with make, the setting
 in whichever lib/gpu/Makefile is used must be the same as above.
 
-
 ----------
-
 
 .. _graphics:
 
@@ -264,7 +250,6 @@ outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
 **CMake variables**\ :
-
 
 .. code-block:: bash
 
@@ -279,7 +264,6 @@ Usually these settings are all that is needed.  If CMake cannot find
 the graphics header, library, executable files, you can set these
 variables:
 
-
 .. code-block:: bash
 
    -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
@@ -291,7 +275,6 @@ variables:
    -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
 **Makefile.machine settings**\ :
-
 
 .. code-block:: make
 
@@ -321,9 +304,7 @@ supports the "popen" function in the standard runtime library.
    communication library and lead to simulations using ffmpeg to hang or
    crash.
 
-
 ----------
-
 
 .. _gzip:
 
@@ -336,7 +317,6 @@ gzip compression by several LAMMPS commands, including
 
 **CMake variables**\ :
 
-
 .. code-block:: bash
 
    -D WITH_GZIP=value       # yes or no
@@ -344,7 +324,6 @@ gzip compression by several LAMMPS commands, including
    -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
 
 **Makefile.machine setting**\ :
-
 
 .. code-block:: make
 
@@ -365,9 +344,7 @@ found by LAMMPS during a run.
    I/O is also available using a compression library instead, which is
    what the :ref:`COMPRESS package <PKG-COMPRESS>` enables.
 
-
 ----------
-
 
 .. _align:
 
@@ -385,7 +362,6 @@ aligned on 64-byte boundaries.
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
@@ -397,7 +373,6 @@ and this setting ignored.
 
 **Makefile.machine setting**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
@@ -408,9 +383,7 @@ be used on Windows, as it does use different function calls for
 allocating aligned memory, that are not compatible with how LAMMPS
 manages its dynamical memory.
 
-
 ----------
-
 
 .. _longlong:
 
@@ -424,21 +397,17 @@ those systems:
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
 **Makefile.machine setting**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
 
-
 ----------
-
 
 .. _exceptions:
 
@@ -453,13 +422,11 @@ e.g. to Python. Of course the calling code has to be set up to
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
 **Makefile.machine setting**\ :
-
 
 .. code-block:: make
 

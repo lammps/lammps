@@ -24,14 +24,12 @@ pair_style morse/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *morse* or *morse/smooth/linear* or *morse/soft*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -42,7 +40,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -61,7 +58,6 @@ Style *morse* computes pairwise interactions with the formula
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
 
-
 Rc is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
@@ -78,9 +74,7 @@ commands:
 The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 
-
 ----------
-
 
 The *morse/smooth/linear* variant is similar to the lj/smooth/linear
 variant in that it adds to the potential a shift and a linear term
@@ -89,15 +83,12 @@ so that both, potential energy and force, go to zero at the cut-off:
 .. math::
 
    \phi\left(r\right) & =  D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c \\
-   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c 
-
+   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c
 
 The syntax of the pair\_style and pair\_coeff commands are the same for
 the *morse* and *morse/smooth/linear* styles.
 
-
 ----------
-
 
 A version of the *morse* style with a soft core, *morse/soft*\ ,
 suitable for use in free energy calculations, is part of the USER-FEP
@@ -106,9 +97,7 @@ package and is documented with the :doc:`pair_style */soft
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -128,9 +117,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -154,13 +141,10 @@ These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *morse/smooth/linear* pair style is only enabled if LAMMPS was
 built with the USER-MISC package.  See the :doc:`Build package <Build_package>` doc page for more info.

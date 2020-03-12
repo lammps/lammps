@@ -6,9 +6,7 @@ Notes for building LAMMPS on Windows
 * :ref:`Using GNU GCC ported to Windows <gnu>`
 * :ref:`Using a cross-compiler <cross>`
 
-
 ----------
-
 
 .. _generic:
 

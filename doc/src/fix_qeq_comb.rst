@@ -9,7 +9,6 @@ fix qeq/comb/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qeq/comb Nevery precision keyword value ...
@@ -20,19 +19,16 @@ Syntax
 * precision = convergence criterion for charge equilibration
 * zero or more keyword/value pairs may be appended
 * keyword = *file*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
          filename = name of file to write QEQ equilibration info to
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 surface qeq/comb 10 0.0001
 
@@ -67,9 +63,7 @@ performing charge equilibration (more iterations) and accuracy.
 If the *file* keyword is used, then information about each
 equilibration calculation is written to the specified file.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -89,9 +83,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -115,7 +107,6 @@ This fix can be invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix command currently only supports :doc:`pair style *comb*\ <pair_comb>`.
 
 Related commands
@@ -128,33 +119,23 @@ Default
 
 No file output is performed.
 
-
 ----------
 
-
 .. _COMB\_1:
-
-
 
 **(COMB\_1)** J. Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
 
 .. _COMB\_2:
-
-
 
 **(COMB\_2)** T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
 Phillpot, Phys Rev B, 81, 125328 (2010).
 
 .. _Rappe\_and\_Goddard:
 
-
-
 **(Rappe\_and\_Goddard)** A. K. Rappe, W. A. Goddard, J Phys Chem 95, 3358
 (1991).
 
 .. _Rick\_and\_Stuart:
-
-
 
 **(Rick\_and\_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
 101, 16141 (1994).

@@ -62,7 +62,7 @@ below.  The MESSAGE package also wraps a client/server library called
 CSlib which enables two codes to exchange messages in different ways,
 either via files, sockets, or MPI.  The CSlib is provided with LAMMPS
 in the lib/message dir.  The CSlib has its own
-`website <http://cslib.sandia.gov>`_ with documentation and test
+`website <https://cslib.sandia.gov>`_ with documentation and test
 programs.
 
 .. note::
@@ -134,7 +134,6 @@ together to exchange MPI messages between them.
 
 For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 
-
 .. code-block:: bash
 
    % mpirun -np 1 lmp_mpi -log log.client < in.client &
@@ -149,7 +148,6 @@ For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 For message exchange in *mpi/one* mode:
 
 Launch both codes in a single mpirun command:
-
 
 .. code-block:: bash
 

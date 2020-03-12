@@ -6,7 +6,6 @@ fix planeforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID planeforce x y z
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix hold boundary planeforce 1.0 0.0 0.0
 

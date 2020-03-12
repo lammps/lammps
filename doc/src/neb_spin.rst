@@ -6,7 +6,6 @@ neb/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    neb/spin etol ttol N1 N2 Nevery file-style arg keyword
@@ -17,9 +16,9 @@ Syntax
 * N2 = max # of iterations (timesteps) to run barrier-climbing NEB
 * Nevery = print replica energies and reaction coordinates every this many timesteps
 * file-style = *final* or *each* or *none*
-  
+
   .. parsed-literal::
-  
+
        *final* arg = filename
          filename = file with initial coords for final replica
            coords for intermediate replicas are linearly interpolated
@@ -39,8 +38,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neb/spin 0.1 0.0 1000 500 50 final coords.final
    neb/spin 0.0 0.001 1000 500 50 each coords.initial.$i
@@ -114,9 +112,7 @@ from such an initial path.  In this case, you will want to generate
 initial states for the intermediate replicas that are geometrically
 closer to the MEP and read them in.
 
-
 ----------
-
 
 For a *file-style* setting of *final*\ , a filename is specified which
 contains atomic and spin coordinates for zero or more atoms, in the
@@ -160,7 +156,7 @@ with :math:`\nu` the image number, Q the total number of images, and
 
 .. math::
 
-   \vec{k}_i =  \frac{\vec{m}_i^I \times \vec{m}_i^F}{\left|\vec{m}_i^I \times \vec{m}_i^F\right|} 
+   \vec{k}_i =  \frac{\vec{m}_i^I \times \vec{m}_i^F}{\left|\vec{m}_i^I \times \vec{m}_i^F\right|}
 
 if the initial and final spins are not aligned.
 If the initial and final spins are aligned, then their cross
@@ -195,16 +191,14 @@ that a long calculation can be restarted if needed.
    must thus be in the correct initial configuration at the time the neb
    command is issued.
 
-
 ----------
-
 
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure.  To enable
 this, you must first define a
 :doc:`min_style <min_style>`, using either the *spin*\ ,
 *spin/cg*\ , or *spin/lbfgs* style (see
-:doc:`min_spin <min_spin>` for more information).  
+:doc:`min_spin <min_spin>` for more information).
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 
@@ -259,9 +253,7 @@ configuration at (close to) the saddle point of the transition. The
 potential energies for the set of replicas represents the energy
 profile of the transition along the MEP.
 
-
 ----------
-
 
 An atom map must be defined which it is not by default for :doc:`atom_style atomic <atom_style>` problems.  The :doc:`atom_modify map <atom_modify>` command can be used to do this.
 
@@ -272,9 +264,7 @@ this timestep is likely to evolve during the calculation.
 The minimizers in LAMMPS operate on all spins in your system, even
 non-GNEB atoms, as defined above.
 
-
 ----------
-
 
 Each file read by the neb/spin command containing spin coordinates used
 to initialize one or more replicas must be formatted as follows.
@@ -284,7 +274,6 @@ suffix).  The file can contain initial blank lines or comment lines
 starting with "#" which are ignored.  The first non-blank, non-comment
 line should list N = the number of lines to follow.  The N successive
 lines contain the following information:
-
 
 .. parsed-literal::
 
@@ -308,9 +297,7 @@ Also note there is no requirement that the atoms in the file
 correspond to the GNEB atoms in the group defined by the :doc:`fix neb <fix_neb>` command.  Not every GNEB atom need be in the file,
 and non-GNEB atoms can be listed in the file.
 
-
 ----------
-
 
 Four kinds of output can be generated during a GNEB calculation: energy
 barrier statistics, thermodynamic output by each replica, dump files,
@@ -387,13 +374,10 @@ directory, that interpolates the MEP given the information provided
 by the *verbose* output option (as detailed in Appendix D of
 :ref:`(BessarabA) <BessarabA>`).
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc
@@ -403,9 +387,7 @@ For magnetic GNEB calculations, only the *spin\_none* value for the
 *line* keyword can be used when minimization styles *spin/cg* and
 *spin/lbfgs* are employed.
 
-
 ----------
-
 
 Related commands
 """"""""""""""""
@@ -417,13 +399,9 @@ Default
 
 none
 
-
 ----------
 
-
 .. _BessarabA:
-
-
 
 **(BessarabA)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).

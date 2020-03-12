@@ -59,7 +59,6 @@ new potential.
 To use any of these commands, you only need to build LAMMPS with the
 PYTHON package installed:
 
-
 .. parsed-literal::
 
    make yes-python

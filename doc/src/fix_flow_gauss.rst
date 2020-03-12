@@ -6,7 +6,6 @@ fix flow/gauss command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID flow/gauss xflag yflag zflag keyword
@@ -14,28 +13,25 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * flow/gauss = style name of this fix command
 * xflag,yflag,zflag = 0 or 1
-  
+
   .. parsed-literal::
-  
+
          0 = do not conserve current in this dimension
          1 = conserve current in this dimension
 
 * zero or more keyword/value pairs may be appended
 * keyword = *energy*
-  
+
   .. parsed-literal::
-  
+
        *energy* value = no or yes
          no = do not compute work done by this fix
          yes = compute work done by this fix
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix GD fluid flow/gauss 1 0 0
    fix GD fluid flow/gauss 1 1 1 energy yes
@@ -118,9 +114,7 @@ rRESPA levels 3 and 4, respectively, then there must be two separate
 flow/gauss fixes, one that specifies *fix\_modify respa 3* and one with
 *fix\_modify respa 4*.
 
-
 ----------
-
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
@@ -162,24 +156,16 @@ Default
 
 The option default for the *energy* keyword is energy = no.
 
-
 ----------
 
-
 .. _Strong:
-
-
 
 **(Strong)** Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).
 
 .. _Evans2:
 
-
-
 **(Evans)** Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).
 
 .. _Zhu:
-
-
 
 **(Zhu)** Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).

@@ -6,14 +6,12 @@ pair_style sph/taitwater command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sph/taitwater
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -29,7 +27,6 @@ according to Tait's equation of state:
 .. math::
 
    p = B \biggl[\left(\frac{\rho}{\rho_0}\right)^{\gamma} - 1\biggr]
-
 
 where :math:`\gamma = 7` and :math:`B = c_0^2 \rho_0 / \gamma`, with
 :math:`\rho_0` being the reference density and :math:`c_0` the reference
@@ -50,9 +47,7 @@ above.
 * :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -71,7 +66,6 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-SPH package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -82,13 +76,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Monaghan:
-
-
 
 **(Monaghan)** Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).

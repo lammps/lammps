@@ -25,19 +25,16 @@ letter abbreviation can be used:
 
 For example, the lmp\_mpi executable might be launched as follows:
 
-
 .. code-block:: bash
 
    $ mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
    $ mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
 
-
 ----------
-
 
 .. _echo:
 
-**-echo style** 
+**-echo style**
 
 Set the style of command echoing.  The style can be *none* or *screen*
 or *log* or *both*\ .  Depending on the style, each command read from
@@ -46,13 +43,11 @@ can be useful to figure out which line of your script is causing an
 input error.  The default value is *log*\ .  The echo style can also be
 set by using the :doc:`echo <echo>` command in the input script itself.
 
-
 ----------
-
 
 .. _help:
 
-**-help** 
+**-help**
 
 Print a brief help summary and a list of options compiled into this
 executable for each LAMMPS style (atom\_style, fix, compute,
@@ -61,13 +56,11 @@ want to use was included via the appropriate package at compile time.
 LAMMPS will print the info and immediately exit if this switch is
 used.
 
-
 ----------
-
 
 .. _file:
 
-**-in file** 
+**-in file**
 
 Specify a file to use as an input script.  This is an optional switch
 when running LAMMPS in one-partition mode.  If it is not specified,
@@ -79,13 +72,11 @@ Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
 stdin.
 
-
 ----------
-
 
 .. _run-kokkos:
 
-**-kokkos on/off keyword/value ...** 
+**-kokkos on/off keyword/value ...**
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
@@ -114,7 +105,6 @@ settings to use on different platforms is given on the :doc:`Speed kokkos <Speed
 * t or threads
 * n or numa
 
-
 .. parsed-literal::
 
    device Nd
@@ -126,7 +116,6 @@ run on.  By default Nd = 0.  If you have multiple GPUs per node, they
 have consecutive IDs numbered as 0,1,2,etc.  This setting allows you
 to launch multiple independent jobs on the node, each with a single
 MPI task per node, and assign each job to run on a different GPU.
-
 
 .. parsed-literal::
 
@@ -144,7 +133,6 @@ Ng = 1 and Ns is not set.
 Depending on which flavor of MPI you are running, LAMMPS will look for
 one of these 4 environment variables
 
-
 .. parsed-literal::
 
    SLURM_LOCALID (various MPI variants compiled with SLURM support)
@@ -155,7 +143,6 @@ one of these 4 environment variables
 which are initialized by the "srun", "mpirun" or "mpiexec" commands.
 The environment variable setting for each MPI rank is used to assign a
 unique GPU ID to the MPI task.
-
 
 .. parsed-literal::
 
@@ -168,7 +155,6 @@ there are Np MPI tasks per physical node, you generally want Np\*Nt =
 the number of physical cores per node, to use your available hardware
 optimally.  This also sets the number of threads used by the host when
 LAMMPS is compiled with CUDA=yes.
-
 
 .. parsed-literal::
 
@@ -184,13 +170,11 @@ its default value of 1. This is because letting a single process span
 multiple NUMA regions induces a significant amount of cross NUMA data
 traffic which is slow.
 
-
 ----------
-
 
 .. _log:
 
-**-log file** 
+**-log file**
 
 Specify a log file for LAMMPS to write status information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
@@ -205,13 +189,11 @@ specified file is "none", then no log files are created.  Using a
 :doc:`log <log>` command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
 
-
 ----------
-
 
 .. _mpicolor:
 
-**-mpicolor** color 
+**-mpicolor** color
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
@@ -232,26 +214,22 @@ by the :doc:`message <message>` command and the CSlib library LAMMPS
 links with from the lib/message directory.  See the
 :doc:`message <message>` command for more details.
 
-
 ----------
-
 
 .. _nocite:
 
-**-nocite** 
+**-nocite**
 
 Disable writing the log.cite file which is normally written to list
 references for specific cite-able features used during a LAMMPS run.
-See the `citation page <http://lammps.sandia.gov/cite.html>`_ for more
+See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
 details.
-
 
 ----------
 
-
 .. _package:
 
-**-package style args ....** 
+**-package style args ....**
 
 Invoke the :doc:`package <package>` command with style and args.  The
 syntax is the same as if the command appeared at the top of the input
@@ -265,13 +243,11 @@ Along with the "-suffix" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.
 
-
 ----------
-
 
 .. _partition:
 
-**-partition 8x2 4 5 ...** 
+**-partition 8x2 4 5 ...**
 
 Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on P
 processors and this switch is not used, LAMMPS runs in one partition,
@@ -296,13 +272,11 @@ multiple partitions, see the :doc:`Howto multiple <Howto_multiple>` doc
 page.  World- and universe-style :doc:`variables <variable>` are useful
 in this context.
 
-
 ----------
-
 
 .. _plog:
 
-**-plog file** 
+**-plog file**
 
 Specify the base name for the partition log files, so partition N
 writes log information to file.N. If file is none, then no partition
@@ -314,13 +288,11 @@ replica\_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
 command-line option.
 
-
 ----------
-
 
 .. _pscreen:
 
-**-pscreen file** 
+**-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
 writes screen information to file.N. If file is none, then no
@@ -332,16 +304,13 @@ sub-directory (-pscreen replica\_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
-
 ----------
-
 
 .. _reorder:
 
-**-reorder** 
+**-reorder**
 
 This option has 2 forms:
-
 
 .. parsed-literal::
 
@@ -371,20 +340,17 @@ This can boost performance.  For example, if you use "-reorder nth 4"
 and "-partition 9 3" and you are running on 12 processors, the
 processors will be reordered from
 
-
 .. parsed-literal::
 
    0 1 2 3 4 5 6 7 8 9 10 11
 
 to
 
-
 .. parsed-literal::
 
    0 1 2 4 5 6 8 9 10 3 7 11
 
 so that the processors in each partition will be
-
 
 .. parsed-literal::
 
@@ -399,7 +365,6 @@ of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
 (starting with a "#" character) can be present.  These should be
 followed by P lines of the form:
-
 
 .. parsed-literal::
 
@@ -424,19 +389,15 @@ itself.  See the :doc:`processors out <processors>` command for how
 to output info on the final assignment of physical processors to
 the LAMMPS simulation domain.
 
-
 ----------
-
 
 .. _restart2data:
 
 **-restart2data restartfile [remap] datafile keyword value ...**
 
-
 Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
 run:
-
 
 .. code-block:: LAMMPS
 
@@ -461,7 +422,6 @@ should allow the data file to still be produced.
 
 The syntax following restartfile (or remap), namely
 
-
 .. parsed-literal::
 
    datafile keyword value ...
@@ -470,18 +430,15 @@ is identical to the arguments of the :doc:`write_data <write_data>`
 command.  See its doc page for details.  This includes its
 optional keyword/value settings.
 
-
 ----------
-
 
 .. _restart2dump:
 
-**-restart2dump restartfile [remap] group-ID dumpstyle dumpfile arg1 arg2 ...** 
+**-restart2dump restartfile [remap] group-ID dumpstyle dumpfile arg1 arg2 ...**
 
 Convert the restart file into a dump file and immediately exit.  This
 is the same operation as if the following 2-line input script were
 run:
-
 
 .. code-block:: LAMMPS
 
@@ -517,13 +474,11 @@ including ones that affect how parallel dump files are written, e.g.
 the *nfile* and *fileper* keywords.  See the
 :doc:`dump_modify <dump_modify>` doc page for details.
 
-
 ----------
-
 
 .. _screen:
 
-**-screen file** 
+**-screen file**
 
 Specify a file for LAMMPS to write its screen information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
@@ -538,13 +493,11 @@ multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 
-
 ----------
-
 
 .. _suffix:
 
-**-suffix style args** 
+**-suffix style args**
 
 Use variants of various styles if they exist.  The specified style can
 be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
@@ -607,13 +560,11 @@ The :doc:`suffix <suffix>` command can also be used within an input
 script to set a suffix, or to turn off or back on any suffix setting
 made via the command line.
 
-
 ----------
-
 
 .. _var:
 
-**-var name value1 value2 ...** 
+**-var name value1 value2 ...**
 
 Specify a variable that will be defined for substitution purposes when
 the input script is read.  This switch can be used multiple times to

@@ -6,7 +6,6 @@ compute ke command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke
 

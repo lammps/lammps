@@ -6,17 +6,14 @@ pair_style spin/magelec command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style spin/magelec cutoff
 
 * cutoff = global cutoff pair (distance in metal units)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,17 +50,13 @@ electric polarization vector.  The norm and direction of E are giving
 the intensity and the direction of a screened dielectric atomic
 polarization (in eV).
 
-
 More details about the derivation of these torques/forces are reported in
 :ref:`(Tranchida) <Tranchida4>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
@@ -77,19 +70,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Katsura1:
-
-
 
 **(Katsura)** H. Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
 .. _Tranchida4:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau, and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

@@ -51,7 +51,7 @@ Syntax
        *nlen* args = Nlen
          Nlen = length of each correlator
        *ncount* args = Ncount
-         Ncount = number of values over which succesive correlators are averaged
+         Ncount = number of values over which successive correlators are averaged
 
 Examples
 """"""""

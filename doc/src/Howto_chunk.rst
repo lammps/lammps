@@ -110,7 +110,7 @@ of a center of mass, which requires summing mass\*position over the
 atoms and then dividing by summed mass.
 
 All of these computes produce a global vector or global array as
-output, wih one or more values per chunk.  The output can be used in
+output, with one or more values per chunk.  The output can be used in
 various ways:
 
 * As input to the :doc:`fix ave/time <fix_ave_time>` command, which can

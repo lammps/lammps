@@ -41,7 +41,7 @@ Syntax
             on the prefix specified in *variable* and a number appended to
             indicate which element in the list of values is in the variable.
      *explicit* = returns the values separately in one more more variable names
-            provided as arguments that preceed *formatarg*\ . [default for *kim_param*]
+            provided as arguments that precede *formatarg*\ . [default for *kim_param*]
 
 * query\_function = name of the OpenKIM web API query function to be used
 * queryargs = a series of *keyword=value* pairs that represent the web query; supported keywords depend on the query function

@@ -112,7 +112,7 @@ folder, recreate the directory and start over.
 The cmake command takes one required argument, which is the LAMMPS
 cmake directory which contains the CMakeLists.txt file.
 
-The argument can be preceeded or followed by various CMake
+The argument can be prefixed or followed by various CMake
 command-line options.  Several useful ones are:
 
 .. code-block:: bash

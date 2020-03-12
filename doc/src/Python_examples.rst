@@ -61,12 +61,12 @@ from a Python script.  See the PyMol WWW pages `here <pymolhome_>`_ or
 
 .. parsed-literal::
 
-   http://www.pymol.org
-   http://sourceforge.net/scm/?type=svn&group_id=4546
+   https://www.pymol.org
+   https://github.com/schrodinger/pymol-open-source
 
-.. _pymolhome: http://www.pymol.org
+.. _pymolhome: https://www.pymol.org
 
-.. _pymolopen: http://sourceforge.net/scm/?type=svn&group\_id=4546
+.. _pymolopen: https://github.com/schrodinger/pymol-open-source
 
 The latter link is to the open-source version.
 

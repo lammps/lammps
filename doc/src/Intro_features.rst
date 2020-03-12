@@ -187,7 +187,7 @@ Pre- and post-processing
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
   written in `Python <python_>`_ and is available for download from `the Pizza.py WWW site <pizza_>`_.
 
-.. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
+.. _pizza: https://pizza.sandia.gov
 
 .. _python: http://www.python.org
 

@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: http://lammps.sandia.gov
-.. _pizza: http://pizza.sandia.gov
+.. _pizza: https://pizza.sandia.gov
 .. _python: http://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on

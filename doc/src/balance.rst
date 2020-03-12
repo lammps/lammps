@@ -542,6 +542,6 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`,
 :doc:`fix balance <fix_balance>`, :doc:`comm_style <comm_style>`
 
-.. _pizza: http://pizza.sandia.gov
+.. _pizza: https://pizza.sandia.gov
 
 **Default:** none

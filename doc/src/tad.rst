@@ -41,7 +41,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    tad 2000 50 1800 2300 0.01 0.01 event
    tad 2000 50 1800 2300 0.01 0.01 event &

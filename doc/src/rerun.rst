@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    rerun dump.file dump x y z vx vy vz
    rerun dump1.txt dump2.txt first 10000 every 1000 dump x y z

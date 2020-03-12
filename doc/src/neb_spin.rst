@@ -38,7 +38,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neb/spin 0.1 0.0 1000 500 50 final coords.final
    neb/spin 0.0 0.001 1000 500 50 each coords.initial.$i

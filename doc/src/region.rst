@@ -72,7 +72,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region 1 block -3.0 5.0 INF 10.0 INF INF
    region 2 sphere 0.0 0.0 0.0 5 side out
@@ -289,7 +289,7 @@ For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
 velocity:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable dx equal ramp(0,10)
    region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL
@@ -299,10 +299,10 @@ Note that the initial displacement is 0.0, though that is not required.
 Either of these variables would "wiggle" the region back and forth in
 the y direction:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable dy equal swiggle(0,5,100)
-   variable dysame equal 5\*sin(2\*PI\*elaplong\*dt/100)
+   variable dysame equal 5*sin(2*PI*elaplong*dt/100)
    region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL
 
 The *rotate* keyword rotates the region around a rotation axis *R* =

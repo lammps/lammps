@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
    compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
@@ -65,7 +65,7 @@ which store their own "group" definitions.
 Fix saed/vtk is designed to work only with :doc:`compute saed <compute_saed>`
 values, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 3 top saed 0.0251 Al O
    fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed

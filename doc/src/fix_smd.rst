@@ -37,7 +37,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix  pull    cterm smd cvel 20.0 -0.00005 tether NULL NULL 100.0 0.0
    fix  pull    cterm smd cvel 20.0 -0.0001 tether 25.0 25 25.0 0.0

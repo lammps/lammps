@@ -39,7 +39,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    prd 5000 100 10 10 100 1 54982
    prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200

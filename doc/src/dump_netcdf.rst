@@ -24,12 +24,12 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump 1 all netcdf 100 traj.nc type x y z vx vy vz
    dump_modify 1 append yes at -1 thermo yes
    dump 1 all netcdf/mpiio 1000 traj.nc id type x y z
-   dump 1 all netcdf 1000 traj.\*.nc id type x y z
+   dump 1 all netcdf 1000 traj.*.nc id type x y z
 
 Description
 """""""""""

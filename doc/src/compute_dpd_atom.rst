@@ -16,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-compute 1 all dpd/atom
+.. code-block:: LAMMPS
+
+   compute 1 all dpd/atom
 
 Description
 """""""""""

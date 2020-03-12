@@ -125,18 +125,18 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump myDump all atom 100 dump.atom
    dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump 2 subgroup atom 50 dump.run.bin
    dump 2 subgroup atom 50 dump.run.mpiio.bin
-   dump 4a all custom 100 dump.myforce.\* id type x y vx fx
+   dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[\*] v_ke
-   dump 2 inner cfg 10 dump.snap.\*.cfg mass type xs ys zs vx vy vz
-   dump snap all cfg 100 dump.config.\*.cfg mass type xs ys zs id type c_Stress[2]
+   dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
+   dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
    dump 1 all xtc 1000 file.xtc
 
 Description
@@ -425,7 +425,7 @@ library, which is part of the MPI standard for versions 2.0 and above.
 Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
 package installed, e.g.
 
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
    make mpi          # build LAMMPS for your platform
@@ -481,10 +481,10 @@ had been listed one by one.  E.g. these 2 dump commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all stress/atom NULL
-   dump 2 all custom 100 tmp.dump id myPress[\*]
+   dump 2 all custom 100 tmp.dump id myPress[*]
    dump 2 all custom 100 tmp.dump id myPress[1] myPress[2] myPress[3] &
                                      myPress[4] myPress[5] myPress[6]
 
@@ -537,7 +537,7 @@ values.
 Here is an example of how to dump bond info for a system, including
 the distance and energy of each bond:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2 btype
    compute 2 all bond/local dist eng

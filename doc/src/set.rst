@@ -120,16 +120,16 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set group solvent type 2
    set group solvent type/fraction 2 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
-   set type 1\*3 charge 0.5
-   set atom \* charge v_atomfile
-   set atom 100\*200 x 0.5 y 1.0
+   set type 1*3 charge 0.5
+   set atom * charge v_atomfile
+   set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
 

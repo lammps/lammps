@@ -16,11 +16,11 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    mass 1 1.0
-   mass \* 62.5
-   mass 2\* 62.5
+   mass * 62.5
+   mass 2* 62.5
 
 Description
 """""""""""

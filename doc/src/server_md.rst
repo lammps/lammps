@@ -15,7 +15,7 @@ md = the protocol argument to the :doc:`server <server>` command
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    server md
 

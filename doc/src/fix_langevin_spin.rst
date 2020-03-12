@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all langevin/spin 300.0 0.01 21
 
@@ -53,7 +53,7 @@ Note: due to the form of the sLLG equation, this fix has to be defined just
 before the nve/spin fix (and after all other magnetic fixes).
 As an example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all precession/spin zeeman 0.01 0.0 0.0 1.0
    fix 2 all langevin/spin 300.0 0.01 21

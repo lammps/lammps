@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    restart 0
    restart 1000 poly.restart
@@ -85,7 +85,7 @@ file via the MPI-IO library, which is part of the MPI standard for
 versions 2.0 and above.  Using MPI-IO requires two steps.  First,
 build LAMMPS with its MPIIO package installed, e.g.
 
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
    make mpi          # build LAMMPS for your platform
@@ -117,7 +117,7 @@ For example, the following commands will write restart files
 every step from 1100 to 1200, and could be useful for debugging
 a simulation where something goes wrong at step 1163:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable       s equal stride(1100,1200,1)
    restart        v_s tmp.restart
@@ -180,6 +180,6 @@ Related commands
 Default
 """""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    restart 0

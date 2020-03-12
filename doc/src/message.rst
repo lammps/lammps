@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    message client md file tmp.couple
    message server md file tmp.couple
@@ -95,7 +95,7 @@ code's machine.  Support for socket messaging is provided by the
 open-source `ZeroMQ library <http://zeromq.org>`_, which must be
 installed on your system.  The client specifies an IP address (IPv4
 format) or the DNS name of the machine the server code is running on,
-followed by a 4-digit port ID for the socket, separated by a colon.
+followed by a 4 or 5 digit port ID for the socket, separated by a colon.
 E.g.
 
 .. parsed-literal::
@@ -110,7 +110,20 @@ what the client specifies.
 
 .. note::
 
-   What are allowed port IDs?
+   On Linux or Unix machines port IDs below 1024 are reserved to the
+   superuser and thus not available.  Other ports may already be in
+   use and cannot be opened by a second process.  On a Linux machine
+   the commands "netstat -t4an" or "ss -t4an" will list all locally
+   used port IDs for IPv4 addresses.
+
+.. note::
+
+   On many machines (and sometimes on local networks) also ports IDs
+   may be blocked by default through firewalls.  In that case either
+   access to the required port (or a desired range of ports) has to
+   be selectively enabled to the firewall disabled (the latter is
+   usually not a good idea unless you are on a (small) local network
+   that is already protected from outside access.
 
 .. note::
 
@@ -120,7 +133,7 @@ what the client specifies.
 For mode *mpi/one*\ , the 2 codes communicate via MPI and are launched
 by the same mpirun command, e.g. with this syntax for OpenMPI:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpirun -np 2 lmp_mpi -mpicolor 0 -in in.client -log log.client : -np 4 othercode args  # LAMMPS is client
    mpirun -np 2 othercode args : -np 4 lmp_mpi -mpicolor 1 -in in.server  # LAMMPS is server

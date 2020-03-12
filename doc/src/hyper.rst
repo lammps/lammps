@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute event all event/displace 1.0
    fix HG mobile hyper/global 3.0 0.3 0.4 800.0

@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    temper/npt 100000 100 $t nptfix 0 58728 1
    temper/npt 2500000 1000 300 nptfix  0 32285 $p

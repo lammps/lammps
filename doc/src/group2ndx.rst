@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group2ndx allindex.ndx
    group2ndx someindex.ndx upper lower mobile

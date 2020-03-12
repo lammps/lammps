@@ -21,7 +21,7 @@ nx,ny,nz = replication factors in each dimension
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    replicate 2 3 2
 

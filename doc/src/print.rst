@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print "Done with equilibration" file info.dat
    print Vol=$v append info.dat screen no

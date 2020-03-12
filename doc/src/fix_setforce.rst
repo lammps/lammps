@@ -31,7 +31,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix freeze indenter setforce 0.0 0.0 0.0
    fix 2 edge setforce NULL 0.0 0.0

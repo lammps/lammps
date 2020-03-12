@@ -39,7 +39,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
    fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31

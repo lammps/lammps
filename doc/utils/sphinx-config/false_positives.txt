@@ -845,6 +845,7 @@ extrema
 exy
 ey
 ez
+faceset
 factorizable
 factorizations
 Fahrenberger
@@ -1583,6 +1584,7 @@ lucy
 Luding
 Lussetti
 Lustig
+lval
 lwsock
 lx
 ly
@@ -1980,6 +1982,7 @@ Nocedal
 nocite
 nocoeff
 nodeless
+nodeset
 Noehring
 noforce
 Noid
@@ -3020,6 +3023,7 @@ util
 utils
 utsa
 Uttormark
+uval
 uvm
 uwo
 Uzdin
@@ -3180,6 +3184,7 @@ xmax
 Xmax
 xmgrace
 xMIC
+xmin
 xmovie
 Xmovie
 xmu
@@ -3213,6 +3218,8 @@ yhi
 yi
 ylat
 ylo
+ymax
+ymin
 Yoshida
 ys
 ysu
@@ -3246,6 +3253,8 @@ Ziegenhain
 Zj
 zlim
 zlo
+zmax
+zmin
 zmq
 zN
 zs

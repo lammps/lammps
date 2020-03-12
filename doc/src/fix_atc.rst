@@ -154,9 +154,9 @@ conditions.
 * :doc:`fix_modify AtC mesh read <atc_mesh_read>`
 * :doc:`fix_modify AtC mesh write <atc_mesh_write>`
 * :doc:`fix_modify AtC mesh create_nodeset <atc_mesh_create_nodeset>`
-* `fix_modify AtC mesh add_to_nodeset <USER/atc/man_mesh_add_to_nodeset.html>`_
-* `fix_modify AtC mesh create_faceset box <USER/atc/man_mesh_create_faceset_box.html>`_
-* `fix_modify AtC mesh create_faceset plane <USER/atc/man_mesh_create_faceset_plane.html>`_
+* :doc:`fix_modify AtC mesh add_to_nodeset <atc_mesh_add_to_nodeset>`
+* :doc:`fix_modify AtC mesh create_faceset box <atc_mesh_create_faceset_box>`
+* :doc:`fix_modify AtC mesh create_faceset plane <atc_mesh_create_faceset_plane>`
 * `fix_modify AtC mesh create_elementset <USER/atc/man_mesh_create_elementset.html>`_
 * `fix_modify AtC mesh delete_elements <USER/atc/man_mesh_delete_elements.html>`_
 * `fix_modify AtC mesh nodeset_to_elementset <USER/atc/man_mesh_nodeset_to_elementset.html>`_

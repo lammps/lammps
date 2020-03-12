@@ -203,19 +203,19 @@ the :doc:`dimension <dimension>` command, and nasr = 20.
 
 **(Campana)** C. Campana and
 M. H. Muser, *Practical Green's function approach to the
-simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <http://dx.doi.org/10.1103/PhysRevB.74.075420>`_
+simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
 
 .. _Kong:
 
 **(Kong)** L.T. Kong, G. Bartels, C. Campana,
 C. Denniston, and Martin H. Muser, *Implementation of Green's
-function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <http://dx.doi.org/10.1016/j.cpc.2008.12.035>`_
+function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
 
 L.T. Kong, C. Denniston, and Martin H. Muser,
 *An improved version of the Green's function molecular dynamics
-method*\ , `Computer Physics Communications [182](2):540-541 (2011). <http://dx.doi.org/10.1016/j.cpc.2010.10.006>`_
+method*\ , `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
 
 .. _Kong2011:
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
-molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <http://dx.doi.org/10.1016/j.cpc.2011.04.019>`_
+molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_

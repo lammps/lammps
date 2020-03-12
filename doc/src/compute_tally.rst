@@ -29,7 +29,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 lower force/tally upper
    compute 1 left pe/tally right

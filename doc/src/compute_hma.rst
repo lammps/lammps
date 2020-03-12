@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2 all hma 1 u
    compute 2 all hma 1 anharmonic u p 0.9
@@ -113,7 +113,7 @@ round-off error when computing :math:`C_V`.  To address this, the *anharmonic*
 keyword can be passed and/or the output format can be specified with more
 digits.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_modify format float '%22.15e'
 
@@ -136,7 +136,7 @@ should be avoided as its extra forces interfere with the HMA implementation.
 
 The following example illustrates the placement of this command in the input script:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
    minimize 1e-35 1e-15 50000 500000

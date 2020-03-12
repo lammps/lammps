@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ptm/atom default 0.1 all
    compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15 all

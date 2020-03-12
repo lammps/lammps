@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute newT flow temp/partial 1 1 0
 

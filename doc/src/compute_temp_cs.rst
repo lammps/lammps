@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute oxygen_c-s all temp/cs O_core O_shell
    compute core_shells all temp/cs cores shells

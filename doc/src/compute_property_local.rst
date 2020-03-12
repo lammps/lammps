@@ -48,7 +48,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local btype batom1 batom2
    compute 1 all property/local atype aatom2

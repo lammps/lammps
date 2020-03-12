@@ -27,7 +27,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all orientorder/atom
    compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5

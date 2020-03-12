@@ -43,9 +43,9 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   compute 1 all fep 298 pair lj/cut epsilon 1 \* v_delta pair lj/cut sigma 1 \* v_delta volume yes
+   compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
 Description

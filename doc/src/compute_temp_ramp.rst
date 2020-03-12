@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice
 

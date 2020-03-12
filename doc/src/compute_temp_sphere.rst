@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/sphere
    compute myTemp mobile temp/sphere bias tempCOM

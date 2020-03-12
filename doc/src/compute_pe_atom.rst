@@ -18,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pe/atom
    compute 1 all pe/atom pair
@@ -72,7 +72,7 @@ As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute        peratom all pe/atom
    compute        pe all reduce sum c_peratom

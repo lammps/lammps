@@ -23,7 +23,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd
    compute 1 upper msd com yes average yes

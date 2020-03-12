@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all improper/local chi
 
@@ -54,7 +54,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local itype iatom1 iatom2 iatom3 iatom4
    compute 2 all improper/local chi

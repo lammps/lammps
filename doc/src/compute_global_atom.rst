@@ -36,10 +36,10 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   compute 1 all global/atom c_chunk c_com[1\] c_com[2\] c_com[3\]
-   compute 1 all global/atom c_chunk c_com[\*\]
+   compute 1 all global/atom c_chunk c_com[1] c_com[2] c_com[3]
+   compute 1 all global/atom c_chunk c_com[*]
 
 Description
 """""""""""
@@ -80,16 +80,16 @@ of each atom from the center-of-mass of the molecule it is in, and
 dump those values to a dump file.  In this case, each molecule is a
 chunk.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all com/chunk cc1
    compute prop all property/atom xu yu zu
-   compute glob all global/atom c_cc1 c_myChunk[\*]
+   compute glob all global/atom c_cc1 c_myChunk[*]
    variable dx atom c_prop[1]-c_glob[1]
    variable dy atom c_prop[2]-c_glob[2]
    variable dz atom c_prop[3]-c_glob[3]
-   variable dist atom sqrt(v_dx\*v_dx+v_dy\*v_dy+v_dz\*v_dz)
+   variable dist atom sqrt(v_dx*v_dx+v_dy*v_dy+v_dz*v_dz)
    dump 1 all custom 100 tmp.dump id xu yu zu c_glob[1] c_glob[2] c_glob[3] &
         v_dx v_dy v_dz v_dist
    dump_modify 1 sort id
@@ -114,12 +114,12 @@ had been listed one by one.  E.g. these 2 compute global/atom commands
 are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>`
 command creates a global array with 3 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute com all com/chunk cc1
    compute 1 all global/atom c_cc1 c_com[1] c_com[2] c_com[3]
-   compute 1 all global/atom c_cc1 c_com[\*]
+   compute 1 all global/atom c_cc1 c_com[*]
 
 ----------
 

@@ -33,10 +33,10 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
-   compute 1 all ti lj/cut 1\*3 v_lj v_dlj coul/long \* v_c v_dc kspace \* v_ks v_dks
+   compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks
 
 Description
 """""""""""

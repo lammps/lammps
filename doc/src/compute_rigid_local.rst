@@ -42,7 +42,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rigid/local myRigid mol x y z
 
@@ -87,7 +87,7 @@ vector or array from one timestep to the next.
 Here is an example of how to use this compute to dump rigid body info
 to a file:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rigid/local myRigid mol x y z fx fy fz
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_1[5] c_1[6] c_1[7]

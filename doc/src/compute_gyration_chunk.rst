@@ -23,7 +23,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 molecule gyration/chunk molchunk
    compute 2 molecule gyration/chunk molchunk tensor
@@ -86,7 +86,7 @@ The simplest way to output the results of the compute gyration/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all gyration/chunk cc1

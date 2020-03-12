@@ -37,7 +37,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all voronoi/atom
    compute 2 precipitate voronoi/atom surface matrix
@@ -86,9 +86,9 @@ If the *radius* keyword is specified with an atom style variable as
 the argument, a poly-disperse Voronoi tessellation is
 performed. Examples for radius variables are
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable r1 atom (type==1)\*0.1+(type==2)\*0.4
+   variable r1 atom (type==1)*0.1+(type==2)*0.4
    compute radius all property/atom radius
    variable r2 atom c_radius
 
@@ -139,7 +139,7 @@ overview of LAMMPS output options. More specifically, the array can be
 accessed by a :doc:`dump local <dump>` command to write a file
 containing all the Voronoi neighbors in a system:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 6 all voronoi/atom neighbors yes
    dump d2 all local 1 dump.neighbors index c_6[1] c_6[2] c_6[3]

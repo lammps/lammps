@@ -17,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd/chunk molchunk
 
@@ -99,11 +99,11 @@ The simplest way to output the results of the compute msd/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all msd/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
 **Output info:**
 

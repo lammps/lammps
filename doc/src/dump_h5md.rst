@@ -44,7 +44,7 @@ specified by this option directly following the element declaration:
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump h5md1 all h5md 100 dump_h5md.h5 position image
    dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10
@@ -91,7 +91,7 @@ Typically, the *species* data is fixed. The following two commands
 store the position data every 100 timesteps, with the image data, and
 store once the species data in the same file.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump h5md1 all h5md 100 dump.h5 position image
    write_dump all h5md dump.h5 file_from h5md1 species

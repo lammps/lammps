@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all hexorder/atom
    compute 1 all hexorder/atom degree 4 nnn 4 cutoff 1.2

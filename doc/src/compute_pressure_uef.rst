@@ -19,7 +19,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pressure/uef my_temp_uef
    compute 2 all pressure/uef my_temp_uef virial

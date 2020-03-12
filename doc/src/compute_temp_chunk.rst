@@ -40,7 +40,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid temp/chunk molchunk
    compute 1 fluid temp/chunk molchunk temp internal
@@ -149,7 +149,7 @@ calculating the temperature; fix ave/chunk does not.
 The simplest way to output the per-chunk results of the compute
 temp/chunk calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all temp/chunk cc1 temp

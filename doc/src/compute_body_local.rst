@@ -24,7 +24,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    compute 1 all body/local 3 6
@@ -69,7 +69,7 @@ body sub-particles are x,y,z coordinates, then the dump file will be
 formatted similar to the output of a :doc:`dump atom or custom <dump>`
 command.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4]

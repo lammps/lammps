@@ -31,7 +31,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid adf 32 1 1 1 0.0 1.2 0.0 1.2 &
                           1 1 2 0.0 1.2 0.0 1.5 &
@@ -39,7 +39,7 @@ Examples
                           2 1 1 0.0 1.2 0.0 1.2 &
                           2 1 2 0.0 1.5 2.0 3.5 &
                           2 2 2 2.0 3.5 2.0 3.5
-   compute 1 fluid adf 32 1\*2 1\*2 1\*2 0.5 3.5
+   compute 1 fluid adf 32 1*2 1*2 1*2 0.5 3.5
    compute 1 fluid adf 32
 
 Description
@@ -168,10 +168,10 @@ The simplest way to output the results of the compute adf calculation
 to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for
 example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myADF all adf 32 2 2 2 0.5 3.5 0.5 3.5
-   fix 1 all ave/time 100 1 100 c_myADF[\*] file tmp.adf mode vector
+   fix 1 all ave/time 100 1 100 c_myADF[*] file tmp.adf mode vector
 
 **Output info:**
 

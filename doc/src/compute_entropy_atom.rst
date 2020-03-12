@@ -28,7 +28,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all entropy/atom 0.25 5.
    compute 1 all entropy/atom 0.25 5. avg yes 5.
@@ -86,7 +86,7 @@ to increase the skin of the neighbor list with:
 
 .. parsed-literal::
 
-   neighbor skin bin
+   neighbor <skin distance> bin
 
 See :doc:`neighbor <neighbor>` for details.
 

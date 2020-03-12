@@ -59,7 +59,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    balance 0.9 x uniform y 0.4 0.5 0.6
    balance 1.2 shift xz 5 1.1

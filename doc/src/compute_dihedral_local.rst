@@ -32,7 +32,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all dihedral/local phi
 
@@ -66,11 +66,11 @@ As an example, these commands can be added to the bench/in.rhodo
 script to compute the cosine and cosine\^2 of every dihedral angle in
 the system and output the statistics in various ways:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable p internal 0.0
    variable cos equal cos(v_p)
-   variable cossq equal cos(v_p)\*cos(v_p)
+   variable cossq equal cos(v_p)*cos(v_p)
 
    compute 1 all property/local datom1 datom2 datom3 datom4 dtype
    compute 2 all dihedral/local phi v_cos v_cossq set phi p
@@ -107,7 +107,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local dtype datom1 datom2 datom3 datom4
    compute 2 all dihedral/local phi

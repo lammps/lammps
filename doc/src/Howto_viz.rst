@@ -29,4 +29,4 @@ snapshots.
 
 .. _ensight: http://www.ensight.com
 
-.. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
+.. _atomeye: http://li.mit.edu/Archive/Graphics/A/

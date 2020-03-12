@@ -223,7 +223,7 @@ every atom type is C (carbon).  Every element has a color and diameter
 associated with it, which is the same as the colors and sizes used by
 the `AtomEye <atomeye_>`_ visualization package.
 
-.. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
+.. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
 If other atom attributes are used for the *color* or *diameter*
 settings, they are interpreted in the following way.

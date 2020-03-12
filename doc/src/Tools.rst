@@ -387,7 +387,7 @@ lmp2cfg tool
 
 The lmp2cfg sub-directory contains a tool for converting LAMMPS output
 files into a series of \*.cfg files which can be read into the
-`AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_ visualizer.  See
+`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualizer.  See
 the README file for more information.
 
 This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
@@ -403,7 +403,7 @@ The matlab sub-directory contains several `MATLAB <matlabhome_>`_ scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
-with the `AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_
+with the `AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_
 visualizer.
 
 See the README.pdf file for more information.

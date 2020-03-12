@@ -213,7 +213,7 @@ In the case of *xyz* format dumps, there are no restrictions to what
 label can be used as an element name.  Any white-space separated text
 will be accepted.
 
-.. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
+.. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
 ----------
 

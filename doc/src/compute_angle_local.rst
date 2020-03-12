@@ -33,7 +33,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all angle/local theta
    compute 1 all angle/local eng theta
@@ -68,11 +68,11 @@ As an example, these commands can be added to the bench/in.rhodo
 script to compute the cosine and cosine\^2 of every angle in the system
 and output the statistics in various ways:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t internal 0.0
    variable cos equal cos(v_t)
-   variable cossq equal cos(v_t)\*cos(v_t)
+   variable cossq equal cos(v_t)*cos(v_t)
 
    compute 1 all property/local aatom1 aatom2 aatom3 atype
    compute 2 all angle/local eng theta v_cos v_cossq set theta t
@@ -113,7 +113,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local atype aatom1 aatom2 aatom3
    compute 2 all angle/local theta eng

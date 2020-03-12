@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all displace/atom
    compute 1 all displace/atom refresh myVar
@@ -82,7 +82,7 @@ a distance *Dhop*\ .  For any snapshot we only want to output atoms that
 have hopped since the last snapshot.  This can be accomplished with
 something like the following commands:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_dump      all custom tmp.dump id type x y z    # see comment below
 

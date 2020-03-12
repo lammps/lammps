@@ -26,7 +26,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all chunk/spread/atom mychunk c_com[*] c_gyration
 
@@ -99,7 +99,7 @@ had been listed one by one.  E.g. these 2 compute chunk/spread/atom
 commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a per-atom array
 with 3 columns:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute com all com/chunk mychunk
    compute 10 all chunk/spread/atom mychunk c_com[*]
@@ -111,7 +111,7 @@ Here is an example of writing a dump file the with the center-of-mass
 (COM) for the chunk each atom is in.  The commands below can be added
 to the bench/in.chain script.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         cmol all chunk/atom molecule
    compute         com all com/chunk cmol
@@ -124,13 +124,13 @@ forces for the :doc:`fix addforce <fix_addforce>` command.  In this
 example the forces act to pull atoms of an extended polymer chain
 towards its COM in an attractive manner.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         prop all property/atom xu yu zu
    variable        k equal 0.1
-   variable        fx atom v_k\*(c_comchunk[1]-c_prop[1])
-   variable        fy atom v_k\*(c_comchunk[2]-c_prop[2])
-   variable        fz atom v_k\*(c_comchunk[3]-c_prop[3])
+   variable        fx atom v_k*(c_comchunk[1]-c_prop[1])
+   variable        fy atom v_k*(c_comchunk[2]-c_prop[2])
+   variable        fz atom v_k*(c_comchunk[3]-c_prop[3])
    fix             3 all addforce v_fx v_fy v_fz
 
 Note that :doc:`compute property/atom <compute_property_atom>` is used
@@ -171,13 +171,13 @@ Then defining a second set of chunks based on spatial bins.  And
 finally, using the :doc:`fix ave/chunk <fix_ave_chunk>` command to
 calculate an average dipole moment vector per spatial bin.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute       cmol all chunk/atom molecule
    compute       dipole all dipole/chunk cmol
    compute       spread all chunk/spread/atom cmol c_dipole[1] c_dipole[2] c_dipole[3]
    compute       cspatial all chunk/atom bin/1d z lower 0.1 units reduced
-   fix           ave all ave/chunk 100 10 1000 cspatial c_spread[\*]
+   fix           ave all ave/chunk 100 10 1000 cspatial c_spread[*]
 
 Note that the :doc:`fix ave/chunk <fix_ave_chunk>` command requires
 per-atom values as input.  That is why the compute chunk/spread/atom

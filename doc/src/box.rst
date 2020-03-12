@@ -20,7 +20,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    box tilt large
    box tilt small

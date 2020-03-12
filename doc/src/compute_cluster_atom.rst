@@ -25,7 +25,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all cluster/atom 3.5
    compute 1 all fragment/atom

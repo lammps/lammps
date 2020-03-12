@@ -41,7 +41,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all bond/local engpot
    compute 1 all bond/local dist engpot force
@@ -120,10 +120,10 @@ As an example, these commands can be added to the bench/in.rhodo
 script to compute the distance\^2 of every bond in the system and
 output the statistics in various ways:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable d internal 0.0
-   variable dsq equal v_d\*v_d
+   variable dsq equal v_d*v_d
 
    compute 1 all property/local batom1 batom2 btype
    compute 2 all bond/local engpot dist v_dsq set dist d
@@ -163,11 +163,11 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local btype batom1 batom2
    compute 2 all bond/local dist engpot
-   dump 1 all local 1000 tmp.dump index c_1[\*] c_2[\*]
+   dump 1 all local 1000 tmp.dump index c_1[*] c_2[*]
 
 **Output info:**
 

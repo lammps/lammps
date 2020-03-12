@@ -84,7 +84,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all chunk/atom type
    compute 1 all chunk/atom bin/1d z lower 0.02 units reduced

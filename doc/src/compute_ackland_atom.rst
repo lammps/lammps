@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ackland/atom
    compute 1 all ackland/atom legacy yes

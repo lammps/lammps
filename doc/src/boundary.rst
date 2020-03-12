@@ -22,7 +22,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p f
    boundary p fs p
@@ -110,6 +110,6 @@ of lost atoms.
 Default
 """""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p p

@@ -76,16 +76,16 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable x index run1 run2 run3 run4 run5 run6 run7 run8
    variable LoopVar loop $n
    variable beta equal temp/3.0
-   variable b1 equal x[234]+0.5\*vol
-   variable b1 equal "x[234] + 0.5\*vol"
+   variable b1 equal x[234]+0.5*vol
+   variable b1 equal "x[234] + 0.5*vol"
    variable b equal xcm(mol1,x)/2.0
    variable b equal c_myTemp
-   variable b atom x\*y/vol
+   variable b atom x*y/vol
    variable foo string myfile
    variable foo internal 3.5
    variable myPy python increase
@@ -225,7 +225,7 @@ script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the :doc:`if <if>` and :doc:`jump <jump>`
 commands before the variable would become exhausted.  For example,
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label       loop
    variable    a loop 5
@@ -388,7 +388,7 @@ to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
 keyword.  For example these two commands would be self-consistent:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable foo python myMultiply
    python myMultiply return v_foo format f file funcs.py
@@ -455,9 +455,9 @@ simple, but multiple quantities can be nested and combined in various
 ways to build up formulas of arbitrary complexity.  For example, this
 is a valid (though strange) variable formula:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable x equal "pe + c_MyTemp / vol\^(1/3)"
+   variable x equal "pe + c_MyTemp / vol^(1/3)"
 
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
@@ -535,7 +535,7 @@ adapt automatically to LAMMPS versions, when non-backwards compatible
 syntax changes are introduced. Here is an illustrative example (which
 will not work, since the *version* has been introduced more recently):
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes"
 
@@ -939,7 +939,7 @@ the checking is also done using suffix flags, if available and enabled.
 
 Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/coul/long 14.0
    if $(is_active(package,gpu)) then "suffix off"
@@ -947,9 +947,9 @@ Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on
 
 Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   timestep $(2.0\*(1.0+2.0\*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
 The *is\_defined()* function allows to query categories like *compute*\ ,
@@ -971,7 +971,7 @@ and C++ exceptions for error handling. Corresponding values for name are
 This enables writing input scripts which only dump using a given format if
 the compiled binary supports it.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
 
@@ -1056,9 +1056,9 @@ global vector.  Consider a compute with ID "foo" that does this,
 referenced as follows by variable "a", where "myVec" is another
 vector-style variable:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   variable a vector c_foo\*v_myVec
+   variable a vector c_foo*v_myVec
 
 The reference "c\_foo" could refer to either the global scalar or
 global vector produced by compute "foo".  In this case, "c\_foo" will
@@ -1219,7 +1219,7 @@ evaluated.
 As an example, suppose you use this command in your input script to
 define the variable "v" as
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable v equal vol
 
@@ -1233,7 +1233,7 @@ evaluated continuously during the run.
 If you want to store the initial volume of the system, you can do it
 this way:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable v equal vol
    variable v0 equal $v
@@ -1242,7 +1242,7 @@ The second command will force "v" to be evaluated (yielding the
 initial volume) and assign that value to the variable "v0".  Thus the
 command
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style custom step v_v v_v0
 
@@ -1252,7 +1252,7 @@ during the run.
 Note that it is a mistake to enclose a variable formula in double
 quotes if it contains variables preceded by $ signs.  For example,
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable vratio equal "${vfinal}/${v0}"
 
@@ -1309,7 +1309,7 @@ timestep of the preceding run, e.g. by thermodynamic output.
 One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t equal temp
    print "Initial temperature = $t"
@@ -1321,7 +1321,7 @@ a compute for calculating the temperature to be invoked.
 
 However, this sequence of commands would be fine:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run 0
    variable t equal temp
@@ -1355,7 +1355,7 @@ a 0-timestep run before printing the variable has the desired effect.
 way to detect this has occurred.  Consider the following sequence of
 commands:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff 1 1 1.0 1.0
    run 1000
@@ -1381,7 +1381,7 @@ the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff 1 1 1.0 1.0
    run 1000

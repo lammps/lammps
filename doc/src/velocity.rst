@@ -51,7 +51,7 @@ Syntax
 Examples
 """"""""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 4928459 rot yes dist gaussian
    velocity border set NULL 4.0 v_vz sum yes units box
@@ -148,7 +148,7 @@ discussed on the :doc:`Howto thermostat <Howto_thermostat>` doc page.
 If this keyword is not specified, *create* and *scale* calculate
 temperature using a compute that is defined internally as follows:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute velocity_temp group-ID temp
 
@@ -246,7 +246,7 @@ temperature than desired.  A workaround for this is to perform a :doc:`run 0 <ru
 properly, and then rescale the temperature to the desired value before
 performing a simulation.  For example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 12345
    run 0                             # temperature may not be 300K

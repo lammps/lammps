@@ -850,7 +850,7 @@ not need to be edited.
 USER-PLUMED package
 -------------------------------------
 
-.. _plumedinstall: http://plumed.github.io/doc-master/user-doc/html/\_installation.html
+.. _plumedinstall: https://plumed.github.io/doc-master/user-doc/html/\_installation.html
 
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately

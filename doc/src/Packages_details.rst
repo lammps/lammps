@@ -1291,7 +1291,7 @@ script by using the :doc:`fix plumed <fix_plumed>` command.
 Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
 Tribello.
 
-.. _PLUMED: http://www.plumed.org
+.. _PLUMED: https://www.plumed.org
 
 **Install:**
 

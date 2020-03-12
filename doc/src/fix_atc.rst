@@ -36,7 +36,12 @@ Examples
 Description
 """""""""""
 
-This fix is the beginning to creating a coupled FE/MD simulation and/or an on-the-fly estimation of continuum fields. The coupled versions of this fix do Verlet integration and the post-processing does not. After instantiating this fix, several other fix\_modify commands will be needed to set up the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
+This fix is the beginning to creating a coupled FE/MD simulation and/or
+an on-the-fly estimation of continuum fields. The coupled versions of
+this fix do Verlet integration and the post-processing does not. After
+instantiating this fix, several other fix\_modify commands will be
+needed to set up the problem, e.g. define the finite element mesh and
+prescribe initial and boundary conditions.
 
 .. image:: JPG/atc_nanotube.jpg
    :align: center
@@ -115,17 +120,21 @@ Note coupling and post-processing can be combined in the same simulations using 
 
 **Restart, fix\_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix_modify <fix_modify>` options
-relevant to this fix are listed below.  No global scalar or vector or
-per-atom quantities are stored by this fix for access by various
-:doc:`output commands <Howto_output>`.  No parameter of this fix can be
-used with the *start/stop* keywords of the :doc:`run <run>` command.
-This fix is not invoked during :doc:`energy minimization <minimize>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  The :doc:`fix_modify <fix_modify>` options relevant to this
+fix are listed below.  No global scalar or vector or per-atom quantities
+are stored by this fix for access by various :doc:`output commands
+<Howto_output>`.  No parameter of this fix can be used with the
+*start/stop* keywords of the :doc:`run <run>` command.  This fix is not
+invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-Thermal and two\_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. In addition, currently:
+Thermal and two\_temperature (coupling) types use a Verlet
+time-integration algorithm. The hardy type does not contain its own
+time-integrator and must be used with a separate fix that does contain
+one, e.g. nve, nvt, etc. In addition, currently:
 
 * the coupling is restricted to thermal physics
 * the FE computations are done in serial on each processor.
@@ -133,15 +142,18 @@ Thermal and two\_temperature (coupling) types use a Verlet time-integration algo
 Related commands
 """"""""""""""""
 
-After specifying this fix in your input script, several other :doc:`fix_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
+After specifying this fix in your input script, several other
+:doc:`fix_modify <fix_modify>` commands are used to setup the problem,
+e.g. define the finite element mesh and prescribe initial and boundary
+conditions.
 
 *fix\_modify* commands for setup:
 
-* `fix_modify AtC mesh create <USER/atc/man_mesh_create.html>`_
-* `fix_modify AtC mesh quadrature <USER/atc/man_mesh_quadrature.html>`_
-* `fix_modify AtC mesh read <USER/atc/man_mesh_read.html>`_
-* `fix_modify AtC mesh write <USER/atc/man_mesh_write.html>`_
-* `fix_modify AtC mesh create_nodeset <USER/atc/man_mesh_create_nodeset.html>`_
+* :doc:`fix_modify AtC mesh create <atc_mesh_create>`
+* :doc:`fix_modify AtC mesh quadrature <atc_mesh_quadrature>`
+* :doc:`fix_modify AtC mesh read <atc_mesh_read>`
+* :doc:`fix_modify AtC mesh write <atc_mesh_write>`
+* :doc:`fix_modify AtC mesh create_nodeset <atc_mesh_create_nodeset>`
 * `fix_modify AtC mesh add_to_nodeset <USER/atc/man_mesh_add_to_nodeset.html>`_
 * `fix_modify AtC mesh create_faceset box <USER/atc/man_mesh_create_faceset_box.html>`_
 * `fix_modify AtC mesh create_faceset plane <USER/atc/man_mesh_create_faceset_plane.html>`_

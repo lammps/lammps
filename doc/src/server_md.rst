@@ -60,7 +60,7 @@ forces, and pressure values from the server code.
 The format and content of the exchanged messages are explained here in
 a conceptual sense.  Python-style pseudo code for the library calls to
 the CSlib is shown, which performs the actual message exchange between
-the two codes.  See the `CSlib website <http://cslib.sandia.gov>`_ doc
+the two codes.  See the `CSlib website <https://cslib.sandia.gov>`_ doc
 pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 

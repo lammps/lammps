@@ -157,9 +157,9 @@ conditions.
 * :doc:`fix_modify AtC mesh add_to_nodeset <atc_mesh_add_to_nodeset>`
 * :doc:`fix_modify AtC mesh create_faceset box <atc_mesh_create_faceset_box>`
 * :doc:`fix_modify AtC mesh create_faceset plane <atc_mesh_create_faceset_plane>`
-* `fix_modify AtC mesh create_elementset <USER/atc/man_mesh_create_elementset.html>`_
-* `fix_modify AtC mesh delete_elements <USER/atc/man_mesh_delete_elements.html>`_
-* `fix_modify AtC mesh nodeset_to_elementset <USER/atc/man_mesh_nodeset_to_elementset.html>`_
+* :doc:`fix_modify AtC mesh create_elementset <atc_mesh_create_elementset>`
+* :doc:`fix_modify AtC mesh delete_elements <atc_mesh_delete_elements>`
+* :doc:`fix_modify AtC mesh nodeset_to_elementset <atc_mesh_nodeset_to_elementset>`
 * `fix_modify AtC boundary <USER/atc/man_boundary.html>`_
 * `fix_modify AtC internal_quadrature <USER/atc/man_internal_quadrature.html>`_
 * `fix_modify AtC time_integration (thermal) <USER/atc/man_thermal_time_integration.html>`_

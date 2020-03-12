@@ -412,7 +412,7 @@ your system.
 
    You can also download a tarball of the documentation for the
    current LAMMPS version (HTML and PDF files), from the website
-   `download page <http://lammps.sandia.gov/download.html>`_.
+   `download page <https://lammps.sandia.gov/download.html>`_.
 
 **CMake build option**\ :
 

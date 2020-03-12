@@ -11,14 +11,14 @@ University:
 * Richard Berger, richard.berger at temple.edu
 
 .. _sjp: http://www.cs.sandia.gov/~sjplimp
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov
 
 Past developers include Paul Crozier and Mark Stevens, both at Sandia,
 and Ray Shan, now at Materials Design.
 
 ----------
 
-The `Authors page <http://lammps.sandia.gov/authors.html>`_ of the
+The `Authors page <https://lammps.sandia.gov/authors.html>`_ of the
 `LAMMPS website <lws_>`_ has a comprehensive list of all the individuals
 who have contributed code for a new feature or command or tool to
 LAMMPS.
@@ -46,7 +46,7 @@ general-purpose as it is without their expertise and efforts.
 
 ----------
 
-As discussed on the `History page <http://lammps.sandia.gov/history.html>`_ of the website, LAMMPS
+As discussed on the `History page <https://lammps.sandia.gov/history.html>`_ of the website, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners.  Folks involved in the design and testing of the original
 version of LAMMPS were the following:

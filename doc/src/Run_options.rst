@@ -222,7 +222,7 @@ links with from the lib/message directory.  See the
 
 Disable writing the log.cite file which is normally written to list
 references for specific cite-able features used during a LAMMPS run.
-See the `citation page <http://lammps.sandia.gov/cite.html>`_ for more
+See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
 details.
 
 ----------

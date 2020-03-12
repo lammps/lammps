@@ -381,7 +381,7 @@ Generally speaking, the following rules of thumb apply:
 * When running on Intel hardware, KOKKOS is not as fast as
   the USER-INTEL package, which is optimized for that hardware.
 
-See the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 

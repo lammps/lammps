@@ -1801,13 +1801,10 @@ tools:
 
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
-* `AtomEye <atomeye_>`_ (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution)
 
 .. _ovito: http://www.ovito.org
 
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
-
-.. _atomeye: http://www.libatoms.org
 
 **Author:** Lars Pastewka (Karlsruhe Institute of Technology).
 

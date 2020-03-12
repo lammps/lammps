@@ -4,7 +4,7 @@ Reporting bugs
 If you are confident that you have found a bug in LAMMPS, please follow the steps outlined below:
 
  * Check the `New features and bug fixes
-   <http://lammps.sandia.gov/bug.html>`_ section of the `LAMMPS WWW site
+   <https://lammps.sandia.gov/bug.html>`_ section of the `LAMMPS WWW site
    <lws_>`_ to see if the bug has already been addressed in a patch.
  * Check that your issue can be reproduced with the latest development
    version of LAMMPS.
@@ -14,7 +14,7 @@ If you are confident that you have found a bug in LAMMPS, please follow the step
    if your issue has already been reported and if it is still open.
  * Check the `GitHub Pull Requests page <https://github.com/lammps/pulls>`_
    if there is already a fix for your bug pending.
- * Check the `mailing list archives <http://lammps.sandia.gov/mail.html>`_
+ * Check the `mailing list archives <https://lammps.sandia.gov/mail.html>`_
    to see if the issue has been discussed before.
 
 If none of these steps yields any useful information, please file
@@ -41,5 +41,5 @@ is overlooked and then forgotten.  Issues on GitHub have to be explicitly
 closed, so that will *guarantee* that at least one LAMMPS developer will
 have looked at it.
 
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov
 .. _gip: https://github.com/lammps/issues

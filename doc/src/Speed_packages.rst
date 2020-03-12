@@ -145,7 +145,7 @@ sub-directories with Make.py commands and input scripts for using all
 the accelerator packages on various machines.  See the README files in
 those directories.
 
-As mentioned above, the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
+As mentioned above, the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
 performance results for the various accelerator packages for several
 of the standard LAMMPS benchmark problems, as a function of problem
 size and number of compute nodes, on different hardware platforms.

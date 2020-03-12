@@ -122,7 +122,7 @@ Option 1: Downloading LAMMPS tarball using wget
 
 .. code-block:: bash
 
-   wget http://lammps.sandia.gov/tars/lammps-stable.tar.gz
+   wget https://lammps.sandia.gov/tars/lammps-stable.tar.gz
    tar xvzf lammps-stable.tar.gz
    cd lammps-31Mar17
 

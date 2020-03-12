@@ -127,8 +127,8 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * `doc/PDF/pair\_resquared\_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
 * examples/ellipse
-* http://lammps.sandia.gov/movies.html#line
-* http://lammps.sandia.gov/movies.html#tri
+* https://lammps.sandia.gov/movies.html#line
+* https://lammps.sandia.gov/movies.html#tri
 
 ----------
 
@@ -322,7 +322,7 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
 
@@ -348,11 +348,11 @@ potentials.
 * examples/granregion
 * examples/pour
 * bench/in.chute
-* http://lammps.sandia.gov/pictures.html#jamming
-* http://lammps.sandia.gov/movies.html#hopper
-* http://lammps.sandia.gov/movies.html#dem
-* http://lammps.sandia.gov/movies.html#brazil
-* http://lammps.sandia.gov/movies.html#granregion
+* https://lammps.sandia.gov/pictures.html#jamming
+* https://lammps.sandia.gov/movies.html#hopper
+* https://lammps.sandia.gov/movies.html#dem
+* https://lammps.sandia.gov/movies.html#brazil
+* https://lammps.sandia.gov/movies.html#granregion
 
 ----------
 
@@ -461,7 +461,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
 
@@ -581,7 +581,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix gcmc <fix_gcmc>`
 * :doc:`pair_style dsmc <pair_dsmc>`
-* http://lammps.sandia.gov/movies.html#gcmc
+* https://lammps.sandia.gov/movies.html#gcmc
 
 ----------
 
@@ -638,8 +638,8 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`fix viscosity <fix_viscosity>`
 * examples/KAPPA
 * examples/VISCOSITY
-* http://lammps.sandia.gov/pictures.html#ttm
-* http://lammps.sandia.gov/movies.html#evaporation
+* https://lammps.sandia.gov/pictures.html#ttm
+* https://lammps.sandia.gov/movies.html#evaporation
 
 ----------
 
@@ -759,7 +759,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`Speed opt <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
 
@@ -790,7 +790,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
-* http://lammps.sandia.gov/movies.html#peri
+* https://lammps.sandia.gov/movies.html#peri
 
 ----------
 
@@ -929,8 +929,8 @@ Also several computes which calculate properties of rigid bodies.
 * examples/ASPHERE
 * examples/rigid
 * bench/in.rhodo
-* http://lammps.sandia.gov/movies.html#box
-* http://lammps.sandia.gov/movies.html#star
+* https://lammps.sandia.gov/movies.html#box
+* https://lammps.sandia.gov/movies.html#star
 
 ----------
 
@@ -1029,9 +1029,9 @@ colloidal particles.
 * :doc:`fix wall/srd <fix_wall_srd>`
 * examples/srd
 * examples/ASPHERE
-* http://lammps.sandia.gov/movies.html#tri
-* http://lammps.sandia.gov/movies.html#line
-* http://lammps.sandia.gov/movies.html#poly
+* https://lammps.sandia.gov/movies.html#tri
+* https://lammps.sandia.gov/movies.html#line
+* https://lammps.sandia.gov/movies.html#poly
 
 ----------
 
@@ -1123,7 +1123,7 @@ This package has :ref:`specific installation instructions <user-atc>` on the :do
 * src/USER-ATC/README
 * :doc:`fix atc <fix_atc>`
 * examples/USER/atc
-* http://lammps.sandia.gov/pictures.html#atc
+* https://lammps.sandia.gov/pictures.html#atc
 
 ----------
 
@@ -1236,7 +1236,7 @@ acids.
 * :doc:`pair_style lj/sdk/\* <pair_sdk>`
 * :doc:`angle_style sdk <angle_sdk>`
 * examples/USER/cgsdk
-* http://lammps.sandia.gov/pictures.html#cg
+* https://lammps.sandia.gov/pictures.html#cg
 
 ----------
 
@@ -1433,7 +1433,7 @@ tools/eff; see its README file.
 * examples/USER/eff
 * tools/eff/README
 * tools/eff
-* http://lammps.sandia.gov/movies.html#eff
+* https://lammps.sandia.gov/movies.html#eff
 
 ----------
 
@@ -1541,7 +1541,7 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/USER-INTEL/TEST
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
 
@@ -1646,7 +1646,7 @@ Waltham, MA, USA)
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * examples/USER/manifold
-* http://lammps.sandia.gov/movies.html#manifold
+* https://lammps.sandia.gov/movies.html#manifold
 
 ----------
 
@@ -1702,7 +1702,7 @@ algorithm.
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/mesodpd
-* http://lammps.sandia.gov/movies.html#mesodpd
+* https://lammps.sandia.gov/movies.html#mesodpd
 
 ----------
 
@@ -1874,7 +1874,7 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
 
@@ -2185,7 +2185,7 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 * src/USER-SMD/README
 * doc/PDF/SMD\_LAMMPS\_userguide.pdf
 * examples/USER/smd
-* http://lammps.sandia.gov/movies.html#smd
+* https://lammps.sandia.gov/movies.html#smd
 
 ----------
 
@@ -2242,7 +2242,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * src/USER-SPH/README
 * doc/PDF/SPH\_LAMMPS\_userguide.pdf
 * examples/USER/sph
-* http://lammps.sandia.gov/movies.html#sph
+* https://lammps.sandia.gov/movies.html#sph
 
 ----------
 

@@ -27,6 +27,6 @@ snapshots.
 
 .. _pizza: https://pizza.sandia.gov
 
-.. _ensight: http://www.ensight.com
+.. _ensight: https://daac.hpc.mil/software/EnSight/
 
 .. _atomeye: http://li.mit.edu/Archive/Graphics/A/

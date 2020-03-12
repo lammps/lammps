@@ -25,7 +25,7 @@ RasMol visualization programs.  Pizza.py has tools that do interactive
 3d OpenGL visualization and one that creates SVG images of dump file
 snapshots.
 
-.. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
+.. _pizza: https://pizza.sandia.gov
 
 .. _ensight: http://www.ensight.com
 

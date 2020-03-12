@@ -221,7 +221,7 @@ individual values and the file itself.
 The *atom*\ , *local*\ , and *custom* styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Some of the
 LAMMPS post-processing tools described on the :doc:`Tools <Tools>` doc
-page, including `Pizza.py <http://www.sandia.gov/~sjplimp/pizza.html>`_,
+page, including `Pizza.py <https://pizza.sandia.gov>`_,
 work with this format, as does the :doc:`rerun <rerun>` command.
 
 For post-processing purposes the *atom*\ , *local*\ , and *custom* text

@@ -124,7 +124,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
     Ef[2][2] = h_rate[2]/domain->zprd;
     Ef[0][1] = Ef[1][0] = 0.5 * h_rate[5]/domain->yprd;
     Ef[0][2] = Ef[2][0] = 0.5 * h_rate[4]/domain->zprd;
-    Ef[1][2] = Ef[2][1] = 0.5 * h_rate[3]/domain->zprd;
+    Ef[1][2] = Ef[2][1] = 0.5 * h_rate[3]/domain->xprd;
 
     // copy updated omega to the ghost particles
     // no need to do this if not shearing since comm->ghost_velocity is set

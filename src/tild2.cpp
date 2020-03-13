@@ -2332,6 +2332,86 @@ void TILD::accumulate_gradient() {
   }
 }
 
+
+// void TILD::accumulate_gradient() {
+//   int Dim = domain->dimension;
+//   double rho0;
+//   int n = 0;
+//   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+//   output->thermo->evaluate_keyword("density", &rho0);
+//   bool do_fft = false;
+//   double temp_param;
+
+//   for (int k = 0; k < group->ngroup; k++)
+//     for (int i = 0; i < Dim; i++)
+//       memset(&(gradWgroup[k][i][nzlo_out][nylo_out][nxlo_out]), 0,
+//              ngrid * sizeof(FFT_SCALAR));
+
+//   for (int i = 0; i < group->ngroup; i++) {
+//     do_fft = false;
+//     for (int j = 0; j < group->ngroup; j++) {
+//       if (fabs(chi_values[i][j]) != 0) {
+//         do_fft = true;
+//         break;
+//       }
+//     }
+
+//     if (do_fft) {
+//       n = 0;
+
+//       // Preparing the density for convolution
+//       for (int k = 0; k < nfft; k++) {
+//         work1[n++] = density_fft_types[i][k];
+//         work1[n++] = ZEROF;
+//       }
+
+//       // FFT the density to k-space
+//       fft1->compute(work1, work1, 1);
+
+//       n = 0;
+//       for (int k = 0; k < nfft; k++) {
+//         work1[n++] *= scale_inv;
+//         work1[n++] *= scale_inv;
+//       }
+
+//       if (eflag_global || vflag_global) {
+//         ev_calculation(i);
+//       }
+
+//       // Convolve the grad wth density
+//       for (int j = 0; j < Dim; j++) {
+//         n = 0;
+
+//         for (int k = 0; k < nfft; k++) {
+//           complex_multiply(grad_uG_hat[j], work1, ktmp2, n);
+//           n += 2;
+//         }
+
+//         fft2->compute(ktmp2, ktmp, -1);
+
+//         // Gradient calculation and application
+//         for (int i2 = 0; i2 < group->ngroup; i2++) {
+//           if (fabs(chi_values[i][i2]) != 0) {
+//             if (normalize_by_rho0 == 1 ) temp_param = chi_values[i][i2] / rho0;
+//             else temp_param = chi_values[i][i2];
+//             n = 0;
+//             for (int k = nzlo_in; k <= nzhi_in; k++)
+//               for (int m = nylo_in; m <= nyhi_in; m++)
+//                 for (int o = nxlo_in; o <= nxhi_in; o++) {
+//                   if (rho0 == 0 || rho0 != rho0) {
+//                     std::cout << rho0 << std::endl;
+//                     error->all(FLERR, "WEIRD DENSITY");
+//                   }
+//                   gradWgroup[i2][j][k][m][o] += ktmp[n] * temp_param;
+//                   n += 2;
+//                 }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
 void TILD::fieldforce_param(){
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;

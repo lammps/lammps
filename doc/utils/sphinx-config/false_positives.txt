@@ -1382,6 +1382,7 @@ Khvostov
 Ki
 Kikugawa
 kim
+kinetostats
 kJ
 kk
 Klahn
@@ -2759,6 +2760,8 @@ Stukowski
 Su
 subbox
 subcutoff
+subcycle
+subcycling
 Subramaniyan
 subscripted
 subscripting

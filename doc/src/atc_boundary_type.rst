@@ -25,7 +25,9 @@ Examples
 Description
 """""""""""
 
-Command to define the atoms that represent the ficticious boundary internal to the FE mesh. For fully overlapped MD/FE domains with periodic boundary conditions no boundary atoms should be defined.
+Command to define the atoms that represent the fictitious boundary
+internal to the FE mesh. For fully overlapped MD/FE domains with
+periodic boundary conditions no boundary atoms should be defined.
 
 Restrictions
 """"""""""""

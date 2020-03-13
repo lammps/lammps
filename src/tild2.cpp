@@ -2548,7 +2548,7 @@ void TILD::ev_calculation(int den_group) {
   
   double same_group_factor, off_diag_factor, factor, factor2;
   for (int i2 = den_group; i2 < group->ngroup; i2++) {
-    if (fabs(chi_values[den_group][i2]) >= 1e-10) {
+    if (fabs(chi_values[den_group][i2]) != 0) {
       if (den_group == igroup1 && i2 == igroup1) {
         // Store the reduced all group
         dummy = tmp;

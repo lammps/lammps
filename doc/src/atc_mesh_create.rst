@@ -36,7 +36,8 @@ Creates only uniform rectangular grids in a rectangular region
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh quadrature <atc_mesh_quadrature>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC mesh quadrature <atc_mesh_quadrature>`
 
 Default
 """""""

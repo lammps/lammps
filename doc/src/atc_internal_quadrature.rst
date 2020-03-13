@@ -35,6 +35,11 @@ Optional region tag specifies which finite element nodes will be treated
 as being within the MD region. This option is only valid with
 internal_quadrature off.
 
+Related AtC commands
+""""""""""""""""""""
+
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+
 Default
 """""""
 

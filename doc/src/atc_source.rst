@@ -39,7 +39,8 @@ The keyword *all* is reserved and thus not available as element_set name.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC remove_source <atc_remove_source>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC remove_source <atc_remove_source>`
 
 Default
 """""""

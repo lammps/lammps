@@ -68,7 +68,8 @@ They are ignored if a lumped solution is requested.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC control thermal <atc_control_thermal>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC control thermal <atc_control_thermal>`
 
 Default
 """""""

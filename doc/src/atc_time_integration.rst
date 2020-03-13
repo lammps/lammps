@@ -66,10 +66,11 @@ Restrictions
 
 None.
 
-Related commands
-""""""""""""""""
 
-:doc:`fix atc <fix_atc>`
+Related AtC commands
+""""""""""""""""""""
+
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
 
 Default
 """""""

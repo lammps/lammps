@@ -36,6 +36,7 @@ Only viable for rectangular grids.
 Related AtC commands
 """"""""""""""""""""
 
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
 - :doc:`fix_modify AtC mesh delete_elements <atc_mesh_delete_elements>`
 - :doc:`fix_modify AtC mesh nodeset_to_elementset <atc_mesh_nodeset_to_elementset>`
 

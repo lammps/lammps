@@ -36,7 +36,8 @@ None
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh add_to_nodeset <atc_mesh_add_to_nodeset>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC mesh add_to_nodeset <atc_mesh_add_to_nodeset>`
 
 Default
 """""""

@@ -40,6 +40,7 @@ None.
 Related AtC commands
 """"""""""""""""""""
 
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
 - :doc:`fix_modify AtC mesh create_elementset <atc_mesh_create_elementset>`
 - :doc:`fix_modify AtC mesh delete_elements <atc_mesh_delete_elements>`
 

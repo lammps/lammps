@@ -38,6 +38,11 @@ Restrictions
 For use only with the two_temperature type of the AtC fix (see
 :doc:`fix atc <fix_atc>` command)
 
+Related AtC commands
+""""""""""""""""""""
+
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+
 Default
 """""""
 

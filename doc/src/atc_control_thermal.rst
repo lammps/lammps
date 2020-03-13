@@ -75,7 +75,8 @@ the fractional step method.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC control momentum <atc_control_momentum>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC control momentum <atc_control_momentum>`
 
 Default
 """""""

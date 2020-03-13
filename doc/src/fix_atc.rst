@@ -139,6 +139,8 @@ one, e.g. nve, nvt, etc. In addition, currently:
 * the coupling is restricted to thermal physics
 * the FE computations are done in serial on each processor.
 
+.. _atc_fix_modify:
+
 Related commands
 """"""""""""""""
 
@@ -181,7 +183,7 @@ conditions.
 
 * :doc:`fix_modify AtC control thermal <atc_control_thermal>`
 * :doc:`fix_modify AtC control momentum <atc_control_momentum>`
-* `fix_modify AtC control localized_lambda <USER/atc/man_localized_lambda.html>`_
+* :doc:`fix_modify AtC control localized_lambda <atc_control_localized_lambda>`
 * `fix_modify AtC control lumped_lambda_solve <USER/atc/man_lumped_lambda_solve.html>`_
 * `fix_modify AtC control mask_direction <USER/atc/man_mask_direction.html>`_ control
 * `fix_modify AtC filter <USER/atc/man_time_filter.html>`_

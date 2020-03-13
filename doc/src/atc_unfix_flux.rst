@@ -36,7 +36,8 @@ None.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC fix_flux <atc_fix_flux>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC fix_flux <atc_fix_flux>`
 
 Default
 """""""

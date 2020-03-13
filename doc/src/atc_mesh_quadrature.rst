@@ -36,7 +36,8 @@ None.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh create <atc_mesh_create>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC mesh create <atc_mesh_create>`
 
 Default
 """""""

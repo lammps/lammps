@@ -35,7 +35,8 @@ The keyword *all* is reserved and thus not available as nodeset name.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC fix <atc_fix>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC fix <atc_fix>`
 
 Default
 """""""

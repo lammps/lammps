@@ -39,7 +39,8 @@ Only viable for rectangular grids.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh create_faceset box <atc_mesh_create_faceset_box>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC mesh create_faceset box <atc_mesh_create_faceset_box>`
 
 Default
 """""""

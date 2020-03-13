@@ -39,7 +39,8 @@ Only normal fluxes (Neumann data) can be prescribed.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC unfix_flux <atc_unfix_flux>`
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
+- :doc:`fix_modify AtC unfix_flux <atc_unfix_flux>`
 
 Default
 """""""

@@ -42,6 +42,7 @@ reneighbor frequency.
 Related AtC commands
 """"""""""""""""""""
 
+- :ref:`fix_modify AtC command overview <atc_fix_modify>`
 - :doc:`fix_modify AtC atom_element_map <atc_atom_element_map>`
 - :doc:`fix_modify AtC boundary type <atc_boundary_type>`
 

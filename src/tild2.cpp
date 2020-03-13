@@ -334,10 +334,11 @@ void TILD::setup(){
     }
   }
 
-  memory->create(potent_map, npot,npot, "tild:potent_map");
+  memory->create(potent_map, potent_with_params.size(),potent_with_params.size(), "tild:potent_map");
+
   int k = 0;
-  for (int i = 0; i < npot; i++) {
-    for (int j = 0; j < npot; j++) {
+  for (vector<tuple<int, int, vector<double>>>::size_type i = 0; i < potent_with_params.size(); i++) {
+    for (vector<tuple<int, int, vector<double>>>::size_type j = 0; j < potent_with_params.size(); j++) {
       potent_map[i][j] = k++;
       if (i != j) potent_map[i][j] = potent_map[j][i];
     }
@@ -594,6 +595,9 @@ void TILD::allocate()
   memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim-1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWgroup");
+  memory->create5d_offset(gradWpotential,types_and_potentials.size(), 0, Dim-1,
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWpotential");
 
   memory->create(density_fft,nfft_both,"pppm:density_fft");
   memory->create(greensfn,nfft_both,"pppm:greensfn");
@@ -609,7 +613,8 @@ void TILD::allocate()
   memory->create(groupbits, group->ngroup, "tild:groupbits");
   memory->create(grad_uG,domain->dimension,nfft,"pppm:grad_uG");
   memory->create(grad_uG_hat,domain->dimension,2*nfft_both,"pppm:grad_uG_hat");
-  memory->create(density_fft_types, group->ngroup, nfft_both, "pppm/tild:density_fft_types");
+  memory->create(density_fft_types, types_and_potentials.size(), nfft_both, "pppm/tild:density_fft_types");
+  memory->create(density_of_potentials_fft_ed, potent_with_params.size(), nfft_both, "pppm/tild:density_of_potentials_fft_ed");
   memory->create(potent,npot*(npot+1)/2,nfft_both,"pppm:potent");
   memory->create(potent_hat,npot*(npot+1)/2,2*nfft_both,"pppm:potent_hat");
   memory->create(grad_potent,npot*(npot+1)/2,domain->dimension,nfft_both,"pppm:grad_potent");
@@ -1132,18 +1137,22 @@ void TILD::init_cross_potentials(){
 
   double vole; // Note: the factor of V comes from the FFT
   output->thermo->evaluate_keyword("vol",&vole);
-  for (int ind1 = 0; ind1 < npot; ind1++){
-    for (int ind2 = ind1; ind2 < npot; ind1++){
+  for (vector<tuple<int, int, vector<double>>>::size_type ind1 = 0; ind1 < potent_with_params.size(); ind1++){
+    for (vector<tuple<int, int, vector<double>>>::size_type ind2 = ind1; ind2 < potent_with_params.size(); ind2++){
       // If both parameters are Gaussian, just do analytical convolution
-      if (potent_param[pot_map[ind1]][0] == 1 && 
-          potent_param[pot_map[ind2]][0] == 1){
+      if (get<1>(potent_with_params[ind1]) == 1 && 
+          get<1>(potent_with_params[ind2]) == 1){
             double a1_sq = potent_param[pot_map[ind1]][1];
+            double a1_sq_alt = get<2>(potent_with_params[ind1])[0];
               a1_sq *= a1_sq;
+              a1_sq_alt *= a1_sq_alt;
             double a2_sq = potent_param[pot_map[ind2]][1];
               a2_sq *= a2_sq;
+            double a2_sq_alt = get<2>(potent_with_params[ind2])[0];
+              a2_sq_alt *= a2_sq_alt;
             double a12_sq = a1_sq + a2_sq;
-        double pref = vole / (pow( sqrt(2.0 *PI * (a12_sq) ), Dim));
-        init_potential(potent[potent_map[ind1][ind2]], 1, &a12_sq);
+            double a12_sq_alt = a1_sq_alt + a2_sq_alt;
+        init_potential(potent[potent_map[ind1][ind2]], 1, &a12_sq_alt);
 
       } 
       else {
@@ -1154,7 +1163,8 @@ void TILD::init_cross_potentials(){
         int loc = potent_map[ind1][ind2];
 
         // 1st Potential to be convolved
-        init_potential(tmp,potent_param[pot_map[ind1]][0], param1 );
+        init_potential(tmp, potent_with_params[pot_map[ind1]]);
+        // init_potential(tmp,potent_param[pot_map[ind1]][0], param1 );
 
         int j = 0;
         for (int i = 0; i < nfft; i++) {
@@ -1169,7 +1179,8 @@ void TILD::init_cross_potentials(){
         }
 
         // 2nd Potential to be convolved
-        init_potential(tmp,potent_param[pot_map[ind2]][0], param2 );
+        init_potential(tmp, potent_with_params[pot_map[ind1]]);
+        // init_potential(tmp,potent_param[pot_map[ind2]][0], param2 );
 
         j = 0;
         for (int i = 0; i < nfft; i++) {
@@ -1712,6 +1723,17 @@ int TILD::modify_param(int narg, char** arg)
                    "all group specified in 'group1 group2 chi_values' format");
 
       chi_values[igroup1][igroup2] = chi_values[igroup2][igroup1] = atof(arg[3]);
+
+      expanded_chi_interactions.push_back(
+          std::make_tuple(igroup1, igroup2, atof(arg[3]),
+                          identify_potential_for_type(igroup1),
+                          identify_potential_for_type(igroup2)));
+      if (igroup1 != igroup2) {
+        expanded_chi_interactions.push_back(
+            std::make_tuple(igroup2, igroup1, atof(arg[3]),
+                            identify_potential_for_type(igroup2),
+                            identify_potential_for_type(igroup1)));
+      }
     }
   } else if (strcmp(arg[0], "tild/total") == 0) {
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
@@ -1736,6 +1758,8 @@ int TILD::modify_param(int narg, char** arg)
       chi_values[0][0] = atof(arg[1]);
   } else if (strcmp(arg[0], "tild/create_potential") == 0) {
       int loc = atoi(arg[1]);
+      int temp_potential_type;
+      vector<double> temp_params;
       if (strcmp(arg[2], "CLEAR") == 0){
         if (potent_param[loc][0] != 0) {
           npot--;
@@ -1752,23 +1776,31 @@ int TILD::modify_param(int narg, char** arg)
       }
       if (strcmp(arg[2], "Gaussian") == 0) {
         potent_param[loc][0] = 1;
+        temp_potential_type = 1;
         potent_param[loc][1] = atof(arg[3]);
+        temp_params.push_back(atof(arg[3]));
         for (int i = 2; i < MAXPARAM; i++) potent_param[loc][i] = ZEROF;
         npot++;
       }
       else if (strcmp(arg[2], "Sphere") == 0) {
         potent_param[loc][0] = 2;
+        temp_potential_type = 2;
         potent_param[loc][1] = atof(arg[3]);
         potent_param[loc][2] = atof(arg[4]);
+        temp_params.push_back(atof(arg[3]));
+        temp_params.push_back(atof(arg[4]));
         for (int i = 3; i < MAXPARAM; i++) potent_param[loc][i] = ZEROF;
         npot++;
       }
+      potent_with_params.push_back(make_tuple(loc,temp_potential_type,temp_params));
+
    } else if (strcmp(arg[0], "tild/assign_potential") == 0) {
      // This refers to which value in potent_param the particle belongs
     if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
       int potent_num = atof(arg[1]);
       for (int i = 2; i < narg; i++){
-        assigned_pot[atoi(arg[i])] = i;
+        assigned_pot[atoi(arg[i])] = potent_num;
+        types_and_potentials.push_back(make_pair(atoi(arg[i]), potent_num));
       }
   } else if (strcmp(arg[0], "tild/gauss_a2") == 0) {
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");

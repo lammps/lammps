@@ -827,6 +827,7 @@ etol
 etot
 etotal
 Eulerian
+eulerian
 eulerimplicit
 Europhys
 ev

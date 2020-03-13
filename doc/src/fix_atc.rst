@@ -165,13 +165,13 @@ conditions.
 * :doc:`fix_modify AtC time_integration <atc_time_integration>`
 * :doc:`fix_modify AtC extrinsic electron_integration <atc_electron_integration>`
 * :doc:`fix_modify AtC internal_element_set <atc_internal_element_set>`
-* `fix_modify AtC decomposition <USER/atc/man_decomposition.html>`_
+* :doc:`fix_modify AtC decomposition <atc_decomposition>`
 
 *fix_modify* commands for boundary and initial conditions:
 
-* `fix_modify AtC initial <USER/atc/man_initial.html>`_
-* `fix_modify AtC fix <USER/atc/man_fix_nodes.html>`_
-* `fix_modify AtC unfix <USER/atc/man_unfix_nodes.html>`_
+* :doc:`fix_modify AtC initial <atc_initial>`
+* :doc:`fix_modify AtC fix <atc_fix>`
+* :doc:`fix_modify AtC unfix <atc_unfix>`
 * `fix_modify AtC fix_flux <USER/atc/man_fix_flux.html>`_
 * `fix_modify AtC unfix_flux <USER/atc/man_unfix_flux.html>`_
 * `fix_modify AtC source <USER/atc/man_source.html>`_

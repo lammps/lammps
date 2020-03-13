@@ -452,6 +452,34 @@ void TILD::setup_grid()
   setup();
 }
 
+void TILD::precompute_density_fft() {
+  int n = 0;
+  double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+
+  for (vector<tuple<int, int, vector<double>>>::size_type k = 0; k < potent_with_params.size(); k++) {
+    memset(&(density_of_potentials_fft_ed[k][0]), 0,
+           ngrid * sizeof(FFT_SCALAR));
+  }
+
+  for (vector<pair<int, int>>::size_type i = 0; i < types_and_potentials.size(); i++) {
+    for (int k = 0; k < nfft; k++) {
+      work1[n++] = density_fft_types[i][k];
+      work1[n++] = ZEROF;
+    }
+
+    // FFT the density to k-space
+    fft1->compute(work1, work1, 1);
+
+    n = 0;
+    for (int k = 0; k < nfft; k++) {
+      work1[n] *= scale_inv;
+      density_of_types_fft_ed[identify_potential_for_type(i)][n++] += work1[n];
+      work1[n] *= scale_inv;
+      density_of_types_fft_ed[identify_potential_for_type(i)][n++] += work1[n];
+    }
+  }
+}
+
 void TILD::compute(int eflag, int vflag){
 
   double density;
@@ -2705,4 +2733,88 @@ void TILD::ev_calculation(int den_group) {
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+  Calculates the rho0 needed for this system instead of the rho0 that 
+  comes from the particle densities. 
+------------------------------------------------------------------------- */
+double TILD::calculate_rho0(){
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  int ngroups = group->ngroup;
+  int particles_not_tild = 0;
+  vector<int> count_per_group (types_and_potentials.size(),0);
+  int k;
+  double local_rho0 = 0;
+  int temp1, temp2;
+  double lmass = 0, lmass_all = 0;
+  double *mass = atom->mass;
+  for (k = start_group_ind; k < ngroups; k++) groupbits[k] = group->bitmask[k];
+
+  for (int i = 0; i < nlocal; i++) {
+    auto itr = std::find_if(types_and_potentials.cbegin(),
+                            types_and_potentials.cend(),
+                            [&i, &type](std::pair<int, int> const &types_and_potentials) { return types_and_potentials.first == type[i]; });
+
+    if (itr != types_and_potentials.cend()) {
+      count_per_group[distance(types_and_potentials.cbegin(), itr)] += 1;
+    } else {
+      particles_not_tild++;
+    }
+  }
+
+  if (screen) {
+    fprintf(screen, "Unable to find a potential for %d particles.", particles_not_tild);
+  }
+  if (logfile) {
+    fprintf(logfile, "Unable to find a potential for %d particles.", particles_not_tild);
+  }
+
+  for (vector<pair<int, int>>::size_type index = 0;
+       index < types_and_potentials.size();
+       ++index) 
+       {
+         if (mass[types_and_potentials[index].first] == 0) continue;
+    if (get<1>(potent_with_params[types_and_potentials[index].second]) == 1) {
+      lmass += count_per_group[types_and_potentials[index].second] *
+               mass[types_and_potentials[index].first];
+    } else if (get<1>(potent_with_params[types_and_potentials[index].second]) == 2) {
+      double radius = get<2>(potent_with_params[types_and_potentials[index].second])[1];
+      lmass += count_per_group[types_and_potentials[index].second] *
+               mass[types_and_potentials[index].first] * 4.0 * PI / 3 * radius * radius * radius;
+    }
+  }
+  MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
+
+  double vole;
+  output->thermo->evaluate_keyword("vol",&vole);
+  rho0 = lmass_all / vole;
+  return rho0;
+}
+
+int TILD::identify_potential_for_type(int particle_type){
+  return identify_potential_for_type(particle_type, true);
+}
+
+int TILD::identify_potential_for_type(int particle_type, bool print_error){
+
+  auto itr = std::find_if( types_and_potentials.cbegin(), 
+                           types_and_potentials.cend(), 
+                           [&particle_type](std::pair<int, int> const &types_and_potentials) 
+                           { return types_and_potentials.first == particle_type; }
+                           );
+
+  if (itr != types_and_potentials.cend()) {
+	  return distance(types_and_potentials.cbegin(), itr);
+	}
+	else if (print_error) {
+    char str[128];
+    sprintf(str,"Unable to find a potential for type %d",particle_type);
+    error->all(FLERR,str);
+	}
+	return -1;
+
 }

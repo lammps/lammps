@@ -2655,114 +2655,114 @@ inline void TILD::complex_multiply(double *in1,double  *in2, int n){
 }
 
 void TILD::ev_calculation(int den_group) {
-  int n = 0;
-  double eng;
-  double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
-  double s2 = scale_inv * scale_inv;
-  double rho0;
-  FFT_SCALAR *dummy, *wk2;
-  output->thermo->evaluate_keyword("density", &rho0);
-  int igroup1 = group->find("all");
+  // int n = 0;
+  // double eng;
+  // double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
+  // double s2 = scale_inv * scale_inv;
+  // double rho0;
+  // FFT_SCALAR *dummy, *wk2;
+  // output->thermo->evaluate_keyword("density", &rho0);
+  // int igroup1 = group->find("all");
 
-  // Determine if working with the all group
-  if (den_group == igroup1){
-    n=0;
-      for (int k = 0; k < nfft; k++) {
-        work2[n++] = density_fft_types[den_group][k] ;
-        tmp[k]     = density_fft_types[den_group][k] ;
-        work2[n++] = ZEROF;
-      }
-    fft1->compute(work2,work2,1);
+  // // Determine if working with the all group
+  // if (den_group == igroup1){
+  //   n=0;
+  //     for (int k = 0; k < nfft; k++) {
+  //       work2[n++] = density_fft_types[den_group][k] ;
+  //       tmp[k]     = density_fft_types[den_group][k] ;
+  //       work2[n++] = ZEROF;
+  //     }
+  //   fft1->compute(work2,work2,1);
 
-    n=0;
-    for (int k = 0; k < nfft; k++) {
-      work2[n++] *= scale_inv;
-      work2[n++] *= scale_inv;
-    }
+  //   n=0;
+  //   for (int k = 0; k < nfft; k++) {
+  //     work2[n++] *= scale_inv;
+  //     work2[n++] *= scale_inv;
+  //   }
 
-    wk2 = work2;
-  } else { // Else not the all group
-    wk2 = work1;
-  }
+  //   wk2 = work2;
+  // } else { // Else not the all group
+  //   wk2 = work1;
+  // }
 
-  // Determine if working with the all group
-  if (den_group == igroup1 && subtract_rho0 == 1){
-    n=0;
-      for (int k = 0; k < nfft; k++) {
-        work2[n++] = tmp[k] = density_fft_types[den_group][k] - rho0;
-        work2[n++] = ZEROF;
-      }
-    fft1->compute(work2,work2,1);
+  // // Determine if working with the all group
+  // if (den_group == igroup1 && subtract_rho0 == 1){
+  //   n=0;
+  //     for (int k = 0; k < nfft; k++) {
+  //       work2[n++] = tmp[k] = density_fft_types[den_group][k] - rho0;
+  //       work2[n++] = ZEROF;
+  //     }
+  //   fft1->compute(work2,work2,1);
 
-    n=0;
-    for (int k = 0; k < nfft; k++) {
-      work2[n++] *= scale_inv;
-      work2[n++] *= scale_inv;
-    }
+  //   n=0;
+  //   for (int k = 0; k < nfft; k++) {
+  //     work2[n++] *= scale_inv;
+  //     work2[n++] *= scale_inv;
+  //   }
 
-    wk2 = work2;
-  } else { // Else not the all group
-    wk2 = work1;
-  }
+  //   wk2 = work2;
+  // } else { // Else not the all group
+  //   wk2 = work1;
+  // }
 
 
-  // Convolve uG_hat with fft(den_group)
-  n = 0;
-  for (int k = 0; k < nfft; k++) {
-    complex_multiply(uG_hat, wk2, ktmp2, n);
-    n += 2;
-  }
-  // IFFT the convolution
-  fft1->compute(ktmp2, ktmp2, -1);
+  // // Convolve uG_hat with fft(den_group)
+  // n = 0;
+  // for (int k = 0; k < nfft; k++) {
+  //   complex_multiply(uG_hat, wk2, ktmp2, n);
+  //   n += 2;
+  // }
+  // // IFFT the convolution
+  // fft1->compute(ktmp2, ktmp2, -1);
 
   
-  double same_group_factor, off_diag_factor, factor, factor2;
-  for (int i2 = den_group; i2 < group->ngroup; i2++) {
-    if (fabs(chi_values[den_group][i2]) != 0) {
-      if (den_group == igroup1 && i2 == igroup1) {
-        // Store the reduced all group
-        dummy = tmp;
-        same_group_factor = 1.0;
-        if (den_group == igroup1 && subtract_rho0 ==1 ) dummy = tmp;
-        else dummy = density_fft_types[i2];
-      } else {
-        dummy = density_fft_types[i2];
-        same_group_factor = 2.0;
-        dummy = density_fft_types[i2];
-      }
+  // double same_group_factor, off_diag_factor, factor, factor2;
+  // for (int i2 = den_group; i2 < group->ngroup; i2++) {
+  //   if (fabs(chi_values[den_group][i2]) != 0) {
+  //     if (den_group == igroup1 && i2 == igroup1) {
+  //       // Store the reduced all group
+  //       dummy = tmp;
+  //       same_group_factor = 1.0;
+  //       if (den_group == igroup1 && subtract_rho0 ==1 ) dummy = tmp;
+  //       else dummy = density_fft_types[i2];
+  //     } else {
+  //       dummy = density_fft_types[i2];
+  //       same_group_factor = 2.0;
+  //       dummy = density_fft_types[i2];
+  //     }
 
-      if (normalize_by_rho0 == 1) {
-        factor = chi_values[den_group][i2] / rho0 / delvolinv * same_group_factor * 0.5;
-      } else {
-        factor = chi_values[den_group][i2] / delvolinv * same_group_factor * 0.5;
-      }
+  //     if (normalize_by_rho0 == 1) {
+  //       factor = chi_values[den_group][i2] / rho0 / delvolinv * same_group_factor * 0.5;
+  //     } else {
+  //       factor = chi_values[den_group][i2] / delvolinv * same_group_factor * 0.5;
+  //     }
 
-      if (eflag_global) {
-        n = 0;
-        for (int k = 0; k < nfft; k++) {
-          energy += ktmp2[n] * dummy[k] *factor;
-          n += 2;
-        }
-      }
+  //     if (eflag_global) {
+  //       n = 0;
+  //       for (int k = 0; k < nfft; k++) {
+  //         energy += ktmp2[n] * dummy[k] *factor;
+  //         n += 2;
+  //       }
+  //     }
 
-      if (vflag_global) {
-        for (int i = 0; i < 6; i++) {
-          factor2 = factor * ( i/3 ? 2.0 : 1.0);
-          n = 0;
-          for (int k = 0; k < nfft; k++) {
-            complex_multiply(vg_hat[i], wk2, ktmp, n);
-            n += 2;
-          }
-          fft1->compute(ktmp, ktmp, -1);
-          n=0;
-          for (int k = 0; k < nfft; k++) {
-            virial[i] += ktmp[n] * dummy[k] * factor2;
-            n+=2;
-          }
-        }
-      }
-    }
-  }
+  //     if (vflag_global) {
+  //       for (int i = 0; i < 6; i++) {
+  //         factor2 = factor * ( i/3 ? 2.0 : 1.0);
+  //         n = 0;
+  //         for (int k = 0; k < nfft; k++) {
+  //           complex_multiply(vg_hat[i], wk2, ktmp, n);
+  //           n += 2;
+  //         }
+  //         fft1->compute(ktmp, ktmp, -1);
+  //         n=0;
+  //         for (int k = 0; k < nfft; k++) {
+  //           virial[i] += ktmp[n] * dummy[k] * factor2;
+  //           n+=2;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 /* ----------------------------------------------------------------------

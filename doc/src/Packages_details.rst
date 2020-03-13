@@ -365,12 +365,17 @@ KIM package
 
 This package contains a set of commands that serve as a wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
-repository of interatomic models (IMs)
-enabling compatible ones to be used in LAMMPS simulations.
-This includes :doc:`kim_init and kim\_interactions <kim_commands>`
-commands to select, initialize and instantiate the IM, and a
-:doc:`kim_query <kim_commands>` command to perform web queries
-for material property predictions of OpenKIM IMs.
+repository of interatomic models (IMs) enabling compatible ones to be used in
+LAMMPS simulations.
+
+This includes :doc:`kim_init <kim_commands>`, and
+:doc:`kim\_interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+queries for material property predictions of OpenKIM IMs, a
+:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+properties computed in LAMMPS to standard KIM property instance format.
+
 Support for KIM IMs that conform to the
 `KIM Application Programming Interface (API) <https://openkim.org/kim-api/>`_
 is provided by the :doc:`pair_style kim <pair_kim>` command.
@@ -392,13 +397,16 @@ The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
 and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 
 **Authors:** Ryan Elliott (U Minnesota) is the main developer for the KIM
-API and the *pair\_style kim* command. Axel Kohlmeyer (Temple U) and
-Ellad Tadmor (U Minnesota) contributed to the :doc:`kim_commands <kim_commands>`
-interface in close collaboration with Ryan Elliott.
+API and the *pair\_style kim* command. Yaser Afshar (U Minnesota),
+Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
+Daniel Karls (U Minnesota) contributed to the
+:doc:`kim_commands <kim_commands>` interface in close collaboration with
+Ryan Elliott.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <kim>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <kim>` on the
+:doc:`Build extras <Build_extras>` doc page.
 
 **Supporting info:**
 

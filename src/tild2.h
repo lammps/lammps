@@ -106,7 +106,8 @@ class TILD : public KSpace{
   void deallocate();
   void slabcorr();
   void init_gauss();
-  void init_potential(FFT_SCALAR*, int, double*);
+  void init_potential(FFT_SCALAR*, const int, const double*);
+  void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
   void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);

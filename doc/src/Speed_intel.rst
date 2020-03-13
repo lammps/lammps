@@ -205,7 +205,7 @@ For building with make, several example Makefiles for building with
 the Intel compiler are included with LAMMPS in the src/MAKE/OPTIONS/
 directory:
 
-.. parsed-literal::
+.. code-block:: bash
 
    Makefile.intel_cpu_intelmpi # Intel Compiler, Intel MPI, No Offload
    Makefile.knl                # Intel Compiler, Intel MPI, No Offload

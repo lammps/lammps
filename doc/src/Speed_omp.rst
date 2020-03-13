@@ -23,7 +23,7 @@ instructions.
 
 These examples assume one or more 16-core nodes.
 
-.. parsed-literal::
+.. code-block:: bash
 
    env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script           # 1 MPI task, 16 threads according to OMP_NUM_THREADS
    lmp_mpi -sf omp -in in.script                                  # 1 MPI task, no threads, optimized kernels
@@ -60,7 +60,7 @@ and threads/MPI task is the same.
 Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 "omp" suffix to individual styles in your input script, e.g.
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/omp 2.5
 

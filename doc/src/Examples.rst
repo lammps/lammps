@@ -155,7 +155,7 @@ Lowercase directories
 
 Here is how you can run and visualize one of the sample problems:
 
-.. parsed-literal::
+.. code-block:: bash
 
    cd indent
    cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
@@ -177,9 +177,9 @@ like ImageMagick or QuickTime or various Windows-based tools.  See the
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
 
-.. parsed-literal::
+.. code-block:: bash
 
-   % convert -loop 1 \*.jpg foo.gif
+   % convert -loop 1 *.jpg foo.gif
 
 ----------
 

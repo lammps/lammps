@@ -73,7 +73,7 @@ in the LAMMPS distribution.  Typing "make machine" uses
 use Makefile.serial and Makefile.mpi, respectively.  Other makefiles
 are in these directories:
 
-.. parsed-literal::
+.. code-block:: bash
 
    OPTIONS      # Makefiles which enable specific options
    MACHINES     # Makefiles for specific machines

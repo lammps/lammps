@@ -49,7 +49,7 @@ interactively from the bench directory:
 
 Or put the same lines in the file test.py and run it as
 
-.. parsed-literal::
+.. code-block:: bash
 
    % python test.py
 
@@ -68,7 +68,7 @@ To run LAMMPS in parallel, assuming you have installed the
 `PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
 above, create a test.py file containing these lines:
 
-.. parsed-literal::
+.. code-block:: python
 
    import pypar
    from lammps import lammps
@@ -81,7 +81,7 @@ To run LAMMPS in parallel, assuming you have installed the
 `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ package as discussed
 above, create a test.py file containing these lines:
 
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
    from lammps import lammps
@@ -94,13 +94,13 @@ above, create a test.py file containing these lines:
 
 You can either script in parallel as:
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 python test.py
 
 and you should see the same output as if you had typed
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 lmp_g++ -in in.lj
 
@@ -124,7 +124,7 @@ Running Python scripts:
 Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:
 
-.. parsed-literal::
+.. code-block:: bash
 
    % python foo.script
    % python -i foo.script
@@ -133,7 +133,7 @@ one of several ways:
 The last command requires that the first line of the script be
 something like this:
 
-.. parsed-literal::
+.. code-block:: bash
 
    #!/usr/local/bin/python
    #!/usr/local/bin/python -i
@@ -141,7 +141,7 @@ something like this:
 where the path points to where you have Python installed, and that you
 have made the script file executable:
 
-.. parsed-literal::
+.. code-block:: bash
 
    % chmod +x foo.script
 

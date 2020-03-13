@@ -83,7 +83,7 @@ You can use the *polarizer* tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
 *data.102494.lmp*\ ) to a polarizable data file (\ *data-p.lmp*\ )
 
-.. parsed-literal::
+.. code-block:: bash
 
    polarizer -q -f phenol.dff data.102494.lmp data-p.lmp
 

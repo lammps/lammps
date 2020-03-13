@@ -99,7 +99,7 @@ binary2txt tool
 The file binary2txt.cpp converts one or more binary LAMMPS dump file
 into ASCII text files.  The syntax for running the tool is
 
-.. parsed-literal::
+.. code-block:: bash
 
    binary2txt file1 file2 ...
 
@@ -149,7 +149,7 @@ chains and solvent atoms can strongly overlap, so LAMMPS needs to run
 the system initially with a "soft" pair potential to un-overlap it.
 The syntax for running the tool is
 
-.. parsed-literal::
+.. code-block:: bash
 
    chain < def.chain > data.file
 
@@ -178,11 +178,11 @@ Version 20110511
 
 .. parsed-literal::
 
-   Syntax: ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0\|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >]
+   ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0\|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >]
 
 The LAMMPS interface to the colvars collective variable library, as
 well as these tools, were created by Axel Kohlmeyer (akohlmey at
-gmail.com) at ICTP, Italy.
+gmail.com) while at ICTP, Italy.
 
 ----------
 
@@ -427,7 +427,7 @@ atoms can strongly overlap, so LAMMPS needs to run the system
 initially with a "soft" pair potential to un-overlap it.  The syntax
 for running the tool is
 
-.. parsed-literal::
+.. code-block:: bash
 
    micelle2d < def.micelle2d > data.file
 

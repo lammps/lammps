@@ -14,7 +14,7 @@ Note that the serial executable includes support for multi-threading
 parallelization from the styles in the USER-OMP packages.  To run with
 4 threads, you can type this:
 
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_serial -in in.lj -pk omp 4 -sf omp
 
@@ -43,7 +43,7 @@ into the MPICH2 installation directory, then into the sub-directory
 
 Then type something like this:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -localonly 4 lmp_mpi -in in.file
    mpiexec -np 4 lmp_mpi -in in.file
@@ -58,13 +58,13 @@ patient before the output shows up.
 The parallel executable can also run on a single processor by typing
 something like this:
 
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_mpi -in in.lj
 
 Note that the parallel executable also includes OpenMP
 multi-threading, which can be combined with MPI using something like:
 
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp

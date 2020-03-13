@@ -132,7 +132,7 @@ packages.  As an example, here is a command that builds with all the
 GPU related packages installed (GPU, KOKKOS with Cuda), including
 settings to build the needed auxiliary GPU libraries for Kepler GPUs:
 
-.. parsed-literal::
+.. code-block:: bash
 
    Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi   -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi
 

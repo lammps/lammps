@@ -31,7 +31,7 @@ If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
 this to your ~/.cshrc file, one line for each of the two files:
 
-.. parsed-literal::
+.. code-block:: csh
 
    setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
    setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src

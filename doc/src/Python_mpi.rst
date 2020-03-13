@@ -18,7 +18,7 @@ LAMMPS instances on subsets of the total MPI ranks.
 To install mpi4py (version mpi4py-3.0.3 as of Nov 2019), unpack it
 and from its main directory, type
 
-.. parsed-literal::
+.. code-block:: bash
 
    python setup.py build
    sudo python setup.py install
@@ -27,27 +27,27 @@ Again, the "sudo" is only needed if required to copy mpi4py files into
 your Python distribution's site-packages directory. To install with
 user privilege into the user local directory type
 
-.. parsed-literal::
+.. code-block:: bash
 
    python setup.py install --user
 
 If you have successfully installed mpi4py, you should be able to run
 Python and type
 
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
 
 without error.  You should also be able to run python in parallel
 on a simple test script
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 python test.py
 
 where test.py contains the lines
 
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
    comm = MPI.COMM_WORLD

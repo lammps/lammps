@@ -11,7 +11,7 @@ The :doc:`Build basics <Build_basics>` doc page explains how to build
 LAMMPS as either a shared or static library.  This results in one of
 these 2 files:
 
-.. parsed-literal::
+.. code-block:: bash
 
    liblammps.so      # shared library
    liblammps.a       # static library

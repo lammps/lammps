@@ -5,7 +5,7 @@ Depending on how you obtained LAMMPS, the doc directory has up
 to 6 sub-directories, 2 Nroff files, and optionally 2 PDF files
 plus 2 e-book format files:
 
-.. parsed-literal::
+.. code-block:: bash
 
    src             # content files for LAMMPS documentation
    html            # HTML version of the LAMMPS manual (see html/Manual.html)

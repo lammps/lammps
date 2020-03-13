@@ -12,7 +12,7 @@ wrap LAMMPS.  On Linux this is a library file that ends in ".so", not
 
 From the src directory, type
 
-.. parsed-literal::
+.. code-block:: bash
 
    make foo mode=shlib
 
@@ -37,7 +37,7 @@ Build LAMMPS as a shared library using CMake
 When using CMake the following two options are necessary to generate the LAMMPS
 shared library:
 
-.. parsed-literal::
+.. code-block:: bash
 
    -D BUILD_LIB=on            # enable building LAMMPS as a library
    -D BUILD_SHARED_LIBS=on    # enable building of LAMMPS shared library (both options are needed!)
@@ -50,7 +50,7 @@ library path (e.g. /usr/lib64/) or in the LD_LIBRARY_PATH.
 If you want to use the shared library with Python the recommended way is to create a virtualenv and use it as
 CMAKE_INSTALL_PREFIX.
 
-.. parsed-literal::
+.. code-block:: bash
 
    # create virtualenv
    virtualenv --python=$(which python3) myenv3
@@ -69,7 +69,7 @@ This will also install the Python module into your virtualenv. Since virtualenv
 doesn't change your LD_LIBRARY_PATH, you still need to add its lib64 folder to
 it, which contains the installed liblammps.so.
 
-.. parsed-literal::
+.. code-block:: bash
 
    export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib64:$LD_LIBRARY_PATH
 

@@ -11,7 +11,7 @@ Syntax
    fix_modify <AtC fixID> mesh create_nodeset <id> <xmin> <xmax> <ymin> <ymax> <zmin> <zmax>
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* mesh create\_nodeset = name of the AtC sub-command
+* mesh create_nodeset = name of the AtC sub-command
 * id = id to assign to the collection of FE nodes
 * <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> = coordinates of the bounding box that contains only the desired nodes
 

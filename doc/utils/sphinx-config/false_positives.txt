@@ -826,6 +826,7 @@ ethernet
 etol
 etot
 etotal
+Eulerian
 eulerimplicit
 Europhys
 ev

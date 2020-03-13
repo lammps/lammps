@@ -11,7 +11,7 @@ Syntax
    fix_modify <AtC fixID> mesh delete_elements <id>
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* mesh create\_elementset = name of the AtC sub-command
+* mesh create_elementset = name of the AtC sub-command
 * id = id of the element set
 
 Examples

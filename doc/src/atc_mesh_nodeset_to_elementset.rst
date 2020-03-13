@@ -11,9 +11,9 @@ Syntax
    fix_modify <AtC fixID> mesh nodeset_to_elementset <nodeset_id> <elementset_id> <max/min>
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* mesh nodeset\_to\_elementset = name of the AtC sub-command
-* nodeset\_id = id of desired nodeset from which to create the elementset 
-* elementset\_id = id to assign to the collection of FE elements
+* mesh nodeset_to_elementset = name of the AtC sub-command
+* nodeset_id = id of desired nodeset from which to create the elementset
+* elementset_id = id to assign to the collection of FE elements
 * <max/min> = flag to choose either the maximal or minimal elementset
 
 Examples

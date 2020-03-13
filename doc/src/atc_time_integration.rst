@@ -1,7 +1,7 @@
 .. index:: fix_modify AtC time_integration
 
 fix_modify AtC time_integration command
-=============================================
+=======================================
 
 Syntax
 """"""
@@ -11,7 +11,7 @@ Syntax
    fix_modify <AtC fixID> time_integration <descriptor>
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* time\_integration = name of the AtC sub-command
+* time_integration = name of the AtC sub-command
 * descriptor =  *gear* or *fractional_step* or *verlet*
 
 
@@ -36,7 +36,7 @@ Options for thermal time integration:
   atomic velocity update with 2nd order Verlet, nodal temperature update
   with 3rd or 4th order Gear, thermostats based on controlling power
 
-*fractional\_step*
+*fractional_step*
   atomic velocity update with 2nd order Verlet, mixed nodal temperature
   update, 3/4 Gear for continuum and 2 Verlet for atomic contributions,
   thermostats based on controlling discrete energy changes
@@ -49,7 +49,7 @@ Options for momentum time integration:
   atomic velocity update with 2nd order Verlet, nodal temperature update
   with 2nd order Verlet, kinetostats based on controlling force
 
-*fractional\_step*
+*fractional_step*
   atomic velocity update with 2nd order Verlet, mixed nodal momentum
   update, 2nd order Verlet for continuum and exact 2nd order Verlet for
   atomic contributions, kinetostats based on controlling discrete

@@ -11,7 +11,7 @@ Syntax
    fix_modify <AtC fixID> mesh create_faceset <id> plane <x|y|z> <val1> <x|y|z> <lval2> <uval2> [units]
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* mesh create\_faceset = name of the AtC sub-command
+* mesh create_faceset = name of the AtC sub-command
 * id = id to assign to the collection of FE faces
 * plane = use plane to define faceset
 * <val1>,<lval2>,<uval2> = plane is specified as the x|y|z=val1 plane bounded by the segments x|y|z = [lval2,uval2]

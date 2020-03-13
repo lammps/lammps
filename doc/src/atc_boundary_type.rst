@@ -1,7 +1,7 @@
 .. index:: fix_modify AtC boundary type
 
 fix_modify AtC boundary type command
-=============================================
+====================================
 
 Syntax
 """"""

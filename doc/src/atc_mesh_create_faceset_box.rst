@@ -11,7 +11,7 @@ Syntax
    fix_modify <AtC fixID> mesh create_faceset <id> box <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> <in|out> [units]
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
-* mesh create\_faceset = name of the AtC sub-command
+* mesh create_faceset = name of the AtC sub-command
 * id = id to assign to the collection of FE faces
 * box = use bounding box to define FE faces
 * <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> = coordinates of the bounding box that is coincident with the desired FE faces

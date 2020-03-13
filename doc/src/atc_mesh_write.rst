@@ -34,8 +34,8 @@ None
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh create <atc_mesh_create>`
-:doc:`fix_modify AtC mesh read <atc_mesh_read>`
+- :doc:`fix_modify AtC mesh create <atc_mesh_create>`
+- :doc:`fix_modify AtC mesh read <atc_mesh_read>`
 
 Default
 """""""

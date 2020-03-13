@@ -160,11 +160,10 @@ conditions.
 * :doc:`fix_modify AtC mesh create_elementset <atc_mesh_create_elementset>`
 * :doc:`fix_modify AtC mesh delete_elements <atc_mesh_delete_elements>`
 * :doc:`fix_modify AtC mesh nodeset_to_elementset <atc_mesh_nodeset_to_elementset>`
-* `fix_modify AtC boundary <USER/atc/man_boundary.html>`_
-* `fix_modify AtC internal_quadrature <USER/atc/man_internal_quadrature.html>`_
-* `fix_modify AtC time_integration (thermal) <USER/atc/man_thermal_time_integration.html>`_
-* `fix_modify AtC time_integration (momentum) <USER/atc/man_momentum_time_integration.html>`_
-* `fix_modify AtC extrinsic electron_integration <USER/atc/man_electron_integration.html>`_
+* :doc:`fix_modify AtC boundary type <atc_boundary_type>`
+* :doc:`fix_modify AtC internal_quadrature <atc_internal_quadrature>`
+* :doc:`fix_modify AtC time_integration <atc_time_integration>`
+* :doc:`fix_modify AtC extrinsic electron_integration <atc_electron_integration>`
 * `fix_modify AtC internal_element_set <USER/atc/man_internal_element_set.html>`_
 * `fix_modify AtC decomposition <USER/atc/man_decomposition.html>`_
 

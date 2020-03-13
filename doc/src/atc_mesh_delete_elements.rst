@@ -34,8 +34,8 @@ None.
 Related AtC commands
 """"""""""""""""""""
 
-:doc:`fix_modify AtC mesh create_elementset <atc_mesh_create_elementset>`
-:doc:`fix_modify AtC mesh nodeset_to_elementset <atc_mesh_nodeset_to_elementset>`
+- :doc:`fix_modify AtC mesh create_elementset <atc_mesh_create_elementset>`
+- :doc:`fix_modify AtC mesh nodeset_to_elementset <atc_mesh_nodeset_to_elementset>`
 
 Default
 """""""

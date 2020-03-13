@@ -17,6 +17,12 @@ KSpaceStyle(tild,TILD)
 #define LMP_TILD_H
 
 #include "kspace.h"
+#include <tuple>
+#include <unordered_map>
+#include <vector>
+#include <utility>      
+#include <bits/stdc++.h> 
+#include <algorithm>
 
 namespace LAMMPS_NS {
 
@@ -49,6 +55,7 @@ class TILD : public KSpace{
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   int **potent_map;
   FFT_SCALAR *****gradWgroup;
+  FFT_SCALAR *****gradWpotential;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
@@ -73,9 +80,14 @@ class TILD : public KSpace{
   int **group_with_potential;
   int factorable(int);
   double **chi_values;
+  std::vector<std::tuple<int,int,double,int,int>> expanded_chi_interactions;
+  std::vector<std::pair<int, int> > types_and_potentials;
   double grid_res;
   virtual int modify_param(int, char**);
   int num_potent;
+  std::vector <std::tuple<int, int, double> > chi_value;
+  std::vector <std::vector<int > > potentials;
+  std::vector<std::tuple<int,int,std::vector<double>>> potent_with_params;
 
   // group-group interactions
 
@@ -236,6 +248,8 @@ class TILD : public KSpace{
 
   FFT_SCALAR ****density_brick_types;
   FFT_SCALAR **density_fft_types;
+  FFT_SCALAR **density_of_types_fft_ed;
+  FFT_SCALAR **density_of_potentials_fft_ed;
   FFT_SCALAR *ktmp;
   FFT_SCALAR *ktmp2;
   FFT_SCALAR *tmp;

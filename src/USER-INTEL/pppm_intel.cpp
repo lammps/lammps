@@ -60,7 +60,6 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  triclinic_support = 0;
 
   order = 7; //sets default stencil size to 7
 
@@ -209,16 +208,23 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
+  // optimized versions can only be used for orthogonal boxes
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    particle_map<float,double>(fix->get_mixed_buffers());
-    make_rho<float,double>(fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    particle_map<double,double>(fix->get_double_buffers());
-    make_rho<double,double>(fix->get_double_buffers());
+  if (triclinic) {
+    PPPM::particle_map();
+    PPPM::make_rho();
   } else {
-    particle_map<float,float>(fix->get_single_buffers());
-    make_rho<float,float>(fix->get_single_buffers());
+
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      particle_map<float,double>(fix->get_mixed_buffers());
+      make_rho<float,double>(fix->get_mixed_buffers());
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      particle_map<double,double>(fix->get_double_buffers());
+      make_rho<double,double>(fix->get_double_buffers());
+    } else {
+      particle_map<float,float>(fix->get_single_buffers());
+      make_rho<float,float>(fix->get_single_buffers());
+    }
   }
 
   // all procs communicate density values from their ghost cells
@@ -259,21 +265,26 @@ void PPPMIntel::compute_second(int /*eflag*/, int /*vflag*/)
   int i,j;
 
   // calculate the force on my particles
+  // optimized versions can only be used for orthogonal boxes
 
-  if (differentiation_flag == 1) {
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fieldforce_ad<float,double>(fix->get_mixed_buffers());
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fieldforce_ad<double,double>(fix->get_double_buffers());
-    else
-      fieldforce_ad<float,float>(fix->get_single_buffers());
+  if (triclinic) {
+    PPPM::fieldforce();
   } else {
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fieldforce_ik<float,double>(fix->get_mixed_buffers());
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fieldforce_ik<double,double>(fix->get_double_buffers());
-    else
-      fieldforce_ik<float,float>(fix->get_single_buffers());
+    if (differentiation_flag == 1) {
+      if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+        fieldforce_ad<float,double>(fix->get_mixed_buffers());
+      else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+        fieldforce_ad<double,double>(fix->get_double_buffers());
+      else
+        fieldforce_ad<float,float>(fix->get_single_buffers());
+    } else {
+      if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+        fieldforce_ik<float,double>(fix->get_mixed_buffers());
+      else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+        fieldforce_ik<double,double>(fix->get_double_buffers());
+      else
+        fieldforce_ik<float,float>(fix->get_single_buffers());
+    }
   }
 
   // extra per-atom energy/virial communication

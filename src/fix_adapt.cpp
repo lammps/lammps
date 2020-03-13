@@ -15,6 +15,7 @@
 #include <cstring>
 #include "atom.h"
 #include "bond.h"
+#include "domain.h"
 #include "update.h"
 #include "group.h"
 #include "modify.h"
@@ -139,9 +140,11 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
-      if (strcmp(arg[iarg+1],"diameter") == 0) {
+      if (strcmp(arg[iarg+1],"diameter") == 0 || strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
+				discflag = 0;
+				if(strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
@@ -428,6 +431,8 @@ void FixAdapt::init()
       if (ad->aparam == DIAMETER) {
         if (!atom->radius_flag)
           error->all(FLERR,"Fix adapt requires atom attribute diameter");
+				if(discflag && domain->dimension!=2)
+					error->all(FLERR,"Fix adapt requires 2d simulation");
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
@@ -568,8 +573,8 @@ void FixAdapt::change_settings()
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
-				/* `mflag` unnecessary ? the test if (!atom->radius_flag) in FixAdapt::init() should perevent `atom->rmass_flag == false`. Unless there can be combinations of atoms with `radius` but without `rmass`
-				It could also be unsafe since rmass_flag could be added using `fix property/atom` even for an atom_style that does not have radius attributes */
+				/* `mflag` unnecessary ? the test `if(!atom->radius_flag)` in `FixAdapt::init()` should perevent `atom->rmass_flag == false`. Unless there can be combinations of atom styles with `radius` but without `rmass`
+				It could also be unsafe since rmass_flag could be added using `fix property/atom` even for an atom_style that does not have radius attribute, although that possibility should be avoided as well with the test `if(!atom->radius_flag)` in `FixAdapt::init()`  */
         double density;
 
         double *vec = fix_diam->vstore; // Get initial radius to use `scale` keyword
@@ -581,12 +586,14 @@ void FixAdapt::change_settings()
 
         for (i = 0; i < nall; i++)
           if (mask[i] & groupbit) {
-						density = rmass[i] / (4.0*MY_PI/3.0 *
-                                  radius[i]*radius[i]*radius[i]);
+						if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+						else density = rmass[i] / (4.0*MY_PI/3.0 *
+                                       radius[i]*radius[i]*radius[i]);
 						if (scaleflag) radius[i] = value * vec[i];
 						else radius[i] = 0.5*value;
-            rmass[i] = 4.0*MY_PI/3.0 *
-              radius[i]*radius[i]*radius[i] * density;
+						if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
+            else rmass[i] = 4.0*MY_PI/3.0 *
+                            radius[i]*radius[i]*radius[i] * density;
           }
 
       } else if (ad->aparam == CHARGE) {
@@ -671,10 +678,13 @@ void FixAdapt::restore_settings()
 
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-            density = rmass[i] / (4.0*MY_PI/3.0 *
-                                  radius[i]*radius[i]*radius[i]);
+						if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+						else density = rmass[i] / (4.0*MY_PI/3.0 *
+                                       radius[i]*radius[i]*radius[i]);
             radius[i] = vec[i];
-            rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+            if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
+						else rmass[i] = 4.0*MY_PI/3.0 * 
+						                radius[i]*radius[i]*radius[i] * density;
           }
       }
       if (chgflag) {

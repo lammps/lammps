@@ -189,7 +189,7 @@ Note that the species tags that are defined in the reaction equations
 are used by the :doc:`fix eos/table/rx <fix_eos_table_rx>` command to
 define the thermodynamic properties of each species.  Furthermore, the
 number of species molecules (i.e., concentration) can be specified
-either with the :doc:`set <set>` command using the "d_" prefix or by
+either with the :doc:`set <set>` command using the "d\_" prefix or by
 reading directly the concentrations from a data file.  For the latter
 case, the :doc:`read_data <read_data>` command with the fix keyword
 should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_ suffix, e.g.

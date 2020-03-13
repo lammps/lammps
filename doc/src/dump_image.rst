@@ -193,7 +193,7 @@ atoms rendered in the image.  They can be any atom attribute defined
 for the :doc:`dump custom <dump>` command, including *type* and
 *element*\ .  This includes per-atom quantities calculated by a
 :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c_", "f_", or "v_" respectively.  Note that the
+which are prefixed by "c\_", "f\_", or "v\_" respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to
 all atoms by the optional *adiam* keyword.
 

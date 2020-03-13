@@ -122,7 +122,7 @@ self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
 an input value from that compute.
 
-If a value begins with "c_", a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  Computes can generate
 per-atom or local quantities.  See the individual
 :doc:`compute <compute>` doc page for details.  If no bracketed integer
@@ -133,7 +133,7 @@ compute styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "f_", a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
 or local quantities.  See the individual :doc:`fix <fix>` doc page for
 details.  Note that some fixes only produce their values on certain
@@ -145,7 +145,7 @@ is used.  Users can also write code for their own fix style and :doc:`add them t
 be specified with a wildcard asterisk to effectively specify multiple
 values.
 
-If a value begins with "v_", a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  It must be an
 :doc:`atom-style variable <variable>`.  Atom-style variables can
 reference thermodynamic keywords and various per-atom attributes, or

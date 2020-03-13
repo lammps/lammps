@@ -461,7 +461,7 @@ The *refresh* keyword only applies to the dump *custom*\ , *cfg*\ ,
 *image*\ , and *movie* styles.  It allows an "incremental" dump file to
 be written, by refreshing a compute that is used as a threshold for
 determining which atoms are included in a dump snapshot.  The
-specified *c_ID* gives the ID of the compute.  It is prefixed by "c_"
+specified *c_ID* gives the ID of the compute.  It is prefixed by "c\_"
 to indicate a compute, which is the only current option.  At some
 point, other options may be added, e.g. fixes or variables.
 

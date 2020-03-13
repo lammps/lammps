@@ -152,7 +152,7 @@ The process variable *pvar* can be specified as the output of a
 :doc:`variable <variable>`.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.
 
-If *pvar* begins with "c_", a compute ID must follow which has been
+If *pvar* begins with "c\_", a compute ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual :doc:`compute <compute>` doc page
 for details.  If no bracketed integer is appended, the scalar
@@ -160,7 +160,7 @@ calculated by the compute is used.  If a bracketed integer is
 appended, the Ith value of the vector calculated by the compute is
 used.  Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If *pvar* begins with "f_", a fix ID must follow which has been
+If *pvar* begins with "f\_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual :doc:`fix <fix>` doc page for
 details.  Note that some fixes only produce their values on certain
@@ -170,7 +170,7 @@ is appended, the scalar calculated by the fix is used.  If a bracketed
 integer is appended, the Ith value of the vector calculated by the fix
 is used.  Users can also write code for their own fix style and :doc:`add them to LAMMPS <Modify>`.
 
-If *pvar* begins with "v_", a variable name must follow which has been
+If *pvar* begins with "v\_", a variable name must follow which has been
 previously defined in the input script.  Only equal-style variables
 can be referenced.  See the :doc:`variable <variable>` command for
 details.  Note that variables of style *equal* define a formula which
@@ -183,7 +183,7 @@ The target value *setpoint* for the process variable must be a numeric
 value, in whatever units *pvar* is defined for.
 
 The control variable *cvar* must be the name of an :doc:`internal-style variable <variable>` previously defined in the input script.  Note
-that it is not specified with a "v_" prefix, just the name of the
+that it is not specified with a "v\_" prefix, just the name of the
 variable.  It must be an internal-style variable, because this fix
 updates its value directly.  Note that other commands can use an
 equal-style versus internal-style variable interchangeably.

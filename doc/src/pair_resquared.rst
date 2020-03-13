@@ -141,7 +141,7 @@ interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
 
-For large uniform molecules it has been shown that the epsilon_\*_\*
+For large uniform molecules it has been shown that the :math:`\epsilon_{*,*}`
 energy parameters are approximately representable in terms of local
 contact curvatures :ref:`(Everaers) <Everaers3>`:
 

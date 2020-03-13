@@ -103,11 +103,11 @@ discussed below, it can be referenced via the following bracket
 notation, where ID is the ID of the fix:
 
 +-------------+--------------------------------------------+
-| f_ID       | entire scalar, vector, or array            |
+| f_ID       | entire scalar, vector, or array             |
 +-------------+--------------------------------------------+
-| f_ID[I]    | one element of vector, one column of array |
+| f_ID[I]    | one element of vector, one column of array  |
 +-------------+--------------------------------------------+
-| f_ID[I][J] | one element of array                       |
+| f_ID[I][J] | one element of array                        |
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the

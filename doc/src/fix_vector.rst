@@ -86,7 +86,7 @@ sufficient size.
 
 ----------
 
-If a value begins with "c_", a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -100,7 +100,7 @@ or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f_", a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -110,7 +110,7 @@ Note that some fixes only produce their values on certain timesteps,
 which must be compatible with *Nevery*\ , else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v_", a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  An equal-style or
 vector-style variable can be referenced; the latter requires a
 bracketed term to specify the Ith element of the vector calculated by

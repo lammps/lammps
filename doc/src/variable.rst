@@ -485,11 +485,11 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                   |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                  |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                                  |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                       |
+| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                         |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
@@ -1038,11 +1038,11 @@ reference means, since computes only produce either global or per-atom
 quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID       | global scalar, or per-atom vector                                                                     |
+| c_ID       | global scalar, or per-atom vector                                                                      |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| c_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
@@ -1092,17 +1092,17 @@ column of an per-atom array.  See the doc pages for individual fixes
 to see what kind of values they produce.
 
 The different kinds of fix references are exactly the same as the
-compute references listed in the above table, where "c_" is replaced
-by "f_".  Again, there is typically no ambiguity (see exception below)
+compute references listed in the above table, where "c\_" is replaced
+by "f\_".  Again, there is typically no ambiguity (see exception below)
 as to what a reference means, since fixes only produce either global
 or per-atom quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID       | global scalar, or per-atom vector                                                                     |
+| f_ID       | global scalar, or per-atom vector                                                                      |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| f_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
@@ -1169,15 +1169,15 @@ There is no ambiguity as to what a reference means, since variables
 produce only a global scalar or global vector or per-atom vector.
 
 +------------+----------------------------------------------------------------------+
-| v_name    | global scalar from equal-style variable                              |
+| v_name    | global scalar from equal-style variable                               |
 +------------+----------------------------------------------------------------------+
-| v_name    | global vector from vector-style variable                             |
+| v_name    | global vector from vector-style variable                              |
 +------------+----------------------------------------------------------------------+
-| v_name    | per-atom vector from atom-style or atomfile-style variable           |
+| v_name    | per-atom vector from atom-style or atomfile-style variable            |
 +------------+----------------------------------------------------------------------+
-| v_name[I] | Ith element of a global vector from vector-style variable            |
+| v_name[I] | Ith element of a global vector from vector-style variable             |
 +------------+----------------------------------------------------------------------+
-| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable |
+| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable  |
 +------------+----------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
@@ -1199,7 +1199,7 @@ formula immediately without using the variable command to define a
 named variable.
 
 More generally, there is a difference between referencing a variable
-with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v_"
+with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
@@ -1208,7 +1208,7 @@ into the command.  As explained on the :doc:`Commands parse <Commands_parse>` do
 this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
 the string between the parenthesis as an equal-style variable formula.
 
-Referencing a variable with a leading "v_" is an optional or required
+Referencing a variable with a leading "v\_" is an optional or required
 kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
 :doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a

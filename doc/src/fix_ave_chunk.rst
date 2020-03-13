@@ -265,7 +265,7 @@ of atoms to calculate their temperature.  The compute allows the
 center-of-mass velocity of each chunk to be subtracted before
 calculating the temperature; this fix does not.
 
-If a value begins with "c_", a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -274,7 +274,7 @@ their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.
 
-If a value begins with "f_", a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -285,7 +285,7 @@ own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "v_", a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  Variables of style
 *atom* can reference thermodynamic keywords and various per-atom
 attributes, or invoke other computes, fixes, or variables when they

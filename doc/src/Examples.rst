@@ -132,7 +132,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | reax        | RDX and TATB models using the ReaxFF                             |
 +-------------+------------------------------------------------------------------+
-| rerun       | use of rerun and read_dump commands                             |
+| rerun       | use of rerun and read_dump commands                              |
 +-------------+------------------------------------------------------------------+
 | rigid       | rigid bodies modeled as independent or coupled                   |
 +-------------+------------------------------------------------------------------+
@@ -195,7 +195,7 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | ELASTIC    | compute elastic constants at zero temperature                                                    |
 +------------+--------------------------------------------------------------------------------------------------+
-| ELASTIC_T | compute elastic constants at finite temperature                                                  |
+| ELASTIC_T  | compute elastic constants at finite temperature                                                  |
 +------------+--------------------------------------------------------------------------------------------------+
 | HEAT       | compute thermal conductivity for LJ and water via fix ehex                                       |
 +------------+--------------------------------------------------------------------------------------------------+

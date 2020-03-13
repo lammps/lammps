@@ -301,7 +301,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Specified bond type is not valid.
 
 *Bad fix ID in fix append/atoms command*
-   The value of the fix_id for keyword spatial must start with 'f_'.
+   The value of the fix_id for keyword spatial must start with "f\_".
 
 *Bad grid of processors*
    The 3d grid of processors defined by the processors command does not

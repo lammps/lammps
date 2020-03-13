@@ -121,7 +121,7 @@ an input value from that compute.
    which can be provided by the :doc:`compute property/atom <compute_property_atom>` command via its xu,yu,zu
    attributes.
 
-If a value begins with "c_", a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index I is appended, the Ith column of
@@ -130,7 +130,7 @@ write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`. 
 be specified with a wildcard asterisk to effectively specify multiple
 values.
 
-If a value begins with "f_", a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed term containing an index I is appended, the Ith column of
@@ -141,7 +141,7 @@ write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.  See
 specified with a wildcard asterisk to effectively specify multiple
 values.
 
-If a value begins with "v_", a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script as an :doc:`atom-style variable <variable>` Variables of style *atom* can reference
 thermodynamic keywords, or invoke other computes, fixes, or variables
 when they are evaluated, so this is a very general means of generating

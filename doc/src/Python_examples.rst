@@ -20,11 +20,11 @@ distribution.
 +----------------------------------------------------------------+--------------------------------------------------+
 | GUI go/stop/temperature-slider to control LAMMPS               | plot.py                                          |
 +----------------------------------------------------------------+--------------------------------------------------+
-| real-time temperature plot with GnuPlot via Pizza.py           | viz_tool.py                                     |
+| real-time temperature plot with GnuPlot via Pizza.py           | viz_tool.py                                      |
 +----------------------------------------------------------------+--------------------------------------------------+
-| real-time viz via some viz package                             | vizplotgui_tool.py                              |
+| real-time viz via some viz package                             | vizplotgui_tool.py                               |
 +----------------------------------------------------------------+--------------------------------------------------+
-| combination of viz_tool.py and plot.py and gui.py             |                                                  |
+| combination of viz_tool.py and plot.py and gui.py             |                                                   |
 +----------------------------------------------------------------+--------------------------------------------------+
 
 ----------

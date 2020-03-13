@@ -1,12 +1,12 @@
-#ifndef ACE_ACE_C_BASIS_H
-#define ACE_ACE_C_BASIS_H
+#ifndef ACE_C_BASIS_H
+#define ACE_C_BASIS_H
 
 #include <vector>
 
-#include "ace_types.h"
+#include "ace_c_basisfunction.h"
 #include "ace_radial.h"
 #include "ace_spherical_cart.h"
-#include "ace_c_basisfunction.h"
+#include "ace_types.h"
 
 
 class ACEBasisSet {
@@ -102,4 +102,4 @@ public:
 
 };
 
-#endif //ACE_ACE_C_BASIS_H
+#endif //ACE_C_BASIS_H

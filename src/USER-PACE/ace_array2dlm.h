@@ -1,8 +1,8 @@
 //
 // Created by Yury Lysogorskiy on 11.01.20.
 //
-#ifndef ACE_ACE_ARRAY2DLM_H
-#define ACE_ACE_ARRAY2DLM_H
+#ifndef ACE_ARRAY2DLM_H
+#define ACE_ARRAY2DLM_H
 
 #include <string>
 
@@ -352,4 +352,4 @@ public:
     }
 };
 
-#endif //ACE_ACE_ARRAY2DLM_H
+#endif //ACE_ARRAY2DLM_H

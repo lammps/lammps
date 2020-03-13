@@ -1,8 +1,8 @@
 //
 // Created by Yury Lysogorskiy on 11.01.20.
 //
-#ifndef ACE_CONTIGOUSARRAYND_H
-#define ACE_CONTIGOUSARRAYND_H
+#ifndef ACE_CONTIGUOUSARRAYND_H
+#define ACE_CONTIGUOUSARRAYND_H
 
 #include <string>
 #include "ace_types.h"
@@ -93,4 +93,4 @@ public:
 };
 
 
-#endif //ACE_CONTIGOUSARRAYND_H
+#endif //ACE_CONTIGUOUSARRAYND_H

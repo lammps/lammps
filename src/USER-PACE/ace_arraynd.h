@@ -3,8 +3,7 @@
 
 #ifndef ACE_MULTIARRAY_H
 #define ACE_MULTIARRAY_H
-
-#include <string.h>
+#include <cstring>
 #include "ace_contigous_array.h"
 
 using namespace std;
@@ -62,7 +61,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {
@@ -147,7 +145,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0, size_t i1) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {
@@ -239,7 +236,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0, size_t i1, size_t i2) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {
@@ -338,7 +334,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {
@@ -444,7 +439,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {
@@ -557,7 +551,6 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) const {
 
         if ((i0 < 0) | (i0 >= dim[0])) {

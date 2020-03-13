@@ -1,7 +1,6 @@
 #include <cmath>
 
 #include "ace_radial.h"
-#include "ace_utils.h"
 
 /**
 Constructor for ACERadialFunctions.
@@ -145,8 +144,8 @@ void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE d
             printf("1: n %d  gr[n] %f  dgr[n] %f\n", n-1,gr(n-1), dgr(n-1));
 #endif
         }
-        env = 0.5 * (1.0 + cos(pi * r / cut));
-        denv = -0.5 * sin(pi * r / cut) * pi / cut;
+        env = 0.5 * (1.0 + cos(M_PI * r / cut));
+        denv = -0.5 * sin(M_PI * r / cut) * M_PI / cut;
         for (NS_TYPE n = 0; n < nradbase; n++) {
             dgr(n) = gr(n) * denv + dgr(n) * env;
             gr(n) = gr(n) * env;
@@ -157,8 +156,8 @@ void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE d
         // for radtype = 3 a smooth cut is already included in the basis function
         dx = cut - dcut;
         if (r > dx) {
-            fcut = 0.5 * (1.0 + cos(pi * (r - dx) / dcut));
-            dfcut = -0.5 * sin(pi * (r - dx) / dcut) * pi / dcut;
+            fcut = 0.5 * (1.0 + cos(M_PI * (r - dx) / dcut));
+            dfcut = -0.5 * sin(M_PI * (r - dx) / dcut) * M_PI / dcut;
             for (NS_TYPE n = 0; n < nradbase; n++) {
                 dgr(n) = gr(n) * dfcut + dgr(n) * fcut;
                 gr(n) = gr(n) * fcut;

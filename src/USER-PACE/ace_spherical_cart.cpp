@@ -1,10 +1,13 @@
+//
+// Created by  Ralf Drautz, Yury Lysogorskiy
+//
+
 #include <cmath>
 
 #include "ace_spherical_cart.h"
 
-
 /**
-Constructor for SHarmonics. Dynamically initialises all the arrays.
+Constructor for ACECartesianSphericalHarmonics. Dynamically initialises all the arrays.
 
 @param lmax, int
 
@@ -34,7 +37,7 @@ void ACECartesianSphericalHarmonics::init(LS_TYPE lm) {
 }
 
 /**
-Destructor for SHarmonics. Frees the memory of all the arrays.
+Destructor for ACECartesianSphericalHarmonics.
 
 @param None
 
@@ -90,12 +93,7 @@ and its derivatives upto the lmax specified, which is a member of the class.
 void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-
-//    DOUBLE_TYPE sq1o2pi  = 0.39894228040143267794; // sqrt(1/(2*pi))
-//    DOUBLE_TYPE sq3o2pi  = 0.69098829894267095853; // sqrt(3/(2*pi))
-// prefactors include 1/sqrt(2) factor compared to reference
-
-
+    // prefactors include 1/sqrt(2) factor compared to reference
     DOUBLE_TYPE t;
 
     // l=0, m=0

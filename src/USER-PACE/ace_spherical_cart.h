@@ -1,18 +1,22 @@
-#ifndef ACE_ACE_SPHERICAL_CART_H
-#define ACE_ACE_SPHERICAL_CART_H
+//
+// Created by  Ralf Drautz, Yury Lysogorskiy
+//
+#ifndef ACE_SPHERICAL_CART_H
+#define ACE_SPHERICAL_CART_H
 
 #include <cmath>
 
-#include "ace_types.h"
+#include "ace_arraynd.h"
+#include "ace_array2dlm.h"
 #include "ace_complex.h"
-#include "ace_utils.h"
 
-#include "multiarray/ace_array2dlm.h"
-#include "multiarray/ace_arraynd.h"
+#include "ace_types.h"
+
 
 using namespace std;
 
 const DOUBLE_TYPE sq1o4pi = 0.28209479177387814347; // sqrt(1/(4*pi))
+const DOUBLE_TYPE sq4pi = 3.54490770181103176384; // sqrt(4*pi)
 const DOUBLE_TYPE sq3 = 1.73205080756887719318;//sqrt(3), numpy
 const DOUBLE_TYPE sq3o2 = 1.22474487139158894067;//sqrt(3/2), numpy
 

@@ -165,8 +165,8 @@ void ACEBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE
         fcut = 1;
         dfcut = 0;
     } else {
-        fcut = 0.5 * (1 + cos(pi * (rho_core - rho_low) / drho_cut));
-        dfcut = -0.5 * sin(pi * (rho_core - rho_low) / drho_cut) * pi / drho_cut;
+        fcut = 0.5 * (1 + cos(M_PI * (rho_core - rho_low) / drho_cut));
+        dfcut = -0.5 * sin(M_PI * (rho_core - rho_low) / drho_cut) * M_PI / drho_cut;
     }
 }
 
@@ -708,8 +708,8 @@ void ACEBasisSet::load(string filename) {
         rho_core_cutoffs(mu_i) = stod(buffer);
         drho_core_cutoffs(mu_i) = stod(buffer2);
 
-        printf("Read: rho_core_cutoffs(mu_i)=%f\n", rho_core_cutoffs(mu_i));
-        printf("Read: drho_core_cutoffs(mu_i)=%f\n", drho_core_cutoffs(mu_i));
+//        printf("Read: rho_core_cutoffs(mu_i)=%f\n", rho_core_cutoffs(mu_i));
+//        printf("Read: drho_core_cutoffs(mu_i)=%f\n", drho_core_cutoffs(mu_i));
     }
 
 

@@ -1,9 +1,8 @@
 //
-// Created by Yury Lysogorskiy on 05.02.20.
+// Created by Yury Lysogorskiy on 26.02.20.
 //
-
-#ifndef ACE_ACE_COMPLEX_H
-#define ACE_ACE_COMPLEX_H
+#ifndef ACE_COMPLEX_H
+#define ACE_COMPLEX_H
 
 
 /**
@@ -184,4 +183,4 @@ public:
 };
 
 
-#endif //ACE_ACE_COMPLEX_H
+#endif //ACE_COMPLEX_H

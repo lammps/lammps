@@ -1,9 +1,9 @@
 //
-// Created by lysogy36 on 26.02.20.
+// Created by Yury Lysogorskiy on 26.02.20.
 //
 
-#ifndef ACE_ACE_C_BASISFUNCTION_H
-#define ACE_ACE_C_BASISFUNCTION_H
+#ifndef ACE_C_BASISFUNCTION_H
+#define ACE_C_BASISFUNCTION_H
 
 #include <cstring>
 
@@ -135,4 +135,4 @@ struct ACECTildeBasisFunction {
 
 void print_C_tilde_B_basis_function(const ACECTildeBasisFunction &func);
 
-#endif //ACE_ACE_C_BASISFUNCTION_H
+#endif //ACE_C_BASISFUNCTION_H

@@ -1,17 +1,17 @@
 //
-// Created by lysogy36 on 31.01.20.
+// Created by Yury Lysogorskiy on 31.01.20.
 //
 
 #ifndef ACE_H
 #define ACE_H
 
-#include "ace_types.h"
-#include "ace_atoms.h"
+
+#include "ace_arraynd.h"
+#include "ace_array2dlm.h"
 #include "ace_c_basis.h"
 #include "ace_complex.h"
 #include "ace_timing.h"
-
-#include "multiarray/ace_multiarray.h"
+#include "ace_types.h"
 
 class ACE {
 
@@ -89,10 +89,6 @@ public:
     //set the basis function to the ACE evaluator
     void set_basis(ACEBasisSet &bas);
 
-    //compute the energies and forces for each atoms in atomic_environment
-    //results are stored in forces and energies arrays
-    void compute(ACEAtomicEnvironment &atomic_environment, bool verbose = false);
-
     //compute the energy and forces for atom_i
     //x - atomic positions [atom_ind][3]
     //type - atomic types [atom_ind]
@@ -102,4 +98,6 @@ public:
 
     void resize_neighbours_cache(int max_jnum);
 };
+
+
 #endif //ACE_ACE_H

@@ -1,8 +1,8 @@
 #ifndef ACE_RADIAL_FUNCTIONS_H
 #define ACE_RADIAL_FUNCTIONS_H
 
+#include "ace_arraynd.h"
 #include "ace_types.h"
-#include "multiarray/ace_arraynd.h"
 
 using namespace std;
 

@@ -1,9 +1,9 @@
 //
-// Created by lysogy36 on 19.02.20.
+// Created by  Yury Lysogorskiy  on 19.02.20.
 //
 
-#ifndef ACE_ACE_TIMING_H
-#define ACE_ACE_TIMING_H
+#ifndef ACE_TIMING_H
+#define ACE_TIMING_H
 //keywords for macros
 #define __start_moment __start_moment
 #define __duration __duration
@@ -57,4 +57,4 @@ Duration timer_name ## __duration;
 //////////////////////////////////////////
 
 
-#endif //ACE_ACE_TIMING_H
+#endif //ACE_TIMING_H

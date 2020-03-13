@@ -34,6 +34,7 @@ class TILD : public KSpace{
   virtual void setup();
   virtual void settings(int, char **);
   virtual void compute(int, int);
+  void precompute_density_fft();
   double memory_usage();
   class FFT3d *fft1,*fft2;
   class Remap *remap;
@@ -88,6 +89,9 @@ class TILD : public KSpace{
   std::vector <std::tuple<int, int, double> > chi_value;
   std::vector <std::vector<int > > potentials;
   std::vector<std::tuple<int,int,std::vector<double>>> potent_with_params;
+  int identify_potential_for_type(int);
+  int identify_potential_for_type(int, bool);
+  double calculate_rho0();
 
   // group-group interactions
 

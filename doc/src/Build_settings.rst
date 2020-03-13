@@ -100,9 +100,9 @@ to assist:
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
    FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
-As with CMake, you do not need to set paths in FFT_INC or FFT_PATH, if
+As with CMake, you do not need to set paths in ``FFT_INC`` or ``FFT_PATH``, if
 the compiler can find the FFT header and library files in its default search path.
-You must specify FFT_LIB with the appropriate FFT libraries to include in the link.
+You must specify ``FFT_LIB`` with the appropriate FFT libraries to include in the link.
 
 **CMake and make info**\ :
 
@@ -126,14 +126,15 @@ platform and can be faster than the KISS FFT library.  You can
 download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
 version 3.X; the legacy version 2.1.X is no longer supported.
 
-Building FFTW for your box should be as simple as ./configure; make;
-make install.  The install command typically requires root privileges
+Building FFTW for your box should be as simple as ``./configure; make;
+make install``\ .  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
-the "--prefix" option of configure.  Type "./configure --help" to see
+the "--prefix" option of configure.  Type ``./configure --help`` to see
 various options.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
-can be used with the Intel or GNU compiler (see FFT_LIB setting above).
+can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
+above).
 
 Performing 3d FFTs in parallel can be time consuming due to data
 access and required communication.  This cost can be reduced by
@@ -142,15 +143,15 @@ precision means the real and imaginary parts of a complex datum are
 4-byte floats.  Double precision means they are 8-byte doubles.  Note
 that Fourier transform and related PPPM operations are somewhat less
 sensitive to floating point truncation errors and thus the resulting
-error is less than the difference in precision. Using the -DFFT_SINGLE
+error is less than the difference in precision. Using the ``-DFFT_SINGLE``
 setting trades off a little accuracy for reduced memory use and
 parallel communication costs for transposing 3d FFT data.
 
-When using -DFFT_SINGLE with FFTW3 you may need to build the FFTW
+When using ``-DFFT_SINGLE`` with FFTW3 you may need to build the FFTW
 library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
-library libfftw3f.a or libfftw3f.so.
+library ``libfftw3f.a`` or ``libfftw3f.so``\ .
 
 .. code-block:: bash
 
@@ -187,7 +188,8 @@ adequate.
 
    LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
-# default is LAMMPS_SMALLBIG if not specified
+The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
+
 **CMake and make info**\ :
 
 The default "smallbig" setting allows for simulations with:
@@ -235,7 +237,7 @@ than crashing randomly or corrupting data.
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
 build does this automatically.  When building with make, the setting
-in whichever lib/gpu/Makefile is used must be the same as above.
+in whichever ``lib/gpu/Makefile`` is used must be the same as above.
 
 ----------
 
@@ -286,15 +288,16 @@ variables:
    JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
    JPG_LIB = -ljpeg -lpng -lz       # library names
 
-As with CMake, you do not need to set JPG_INC or JPG_PATH, if make can
-find the graphics header and library files.  You must specify JPG_LIB
+As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+if make can find the graphics header and library files.  You must
+specify ``JPG_LIB``
 with a list of graphics libraries to include in the link.  You must
 insure ffmpeg is in a directory where LAMMPS can find it at runtime,
 that is a directory in your PATH environment variable.
 
 **CMake and make info**\ :
 
-Using ffmpeg to output movie files requires that your machine
+Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
 
 .. note::
@@ -366,7 +369,7 @@ aligned on 64-byte boundaries.
 
    -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-Use a LAMMPS_MEMALIGN value of 0 to disable using posix_memalign()
+Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using posix_memalign()
 and revert to using the malloc() C-library function instead.  When
 compiling LAMMPS for Windows systems, malloc() will always be used
 and this setting ignored.
@@ -377,8 +380,8 @@ and this setting ignored.
 
    LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
 
-Do not set -DLAMMPS_MEMALIGN, if you want to have memory allocated
-with the malloc() function call instead. -DLAMMPS_MEMALIGN **cannot**
+Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory allocated
+with the malloc() function call instead. ``-DLAMMPS_MEMALIGN`` **cannot**
 be used on Windows, as it does use different function calls for
 allocating aligned memory, that are not compatible with how LAMMPS
 manages its dynamical memory.

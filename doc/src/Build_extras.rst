@@ -128,16 +128,16 @@ for the JIT compiler of the CUDA driver to translate it.
 
 **Traditional make**\ :
 
-Before building LAMMPS, you must build the GPU library in lib/gpu.
+Before building LAMMPS, you must build the GPU library in ``lib/gpu``\ .
 You can do this manually if you prefer; follow the instructions in
-lib/gpu/README.  Note that the GPU library uses MPI calls, so you must
+``lib/gpu/README``.  Note that the GPU library uses MPI calls, so you must
 use the same MPI library (or the STUBS library) settings as the main
-LAMMPS code.  This also applies to the -DLAMMPS_BIGBIG,
--DLAMMPS_SMALLBIG, or -DLAMMPS_SMALLSMALL settings in whichever
+LAMMPS code.  This also applies to the ``-DLAMMPS_BIGBIG``\ ,
+``-DLAMMPS_SMALLBIG``\ , or ``-DLAMMPS_SMALLSMALL`` settings in whichever
 Makefile you use.
 
-You can also build the library in one step from the lammps/src dir,
-using a command like these, which simply invoke the lib/gpu/Install.py
+You can also build the library in one step from the ``lammps/src`` dir,
+using a command like these, which simply invoke the ``lib/gpu/Install.py``
 script with the specified args:
 
 .. code-block:: bash
@@ -156,10 +156,10 @@ Makefile.machine you start from via the corresponding -c, -a, -p, -e
 switches (as in the examples above), and also save a copy of the new
 Makefile if desired:
 
-* CUDA_HOME = where NVIDIA CUDA software is installed on your system
-* CUDA_ARCH = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above
-* CUDA_PRECISION = precision (double, mixed, single)
-* EXTRAMAKE = which Makefile.lammps.\* file to copy to Makefile.lammps
+* ``CUDA_HOME`` = where NVIDIA CUDA software is installed on your system
+* ``CUDA_ARCH`` = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above
+* ``CUDA_PRECISION`` = precision (double, mixed, single)
+* ``EXTRAMAKE`` = which Makefile.lammps.\* file to copy to Makefile.lammps
 
 The file Makefile.linux_multi is set up to include support for multiple
 GPU architectures as supported by the CUDA toolkit in use. This is done
@@ -167,11 +167,11 @@ through using the "--gencode " flag, which can be used multiple times and
 thus support all GPU architectures supported by your CUDA compiler.
 
 If the library build is successful, 3 files should be created:
-lib/gpu/libgpu.a, lib/gpu/nvc_get_devices, and
-lib/gpu/Makefile.lammps.  The latter has settings that enable LAMMPS
-to link with CUDA libraries.  If the settings in Makefile.lammps for
+``lib/gpu/libgpu.a``\ , ``lib/gpu/nvc_get_devices``\ , and
+``lib/gpu/Makefile.lammps``\ .  The latter has settings that enable LAMMPS
+to link with CUDA libraries.  If the settings in ``Makefile.lammps`` for
 your machine are not correct, the LAMMPS build will fail, and
-lib/gpu/Makefile.lammps may need to be edited.
+``lib/gpu/Makefile.lammps`` may need to be edited.
 
 .. note::
 
@@ -211,35 +211,36 @@ minutes to hours) to build.  Of course you only need to do that once.)
    -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off, value = off (default) or on
    -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer, value = no (default) or yes
 
-If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
+If ``DOWNLOAD_KIM`` is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
-your system (in a location CMake cannot find it), set the PKG_CONFIG_PATH
+your system (in a location CMake cannot find it), set the ``PKG_CONFIG_PATH``
 environment variable so that libkim-api can be found.
 
 *For using OpenKIM web queries in LAMMPS*\ :
 
-If LMP_DEBUG_CURL is set, the libcurl verbose mode will be on, and any
-libcurl calls within the KIM web query display a lot of information about
-libcurl operations. You hardly ever want this set in production use, you will
-almost always want this when you debug/report problems.
+If the ``LMP_DEBUG_CURL`` environment variable is set, the libcurl verbose
+mode will be on, and any libcurl calls within the KIM web query display a
+lot of information about libcurl operations.  You hardly ever want this
+set in production use, you will almost always want this when you debug or
+report problems.
 
 The libcurl performs peer SSL certificate verification by default. This
 verification is done using a CA certificate store that the SSL library can
 use to make sure the peer's server certificate is valid. If SSL reports an
 error ("certificate verify failed") during the handshake and thus refuses
-further communication with that server, you can set LMP_NO_SSL_CHECK.
-If LMP_NO_SSL_CHECK is set, libcurl does not verify the peer and connection
+further communication with that server, you can set ``LMP_NO_SSL_CHECK``\ .
+If ``LMP_NO_SSL_CHECK`` is set, libcurl does not verify the peer and connection
 succeeds regardless of the names in the certificate. This option is insecure.
 As an alternative, you can specify your own CA cert path by setting the
-environment variable CURL_CA_BUNDLE to the path of your choice. A call to the
-KIM web query would get this value from the environmental variable.
+environment variable ``CURL_CA_BUNDLE`` to the path of your choice. A call
+to the KIM web query would get this value from the environmental variable.
 
 **Traditional make**\ :
 
 You can download and build the KIM library manually if you prefer;
-follow the instructions in lib/kim/README.  You can also do it in one
+follow the instructions in ``lib/kim/README``\ .  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
-invoke the lib/kim/Install.py script with the specified args.
+invoke the ``lib/kim/Install.py`` script with the specified args.
 
 .. code-block:: bash
 
@@ -252,7 +253,7 @@ invoke the lib/kim/Install.py script with the specified args.
   $ make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
 
 Settings for OpenKIM web queries discussed above need to be applied by adding
-them to the LMP_INC variable through editing the Makefile.machine you are
+them to the ``LMP_INC`` variable through editing the Makefile.machine you are
 using.  For example:
 
 .. code-block:: make
@@ -271,7 +272,7 @@ build for, either CPUs (multi-threading via OpenMP) or KNLs (OpenMP)
 or GPUs (NVIDIA Cuda).
 
 For a CMake or make build, these are the possible choices for the
-KOKKOS_ARCH settings described below.  Note that for CMake, these are
+``KOKKOS_ARCH`` settings described below.  Note that for CMake, these are
 really Kokkos variables, not LAMMPS variables.  Hence you must use
 case-sensitive values, e.g. BDW, not bdw.
 
@@ -334,7 +335,7 @@ For NVIDIA GPUs using CUDA, set these 4 variables:
    -D CMAKE_CXX_COMPILER=wrapper      # wrapper = full path to Cuda nvcc wrapper
 
 The wrapper value is the Cuda nvcc compiler wrapper provided in the
-Kokkos library: lib/kokkos/bin/nvcc_wrapper.  The setting should
+Kokkos library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should
 include the full path name to the wrapper, e.g.
 
 .. code-block:: bash
@@ -343,9 +344,9 @@ include the full path name to the wrapper, e.g.
 
 **Traditional make**\ :
 
-Choose which hardware to support in Makefile.machine via
-KOKKOS_DEVICES and KOKKOS_ARCH settings.  See the
-src/MAKE/OPTIONS/Makefile.kokkos\* files for examples.
+Choose which hardware to support in ``Makefile.machine`` via
+``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
+``src/MAKE/OPTIONS/Makefile.kokkos\*`` files for examples.
 
 For multicore CPUs using OpenMP:
 
@@ -400,18 +401,18 @@ library.
    -D DOWNLOAD_LATTE=value    # download LATTE for build, value = no (default) or yes
    -D LATTE_LIBRARY=path      # LATTE library file (only needed if a custom location)
 
-If DOWNLOAD_LATTE is set, the LATTE library will be downloaded and
+If ``DOWNLOAD_LATTE`` is set, the LATTE library will be downloaded and
 built inside the CMake build directory.  If the LATTE library is
 already on your system (in a location CMake cannot find it),
-LATTE_LIBRARY is the filename (plus path) of the LATTE library file,
+``LATTE_LIBRARY`` is the filename (plus path) of the LATTE library file,
 not the directory the library file is in.
 
 **Traditional make**\ :
 
 You can download and build the LATTE library manually if you prefer;
-follow the instructions in lib/latte/README.  You can also do it in
-one step from the lammps/src dir, using a command like these, which
-simply invokes the lib/latte/Install.py script with the specified
+follow the instructions in ``lib/latte/README``\ .  You can also do it in
+one step from the ``lammps/src`` dir, using a command like these, which
+simply invokes the ``lib/latte/Install.py`` script with the specified
 args:
 
 .. code-block:: bash
@@ -450,10 +451,10 @@ be installed on your system.
 **Traditional make**\ :
 
 Before building LAMMPS, you must build the CSlib library in
-lib/message.  You can build the CSlib library manually if you prefer;
-follow the instructions in lib/message/README.  You can also do it in
-one step from the lammps/src dir, using a command like these, which
-simply invoke the lib/message/Install.py script with the specified args:
+``lib/message``\ .  You can build the CSlib library manually if you prefer;
+follow the instructions in ``lib/message/README``\ .  You can also do it in
+one step from the ``lammps/src`` dir, using a command like these, which
+simply invoke the ``lib/message/Install.py`` script with the specified args:
 
 .. code-block:: bash
 
@@ -461,9 +462,9 @@ simply invoke the lib/message/Install.py script with the specified args:
   $ make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
   $ make lib-message args="-s"     # build as serial lib with no ZMQ support
 
-The build should produce two files: lib/message/cslib/src/libmessage.a
-and lib/message/Makefile.lammps.  The latter is copied from an
-existing Makefile.lammps.\* and has settings to link with the ZeroMQ
+The build should produce two files: ``lib/message/cslib/src/libmessage.a``
+and ``lib/message/Makefile.lammps``\ .  The latter is copied from an
+existing ``Makefile.lammps.\*`` and has settings to link with the ZeroMQ
 library if requested in the build.
 
 ----------
@@ -474,10 +475,10 @@ MSCG package
 -----------------------
 
 To build with this package, you must download and build the MS-CG
-library.  Building the MS-CG library and using it from LAMMPS requires
-a C++11 compatible compiler and that the GSL (GNU Scientific Library)
-headers and libraries are installed on your machine.  See the
-lib/mscg/README and MSCG/Install files for more details.
+library.  Building the MS-CG library requires that the GSL
+(GNU Scientific Library) headers and libraries are installed on your
+machine.  See the ``lib/mscg/README`` and ``MSCG/Install`` files for
+more details.
 
 **CMake build**\ :
 
@@ -487,19 +488,19 @@ lib/mscg/README and MSCG/Install files for more details.
    -D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location)
    -D MSCG_INCLUDE_DIR=path  # MSCG include directory (only needed if a custom location)
 
-If DOWNLOAD_MSCG is set, the MSCG library will be downloaded and built
+If ``DOWNLOAD_MSCG`` is set, the MSCG library will be downloaded and built
 inside the CMake build directory.  If the MSCG library is already on
-your system (in a location CMake cannot find it), MSCG_LIBRARY is the
+your system (in a location CMake cannot find it), ``MSCG_LIBRARY`` is the
 filename (plus path) of the MSCG library file, not the directory the
-library file is in.  MSCG_INCLUDE_DIR is the directory the MSCG
+library file is in.  ``MSCG_INCLUDE_DIR`` is the directory the MSCG
 include file is in.
 
 **Traditional make**\ :
 
 You can download and build the MS-CG library manually if you prefer;
-follow the instructions in lib/mscg/README.  You can also do it in one
-step from the lammps/src dir, using a command like these, which simply
-invoke the lib/mscg/Install.py script with the specified args:
+follow the instructions in ``lib/mscg/README``\ .  You can also do it in one
+step from the ``lammps/src`` dir, using a command like these, which simply
+invoke the ``lib/mscg/Install.py`` script with the specified args:
 
 .. code-block:: bash
 
@@ -511,9 +512,9 @@ invoke the lib/mscg/Install.py script with the specified args:
   $ make lib-mscg args="-p /usr/local/mscg-release" # use the existing MS-CG installation in /usr/local/mscg-release
 
 Note that 2 symbolic (soft) links, "includelink" and "liblink", will
-be created in lib/mscg to point to the MS-CG src/installation dir.
-When LAMMPS is built in src it will use these links.  You should not
-need to edit the lib/mscg/Makefile.lammps file.
+be created in ``lib/mscg`` to point to the MS-CG ``src/installation``
+dir.  When LAMMPS is built in src it will use these links.  You should
+not need to edit the ``lib/mscg/Makefile.lammps`` file.
 
 ----------
 
@@ -524,7 +525,7 @@ OPT package
 
 **CMake build**\ :
 
-No additional settings are needed besides "-D PKG_OPT=yes".
+No additional settings are needed besides ``-D PKG_OPT=yes``
 
 **Traditional make**\ :
 
@@ -542,15 +543,15 @@ POEMS package
 
 **CMake build**\ :
 
-No additional settings are needed besides "-D PKG_OPT=yes".
+No additional settings are needed besides ``-D PKG_OPT=yes``
 
 **Traditional make**\ :
 
-Before building LAMMPS, you must build the POEMS library in lib/poems.
+Before building LAMMPS, you must build the POEMS library in ``lib/poems``\ .
 You can do this manually if you prefer; follow the instructions in
-lib/poems/README.  You can also do it in one step from the lammps/src
+``lib/poems/README``\ .  You can also do it in one step from the ``lammps/src``
 dir, using a command like these, which simply invoke the
-lib/poems/Install.py script with the specified args:
+``lib/poems/Install.py`` script with the specified args:
 
 .. code-block:: bash
 
@@ -559,13 +560,13 @@ lib/poems/Install.py script with the specified args:
   $ make lib-poems args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
   $ make lib-poems args="-m icc"     # build with Intel icc compiler
 
-The build should produce two files: lib/poems/libpoems.a and
-lib/poems/Makefile.lammps.  The latter is copied from an existing
-Makefile.lammps.\* and has settings needed to build LAMMPS with the
+The build should produce two files: ``lib/poems/libpoems.a`` and
+``lib/poems/Makefile.lammps``\ .  The latter is copied from an existing
+``Makefile.lammps.\*`` and has settings needed to build LAMMPS with the
 POEMS library (though typically the settings are just blank).  If
-necessary, you can edit/create a new lib/poems/Makefile.machine file
-for your system, which should define an EXTRAMAKE variable to specify
-a corresponding Makefile.lammps.machine file.
+necessary, you can edit/create a new ``lib/poems/Makefile.machine`` file
+for your system, which should define an ``EXTRAMAKE`` variable to specify
+a corresponding ``Makefile.lammps.machine`` file.
 
 ----------
 
@@ -575,9 +576,9 @@ PYTHON package
 ---------------------------
 
 Building with the PYTHON package requires you have a Python shared
-library available on your system, which needs to be a Python 2
-version, 2.6 or later.  Python 3 is not yet supported.  See
-lib/python/README for more details.
+library available on your system, which needs to be a Python 2.7
+version or a Python 3.x version.  See ``lib/python/README`` for more
+details.
 
 **CMake build**\ :
 
@@ -594,10 +595,10 @@ headers installed for this version, e.g. python2-devel.
 
 **Traditional make**\ :
 
-The build uses the lib/python/Makefile.lammps file in the compile/link
+The build uses the ``lib/python/Makefile.lammps`` file in the compile/link
 process to find Python.  You should only need to create a new
-Makefile.lammps.\* file (and copy it to Makefile.lammps) if the LAMMPS
-build fails.
+``Makefile.lammps.\*`` file (and copy it to ``Makefile.lammps``\ ) if
+the LAMMPS build fails.
 
 ----------
 

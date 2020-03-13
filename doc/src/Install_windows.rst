@@ -4,7 +4,9 @@ Download an executable for Windows
 Pre-compiled Windows installers which install LAMMPS executables on a
 Windows system can be downloaded from this site:
 
-`http://packages.lammps.org/windows.html <http://packages.lammps.org/windows.html>`_
+.. parsed-literal::
+
+  `http://packages.lammps.org/windows.html <http://packages.lammps.org/windows.html>`_
 
 Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for

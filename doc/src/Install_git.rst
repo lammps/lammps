@@ -16,7 +16,7 @@ commands explained below to communicate with the git servers on
 GitHub.  For people still using subversion (svn), GitHub also
 provides `limited support for subversion clients <svn_>`_.
 
-.. warning::
+.. note::
 
    As of October 2016, the official home of public LAMMPS development is
    on GitHub.  The previously advertised LAMMPS git repositories on

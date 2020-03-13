@@ -14,9 +14,9 @@ Syntax
    fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *nvt/uef* or *npt/uef*
+* style_name = *nvt/uef* or *npt/uef*
 * *Tstart*\ , *Tstop*\ , and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
-* *edot\_x* and *edot\_y* are the strain rates in the x and y directions (1/(time units))
+* *edot_x* and *edot_y* are the strain rates in the x and y directions (1/(time units))
 * one or more keyword/value pairs may be appended
 
   .. parsed-literal::
@@ -57,10 +57,10 @@ Note that NEMD simulations of a continuously strained system can be
 performed using the :doc:`fix deform <fix_deform>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, and :doc:`compute temp/deform <compute_temp_deform>` commands.
 
 The applied flow field is set by the *eps* keyword. The values
-*edot\_x* and *edot\_y* correspond to the strain rates in the xx and yy
+*edot_x* and *edot_y* correspond to the strain rates in the xx and yy
 directions.  It is implicitly assumed that the flow field is
 traceless, and therefore the strain rate in the zz direction is eqal
-to -(*edot\_x* + *edot\_y*).
+to -(*edot_x* + *edot_y*).
 
 .. note::
 
@@ -169,9 +169,9 @@ issued:
 
 See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute pressure/uef <compute_pressure_uef>` commands for details.  Note
 that the IDs of the new computes are the fix-ID + underscore + "temp"
-or fix\_ID + underscore + "press".
+or fix_ID + underscore + "press".
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The fix writes the state of all the thermostat and barostat variables,
 as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
@@ -221,7 +221,7 @@ Default
 
 The default keyword values specific to this fix are exy = xyz, strain
 = 0 0.  The remaining defaults are the same as for *fix
-npt*\ \_fix\_nh.html except tchain = 1.  The reason for this change is
+npt*\ _fix_nh.html except tchain = 1.  The reason for this change is
 given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 ----------

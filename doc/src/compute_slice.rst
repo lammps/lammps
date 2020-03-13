@@ -15,7 +15,7 @@ Syntax
 * Nstart = starting index within input vector(s)
 * Nstop = stopping index within input vector(s)
 * Nskip = extract every Nskip elements from input vector(s)
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
+* input = c_ID, c_ID[N], f_ID, f_ID[N]
 
   .. parsed-literal::
 
@@ -55,7 +55,7 @@ vector.  Each listed input must be a global vector or column of a
 global array calculated by another :doc:`compute <compute>` or
 :doc:`fix <fix>`.
 
-If an input value begins with "c\_", a compute ID must follow which has
+If an input value begins with "c_", a compute ID must follow which has
 been previously defined in the input script and which generates a
 global vector or array.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the vector
@@ -63,7 +63,7 @@ calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
 used.  Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
 vector or array.  See the individual :doc:`fix <fix>` doc page for
 details.  Note that some fixes only produce their values on certain
@@ -73,7 +73,7 @@ appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
 is used.  Users can also write code for their own fix style and :doc:`add them to LAMMPS <Modify>`.
 
-If an input value begins with "v\_", a variable name must follow which
+If an input value begins with "v_", a variable name must follow which
 has been previously defined in the input script.  Only vector-style
 variables can be referenced.  See the :doc:`variable <variable>` command
 for details.  Note that variables of style *vector* define a formula

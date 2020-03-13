@@ -242,7 +242,7 @@ on each atom in the molecule is 0.0.
 * diam = diameter of atom
 
 This section is only allowed for :doc:`atom styles <atom_style>` that
-support finite-size spherical particles, e.g. atom\_style sphere.  If
+support finite-size spherical particles, e.g. atom_style sphere.  If
 not listed, the default diameter of each atom in the molecule is 1.0.
 
 ----------

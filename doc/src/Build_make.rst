@@ -31,7 +31,7 @@ machines, especially workstations, desktops, and laptops, so we suggest
 you try it first when building LAMMPS in those cases.
 
 The commands below perform a default LAMMPS build, producing the LAMMPS
-executable lmp\_serial and lmp\_mpi in lammps/src:
+executable lmp_serial and lmp_mpi in lammps/src:
 
 .. code-block:: bash
 

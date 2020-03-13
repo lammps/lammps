@@ -65,7 +65,7 @@ atoms should be excluded (or reduced by a weighting factor).
    sense to define permanent bonds between atoms that interact via these
    potentials, though such bonds may exist elsewhere in your system,
    e.g. when using the :doc:`pair_style hybrid <pair_hybrid>` command.
-   Thus LAMMPS ignores special\_bonds settings when many-body potentials
+   Thus LAMMPS ignores special_bonds settings when many-body potentials
    are calculated.  Please note, that the existence of explicit bonds
    for atoms that are described by a many-body potential will alter the
    neighbor list and thus can render the computation of those interactions
@@ -234,7 +234,7 @@ while only in the second case, you get the desired settings of:
 
 This happens because the LJ (and Coul) settings are reset to
 their default values before modifying them, each time the
-*special\_bonds* command is issued.
+*special_bonds* command is issued.
 
 Restrictions
 """"""""""""

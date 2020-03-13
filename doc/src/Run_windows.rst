@@ -7,7 +7,7 @@ To run a serial (non-MPI) executable, follow these steps:
   then typing "cmd".
 * Move to the directory where you have your input script,
   (e.g. by typing: cd "Documents").
-* At the command prompt, type "lmp\_serial -in in.file", where
+* At the command prompt, type "lmp_serial -in in.file", where
   in.file is the name of your LAMMPS input script.
 
 Note that the serial executable includes support for multi-threading

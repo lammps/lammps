@@ -96,7 +96,7 @@ particles, :math:`U^{\infty}` represents the velocity and the angular velocity
 of the undisturbed fluid, and :math:`E^{\infty}` represents the rate of strain
 tensor of the undisturbed fluid with viscosity *mu*\ . Again, note that
 this is dynamic viscosity which has units of mass/distance/time, not
-kinematic viscosity. Volume fraction corrections to R\_FU are included
+kinematic viscosity. Volume fraction corrections to R_FU are included
 as long as *flagVF* is set to 1 (default).
 
 .. note::
@@ -110,7 +110,7 @@ Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
 
 The viscosity *mu* can be varied in a time-dependent manner over the
-course of a simulation, in which case in which case the pair\_style
+course of a simulation, in which case in which case the pair_style
 setting for *mu* will be overridden.  See the :doc:`fix adapt <fix_adapt>`
 command for details.
 
@@ -118,9 +118,9 @@ If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
 hydrodynamic interactions accordingly. Volume changes due to fix
 deform are accounted for when computing the volume fraction
-corrections to R\_FU.
+corrections to R_FU.
 
-When computing the volume fraction corrections to R\_FU, the presence
+When computing the volume fraction corrections to R_FU, the presence
 of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
 for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
@@ -151,7 +151,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The two coefficients are optional.  If neither is specified, the two
-cutoffs specified in the pair\_style command are used.  Otherwise both
+cutoffs specified in the pair_style command are used.  Otherwise both
 must be specified.
 
 ----------
@@ -180,7 +180,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
-the "pair\_modify" command for details.
+the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
@@ -192,7 +192,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -207,10 +207,10 @@ Restrictions
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-Only spherical monodisperse particles are allowed for pair\_style
+Only spherical monodisperse particles are allowed for pair_style
 lubricate.
 
-Only spherical particles are allowed for pair\_style lubricate/poly.
+Only spherical particles are allowed for pair_style lubricate/poly.
 
 These pair styles will not restart exactly when using the
 :doc:`read_restart <read_restart>` command, though they should provide

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * angle/local = style name of this compute command
 * one or more values may be appended
-* value = *theta* or *eng* or *v\_name*
+* value = *theta* or *eng* or *v_name*
 
   .. parsed-literal::
 
@@ -51,9 +51,9 @@ The value *theta* is the angle for the 3 atoms in the interaction.
 
 The value *eng* is the interaction energy for the angle.
 
-The value *v\_name* can be used together with the *set* keyword to
+The value *v_name* can be used together with the *set* keyword to
 compute a user-specified function of the angle theta.  The *name*
-specified for the *v\_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
+specified for the *v_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
 variable which will store the angle theta.  This other variable must
 be an :doc:`internal-style variable <variable>` defined in the input
 script; its initial numeric value can be anything.  It must be an

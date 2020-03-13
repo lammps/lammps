@@ -12,9 +12,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/body/polyhedron = style name of this fix command
-* k\_n = normal repulsion strength (force/distance units or pressure units - see discussion below)
-* c\_n = normal damping coefficient (force/distance units or pressure units - see discussion below)
-* c\_t = tangential damping coefficient (force/distance units or pressure units - see discussion below)
+* k_n = normal repulsion strength (force/distance units or pressure units - see discussion below)
+* c_n = normal damping coefficient (force/distance units or pressure units - see discussion below)
+* c_t = tangential damping coefficient (force/distance units or pressure units - see discussion below)
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
 
@@ -54,7 +54,7 @@ particles themselves, which is similar to a Hookean potential.  See
 the :doc:`Howto body <Howto_body>` doc page for more details on using
 body particles.
 
-The parameters *k\_n*, *c\_n*, *c\_t* have the same meaning and units as
+The parameters *k_n*, *c_n*, *c_t* have the same meaning and units as
 those specified with the :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>` command.
 
 The *wallstyle* can be planar or cylindrical.  The 3 planar options
@@ -86,7 +86,7 @@ the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for

@@ -46,7 +46,7 @@ and quadruple distortions of the local atomic environment which extend the
 original EAM framework by introducing angular forces.
 
 Note that unlike for other potentials, cutoffs for ADP potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the ADP potential files themselves.  Likewise, the ADP potential files
 list atomic masses; thus you do not need to use the :doc:`mass <mass>`
 command to specify them.
@@ -61,10 +61,10 @@ command to specify them.
 
 ----------
 
-Only a single pair\_coeff command is used with the *adp* style which
+Only a single pair_coeff command is used with the *adp* style which
 specifies an extended DYNAMO *setfl* file, which contains information
 for :math:`M` elements.  These are mapped to LAMMPS atom types by specifying :math:`N`
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where :math:`N` is the number of LAMMPS atom types:
 
 * filename
@@ -78,7 +78,7 @@ potentials directory of the LAMMPS distribution, is an extended *setfl*
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
-the following pair\_coeff command:
+the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -164,7 +164,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair\_style and pair\_coeff commands in
+Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

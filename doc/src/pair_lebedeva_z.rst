@@ -48,7 +48,7 @@ The parameter file (e.g. CC.Lebedeva), is intended for use with metal
 is available to facilitate scaling of energies.
 
 This potential must be used in combination with hybrid/overlay.
-Other interactions can be set to zero using pair\_style *none*\ .
+Other interactions can be set to zero using pair_style *none*\ .
 
 Restrictions
 """"""""""""

@@ -38,11 +38,11 @@ a data or restart file or via the :doc:`dihedral_coeff <dihedral_coeff>`
 command.
 
 All dihedral potentials store their coefficient data in binary restart
-files which means dihedral\_style and
+files which means dihedral_style and
 :doc:`dihedral_coeff <dihedral_coeff>` commands do not need to be
 re-specified in an input script that restarts a simulation.  See the
 :doc:`read_restart <read_restart>` command for details on how to do
-this.  The one exception is that dihedral\_style *hybrid* only stores
+this.  The one exception is that dihedral_style *hybrid* only stores
 the list of sub-styles in the restart file; dihedral coefficients need
 to be re-specified.
 
@@ -87,7 +87,7 @@ the style to display the formula it computes and coefficients
 specified by the associated :doc:`dihedral_coeff <dihedral_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the dihedral\_style command, and coefficients
+arguments specified in the dihedral_style command, and coefficients
 specified by the associated :doc:`dihedral_coeff <dihedral_coeff>`
 command.
 
@@ -135,4 +135,4 @@ Related commands
 Default
 """""""
 
-dihedral\_style none
+dihedral_style none

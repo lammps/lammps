@@ -41,7 +41,7 @@ processed.
 
 The :doc:`server <server>` doc page gives other options for using LAMMPS
 See an example of how this command is used in
-examples/COUPLE/lammps\_mc/in.server.
+examples/COUPLE/lammps_mc/in.server.
 
 ----------
 
@@ -61,8 +61,8 @@ the two codes.  See the `CSlib website <https://cslib.sandia.gov>`_ doc
 pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 
-See the src/MESSAGE/server\_mc.cpp file for details on how LAMMPS uses
-these messages.  See the examples/COUPLE/lammps\_mc/mc.cpp file for an
+See the src/MESSAGE/server_mc.cpp file for details on how LAMMPS uses
+these messages.  See the examples/COUPLE/lammps_mc/mc.cpp file for an
 example of how an MC driver code can use these messages.
 
 Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.

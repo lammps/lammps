@@ -43,11 +43,11 @@ The meaning of the column header abbreviations is as follows:
 * id = atom id
 * type = atom type
 * nb = number of bonds
-* id\_1 = atom id of first bond
-* id\_nb = atom id of Nth bond
+* id_1 = atom id of first bond
+* id_nb = atom id of Nth bond
 * mol = molecule id
-* bo\_1 = bond order of first bond
-* bo\_nb = bond order of Nth bond
+* bo_1 = bond order of first bond
+* bo_nb = bond order of Nth bond
 * abo = atom bond order (sum of all bonds)
 * nlp = number of lone pairs
 * q = atomic charge
@@ -58,7 +58,7 @@ version, but will also take longer to write.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -98,7 +98,7 @@ package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
 To write gzipped bond files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.
+-DLAMMPS_GZIP option.
 
 Related commands
 """"""""""""""""

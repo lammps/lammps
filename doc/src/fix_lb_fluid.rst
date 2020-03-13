@@ -18,7 +18,7 @@ Syntax
 * viscosity = the fluid viscosity (units of mass/(time\*length)).
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
-* keyword = *setArea* or *setGamma* or *scaleGamma* or *dx* or *dm* or *a0* or *noise* or *calcforce* or *trilinear* or *D3Q19* or *read\_restart* or *write\_restart* or *zwall\_velocity* or *bodyforce* or *printfluid*
+* keyword = *setArea* or *setGamma* or *scaleGamma* or *dx* or *dm* or *a0* or *noise* or *calcforce* or *trilinear* or *D3Q19* or *read_restart* or *write_restart* or *zwall_velocity* or *bodyforce* or *printfluid*
 
   .. parsed-literal::
 
@@ -153,9 +153,9 @@ t_{collision}` is a collision time, chosen such that
 :math:`\frac{\tau}{\Delta t_{collision}} = 1` (see :ref:`Mackay and
 Denniston <Mackay2>` for full details).  In order to calculate :math:`m_u`,
 the fluid density is interpolated to the MD particle location, and
-multiplied by a volume, node\_area * :math:`dx_{LB}`, where node\_area
+multiplied by a volume, node_area * :math:`dx_{LB}`, where node_area
 represents the portion of the surface area of the composite object
-associated with a given MD particle.  By default, node\_area is set
+associated with a given MD particle.  By default, node_area is set
 equal to :math:`dx_{LB}^2`; however specific values for given atom types
 can be set using the *setArea* keyword.
 
@@ -286,7 +286,7 @@ If the keyword *D3Q19* is used, the 19 velocity (D3Q19) lattice is
 used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
 (D3Q15) lattice is used.
 
-If the keyword *write\_restart* is used, followed by a positive
+If the keyword *write_restart* is used, followed by a positive
 integer, N, a binary restart file is printed every N LB timesteps.
 This restart file only contains information about the fluid.
 Therefore, a LAMMPS restart file should also be written in order to
@@ -298,10 +298,10 @@ print out full details of the simulation.
    files may become quite large.
 
 In order to restart the fluid portion of the simulation, the keyword
-*read\_restart* is specified, followed by the name of the binary
-lb\_fluid restart file to be used.
+*read_restart* is specified, followed by the name of the binary
+lb_fluid restart file to be used.
 
-If the *zwall\_velocity* keyword is used y-velocities are assigned to
+If the *zwall_velocity* keyword is used y-velocities are assigned to
 the lower and upper walls.  This keyword requires the presence of
 walls in the z-direction.  This is set by assigning fixed boundary
 conditions in the z-direction.  If fixed boundary conditions are
@@ -319,16 +319,16 @@ screen every N timesteps.
 
 For further details, as well as descriptions and results of several
 test runs, see :ref:`Mackay et al. <fluid-Mackay>`.  Please include a citation to
-this paper if the lb\_fluid fix is used in work contributing to
+this paper if the lb_fluid fix is used in work contributing to
 published research.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Due to the large size of the fluid data, this fix writes it's own
 binary restart files, if requested, independent of the main LAMMPS
-:doc:`binary restart files <restart>`; no information about *lb\_fluid*
+:doc:`binary restart files <restart>`; no information about *lb_fluid*
 is written to the main LAMMPS :doc:`binary restart files <restart>`.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this

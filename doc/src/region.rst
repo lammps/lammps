@@ -186,7 +186,7 @@ geometrically equivalent.
 
 The *radius* value for style *sphere* and *cylinder* can be specified
 as an equal-style :doc:`variable <variable>`.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the radius of the region. For style *sphere*
 also the x-, y-, and z- coordinate of the center of the sphere and for
@@ -273,7 +273,7 @@ point), though this is not a requirement.
 
 The *move* keyword allows one or more :doc:`equal-style variables <variable>` to be used to specify the x,y,z displacement
 of the region, typically as a function of time.  A variable is
-specified as v\_name, where name is the variable name.  Any of the
+specified as v_name, where name is the variable name.  Any of the
 three variables can be specified as NULL, in which case no
 displacement is calculated in that dimension.
 
@@ -308,7 +308,7 @@ the y direction:
 The *rotate* keyword rotates the region around a rotation axis *R* =
 (Rx,Ry,Rz) that goes through a point *P* = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable
-specified as v\_theta, where theta is the variable name.  The variable
+specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for
 the region around the rotation axis is consistent with the right-hand
 rule: if your right-hand thumb points along *R*\ , then your fingers

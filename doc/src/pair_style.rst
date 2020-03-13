@@ -63,19 +63,19 @@ pairwise interaction between two atoms separated by a distance *r*\ .
 The force between the atoms is the negative derivative of this
 expression.
 
-If the pair\_style command has a cutoff argument, it sets global
+If the pair_style command has a cutoff argument, it sets global
 cutoffs for all pairs of atom types.  The distance(s) can be smaller
 or larger than the dimensions of the simulation box.
 
 Typically, the global cutoff value can be overridden for a specific
 pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
 pair style settings (including global cutoffs) can be changed by a
-subsequent pair\_style command using the same style.  This will reset
+subsequent pair_style command using the same style.  This will reset
 the cutoffs for all atom type pairs, including those previously set
 explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
-to this are that pair\_style *table* and *hybrid* settings cannot be
-reset.  A new pair\_style command for these styles will wipe out all
-previously specified pair\_coeff values.
+to this are that pair_style *table* and *hybrid* settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
 
 ----------
 
@@ -83,7 +83,7 @@ Here is an alphabetic list of pair styles defined in LAMMPS.  They are
 also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc page.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the pair\_style command, and coefficients
+arguments specified in the pair_style command, and coefficients
 specified by the associated :doc:`pair_coeff <pair_coeff>` command.
 
 There are also additional accelerated pair styles included in the

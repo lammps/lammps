@@ -140,7 +140,7 @@ created.  The JPEG and PNG files are binary; PPM has a text mode
 header followed by binary data. JPEG images have lossy compression;
 PNG has lossless compression; and PPM files are uncompressed but can
 be compressed with gzip, if LAMMPS has been compiled with
--DLAMMPS\_GZIP and a ".gz" suffix is used.
+-DLAMMPS_GZIP and a ".gz" suffix is used.
 
 Similarly, the format of the resulting movie is chosen with the
 *movie* dump style. This is handled by the underlying FFmpeg converter
@@ -151,7 +151,7 @@ framerate can be set using the :doc:`dump_modify <dump_modify>` command.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
-into movies, LAMMPS has to be compiled with the -DLAMMPS\_FFMPEG
+into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
 flag. See the :doc:`Build settings <Build_settings>` doc page for
 details.
 
@@ -193,7 +193,7 @@ atoms rendered in the image.  They can be any atom attribute defined
 for the :doc:`dump custom <dump>` command, including *type* and
 *element*\ .  This includes per-atom quantities calculated by a
 :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c\_", "f\_", or "v\_" respectively.  Note that the
+which are prefixed by "c_", "f_", or "v_" respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to
 all atoms by the optional *adiam* keyword.
 
@@ -218,7 +218,7 @@ diameter 1.0.  This mapping can be changed by the :doc:`dump_modify adiam <dump_
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
 element it is, which in turn is specified by the element-to-type
-mapping specified by the "dump\_modify element" command.  By default
+mapping specified by the "dump_modify element" command.  By default
 every atom type is C (carbon).  Every element has a color and diameter
 associated with it, which is the same as the colors and sizes used by
 the `AtomEye <atomeye_>`_ visualization package.
@@ -428,7 +428,7 @@ they control how the simulation box appears in the image.
 
 All of the *view*\ , *center*\ , *up*\ , *zoom*\ , and *persp* values can be
 specified as numeric quantities, whose meaning is explained below.
-Any of them can also be specified as an :doc:`equal-style variable <variable>`, by using v\_name as the value, where "name" is
+Any of them can also be specified as an :doc:`equal-style variable <variable>`, by using v_name as the value, where "name" is
 the variable name.  In this case the variable will be evaluated on the
 timestep each image is created to create a new value.  If the
 equal-style variable is time-dependent, this is a means of changing
@@ -541,7 +541,7 @@ A series of JPEG, PNG, or PPM images can be converted into a movie
 file and then played as a movie using commonly available tools. Using
 dump style *movie* automates this step and avoids the intermediate
 step of writing (many) image snapshot file. But LAMMPS has to be
-compiled with -DLAMMPS\_FFMPEG and an FFmpeg executable have to be
+compiled with -DLAMMPS_FFMPEG and an FFmpeg executable have to be
 installed.
 
 To manually convert JPEG, PNG or PPM files into an animated GIF or
@@ -627,12 +627,12 @@ which could then be output into dump files.
 Restrictions
 """"""""""""
 
-To write JPEG images, you must use the -DLAMMPS\_JPEG switch when
+To write JPEG images, you must use the -DLAMMPS_JPEG switch when
 building LAMMPS and link with a JPEG library. To write PNG images, you
-must use the -DLAMMPS\_PNG switch when building LAMMPS and link with a
+must use the -DLAMMPS_PNG switch when building LAMMPS and link with a
 PNG library.
 
-To write *movie* dumps, you must use the -DLAMMPS\_FFMPEG switch when
+To write *movie* dumps, you must use the -DLAMMPS_FFMPEG switch when
 building LAMMPS and have the FFmpeg executable available on the
 machine where LAMMPS is being run.  Typically it's name is lowercase,
 i.e. ffmpeg.

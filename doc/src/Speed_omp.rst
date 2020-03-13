@@ -43,14 +43,14 @@ node), otherwise performance will suffer.
 As in the lines above, use the "-sf omp" :doc:`command-line switch <Run_options>`, which will automatically append "omp" to
 styles that support it.  The "-sf omp" switch also issues a default
 :doc:`package omp 0 <package>` command, which will set the number of
-threads per MPI task via the OMP\_NUM\_THREADS environment variable.
+threads per MPI task via the OMP_NUM_THREADS environment variable.
 
 You can also use the "-pk omp Nt" :doc:`command-line switch <Run_options>`, to explicitly set Nt = # of OpenMP threads
 per MPI task to use, as well as additional options.  Its syntax is the
 same as the :doc:`package omp <package>` command whose doc page gives
 details, including the default values used if it is not specified.  It
 also gives more details on how to set the number of threads via the
-OMP\_NUM\_THREADS environment variable.
+OMP_NUM_THREADS environment variable.
 
 **Or run with the USER-OMP package by editing an input script:**
 
@@ -67,7 +67,7 @@ Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 You must also use the :doc:`package omp <package>` command to enable the
 USER-OMP package.  When you do this you also specify how many threads
 per MPI task to use.  The command doc page explains other options and
-how to set the number of threads via the OMP\_NUM\_THREADS environment
+how to set the number of threads via the OMP_NUM_THREADS environment
 variable.
 
 **Speed-ups to expect:**

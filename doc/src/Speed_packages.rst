@@ -90,13 +90,13 @@ listed above:
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | re-build LAMMPS                                                                                                                | make machine                                                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| prepare and test a regular LAMMPS simulation                                                                                   | lmp\_machine -in in.script; mpirun -np 32 lmp\_machine -in in.script |
+| prepare and test a regular LAMMPS simulation                                                                                   | lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script   |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | enable specific accelerator support via '-k on' :doc:`command-line switch <Run_options>`,                                      | only needed for KOKKOS package                                       |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | set any needed options for the package via "-pk" :doc:`command-line switch <Run_options>` or :doc:`package <package>` command, | only if defaults need to be changed                                  |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| use accelerated styles in your input via "-sf" :doc:`command-line switch <Run_options>` or :doc:`suffix <suffix>` command      | lmp\_machine -in in.script -sf gpu                                   |
+| use accelerated styles in your input via "-sf" :doc:`command-line switch <Run_options>` or :doc:`suffix <suffix>` command      | lmp_machine -in in.script -sf gpu                                    |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 
 Note that the first 4 steps can be done as a single command with

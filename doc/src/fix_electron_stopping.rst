@@ -129,7 +129,7 @@ scientific publications, experimental databases or by using
 of the impact parameter of the ion; these results can be used
 to derive the stopping power.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -159,7 +159,7 @@ The default is no limitation by region, and minneigh = 1.
 
 .. _elstopping:
 
-**(electronic stopping)** Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping\_power\_%28particle\_radiation%29
+**(electronic stopping)** Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29
 
 .. _Nordlund98:
 
@@ -175,7 +175,7 @@ The default is no limitation by region, and minneigh = 1.
 
 .. _CasP:
 
-**(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp\_en.html
+**(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp_en.html
 
 .. _PASS:
 

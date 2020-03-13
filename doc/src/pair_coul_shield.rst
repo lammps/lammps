@@ -11,7 +11,7 @@ Syntax
    pair_style coul/shield cutoff tap_flag
 
 * cutoff = global cutoff (distance units)
-* tap\_flag = 0/1 to turn off/on the taper function
+* tap_flag = 0/1 to turn off/on the taper function
 
 Examples
 """"""""
@@ -58,7 +58,7 @@ each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as
 in the example above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
-The global cutoff (:math:`r_c`) specified in the pair\_style command is used.
+The global cutoff (:math:`r_c`) specified in the pair_style command is used.
 
 ----------
 
@@ -90,7 +90,7 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`
 
-**Default:** tap\_flag = 1
+**Default:** tap_flag = 1
 
 ----------
 

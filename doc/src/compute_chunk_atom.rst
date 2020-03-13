@@ -270,14 +270,14 @@ chunk ID to the atom.  *Nchunk* is set to the largest chunk ID.  Note
 that this excludes atoms which are not in the specified group or
 optional region.
 
-If the style begins with "c\_", a compute ID must follow which has been
+If the style begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If the style begins with "f\_", a fix ID must follow which has been
+If the style begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -286,7 +286,7 @@ their values on certain timesteps, which must be compatible with the
 timestep on which this compute accesses the fix, else an error
 results.  Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v\_", a variable name for an *atom* or
+If a value begins with "v_", a variable name for an *atom* or
 *atomfile* style :doc:`variable <variable>` must follow which has been
 previously defined in the input script.  Variables of style *atom* can
 reference thermodynamic keywords and various per-atom attributes, or

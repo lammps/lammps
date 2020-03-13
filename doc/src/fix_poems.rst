@@ -92,7 +92,7 @@ this context means a set of rigid bodies connected by joints.
 
 For computational efficiency, you should turn off pairwise and bond
 interactions within each rigid body, as they no longer contribute to
-the motion.  The "neigh\_modify exclude" and "delete\_bonds" commands
+the motion.  The "neigh_modify exclude" and "delete_bonds" commands
 can be used to do this if each rigid body is a group.
 
 For computational efficiency, you should only define one fix poems
@@ -105,7 +105,7 @@ body contribution to the pressure virial is also accounted for.  The
 latter is only correct if forces within the bodies have been turned
 off, and there is only a single fix poems defined.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

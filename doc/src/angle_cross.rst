@@ -53,7 +53,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER\_YAFF package.  See the :doc:`Build package <Build_package>` doc
+USER_YAFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

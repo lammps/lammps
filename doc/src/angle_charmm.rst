@@ -36,7 +36,7 @@ The *charmm* angle style uses the potential
 
    E = K (\theta - \theta_0)^2 + K_{ub} (r - r_{ub})^2
 
-with an additional Urey\_Bradley term based on the distance :math:`r` between
+with an additional Urey_Bradley term based on the distance :math:`r` between
 the 1st and 3rd atoms in the angle.  :math:`K`, :math:`\theta_0`,
 :math:`K_{ub}`, and :math:`R_{ub}` are coefficients defined for each angle
 type.

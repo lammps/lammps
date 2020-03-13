@@ -43,7 +43,7 @@ vdW potential :ref:`(Allinger) <mm3-allinger1989>`
    r_{v,ij} & =  r_{v,i} + r_{v,j} \\
    \epsilon_{ij} & = \sqrt{\epsilon_i \epsilon_j}
 
-, which goes smoothly to zero at the cutoff r\_c as defined
+, which goes smoothly to zero at the cutoff r_c as defined
 by the switching function
 
 .. math::

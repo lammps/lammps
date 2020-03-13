@@ -197,7 +197,7 @@ The "grid" methods can be used with either of the
 :doc:`comm_style <comm_style>` command options, *brick* or *tiled*\ .  The
 "tiling" methods can only be used with :doc:`comm_style tiled <comm_style>`.  Note that it can be useful to use a "grid"
 method with :doc:`comm_style tiled <comm_style>` to return the domain
-partitioning to a logical 3d grid of processors so that "comm\_style
+partitioning to a logical 3d grid of processors so that "comm_style
 brick" can afterwords be specified for subsequent :doc:`run <run>`
 commands.
 
@@ -228,7 +228,7 @@ that specify the position of the cutting planes.  This requires
 knowing Ps = Px or Py or Pz = the number of processors assigned by
 LAMMPS to the relevant dimension.  This assignment is made (and the
 Px, Py, Pz values printed out) when the simulation box is created by
-the "create\_box" or "read\_data" or "read\_restart" command and is
+the "create_box" or "read_data" or "read_restart" command and is
 influenced by the settings of the :doc:`processors <processors>`
 command.
 
@@ -333,7 +333,7 @@ particles in that sub-box.
 
 ----------
 
-.. _weighted\_balance:
+.. _weighted_balance:
 
 This sub-section describes how to perform weighted load balancing
 using the *weight* keyword.
@@ -462,7 +462,7 @@ velocity, the volume of its Voronoi cell, etc.
 
 The *store* weight style does not compute a weight factor.  Instead it
 stores the current accumulated weights in a custom per-atom property
-specified by *name*\ .  This must be a property defined as *d\_name* via
+specified by *name*\ .  This must be a property defined as *d_name* via
 the :doc:`fix property/atom <fix_property_atom>` command.  Note that
 these custom per-atom properties can be output in a :doc:`dump <dump>`
 file, so this is a way to examine, debug, or visualize the

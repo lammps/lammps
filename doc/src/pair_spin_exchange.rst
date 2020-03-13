@@ -42,7 +42,7 @@ interaction for different neighboring shells. This function is defined as:
     {J}\left( r_{ij} \right) = 4 a \left( \frac{r_{ij}}{d}  \right)^2 \left( 1 - b \left( \frac{r_{ij}}{d}  \right)^2 \right) e^{-\left( \frac{r_{ij}}{d} \right)^2 }\Theta (R_c - r_{ij})
 
 where :math:`a`, :math:`b` and :math:`d` are the three constant coefficients defined in the associated
-"pair\_coeff" command, and :math:`R_c` is the radius cutoff associated to
+"pair_coeff" command, and :math:`R_c` is the radius cutoff associated to
 the pair interaction (see below for more explanations).
 
 The coefficients :math:`a`, :math:`b`, and :math:`d` need to be fitted so that the function above matches with
@@ -93,7 +93,7 @@ Restrictions
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
-atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

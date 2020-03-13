@@ -129,17 +129,17 @@ appended and the group for the new compute is "all", so that the
 temperature of the entire system is used.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 ----------
 
-**Restart, fix\_modify, thermo output, run start/stop, minimize info:**
+**Restart, fix_modify, thermo output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -174,7 +174,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The settings of the "special\_bond" command must be 0,1,1 in order to
+The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or
 harmonic bonds.  This means that pairwise interactions between bonded
 atoms are turned off, but are turned on between atoms two or three

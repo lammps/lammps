@@ -151,9 +151,9 @@ relative coordinates, are calculated using :doc:`compute temp/drude <compute_tem
 In addition, if you want to use a barostat to simulate a system at
 constant pressure, only one of the Nose-Hoover fixes must be *npt*\ ,
 the other one should be *nvt*\ . You must add a *compute temp/com* and a
-*fix\_modify* command so that the temperature of the *npt* fix be just
+*fix_modify* command so that the temperature of the *npt* fix be just
 that of its group (the Drude cores) but the pressure be the overall
-pressure *thermo\_press*.
+pressure *thermo_press*.
 
 Example:
 
@@ -182,7 +182,7 @@ to add a *fix momentum* command:
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

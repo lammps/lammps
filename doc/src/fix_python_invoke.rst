@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are ignored by this fix
 * python/invoke = style name of this fix command
 * N = execute every N steps
-* callback = *post\_force* or *end\_of\_step*
+* callback = *post_force* or *end_of_step*
 
   .. parsed-literal::
 

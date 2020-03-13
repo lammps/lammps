@@ -100,7 +100,7 @@ can be reproduced with this keyword.
 The optional keyword *components* will output the components of the
 normalized complex vector :math:`\bar{Y}_{lm}` of degree *ldegree*\ , which must be
 explicitly included in the keyword *degrees*\ . This option can be used
-in conjunction with :doc:`compute coord\_atom <compute_coord_atom>` to
+in conjunction with :doc:`compute coord_atom <compute_coord_atom>` to
 calculate the ten Wolde's criterion to identify crystal-like
 particles, as discussed in :ref:`ten Wolde <tenWolde2>`.
 

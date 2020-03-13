@@ -49,9 +49,9 @@ processors and stored as properties of ghost atoms.
    you specify a :doc:`comm_style <comm_style>` or
    :doc:`read_restart <read_restart>` command, all communication settings
    are restored to their default or stored values, including those
-   previously reset by a comm\_modify command.  Thus if your input script
-   specifies a comm\_style or read\_restart command, you should use the
-   comm\_modify command after it.
+   previously reset by a comm_modify command.  Thus if your input script
+   specifies a comm_style or read_restart command, you should use the
+   comm_modify command after it.
 
 The *mode* keyword determines whether a single or multiple cutoff
 distances are used to determine which atoms to communicate.
@@ -82,7 +82,7 @@ printed. Specifying a cutoff value of 0.0 will reset any previous value
 to the default. If bonded interactions exist and equilibrium bond length
 information is available, then also a heuristic based on that bond length
 is computed. It is used as communication cutoff, if there is no pair
-style present and no *comm\_modify cutoff* command used. Otherwise a
+style present and no *comm_modify cutoff* command used. Otherwise a
 warning is printed, if this bond based estimate is larger than the
 communication cutoff used. A
 

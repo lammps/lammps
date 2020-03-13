@@ -15,7 +15,7 @@ Syntax
 * N = measure the Green's function every this many timesteps
 * Noutput = output the dynamical matrix every this many measurements
 * Nwait = wait this many timesteps before measuring
-* map\_file = *file* or *GAMMA*
+* map_file = *file* or *GAMMA*
 
   .. parsed-literal::
 
@@ -131,14 +131,14 @@ provided by keyword *nasr* gives the total number of iterations. For a
 system whose unit cell has only one atom, *nasr* = 1 is sufficient;
 for other systems, *nasr* = 10 is typically sufficient.
 
-The *map\_file* contains the mapping information between the lattice
+The *map_file* contains the mapping information between the lattice
 indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
 code, `latgen <http://code.google.com/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.
 
 In case one simulates a non-periodic system, where the whole simulation
-box is treated as a unit cell, one can set *map\_file* as *GAMMA*\ , so
+box is treated as a unit cell, one can set *map_file* as *GAMMA*\ , so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
 will/can be evaluated. Please keep in mind that fix-phonon is designed
@@ -150,12 +150,12 @@ The calculated dynamical matrix elements are written out in
 points in the log file is in the units of the basis vectors of the
 corresponding reciprocal lattice.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
-fix. You can use it to change the temperature compute from thermo\_temp
+fix. You can use it to change the temperature compute from thermo_temp
 to the one that reflects the true temperature of atoms in the group.
 
 No global scalar or vector or per-atom quantities are stored by this

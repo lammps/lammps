@@ -20,16 +20,16 @@ distribution.
 +----------------------------------------------------------------+--------------------------------------------------+
 | GUI go/stop/temperature-slider to control LAMMPS               | plot.py                                          |
 +----------------------------------------------------------------+--------------------------------------------------+
-| real-time temperature plot with GnuPlot via Pizza.py           | viz\_tool.py                                     |
+| real-time temperature plot with GnuPlot via Pizza.py           | viz_tool.py                                     |
 +----------------------------------------------------------------+--------------------------------------------------+
-| real-time viz via some viz package                             | vizplotgui\_tool.py                              |
+| real-time viz via some viz package                             | vizplotgui_tool.py                              |
 +----------------------------------------------------------------+--------------------------------------------------+
-| combination of viz\_tool.py and plot.py and gui.py             |                                                  |
+| combination of viz_tool.py and plot.py and gui.py             |                                                  |
 +----------------------------------------------------------------+--------------------------------------------------+
 
 ----------
 
-For the viz\_tool.py and vizplotgui\_tool.py commands, replace "tool"
+For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
 with "gl" or "atomeye" or "pymol" or "vmd", depending on what
 visualization package you have installed.
 
@@ -79,7 +79,7 @@ variables that have to match the VMD installation on your system.
 See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 
-Here are screenshots of the vizplotgui\_tool.py script in action for
+Here are screenshots of the vizplotgui_tool.py script in action for
 different visualization package options.  Click to see larger images:
 
 .. image:: JPG/screenshot_gl_small.jpg

@@ -37,7 +37,7 @@ Description
 
 Perform charge equilibration (QeQ) in conjunction with the COMB
 (Charge-Optimized Many-Body) potential as described in
-:ref:`(COMB\_1) <COMB_1>` and :ref:`(COMB\_2) <COMB_2>`.  It performs the charge
+:ref:`(COMB_1) <COMB_1>` and :ref:`(COMB_2) <COMB_2>`.  It performs the charge
 equilibration portion of the calculation using the so-called QEq
 method, whereby the charge on each atom is adjusted to minimize the
 energy of the system.  This fix can only be used with the COMB
@@ -50,8 +50,8 @@ per-atom electronegativity (effective force on the charges).  An
 electronegativity equalization calculation (or QEq) is performed in an
 iterative fashion, which in parallel requires communication at each
 iteration for processors to exchange charge information about nearby
-atoms with each other.  See :ref:`Rappe\_and\_Goddard <Rappe_and_Goddard>` and
-:ref:`Rick\_and\_Stuart <Rick_and_Stuart>` for details.
+atoms with each other.  See :ref:`Rappe_and_Goddard <Rappe_and_Goddard>` and
+:ref:`Rick_and_Stuart <Rick_and_Stuart>` for details.
 
 During a run, charge equilibration is performed every *Nevery* time
 steps.  Charge equilibration is also always enforced on the first step
@@ -85,7 +85,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -121,21 +121,21 @@ No file output is performed.
 
 ----------
 
-.. _COMB\_1:
+.. _COMB_1:
 
-**(COMB\_1)** J. Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
+**(COMB_1)** J. Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
 
-.. _COMB\_2:
+.. _COMB_2:
 
-**(COMB\_2)** T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
+**(COMB_2)** T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
 Phillpot, Phys Rev B, 81, 125328 (2010).
 
-.. _Rappe\_and\_Goddard:
+.. _Rappe_and_Goddard:
 
-**(Rappe\_and\_Goddard)** A. K. Rappe, W. A. Goddard, J Phys Chem 95, 3358
+**(Rappe_and_Goddard)** A. K. Rappe, W. A. Goddard, J Phys Chem 95, 3358
 (1991).
 
-.. _Rick\_and\_Stuart:
+.. _Rick_and_Stuart:
 
-**(Rick\_and\_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
+**(Rick_and_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
 101, 16141 (1994).

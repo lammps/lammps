@@ -17,7 +17,7 @@ Syntax
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *nvt/eff* or *npt/eff* or *nph/eff*
+* style_name = *nvt/eff* or *npt/eff* or *nph/eff*
 
   .. parsed-literal::
 
@@ -85,7 +85,7 @@ to the temperature or kinetic energy from the electron radial velocity.
 .. note::
 
    there are two different pressures that can be reported for eFF
-   when defining the pair\_style (see :doc:`pair eff/cut <pair_eff>` to
+   when defining the pair_style (see :doc:`pair eff/cut <pair_eff>` to
    understand these settings), one (default) that considers electrons do
    not contribute radial virial components (i.e. electrons treated as
    incompressible 'rigid' spheres) and one that does.  The radial
@@ -105,7 +105,7 @@ to the temperature or kinetic energy from the electron radial velocity.
    the user must allow for these degrees of freedom to equilibrate
    (i.e. equi-partitioning of energy) through time integration.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 See the doc page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands
 for details.

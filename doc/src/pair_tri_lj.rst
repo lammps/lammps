@@ -41,16 +41,16 @@ its entirety or not at all.
 
 The set of non-overlapping spherical particles that represent a
 triangle, for purposes of this pair style, are generated in the
-following manner.  Assume the triangle is of type I, and sigma\_II has
+following manner.  Assume the triangle is of type I, and sigma_II has
 been specified.  We want a set of spheres with centers in the plane of
-the triangle, none of them larger in diameter than sigma\_II, which
+the triangle, none of them larger in diameter than sigma_II, which
 completely cover the triangle's area, but with minimal overlap and a
 minimal total number of spheres.  This is done in a recursive manner.
 Place a sphere at the centroid of the original triangle.  Calculate
 what diameter it must have to just cover all 3 corner points of the
-triangle.  If that diameter is equal to or smaller than sigma\_II, then
+triangle.  If that diameter is equal to or smaller than sigma_II, then
 include a sphere of the calculated diameter in the set of covering
-spheres.  It the diameter is larger than sigma\_II, then split the
+spheres.  It the diameter is larger than sigma_II, then split the
 triangle into 2 triangles by bisecting its longest side.  Repeat the
 process on each sub-triangle, recursing as far as needed to generate a
 set of covering spheres.  When finished, the original criteria are
@@ -62,8 +62,8 @@ The LJ interaction between 2 spheres on different triangles of types
 I,J is computed with an arithmetic mixing of the sigma values of the 2
 spheres and using the specified epsilon value for I,J atom types.
 Note that because the sigma values for triangles spheres is computed
-using only sigma\_II values, specific to the triangles's type, this
-means that any specified sigma\_IJ values (for I != J) are effectively
+using only sigma_II values, specific to the triangles's type, this
+means that any specified sigma_IJ values (for I != J) are effectively
 ignored.
 
 For style *tri/lj*\ , the following coefficients must be defined for
@@ -85,7 +85,7 @@ is used.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of this pair style can be mixed.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+default mix value is *geometric*\ .  See the "pair_modify" command for
 details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`

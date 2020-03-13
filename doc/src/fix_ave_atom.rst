@@ -16,7 +16,7 @@ Syntax
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
   one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[i], f\_ID, f\_ID[i], v\_name
+* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[i], f_ID, f_ID[i], v_name
 
   .. parsed-literal::
 
@@ -121,7 +121,7 @@ an input value from that compute.
    which can be provided by the :doc:`compute property/atom <compute_property_atom>` command via its xu,yu,zu
    attributes.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index I is appended, the Ith column of
@@ -130,7 +130,7 @@ write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`. 
 be specified with a wildcard asterisk to effectively specify multiple
 values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed term containing an index I is appended, the Ith column of
@@ -141,7 +141,7 @@ write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.  See
 specified with a wildcard asterisk to effectively specify multiple
 values.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script as an :doc:`atom-style variable <variable>` Variables of style *atom* can reference
 thermodynamic keywords, or invoke other computes, fixes, or variables
 when they are evaluated, so this is a very general means of generating
@@ -149,7 +149,7 @@ per-atom quantities to time average.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are

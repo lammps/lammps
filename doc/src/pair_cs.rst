@@ -132,7 +132,7 @@ to 0.0, which works because the core and shell atoms are bonded to
 each other.  This induces a long-range correction approximation which
 fails at small distances (~< 10e-8). Therefore, the Coulomb term which
 is used to calculate the correction factor is extended by a minimal
-distance (r\_min = 1.0-6) when the interaction between a core/shell
+distance (r_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
 .. math::

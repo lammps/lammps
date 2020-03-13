@@ -132,7 +132,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | reax        | RDX and TATB models using the ReaxFF                             |
 +-------------+------------------------------------------------------------------+
-| rerun       | use of rerun and read\_dump commands                             |
+| rerun       | use of rerun and read_dump commands                             |
 +-------------+------------------------------------------------------------------+
 | rigid       | rigid bodies modeled as independent or coupled                   |
 +-------------+------------------------------------------------------------------+
@@ -170,7 +170,7 @@ web site.
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
 script a series of JPG images will be produced by the run (assuming
 you built LAMMPS with JPG support; see the
-:doc:`Build\_settings <Build_settings>` doc page for details).  These can
+:doc:`Build_settings <Build_settings>` doc page for details).  These can
 be viewed individually or turned into a movie or animated by tools
 like ImageMagick or QuickTime or various Windows-based tools.  See the
 :doc:`dump image <dump_image>` doc page for more details.  E.g. this
@@ -195,7 +195,7 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | ELASTIC    | compute elastic constants at zero temperature                                                    |
 +------------+--------------------------------------------------------------------------------------------------+
-| ELASTIC\_T | compute elastic constants at finite temperature                                                  |
+| ELASTIC_T | compute elastic constants at finite temperature                                                  |
 +------------+--------------------------------------------------------------------------------------------------+
 | HEAT       | compute thermal conductivity for LJ and water via fix ehex                                       |
 +------------+--------------------------------------------------------------------------------------------------+
@@ -219,7 +219,7 @@ The USER directory has a large number of sub-directories which
 correspond by name to a USER package.  They contain scripts that
 illustrate how to use the command(s) provided in that package.  Many
 of the sub-directories have their own README files which give further
-instructions.  See the :doc:`Packages\_details <Packages_details>` doc
+instructions.  See the :doc:`Packages_details <Packages_details>` doc
 page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org

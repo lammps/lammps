@@ -225,7 +225,7 @@ Restrictions
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-The compute\_xrd command does not work for triclinic cells.
+The compute_xrd command does not work for triclinic cells.
 
 Related commands
 """"""""""""""""

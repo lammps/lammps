@@ -11,8 +11,8 @@ Syntax
    fix ID group-ID smd/adjust_dt arg
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* smd/adjust\_dt = style name of this fix command
-* arg = *s\_fact*
+* smd/adjust_dt = style name of this fix command
+* arg = *s_fact*
 
   .. parsed-literal::
 
@@ -41,12 +41,12 @@ step.
 
 This fix inquires the minimum stable time increment across all
 particles contained in the group for which this fix is defined. An
-additional safety factor *s\_fact* is applied to the time increment.
+additional safety factor *s_fact* is applied to the time increment.
 
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Currently, no part of USER-SMD supports restarting nor minimization.
 
@@ -59,6 +59,6 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`smd/tlsph\_dt <compute_smd_tlsph_dt>`
+:doc:`smd/tlsph_dt <compute_smd_tlsph_dt>`
 
 **Default:** none

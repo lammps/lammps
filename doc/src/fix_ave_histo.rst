@@ -21,7 +21,7 @@ Syntax
 * lo,hi = lo/hi bounds within which to histogram
 * Nbin = # of histogram bins
 * one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -176,7 +176,7 @@ self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
 an input value from that compute.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
@@ -196,7 +196,7 @@ or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
@@ -212,7 +212,7 @@ Note that some fixes only produce their values on certain timesteps,
 which must be compatible with *Nevery*\ , else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  If *mode* = scalar, then
 only equal-style or vector-style variables can be used, which both
 produce global values.  In this mode, a vector-style variable requires
@@ -329,7 +329,7 @@ the histogram.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

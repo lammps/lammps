@@ -121,7 +121,7 @@ constraint lists atom types.  All bonds connected to an atom of the
 specified type will be constrained.  The *m* constraint lists atom
 masses.  All bonds connected to atoms of the specified masses will be
 constrained (within a fudge factor of MASSDELTA specified in
-fix\_shake.cpp).  The *a* constraint lists angle types.  If both bonds
+fix_shake.cpp).  The *a* constraint lists angle types.  If both bonds
 in the angle are constrained then the angle will also be constrained
 if its type is in the list.
 
@@ -195,12 +195,12 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
    after fix rattle operates, then fix rattle will not take them into
    account and the overall time integration will typically not satisfy
    the RATTLE constraints.  You can check whether the constraints work
-   correctly by setting the value of RATTLE\_DEBUG in src/fix\_rattle.cpp
+   correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
    to 1 and recompiling LAMMPS.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to keeping the constraints to the

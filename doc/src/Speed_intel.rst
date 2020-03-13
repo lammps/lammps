@@ -79,7 +79,7 @@ order of operations compared to LAMMPS without acceleration:
 * The *newton* setting applies to all atoms, not just atoms shared
   between MPI tasks
 * Vectorization can change the order for adding pairwise forces
-* When using the -DLMP\_USE\_MKL\_RNG define (all included intel optimized
+* When using the -DLMP_USE_MKL_RNG define (all included intel optimized
   makefiles do) at build time, the random number generator for
   dissipative particle dynamics (pair style dpd/intel) uses the Mersenne
   Twister generator included in the Intel MKL library (that should be
@@ -102,8 +102,8 @@ LAMMPS should be built with the USER-INTEL package installed.
 Simulations should be run with 1 MPI task per physical *core*\ ,
 not *hardware thread*\ .
 
-* Edit src/MAKE/OPTIONS/Makefile.intel\_cpu\_intelmpi as necessary.
-* Set the environment variable KMP\_BLOCKTIME=0
+* Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary.
+* Set the environment variable KMP_BLOCKTIME=0
 * "-pk intel 0 omp $t -sf intel" added to LAMMPS command-line
 * $t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi
 * For some of the simple 2-body potentials without long-range
@@ -111,26 +111,26 @@ not *hardware thread*\ .
   the "newton off" setting added to the input script
 * For simulations on higher node counts, add "processors \* \* \* grid
   numa" to the beginning of the input script for better scalability
-* If using *kspace\_style pppm* in the input script, add
-  "kspace\_modify diff ad" for better performance
+* If using *kspace_style pppm* in the input script, add
+  "kspace_modify diff ad" for better performance
 
 For Intel Xeon Phi CPUs:
 
 * Runs should be performed using MCDRAM.
 
-For simulations using *kspace\_style pppm* on Intel CPUs supporting
+For simulations using *kspace_style pppm* on Intel CPUs supporting
 AVX-512:
 
-* Add "kspace\_modify diff ad" to the input script
+* Add "kspace_modify diff ad" to the input script
 * The command-line option should be changed to
   "-pk intel 0 omp $r lrt yes -sf intel" where $r is the number of
   threads minus 1.
-* Do not use thread affinity (set KMP\_AFFINITY=none)
+* Do not use thread affinity (set KMP_AFFINITY=none)
 * The "newton off" setting may provide better scalability
 
 For Intel Xeon Phi co-processors (Offload):
 
-* Edit src/MAKE/OPTIONS/Makefile.intel\_co-processor as necessary
+* Edit src/MAKE/OPTIONS/Makefile.intel_co-processor as necessary
 * "-pk intel N omp 1" added to command-line where N is the number of
   co-processors per node.
 
@@ -213,7 +213,7 @@ directory:
    Makefile.intel_cpu_openpmi  # Intel Compiler, OpenMPI, No Offload
    Makefile.intel_co-processor  # Intel Compiler, Intel MPI, Offload
 
-Makefile.knl is identical to Makefile.intel\_cpu\_intelmpi except that
+Makefile.knl is identical to Makefile.intel_cpu_intelmpi except that
 it explicitly specifies that vectorization should be for Intel Xeon
 Phi x200 processors making it easier to cross-compile. For users with
 recent installations of Intel Parallel Studio, the process can be as
@@ -234,12 +234,12 @@ without offload support will produce a smaller binary.
 The general requirements for Makefiles with the USER-INTEL package
 are as follows. When using Intel compilers, "-restrict" is required
 and "-qopenmp" is highly recommended for CCFLAGS and LINKFLAGS.
-CCFLAGS should include "-DLMP\_INTEL\_USELRT" (unless POSIX Threads
-are not supported in the build environment) and "-DLMP\_USE\_MKL\_RNG"
+CCFLAGS should include "-DLMP_INTEL_USELRT" (unless POSIX Threads
+are not supported in the build environment) and "-DLMP_USE_MKL_RNG"
 (unless Intel Math Kernel Library (MKL) is not available in the build
 environment). For Intel compilers, LIB should include "-ltbbmalloc"
-or if the library is not available, "-DLMP\_INTEL\_NO\_TBB" can be added
-to CCFLAGS. For builds supporting offload, "-DLMP\_INTEL\_OFFLOAD" is
+or if the library is not available, "-DLMP_INTEL_NO_TBB" can be added
+to CCFLAGS. For builds supporting offload, "-DLMP_INTEL_OFFLOAD" is
 required for CCFLAGS and "-qoffload" is required for LINKFLAGS. Other
 recommended CCFLAG options for best performance are "-O2 -fno-alias
 -ansi-alias -qoverride-limits fp-model fast=2 -no-prec-div".
@@ -297,9 +297,9 @@ almost all cases.
    OpenMP threads on the host (CPU) will be set by default on the host
    *when using offload to a co-processor*\ . In this case, it is unnecessary
    to use other methods to control affinity (e.g. taskset, numactl,
-   I\_MPI\_PIN\_DOMAIN, etc.). This can be disabled with the *no\_affinity*
+   I_MPI_PIN_DOMAIN, etc.). This can be disabled with the *no_affinity*
    option to the :doc:`package intel <package>` command or by disabling the
-   option at build time (by adding -DINTEL\_OFFLOAD\_NOAFFINITY to the
+   option at build time (by adding -DINTEL_OFFLOAD_NOAFFINITY to the
    CCFLAGS line of your Makefile). Disabling this option is not
    recommended, especially when running on a machine with Intel
    Hyper-Threading technology disabled.
@@ -313,7 +313,7 @@ editing the input script. This switch will automatically append
 :doc:`package intel 1 <package>`. This package command is used to set
 options for the USER-INTEL package.  The default package command will
 specify that USER-INTEL calculations are performed in mixed precision,
-that the number of OpenMP threads is specified by the OMP\_NUM\_THREADS
+that the number of OpenMP threads is specified by the OMP_NUM_THREADS
 environment variable, and that if co-processors are present and the
 binary was built with offload support, that 1 co-processor per node
 will be used with automatic balancing of work between the CPU and the
@@ -324,11 +324,11 @@ the "-pk intel Nphi" :doc:`command-line switch <Run_options>` with
 keyword/value pairs as specified in the documentation. Here, Nphi = #
 of Xeon Phi co-processors/node (ignored without offload
 support). Common options to the USER-INTEL package include *omp* to
-override any OMP\_NUM\_THREADS setting and specify the number of OpenMP
+override any OMP_NUM_THREADS setting and specify the number of OpenMP
 threads, *mode* to set the floating-point precision mode, and *lrt* to
 enable Long-Range Thread mode as described below. See the :doc:`package intel <package>` command for details, including the default values
 used for all its options if not specified, and how to set the number
-of OpenMP threads via the OMP\_NUM\_THREADS environment variable if
+of OpenMP threads via the OMP_NUM_THREADS environment variable if
 desired.
 
 Examples (see documentation for your MPI/Machine for differences in
@@ -375,7 +375,7 @@ Long-Range Thread (LRT) mode is an option to the :doc:`package intel <package>` 
 with SMT. It generates an extra pthread for each MPI task. The thread
 is dedicated to performing some of the PPPM calculations and MPI
 communications. This feature requires setting the pre-processor flag
--DLMP\_INTEL\_USELRT in the makefile when compiling LAMMPS. It is unset
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS. It is unset
 in the default makefiles (\ *Makefile.mpi* and *Makefile.serial*\ ) but
 it is set in all makefiles tuned for the USER-INTEL package.  On Intel
 Xeon Phi x200 series CPUs, the LRT feature will likely improve
@@ -387,7 +387,7 @@ normally be used for the run and add the "lrt yes" option to the "-pk"
 command-line suffix or "package intel" command. For example, if a run
 would normally perform best with "-pk intel 0 omp 4", instead use
 "-pk intel 0 omp 3 lrt yes". When using LRT, you should set the
-environment variable "KMP\_AFFINITY=none". LRT mode is not supported
+environment variable "KMP_AFFINITY=none". LRT mode is not supported
 when using offload.
 
 .. note::
@@ -425,7 +425,7 @@ alternative to LRT mode and the two cannot be used together.
 
 Currently, when using Intel MPI with Intel Xeon Phi x200 series
 CPUs, better performance might be obtained by setting the
-environment variable "I\_MPI\_SHM\_LMT=shm" for Linux kernels that do
+environment variable "I_MPI_SHM_LMT=shm" for Linux kernels that do
 not yet have full support for AVX-512. Runs on Intel Xeon Phi x200
 series processors will always perform better using MCDRAM. Please
 consult your system documentation for the best approach to specify
@@ -513,7 +513,7 @@ When offloading to a co-processor, :doc:`hybrid <pair_hybrid>` styles
 that require skip lists for neighbor builds cannot be offloaded.
 Using :doc:`hybrid/overlay <pair_hybrid>` is allowed.  Only one intel
 accelerated style may be used with hybrid styles when offloading.
-:doc:`Special\_bonds <special_bonds>` exclusion lists are not currently
+:doc:`Special_bonds <special_bonds>` exclusion lists are not currently
 supported with offload, however, the same effect can often be
 accomplished by setting cutoffs for excluded atom types to 0.  None of
 the pair styles in the USER-INTEL package currently support the

@@ -180,7 +180,7 @@ used in the *charmmfsw* and *charmmfsh* styles.
 When using the *lj/charmm/coul/charmm styles*\ , both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
 same for both formulas or different depending on whether 2 or 4
-arguments are used in the pair\_style command.  For the
+arguments are used in the pair_style command.  For the
 *lj/charmmfsw/coul/charmmfsh* style, the LJ term requires both an
 inner and outer cutoff, while the Coulombic term requires only one
 cutoff.  If the Coulombic cutoff is not specified (2 instead of 3
@@ -206,7 +206,7 @@ factor is applied to the Coulombic term, so it can be used in
 conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* or *msm* option.  Only one Coulombic cutoff is
 specified for these styles; if only 2 arguments are used in the
-pair\_style command, then the outer LJ cutoff is used as the single
+pair_style command, then the outer LJ cutoff is used as the single
 Coulombic cutoff.  The Coulombic cutoff specified for these styles
 means that pairwise interactions within this distance are computed
 directly; interactions outside that distance are computed in
@@ -231,7 +231,7 @@ are used in the LJ formula between 2 atoms of these types which are
 also first and fourth atoms in any dihedral.  No cutoffs are specified
 because the CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
-the pair\_style command.
+the pair_style command.
 
 ----------
 
@@ -257,10 +257,10 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-For atom type pairs I,J and I != J, the epsilon, sigma, epsilon\_14,
-and sigma\_14 coefficients for all of the lj/charmm pair styles can be
+For atom type pairs I,J and I != J, the epsilon, sigma, epsilon_14,
+and sigma_14 coefficients for all of the lj/charmm pair styles can be
 mixed.  The default mix value is *arithmetic* to coincide with the
-usual settings for the CHARMM force field.  See the "pair\_modify"
+usual settings for the CHARMM force field.  See the "pair_modify"
 command for details.
 
 None of the *lj/charmm* or *lj/charmmfsw* pair styles support the
@@ -278,8 +278,8 @@ corrections to energy and pressure, since the Lennard-Jones portion of
 the pair interaction is smoothed to 0.0 at the cutoff.
 
 All of the *lj/charmm* and *lj/charmmfsw* pair styles write their
-information to :doc:`binary restart files <restart>`, so pair\_style and
-pair\_coeff commands do not need to be specified in an input script
+information to :doc:`binary restart files <restart>`, so pair_style and
+pair_coeff commands do not need to be specified in an input script
 that reads a restart file.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* pair styles
@@ -287,7 +287,7 @@ support the use of the *inner*\ , *middle*\ , and *outer* keywords of the
 :doc:`run_style respa <run_style>` command, meaning the pairwise forces
 can be partitioned by distance at different levels of the rRESPA
 hierarchy.  The other styles only support the *pair* keyword of
-run\_style respa.  See the :doc:`run_style <run_style>` command for
+run_style respa.  See the :doc:`run_style <run_style>` command for
 details.
 
 ----------

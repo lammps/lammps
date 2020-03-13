@@ -18,7 +18,7 @@ Syntax
 
        possible choices: hooke, hooke/history, hertz/history, granular
 
-* fstyle\_params = parameters associated with force interaction style
+* fstyle_params = parameters associated with force interaction style
 
   .. parsed-literal::
 
@@ -82,25 +82,25 @@ The nature of the wall/particle interactions are determined by the
 :doc:`pair_style granular <pair_granular>` commands.  Currently the
 options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
 former, and *granular* with all the possible options of the associated
-*pair\_coeff* command for the latter.  The equation for the force
+*pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
 corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
 :doc:`pair_style granular <pair_granular>` doc pages, in the limit of
 one of the two particles going to infinite radius and mass (flat wall).
-Specifically, delta = radius - r = overlap of particle with wall, m\_eff
+Specifically, delta = radius - r = overlap of particle with wall, m_eff
 = mass of particle, and the effective radius of contact = RiRj/Ri+Rj is
 set to the radius of the particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma\_n*, *gamma\_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
-used for either *Kt* or *gamma\_t* as described on that page.  If a
+used for either *Kt* or *gamma_t* as described on that page.  If a
 NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
-*Kn*\ .  If a NULL is used for *gamma\_t*, then a default value is used
-where *gamma\_t* = 1/2 *gamma\_n*.
+*Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
+where *gamma_t* = 1/2 *gamma_n*.
 
 All the model choices for cohesion, tangential friction, rolling
-friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair\_coeff* command are also
+friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
 page for :doc:`pair_style granular <pair_granular>`.
 
@@ -122,10 +122,10 @@ material.
    appropriately in the current code to reproduce the results of a
    previous Hertzian monodisperse calculation.  For example, for the
    common case of a monodisperse system with particles of diameter 1, Kn,
-   Kt, gamma\_n, and gamma\_s should be set sqrt(2.0) larger than they were
+   Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
    previously.
 
-The effective mass *m\_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
+The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
 particle/wall interactions (mass of wall is infinite).  If the
 particle is part of a rigid body, its mass is replaced by the mass of
 the rigid body in those formulas.  This is determined by searching for
@@ -171,7 +171,7 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the shear friction state of atoms interacting with the
 wall to :doc:`binary restart files <restart>`, so that a simulation can

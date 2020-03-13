@@ -47,8 +47,8 @@ upon initialization.
 .. note::
 
    Thus when used as the only interaction in the system, there is no
-   corresponding pair\_coeff command and when used with other pair styles using the
-   hybrid/overlay option, the corresponding pair\_coeff command must be supplied
+   corresponding pair_coeff command and when used with other pair styles using the
+   hybrid/overlay option, the corresponding pair_coeff command must be supplied
    \*  \* as placeholders for the atom types.
 
 ----------
@@ -139,14 +139,14 @@ which atom types to use in the calculation of the LD; :math:`b_{\beta} =
 Of course, a system with many atom types may have many different possible LD
 potentials, each with their own atom type filters, cutoffs, and embedding
 functions. The most general form of this potential as implemented in the
-pair\_style local/density is:
+pair_style local/density is:
 
 .. math::
 
    U_{LD} = \sum_k U_{LD}^{(k)} = \sum_i \left[ \sum_k a_\alpha^{(k)} F^{(k)} \left(\rho_i^{(k)}\right) \right]
 
 where, *k* is an index that spans the (arbitrary) number of applied LD
-potentials N\_LD. Each LD is calculated as before with:
+potentials N_LD. Each LD is calculated as before with:
 
 .. math::
 
@@ -154,12 +154,12 @@ potentials N\_LD. Each LD is calculated as before with:
 
 The superscript on the indicator function phi simply indicates that it is
 associated with specific values of the cutoff distances R1(k) and R2(k). In
-summary, there may be N\_LD distinct LD potentials. With each potential type (k),
+summary, there may be N_LD distinct LD potentials. With each potential type (k),
 one must specify:
 
 * the inner and outer cutoffs as R1 and R2
-* the central type filter a(k), where k = 1,2,...N\_LD
-* the neighbor type filter b(k), where k = 1,2,...N\_LD
+* the central type filter a(k), where k = 1,2,...N_LD
+* the neighbor type filter b(k), where k = 1,2,...N_LD
 * the LD potential function F(k)(rho), typically as a table that is later spline-interpolated
 
 ----------
@@ -189,8 +189,8 @@ one must specify:
 
    Block N_LD
 
-Lines 5 to 9+N\_rho constitute the first block. Thus the input file is separated
-(by blank lines) into N\_LD blocks each representing a separate LD potential and
+Lines 5 to 9+N_rho constitute the first block. Thus the input file is separated
+(by blank lines) into N_LD blocks each representing a separate LD potential and
 each specifying its own upper and lower cutoffs, central and neighbor atoms,
 and potential.  In general, blank lines anywhere are ignored.
 
@@ -211,7 +211,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The local/density pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair\_style and pair\_coeff commands in
+Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
 ----------

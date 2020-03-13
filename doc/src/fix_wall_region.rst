@@ -186,10 +186,10 @@ surface no longer interact.  The cutoff is always the last argument.
 The energy of the wall potential is shifted so that the wall-particle
 interaction energy is 0.0 at the cutoff distance.
 
-For a full description of these wall styles, see fix\_style
+For a full description of these wall styles, see fix_style
 :doc:`wall <fix_wall>`
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

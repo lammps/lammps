@@ -161,24 +161,24 @@ pair style is different from the sw pair style in this case. It just
 means that the definitions of the atom energies and atom stresses are
 different.
 
-Only a single pair\_coeff command is used with the polymorphic style
+Only a single pair_coeff command is used with the polymorphic style
 which specifies an potential file for all needed elements. These are
 mapped to LAMMPS atom types by specifying N additional arguments after
-the filename in the pair\_coeff command, where N is the number of
+the filename in the pair_coeff command, where N is the number of
 LAMMPS atom types:
 
 * filename
 * N element names = mapping of Tersoff elements to atom types
 
-See the pair\_coeff doc page for alternate ways to specify the path for
+See the pair_coeff doc page for alternate ways to specify the path for
 the potential file.  Several files for polymorphic potentials are
 included in the potentials directory of the LAMMPS distribution.  They
 have a "poly" suffix.
 
-As an example, imagine the SiC\_tersoff.poly file has tabulated
+As an example, imagine the SiC_tersoff.poly file has tabulated
 functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
-would use the following pair\_coeff command:
+would use the following pair_coeff command:
 
 .. parsed-literal::
 
@@ -204,7 +204,7 @@ and are ignored by LAMMPS. The next line lists two numbers:
 
 Here ntypes represent total number of species defined in the potential
 file, and :math:`\eta = 0` or 1. The number ntypes must equal the total
-number of different species defined in the pair\_coeff command. When
+number of different species defined in the pair_coeff command. When
 :math:`\eta = 1`, :math:\eta_{ij}` defined in the potential functions
 above is set to :math:`1 - \delta_{ij}`, otherwise :math:`\eta_{ij}` is
 set to :math:`\delta_{ij}`. The next ntypes lines each lists two numbers
@@ -254,7 +254,7 @@ Tabulated functions are specified by spline n x1 x2, where n=number of
 point, (x1,x2)=range and then followed by n values evaluated uniformly
 over these argument ranges.  The valid argument ranges of the
 functions are between 0 <= r <= cut for the U(r), V(r), W(r)
-functions, -cutmax <= delta\_r <= cutmax for the P(delta\_r) functions,
+functions, -cutmax <= delta_r <= cutmax for the P(delta_r) functions,
 -1 <= :math:`\cos\theta` <= 1 for the G(:math:`\cos\theta`) functions,
 and 0 <= X <= maxX for the F(X) functions.
 
@@ -264,7 +264,7 @@ This pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write their information to :doc:`binary restart files <restart>`, since it is stored in potential files. Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 ----------
@@ -272,8 +272,8 @@ script that reads a restart file.
 Restrictions
 """"""""""""
 
-If using create\_atoms command, atomic masses must be defined in the
-input script. If using read\_data, atomic masses must be defined in the
+If using create_atoms command, atomic masses must be defined in the
+input script. If using read_data, atomic masses must be defined in the
 atomic structure data file.
 
 This pair style is part of the MANYBODY package. It is only enabled if

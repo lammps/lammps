@@ -105,8 +105,8 @@ timestep. To do this, the fix creates its own computes of style "temp"
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure
 <compute_pressure>` commands for details.  Note that the IDs of the
-new computes are the fix-ID + "_MSST\_temp" or "MSST\_press" or
-"_MSST\_pe".  The group for the new computes is "all".
+new computes are the fix-ID + "_MSST_temp" or "MSST_press" or
+"_MSST_pe".  The group for the new computes is "all".
 
 ----------
 
@@ -122,7 +122,7 @@ timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of all internal variables to :doc:`binary
 restart files <restart>`.  See the :doc:`read_restart <read_restart>`
@@ -143,12 +143,12 @@ equations. See also :doc:`thermo_style <thermo_style>` command.
 
 The global vector contains four values in this order:
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian\_speed*, *lagrangian\_position*]
+[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
 2. *drayleigh* is the departure from the Rayleigh line (pressure units).
-3. *lagrangian\_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
-4. *lagrangian\_position* is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front.
+3. *lagrangian_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
+4. *lagrangian_position* is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front.
 
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested:

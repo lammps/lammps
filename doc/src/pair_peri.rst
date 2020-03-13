@@ -73,8 +73,8 @@ R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
 original VES formulation is described in "(Mitchell2011)" and the
 original EPS formulation is in "(Mitchell2011a)".  Additional PDF docs
 that describe the VES and EPS implementations are include in the
-LAMMPS distribution in `doc/PDF/PDLammps\_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
-`doc/PDF/PDLammps\_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.  For questions
+LAMMPS distribution in `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
+`doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.  For questions
 regarding the VES and EPS models in LAMMPS you can contact R. Rahman
 (rezwanur.rahman at utsa.edu).
 
@@ -118,15 +118,15 @@ For the *peri/ves* style:
 * horizon (distance units)
 * s00 (unitless)
 * :math:`\alpha` (unitless)
-* m\_lambdai (unitless)
-* m\_taubi (unitless)
+* m_lambdai (unitless)
+* m_taubi (unitless)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
-used as a bond breaking criteria. m\_lambdai and m\_taubi are the
+used as a bond breaking criteria. m_lambdai and m_taubi are the
 viscoelastic relaxation parameter and time constant,
-respectively. m\_lambdai varies within zero to one. For very small
-values of m\_lambdai the viscoelastic model responds very similar to a
+respectively. m_lambdai varies within zero to one. For very small
+values of m_lambdai the viscoelastic model responds very similar to a
 linear elastic model. For details please see the description in
 "(Mtchell2011)".
 
@@ -137,11 +137,11 @@ For the *peri/eps* style:
 * horizon (distance units)
 * s00 (unitless)
 * :math:`\alpha` (unitless)
-* m\_yield\_stress (force/area units)
+* m_yield_stress (force/area units)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
-criteria.  m\_yield\_stress is the yield stress of the material. For
+criteria.  m_yield_stress is the yield stress of the material. For
 details please see the description in "(Mtchell2011a)".
 
 ----------
@@ -177,7 +177,7 @@ shift option.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

@@ -78,7 +78,7 @@ used.
 For *lj/expand/coul/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
+pair_style command.
 
 ----------
 
@@ -107,8 +107,8 @@ instructions on how to use the accelerated styles effectively.
 For atom type pairs I,J and I != J, the epsilon, sigma, and shift
 coefficients and cutoff distance for this pair style can be mixed.
 Shift is always mixed via an *arithmetic* rule.  The other
-coefficients are mixed according to the pair\_modify mix value.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+coefficients are mixed according to the pair_modify mix value.  The
+default mix value is *geometric*\ .  See the "pair_modify" command for
 details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
@@ -121,7 +121,7 @@ This pair style supports the :doc:`pair_modify <pair_modify>` tail
 option for adding a long-range tail correction to the energy and
 pressure of the pair interaction.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

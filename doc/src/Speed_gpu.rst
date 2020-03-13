@@ -35,9 +35,9 @@ toolkit software on your system (this is primarily tested on Linux
 and completely unsupported on Windows):
 
 * Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/\*/information
-* Go to http://www.nvidia.com/object/cuda\_get.html
+* Go to http://www.nvidia.com/object/cuda_get.html
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run lammps/lib/gpu/nvc\_get\_devices (after building the GPU library, see below) to
+* Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
   list supported devices and properties
 
 To compile and use this package in OpenCL mode, you currently need
@@ -47,7 +47,7 @@ installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will select the **first** suitable platform,
 but this can be overridden using the device option of the :doc:`package <package>`
-command. run lammps/lib/gpu/ocl\_get\_devices to get a list of available
+command. run lammps/lib/gpu/ocl_get_devices to get a list of available
 platforms and devices with a suitable ICD available.
 
 **Building LAMMPS with the GPU package:**

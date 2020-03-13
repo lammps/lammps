@@ -13,7 +13,7 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i\_name* or *d\_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i_name* or *d_name*
 
   .. parsed-literal::
 
@@ -186,7 +186,7 @@ change, for the selected atoms.
 Note that except where explicitly prohibited below, all of the
 keywords allow an :doc:`atom-style or atomfile-style variable
 <variable>` to be used as the specified value(s).  If the value is a
-variable, it should be specified as v\_name, where name is the
+variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated, and its
 resulting per-atom value used to determine the value assigned to each
 selected atom.  Note that the per-atom value from the variable will be
@@ -463,14 +463,14 @@ Keyword *cc* sets the chemical concentration of a tDPD particle for a
 specified species as defined by the USER-MESODPD package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
-Nspecies) where Nspecies is set by the atom\_style command. The value
+Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
 
-Keywords *i\_name* and *d\_name* refer to custom integer and
+Keywords *i_name* and *d_name* refer to custom integer and
 floating-point properties that have been added to each atom via the
 :doc:`fix property/atom <fix_property_atom>` command.  When that command
 is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i\_name* or *d\_name*.
+specified as the "name" portion of *i_name* or *d_name*.
 
 Restrictions
 """"""""""""

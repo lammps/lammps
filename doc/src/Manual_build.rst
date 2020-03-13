@@ -28,8 +28,8 @@ and PDF files are not included.  Instead you need to create them, in one
 of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type "make fetch".  This should download a html\_www
-   directory and Manual\_www.pdf/Developer\_www.pdf files.  Note that if
+   site.  Just type "make fetch".  This should download a html_www
+   directory and Manual_www.pdf/Developer_www.pdf files.  Note that if
    new LAMMPS features have been added more recently than the date of
    your LAMMPS version, the fetched documentation will include those
    changes (but your source code will not, unless you update your local

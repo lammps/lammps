@@ -81,7 +81,7 @@ instructions on how to use the accelerated styles effectively.
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is an energy value mixed
 like a LJ epsilon.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details.
+"pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
@@ -93,7 +93,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

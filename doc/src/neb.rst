@@ -374,24 +374,24 @@ restart the calculation from an intermediate point with altered
 parameters.
 
 There are 2 Python scripts provided in the tools/python directory,
-neb\_combine.py and neb\_final.py, which are useful in analyzing output
+neb_combine.py and neb_final.py, which are useful in analyzing output
 from a NEB calculation.  Assume a NEB simulation with M replicas, and
 the NEB atoms labeled with a specific atom type.
 
-The neb\_combine.py script extracts atom coords for the NEB atoms from
+The neb_combine.py script extracts atom coords for the NEB atoms from
 all M dump files and creates a single dump file where each snapshot
 contains the NEB atoms from all the replicas and one copy of non-NEB
 atoms from the first replica (presumed to be identical in other
 replicas).  This can be visualized/animated to see how the NEB atoms
 relax as the NEB calculation proceeds.
 
-The neb\_final.py script extracts the final snapshot from each of the M
+The neb_final.py script extracts the final snapshot from each of the M
 dump files to create a single dump file with M snapshots.  This can be
 visualized to watch the system make its transition over the energy
 barrier.
 
 To illustrate, here are images from the final snapshot produced by the
-neb\_combine.py script run on the dump files produced by the two
+neb_combine.py script run on the dump files produced by the two
 example input scripts in examples/neb.  Click on them to see a larger
 image.
 

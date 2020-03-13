@@ -41,8 +41,8 @@ is below.
                              # no default value
 
 The executable created by CMake (after running make) is named *lmp* unless
-the LAMMPS\_MACHINE option is set.  When setting `LAMMPS_MACHINE=name`
-the executable will be named *lmp\_name*\.  Using `BUILD\_MPI=no` will
+the LAMMPS_MACHINE option is set.  When setting `LAMMPS_MACHINE=name`
+the executable will be named *lmp_name*\.  Using `BUILD_MPI=no` will
 enforce building a serial executable using the MPI STUBS library.
 
 **Traditional make**\ :
@@ -56,13 +56,13 @@ The build with traditional makefiles has to be done inside the source folder `sr
    make mybox              # uses Makefile.mybox to produce lmp_mybox
 
 Any "make machine" command will look up the make settings from a file
-Makefile.machine, create a folder Obj\_machine with all objects and
-generated files and an executable called *lmp\_machine*\ .  The standard
+Makefile.machine, create a folder Obj_machine with all objects and
+generated files and an executable called *lmp_machine*\ .  The standard
 parallel build with `make mpi` assumes a standard MPI installation with
 MPI compiler wrappers where all necessary compiler and linker flags to
 get access and link with the suitable MPI headers and libraries are set
 by the wrapper programs.  For other cases or the serial build, you have
-to adjust the make file variables MPI\_INC, MPI\_PATH, MPI\_LIB as well
+to adjust the make file variables MPI_INC, MPI_PATH, MPI_LIB as well
 as CC and LINK.  To enable OpenMP threading usually a compiler specific
 flag needs to be added to the compile and link commands.  For the GNU
 compilers, this is *-fopenmp*\ , which can be added to the CC and LINK
@@ -89,7 +89,7 @@ and thus is not compatible with those packages.
 .. note::
 
    The file STUBS/mpi.c provides a CPU timer function called
-   MPI\_Wtime() that calls gettimeofday() .  If your operating system
+   MPI_Wtime() that calls gettimeofday() .  If your operating system
    does not support gettimeofday() , you will need to insert code to
    call another timer.  Note that the ANSI-standard function clock()
    rolls over after an hour or so, and is therefore insufficient for
@@ -126,9 +126,9 @@ to: e.g. LATTE and USER-COLVARS.  See the :doc:`Packages details
 <Packages_details>` doc page for more info on these packages and the doc
 pages for their respective commands for OpenMP threading info.
 
-For CMake, if you use BUILD\_OMP=yes, you can use these packages and
+For CMake, if you use BUILD_OMP=yes, you can use these packages and
 turn on their native OpenMP support and turn on their native OpenMP
-support at run time, by setting the OMP\_NUM\_THREADS environment
+support at run time, by setting the OMP_NUM_THREADS environment
 variable before you launch LAMMPS.
 
 For building via conventional make, the CCFLAGS and LINKFLAGS
@@ -148,7 +148,7 @@ in LAMMPS (for maximal compatibility with compiler versions in use).
 In those case, all 'default(none)' directives (which aid in detecting
 incorrect and unwanted sharing) can be replaced with 'default(shared)'
 while dropping all 'shared()' directives. The script
-'src/USER-OMP/hack\_openmp\_for\_pgi\_gcc9.sh' can be used to automate
+'src/USER-OMP/hack_openmp_for_pgi_gcc9.sh' can be used to automate
 this conversion.
 
 ----------
@@ -300,12 +300,12 @@ are set, defaults are applied.
    -D LAMMPS_LIB_SUFFIX=name    # name = mpi, serial, mybox, titan, laptop, etc
                                 # no default value
 
-Setting BUILD\_EXE=no will not produce an executable.  Setting
-BUILD\_LIB=yes will produce a static library named *liblammps.a*\ .
-Setting both BUILD\_LIB=yes and BUILD\_SHARED\_LIBS=yes will produce a
-shared library named *liblammps.so* instead. If LAMMPS\_LIB\_SUFFIX is
+Setting BUILD_EXE=no will not produce an executable.  Setting
+BUILD_LIB=yes will produce a static library named *liblammps.a*\ .
+Setting both BUILD_LIB=yes and BUILD_SHARED_LIBS=yes will produce a
+shared library named *liblammps.so* instead. If LAMMPS_LIB_SUFFIX is
 set to *name* in addition, the name of the generated libraries will be
-changed to either *liblammps\_name.a* or *liblammps\_name.so*\ ,
+changed to either *liblammps_name.a* or *liblammps_name.so*\ ,
 respectively.
 
 **Traditional make**\ :
@@ -322,11 +322,11 @@ Several options are available and "mode=exe" is the default.
    make mode=shlib machine    # build LAMMPS shared lib liblammps_machine.so
    make mode=shexe machine    # same as "mode=exe" but uses objects from "mode=shlib"
 
-The two "exe" builds will generate and executable *lmp\_machine*\ ,
-while the two library builds will create a file *liblammps\_machine.a*
-or *liblammps\_machine.so*\ . They will also create generic soft links,
+The two "exe" builds will generate and executable *lmp_machine*\ ,
+while the two library builds will create a file *liblammps_machine.a*
+or *liblammps_machine.so*\ . They will also create generic soft links,
 named *liblammps.a* and *liblammps.so*\ , which point to the specific
-*liblammps\_machine.a/so* files.
+*liblammps_machine.a/so* files.
 
 **CMake and make info**\ :
 

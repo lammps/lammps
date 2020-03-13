@@ -85,7 +85,7 @@ to assist:
    FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
    FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
 
-# default is FFT\_PACK\_ARRAY if not specified
+# default is FFT_PACK_ARRAY if not specified
 
 .. code-block:: make
 
@@ -100,9 +100,9 @@ to assist:
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
    FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
-As with CMake, you do not need to set paths in FFT\_INC or FFT\_PATH, if
+As with CMake, you do not need to set paths in FFT_INC or FFT_PATH, if
 the compiler can find the FFT header and library files in its default search path.
-You must specify FFT\_LIB with the appropriate FFT libraries to include in the link.
+You must specify FFT_LIB with the appropriate FFT libraries to include in the link.
 
 **CMake and make info**\ :
 
@@ -133,7 +133,7 @@ the "--prefix" option of configure.  Type "./configure --help" to see
 various options.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
-can be used with the Intel or GNU compiler (see FFT\_LIB setting above).
+can be used with the Intel or GNU compiler (see FFT_LIB setting above).
 
 Performing 3d FFTs in parallel can be time consuming due to data
 access and required communication.  This cost can be reduced by
@@ -142,11 +142,11 @@ precision means the real and imaginary parts of a complex datum are
 4-byte floats.  Double precision means they are 8-byte doubles.  Note
 that Fourier transform and related PPPM operations are somewhat less
 sensitive to floating point truncation errors and thus the resulting
-error is less than the difference in precision. Using the -DFFT\_SINGLE
+error is less than the difference in precision. Using the -DFFT_SINGLE
 setting trades off a little accuracy for reduced memory use and
 parallel communication costs for transposing 3d FFT data.
 
-When using -DFFT\_SINGLE with FFTW3 you may need to build the FFTW
+When using -DFFT_SINGLE with FFTW3 you may need to build the FFTW
 library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
@@ -159,7 +159,7 @@ library libfftw3f.a or libfftw3f.so.
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3
-modes (ARRAY, POINTER, MEMCPY) as set by the FFT\_PACK syntax above.
+modes (ARRAY, POINTER, MEMCPY) as set by the FFT_PACK syntax above.
 Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.
@@ -187,7 +187,7 @@ adequate.
 
    LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
-# default is LAMMPS\_SMALLBIG if not specified
+# default is LAMMPS_SMALLBIG if not specified
 **CMake and make info**\ :
 
 The default "smallbig" setting allows for simulations with:
@@ -286,8 +286,8 @@ variables:
    JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
    JPG_LIB = -ljpeg -lpng -lz       # library names
 
-As with CMake, you do not need to set JPG\_INC or JPG\_PATH, if make can
-find the graphics header and library files.  You must specify JPG\_LIB
+As with CMake, you do not need to set JPG_INC or JPG_PATH, if make can
+find the graphics header and library files.  You must specify JPG_LIB
 with a list of graphics libraries to include in the link.  You must
 insure ffmpeg is in a directory where LAMMPS can find it at runtime,
 that is a directory in your PATH environment variable.
@@ -351,7 +351,7 @@ found by LAMMPS during a run.
 Memory allocation alignment
 ---------------------------------------
 
-This setting enables the use of the posix\_memalign() call instead of
+This setting enables the use of the posix_memalign() call instead of
 malloc() when LAMMPS allocates large chunks or memory.  This can make
 vector instructions on CPUs more efficient, if dynamically allocated
 memory is aligned on larger-than-default byte boundaries.
@@ -366,7 +366,7 @@ aligned on 64-byte boundaries.
 
    -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-Use a LAMMPS\_MEMALIGN value of 0 to disable using posix\_memalign()
+Use a LAMMPS_MEMALIGN value of 0 to disable using posix_memalign()
 and revert to using the malloc() C-library function instead.  When
 compiling LAMMPS for Windows systems, malloc() will always be used
 and this setting ignored.
@@ -377,8 +377,8 @@ and this setting ignored.
 
    LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
 
-Do not set -DLAMMPS\_MEMALIGN, if you want to have memory allocated
-with the malloc() function call instead. -DLAMMPS\_MEMALIGN **cannot**
+Do not set -DLAMMPS_MEMALIGN, if you want to have memory allocated
+with the malloc() function call instead. -DLAMMPS_MEMALIGN **cannot**
 be used on Windows, as it does use different function calls for
 allocating aligned memory, that are not compatible with how LAMMPS
 manages its dynamical memory.

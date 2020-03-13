@@ -25,7 +25,7 @@ Syntax
 * flagfld = 0/1 to include/exclude Fast Lubrication Dynamics effects
 * cutinner = inner cutoff distance (distance units)
 * cutoff = outer cutoff for interactions (distance units)
-* t\_target = target temp of the system (temperature units)
+* t_target = target temp of the system (temperature units)
 * seed = seed for the random number generator (positive integer)
 * flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
 * flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms
@@ -53,7 +53,7 @@ when dissipative lubrication forces are acting.  Thus the parameters
 specified consistent with the settings in the lubrication pair styles.
 For details, refer to either of the lubrication pair styles.
 
-The *t\_target* setting is used to specify the target temperature of
+The *t_target* setting is used to specify the target temperature of
 the system.  The random number *seed* is used to generate random
 numbers for the thermostatting procedure.
 
@@ -72,7 +72,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The two coefficients are optional.  If neither is specified, the two
-cutoffs specified in the pair\_style command are used.  Otherwise both
+cutoffs specified in the pair_style command are used.  Otherwise both
 must be specified.
 
 ----------
@@ -101,7 +101,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
-the "pair\_modify" command for details.
+the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
@@ -113,7 +113,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -128,10 +128,10 @@ Restrictions
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-Only spherical monodisperse particles are allowed for pair\_style
+Only spherical monodisperse particles are allowed for pair_style
 brownian.
 
-Only spherical particles are allowed for pair\_style brownian/poly.
+Only spherical particles are allowed for pair_style brownian/poly.
 
 Related commands
 """"""""""""""""

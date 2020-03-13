@@ -32,7 +32,7 @@ The content and format of what is printed is controlled by the
 :doc:`thermo_style <thermo_style>` and
 :doc:`thermo_modify <thermo_modify>` commands.
 
-Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v\_name, where
+Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the next timestep at which
 thermodynamic info will be written out.  On that timestep, the

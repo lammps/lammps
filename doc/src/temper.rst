@@ -119,7 +119,7 @@ manner:
    snapshots at 310K, etc.  Note that these new dump files will not
    contain "continuous trajectories" for individual atoms, because two
    successive snapshots (in time) may be from different replicas. The
-   reorder\_remd\_traj python script can do the reordering for you
+   reorder_remd_traj python script can do the reordering for you
    (and additionally also calculated configurational log-weights of
    trajectory snapshots in the canonical ensemble). The script can be found
    in the tools/replica directory while instructions on how to use it is

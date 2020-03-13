@@ -56,7 +56,7 @@ containing *coul/cut* or *coul/long* in its style name.
 
 The *lj/cut/thole/long* pair style is equivalent to, but more convenient that
 the frequent combination *hybrid/overlay lj/cut/coul/long cutoff thole damp
-cutoff2*\ . It is not only a shorthand for this pair\_style combination, but
+cutoff2*\ . It is not only a shorthand for this pair_style combination, but
 it also allows for mixing pair coefficients instead of listing them all.
 The *lj/cut/thole/long* pair style is also a bit faster because it avoids an
 overlay and can benefit from OMP acceleration. Moreover, it uses a more
@@ -104,7 +104,7 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
-For pair\_style *thole*\ , the following coefficients must be defined for
+For pair_style *thole*\ , the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
@@ -113,7 +113,7 @@ as in the example above.
 * cutoff (distance units)
 
 The last two coefficients are optional.  If not specified the global
-Thole damping parameter or global cutoff specified in the pair\_style
+Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
@@ -128,7 +128,7 @@ command.
 * LJ cutoff (distance units)
 
 The last two coefficients are optional and default to the global values from
-the *pair\_style* command line.
+the *pair_style* command line.
 
 ----------
 
@@ -170,7 +170,7 @@ Restrictions
 These pair styles are part of the USER-DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-This pair\_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
+This pair_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
 factors. This is because the *thole* pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 

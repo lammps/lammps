@@ -64,7 +64,7 @@ and see one line of output for each processor you run on.
    it is using, since you specify the details in your low-level
    src/MAKE/Makefile.foo file.  Mpi4py uses the "mpicc" command to find
    information about the MPI it uses to build against.  And it tries to
-   load "libmpi.so" from the LD\_LIBRARY\_PATH.  This may or may not find
+   load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
    the MPI library that LAMMPS is using.  If you have problems running
    both mpi4py and LAMMPS together, this is an issue you may need to
    address, e.g. by moving other MPI installations so that mpi4py finds

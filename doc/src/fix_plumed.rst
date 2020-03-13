@@ -75,7 +75,7 @@ correctly read and parsed.  The names of the files in which the results
 are stored from the various analysis options performed by PLUMED will
 be specified by the user in the PLUMED input file.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 When performing a restart of a calculation that involves PLUMED you must
 include a RESTART command in the PLUMED input file as detailed in the

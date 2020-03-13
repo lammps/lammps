@@ -65,7 +65,7 @@ or "-bind-to core" (MPICH) can be used.
 
 If the LAMMPS command(s) you are using support multi-threading, you
 can set the number of threads per MPI task via the environment
-variable OMP\_NUM\_THREADS, before you launch LAMMPS:
+variable OMP_NUM_THREADS, before you launch LAMMPS:
 
 .. code-block:: bash
 

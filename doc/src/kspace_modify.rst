@@ -324,18 +324,18 @@ The *tolerance* option affects how the *accuracy* specified with the
 The following values may be used:
 
 * energy = absolute accuracy in total Coulombic energy
-* energy\_rel = relative accuracy in total Coulombic energy
+* energy_rel = relative accuracy in total Coulombic energy
 * potential = absolute accuracy in total Coulombic potential
-* potential\_rel = relative accuracy in total Coulombic potential
+* potential_rel = relative accuracy in total Coulombic potential
 * field = absolute accuracy in electric field
-* field\_rel = relative accuracy in electric field
+* field_rel = relative accuracy in electric field
 
-The values with suffix \_rel indicate the tolerance is a relative
+The values with suffix _rel indicate the tolerance is a relative
 tolerance; the other values impose an absolute tolerance on the given
 quantity. Absolute tolerance in this case means, that for a given
-quantity q and a given absolute tolerance of t\_a the result should
-be between q-t\_a and q+t\_a. For a relative tolerance t\_r the relative
-error should not be greater than t\_r, i.e. abs(1 - (result/q)) < t\_r.
+quantity q and a given absolute tolerance of t_a the result should
+be between q-t_a and q+t_a. For a relative tolerance t_r the relative
+error should not be greater than t_r, i.e. abs(1 - (result/q)) < t_r.
 As a consequence of this, the tolerance type should be checked, when
 performing computations with a high absolute field / energy. E.g.
 if the total energy in the system is 1000000.0 an absolute tolerance
@@ -343,10 +343,10 @@ of 1e-3 would mean that the result has to be between 999999.999 and
 1000000.001, which would be equivalent to a relative tolerance of
 1e-9.
 
-The energy and energy\_rel values, set a tolerance based on the total
-Coulombic energy of the system.  The potential and potential\_rel set a
+The energy and energy_rel values, set a tolerance based on the total
+Coulombic energy of the system.  The potential and potential_rel set a
 tolerance based on the per-atom Coulombic energy.  The field and
-field\_rel tolerance types set a tolerance based on the electric field
+field_rel tolerance types set a tolerance based on the electric field
 values computed by ScaFaCoS.  Since per-atom forces are derived from
 the per-atom electric field, this effectively sets a tolerance on the
 forces, similar to other LAMMPS KSpace styles, as explained on the
@@ -355,7 +355,7 @@ forces, similar to other LAMMPS KSpace styles, as explained on the
 Note that not all ScaFaCoS solvers support all tolerance types.
 These are the allowed values for each method:
 
-* fmm = energy and energy\_rel
+* fmm = energy and energy_rel
 * p2nfft = field (1d-,2d-,3d-periodic systems) or potential (0d-periodic)
 * p3m = field
 * ewald = field
@@ -365,7 +365,7 @@ If the tolerance type is not changed, the default values for the
 tolerance type are the first values in the above list, e.g. energy
 is the default tolerance type for the fmm solver.
 
-The *fmm\_tuning* option is only relevant when using the FMM method.
+The *fmm_tuning* option is only relevant when using the FMM method.
 It activates (value=1) or deactivates (value=0) an internal tuning
 mechanism for the FMM solver.  The tuning operation runs sequentially
 and can be very time-consuming.  Usually it is not needed for systems
@@ -452,7 +452,7 @@ ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
 = -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel,
 order = order/disp = 7.  For scafacos settings, the scafacos tolerance
 option depends on the method chosen, as documented above.  The
-scafacos fmm\_tuning default = 0.
+scafacos fmm_tuning default = 0.
 
 ----------
 

@@ -194,7 +194,7 @@ There are two exceptions to this rule.  First, variables of style
 allows these style of variables to be redefined multiple times in an
 input script.  In a loop, this means the formula associated with an
 *equal* or *atom* style variable can change if it contains a
-substitution for another variable, e.g. $x or v\_x.
+substitution for another variable, e.g. $x or v_x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the :doc:`next <next>` command, it is removed
@@ -485,11 +485,11 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                   |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c\_ID, c\_ID[i], c\_ID[i][j], C\_ID, C\_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                             |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f\_ID, f\_ID[i], f\_ID[i][j], F\_ID, F\_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                             |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v\_name, v\_name[i]                                                                                                                                                                                                                                                                                                                                       |
+| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                       |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
@@ -545,7 +545,7 @@ require a :doc:`compute <compute>` to calculate their values such as
 "temp" or "press", use computes stored and invoked by the
 :doc:`thermo_style <thermo_style>` command.  This means that you can
 only use those keywords in a variable if the style you are using with
-the thermo\_style command (and the thermo keywords associated with that
+the thermo_style command (and the thermo keywords associated with that
 style) also define and use the needed compute.  Note that some thermo
 keywords use a compute indirectly to calculate their value (e.g. the
 enthalpy keyword uses temp, pe, and pressure).  If a variable is
@@ -822,15 +822,15 @@ Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
-each take 1 argument which is of the form "c\_ID" or "c\_ID[N]" or
-"f\_ID" or "f\_ID[N]" or "v\_name".  The first two are computes and the
+each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
+"f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
 second two are fixes; the ID in the reference should be replaced by
 the ID of a compute or fix defined elsewhere in the input script.  The
 compute or fix must produce either a global vector or array.  If it
 produces a global vector, then the notation without "[N]" should be
 used.  If it produces a global array, then the notation with "[N]"
 should be used, when N is an integer, to specify which column of the
-global array is being referenced.  The last form of argument "v\_name"
+global array is being referenced.  The last form of argument "v_name"
 is for a vector-style variable where "name" is replaced by the name of
 the variable.
 
@@ -875,7 +875,7 @@ variables.  It returns a 1 for atoms that are in both the group and
 region, and a 0 for atoms that are not in both.
 
 The next(x) function takes 1 argument which is a variable ID (not
-"v\_foo", just "foo").  It must be for a file-style or atomfile-style
+"v_foo", just "foo").  It must be for a file-style or atomfile-style
 variable.  Each time the next() function is invoked (i.e. each time
 the equal-style or atom-style variable is evaluated), the following
 steps occur.
@@ -912,23 +912,23 @@ themselves (only $-style immediate variable expansion is possible).
 Return value is either 1.0 or 0.0 depending on whether the function
 evaluates to true or false, respectively.
 
-The *is\_active()* function allows to query for active settings which
+The *is_active()* function allows to query for active settings which
 are grouped by categories. Currently supported categories and
 arguments are:
 
 * *package* (argument = *gpu* or *intel* or *kokkos* or *omp*\ )
 * *newton* (argument = *pair* or *bond* or *any*\ )
 * *pair* (argument = *single* or *respa* or *manybody* or *tail* or *shift*\ )
-* *comm\_style* (argument = *brick* or *tiled*\ )
-* *min\_style* (argument = any of the compiled in minimizer styles)
-* *run\_style* (argument = any of the compiled in run styles)
-* *atom\_style* (argument = any of the compiled in atom styles)
-* *pair\_style* (argument = any of the compiled in pair styles)
-* *bond\_style* (argument = any of the compiled in bond styles)
-* *angle\_style* (argument = any of the compiled in angle styles)
-* *dihedral\_style* (argument = any of the compiled in dihedral styles)
-* *improper\_style* (argument = any of the compiled in improper styles)
-* *kspace\_style* (argument = any of the compiled in kspace styles)
+* *comm_style* (argument = *brick* or *tiled*\ )
+* *min_style* (argument = any of the compiled in minimizer styles)
+* *run_style* (argument = any of the compiled in run styles)
+* *atom_style* (argument = any of the compiled in atom styles)
+* *pair_style* (argument = any of the compiled in pair styles)
+* *bond_style* (argument = any of the compiled in bond styles)
+* *angle_style* (argument = any of the compiled in angle styles)
+* *dihedral_style* (argument = any of the compiled in dihedral styles)
+* *improper_style* (argument = any of the compiled in improper styles)
+* *kspace_style* (argument = any of the compiled in kspace styles)
 
 Most of the settings are self-explanatory, the *single* argument in the
 *pair* category allows to check whether a pair style supports a
@@ -952,14 +952,14 @@ Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, othe
    timestep $(2.0*(1.0+2.0*is_active(pair,respa))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
-The *is\_defined()* function allows to query categories like *compute*\ ,
+The *is_defined()* function allows to query categories like *compute*\ ,
 *dump*\ , *fix*\ , *group*\ , *region*\ , and *variable* whether an entry
 with the provided name or id is defined.
 
-The *is\_available(category,name)* function allows to query whether
+The *is_available(category,name)* function allows to query whether
 a specific optional feature is available, i.e. compiled in.
 This currently works for the following categories: *command*\ ,
-*compute*\ , *fix*\ , *pair\_style* and *feature*\ . For all categories
+*compute*\ , *fix*\ , *pair_style* and *feature*\ . For all categories
 except *command* and *feature* also appending active suffixes is
 tried before reporting failure.
 
@@ -984,14 +984,14 @@ Atom Values and Vectors
 
 Atom values take an integer argument I from 1 to N, where I is the
 atom-ID, e.g. x[243], which means use the x coordinate of the atom
-with ID = 243.  Or they can take a variable name, specified as v\_name,
-where name is the name of the variable, like x[v\_myIndex].  The
+with ID = 243.  Or they can take a variable name, specified as v_name,
+where name is the name of the variable, like x[v_myIndex].  The
 variable can be of any style except *vector* or *atom* or *atomfile*
 variables.  The variable is evaluated and the result is expected to be
 numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an
 index, which must be a value from 1 to N.  Note that a "formula"
 cannot be used as the argument between the brackets, e.g. x[243+10]
-or x[v\_myIndex+1] are not allowed.  To do this a single variable can
+or x[v_myIndex+1] are not allowed.  To do this a single variable can
 be defined that contains the needed formula.
 
 Note that the 0 < atom-ID <= N, where N is the largest atom ID
@@ -1038,15 +1038,15 @@ reference means, since computes only produce either global or per-atom
 quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID       | global scalar, or per-atom vector                                                                     |
+| c_ID       | global scalar, or per-atom vector                                                                     |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| c_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
@@ -1060,12 +1060,12 @@ vector-style variable:
 
    variable a vector c_foo*v_myVec
 
-The reference "c\_foo" could refer to either the global scalar or
-global vector produced by compute "foo".  In this case, "c\_foo" will
-always refer to the global scalar, and "C\_foo" can be used to
+The reference "c_foo" could refer to either the global scalar or
+global vector produced by compute "foo".  In this case, "c_foo" will
+always refer to the global scalar, and "C_foo" can be used to
 reference the global vector.  Similarly if the compute produces both a
-global vector and global array, then "c\_foo[I]" will always refer to
-an element of the global vector, and "C\_foo[I]" can be used to
+global vector and global array, then "c_foo[I]" will always refer to
+an element of the global vector, and "C_foo[I]" can be used to
 reference the Ith column of the global array.
 
 Note that if a variable containing a compute is evaluated directly in
@@ -1092,21 +1092,21 @@ column of an per-atom array.  See the doc pages for individual fixes
 to see what kind of values they produce.
 
 The different kinds of fix references are exactly the same as the
-compute references listed in the above table, where "c\_" is replaced
-by "f\_".  Again, there is typically no ambiguity (see exception below)
+compute references listed in the above table, where "c_" is replaced
+by "f_".  Again, there is typically no ambiguity (see exception below)
 as to what a reference means, since fixes only produce either global
 or per-atom quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID       | global scalar, or per-atom vector                                                                     |
+| f_ID       | global scalar, or per-atom vector                                                                     |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| f_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
@@ -1114,10 +1114,10 @@ One source of ambiguity for fix references is the same ambiguity
 discussed for compute references above.  Namely when a vector-style
 variable refers to a fix that produces both a global scalar and a
 global vector.  The solution is the same as for compute references.
-For a fix with ID "foo", "f\_foo" will always refer to the global
-scalar, and "F\_foo" can be used to reference the global vector.  And
+For a fix with ID "foo", "f_foo" will always refer to the global
+scalar, and "F_foo" can be used to reference the global vector.  And
 similarly for distinguishing between a fix's global vector versus
-global array with "f\_foo[I]" versus "F\_foo[I]".
+global array with "f_foo[I]" versus "F_foo[I]".
 
 Note that if a variable containing a fix is evaluated directly in an
 input script (not during a run), then the values accessed by the fix
@@ -1147,7 +1147,7 @@ generate a per-atom vector of numeric values.  All other variables
 store one or more strings.
 
 The formula for an equal-style variable can use any style of variable
-including a vector\_style or atom-style or atomfile-style.  For these
+including a vector_style or atom-style or atomfile-style.  For these
 3 styles, a subscript must be used to access a single value from
 the vector-, atom-, or atomfile-style variable.  If a string-storing
 variable is used, the string is converted to a numeric value.  Note
@@ -1169,19 +1169,19 @@ There is no ambiguity as to what a reference means, since variables
 produce only a global scalar or global vector or per-atom vector.
 
 +------------+----------------------------------------------------------------------+
-| v\_name    | global scalar from equal-style variable                              |
+| v_name    | global scalar from equal-style variable                              |
 +------------+----------------------------------------------------------------------+
-| v\_name    | global vector from vector-style variable                             |
+| v_name    | global vector from vector-style variable                             |
 +------------+----------------------------------------------------------------------+
-| v\_name    | per-atom vector from atom-style or atomfile-style variable           |
+| v_name    | per-atom vector from atom-style or atomfile-style variable           |
 +------------+----------------------------------------------------------------------+
-| v\_name[I] | Ith element of a global vector from vector-style variable            |
+| v_name[I] | Ith element of a global vector from vector-style variable            |
 +------------+----------------------------------------------------------------------+
-| v\_name[I] | value of atom with ID = I from atom-style or atomfile-style variable |
+| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable |
 +------------+----------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
@@ -1199,16 +1199,16 @@ formula immediately without using the variable command to define a
 named variable.
 
 More generally, there is a difference between referencing a variable
-with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
-(e.g. v\_x or v\_abc).  The former can be used in any input script
+with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v_"
+(e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
 into the command.  As explained on the :doc:`Commands parse <Commands_parse>` doc page, you can also use un-named
 "immediate" variables for this purpose.  For example, a string like
-this $((xlo+xhi)/2+sqrt(v\_area)) in an input script command evaluates
+this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
 the string between the parenthesis as an equal-style variable formula.
 
-Referencing a variable with a leading "v\_" is an optional or required
+Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
 :doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
@@ -1226,7 +1226,7 @@ define the variable "v" as
 before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
-(using the thermo\_style keyword "vol") to the variable "v".  If you
+(using the thermo_style keyword "vol") to the variable "v".  If you
 use the variable "v" in some other command like :doc:`fix ave/time <fix_ave_time>` then the current volume of the box will be
 evaluated continuously during the run.
 

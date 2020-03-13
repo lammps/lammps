@@ -15,7 +15,7 @@ Syntax
 * lambda = wavelength of incident radiation (length units)
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
-* keyword = *Kmax* or *Zone* or *dR\_Ewald* or *c* or *manual* or *echo*
+* keyword = *Kmax* or *Zone* or *dR_Ewald* or *c* or *manual* or *echo*
 
   .. parsed-literal::
 
@@ -90,7 +90,7 @@ unless small spacing parameters <0.05 Angstrom\^(-1) are implemented.
 Meshes with manual spacing do not require a periodic boundary.
 
 The limits of the reciprocal lattice mesh are determined by the use of
-the *Kmax*\ , *Zone*\ , and *dR\_Ewald* parameters.  The rectilinear mesh
+the *Kmax*\ , *Zone*\ , and *dR_Ewald* parameters.  The rectilinear mesh
 created about the origin of reciprocal space is terminated at the
 boundary of a sphere of radius *Kmax* centered at the origin.  If
 *Zone* parameters z1=z2=z3=0 are used, diffraction intensities are
@@ -99,7 +99,7 @@ greatly increase the cost of computation.  Otherwise, *Zone*
 parameters will denote the z1=h, z2=k, and z3=l (in a global since)
 zone axis of an intersecting Ewald sphere.  Diffraction intensities
 will only be computed at the intersection of the reciprocal lattice
-mesh and a *dR\_Ewald* thick surface of the Ewald sphere.  See the
+mesh and a *dR_Ewald* thick surface of the Ewald sphere.  See the
 example 3D intensity data and the intersection of a [010] zone axis
 in the below image.
 
@@ -247,17 +247,17 @@ Restrictions
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-The compute\_saed command does not work for triclinic cells.
+The compute_saed command does not work for triclinic cells.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix saed\_vtk <fix_saed_vtk>`, :doc:`compute xrd <compute_xrd>`
+:doc:`fix saed_vtk <fix_saed_vtk>`, :doc:`compute xrd <compute_xrd>`
 
 Default
 """""""
 
-The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR\_Ewald =
+The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR_Ewald =
 0.01.
 
 ----------

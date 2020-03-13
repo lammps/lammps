@@ -73,7 +73,7 @@ symbol printed for each LAMMPS atom type. The number of symbols must
 match the number of LAMMPS atom types and each symbol must consist of
 1 or 2 alphanumeric characters. Normally, these symbols should be
 chosen to match the chemical identity of each LAMMPS atom type, as
-specified using the :doc:`reax/c pair\_coeff <pair_reaxc>` command and
+specified using the :doc:`reax/c pair_coeff <pair_reaxc>` command and
 the ReaxFF force field file.
 
 The optional keyword *position* writes center-of-mass positions of
@@ -112,7 +112,7 @@ average bond-order for the species analysis output on timestep 100.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -167,9 +167,9 @@ package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
 To write gzipped species files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.
+-DLAMMPS_GZIP option.
 
-It should be possible to extend it to other reactive pair\_styles (such as
+It should be possible to extend it to other reactive pair_styles (such as
 :doc:`rebo <pair_airebo>`, :doc:`airebo <pair_airebo>`,
 :doc:`comb <pair_comb>`, and :doc:`bop <pair_bop>`), but this has not yet been done.
 

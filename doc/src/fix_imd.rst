@@ -44,7 +44,7 @@ IMD protocol, as initially implemented in VMD and NAMD.  Specifically
 it allows LAMMPS to connect an IMD client, for example the `VMD visualization program <VMD_>`_, so that it can monitor the progress of the
 simulation and interactively apply forces to selected atoms.
 
-If LAMMPS is compiled with the pre-processor flag -DLAMMPS\_ASYNC\_IMD
+If LAMMPS is compiled with the pre-processor flag -DLAMMPS_ASYNC_IMD
 then fix imd will use POSIX threads to spawn a IMD communication
 thread on MPI rank 0 in order to offload data reading and writing
 from the main execution thread and potentially lower the inferred
@@ -137,7 +137,7 @@ screen output is active.
 
 .. _vrpnicms: http://sites.google.com/site/akohlmey/software/vrpn-icms
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector or per-atom

@@ -55,7 +55,7 @@ your system with:
 This will install the lammps executable and library (if requested), some
 tools (if configured) and additional files like library API headers,
 manpages, potential and force field files. The location of the installation
-tree is set by the CMake variable "CMAKE\_INSTALL\_PREFIX" which defaults
+tree is set by the CMake variable "CMAKE_INSTALL_PREFIX" which defaults
 to ${HOME}/.local
 
 ----------
@@ -127,7 +127,7 @@ command-line options.  Several useful ones are:
 All the LAMMPS-specific -D variables that a LAMMPS build supports are
 described on the pages linked to from the :doc:`Build <Build>` doc page.
 All of these variable names are upper-case and their values are
-lower-case, e.g. -D LAMMPS\_SIZES=smallbig.  For boolean values, any of
+lower-case, e.g. -D LAMMPS_SIZES=smallbig.  For boolean values, any of
 these forms can be used: yes/no, on/off, 1/0.
 
 On Unix/Linux machines, CMake generates a Makefile by default to

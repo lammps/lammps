@@ -11,16 +11,16 @@ Syntax
    fix ID group-ID smd/integrate_ulsph keyword
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* smd/integrate\_ulsph = style name of this fix command
+* smd/integrate_ulsph = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = adjust\_radius or limit\_velocity
+* keyword = adjust_radius or limit_velocity
 
-adjust\_radius values = adjust\_radius\_factor min\_nn max\_nn
-      adjust\_radius\_factor = factor which scale the smooth/kernel radius
-      min\_nn = minimum number of neighbors
-      max\_nn = maximum number of neighbors
-limit\_velocity values = max\_velocity
-      max\_velocity = maximum allowed velocity.
+adjust_radius values = adjust_radius_factor min_nn max_nn
+      adjust_radius_factor = factor which scale the smooth/kernel radius
+      min_nn = minimum number of neighbors
+      max_nn = maximum number of neighbors
+limit_velocity values = max_velocity
+      max_velocity = maximum allowed velocity.
 
 Examples
 """"""""
@@ -39,17 +39,17 @@ interact with the updated Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth Mach
 Dynamics in LAMMPS.
 
-The *adjust\_radius* keyword activates dynamic adjustment of the
+The *adjust_radius* keyword activates dynamic adjustment of the
 per-particle SPH smoothing kernel radius such that the number of
-neighbors per particles remains within the interval *min\_nn* to
-*max\_nn*. The parameter *adjust\_radius\_factor* determines the amount
-of adjustment per timestep. Typical values are *adjust\_radius\_factor*
-=1.02, *min\_nn* =15, and *max\_nn* =20.
+neighbors per particles remains within the interval *min_nn* to
+*max_nn*. The parameter *adjust_radius_factor* determines the amount
+of adjustment per timestep. Typical values are *adjust_radius_factor*
+=1.02, *min_nn* =15, and *max_nn* =20.
 
-The *limit\_velocity* keyword will control the velocity, scaling the norm of
-the velocity vector to max\_vel in case it exceeds this velocity limit.
+The *limit_velocity* keyword will control the velocity, scaling the norm of
+the velocity vector to max_vel in case it exceeds this velocity limit.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Currently, no part of USER-SMD supports restarting nor
 minimization. This fix has no outputs.

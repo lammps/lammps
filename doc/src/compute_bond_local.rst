@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v\_name*
+* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
 
 .. parsed-literal::
 
@@ -106,9 +106,9 @@ two atoms in the bond towards each other.  A negative value means the
 2 atoms are moving toward each other; a positive value means they are
 moving apart.
 
-The value *v\_name* can be used together with the *set* keyword to
+The value *v_name* can be used together with the *set* keyword to
 compute a user-specified function of the bond distance.  The *name*
-specified for the *v\_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
+specified for the *v_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
 variable which will store the bond distance.  This other variable must
 be an :doc:`internal-style variable <variable>` defined in the input
 script; its initial numeric value can be anything.  It must be an

@@ -15,7 +15,7 @@ Syntax
 * Nevery = use input values every this many timesteps
 * Nfreq = save state of the time correlation functions every this many timesteps
 * one or more input values can be listed
-* value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -110,7 +110,7 @@ corresponds to about 10 KB.
 
 For the meaning of the additional optional keywords, see the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Contrary to :doc:`fix ave/correlate <fix_ave_correlate>` this fix
 does **not** provide access to its internal data to various output
@@ -118,7 +118,7 @@ options. Since this fix in intended for the calculation of time
 correlation functions over very long MD simulations, the information
 about this fix is written automatically to binary restart files, so
 that the time correlation calculation can continue in subsequent
-simulations. None of the fix\_modify options are relevant to this fix.
+simulations. None of the fix_modify options are relevant to this fix.
 
 No parameter of this fix can be used with the start/stop keywords of
 the run command. This fix is not invoked during energy minimization.

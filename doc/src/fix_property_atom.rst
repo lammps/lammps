@@ -15,7 +15,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * property/atom = style name of this fix command
-* vec1,vec2,... = *mol* or *q* or *rmass* or *i\_name* or *d\_name*
+* vec1,vec2,... = *mol* or *q* or *rmass* or *i_name* or *d_name*
 
   .. parsed-literal::
 
@@ -84,7 +84,7 @@ In the future, we may add additional per-atom properties similar to
 by some atom styles, so they can be used by atom styles that do not
 define them.
 
-More generally, the *i\_name* and *d\_name* vectors allow one or more
+More generally, the *i_name* and *d_name* vectors allow one or more
 new custom per-atom properties to be defined.  Each name must be
 unique and can use alphanumeric or underscore characters.  These
 vectors can store whatever values you decide are useful in your
@@ -197,7 +197,7 @@ properties in a completely general fashion.
 
 ----------
 
-For new atom properties specified as *i\_name* or *d\_name*, the
+For new atom properties specified as *i_name* or *d_name*, the
 :doc:`compute property/atom <compute_property_atom>` command can access
 their values.  This means that the values can be output via the :doc:`dump custom <dump>` command, accessed by fixes like :doc:`fix ave/atom <fix_ave_atom>`, accessed by other computes like :doc:`compute reduce <compute_reduce>`, or used in :doc:`atom-style variables <variable>`.
 
@@ -284,7 +284,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
 simulation is restarted.  See the :doc:`read_restart <read_restart>`

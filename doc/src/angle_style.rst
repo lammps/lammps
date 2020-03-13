@@ -41,7 +41,7 @@ files which means angle_style and :doc:`angle_coeff <angle_coeff>`
 commands do not need to be re-specified in an input script that
 restarts a simulation.  See the :doc:`read_restart <read_restart>`
 command for details on how to do this.  The one exception is that
-angle\_style *hybrid* only stores the list of sub-styles in the restart
+angle_style *hybrid* only stores the list of sub-styles in the restart
 file; angle coefficients need to be re-specified.
 
 .. note::
@@ -61,7 +61,7 @@ the style to display the formula it computes and coefficients
 specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the angle\_style command, and coefficients
+arguments specified in the angle_style command, and coefficients
 specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 There are also additional accelerated pair styles included in the
@@ -98,7 +98,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 Restrictions
 """"""""""""
 
-Angle styles can only be set for atom\_styles that allow angles to be
+Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
 Most angle styles are part of the MOLECULE package.  They are only

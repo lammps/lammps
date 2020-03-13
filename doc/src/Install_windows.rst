@@ -26,7 +26,7 @@ When you download the installer package, you run it on your Windows
 machine.  It will then prompt you with a dialog, where you can choose
 the installation directory, unpack and copy several executables,
 potential files, documentation pdfs, selected example files, etc.  It
-will then update a few system settings (e.g. PATH, LAMMPS\_POTENTIALS)
+will then update a few system settings (e.g. PATH, LAMMPS_POTENTIALS)
 and add an entry into the Start Menu (with references to the
 documentation, LAMMPS homepage and more).  From that menu, there is
 also a link to an uninstaller that removes the files and undoes the

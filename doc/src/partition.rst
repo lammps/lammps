@@ -59,7 +59,7 @@ from 1 to n (inclusive).  A trailing asterisk means all partitions
 from n to Np (inclusive).  A middle asterisk means all partitions from
 m to n (inclusive).
 
-This command can be useful for the "run\_style verlet/split" command
+This command can be useful for the "run_style verlet/split" command
 which imposed requirements on how the :doc:`processors <processors>`
 command lays out a 3d grid of processors in each of 2 partitions.
 

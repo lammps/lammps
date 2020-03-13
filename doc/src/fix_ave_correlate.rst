@@ -16,7 +16,7 @@ Syntax
 * Nrepeat = # of correlation time windows to accumulate
 * Nfreq = calculate time window averages every this many timesteps
 * one or more input values can be listed
-* value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -169,7 +169,7 @@ default, then *Nfreq* >= (\ *Nrepeat*\ -1)\*\ *Nevery* is required.
 
 ----------
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -185,7 +185,7 @@ or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -197,7 +197,7 @@ Note that some fixes only produce their values on certain timesteps,
 which must be compatible with *Nevery*\ , else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  Only equal-style or
 vector-style variables can be referenced; the latter requires a
 bracketed term to specify the Ith element of the vector calculated by
@@ -310,7 +310,7 @@ included in the variable formula or via the *prefactor* keyword.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

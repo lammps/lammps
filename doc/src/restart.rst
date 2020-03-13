@@ -103,7 +103,7 @@ timestep of a run unless it is a multiple of N.  A restart file is
 written on the last timestep of a minimization if N > 0 and the
 minimization converges.
 
-Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v\_name, where
+Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the next timestep at which a
 restart file will be written out.  On that timestep, the variable will

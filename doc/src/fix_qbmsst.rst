@@ -15,7 +15,7 @@ Syntax
 * dir = *x* or *y* or *z*
 * shockvel = shock velocity (strictly positive, velocity units)
 * zero or more keyword/value pairs may be appended
-* keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *damp* or *seed*\ or *f\_max* or *N\_f* or *eta* or *beta* or *T\_init*
+* keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *damp* or *seed*\ or *f_max* or *N_f* or *eta* or *beta* or *T_init*
 
   .. parsed-literal::
 
@@ -95,15 +95,15 @@ Hugoniot that is 40% lower than observed with classical molecular
 dynamics.
 
 It is highly recommended that the system be already in an equilibrium
-state with a quantum thermal bath at temperature of *T\_init*.  The fix
-command :doc:`fix qtb <fix_qtb>` at constant temperature *T\_init* could
+state with a quantum thermal bath at temperature of *T_init*.  The fix
+command :doc:`fix qtb <fix_qtb>` at constant temperature *T_init* could
 be used before applying this command to introduce self-consistent
 quantum nuclear effects into the initial state.
 
 The parameters *q*\ , *mu*\ , *e0*\ , *p0*\ , *v0* and *tscale* are described
 in the command :doc:`fix msst <fix_msst>`. The values of *e0*\ , *p0*\ , or
 *v0* will be calculated on the first step if not specified.  The
-parameter of *damp*\ , *f\_max*, and *N\_f* are described in the command
+parameter of *damp*\ , *f_max*, and *N_f* are described in the command
 :doc:`fix qtb <fix_qtb>`.
 
 The *fix qbmsst* command couples the shock system to a quantum thermal
@@ -135,7 +135,7 @@ of the *damp* parameter.
 
    \frac{dT^{qm}}{dt} = \gamma\eta\sum^\beta_{l=1}\frac{E^{tot}(t-l\Delta t) - E^{tot}_0}{3\beta N k_B}
 
-The parameter *T\_init* is the initial temperature of the quantum
+The parameter *T_init* is the initial temperature of the quantum
 thermal bath and the system before shock loading.
 
 For all pressure styles, the simulation box stays orthorhombic in
@@ -144,29 +144,29 @@ supported by LAMMPS, but are not implemented for QBMSST.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Because the state of the random number generator is not written to
 :doc:`binary restart files <restart>`, this fix cannot be restarted
 "exactly" in an uninterrupted fashion. However, in a statistical
 sense, a restarted simulation should produce similar behaviors of the
 system as if it is not interrupted.  To achieve such a restart, one
-should write explicitly the same value for *q*\ , *mu*\ , *damp*\ , *f\_max*,
-*N\_f*, *eta*\ , and *beta* and set *tscale* = 0 if the system is
+should write explicitly the same value for *q*\ , *mu*\ , *damp*\ , *f_max*,
+*N_f*, *eta*\ , and *beta* and set *tscale* = 0 if the system is
 compressed during the first run.
 
 The progress of the QBMSST can be monitored by printing the global
 scalar and global vector quantities computed by the fix.  The global
 vector contains five values in this order:
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian\_speed*, *lagrangian\_position*,
-*quantum\_temperature*]
+[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*,
+*quantum_temperature*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
 2. *drayleigh* is the departure from the Rayleigh line (pressure units).
-3. *lagrangian\_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
-4. *lagrangian\_position* is the computational cell position in the reference frame moving at the shock speed. This is the distance of the computational cell behind the shock front.
-5. *quantum\_temperature* is the temperature of the quantum thermal bath :math:`T^{qm}`.
+3. *lagrangian_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
+4. *lagrangian_position* is the computational cell position in the reference frame moving at the shock speed. This is the distance of the computational cell behind the shock front.
+5. *quantum_temperature* is the temperature of the quantum thermal bath :math:`T^{qm}`.
 
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested. Here the
@@ -185,7 +185,7 @@ also the :doc:`thermo_style <thermo_style>` command.
    variable        T_qm    equal f_fix_id[5]
    thermo_style    custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id
 
-The global scalar under the entry f\_fix\_id is the quantity of thermo
+The global scalar under the entry f_fix_id is the quantity of thermo
 energy as an extra part of :math:`E^{tot}`. This global scalar and the
 vector of 5 quantities can be accessed by various :doc:`output commands <Howto_output>`.
 It is worth noting that the temp keyword
@@ -218,8 +218,8 @@ Default
 """""""
 
 The keyword defaults are q = 10, mu = 0, tscale = 0.01, damp = 1, seed
-= 880302, f\_max = 200.0, N\_f = 100, eta = 1.0, beta = 100, and
-T\_init=300.0. e0, p0, and v0 are calculated on the first step.
+= 880302, f_max = 200.0, N_f = 100, eta = 1.0, beta = 100, and
+T_init=300.0. e0, p0, and v0 are calculated on the first step.
 
 ----------
 

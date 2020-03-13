@@ -60,7 +60,7 @@ If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is s
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to these fixes.  No global or per-atom quantities are

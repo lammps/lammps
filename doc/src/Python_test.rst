@@ -31,8 +31,8 @@ first importing from the lammps.py file:
    >>> CDLL("liblammps.so")
 
 If an error occurs, carefully go through the steps on the
-:doc:`Build\_basics <Build_basics>` doc page about building a shared
-library and the :doc:`Python\_install <Python_install>` doc page about
+:doc:`Build_basics <Build_basics>` doc page about building a shared
+library and the :doc:`Python_install <Python_install>` doc page about
 insuring Python can find the necessary two files it needs.
 
 Test LAMMPS and Python in serial:

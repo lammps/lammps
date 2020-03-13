@@ -39,7 +39,7 @@ repulsion for describing high-energy collisions between atoms.
 :ref:`(Ziegler) <Ziegler>`. It includes an additional switching function
 that ramps the energy, force, and curvature smoothly to zero
 between an inner and outer cutoff. The potential
-energy due to a pair of atoms at a distance r\_ij is given by:
+energy due to a pair of atoms at a distance r_ij is given by:
 
 .. math::
 
@@ -71,7 +71,7 @@ When used with :doc:`hybrid/overlay <pair_hybrid>` and pairs are
 assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style must
-be included in a pair\_coeff command.
+be included in a pair_coeff command.
 
 .. note::
 
@@ -115,7 +115,7 @@ specified for
 with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style
-must be included in a pair\_coeff command.
+must be included in a pair_coeff command.
 The :doc:`pair_modify <pair_modify>` mix option has no effect on
 the mixing behavior
 
@@ -131,7 +131,7 @@ tail option for adding long-range tail corrections to energy and
 pressure, since there are no corrections for a potential that goes to
 0.0 at the cutoff.
 
-This pair style does not write information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands must be
+This pair style does not write information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands must be
 specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

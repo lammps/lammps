@@ -27,14 +27,14 @@ belonging to different physical bodies.
 The contact forces are calculated using a Hertz potential, which
 evaluates the overlap between two particles (whose spatial extents are
 defined via its contact radius).  The effect is that a particles
-cannot penetrate into each other.  The parameter <contact\_stiffness>
+cannot penetrate into each other.  The parameter <contact_stiffness>
 has units of pressure and should equal roughly one half of the Young's
 modulus (or bulk modulus in the case of fluids) of the material model
 associated with the SPH particles.
 
-The parameter *scale\_factor* can be used to scale the particles'
+The parameter *scale_factor* can be used to scale the particles'
 contact radii. This can be useful to control how close particles can
-approach each other. Usually, *scale\_factor* =1.0.
+approach each other. Usually, *scale_factor* =1.0.
 
 ----------
 

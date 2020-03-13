@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * global/atom = style name of this compute command
-* index = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* index = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -23,7 +23,7 @@ Syntax
        v_name = per-atom vector calculated by an atom-style variable with name
 
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* input = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -133,7 +133,7 @@ simple rounded down to convert the value to integer indices.  The
 final values should range from 1 to N (inclusive), since they are used
 to access values from N-length vectors.
 
-If *index* begins with "c\_", a compute ID must follow which has been
+If *index* begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  The compute must generate
 per-atom quantities.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the per-atom
@@ -144,7 +144,7 @@ styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If *index* begins with "f\_", a fix ID must follow which has been
+If *index* begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  The Fix must generate
 per-atom quantities.  See the individual :doc:`fix <fix>` doc page for
 details.  Note that some fixes only produce their values on certain
@@ -157,7 +157,7 @@ own fix style and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If *index* begins with "v\_", a variable name must follow which has
+If *index* begins with "v_", a variable name must follow which has
 been previously defined in the input script.  It must be an
 :doc:`atom-style variable <variable>`.  Atom-style variables can
 reference thermodynamic keywords and various per-atom attributes, or
@@ -171,7 +171,7 @@ This section explains the kinds of *input* values that can be used.
 Note that inputs reference global values, as contrasted with the
 *index* parameter which must reference per-atom values.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  The compute must generate a
 global vector or array.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the vector
@@ -181,7 +181,7 @@ used.  Users can also write code for their own compute styles and :doc:`add them
 I can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  The fix must generate a
 global vector or array.  See the individual :doc:`fix <fix>` doc page
 for details.  Note that some fixes only produce their values on
@@ -194,7 +194,7 @@ own fix style and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  It must be a
 :doc:`vector-style variable <variable>`.  Vector-style variables can
 reference thermodynamic keywords and various other attributes of

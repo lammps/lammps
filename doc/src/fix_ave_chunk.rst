@@ -17,7 +17,7 @@ Syntax
 * Nfreq = calculate averages every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more input values can be listed
-* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c\_ID, c\_ID[I], f\_ID, f\_ID[I], v\_name
+* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c_ID, c_ID[I], f_ID, f_ID[I], v_name
 
   .. parsed-literal::
 
@@ -265,7 +265,7 @@ of atoms to calculate their temperature.  The compute allows the
 center-of-mass velocity of each chunk to be subtracted before
 calculating the temperature; this fix does not.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -274,7 +274,7 @@ their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -285,7 +285,7 @@ own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  Variables of style
 *atom* can reference thermodynamic keywords and various per-atom
 attributes, or invoke other computes, fixes, or variables when they
@@ -426,7 +426,7 @@ By default, these header lines are as follows:
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
-replaced with the appropriate value names, e.g. fx or c\_myCompute[2].
+replaced with the appropriate value names, e.g. fx or c_myCompute[2].
 
 The words in parenthesis only appear with corresponding columns if the
 chunk style specified for the :doc:`compute chunk/atom <compute_chunk_atom>` command supports them.  The OrigID
@@ -456,7 +456,7 @@ dimensions.  Those values are always in distance :doc:`units <units>`.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * qtb = style name of this fix
 * zero or more keyword/value pairs may be appended
-* keyword = *temp* or *damp* or *seed* or *f\_max* or *N\_f*
+* keyword = *temp* or *damp* or *seed* or *f_max* or *N_f*
 
   .. parsed-literal::
 
@@ -109,23 +109,23 @@ to generate its own unique seed and its own stream of random
 numbers. Thus the dynamics of the system will not be identical on two
 runs on different numbers of processors.
 
-The *f\_max* parameter truncate the noise frequency domain so that
-vibrational modes with frequencies higher than *f\_max* will not be
+The *f_max* parameter truncate the noise frequency domain so that
+vibrational modes with frequencies higher than *f_max* will not be
 modulated. If we denote :math:`\Delta t` as the time interval for the
-MD integration, *f\_max* is always reset by the code to make
-:math:`\alpha = (int)(2` *f\_max* :math:`\Delta t)^{-1}` a
+MD integration, *f_max* is always reset by the code to make
+:math:`\alpha = (int)(2` *f_max* :math:`\Delta t)^{-1}` a
 positive integer and print out relative information. An appropriate
-value for the cutoff frequency *f\_max* would be around 2~3 :math:`f_D`,
+value for the cutoff frequency *f_max* would be around 2~3 :math:`f_D`,
 where :math:`f_D` is the Debye frequency.
 
-The *N\_f* parameter is the frequency grid size, the number of points
-from 0 to *f\_max* in the frequency domain that will be
-sampled. 3*2\ *N\_f* per-atom random numbers are required
+The *N_f* parameter is the frequency grid size, the number of points
+from 0 to *f_max* in the frequency domain that will be
+sampled. 3*2\ *N_f* per-atom random numbers are required
 in the random force generation and there could be as many atoms as in
 the whole simulation that can migrate into every individual
-processor. A larger *N\_f* provides a more accurate sampling of the
-spectrum while consumes more memory.  With fixed *f\_max* and
-:math:`\gamma`, *N\_f* should be big enough to converge the classical
+processor. A larger *N_f* provides a more accurate sampling of the
+spectrum while consumes more memory.  With fixed *f_max* and
+:math:`\gamma`, *N_f* should be big enough to converge the classical
 temperature :math:`T^{cl}` as a function of target quantum bath
 temperature. Memory usage per processor could be from 10 to 100
 Mbytes.
@@ -145,7 +145,7 @@ Mbytes.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimizie info:**
+**Restart, fix_modify, output, run start/stop, minimizie info:**
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  Because the state of the random number generator is not
@@ -178,7 +178,7 @@ Default
 """""""
 
 The keyword defaults are temp = 300, damp = 1, seed = 880302,
-f\_max=200.0 and N\_f = 100.
+f_max=200.0 and N_f = 100.
 
 ----------
 

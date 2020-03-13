@@ -72,14 +72,14 @@ corrections to the pressure added by the :doc:`pair_modify tail yes <pair_modify
 Compute *stress/mop* calculates a global vector (indices starting at 1), with 3
 values for each declared keyword (in the order the keywords have been
 declared). For each keyword, the stress tensor components are ordered as
-follows: stress\_dir,x, stress\_dir,y, and stress\_dir,z.
+follows: stress_dir,x, stress_dir,y, and stress_dir,z.
 
 Compute *stress/mop/profile* instead calculates a global array, with 1 column
 giving the position of the planes where the stress tensor was computed,
 and with 3 columns of values for each declared keyword (in the order the
 keywords have been declared). For each keyword, the profiles of stress
-tensor components are ordered as follows: stress\_dir,x; stress\_dir,y;
-and stress\_dir,z.
+tensor components are ordered as follows: stress_dir,x; stress_dir,y;
+and stress_dir,z.
 
 The values are in pressure :doc:`units <units>`.
 

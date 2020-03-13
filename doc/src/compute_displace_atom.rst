@@ -63,7 +63,7 @@ the compute command was issued.  The value of the displacement will be
 
 ----------
 
-The *refresh* option can be used in conjunction with the "dump\_modify
+The *refresh* option can be used in conjunction with the "dump_modify
 refresh" command to generate incremental dump files.
 
 The definition and motivation of an incremental dump file is as
@@ -95,11 +95,11 @@ something like the following commands:
 
 The :doc:`dump_modify thresh <dump_modify>` command will only output
 atoms that have displaced more than 0.6 Angstroms on each snapshot
-(assuming metal units).  The dump\_modify *refresh* option triggers a
+(assuming metal units).  The dump_modify *refresh* option triggers a
 call to this compute at the end of every dump.
 
 The *refresh* argument for this compute is the ID of an :doc:`atom-style variable <variable>` which calculates a Boolean value (0 or 1)
-based on the same criterion used by dump\_modify thresh.  This compute
+based on the same criterion used by dump_modify thresh.  This compute
 evaluates the atom-style variable.  For each atom that returns 1
 (true), the original (reference) coordinates of the atom (stored by
 this compute) are updated.
@@ -112,7 +112,7 @@ Note that in the first snapshot of a subsequent run, no atoms will be
 typically be output.  That is because the initial displacement for all
 atoms is 0.0.  If an initial dump snapshot is desired, containing the
 initial reference positions of all atoms, one way to do this is
-illustrated above.  An initial write\_dump command can be used before
+illustrated above.  An initial write_dump command can be used before
 the first run.  It will contain the positions of all the atoms,
 Options in the :doc:`dump_modify <dump_modify>` command above will
 append new output to that same file and delay the output until a later

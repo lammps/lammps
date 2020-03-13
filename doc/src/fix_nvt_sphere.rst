@@ -77,12 +77,12 @@ underscore + "temp", and the group for the new compute is the same as
 the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
@@ -119,7 +119,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
@@ -160,6 +160,6 @@ defined by the :doc:`dimension <dimension>` keyword.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix nve\_sphere <fix_nve_sphere>`, :doc:`fix nvt\_asphere <fix_nvt_asphere>`, :doc:`fix npt\_sphere <fix_npt_sphere>`, :doc:`fix_modify <fix_modify>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix nve_sphere <fix_nve_sphere>`, :doc:`fix nvt_asphere <fix_nvt_asphere>`, :doc:`fix npt_sphere <fix_npt_sphere>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none

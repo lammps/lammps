@@ -50,7 +50,7 @@ be changed by specifying the keyword *linear*\ , along with a set of
 three flags set to 0/1 in order to exclude/ include the corresponding
 dimension.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

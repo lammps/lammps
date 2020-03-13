@@ -32,7 +32,7 @@ force perpendicular to the plane.
 If the initial velocity of the atom is 0.0 (or in the plane), then it
 should continue to move in the plane thereafter.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

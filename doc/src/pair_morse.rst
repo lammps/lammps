@@ -85,7 +85,7 @@ so that both, potential energy and force, go to zero at the cut-off:
    \phi\left(r\right) & =  D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c \\
    E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c
 
-The syntax of the pair\_style and pair\_coeff commands are the same for
+The syntax of the pair_style and pair_coeff commands are the same for
 the *morse* and *morse/smooth/linear* styles.
 
 ----------
@@ -134,7 +134,7 @@ None of these pair styles support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-All of these pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+All of these pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

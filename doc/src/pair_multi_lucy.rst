@@ -110,7 +110,7 @@ A section begins with a non-blank line whose 1st character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
-initial text must match the argument specified in the pair\_coeff
+initial text must match the argument specified in the pair_coeff
 command.  The next line lists (in any order) one or more parameters
 for the table.  Each parameter is a keyword followed by one or more
 numeric values.
@@ -118,7 +118,7 @@ numeric values.
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
 specified in the :doc:`pair_style multi/lucy <pair_multi_lucy>` command.
-Let Ntable = *N* in the pair\_style command, and Nfile = "N" in the
+Let Ntable = *N* in the pair_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
 uses these to interpolate the density-dependent energy and force at
@@ -176,11 +176,11 @@ I,J pairs must be specified explicitly.
 The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
-This pair style writes the settings for the "pair\_style multi/lucy" command
-to :doc:`binary restart files <restart>`, so a pair\_style command does
+This pair style writes the settings for the "pair_style multi/lucy" command
+to :doc:`binary restart files <restart>`, so a pair_style command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
-file, since it is tabulated in the potential files.  Thus, pair\_coeff
+file, since it is tabulated in the potential files.  Thus, pair_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the

@@ -74,7 +74,7 @@ The *set* style sets the velocities of all atoms in the group to the
 specified values.  If any component is specified as NULL, then it is
 not set.  Any of the vx,vy,vz velocity components can be specified as
 an equal-style or atom-style :doc:`variable <variable>`.  If the value
-is a variable, it should be specified as v\_name, where name is the
+is a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated, and its
 value used to determine the velocity component.  Note that if a
 variable is used, the velocity it calculates must be in box units, not

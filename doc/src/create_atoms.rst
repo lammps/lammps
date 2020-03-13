@@ -88,7 +88,7 @@ the specified atom *type*\ .  E.g. if *type* = 2, and the file specifies
 atom types 1,2,3, then each created molecule will have atom types
 3,4,5.
 
-For the *box* style, the create\_atoms command fills the entire
+For the *box* style, the create_atoms command fills the entire
 simulation box with particles on the lattice.  If your simulation box
 is periodic, you should insure its size is a multiple of the lattice
 spacings, to avoid unwanted atom overlaps at the box boundaries.  If
@@ -136,11 +136,11 @@ outside a geometric boundary.
 
 Note that this command adds particles to those that already exist.
 This means it can be used to add particles to a system previously read
-in from a data or restart file.  Or the create\_atoms command can be
+in from a data or restart file.  Or the create_atoms command can be
 used multiple times, to add multiple sets of particles to the
 simulation.  For example, grain boundaries can be created, by
-interleaving create\_atoms with :doc:`lattice <lattice>` commands
-specifying different orientations.  By using the create\_atoms command
+interleaving create_atoms with :doc:`lattice <lattice>` commands
+specifying different orientations.  By using the create_atoms command
 in conjunction with the :doc:`delete_atoms <delete_atoms>` command,
 reasonably complex geometries can be created, or a protein can be
 solvated with a surrounding box of water molecules.
@@ -157,10 +157,10 @@ used to remove overlapping atoms or molecules.
    LAMMPS.  This is true even if you are using shrink-wrapped box
    boundaries, as specified by the :doc:`boundary <boundary>` command.
    However, you can first use the :doc:`change_box <change_box>` command to
-   temporarily expand the box, then add atoms via create\_atoms, then
-   finally use change\_box command again if needed to re-shrink-wrap the
+   temporarily expand the box, then add atoms via create_atoms, then
+   finally use change_box command again if needed to re-shrink-wrap the
    new atoms.  See the :doc:`change_box <change_box>` doc page for an
-   example of how to do this, using the create\_atoms *single* style to
+   example of how to do this, using the create_atoms *single* style to
    insert a new atom outside the current simulation box.
 
 ----------
@@ -195,7 +195,7 @@ not overlap, regardless of their relative orientations.
 .. note::
 
    If the :doc:`create_box <create_box>` command is used to create
-   the simulation box, followed by the create\_atoms command with its
+   the simulation box, followed by the create_atoms command with its
    *mol* option for adding molecules, then you typically need to use the
    optional keywords allowed by the :doc:`create_box <create_box>` command
    for extra bonds (angles,etc) or extra special neighbors.  This is
@@ -300,7 +300,7 @@ spacings.
 Atom IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
 immediately following the largest atom ID existing before the
-create\_atoms command was invoked.  This is done by the processor's
+create_atoms command was invoked.  This is done by the processor's
 communicating the number of atoms they each own, the first processor
 numbering its atoms from 1 to N1, the second processor from N1+1 to
 N2, etc.  Where N1 = number of atoms owned by the first processor, N2

@@ -242,7 +242,7 @@ or by mixing as described below:
 * cutoff2 (distance units)
 
 The latter two coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -406,7 +406,7 @@ The *morse/soft* pair style does not support the :doc:`pair_modify
 pressure.
 
 All of these pair styles write information to :doc:`binary restart files
-<restart>`, so pair\_style and pair\_coeff commands do not need to be specified
+<restart>`, so pair_style and pair_coeff commands do not need to be specified
 in an input script that reads a restart file.
 
 ----------

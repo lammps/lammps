@@ -34,7 +34,7 @@ command or in the data file.
 
 In the :doc:`angle_coeff <angle_coeff>` commands, the name of an angle style must be added
 after the angle type, with the remaining coefficients being those
-appropriate to that style.  In the example above, the 2 angle\_coeff
+appropriate to that style.  In the example above, the 2 angle_coeff
 commands set angles of angle type 1 to be computed with a *harmonic*
 potential with coefficients 80.0, 30.0 for :math:`K`, :math:`\theta_0`.  All other angle
 types :math:`(2 - N)` are computed with a *cosine* potential with coefficient

@@ -65,12 +65,12 @@ on a Johnson-Kendall-Roberts normal contact model and 2-2 interactions
 are based on a DMT cohesive model (see below).  In that example, 1-1
 and 2-2 interactions have different model forms, in which case mixing of
 coefficients cannot be determined, so 1-2 interactions must be
-explicitly defined via the *pair\_coeff 1 \** command, otherwise an
+explicitly defined via the *pair_coeff 1 \** command, otherwise an
 error would result.
 
 ----------
 
-The first required keyword for the *pair\_coeff* command is the normal
+The first required keyword for the *pair_coeff* command is the normal
 contact model. Currently supported options for normal contact models
 and their required arguments are:
 
@@ -170,7 +170,7 @@ following general form:
 Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n} \mathbf{n}` is the component of relative velocity along
 :math:`\mathbf{n}`.
 
-The optional *damping* keyword to the *pair\_coeff* command followed by
+The optional *damping* keyword to the *pair_coeff* command followed by
 a keyword determines the model form of the damping factor :math:`\eta_n`,
 and the interpretation of the :math:`\eta_{n0}` or :math:`e` coefficients
 specified as part of the normal contact model settings. The *damping*
@@ -181,7 +181,7 @@ other settings, potentially also the twisting damping).  The options
 for the damping model currently supported are:
 
 1. *velocity*
-2. *mass\_velocity*
+2. *mass_velocity*
 3. *viscoelastic*
 4. *tsuji*
 
@@ -198,7 +198,7 @@ user-specified damping coefficient in the *normal* model:
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
 contact model, in units of *mass*\ /\ *time*\ .
 
-For *damping mass\_velocity*, the normal damping is given by:
+For *damping mass_velocity*, the normal damping is given by:
 
 .. math::
 
@@ -207,7 +207,7 @@ For *damping mass\_velocity*, the normal damping is given by:
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
 contact model, in units of *mass*\ /\ *time* and
 :math:`m_{eff} = m_i m_j/(m_i + m_j)` is the effective mass.
-Use *damping mass\_velocity* to reproduce the damping behavior of
+Use *damping mass_velocity* to reproduce the damping behavior of
 *pair gran/hooke/\**.
 
 The *damping viscoelastic* model is based on the viscoelastic
@@ -251,24 +251,24 @@ damping components:
 
 ----------
 
-The *pair\_coeff* command also requires specification of the tangential
+The *pair_coeff* command also requires specification of the tangential
 contact model. The required keyword *tangential* is expected, followed
 by the model choice and associated parameters. Currently supported
 tangential model choices and their expected parameters are as follows:
 
-1. *linear\_nohistory* : :math:`x_{\gamma,t}`, :math:`\mu_s`
-2. *linear\_history* : :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_s`
+1. *linear_nohistory* : :math:`x_{\gamma,t}`, :math:`\mu_s`
+2. *linear_history* : :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_s`
 3. *mindlin* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
-4. *mindlin\_rescale* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
+4. *mindlin_rescale* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
 
 Here, :math:`x_{\gamma,t}` is a dimensionless multiplier for the normal
 damping :math:`\eta_n` that determines the magnitude of the tangential
 damping, :math:`\mu_t` is the tangential (or sliding) friction
 coefficient, and :math:`k_t` is the tangential stiffness coefficient.
 
-For *tangential linear\_nohistory*, a simple velocity-dependent Coulomb
+For *tangential linear_nohistory*, a simple velocity-dependent Coulomb
 friction criterion is used, which mimics the behavior of the *pair
-gran/hooke* style. The tangential force (\mathbf{F}\_t\) is given by:
+gran/hooke* style. The tangential force (\mathbf{F}_t\) is given by:
 
 .. math::
 
@@ -321,10 +321,10 @@ Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*\ , and
 
 The remaining tangential options all use accumulated tangential
 displacement (i.e. contact history). This is discussed below in the
-context of the *linear\_history* option, but the same treatment of the
+context of the *linear_history* option, but the same treatment of the
 accumulated displacement applies to the other options as well.
 
-For *tangential linear\_history*, the tangential force is given by:
+For *tangential linear_history*, the tangential force is given by:
 
 .. math::
 
@@ -387,7 +387,7 @@ overlap region) to induce a torque on each particle according to:
 
    \mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
 
-For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution is used, which differs from the *linear\_history*
+For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution is used, which differs from the *linear_history*
 option by an additional factor of *a*\ , the radius of the contact region. The tangential force is given by:
 
 .. math::
@@ -409,7 +409,7 @@ case, mixing of the shear modulus for different particle types *i* and
 
    1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j
 
-The *mindlin\_rescale* option uses the same form as *mindlin*\ , but the
+The *mindlin_rescale* option uses the same form as *mindlin*\ , but the
 magnitude of the tangential displacement is re-scaled as the contact
 unloads, i.e. if :math:`a < a_{t_{n-1}}`:
 
@@ -524,9 +524,9 @@ if the twisting torque exceeds this critical value:
 
 For *twisting sds*\ , the coefficients :math:`k_{twist}, \gamma_{twist}`
 and :math:`\mu_{twist}` are simply the user input parameters that follow
-the *twisting sds* keywords in the *pair\_coeff* command.
+the *twisting sds* keywords in the *pair_coeff* command.
 
-For *twisting\_marshall*, the coefficients are expressed in terms of
+For *twisting_marshall*, the coefficients are expressed in terms of
 sliding friction coefficients, as discussed in
 :ref:`Marshall <Marshall2009>` (see equations 32 and 33 of that work):
 
@@ -568,22 +568,22 @@ The third example is equivalent to
 
 ----------
 
-LAMMPS automatically sets pairwise cutoff values for *pair\_style
+LAMMPS automatically sets pairwise cutoff values for *pair_style
 granular* based on particle radii (and in the case of *jkr* pull-off
 distances). In the vast majority of situations, this is adequate.
-However, a cutoff value can optionally be appended to the *pair\_style
+However, a cutoff value can optionally be appended to the *pair_style
 granular* command to specify a global cutoff (i.e. a cutoff for all
 atom types). Additionally, the optional *cutoff* keyword can be passed
-to the *pair\_coeff* command, followed by a cutoff value.  This will
-set a pairwise cutoff for the atom types in the *pair\_coeff* command.
+to the *pair_coeff* command, followed by a cutoff value.  This will
+set a pairwise cutoff for the atom types in the *pair_coeff* command.
 These options may be useful in some rare cases where the automatic
 cutoff determination is not sufficient, e.g.  if particle diameters
 are being modified via the *fix adapt* command. In that case, the
-global cutoff specified as part of the *pair\_style granular* command
+global cutoff specified as part of the *pair_style granular* command
 is applied to all atom types, unless it is overridden for a given atom
 type combination by the *cutoff* value specified in the *pair coeff*
 command.  If *cutoff* is only specified in the *pair coeff* command
-and no global cutoff is appended to the *pair\_style granular* command,
+and no global cutoff is appended to the *pair_style granular* command,
 then LAMMPS will use that cutoff for the specified atom type
 combination, and automatically set pairwise cutoffs for the remaining
 atom types.
@@ -620,7 +620,7 @@ most quantities, e.g. if friction coefficient for type 1-type 1
 interactions is set to :math:`\mu_1`, and friction coefficient for type
 2-type 2 interactions is set to :math:`\mu_2`, the friction coefficient
 for type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
-(unless explicitly specified to a different value by a *pair\_coeff 1 2
+(unless explicitly specified to a different value by a *pair_coeff 1 2
 ...* command). The exception to this is elastic modulus, only
 applicable to *hertz/material*\ , *dmt* and *jkr* normal contact
 models. In that case, the effective elastic modulus is computed as:
@@ -642,7 +642,7 @@ or
 
    E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so a pair\_style command does not need to be
+These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
@@ -661,7 +661,7 @@ particle I. The next entry (8) is the magnitude of the rolling torque.
 The next entry (9) is the magnitude of the twisting torque acting
 about the vector connecting the two particle centers.
 The last 3 (10-12) are the components of the vector connecting
-the centers of the two particles (x\_I - x\_J).
+the centers of the two particles (x_I - x_J).
 
 These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*\ , *p2*\ , ...,
 *p12*\ .
@@ -697,7 +697,7 @@ Related commands
 Default
 """""""
 
-For the *pair\_coeff* settings: *damping viscoelastic*\ , *rolling none*\ ,
+For the *pair_coeff* settings: *damping viscoelastic*\ , *rolling none*\ ,
 *twisting none*\ .
 
 **References:**

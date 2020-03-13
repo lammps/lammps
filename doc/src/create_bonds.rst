@@ -114,7 +114,7 @@ apart such that *rmin* <= D <= *rmax*\ .
 The following settings must have been made in an input script before
 this style is used:
 
-* special\_bonds weight for 1-2 interactions must be 0.0
+* special_bonds weight for 1-2 interactions must be 0.0
 * a :doc:`pair_style <pair_style>` must be defined
 * no :doc:`kspace_style <kspace_style>` defined
 * minimum :doc:`pair_style <pair_style>` cutoff + :doc:`neighbor <neighbor>` skin >= *rmax*

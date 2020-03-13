@@ -62,6 +62,7 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
 PPPMDispIntel::PPPMDispIntel(LAMMPS *lmp) : PPPMDisp(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  triclinic_support = 0;
 
   order = 7;
   order_6 = 7; //sets default stencil sizes to 7

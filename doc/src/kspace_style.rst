@@ -406,8 +406,8 @@ interactions. Vacuum boundary conditions are not currently supported.
 
 The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
-triclinic simulation cells may not yet be supported by suffix versions
-of these styles.
+triclinic simulation cells may not yet be supported by all suffix
+versions of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

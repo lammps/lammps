@@ -314,7 +314,7 @@ int MinFire::iterate(int maxiter)
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
     }
-    
+
     // min dtv over replicas, if necessary
     // this communicator would be invalid for multiprocess replicas
 

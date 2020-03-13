@@ -39,9 +39,9 @@ equilibrium value.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command) are ordered i,j,k,l then
-theta_\ *ijl* is the angle between atoms i,j and l, theta_\ *ijk* is the
-angle between atoms i,j and k, theta_\ *kjl* is the angle between atoms
-j,k, and l.
+:math:`\theta_{ijl}` is the angle between atoms i,j and l,
+:math:`\theta_{ijk}` is the angle between atoms i,j and k,
+:math:`\theta_{kjl}` is the angle between atoms j,k, and l.
 
 The "ring" improper style implements the improper potential introduced
 by Destree et al., in Equation (9) of :ref:`(Destree) <Destree>`.  This

@@ -105,13 +105,13 @@ command for further details on the *setfl* format.
 
 * lines 1,2,3 = comments (ignored)
 * line 4: :math:`N_{\text{elements}}` Element1 Element2 ... ElementN
-* line 5: :math:`N_\rho`, :math:`d_\rho`, :math:`N_r`, :math:`d_r`, cutoff
+* line 5: :math:`N_{\rho}`, :math:`d_{\rho}`, :math:`N_r`, :math:`d_r`, cutoff
 
 Following the 5 header lines are :math:`N_{\text{elements}}` sections, one for each
 element, each with the following format:
 
 * line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
-* embedding function :math:`F(\rho)` (:math:`N_\rho` values)
+* embedding function :math:`F(\rho)` (:math:`N_{\rho}` values)
 * density function :math:`\rho(r)` (:math:`N_r` values)
 
 Following the :math:`N_{\text{elements}}` sections, :math:`N_r` values for each pair potential

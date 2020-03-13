@@ -13,8 +13,8 @@ good place to start.
 
 Building LAMMPS with CMake is a two-step process.  First you use CMake
 to create a build environment in a new directory.  On Linux systems,
-this will be based on makefiles for use with make.  Then you use the
-make command to build LAMMPS, which uses the created
+this will be by default based on Unix-style makefiles for use with make.
+Then you use the *make* command to build LAMMPS, which uses the created
 Makefile(s). Example:
 
 .. code-block:: bash
@@ -28,8 +28,8 @@ The cmake command will detect available features, enable selected
 packages and options, and will generate the build environment.  By default
 this build environment will be created for "Unix Makefiles" on most
 platforms and particularly on Linux.  However, alternate build tools
-(e.g. Ninja) and support files for Integrated Development Environments
-(IDE) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
+(e.g. Ninja) and project files for Integrated Development Environments
+(IDEs) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
 selected via the "-G" command line flag. For the rest of the documentation
 we will assume that the build environment is generated for makefiles
 and thus the make command will be used to compile and link LAMMPS as
@@ -60,11 +60,12 @@ to ${HOME}/.local
 
 ----------
 
-There are 3 variants of CMake: a command-line version (cmake), a text mode
-UI version (ccmake), and a graphical GUI version (cmake-GUI).  You can use
-any of them interchangeably to configure and create the LAMMPS build
-environment.  On Linux all the versions produce a Makefile as their
-output.  See more details on each below.
+There are 3 variants of the CMake command itself: a command-line version
+(*cmake* or *cmake3*), a text mode UI version (*ccmake* or *ccmake3*),
+and a graphical GUI version (*cmake-gui*).  You can use any of them
+interchangeably to configure and create the LAMMPS build environment.
+On Linux all the versions produce a Makefile as their output by default.
+See more details on each below.
 
 You can specify a variety of options with any of the 3 versions, which
 affect how the build is performed and what is included in the LAMMPS
@@ -106,8 +107,9 @@ folder, recreate the directory and start over.
 
 .. code-block:: bash
 
-   cmake [options ...] /path/to/lammps/cmake  # build from any dir
-   cmake [options ...] ../cmake               # build from lammps/build
+   cmake  [options ...] /path/to/lammps/cmake  # build from any dir
+   cmake  [options ...] ../cmake               # build from lammps/build
+   cmake3 [options ...] ../cmake               # build from lammps/build
 
 The cmake command takes one required argument, which is the LAMMPS
 cmake directory which contains the CMakeLists.txt file.
@@ -119,7 +121,8 @@ command-line options.  Several useful ones are:
 
    -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
    -D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
-   -G output                     # style of output CMake generates
+   -G output                     # style of output CMake generates (e.g. "Unix Makefiles" or "Ninja")
+   -D CMAKE_MAKE_PROGRAM=builder # name of the builder executable (e.g. set to "gmake" instead of "make")
    -DVARIABLE=value              # setting for a LAMMPS feature to enable
    -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
    -C path/to/preset/file        # load some CMake settings before configuring

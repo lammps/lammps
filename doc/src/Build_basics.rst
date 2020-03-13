@@ -41,8 +41,8 @@ is below.
                              # no default value
 
 The executable created by CMake (after running make) is named *lmp* unless
-the LAMMPS_MACHINE option is set.  When setting `LAMMPS_MACHINE=name`
-the executable will be named *lmp_name*\.  Using `BUILD_MPI=no` will
+the LAMMPS_MACHINE option is set.  When setting :code:`LAMMPS_MACHINE=name`
+the executable will be named *lmp_name*\.  Using :code:`BUILD_MPI=no` will
 enforce building a serial executable using the MPI STUBS library.
 
 **Traditional make**\ :

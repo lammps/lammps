@@ -39,8 +39,8 @@ If boundary atoms are used in conjunction with Eulerian atom maps, the
 Eulerian reset frequency must be an integer multiple of the Lammps
 reneighbor frequency.
 
-Related AtC Sub-commands
-""""""""""""""""""""""""
+Related AtC commands
+""""""""""""""""""""
 
 - :doc:`fix_modify AtC atom_element_map <atc_atom_element_map>`
 - :doc:`fix_modify AtC boundary type <atc_boundary_type>`

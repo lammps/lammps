@@ -1,7 +1,7 @@
 .. index:: fix_modify AtC fix
 
-fix_modify AtC initial command
-==============================
+fix_modify AtC fix command
+==========================
 
 Syntax
 """"""

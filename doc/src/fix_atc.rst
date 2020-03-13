@@ -172,17 +172,15 @@ conditions.
 * :doc:`fix_modify AtC initial <atc_initial>`
 * :doc:`fix_modify AtC fix <atc_fix>`
 * :doc:`fix_modify AtC unfix <atc_unfix>`
-* `fix_modify AtC fix_flux <USER/atc/man_fix_flux.html>`_
-* `fix_modify AtC unfix_flux <USER/atc/man_unfix_flux.html>`_
-* `fix_modify AtC source <USER/atc/man_source.html>`_
-* `fix_modify AtC remove_source <USER/atc/man_remove_source.html>`_
+* :doc:`fix_modify AtC fix_flux <atc_fix_flux>`
+* :doc:`fix_modify AtC unfix_flux <atc_unfix_flux>`
+* :doc:`fix_modify AtC source <atc_source>`
+* :doc:`fix_modify AtC remove_source <atc_remove_source>`
 
 *fix_modify* commands for control and filtering:
 
-* `fix_modify AtC control <USER/atc/man_control.html>`_
-* `fix_modify AtC control thermal <USER/atc/man_control_thermal.html>`_
-* `fix_modify AtC control thermal correction_max_iterations <USER/atc/man_control_thermal_correction_max_iterations.html>`_
-* `fix_modify AtC control momentum <USER/atc/man_control_momentum.html>`_
+* :doc:`fix_modify AtC control thermal <atc_control_thermal>`
+* :doc:`fix_modify AtC control momentum <atc_control_momentum>`
 * `fix_modify AtC control localized_lambda <USER/atc/man_localized_lambda.html>`_
 * `fix_modify AtC control lumped_lambda_solve <USER/atc/man_lumped_lambda_solve.html>`_
 * `fix_modify AtC control mask_direction <USER/atc/man_mask_direction.html>`_ control

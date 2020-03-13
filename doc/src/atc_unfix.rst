@@ -1,6 +1,6 @@
 .. index:: fix_modify AtC unfix
 
-fix_modify AtC initial command
+fix_modify AtC unfix command
 ==============================
 
 Syntax

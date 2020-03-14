@@ -55,7 +55,7 @@ namespace {
    The algorithm computes the N-th fibonacci number as follows:
     - Each "task" or "work item" computes the i-th fibonacci number
     - If a task as (i < 2), it will record the known answer ahead of time.
-    - If a taks has (i >= 2), it will "spawn" two more tasks to compute
+    - If a task has (i >= 2), it will "spawn" two more tasks to compute
       the (i - 1) and (i - 2) fibonacci numbers.
       We do NOT do any de-duplication of these tasks.
       De-duplication would result in only (N - 2) tasks which must be run in serial.

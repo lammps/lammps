@@ -160,7 +160,7 @@ def get_byte_index(rep_inds, byteindfns, intrajfns):
     :param intrajfns: list of (unordered) input traj filenames
     """
     for n in rep_inds:
-        # check if the byte indices for this traj has aleady been computed
+        # check if the byte indices for this traj has already been computed
         if os.path.isfile(byteindfns[n]): continue
 
         # extract bytes

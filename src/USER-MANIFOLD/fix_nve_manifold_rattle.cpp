@@ -149,7 +149,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       nevery = force->inumeric(FLERR,arg[argi+1]);
       next_output = update->ntimestep + nevery;
       if (comm->me == 0) {
-        fprintf(screen,"Outputing every %d steps, next is %d\n",
+        fprintf(screen,"Outputting every %d steps, next is %d\n",
                         nevery, next_output);
       }
       argi += 2;

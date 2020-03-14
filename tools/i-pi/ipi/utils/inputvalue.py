@@ -252,7 +252,7 @@ class Input(object):
       called, so that their tags are written between the start and end tags
       of this object, as is required for the xml format.
 
-      This also adds an indent to the lower levels of the xml heirarchy,
+      This also adds an indent to the lower levels of the xml hierarchy,
       so that it is easy to see which tags contain other tags.
 
       Args:

@@ -1037,7 +1037,7 @@ def get_thermo_data(output):
             items = line.split()
             # Convert thermo output and store it.
             # It must have the same number of columns and
-            # all of them must be convertable to floats.
+            # all of them must be convertible to floats.
             # Otherwise we ignore the line
             if len(items) == len(columns):
                 try:

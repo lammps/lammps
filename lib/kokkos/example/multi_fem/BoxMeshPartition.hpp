@@ -172,7 +172,7 @@ void box_partition_rcb( const BoxType        & root_box ,
 //----------------------------------------------------------------------------
 /* Determine local id layout and communication maps for partitioned boxes.
  *
- *  Local ids are layed out as follows:
+ *  Local ids are laid out as follows:
  *    { [ owned-interior ids not sent ] ,
  *      [ owned-boundary ids to be sent to other processes ] ,
  *      [ received ids from processor ( my_part + 1 ) % part_count ]

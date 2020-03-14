@@ -3,7 +3,7 @@
 #	lmpsdata.py
 #
 #	For reading, writing and manipulating lammps data files
-# 	For calculation of certain properities using lammps data files
+# 	For calculation of certain proprieties using lammps data files
 # 	For creating VMD input text files using lammps data files
 #	All x,y,z calculations assume the information includes image flags
 
@@ -328,7 +328,7 @@ class Lmpsdata:
 		if no modifications to any of the lammpsdata structures (modflag=0)
 			Use Keywords to write lammpsdata structures directly 
 		if modifications to any of the lammpsdata structures (modflag=1)
-			Key Lammpsdata structures like atom numbers, coeficient numbers
+			Key Lammpsdata structures like atom numbers, coefficient numbers
 			need to be modified to match the other modified lammpsdata structures
 			This section will still use the keywords to write lammpsdata structures.
 		For all modflags, the code will write data to the file until all of the
@@ -403,7 +403,7 @@ class Lmpsdata:
 				for line in self.atoms:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Velocities':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -411,7 +411,7 @@ class Lmpsdata:
 				for line in self.velocities:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Masses':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -419,7 +419,7 @@ class Lmpsdata:
 				for line in self.masses:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Shapes':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -427,7 +427,7 @@ class Lmpsdata:
 				for line in self.shapes:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Dipoles':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -435,7 +435,7 @@ class Lmpsdata:
 				for line in self.dipoles:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Bonds':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -443,7 +443,7 @@ class Lmpsdata:
 				for line in self.bonds:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Angles':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -451,7 +451,7 @@ class Lmpsdata:
 				for line in self.angles:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Dihedrals':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -459,14 +459,14 @@ class Lmpsdata:
 				for line in self.dihedrals:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 			elif row=='Impropers':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
 				f.write('\n')  #new line between body keyword and body data
 				for line in self.impropers:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Pair Coeffs':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -474,7 +474,7 @@ class Lmpsdata:
 				for line in self.paircoef:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Bond Coeffs':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -482,7 +482,7 @@ class Lmpsdata:
 				for line in self.bondcoef:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Angle Coeffs':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -490,7 +490,7 @@ class Lmpsdata:
 				for line in self.anglecoef:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Dihedral Coeffs':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -498,7 +498,7 @@ class Lmpsdata:
 				for line in self.dihedralcoef:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			elif row=='Improper Coeffs':
 				f.write('\n{0}'.format(row)) #new line between header and body portion or two body keywords
@@ -506,7 +506,7 @@ class Lmpsdata:
 				for line in self.impropercoef:
 					f.write('\n') #creates a new line for adding body data
 					for item in line:
-						f.write(' {0}'.format(item)) #adds in each peice of body data with space imbetween
+						f.write(' {0}'.format(item)) #adds in each piece of body data with space imbetween
 				f.write('\n') #allows space to be added between the end of body data and a new keyword
 			else:
 				pass
@@ -514,7 +514,7 @@ class Lmpsdata:
 		
 	def atomorder(self):
 		"""Takes self.atoms and organizes the atom id from least to greatest.
-		If the atom ids are allready ordered this algorithm will do nothing."""
+		If the atom ids are already ordered this algorithm will do nothing."""
 		current=range(len(self.atoms[0])) # initialize current [assumes self.atoms coloumn #'s does not change]
 		for i in range(1,len(self.atoms)): #when i=0, self.atoms will not change; therefore its skipped 
 			for k in range(len(self.atoms[i])):
@@ -715,7 +715,7 @@ class Lmpsdata:
 		extracts the individual molecules' data back into lmpsdata.
 		This extraction takes place through a 4 step process.
 		Step 1: Use a molecule's keywords to alter the lmpsdata data structures to empty.
-				To acomplish this procedure use the lmpsdata method deletebodydata.
+				To accomplish this procedure use the lmpsdata method deletebodydata.
 		Step 2: Add the molecules' atoms to lmpsdata's atoms using the method addatoms.
 				Return a list of atom id changes for each molecule.
 		Step 3: Utilize each molecules list of atom id changes to change their data's atom id numbers.
@@ -966,7 +966,7 @@ def distance(a,coord,atomtype):
 class particlesurface:
 	def __init__(self,particle,cutoff,atomid,atomtype,shape='sphere'):
 		"""Builds a particle surface with a specific shape from a particle
-		The atoms choosen from the surface will have the specific atomid
+		The atoms chosen from the surface will have the specific atomid
 		atomid will be given in terms of an integer and not a string."""
 		self.particle=particle.atoms
 		self.atomtype=atomtype
@@ -1026,7 +1026,7 @@ class particlesurface:
 	def deleteatoms(self,structure,rows):
 		"""delete atoms from particle and shifts the structure down"""
 		new=[]
-		#mulitple copying of b to the rows being replaced.
+		#multiple copying of b to the rows being replaced.
 		if rows==[]:
 			for line in structure:
 				new.append(line) #if no rows need replacing copy structure
@@ -1081,7 +1081,7 @@ class particlesurface:
 		self.particle.append([])
 		self.surface.append([])
 		
-		pposition=len(self.particle)-1 #particle postion
+		pposition=len(self.particle)-1 #particle position
 		sposition=len(self.surface)-1 #surface position
 		
 		# Adds the atom id number to the new row
@@ -1122,7 +1122,7 @@ class particlesurface:
 			
 		
 	def createxyz(self,file,data,routine='mass', values=None):
-		"""This shows the particle surface. To show the particle surface after bonding has occured,
+		"""This shows the particle surface. To show the particle surface after bonding has occurred,
 		you will need to extract the particle than reinsert the particle into the class and use createxyz.
 		Two possible routines one to use the masses from data and the other to use the atom type and values supplied by the user.
 		The mass version is assessed by setting the routine to 'mass' which is the default method.
@@ -1199,7 +1199,7 @@ def molecules(data,init,final,processors, method='all'):
 	p.join()
 	return molecule
 
-class Lmpsmolecule: #Technically should be a meta class but written as a seperate class for easier coding.
+class Lmpsmolecule: #Technically should be a meta class but written as a separate class for easier coding.
 	def __init__(self,moleculenum,data,method):
 		"""initiates lammps molecule structures
 		and than extract the appropriate molecular structures from the base class data"""
@@ -1510,7 +1510,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 		"""delete rows in a structure and shifts the structure up
 		rows must be in increasing order for this algorithm to work correctly"""
 		new=[]
-		#mulitple copying of b to the rows being replaced.
+		#multiple copying of b to the rows being replaced.
 		if rows==[]:
 			for line in structure:
 				new.append(line) #if no rows need replacing copy structure
@@ -1598,7 +1598,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 				if nextatoms[i]==atom: #checking if atom is in next atom
 					del nextatoms[i] #delete the atom at i
 					break
-			if nextatoms==[]: break #all bonds from find bonds have allready been added to bondedatoms
+			if nextatoms==[]: break #all bonds from find bonds have already been added to bondedatoms
 		
 		#append next atoms into bondedatoms
 		#copy next atoms into prevatoms
@@ -1607,7 +1607,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 			bondedatoms.append(atom)
 			prevatoms.append(atom)
 
-		#iterative proccess for finding the rest of the atoms bonded to atomnumbers in the direction of atomid.
+		#iterative process for finding the rest of the atoms bonded to atomnumbers in the direction of atomid.
 		while prevatoms!=[]:
 			nextatoms=self.findbonds(prevatoms)
 			#need to remove atoms from nextatoms which are in the prevatoms
@@ -1616,7 +1616,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 					if nextatoms[i]==atom: #checking if atom is in next atom
 						del nextatoms[i] #delete the atom at i
 						break
-				if nextatoms==[]: break #all bonds from find bonds have allready been added to bondedatoms 
+				if nextatoms==[]: break #all bonds from find bonds have already been added to bondedatoms
 			
 			#append next atoms into bondedatoms
 			#copy next atoms into prevatoms
@@ -1694,8 +1694,8 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 
 	def listorder(self,struct):
 		"""Takes struct and organizes the list from least to greatest.
-		If the list is allready ordered this algorithm will do nothing."""
-		if len(struct)==1: return struct #with the length at 1; thier is only one element and theirfore nothing to order
+		If the list is already ordered this algorithm will do nothing."""
+		if len(struct)==1: return struct #with the length at 1; there is only one element and therefore nothing to order
 		for i in range(1,len(struct)): #when i=0, struct will not change; therefore its skipped
 			copy=struct[i]			
 			for j in range(i-1,-1,-1):
@@ -1756,8 +1756,8 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 		The second index correspons with the molecule/particle combination
 		The third index corresponds with whether the value is the molecule or the particle
 		Always bonds the two ends of the molecule that meet cutoff requirement.
-		All other possible bonds are randomly choosen until the required bondnumbers are met.
-		After every bond is choosen, the particle object's boolean list is updated,	and possiblebonds is updated.
+		All other possible bonds are randomly chosen until the required bondnumbers are met.
+		After every bond is chosen, the particle object's boolean list is updated,	and possiblebonds is updated.
 		The update to possiblebonds involves removing the row from which the bonded molecule's atom is located
 		and also removing the particle atom and it's corresponding bonded atom from other rows of possiblebonds. 
 		The final bonds are all stored in self.bonding as a 2 dimensional list"""
@@ -1896,7 +1896,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 				# Alters the charge of the molecule's atoms bonded to the particle to newcharge
 				self.modifyatom(self.bondinginformation[i][0]+1,3,newcharge)			
 
-		#This is a seperate loop so atom id's and row indexes for previous steps wont get out of sync		
+		#This is a separate loop so atom id's and row indexes for previous steps wont get out of sync		
 		#create atomnumbers to begin deletion process.
 		atomnumbers=[] 
 		for i in range(len(self.bondinginformation)):
@@ -1906,7 +1906,7 @@ class Lmpsmolecule: #Technically should be a meta class but written as a seperat
 		#Than delete those atoms and all molecule structures which contain those atoms.
 		self.deleteatoms(atomnumbers,atomid)
 		
-		print 'begining deletion process of the surface atoms for which the molecule atoms have replaced'
+		print 'beginning deletion process of the surface atoms for which the molecule atoms have replaced'
 		#Goes through the bondinginformation and superficially removes the surfaceatom
 		for i in range(len(self.bondinginformation)):
 			particle.removesurfatom(self.bondinginformation[i][1]) #uses the row number

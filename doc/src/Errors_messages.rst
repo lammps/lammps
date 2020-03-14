@@ -7666,7 +7666,7 @@ keyword to allow for additional bonds to be formed
    Keywords that refer to time (such as cpu, elapsed) do not
    make sense in between runs.
 
-*Threshhold for an atom property that isn't allocated*
+*Threshold for an atom property that isn't allocated*
    A dump threshold has been requested on a quantity that is
    not defined by the atom style used in this simulation.
 

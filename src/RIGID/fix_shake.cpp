@@ -3082,7 +3082,7 @@ void FixShake::correct_coordinates(int vflag) {
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShake::post_force(vflag);
 
-  // integrate coordiantes: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
+  // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
   // NOTE: After this command, the coordinates geometry of the molecules will be correct!
 
   double dtfmsq;

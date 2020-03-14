@@ -110,7 +110,7 @@ public:
 
   void assign (size_t n, const Scalar& val) {
 
-    /* Resize if necessary (behavour of std:vector) */
+    /* Resize if necessary (behaviour of std:vector) */
 
     if(n>span())
       DV::resize(size_t (n*_extra_storage));
@@ -177,7 +177,7 @@ public:
 
   const_reference back() const {return DV::h_view(_size - 1);}
 
-  /* std::algorithms wich work originally with iterators, here they are implemented as member functions */
+  /* std::algorithms witch work originally with iterators, here they are implemented as member functions */
 
   size_t
   lower_bound (const size_t& start,

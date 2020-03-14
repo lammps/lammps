@@ -245,19 +245,19 @@ namespace ATC {
     /** container for molecule sets */
     std::map<std::string, SmallMoleculeSet * > smallMoleculeSets_;
 
-    /** container for atomic quantities which must be transfered when atoms cross processors */
+    /** container for atomic quantities which must be transferred when atoms cross processors */
     std::set<PerAtomQuantity<double> *> exchangeList_;
 
-    /** container for atomic quantities which must be transfered to ghost atoms on other processors */
+    /** container for atomic quantities which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomQuantity<double> *> commList_;
 
-    /** container for integer atomic quantities which must be transfered to ghost atoms on other processors */
+    /** container for integer atomic quantities which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomQuantity<int> *> commIntList_;
 
-    /** container for atomic diagonal matrices which must be transfered to ghost atoms on other processors */
+    /** container for atomic diagonal matrices which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomDiagonalMatrix<double> *> commDmList_;
 
-    /** container for atomic sparse matrices which must be transfered to ghost atoms on other processors */
+    /** container for atomic sparse matrices which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomSparseMatrix<double> *> commSmList_;
 
     /** prefix for labeling associated lammps arrays */
@@ -329,7 +329,7 @@ namespace ATC {
         (it->second)->set_memory_type(TEMPORARY);
     }
 
-    /** helper function to perform intialization for dfs of a list */
+    /** helper function to perform initialization for dfs of a list */
     template <typename data>
     void dfs_prepare_loop(std::map<std::string,data * > & list)
     {

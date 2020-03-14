@@ -85,7 +85,7 @@ class PropertyOutput(dobject):
       self.simul = simul
 
       # Checks as soon as possible if some asked-for properties are
-      # missing or mispelled
+      # missing or misspelled
       for what in self.outlist:
          key = getkey(what)
          if not key in self.simul.properties.property_dict.keys():
@@ -218,7 +218,7 @@ class TrajectoryOutput(dobject):
 
       self.simul = simul
 
-      # Checks as soon as possible if some asked-for trajs are missing or mispelled
+      # Checks as soon as possible if some asked-for trajs are missing or misspelled
       key = getkey(self.what)
       if not key in self.simul.trajs.traj_dict.keys():
          print "Computable trajectories list: ", self.simul.trajs.traj_dict.keys()

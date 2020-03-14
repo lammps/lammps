@@ -141,7 +141,7 @@ def help_latex(idict, standalone=True):
 }
 """
       rstr += "\n\\begin{document}\n"
-      rstr += "The following are the different allowable ouputs:\n\\par"
+      rstr += "The following are the different allowable outputs:\n\\par"
 
    for out in sorted(idict):
       rstr += "\\ipiitem{" + out + "}"

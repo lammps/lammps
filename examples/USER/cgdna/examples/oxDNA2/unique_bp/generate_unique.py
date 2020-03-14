@@ -105,7 +105,7 @@ EXCL_RC2 =  0.335388426126
 EXCL_RC3 =  0.52329943261
 
 """
-Define auxillary variables for the construction of a helix
+Define auxiliary variables for the construction of a helix
 """
 # center of the double strand
 COM_CENTRE_DS = POS_BASE + 0.2
@@ -127,7 +127,7 @@ number_to_base = {1 : 'A', 2 : 'C', 3 : 'G', 4 : 'T'}
 base_to_number = {'A' : 1, 'a' : 1, 'C' : 2, 'c' : 2,
                   'G' : 3, 'g' : 3, 'T' : 4, 't' : 4}
 
-# auxillary arrays
+# auxiliary arrays
 positions = []
 a1s = []
 a3s = []
@@ -551,7 +551,7 @@ def read_strands(filename):
                 smallest_n_bases = n_g
              
             if smallest_n_bases < N_BASE_TYPES:
-                print('## Not enough occurances of base types in the sequence for ' + str(N_BASE_TYPES))
+                print('## Not enough occurrences of base types in the sequence for ' + str(N_BASE_TYPES))
                 print('## unique base types, switching to ' + str(smallest_n_bases) + ' unique types')
             else:
                 smallest_n_bases = N_BASE_TYPES

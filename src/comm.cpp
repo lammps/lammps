@@ -845,7 +845,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
    rendezvous communication operation
    three stages:
      first comm sends inbuf from caller decomp to rvous decomp
-     callback operates on data in rendevous decomp
+     callback operates on data in rendezvous decomp
      second comm sends outbuf from rvous decomp back to caller decomp
    inputs:
      which = perform (0) irregular or (1) MPI_All2allv communication
@@ -977,7 +977,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   bigint *offsets;
   char *inbuf_a2a,*outbuf_a2a;
 
-  // create procs and inbuf for All2all if necesary
+  // create procs and inbuf for All2all if necessary
 
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
@@ -1080,7 +1080,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
 
-  // create procs and outbuf for All2all if necesary
+  // create procs and outbuf for All2all if necessary
 
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");

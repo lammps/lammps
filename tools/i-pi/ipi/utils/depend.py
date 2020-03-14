@@ -209,7 +209,7 @@ class depend_base(object):
       further down the dependency tree until either all objects have been
       tainted, or it reaches only objects that have already been tainted. Note
       that in the case of a dependency loop the initial setting of _tainted to
-      True prevents an infinite loop occuring.
+      True prevents an infinite loop occurring.
 
       Also, in the case of a synchro object, the manually set quantity is not
       tainted, as it is assumed that synchro objects only depend on each other.

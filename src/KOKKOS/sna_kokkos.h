@@ -228,7 +228,7 @@ private:
 
   // data for bispectrum coefficients
 
-  // Same accross all SNAKokkos
+  // Same across all SNAKokkos
   t_sna_1d cglist;
   t_sna_2d rootpqarray;
 

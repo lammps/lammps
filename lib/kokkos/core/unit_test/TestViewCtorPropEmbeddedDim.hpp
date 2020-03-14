@@ -60,7 +60,7 @@ struct TestViewCtorProp_EmbeddedDim {
   using ViewIntType     = typename Kokkos::View< int**, ExecSpace >;
   using ViewDoubleType     = typename Kokkos::View< double*, ExecSpace >;
 
-  // Cuda 7.0 has issues with using a lamda in parallel_for to initialize the view - replace with this functor
+  // Cuda 7.0 has issues with using a lambda in parallel_for to initialize the view - replace with this functor
   template < class ViewType >
   struct Functor {
 

@@ -104,7 +104,7 @@ class Ensemble(dobject):
       conserved quantity the dependencies are defined in bind.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are
@@ -303,7 +303,7 @@ class NVTEnsemble(NVEEnsemble):
       higher simulation temperature, as is appropriate.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are
@@ -422,7 +422,7 @@ class NPTEnsemble(NVTEnsemble):
       higher simulation temperature, as is appropriate.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are

@@ -7,7 +7,7 @@
 # 
 # Modified by Vikas Varshney, U Akron, 5 July 2005, as described in README
 # Bug Fixed :Third argument in Dihedral Coeffs section is an integer - Ketan S Khare September 26, 2011
-# Modified by Vikas Varshney, Oct 8, 2013 to include additional flags (Atomic_Number, Coulombic and van der Waals 1-4 factors which are included in newer vesions of .top and .crd files in amber12. 
+# Modified by Vikas Varshney, Oct 8, 2013 to include additional flags (Atomic_Number, Coulombic and van der Waals 1-4 factors which are included in newer versions of .top and .crd files in amber12.
 
 #============================================================
 

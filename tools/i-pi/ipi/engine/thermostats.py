@@ -532,9 +532,9 @@ class ThermoGLE(Thermostat):
    J. Chem. Phys. 134, 084104 (2011)).
 
    Attributes:
-      ns: The number of auxilliary degrees of freedom.
+      ns: The number of auxiliary degrees of freedom.
       s: An array holding all the momenta, including the ones for the
-         auxilliary degrees of freedom.
+         auxiliary degrees of freedom.
 
    Depend objects:
       A: Drift matrix giving the damping time scales for all the different
@@ -560,7 +560,7 @@ class ThermoGLE(Thermostat):
 
       SST = Constants.kb*(self.C - np.dot(self.T,np.dot(self.C,self.T.T)))
 
-      # Uses a symetric decomposition rather than Cholesky, since it is more stable
+      # Uses a symmetric decomposition rather than Cholesky, since it is more stable
       return root_herm(SST)
 
    def get_C(self):
@@ -675,10 +675,10 @@ class ThermoNMGLE(Thermostat):
    GLE for each normal mode
 
    Attributes:
-      ns: The number of auxilliary degrees of freedom.
+      ns: The number of auxiliary degrees of freedom.
       nb: The number of beads.
       s: An array holding all the momenta, including the ones for the
-         auxilliary degrees of freedom.
+         auxiliary degrees of freedom.
 
    Depend objects:
       A: Drift matrix giving the damping time scales for all the different

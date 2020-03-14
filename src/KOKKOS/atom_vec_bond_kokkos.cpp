@@ -625,7 +625,7 @@ struct AtomVecBondKokkos_PackExchangeFunctor {
     _lo(lo),_hi(hi){
     // 3 comp of x, 3 comp of v, 1 tag, 1 type, 1 mask, 1 image, 1 molecule, 3 nspecial,
     // maxspecial special, 1 num_bond, bond_per_atom bond_type, bond_per_atom bond_atom,
-    // 1 to store buffer lenght
+    // 1 to store buffer length
     elements = 16+atom->maxspecial+atom->bond_per_atom+atom->bond_per_atom;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/elements;

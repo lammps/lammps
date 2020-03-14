@@ -172,7 +172,7 @@ class Simulation(dobject):
 
       self.forces.run()
 
-      # prints inital configuration -- only if we are not restarting
+      # prints initial configuration -- only if we are not restarting
       if (self.step == 0):
          self.step = -1
          for o in self.outputs:

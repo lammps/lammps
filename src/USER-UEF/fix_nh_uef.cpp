@@ -53,7 +53,7 @@ static const char cite_user_uef_package[] =
   "}\n\n";
 
 /* ----------------------------------------------------------------------
- * Parse fix specific keywords, do some error checking, and initalize
+ * Parse fix specific keywords, do some error checking, and initialize
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :

@@ -8,9 +8,6 @@ if(PKG_MSCG)
   endif()
   option(DOWNLOAD_MSCG "Download MSCG library instead of using an already installed one)" ${DOWNLOAD_MSCG_DEFAULT})
   if(DOWNLOAD_MSCG)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded MSCG library with Ninja build tool")
-    endif()
     include(ExternalProject)
     if(NOT LAPACK_FOUND)
       set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
@@ -21,6 +18,7 @@ if(PKG_MSCG)
       SOURCE_SUBDIR src/CMake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC} ${EXTRA_MSCG_OPTS}
       BUILD_COMMAND make mscg INSTALL_COMMAND ""
+      BUILD_BYPRODUCTS <BINARY_DIR>/libmscg.a
       )
     ExternalProject_get_property(mscg_build BINARY_DIR)
     set(MSCG_LIBRARIES ${BINARY_DIR}/libmscg.a)

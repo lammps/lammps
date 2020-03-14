@@ -184,18 +184,18 @@ conditions.
 * :doc:`fix_modify AtC control thermal <atc_control_thermal>`
 * :doc:`fix_modify AtC control momentum <atc_control_momentum>`
 * :doc:`fix_modify AtC control localized_lambda <atc_control_localized_lambda>`
-* `fix_modify AtC control lumped_lambda_solve <USER/atc/man_lumped_lambda_solve.html>`_
-* `fix_modify AtC control mask_direction <USER/atc/man_mask_direction.html>`_ control
-* `fix_modify AtC filter <USER/atc/man_time_filter.html>`_
-* `fix_modify AtC filter scale <USER/atc/man_filter_scale.html>`_
-* `fix_modify AtC filter type <USER/atc/man_filter_type.html>`_
-* `fix_modify AtC equilibrium_start <USER/atc/man_equilibrium_start.html>`_
-* `fix_modify AtC extrinsic exchange <USER/atc/man_extrinsic_exchange.html>`_
-* `fix_modify AtC poisson_solver <USER/atc/man_poisson_solver.html>`_
+* :doc:`fix_modify AtC control lumped_lambda_solve <atc_lumped_lambda_solve>`
+* :doc:`fix_modify AtC control mask_direction <atc_mask_direction>`
+* :doc:`fix_modify AtC filter <atc_time_filter>`
+* :doc:`fix_modify AtC filter scale <atc_filter_scale>`
+* :doc:`fix_modify AtC filter type <atc_filter_type>`
+* :doc:`fix_modify AtC equilibrium_start <atc_equilibrium_start>`
+* :doc:`fix_modify AtC extrinsic exchange <atc_extrinsic_exchange>`
+* :doc:`fix_modify AtC poisson_solver <atc_poisson_solver>`
 
 *fix_modify* commands for output:
 
-* `fix_modify AtC output <USER/atc/man_output.html>`_
+* :doc:`fix_modify AtC output <atc_output>`
 * `fix_modify AtC output nodeset <USER/atc/man_output_nodeset.html>`_
 * `fix_modify AtC output elementset <USER/atc/man_output_elementset.html>`_
 * `fix_modify AtC output boundary_integral <USER/atc/man_boundary_integral.html>`_

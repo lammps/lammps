@@ -74,7 +74,7 @@ must be set explicitly, either in the input script via the
 :doc:`pair_coeff <pair_coeff>` command or in the "Pair Coeffs" section of the
 :doc:`data file <read_data>`.  For some pair styles it is not
 necessary to specify coefficients when I != J, since a "mixing" rule
-will create them from the I,I and J,J settings.  The pair\_modify
+will create them from the I,I and J,J settings.  The pair_modify
 *mix* value determines what formulas are used to compute the mixed
 coefficients.  In each case, the cutoff distance is mixed the same way
 as sigma.

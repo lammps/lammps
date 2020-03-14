@@ -76,7 +76,7 @@ The :doc:`pair_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
 to be *\* \* drip*, the fourth argument is the path to the DRIP parameter file,
 and the remaining N arguments specifying the mapping between element in the
 parameter file and atom types. For example, if your LAMMPS simulation has 3 atom
-types and you want all of them to be C, you would use the following pair\_coeff
+types and you want all of them to be C, you would use the following pair_coeff
 command:
 
 .. code-block:: LAMMPS
@@ -99,19 +99,19 @@ model H atoms:
 
    The potential parameters developed in :ref:`(Wen) <Wen2018>` are provided with
    LAMMPS (see the "potentials" directory). Besides those in :ref:`Wen <Wen2018>`, an
-   additional parameter "normal\_cutoff", specific to the LAMMPS implementation, is
+   additional parameter "normal_cutoff", specific to the LAMMPS implementation, is
    used to find the three nearest neighbors of an atom to construct the normal.
 
 ----------
 
 **Mixing, shift, table, tail correction, and restart info**\ :
 
-This pair style does not support the pair\_modify mix, shift, table,
+This pair style does not support the pair_modify mix, shift, table,
 and tail options.
 
 This pair style does not write their information to binary restart files, since
-it is stored in potential files. Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+it is stored in potential files. Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 Restrictions
 """"""""""""
@@ -132,7 +132,7 @@ simulation doesn't use "metal" units.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style lebedeva_z <pair_lebedeva_z>`,
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.

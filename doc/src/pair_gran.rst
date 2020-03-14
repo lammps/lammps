@@ -31,8 +31,8 @@ Syntax
 * style = *gran/hooke* or *gran/hooke/history* or *gran/hertz/history*
 * Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
 * Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
-* gamma\_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
-* gamma\_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
+* gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
+* gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
 
@@ -41,8 +41,8 @@ Syntax
    Versions of LAMMPS before 9Jan09 had different style names for
    granular force fields.  This is to emphasize the fact that the
    Hertzian equation has changed to model polydispersity more accurately.
-   A side effect of the change is that the Kn, Kt, gamma\_n, and gamma\_t
-   coefficients in the pair\_style command must be specified with
+   A side effect of the change is that the Kn, Kt, gamma_n, and gamma_t
+   coefficients in the pair_style command must be specified with
    different values in order to reproduce calculations made with earlier
    versions of LAMMPS, even for monodisperse systems.  See the NOTE below
    for details.
@@ -104,14 +104,14 @@ The other quantities in the equations are as follows:
 * :math:`K_t` = elastic constant for tangential contact
 * :math:`\gamma_n` = viscoelastic damping constant for normal contact
 * :math:`\gamma_t` = viscoelastic damping constant for tangential contact
-* :math:`m_{eff} = M_i M_j / (M_i + M_j) =` effective mass of 2 particles of mass M\_i and M\_j
+* :math:`m_{eff} = M_i M_j / (M_i + M_j) =` effective mass of 2 particles of mass M_i and M_j
 * :math:`\mathbf{\Delta s}_t =` tangential displacement vector between 2 particles       which is truncated to satisfy a frictional yield criterion
 * :math:`n_{ij} =` unit vector along the line connecting the centers of the 2 particles
 * :math:`V_n =` normal component of the relative velocity of the 2 particles
 * :math:`V_t =` tangential component of the relative velocity of the 2 particles
 
 The :math:`K_n`, :math:`K_t`, :math:`\gamma_n`, and :math:`\gamma_t`
-coefficients are specified as parameters to the pair\_style command.  If
+coefficients are specified as parameters to the pair_style command.  If
 a NULL is used for :math:`K_t`, then a default value is used where
 :math:`K_t = 2/7 K_n`.  If a NULL is used for :math:`\gamma_t`, then a
 default value is used where :math:`\gamma_t = 1/2 \gamma_n`.
@@ -170,7 +170,7 @@ Hookean styles may not be a suitable model for polydisperse systems.
    of diameter 1, all 4 of these coefficients should now be set 2x
    larger than they were previously.
 
-Xmu is also specified in the pair\_style command and is the upper limit
+Xmu is also specified in the pair_style command and is the upper limit
 of the tangential force through the Coulomb criterion Ft = xmu\*Fn,
 where Ft and Fn are the total tangential and normal force components
 in the formulas above.  Thus in the Hookean case, the tangential force
@@ -186,7 +186,7 @@ holds, though the spring is no longer linear.
    for modeling of systems which can sustain very large tangential
    forces.
 
-The effective mass *m\_eff* is given by the formula above for two
+The effective mass *m_eff* is given by the formula above for two
 isolated particles.  If either particle is part of a rigid body, its
 mass is replaced by the mass of the rigid body in the formula above.
 This is determined by searching for a :doc:`fix rigid <fix_rigid>`
@@ -194,7 +194,7 @@ command (or its variants).
 
 For granular styles there are no additional coefficients to set for
 each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command.
-All settings are global and are made via the pair\_style command.
+All settings are global and are made via the pair_style command.
 However you must still use the :doc:`pair_coeff <pair_coeff>` for all
 pairs of granular atom types.  For example the command
 
@@ -205,7 +205,7 @@ pairs of granular atom types.  For example the command
 should be used if all atoms in the simulation interact via a granular
 potential (i.e. one of the pair styles above is used).  If a granular
 potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then specific atom types can be used in the
-pair\_coeff command to determine which atoms interact via a granular
+pair_coeff command to determine which atoms interact via a granular
 potential.
 
 ----------
@@ -235,7 +235,7 @@ instructions on how to use the accelerated styles effectively.
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so a pair\_style command does not need to be
+These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

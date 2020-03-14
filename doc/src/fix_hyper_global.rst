@@ -129,7 +129,7 @@ timesteps is simply
    t_{hyper} = \sum_{i=1,N} B-i \cdot dt
 
 where *dt* is the timestep size defined by the :doc:`timestep <timestep>`
-command.  The effective time acceleration due to GHD is thus t\_hyper /
+command.  The effective time acceleration due to GHD is thus t_hyper /
 N\*dt, where N\*dt is elapsed time for a normal MD run of N timesteps.
 
 Note that in GHD, the boost factor varies from timestep to timestep.
@@ -176,7 +176,7 @@ time-accurate trajectory of the system.
 
 Note that if *Vmax* is set too small, the GHD simulation will run
 correctly.  There will just be fewer events because the hyper time
-(t\_hyper equation above) will be shorter.
+(t_hyper equation above) will be shorter.
 
 .. note::
 
@@ -197,7 +197,7 @@ algorithm.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

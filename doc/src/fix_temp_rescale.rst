@@ -56,7 +56,7 @@ beginning and end of the run.
 
 *Tstart* can be specified as an equal-style :doc:`variable <variable>`.
 In this case, the *Tstop* setting is ignored.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the target temperature.
 
@@ -100,12 +100,12 @@ ID of the new compute is the fix-ID + underscore + "temp", and the
 group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
@@ -124,7 +124,7 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

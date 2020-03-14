@@ -221,7 +221,7 @@ calculated from the 9 triclinic box parameters
    zhi_bound = zhi
 
 These formulas can be inverted if you need to convert the bounding box
-back into the triclinic box parameters, e.g. xlo = xlo\_bound -
+back into the triclinic box parameters, e.g. xlo = xlo_bound -
 MIN(0.0,xy,xz,xy+xz).
 
 One use of triclinic simulation boxes is to model solid-state crystals

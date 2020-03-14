@@ -44,7 +44,7 @@ If it contains variables it must be enclosed in double quotes to
 insure they are not evaluated when the input script line is read, but
 will instead be evaluated each time the string is printed.
 
-Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v\_name, where
+Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the **next** timestep at which the
 string will be written out.  On that timestep, the variable will be
@@ -89,7 +89,7 @@ keyword was used.  By default, the title line is as follows:
 
 where ID is replaced with the fix-ID.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

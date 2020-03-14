@@ -66,7 +66,7 @@ The last coefficient is optional.  If not specified, the global *ufm*
 cutoff is used.
 
 The :doc:`fix adapt <fix_adapt>` command can be used to vary epsilon and sigma for this pair style over the course of a simulation, in which case
-pair\_coeff settings for epsilon and sigma must still be specified, but will be
+pair_coeff settings for epsilon and sigma must still be specified, but will be
 overridden.  For example these commands will vary the prefactor epsilon for
 all pairwise interactions from 10.0 at the beginning to 100.0 at the end
 of a run:
@@ -112,9 +112,9 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is always mixed via a
-*geometric* rule.  The cutoff is mixed according to the pair\_modify
+*geometric* rule.  The cutoff is mixed according to the pair_modify
 mix value.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details.
+"pair_modify" command for details.
 
 This pair style support the :doc:`pair_modify <pair_modify>` shift option for the energy of the pair interaction.
 
@@ -123,7 +123,7 @@ pair style.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>` tail option for adding long-range tail corrections to energy and pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

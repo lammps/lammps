@@ -113,7 +113,7 @@ system using a :doc:`PPPM solver <kspace_style>` since PPPM does not
 currently support non-orthogonal boxes.  Using fix viscosity keeps the
 box orthogonal; thus it does not suffer from this limitation.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

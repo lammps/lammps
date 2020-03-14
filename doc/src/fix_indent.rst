@@ -100,7 +100,7 @@ be specified as an equal-style :doc:`variable <variable>`, namely *x*\ ,
 *y*\ , *z*\ , or *R*\ .  Similarly, for a cylindrical indenter, any of *c1*\ ,
 *c2*\ , or *R*\ , can be a variable.  For a planar indenter, *pos* can be
 a variable.  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to define the
 indenter geometry.
 
@@ -112,7 +112,7 @@ change as a function of time or span consecutive runs in a continuous
 fashion.  For the latter, see the *start* and *stop* keywords of the
 :doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for details.
 
-For example, if a spherical indenter's x-position is specified as v\_x,
+For example, if a spherical indenter's x-position is specified as v_x,
 then this variable definition will keep it's center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
 the right edge, even if the box size changes:
@@ -129,7 +129,7 @@ from an initial position at 2.5 at a constant velocity of 5:
    variable x equal "2.5 + 5*elaplong*dt"
    variable x equal vdisplace(2.5,5)
 
-If a spherical indenter's radius is specified as v\_r, then these
+If a spherical indenter's radius is specified as v_r, then these
 variable definitions will grow the size of the indenter at a specified
 rate.
 
@@ -176,7 +176,7 @@ contains *xlat*\ , *ylat*\ , *zlat* keywords of the
    variable k equal 100.0/xlat/xlat
    fix 1 all indent $k sphere ...
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

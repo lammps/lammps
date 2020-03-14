@@ -17,7 +17,7 @@ Syntax
 * Kp = proportional gain in PID equation (unitless)
 * Ki = integral gain in PID equation (unitless)
 * Kd = derivative gain in PID equation (unitless)
-* pvar = process variable of form c\_ID, c\_ID[I], f\_ID, f\_ID[I], or v\_name
+* pvar = process variable of form c_ID, c_ID[I], f_ID, f_ID[I], or v_name
 
   .. parsed-literal::
 
@@ -190,7 +190,7 @@ equal-style versus internal-style variable interchangeably.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Currently, no information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

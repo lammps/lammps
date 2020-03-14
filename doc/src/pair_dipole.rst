@@ -39,7 +39,7 @@ Syntax
 
 * cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
 * cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units)
-* flag\_lj = *long* or *cut* or *off*
+* flag_lj = *long* or *cut* or *off*
 
   .. parsed-literal::
 
@@ -47,7 +47,7 @@ Syntax
        *cut* = use a cutoff on dispersion 1/r\^6 term
        *off* = omit disperion 1/r\^6 term entirely
 
-* flag\_coul = *long* or *off*
+* flag_coul = *long* or *off*
 
   .. parsed-literal::
 
@@ -137,7 +137,7 @@ potential containing extra terms that make both the energy and its
 derivative go to zero at the cutoff distance; this removes
 (cutoff-related) problems in energy conservation and any numerical
 instability in the equations of motion :ref:`(Allen) <Allen2>`. Shifted-force
-interactions for the Lennard-Jones (E\_LJ), charge-charge (Eqq),
+interactions for the Lennard-Jones (E_LJ), charge-charge (Eqq),
 charge-dipole (Eqp), dipole-charge (Epq) and dipole-dipole (Epp)
 potentials are computed by these formulas for the energy (E), force
 (F), and torque (T) between particles I and J:
@@ -221,11 +221,11 @@ been obtained by applying equation 5.13 of :ref:`(Allen) <Allen2>`. The
 formulas for the corresponding forces and torques have been obtained by
 applying the 'chain rule' as in appendix C.3 of :ref:`(Allen) <Allen2>`.
 
-If one cutoff is specified in the pair\_style command, it is used for
+If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
 respectively. This pair style also supports an optional *scale* keyword
-as part of a pair\_coeff statement, where the interactions can be
+as part of a pair_coeff statement, where the interactions can be
 scaled according to this factor. This scale factor is also made available
 for use with fix adapt.
 
@@ -243,19 +243,19 @@ dipole-charge, and charge-charge interactions are all supported, along
 with the standard 12/6 Lennard-Jones interactions.  LJ interactions
 can be cutoff or long-ranged.
 
-For style *lj/long/dipole/long*\ , if *flag\_lj* is set to *long*\ , no
+For style *lj/long/dipole/long*\ , if *flag_lj* is set to *long*\ , no
 cutoff is used on the LJ 1/r\^6 dispersion term.  The long-range
-portion is calculated by using the :doc:`kspace_style ewald\_disp <kspace_style>` command.  The specified LJ cutoff then
+portion is calculated by using the :doc:`kspace_style ewald_disp <kspace_style>` command.  The specified LJ cutoff then
 determines which portion of the LJ interactions are computed directly
 by the pair potential versus which part is computed in reciprocal
-space via the Kspace style.  If *flag\_lj* is set to *cut*\ , the LJ
-interactions are simply cutoff, as with :doc:`pair_style lj/cut <pair_lj>`.  If *flag\_lj* is set to *off*\ , LJ interactions
+space via the Kspace style.  If *flag_lj* is set to *cut*\ , the LJ
+interactions are simply cutoff, as with :doc:`pair_style lj/cut <pair_lj>`.  If *flag_lj* is set to *off*\ , LJ interactions
 are not computed at all.
 
-If *flag\_coul* is set to *long*\ , no cutoff is used on the Coulombic or
+If *flag_coul* is set to *long*\ , no cutoff is used on the Coulombic or
 dipole interactions.  The long-range portion is calculated by using
-*ewald\_disp* of the :doc:`kspace_style <kspace_style>` command. If
-*flag\_coul* is set to *off*\ , Coulombic and dipole interactions are not
+*ewald_disp* of the :doc:`kspace_style <kspace_style>` command. If
+*flag_coul* is set to *off*\ , Coulombic and dipole interactions are not
 computed at all.
 
 Atoms with dipole moments should be integrated using the :doc:`fix nve/sphere update dipole <fix_nve_sphere>` or the :doc:`fix nvt/sphere update dipole <fix_nvt_sphere>` command to rotate the
@@ -280,7 +280,7 @@ commands, or by mixing as described below:
 * cutoff2 (distance units)
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -312,13 +312,13 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distances for this pair style can be mixed.  The default
-mix value is *geometric*\ .  See the "pair\_modify" command for details.
+mix value is *geometric*\ .  See the "pair_modify" command for details.
 
 For atom type pairs I,J and I != J, the A, sigma, d1, and d2
 coefficients and cutoff distance for this pair style can be mixed.  A
 is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
-*geometric*\ .  See the "pair\_modify" command for details.
+*geometric*\ .  See the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the Lennard-Jones portion of the pair
@@ -331,7 +331,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

@@ -114,11 +114,11 @@ Coulombic terms.
 For *lj/class2/coul/long* only the class 2 cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
-specified in the pair\_style command.
+specified in the pair_style command.
 
 ----------
 
-If the pair\_coeff command is not used to define coefficients for a
+If the pair_coeff command is not used to define coefficients for a
 particular I != J type pair, the mixing rule for :math:`\epsilon` and
 :math:`\sigma` for all class2 potentials is to use the *sixthpower*
 formulas documented by the :doc:`pair_modify <pair_modify>` command.
@@ -160,8 +160,8 @@ instructions on how to use the accelerated styles effectively.
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/class2 pair styles can be mixed.
 Epsilon and sigma are always mixed with the value *sixthpower*\ .  The
-cutoff distance is mixed by whatever option is set by the pair\_modify
-command (default = geometric).  See the "pair\_modify" command for
+cutoff distance is mixed by whatever option is set by the pair_modify
+command (default = geometric).  See the "pair_modify" command for
 details.
 
 All of the lj/class2 pair styles support the
@@ -177,13 +177,13 @@ All of the lj/class2 pair styles support the
 tail correction to the energy and pressure of the Lennard-Jones
 portion of the pair interaction.
 
-All of the lj/class2 pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the lj/class2 pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 Only the *lj/class2* and *lj/class2/coul/long* pair styles support the use of the
 *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run\_style respa.
+The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
 
 Restrictions

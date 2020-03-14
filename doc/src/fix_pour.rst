@@ -126,7 +126,7 @@ command which also appears in your input script.
    If you wish the new rigid molecules (and other rigid molecules)
    to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
    or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix\_modify dynamic/dof yes" command for the rigid fix.  This is to
+   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
    inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
@@ -225,7 +225,7 @@ line or triangle particles with the insertion region.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  This means you must be careful when restarting a
 pouring simulation, when the restart file was written in the middle of

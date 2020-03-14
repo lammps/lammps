@@ -141,7 +141,7 @@ you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
 that fix.  The doc pages for individual :doc:`fix <fix>` commands
 specify if this should be done.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges, the number

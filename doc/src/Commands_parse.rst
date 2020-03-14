@@ -101,7 +101,7 @@ LAMMPS:
       print           "B2 = ${b$a}"
 
    Nor can you specify an expression like "$($x-1.0)" for an immediate
-   variable, but you could use $(v\_x-1.0), since the latter is valid
+   variable, but you could use $(v_x-1.0), since the latter is valid
    syntax for an :doc:`equal-style variable <variable>`.
 
    See the :doc:`variable <variable>` command for more details of how

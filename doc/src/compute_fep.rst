@@ -241,9 +241,9 @@ used, then the *pstyle* will be a sub-style name.  You must specify
 I,J arguments that correspond to type pair values defined (via the
 :doc:`pair_coeff <pair_coeff>` command) for that sub-style.
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
-this compute is invoked.  It should be specified as v\_name, where name
+this compute is invoked.  It should be specified as v_name, where name
 is the variable name.
 
 ----------
@@ -254,9 +254,9 @@ current list of atom parameters that can be used with this compute:
 
 * charge = charge on particle
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
-this compute is invoked.  It should be specified as v\_name, where name
+this compute is invoked.  It should be specified as v_name, where name
 is the variable name.
 
 ----------
@@ -282,10 +282,10 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 **Output info:**
 
 This compute calculates a global vector of length 3 which contains the
-energy difference ( :math:`U_1-U_0` ) as c\_ID[1], the
+energy difference ( :math:`U_1-U_0` ) as c_ID[1], the
 Boltzmann factor :math:`\exp(-(U_1-U_0)/kT)`, or
-:math:`V \exp(-(U_1-U_0)/kT)`, as c\_ID[2] and the
-volume of the simulation box :math:`V` as c\_ID[3]. :math:`U_1` is the
+:math:`V \exp(-(U_1-U_0)/kT)`, as c_ID[2] and the
+volume of the simulation box :math:`V` as c_ID[3]. :math:`U_1` is the
 pair potential energy obtained with the perturbed parameters and
 :math:`U_0` is the pair potential energy obtained with the
 unperturbed parameters. The energies include kspace terms if these

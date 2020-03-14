@@ -47,10 +47,10 @@ The coefficients associated with a bond style can be specified in a
 data or restart file or via the :doc:`bond_coeff <bond_coeff>` command.
 
 All bond potentials store their coefficient data in binary restart
-files which means bond\_style and :doc:`bond_coeff <bond_coeff>` commands
+files which means bond_style and :doc:`bond_coeff <bond_coeff>` commands
 do not need to be re-specified in an input script that restarts a
 simulation.  See the :doc:`read_restart <read_restart>` command for
-details on how to do this.  The one exception is that bond\_style
+details on how to do this.  The one exception is that bond_style
 *hybrid* only stores the list of sub-styles in the restart file; bond
 coefficients need to be re-specified.
 
@@ -71,7 +71,7 @@ the style to display the formula it computes and coefficients
 specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the bond\_style command, and coefficients
+arguments specified in the bond_style command, and coefficients
 specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 There are also additional accelerated pair styles included in the

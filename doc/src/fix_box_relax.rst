@@ -269,7 +269,7 @@ from a restart file.
    Because pressure is often a very sensitive function of volume,
    it can be difficult for the minimizer to equilibrate the system the
    desired pressure with high precision, particularly for solids.  Some
-   techniques that seem to help are (a) use the "min\_modify line
+   techniques that seem to help are (a) use the "min_modify line
    quadratic" option when minimizing with box relaxations, (b) minimize
    several times in succession if need be, to drive the pressure closer
    to the target pressure, (c) relax the atom positions before relaxing
@@ -292,23 +292,23 @@ as if these commands had been issued:
    compute fix-ID_press group-ID pressure fix-ID_temp virial
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix\_ID
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
 + underscore + "press", and the group for the new computes is the same
 as the fix group.  Also note that the pressure compute does not
 include a kinetic component.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of this
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* or
-*thermo\_press* will have no effect on this fix.
+It also means that changing attributes of *thermo_temp* or
+*thermo_press* will have no effect on this fix.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -323,7 +323,7 @@ minimization, most likely in an undesirable way.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by fix box/relax), but only if the

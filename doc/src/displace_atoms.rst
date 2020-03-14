@@ -59,7 +59,7 @@ The *move* style displaces the group of atoms by the specified 3d
 displacement vector.  Any of the 3 quantities defining the vector
 components can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  If the value is a variable, it should be
-specified as v\_name, where name is the variable name.  In this case,
+specified as v_name, where name is the variable name.  In this case,
 the variable will be evaluated, and its value(s) used for the
 displacement(s).  The scale factor implied by the *units* keyword will
 also be applied to the variable result.

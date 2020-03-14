@@ -18,7 +18,7 @@ LAMMPS instances on subsets of the total MPI ranks.
 To install mpi4py (version mpi4py-3.0.3 as of Nov 2019), unpack it
 and from its main directory, type
 
-.. parsed-literal::
+.. code-block:: bash
 
    python setup.py build
    sudo python setup.py install
@@ -27,27 +27,27 @@ Again, the "sudo" is only needed if required to copy mpi4py files into
 your Python distribution's site-packages directory. To install with
 user privilege into the user local directory type
 
-.. parsed-literal::
+.. code-block:: bash
 
    python setup.py install --user
 
 If you have successfully installed mpi4py, you should be able to run
 Python and type
 
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
 
 without error.  You should also be able to run python in parallel
 on a simple test script
 
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 python test.py
 
 where test.py contains the lines
 
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
    comm = MPI.COMM_WORLD
@@ -64,7 +64,7 @@ and see one line of output for each processor you run on.
    it is using, since you specify the details in your low-level
    src/MAKE/Makefile.foo file.  Mpi4py uses the "mpicc" command to find
    information about the MPI it uses to build against.  And it tries to
-   load "libmpi.so" from the LD\_LIBRARY\_PATH.  This may or may not find
+   load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
    the MPI library that LAMMPS is using.  If you have problems running
    both mpi4py and LAMMPS together, this is an issue you may need to
    address, e.g. by moving other MPI installations so that mpi4py finds

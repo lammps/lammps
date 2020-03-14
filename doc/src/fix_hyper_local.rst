@@ -245,7 +245,7 @@ well for many solid-state systems.
    atoms move (between quenched states) to be considered an "event".  It
    is an argument to the "compute event/displace" command used to detect
    events.  By default the ghost communication distance is set by the
-   pair\_style cutoff, which will typically be < *Dcut*\ .  The :doc:`comm_modify cutoff <comm_modify>` command should be used to override the ghost
+   pair_style cutoff, which will typically be < *Dcut*\ .  The :doc:`comm_modify cutoff <comm_modify>` command should be used to override the ghost
    cutoff explicitly, e.g.
 
 .. code-block:: LAMMPS
@@ -268,7 +268,7 @@ inverse of the alpha parameter discussed in
 
 The *Btarget* argument is the desired time boost factor (a value > 1)
 that all the atoms in the system will experience.  The elapsed time
-t\_hyper for an LHD simulation running for *N* timesteps is simply
+t_hyper for an LHD simulation running for *N* timesteps is simply
 
 .. math::
 
@@ -293,7 +293,7 @@ is the specified temperature of the system
 
 Note that if *Btarget* is set smaller than this, the LHD simulation
 will run correctly.  There will just be fewer events because the hyper
-time (t\_hyper equation above) will be shorter.
+time (t_hyper equation above) will be shorter.
 
 .. note::
 
@@ -365,7 +365,7 @@ enabled by these keywords.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

@@ -112,7 +112,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace\_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
+:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
 
 Default
 """""""

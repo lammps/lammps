@@ -29,7 +29,7 @@ forces, using the integration algorithm described in :ref:`Mackay et al. <Mackay
 user-specified value for the force-coupling constant used in :doc:`fix lb/fluid <fix_lb_fluid>` has been set; do not use this integration
 algorithm if the force coupling constant has been set by default.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

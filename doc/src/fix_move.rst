@@ -157,7 +157,7 @@ atom's motion and rotation over time.
 The *variable* style allows the position and velocity components of
 each atom to be set by formulas specified via the
 :doc:`variable <variable>` command.  Each of the 6 variables is
-specified as an argument to the fix as v\_name, where name is the
+specified as an argument to the fix as v_name, where name is the
 variable name that is defined elsewhere in the input script.
 
 Each variable must be of either the *equal* or *atom* style.
@@ -170,10 +170,10 @@ fix stores the original coordinates of each atom (see note below) so
 that per-atom quantity can be used in an atom-style variable formula.
 See the :doc:`variable <variable>` command for details.
 
-The first 3 variables (v\_dx,v\_dy,v\_dz) specified for the *variable*
+The first 3 variables (v_dx,v_dy,v_dz) specified for the *variable*
 style are used to calculate a displacement from the atom's original
 position at the time the fix was specified.  The second 3 variables
-(v\_vx,v\_vy,v\_vz) specified are used to compute a velocity for each
+(v_vx,v_vy,v_vz) specified are used to compute a velocity for each
 atom.
 
 Any of the 6 variables can be specified as NULL.  If both the
@@ -203,7 +203,7 @@ spacings can be different in x,y,z.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the original coordinates of moving atoms to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the

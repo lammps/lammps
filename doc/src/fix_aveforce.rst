@@ -55,7 +55,7 @@ average value without adding in any additional force.
 
 Any of the 3 quantities defining the force components can be specified
 as an equal-style :doc:`variable <variable>`, namely *fx*\ , *fy*\ , *fz*\ .
-If the value is a variable, it should be specified as v\_name, where
+If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be
 evaluated each timestep, and its value used to determine the average
 force.
@@ -91,7 +91,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

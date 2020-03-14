@@ -27,8 +27,8 @@ Syntax
 * rcutfac = scale factor applied to all cutoff radii (positive real)
 * rfac0 = parameter in distance to angle conversion (0 < rcutfac < 1)
 * twojmax = band limit for bispectrum components (non-negative integer)
-* R\_1, R\_2,... = list of cutoff radii, one for each type (distance units)
-* w\_1, w\_2,... = list of neighbor weights, one for each type
+* R_1, R_2,... = list of cutoff radii, one for each type (distance units)
+* w_1, w_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
 * keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag*
 
@@ -62,7 +62,7 @@ Define a computation that calculates a set of quantities related to the
 bispectrum components of the atoms in a group. These computes are
 used primarily for calculating the dependence of energy, force, and
 stress components on the linear coefficients in the
-:doc:`snap pair\_style <pair_snap>`, which is useful when training a
+:doc:`snap pair_style <pair_snap>`, which is useful when training a
 SNAP potential to match target data.
 
 Bispectrum components of an atom are order parameters characterizing
@@ -71,11 +71,11 @@ mathematical definition is given in the paper by Thompson et
 al. :ref:`(Thompson) <Thompson20141>`
 
 The position of a neighbor atom *i'* relative to a central atom *i* is
-a point within the 3D ball of radius *R\_ii' = rcutfac\*(R\_i + R\_i')*
+a point within the 3D ball of radius *R_ii' = rcutfac\*(R_i + R_i')*
 
 Bartok et al. :ref:`(Bartok) <Bartok20101>`, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
-space.  The radial distance *r* within *R\_ii'* is mapped on to a third
+space.  The radial distance *r* within *R_ii'* is mapped on to a third
 polar angle *theta0* defined by,
 
 .. math::
@@ -87,8 +87,8 @@ of the 3-sphere.  Points south of the latitude *theta0max=rfac0\*Pi*
 are excluded.
 
 The natural basis for functions on the 3-sphere is formed by the 4D
-hyperspherical harmonics *U\^j\_m,m'(theta, phi, theta0).*  These
-functions are better known as *D\^j\_m,m',* the elements of the Wigner
+hyperspherical harmonics *U\^j_m,m'(theta, phi, theta0).*  These
+functions are better known as *D\^j_m,m',* the elements of the Wigner
 *D*\ -matrices :ref:`(Meremianin <Meremianin2006>`,
 :ref:`Varshalovich) <Varshalovich1987>`.
 
@@ -102,18 +102,18 @@ coefficient as
 
   u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)}
 
-The *w\_i'* neighbor weights are dimensionless numbers that are chosen
+The *w_i'* neighbor weights are dimensionless numbers that are chosen
 to distinguish atoms of different types, while the central atom is
 arbitrarily assigned a unit weight.  The function *fc(r)* ensures that
 the contribution of each neighbor atom goes smoothly to zero at
-*R\_ii'*:
+*R_ii'*:
 
 .. math::
 
   f_c(r)   = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
            = & 0,  r > R_{ii'}
 
-The expansion coefficients *u\^j\_m,m'* are complex-valued and they are
+The expansion coefficients *u\^j_m,m'* are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
 under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
@@ -128,7 +128,7 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
         {j_2} {m_2} {m'_2} \end{array}}
         u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
 
-The constants *H\^jmm'\_j1m1m1'\_j2m2m2'* are coupling coefficients,
+The constants *H\^jmm'_j1m1m1'_j2m2m2'* are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
 2-sphere. These invariants are the components of the bispectrum and
 these are the quantities calculated by the compute *sna/atom*\ . They
@@ -176,8 +176,8 @@ broken out by type). The element in the last column of each row contains
 the potential energy, force, or stress, according to the row.
 These quantities correspond to the user-specified reference potential
 that must be subtracted from the target data when fitting SNAP.
-The potential energy calculation uses the built in compute *thermo\_pe*.
-The stress calculation uses a compute called *snap\_press* that is
+The potential energy calculation uses the built in compute *thermo_pe*.
+The stress calculation uses a compute called *snap_press* that is
 automatically created behind the scenes, according to the following
 command:
 

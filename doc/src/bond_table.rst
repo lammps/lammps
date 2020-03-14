@@ -146,12 +146,12 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart info:**
 
-This bond style writes the settings for the "bond\_style table"
-command to :doc:`binary restart files <restart>`, so a bond\_style
+This bond style writes the settings for the "bond_style table"
+command to :doc:`binary restart files <restart>`, so a bond_style
 command does not need to specified in an input script that reads a
 restart file.  However, the coefficient information is not stored in
 the restart file, since it is tabulated in the potential files.  Thus,
-bond\_coeff commands do need to be specified in the restart input
+bond_coeff commands do need to be specified in the restart input
 script.
 
 Restrictions

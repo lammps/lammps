@@ -130,7 +130,7 @@ Those styles can be combined within one single command line.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 By default, the energy associated to this fix is not added to the potential
 energy of the system.
@@ -152,7 +152,7 @@ Restrictions
 
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
-atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

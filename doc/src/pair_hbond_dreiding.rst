@@ -21,9 +21,9 @@ Syntax
 
 * style = *hbond/dreiding/lj* or *hbond/dreiding/morse*
 * n = cosine angle periodicity
-* inner\_distance\_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
-* outer\_distance\_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
-* angle\_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
+* inner_distance_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
+* outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
+* angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
 * interactions (degrees)
 
 Examples
@@ -112,7 +112,7 @@ on the DREIDING force field.
 
    In the original Dreiding force field paper 1-4 non-bonded
    interactions ARE allowed.  If this is desired for your model, use the
-   special\_bonds command (e.g. "special\_bonds lj 0.0 0.0 1.0") to turn
+   special_bonds command (e.g. "special_bonds lj 0.0 0.0 1.0") to turn
    these interactions on.
 
 ----------
@@ -125,7 +125,7 @@ in the examples above.
 
    Unlike other pair styles and their associated
    :doc:`pair_coeff <pair_coeff>` commands, you do not need to specify
-   pair\_coeff settings for all possible I,J type pairs.  Only I,J type
+   pair_coeff settings for all possible I,J type pairs.  Only I,J type
    pairs for atoms which act as joint donors/acceptors need to be
    specified; all other type pairs are assumed to be inactive.
 
@@ -134,11 +134,11 @@ in the examples above.
    A :doc:`pair_coeff <pair_coeff>` command can be specified multiple
    times for the same donor/acceptor type pair.  This enables multiple
    hydrogen types to be assigned to the same donor/acceptor type pair.
-   For other pair\_styles, if the pair\_coeff command is re-used for the
+   For other pair_styles, if the pair_coeff command is re-used for the
    same I.J type pair, the settings for that type pair are overwritten.
    For the hydrogen bond potentials this is not the case; the settings
    are cumulative.  This means the only way to turn off a previous
-   setting, is to re-use the pair\_style command and start over.
+   setting, is to re-use the pair_style command and start over.
 
 For the *hbond/dreiding/lj* style the list of coefficients is as
 follows:
@@ -171,9 +171,9 @@ select multiple types as hydrogen atoms.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
 command doc page for details.
 
-If the donor flag is *i*\ , then the atom of type I in the pair\_coeff
+If the donor flag is *i*\ , then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
-flag is *j*\ , then the atom of type J in the pair\_coeff command is
+flag is *j*\ , then the atom of type J in the pair_coeff command is
 treated as the donor and I is the donor.  This option is required
 because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
@@ -187,7 +187,7 @@ hydrogen bond potential based on a Morse functional form.
 
 The last 3 coefficients for both styles are optional.  If not
 specified, the global n, distance cutoff, and angle cutoff specified
-in the pair\_style command are used.  If you wish to only override the
+in the pair_style command are used.  If you wish to only override the
 2nd or 3rd optional parameter, you must also specify the preceding
 optional parameters.
 
@@ -228,7 +228,7 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles do not write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need to be
+These pair styles do not write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need to be
 re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

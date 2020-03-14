@@ -53,8 +53,8 @@ I,J pairs must be specified explicitly.
 This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
@@ -68,7 +68,7 @@ if LAMMPS was built with that package.  See the :doc:`Build package <Build_packa
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, pair\_sph/rhosum
+:doc:`pair_coeff <pair_coeff>`, pair_sph/rhosum
 
 **Default:** none
 

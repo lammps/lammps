@@ -30,7 +30,9 @@ The internal temperature is the ratio of internal energy over the heat
 capacity associated with the internal degrees of freedom of a mesoscopic
 particles, e.g. a Smooth-Particle Hydrodynamics particle.
 
-T\_\ *int* = E\_\ *int* / C\_\ *V, int*
+.. math::
+
+    T_{int} = E_{int} / C_{V,int}
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.

@@ -44,7 +44,7 @@ such as proposed by :ref:`(Erdmann) <Erdmann>`.
 For *mode* = *quat* the force is applied along the axis obtained
 by rotating the x-axis along the atom's quaternion. In other words, the
 force is along the x-axis in the atom's body frame. This mode requires
-all atoms in the group to have a quaternion, so atom\_style should
+all atoms in the group to have a quaternion, so atom_style should
 either be ellipsoid or body.  In combination with Langevin thermostat
 for translation and rotation in the overdamped regime, the quaternion
 mode corresponds to the active Brownian particle model introduced by
@@ -57,7 +57,7 @@ on through the *types* keyword.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -69,7 +69,7 @@ Restrictions
 In quat mode, this fix makes use of per-atom quaternions to take
 into account the fact that the orientation can rotate and hence the
 direction of the active force can change. The quat mode
-of this fix only works with atom\_style ellipsoid.
+of this fix only works with atom_style ellipsoid.
 
 Related commands
 """"""""""""""""

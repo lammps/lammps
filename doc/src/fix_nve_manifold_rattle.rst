@@ -49,7 +49,7 @@ parameters, see the :doc:`Howto manifold <Howto_manifold>` doc page.
 Note that the particles must initially be close to the manifold in
 question. If not, RATTLE will not be able to iterate until the
 constraint is satisfied, and an error is generated. For simple
-manifolds this can be achieved with *region* and *create\_atoms*
+manifolds this can be achieved with *region* and *create_atoms*
 commands, but for more complex surfaces it might be more useful to
 write a script.
 
@@ -69,7 +69,7 @@ conserved.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

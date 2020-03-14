@@ -57,7 +57,7 @@ shell of distances in 3d and a thin ring of distances in 2d.
    those pairs will not be included in the RDF. This does not apply when
    using long-range coulomb interactions (\ *coul/long*\ , *coul/msm*\ ,
    *coul/wolf* or similar.  One way to get around this would be to set
-   special\_bond scaling factors to very tiny numbers that are not exactly
+   special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
    use the :doc:`rerun <rerun>` command to compute the RDF for snapshots in
    the dump file.  The rerun script can use a
@@ -74,7 +74,7 @@ distance specified.
    Normally, you should only use the *cutoff* keyword if no pair
    style is defined, e.g. the :doc:`rerun <rerun>` command is being used to
    post-process a dump file of snapshots.  Or if you really want the RDF
-   for distances beyond the pair\_style force cutoff and cannot easily
+   for distances beyond the pair_style force cutoff and cannot easily
    post-process a dump file to calculate it.  This is because using the
    *cutoff* keyword incurs extra computation and possibly communication,
    which may slow down your simulation.  If you specify a *Rcut* <= force

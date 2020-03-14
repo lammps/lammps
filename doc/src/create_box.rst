@@ -63,7 +63,7 @@ positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
 orthogonal box to transform it into the parallelepiped.
 
-By default, a *prism* region used with the create\_box command must
+By default, a *prism* region used with the create_box command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half
 the distance of the parallel box length.  For example, if xlo = 2 and
 xhi = 12, then the x box length is 10 and the xy tilt factor must be
@@ -124,7 +124,7 @@ keywords serve the same purpose as the analogous keywords that can be
 used in a data file which are recognized by the
 :doc:`read_data <read_data>` command when it sets up a system.
 
-Note that if these keywords are not used, then the create\_box command
+Note that if these keywords are not used, then the create_box command
 creates an atomic (non-molecular) simulation that does not allow bonds
 between pairs of atoms to be defined, or a :doc:`bond potential <bond_style>` to be specified, or for molecules with
 special neighbors to be added to the system by commands such as
@@ -133,7 +133,7 @@ or :doc:`fix pour <fix_pour>`.
 
 As an example, see the examples/deposit/in.deposit.molecule script,
 which deposits molecules onto a substrate.  Initially there are no
-molecules in the system, but they are added later by the :doc:`fix deposit <fix_deposit>` command.  The create\_box command in the
+molecules in the system, but they are added later by the :doc:`fix deposit <fix_deposit>` command.  The create_box command in the
 script uses the bond/types and extra/bond/per/atom keywords to allow
 this.  If the added molecule contained more than 1 special bond
 (allowed by default), an extra/special/per/atom keyword would also

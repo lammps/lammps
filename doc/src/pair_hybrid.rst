@@ -58,7 +58,7 @@ using *lj/cut* and *coul/long* together gives the same result as if
 the *lj/cut/coul/long* potential were used by itself.  In this case,
 it would be more efficient to use the single combined potential, but
 in general any combination of pair potentials can be used together in
-to produce an interaction that is not encoded in any single pair\_style
+to produce an interaction that is not encoded in any single pair_style
 file, e.g. adding Coulombic forces between granular particles.
 
 All pair styles that will be used are listed as "sub-styles" following
@@ -76,7 +76,7 @@ a Tersoff potential for pure C for the other set (presumably with some
 could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
-pair\_coeff command to assign parameters for the different type pairs.
+pair_coeff command to assign parameters for the different type pairs.
 
 .. note::
 
@@ -85,10 +85,10 @@ pair\_coeff command to assign parameters for the different type pairs.
    This is because the GPU package currently assumes that only one
    instance of a pair style is being used.
 
-In the pair\_coeff commands, the name of a pair style must be added
+In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
 being those appropriate to that style.  If the pair style is used
-multiple times in the pair\_style command, then an additional numeric
+multiple times in the pair_style command, then an additional numeric
 argument must also be specified which is a number from 1 to M where M
 is the number of times the sub-style was listed in the pair style
 command.  The extra number indicates which instance of the sub-style
@@ -129,7 +129,7 @@ each line in the "Pair Coeffs" section, e.g.
    1 lj/cut/coul/cut 1.0 1.0
    ...
 
-Note that the pair\_coeff command for some potentials such as
+Note that the pair_coeff command for some potentials such as
 :doc:`pair_style eam/alloy <pair_eam>` includes a mapping specification
 of elements to all atom types, which in the hybrid case, can include
 atom types not assigned to the *eam/alloy* potential.  The NULL
@@ -139,18 +139,18 @@ sub-style.
 
 For the *hybrid* style, each atom type pair I,J is assigned to exactly
 one sub-style.  Just as with a simulation using a single pair style,
-if you specify the same atom type pair in a second pair\_coeff command,
+if you specify the same atom type pair in a second pair_coeff command,
 the previous assignment will be overwritten.
 
 For the *hybrid/overlay* style, each atom type pair I,J can be
 assigned to one or more sub-styles.  If you specify the same atom type
-pair in a second pair\_coeff command with a new sub-style, then the
+pair in a second pair_coeff command with a new sub-style, then the
 second sub-style is added to the list of potentials that will be
 calculated for two interacting atoms of those types.  If you specify
-the same atom type pair in a second pair\_coeff command with a
+the same atom type pair in a second pair_coeff command with a
 sub-style that has already been defined for that pair of atoms, then
 the new pair coefficients simply override the previous ones, as in the
-normal usage of the pair\_coeff command.  E.g. these two sets of
+normal usage of the pair_coeff command.  E.g. these two sets of
 commands are the same:
 
 .. code-block:: LAMMPS
@@ -181,7 +181,7 @@ sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for *hybrid* and *hybrid/overlay* simulations, you
-can use this form of the pair\_coeff command in your input script:
+can use this form of the pair_coeff command in your input script:
 
 .. code-block:: LAMMPS
 
@@ -265,7 +265,7 @@ individual sub-style can be accessed and output via the :doc:`compute pair <comp
 
 .. note::
 
-   Several of the potentials defined via the pair\_style command in
+   Several of the potentials defined via the pair_style command in
    LAMMPS are really many-body potentials, such as Tersoff, AIREBO, MEAM,
    ReaxFF, etc.  The way to think about using these potentials in a
    hybrid setting is as follows.
@@ -276,10 +276,10 @@ all types and the NULL keywords described above to exclude specific
 types not assigned to that potential.  If types 1,3,4 were assigned in
 that way (but not type 2), this means that all many-body interactions
 between all atoms of types 1,3,4 will be computed by that potential.
-Pair\_style hybrid allows interactions between type pairs 2-2, 1-2,
+Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
 2-3, 2-4 to be specified for computation by other pair styles.  You
 could even add a second interaction for 1-1 to be computed by another
-pair style, assuming pair\_style hybrid/overlay is used.
+pair style, assuming pair_style hybrid/overlay is used.
 
 But you should not, as a general rule, attempt to exclude the
 many-body interactions for some subset of the type pairs within the
@@ -291,7 +291,7 @@ find the additional atoms in the group.  It is typically non-physical
 to think of excluding an interaction between a particular pair of
 atoms when the potential computes 3-body or 4-body interactions.
 
-However, you can still use the pair\_coeff none setting or the
+However, you can still use the pair_coeff none setting or the
 :doc:`neigh_modify exclude <neigh_modify>` command to exclude certain
 type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
@@ -373,12 +373,12 @@ sub-styles of the hybrid potential.
 For atom type pairs I,J and I != J, if the sub-style assigned to I,I
 and J,J is the same, and if the sub-style allows for mixing, then the
 coefficients for I,J can be mixed.  This means you do not have to
-specify a pair\_coeff command for I,J since the I,J type pair will be
+specify a pair_coeff command for I,J since the I,J type pair will be
 assigned automatically to the sub-style defined for both I,I and J,J
 and its coefficients generated by the mixing rule used by that
 sub-style.  For the *hybrid/overlay* style, there is an additional
 requirement that both the I,I and J,J pairs are assigned to a single
-sub-style.  See the "pair\_modify" command for details of mixing rules.
+sub-style.  See the "pair_modify" command for details of mixing rules.
 See the See the doc page for the sub-style to see if allows for
 mixing.
 
@@ -390,7 +390,7 @@ For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to :doc:`binary restart files <restart>`, so a :doc:`pair_style <pair_style>` command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
-file.  Thus, pair\_coeff commands need to be re-specified in the
+file.  Thus, pair_coeff commands need to be re-specified in the
 restart input script.
 
 These pair styles support the use of the *inner*\ , *middle*\ , and
@@ -401,7 +401,7 @@ Restrictions
 """"""""""""
 
 When using a long-range Coulombic solver (via the
-:doc:`kspace_style <kspace_style>` command) with a hybrid pair\_style,
+:doc:`kspace_style <kspace_style>` command) with a hybrid pair_style,
 one or more sub-styles will be of the "long" variety,
 e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must insure that the
 short-range Coulombic cutoff used by each of these long pair styles is

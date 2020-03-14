@@ -26,7 +26,7 @@ command:
 
 .. code-block:: bash
 
-   $ tar -xzvf lammps\*.tar.gz
+   $ tar -xzvf lammps*.tar.gz
 
 This will create a LAMMPS directory with the version date
 in its name, e.g. lammps-23Jun18.
@@ -40,7 +40,7 @@ a lammps-master dir:
 
 .. code-block:: bash
 
-   $ unzip lammps\*.zip
+   $ unzip lammps*.zip
 
 This version is the most up-to-date LAMMPS development version.  It
 will have the date of the most recent patch release (see the file

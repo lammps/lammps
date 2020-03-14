@@ -164,7 +164,7 @@ the A,C and Coulombic cutoffs for this type pair.  You cannot specify
 For *buck/coul/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
+pair_style command.
 
 ----------
 
@@ -200,11 +200,11 @@ The *buck/coul/long* pair style supports the
 :doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
-These styles support the pair\_modify tail option for adding long-range
+These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure for the A,C terms in the
 pair interaction.
 
-These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,

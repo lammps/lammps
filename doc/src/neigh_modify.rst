@@ -159,7 +159,7 @@ turning off bond interactions.
    long-range solver treats the interaction.  This is done correctly for
    pairwise interactions that are excluded (or weighted) via the
    :doc:`special_bonds <special_bonds>` command.  But it is not done for
-   interactions that are excluded via these neigh\_modify exclude options.
+   interactions that are excluded via these neigh_modify exclude options.
 
 The *page* and *one* options affect how memory is allocated for the
 neighbor lists.  For most simulations the default settings for these

@@ -69,7 +69,7 @@ The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :r
    \end{cases}
 
 This potential was developed as a water model that includes the three-body cooperativity of hydrogen bonding explicitly.
-To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair\_style hybrid/overlay*.
+To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair_style hybrid/overlay*.
 The three body interactions are split into three types: A, B, and C.
 Type A corresponds to anti-cooperative double hydrogen bond donor interactions.
 Type B corresponds to the cooperative interaction of molecules that both donate and accept a hydrogen bond.
@@ -79,9 +79,9 @@ The two-body interactions are designed to correct for the effective many-body in
 The two-body interactions are cut off sharply at Rc2, because K3 is typically significantly smaller than K2.
 See :ref:`(Kumar 2008) <Kumar>` for more details.
 
-Only a single *pair\_coeff* command is used with the *e3b* style.
+Only a single *pair_coeff* command is used with the *e3b* style.
 The 1st two arguments must be \* \*.
-The oxygen atom type for the pair style is passed as the only argument to the *pair\_style* command, not in the *pair\_coeff* command.
+The oxygen atom type for the pair style is passed as the only argument to the *pair_style* command, not in the *pair_coeff* command.
 The hydrogen atom type is inferred by the ordering of the atoms.
 
 .. note::
@@ -90,14 +90,14 @@ The hydrogen atom type is inferred by the ordering of the atoms.
    Each water molecule must have consecutive IDs with the oxygen first.
    This pair style does not test that this criteria is met.
 
-The *pair\_coeff* command must have at least one keyword/value pair, as described above.
+The *pair_coeff* command must have at least one keyword/value pair, as described above.
 The *preset* keyword sets the potential parameters to the values used in :ref:`(Tainter 2011) <Tainter2011>` or :ref:`(Tainter 2015) <Tainter2015>`.
-To use the water models defined in those references, the *e3b* style should always be used in conjunction with an *lj/cut/tip4p/long* style through *pair\_style hybrid/overlay*, as demonstrated in the second example above.
+To use the water models defined in those references, the *e3b* style should always be used in conjunction with an *lj/cut/tip4p/long* style through *pair_style hybrid/overlay*, as demonstrated in the second example above.
 The *preset 2011* option should be used with the :doc:`TIP4P water model <Howto_tip4p>`.
 The *preset 2015* option should be used with the :doc:`TIP4P/2005 water model <Howto_tip4p>`.
 If the *preset* keyword is used, no other keyword is needed.
 Changes to the preset parameters can be made by specifying the *preset* keyword followed by the specific parameter to change, like *Ea*\ .
-Note that the other keywords must come after *preset* in the pair\_style command.
+Note that the other keywords must come after *preset* in the pair_style command.
 The *e3b* style can also be used to implement any three-body potential of the same form by specifying all the keywords except *neigh*\ : *Ea*\ , *Eb*\ , *Ec*\ , *E2*\ , *K3*\ , *K2*\ , *Rc3*\ , *Rc2*\ , *Rs*\ , and *bondL*\ .
 The keyword *bondL* specifies the intramolecular OH bond length of the water model being used.
 This is needed to include H atoms that are within the cutoff even when the attached oxygen atom is not.
@@ -121,7 +121,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style is incompatible with :doc:`respa <run_style>`.
@@ -138,7 +138,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 This pair style requires a fixed number of atoms in the simulation, so it is incompatible with fixes like :doc:`fix deposit <fix_deposit>`.
-If the number of atoms changes between runs, this pair style must be re-initialized by calling the *pair\_style* and *pair\_coeffs* commands.
+If the number of atoms changes between runs, this pair style must be re-initialized by calling the *pair_style* and *pair_coeffs* commands.
 This is not a fundamental limitation of the pair style, but the code currently does not support a variable number of atoms.
 
 The *preset* keyword currently only works with real, metal, si, and cgs :doc:`units <units>`.

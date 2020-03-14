@@ -72,8 +72,8 @@ time.  In this case, each value is an "intensive" quantity, which need
 not be scaled with the number of atoms in the group.
 
 As mentioned above, the *eflux* parameter can be specified as an
-equal-style or atom\_style :doc:`variable <variable>`.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+equal-style or atom_style :doc:`variable <variable>`.  If the value is a
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value(s) used to determine the flux.
 
@@ -108,7 +108,7 @@ their velocities.  Thus you must still use an integration fix
 not normally be used on atoms that have their temperature controlled
 by another fix - e.g. :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` fix.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

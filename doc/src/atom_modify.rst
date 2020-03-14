@@ -60,8 +60,8 @@ The only reason not to use atom IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a
 default LAMMPS build this limit is 2\^31 or about 2 billion atoms.
 However, even in this case, you can use 64-bit atom IDs, allowing 2\^63
-or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS\_BIGBIG
-switch.  This is described on the :doc:`Build\_settings <Build_settings>`
+or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG
+switch.  This is described on the :doc:`Build_settings <Build_settings>`
 doc page.  If atom IDs are not used, they must be specified as 0 for
 all atoms, e.g. in a data or restart file.
 
@@ -108,7 +108,7 @@ this command.  Note that specifying "all" as the group-ID effectively
 turns off the *first* option.
 
 It is OK to use the *first* keyword with a group that has not yet been
-defined, e.g. to use the atom\_modify first command at the beginning of
+defined, e.g. to use the atom_modify first command at the beginning of
 your input script.  LAMMPS does not use the group until a simulation
 is run.
 

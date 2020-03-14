@@ -22,8 +22,8 @@ Description
 """""""""""
 
 This pair style computes a variable charge SMTB-Q (Second-Moment
-tight-Binding QEq) potential as described in :ref:`SMTB-Q\_1 <SMTB-Q_1>` and
-:ref:`SMTB-Q\_2 <SMTB-Q_2>`. Briefly, the energy of metallic-oxygen systems
+tight-Binding QEq) potential as described in :ref:`SMTB-Q_1 <SMTB-Q_1>` and
+:ref:`SMTB-Q_2 <SMTB-Q_2>`. Briefly, the energy of metallic-oxygen systems
 is given by three contributions:
 
 .. math::
@@ -45,14 +45,14 @@ smooth convergence to zero interaction.
 The parameters appearing in the upper expressions are set in the
 ffield.SMTBQ.Syst file where Syst corresponds to the selected system
 (e.g. field.SMTBQ.Al2O3). Examples for :math:`\mathrm{TiO_2}`,
-:math:`\mathrm{Al_2O_3}` are provided.  A single pair\_coeff command
+:math:`\mathrm{Al_2O_3}` are provided.  A single pair_coeff command
 is used with the SMTBQ styles which provides the path to the potential
 file with parameters for needed elements. These are mapped to LAMMPS
 atom types by specifying additional arguments after the potential
-filename in the pair\_coeff command. Note that atom type 1 must always
+filename in the pair_coeff command. Note that atom type 1 must always
 correspond to oxygen atoms. As an example, to simulate a :math:`\mathrm{TiO_2}` system,
 atom type 1 has to be oxygen and atom type 2 Ti. The following
-pair\_coeff command should then be used:
+pair_coeff command should then be used:
 
 .. code-block:: LAMMPS
 
@@ -72,7 +72,7 @@ Interaction between oxygen, :math:`E_{OO}`, consists of two parts,
 an attractive and a repulsive part. The attractive part is effective
 only at short range (< :math:`r_2^{OO}`). The attractive
 contribution was optimized to study surfaces reconstruction
-(e.g. :ref:`SMTB-Q\_2 <SMTB-Q_2>` in :math:`\mathrm{TiO_2}`) and is not necessary
+(e.g. :ref:`SMTB-Q_2 <SMTB-Q_2>` in :math:`\mathrm{TiO_2}`) and is not necessary
 for oxide bulk modeling. The repulsive part is the Pauli interaction
 between the electron clouds of oxygen. The Pauli repulsion and the
 coulombic electrostatic interaction have same cut off value. In the
@@ -84,7 +84,7 @@ The short-range interaction between metal-oxygen, :math:`E_{MO}` is
 based on the second moment approximation of the density of states with
 a N-body potential for the band energy term,
 :math:`E^i_{cov}`, and a Born-Mayer type repulsive terms
-as indicated by the keyword *'second\_moment'* in the
+as indicated by the keyword *'second_moment'* in the
 ffield.SMTBQ.Syst. The energy band term is given by:
 
 .. math::
@@ -110,7 +110,7 @@ anion. In the literature we find many ways to write the hopping
 integral depending on whether one takes the point of view of the anion
 or cation. These are equivalent vision. The correspondence between the
 two visions is explained in appendix A of the article in the
-SrTiO3 :ref:`SMTB-Q\_3 <SMTB-Q_3>` (parameter :math:`\beta` shown in
+SrTiO3 :ref:`SMTB-Q_3 <SMTB-Q_3>` (parameter :math:`\beta` shown in
 this article is in fact the :math:`\beta_O`). To summarize the
 relationship between the hopping integral :math:`\xi^O`  and the
 others, we have in an oxide :math:`\mathrm{C_n O_m}` the following
@@ -128,7 +128,7 @@ the electron clouds of oxygen by changing the slater radius of the
 charge density around the oxygen atoms through the parameters *rBB, rB and
 rS* in the ffield.SMTBQ.Syst. This change in radius is performed
 according to the method developed by E. Maras
-:ref:`SMTB-Q\_2 <SMTB-Q_2>`. This method needs to determine the number of
+:ref:`SMTB-Q_2 <SMTB-Q_2>`. This method needs to determine the number of
 nearest neighbors around the oxygen. This calculation is based on
 first (:math:`r_{1n}`) and second (:math:`r_{2n}`) distances
 neighbors.
@@ -176,12 +176,12 @@ For each cations (metal):
 3) Potential parameters:
 
 * Keyword for element1, element2 and interaction potential
-  ('second\_moment' or 'buck' or 'buckPlusAttr') between element 1
-  and 2.  If the potential is 'second\_moment', specify 'oxide' or
+  ('second_moment' or 'buck' or 'buckPlusAttr') between element 1
+  and 2.  If the potential is 'second_moment', specify 'oxide' or
   'metal' for metal-oxygen or metal-metal interactions respectively.
 * Potential parameter:
 
-  - If type of potential is 'second\_moment' : A (eV), *p*,
+  - If type of potential is 'second_moment' : A (eV), *p*,
     :math:`\zeta^0` (eV) and *q*, :math:`r_{c1} (\mathrm{\mathring{A}})`, :math:`r_{c2}
     (\mathrm{\mathring{A}})` and :math:`r_0 (\mathrm{\mathring{A}})`
   - If type of potential is 'buck' : *C* (eV) and :math:`\rho (\mathrm{\mathring{A}})`
@@ -237,7 +237,7 @@ For each cations (metal):
 9) Verbose
 
 * If you want the code to work in verbose mode or not : 'true' or 'false'
-* If you want to print or not in the file 'Energy\_component.txt' the
+* If you want to print or not in the file 'Energy_component.txt' the
   three main contributions to the energy of the system according to the
   description presented above : 'true' or 'false' and
   :math:`N_{Energy}`. This option writes to the file every
@@ -247,7 +247,7 @@ For each cations (metal):
   in group *g*\ , electrostatic part of energy, :math:`E_{ES}`, the
   interaction between oxygen, :math:`E_{OO}`, and short range
   metal-oxygen interaction, :math:`E_{MO}`.
-* If you want to print to the file 'Electroneg\_component.txt' the
+* If you want to print to the file 'Electroneg_component.txt' the
   electronegativity component (:math:`\frac{\partial E_{tot}}{\partial
   Q_i}`) or not: 'true' or 'false' and :math:`N_{Electroneg}`. This
   option writes to the file every :math:`N_{Electroneg}` time steps. If
@@ -271,7 +271,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-needs to re-specify the pair\_style and pair\_coeff commands in an input
+needs to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -303,19 +303,19 @@ and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 
 ----------
 
-.. _SMTB-Q\_1:
+.. _SMTB-Q_1:
 
-**(SMTB-Q\_1)** N. Salles, O. Politano, E. Amzallag, R. Tetot,
+**(SMTB-Q_1)** N. Salles, O. Politano, E. Amzallag, R. Tetot,
 Comput. Mater. Sci. 111 (2016) 181-189
 
-.. _SMTB-Q\_2:
+.. _SMTB-Q_2:
 
-**(SMTB-Q\_2)** E. Maras, N. Salles, R. Tetot, T. Ala-Nissila,
+**(SMTB-Q_2)** E. Maras, N. Salles, R. Tetot, T. Ala-Nissila,
 H. Jonsson, J. Phys. Chem. C 2015, 119, 10391-10399
 
-.. _SMTB-Q\_3:
+.. _SMTB-Q_3:
 
-**(SMTB-Q\_3)** R. Tetot, N. Salles, S. Landron, E. Amzallag, Surface
+**(SMTB-Q_3)** R. Tetot, N. Salles, S. Landron, E. Amzallag, Surface
 Science 616, 19-8722 28 (2013)
 
 .. _Wolf2:

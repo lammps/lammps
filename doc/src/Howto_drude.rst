@@ -48,7 +48,7 @@ for a Langevin thermostat, or :doc:`fix drude/transform/\* <fix_drude_transform>
 thermostat. The former requires use of the command :doc:`comm_modify vel yes <comm_modify>`. The latter requires two separate integration
 fixes like *nvt* or *npt*\ . The correct temperatures of the reduced
 degrees of freedom can be calculated using the :doc:`compute temp/drude <compute_temp_drude>`. This requires also to use the
-command *comm\_modify vel yes*.
+command *comm_modify vel yes*.
 
 Short-range damping of the induced dipole interactions can be achieved
 using Thole functions through the :doc:`pair style thole <pair_thole>` in :doc:`pair_style hybrid/overlay <pair_hybrid>`

@@ -50,7 +50,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The last coefficient is optional. If not specified, the global
-LJ cutoff specified in the pair\_style command is used.
+LJ cutoff specified in the pair_style command is used.
 
 ----------
 
@@ -78,7 +78,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed. The default mix value is geometric.
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction, since it goes
@@ -92,7 +92,7 @@ tail option for adding long-range tail corrections to energy and
 pressure, since the energy of the pair interaction is smoothed to 0.0
 at the cutoff.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

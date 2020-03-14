@@ -25,10 +25,10 @@ The *lcbop* pair style computes the long-range bond-order potential
 for carbon (LCBOP) of :ref:`(Los and Fasolino) <Los>`.  See section II in
 that paper for the analytic equations associated with the potential.
 
-Only a single pair\_coeff command is used with the *lcbop* style which
+Only a single pair_coeff command is used with the *lcbop* style which
 specifies an LCBOP potential file with parameters for specific
 elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -38,7 +38,7 @@ See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
-the 1st 3 to be C you would use the following pair\_coeff command:
+the 1st 3 to be C you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -64,7 +64,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

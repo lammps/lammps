@@ -97,7 +97,7 @@ last example holds the ion a distance 5 away from the pore axis
    spring connecting two groups or a group and the tether point can cross
    a periodic boundary and its length be calculated correctly.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

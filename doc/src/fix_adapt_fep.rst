@@ -217,10 +217,10 @@ be a sub-style name.  You must specify I,J arguments that correspond
 to type pair values defined (via the :doc:`pair_coeff <pair_coeff>`
 command) for that sub-style.
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  Equal-style
+specified as v_name, where name is the variable name.  Equal-style
 variables can specify formulas with various mathematical functions,
 and include :doc:`thermo_style <thermo_style>` command keywords for the
 simulation box parameters and timestep and elapsed time.  Thus it is
@@ -262,10 +262,10 @@ The *I* argument indicates which atom types are affected. A wild-card
 asterisk can be used in place of or in conjunction with the I argument
 to set the coefficients for multiple atom types.
 
-The *v\_name* argument of the *atom* keyword is the name of an
+The *v_name* argument of the *atom* keyword is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  See the
+specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
@@ -289,7 +289,7 @@ parameters on the outermost rRESPA level.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

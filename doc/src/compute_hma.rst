@@ -58,12 +58,12 @@ summation should work fine, while :doc:`pair_style lj/cut <pair_lj>`
 will perform poorly unless the potential is shifted (via
 :doc:`pair_modify <pair_modify>` shift) or the cutoff is large.
 Furthermore, computation of the heat capacity with this compute is
-restricted to those that implement the *single\_hessian* method in Pair.
-Implementing *single\_hessian* in additional pair styles is simple.
+restricted to those that implement the *single_hessian* method in Pair.
+Implementing *single_hessian* in additional pair styles is simple.
 Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke
 (kofke at buffalo.edu) if your desired pair style does not have this
 method.  This is the list of pair styles that currently implement
-*single\_hessian*:
+*single_hessian*:
 
 * :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>`
 
@@ -179,7 +179,7 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pressure <compute_pressure>`
 
 :doc:`dynamical matrix <dynamical_matrix>` provides a finite difference
-formulation of the hessian provided by Pair's single\_hessian, which is used by
+formulation of the hessian provided by Pair's single_hessian, which is used by
 this compute.
 
 **Default:** none

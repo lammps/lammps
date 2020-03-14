@@ -72,7 +72,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

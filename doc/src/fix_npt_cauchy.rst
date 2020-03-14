@@ -11,7 +11,7 @@ Syntax
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *npt/cauchy*
+* style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
 
@@ -389,17 +389,17 @@ as if one of these sets of commands had been issued:
 The group for both the new temperature and pressure compute is "all"
 since pressure is computed for the entire system.  See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>`
 commands for details.  Note that the IDs of the new computes are the
-fix-ID + underscore + "temp" or fix\_ID + underscore + "press".
+fix-ID + underscore + "temp" or fix_ID + underscore + "press".
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of these
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of these
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command.  Or you can print this
 temperature or pressure during thermodynamic output via the
 :doc:`thermo_style custom <thermo_style>` command using the appropriate
-compute-ID.  It also means that changing attributes of *thermo\_temp*
-or *thermo\_press* will have no effect on this fix.
+compute-ID.  It also means that changing attributes of *thermo_temp*
+or *thermo_press* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, fix npt/cauchy can
 be used with :doc:`compute commands <compute>` that calculate a
@@ -467,7 +467,7 @@ of the underlying non-Hamiltonian equations of motion.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -487,7 +487,7 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by fix npt), but only if the
@@ -522,21 +522,21 @@ simulation, otherwise its value is 3.
 
 The order of values in the global vector and their meaning is as
 follows.  The notation means there are tchain values for eta, followed
-by tchain for eta\_dot, followed by ndof for omega, etc:
+by tchain for eta_dot, followed by ndof for omega, etc:
 
 * eta[tchain] = particle thermostat displacements (unitless)
-* eta\_dot[tchain] = particle thermostat velocities (1/time units)
+* eta_dot[tchain] = particle thermostat velocities (1/time units)
 * omega[ndof] = barostat displacements (unitless)
-* omega\_dot[ndof] = barostat velocities (1/time units)
+* omega_dot[ndof] = barostat velocities (1/time units)
 * etap[pchain] = barostat thermostat displacements (unitless)
-* etap\_dot[pchain] = barostat thermostat velocities (1/time units)
-* PE\_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
-* KE\_eta\_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
-* PE\_omega[ndof] = potential energy of each barostat displacement (energy units)
-* KE\_omega\_dot[ndof] = kinetic energy of each barostat velocity (energy units)
-* PE\_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
-* KE\_etap\_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
-* PE\_strain[1] = scalar strain energy (energy units)
+* etap_dot[pchain] = barostat thermostat velocities (1/time units)
+* PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+* KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+* PE_omega[ndof] = potential energy of each barostat displacement (energy units)
+* KE_omega_dot[ndof] = kinetic energy of each barostat velocity (energy units)
+* PE_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
+* KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
+* PE_strain[1] = scalar strain energy (energy units)
 
 This fix can ramp its external temperature and pressure over
 multiple runs, using the *start* and *stop* keywords of the
@@ -581,7 +581,7 @@ the set values and the final true (Cauchy) stresses can be
 considerable.
 
 The *cauchystat* keyword modifies the barostat as per Miller et
-al. (Miller)\_"#nc-Miller" so that the Cauchy stress is controlled.
+al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggressively the algorithm drives the system
 towards the set Cauchy stresses.  Larger values of *alpha* will modify

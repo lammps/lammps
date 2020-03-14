@@ -44,7 +44,7 @@ specified should contain the CMAP parameters for a particular version
 of the CHARMM force field.  Two such files are including in the
 lammps/potentials directory: charmm22.cmap and charmm36.cmap.
 
-The data file read by the "read\_data" must contain the topology of all
+The data file read by the "read_data" must contain the topology of all
 the CMAP interactions, similar to the topology data for bonds, angles,
 dihedrals, etc.  Specially it should have a line like this
 in its header section:
@@ -71,7 +71,7 @@ interaction; it is an index into the CMAP force field file.  The
 remaining 5 columns are the atom IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP 5-body interaction.  Note
 that the "crossterm" and "CMAP" keywords for the header and body
-sections match those specified in the read\_data command following the
+sections match those specified in the read_data command following the
 data file name; see the :doc:`read_data <read_data>` doc page for
 more details.
 
@@ -90,7 +90,7 @@ the note below about how to include the CMAP energy when performing an
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a

@@ -14,7 +14,7 @@ Syntax
 * chunk/spread/atom = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
+* input = c_ID, c_ID[N], f_ID, f_ID[N]
 
   .. parsed-literal::
 

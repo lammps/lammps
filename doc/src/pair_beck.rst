@@ -90,7 +90,7 @@ for this pair style.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

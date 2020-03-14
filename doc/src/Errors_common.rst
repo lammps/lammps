@@ -69,14 +69,14 @@ but a floating-point number 1.0 is provided):
 
 Some commands allow for using variable references in place of numeric
 constants so that the value can be evaluated and may change over the
-course of a run.  This is typically done with the syntax *v\_name* for a
+course of a run.  This is typically done with the syntax *v_name* for a
 parameter, where name is the name of the variable. On the other hand,
 immediate variable expansion with the syntax ${name} is performed while
 reading the input and before parsing commands,
 
 .. note::
 
-   Using a variable reference (i.e. *v\_name*) is only allowed if
+   Using a variable reference (i.e. *v_name*) is only allowed if
    the documentation of the corresponding command explicitly says it is.
    Otherwise, you will receive an error message of this kind:
 

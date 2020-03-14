@@ -75,10 +75,10 @@ roughly in the direction of (Ri+i - Ri-1); see the
 coordinates of replica I; Ri-1 and Ri+1 are the coordinates of its
 neighbor replicas.  The term (Grad(V) dot T') is used to remove the
 component of the gradient parallel to the path which would tend to
-distribute the replica unevenly along the path.  Fnudge\_parallel is an
+distribute the replica unevenly along the path.  Fnudge_parallel is an
 artificial nudging force which is applied only in the tangent
 direction and which maintains the equal spacing between replicas (see
-below for more information).  Fnudge\_perp is an optional artificial
+below for more information).  Fnudge_perp is an optional artificial
 spring which is applied in a direction perpendicular to the tangent
 direction and which prevent the paths from forming acute kinks (see
 below for more information).
@@ -203,7 +203,7 @@ Finally, note that the last replica may never reach the target energy
 if it is stuck in a local minima which has a larger energy than the
 target energy.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

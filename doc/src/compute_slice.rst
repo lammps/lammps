@@ -15,7 +15,7 @@ Syntax
 * Nstart = starting index within input vector(s)
 * Nstop = stopping index within input vector(s)
 * Nskip = extract every Nskip elements from input vector(s)
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
+* input = c_ID, c_ID[N], f_ID, f_ID[N]
 
   .. parsed-literal::
 

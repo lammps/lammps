@@ -69,7 +69,7 @@ If the cell varies too wildly, it may be advisable to re-initialize
 these interactions at each call. This behavior can be requested by
 setting the *reset* switch.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 There is no restart information associated with this fix, since all
 the dynamical parameters are dealt with by i-PI.

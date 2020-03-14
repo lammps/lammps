@@ -216,13 +216,13 @@ parameters and how to choose them is described in
 .. note::
 
    All of the PPPM styles can be used with single-precision FFTs by
-   using the compiler switch -DFFT\_SINGLE for the FFT\_INC setting in your
+   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
    low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
    fields to particles) to be performed in single precision.  This option
    can speed-up long-range calculations, particularly in parallel or on
-   GPUs.  The use of the -DFFT\_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
-   the -DFFT\_SINGLE compiler switch.
+   GPUs.  The use of the -DFFT_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
+   the -DFFT_SINGLE compiler switch.
 
 ----------
 
@@ -274,7 +274,7 @@ See details on :ref:`this page <USER-SCAFACOS>`.
 
    Unlike other KSpace solvers in LAMMPS, ScaFaCoS computes all
    Coulombic interactions, both short- and long-range.  Thus you should
-   NOT use a Coulombic pair style when using kspace\_style scafacos.  This
+   NOT use a Coulombic pair style when using kspace_style scafacos.  This
    also means the total Coulombic energy (short- and long-range) will be
    tallied for :doc:`thermodynamic output <thermo_style>` command as part
    of the *elong* keyword; the *ecoul* keyword will be zero.
@@ -377,7 +377,7 @@ produce the same results, except for round-off and precision issues.
 More specifically, the *pppm/gpu* style performs charge assignment and
 force interpolation calculations on the GPU.  These processes are
 performed either in single or double precision, depending on whether
-the -DFFT\_SINGLE setting was specified in your low-level Makefile, as
+the -DFFT_SINGLE setting was specified in your low-level Makefile, as
 discussed above.  The FFTs themselves are still calculated on the CPU.
 If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
@@ -406,8 +406,8 @@ interactions. Vacuum boundary conditions are not currently supported.
 
 The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
-triclinic simulation cells may not yet be supported by suffix versions
-of these styles.
+triclinic simulation cells may not yet be supported by all suffix
+versions of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

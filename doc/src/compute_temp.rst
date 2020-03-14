@@ -54,14 +54,14 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 *extra* option of the :doc:`compute_modify <compute_modify>` command.
 
-A compute of this style with the ID of "thermo\_temp" is created when
+A compute of this style with the ID of "thermo_temp" is created when
 LAMMPS starts up, as if this command were in the input script:
 
 .. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
-See the "thermo\_style" command for more details.
+See the "thermo_style" command for more details.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform

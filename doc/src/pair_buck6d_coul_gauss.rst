@@ -127,7 +127,7 @@ These styles do not support the :doc:`pair_modify <pair_modify>` shift
 option for the energy. Instead the smoothing function should be applied
 by setting the global smoothing parameter to a value < 1.0.
 
-These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 Restrictions

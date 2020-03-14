@@ -71,7 +71,7 @@ must be set before this command can be invoked.
 Due to how the pairwise force is computed, an inner value > 0.0 must
 be specified even if the potential has a finite value at r = 0.0.
 
-For EAM potentials, the pair\_write command only tabulates the
+For EAM potentials, the pair_write command only tabulates the
 pairwise portion of the potential, not the embedding portion.
 
 Related commands

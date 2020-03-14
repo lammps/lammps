@@ -90,7 +90,7 @@ fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the current status of the colvars module into
 :doc:`binary restart files <restart>`. This is in addition to the text
@@ -101,12 +101,12 @@ The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change from the biasing force added by the fix
 to the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The *fix\_modify configfile <config file>* option allows to add settings
+The *fix_modify configfile <config file>* option allows to add settings
 from an additional config file to the colvars module. This option can
 only be used, after the system has been initialized with a :doc:`run <run>`
 command.
 
-The *fix\_modify config <quoted string>* option allows to add settings
+The *fix_modify config <quoted string>* option allows to add settings
 from inline strings. Those have to fit on a single line when enclosed
 in a pair of double quotes ("), or can span multiple lines when bracketed
 by a pair of triple double quotes (""", like python embedded documentation).

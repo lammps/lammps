@@ -80,7 +80,7 @@ Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 where :math:`C` is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, and epsilon is the dielectric constant which can
 be set by the :doc:`dielectric <dielectric>` command.  If one cutoff is
-specified in the pair\_style command, it is used for both the N-M and Coulombic
+specified in the pair_style command, it is used for both the N-M and Coulombic
 terms.  If two cutoffs are specified, they are used as cutoffs for the N-M and
 Coulombic terms respectively.
 
@@ -108,7 +108,7 @@ commands.
 * cutoff2 (distance units)
 
 The latter 2 coefficients are optional.  If not specified, the global
-N-M and Coulombic cutoffs specified in the pair\_style command are used.
+N-M and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both N-M
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the N-M and Coulombic cutoffs for this
@@ -118,7 +118,7 @@ has no Coulombic terms.
 For *nm/cut/coul/long* only the N-M cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
+pair_style command.
 
 ----------
 
@@ -139,7 +139,7 @@ All of the *nm* pair styles support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the energy and
 pressure for the N-M portion of the pair interaction.
 
-All of the *nm* pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+All of the *nm* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of

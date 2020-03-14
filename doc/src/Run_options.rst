@@ -23,7 +23,7 @@ letter abbreviation can be used:
 * :ref:`-sf or -suffix <suffix>`
 * :ref:`-v or -var <var>`
 
-For example, the lmp\_mpi executable might be launched as follows:
+For example, the lmp_mpi executable might be launched as follows:
 
 .. code-block:: bash
 
@@ -50,8 +50,8 @@ set by using the :doc:`echo <echo>` command in the input script itself.
 **-help**
 
 Print a brief help summary and a list of options compiled into this
-executable for each LAMMPS style (atom\_style, fix, compute,
-pair\_style, bond\_style, etc).  This can tell you if the command you
+executable for each LAMMPS style (atom_style, fix, compute,
+pair_style, bond_style, etc).  This can tell you if the command you
 want to use was included via the appropriate package at compile time.
 LAMMPS will print the info and immediately exit if this switch is
 used.
@@ -65,7 +65,7 @@ used.
 Specify a file to use as an input script.  This is an optional switch
 when running LAMMPS in one-partition mode.  If it is not specified,
 LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp\_linux < in.run.  I/O redirection should
+via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
 also work in parallel, but if it does not (in the unlikely case that
 an MPI implementation does not support it), then use the -in flag.
 Note that this is a required switch when running LAMMPS in
@@ -201,8 +201,8 @@ command which also launches another executable(s) at the same time.
 (The other executable could be LAMMPS as well.)  The color is an
 integer value which should be different for each executable (another
 application may set this value in a different way).  LAMMPS and the
-other executable(s) perform an MPI\_Comm\_split() with their own colors
-to shrink the MPI\_COMM\_WORLD communication to be the subset of
+other executable(s) perform an MPI_Comm_split() with their own colors
+to shrink the MPI_COMM_WORLD communication to be the subset of
 processors they are actually running on.
 
 Currently, this is only used in LAMMPS to perform client/server
@@ -284,7 +284,7 @@ log files are created.  This overrides the filename specified in the
 -log command-line option.  This option is useful when working with
 large numbers of partitions, allowing the partition log files to be
 suppressed (-plog none) or placed in a sub-directory (-plog
-replica\_files/log.lammps) If this option is not used the log file for
+replica_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
 command-line option.
 
@@ -300,7 +300,7 @@ partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
 screen files to be suppressed (-pscreen none) or placed in a
-sub-directory (-pscreen replica\_files/screen).  If this option is not
+sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
@@ -469,7 +469,7 @@ The syntax following restartfile (or remap), namely
 
 is identical to the arguments of the :doc:`write_dump <write_dump>`
 command.  See its doc page for details.  This includes what per-atom
-fields are written to the dump file and optional dump\_modify settings,
+fields are written to the dump file and optional dump_modify settings,
 including ones that affect how parallel dump files are written, e.g.
 the *nfile* and *fileper* keywords.  See the
 :doc:`dump_modify <dump_modify>` doc page for details.
@@ -520,7 +520,7 @@ having to edit an input script.
 
 As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/gpu,
 lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
-can be specified explicitly in your input script, e.g. pair\_style
+can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix
 (gpu,intel,kk,omp,opt) is automatically appended whenever your input
 script command creates a new :doc:`atom <atom_style>`,

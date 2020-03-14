@@ -28,7 +28,7 @@ is to be used in place of that command when a lattice-Boltzmann fluid
 is present, and the user wishes to integrate the particle motion using
 one of the built in LAMMPS integrators.
 
-This fix adds a force, F = - Gamma\*(velocity-fluid\_velocity), to each
+This fix adds a force, F = - Gamma\*(velocity-fluid_velocity), to each
 atom, where Gamma is the force coupling constant described in the :doc:`fix lb/fluid <fix_lb_fluid>` command (which applies an equal and
 opposite force to the fluid).
 
@@ -51,7 +51,7 @@ research.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 As described in the :doc:`fix viscous <fix_viscous>` documentation:
 

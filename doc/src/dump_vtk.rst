@@ -76,7 +76,7 @@ For the *vtk* style, sorting is off by default. See the
 
 The dimensions of the simulation box are written to a separate file
 for each snapshot (either in legacy VTK or XML format depending on the
-format of the main dump file) with the suffix *\_boundingBox* appended
+format of the main dump file) with the suffix *_boundingBox* appended
 to the given dump filename.
 
 For an orthogonal simulation box this information is saved as a
@@ -134,8 +134,8 @@ in order with some post-processing tools.
 If a "%" character appears in the filename, then each of P processors
 writes a portion of the dump file, and the "%" character is replaced
 with the processor ID from 0 to P-1 preceded by an underscore character.
-For example, tmp.dump%.vtp becomes tmp.dump\_0.vtp, tmp.dump\_1.vtp, ...
-tmp.dump\_P-1.vtp, etc.  This creates smaller files and can be a fast
+For example, tmp.dump%.vtp becomes tmp.dump_0.vtp, tmp.dump_1.vtp, ...
+tmp.dump_P-1.vtp, etc.  This creates smaller files and can be a fast
 mode of output on parallel machines that support parallel I/O for output.
 
 By default, P = the number of processors meaning one file per
@@ -150,7 +150,7 @@ processor 0 does write files.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-If *dump\_modify binary* is used, the dump file (or files, if "\*" or
+If *dump_modify binary* is used, the dump file (or files, if "\*" or
 "%" is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
 write out much faster.

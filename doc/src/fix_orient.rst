@@ -137,7 +137,7 @@ equal-and-opposite neighbors.  A pair of orientation files for a
 Sigma=5 tilt boundary are shown below. A tutorial that can help for
 writing the orientation files is given in :ref:`(Wicaksono2) <Wicaksono2>`
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

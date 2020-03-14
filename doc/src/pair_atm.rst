@@ -11,7 +11,7 @@ Syntax
    pair_style atm cutoff cutoff_triple
 
 * cutoff = cutoff for each pair in 3-body interaction (distance units)
-* cutoff\_triple = additional cutoff applied to product of 3 pairwise distances (distance units)
+* cutoff_triple = additional cutoff applied to product of 3 pairwise distances (distance units)
 
 Examples
 """"""""

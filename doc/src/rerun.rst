@@ -206,7 +206,7 @@ Restrictions
 """"""""""""
 
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 Related commands

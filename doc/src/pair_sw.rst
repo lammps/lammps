@@ -54,10 +54,10 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
-Only a single pair\_coeff command is used with the *sw* style which
+Only a single pair_coeff command is used with the *sw* style which
 specifies a Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -69,7 +69,7 @@ to specify the path for the potential file.
 As an example, imagine a file SiC.sw has Stillinger-Weber values for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
 the 1st 3 to be Si, and the 4th to be C, you would use the following
-pair\_coeff command:
+pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -126,7 +126,7 @@ can be separately controlled. If tol = 0.0, then the standard
 Stillinger-Weber cutoff is used.
 
 The Stillinger-Weber potential file must contain entries for all the
-elements listed in the pair\_coeff command.  It can also contain
+elements listed in the pair_coeff command.  It can also contain
 entries for additional elements not being used in a particular
 simulation; LAMMPS ignores those entries.
 
@@ -200,7 +200,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

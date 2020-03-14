@@ -82,7 +82,7 @@ multiple compute/dump commands, each of a *cluster/atom* or
    those pairs will not be included when computing the clusters. This
    does not apply when using long-range coulomb (\ *coul/long*\ , *coul/msm*\ ,
    *coul/wolf* or similar.  One way to get around this would be to set
-   special\_bond scaling factors to very tiny numbers that are not exactly
+   special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
    use the :doc:`rerun <rerun>` command to compute the clusters for
    snapshots in the dump file.  The rerun script can use a

@@ -21,7 +21,7 @@ Syntax
 * lo,hi = lo/hi bounds within which to histogram
 * Nbin = # of histogram bins
 * one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -329,7 +329,7 @@ the histogram.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

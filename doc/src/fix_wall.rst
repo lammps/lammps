@@ -165,7 +165,7 @@ EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the wall position is a variable, it should be specified as v\_name,
+If the wall position is a variable, it should be specified as v_name,
 where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
@@ -222,7 +222,7 @@ inverse distance units, and :math:`r_0` distance units.
 For any wall, the :math:`\epsilon` and/or :math:`\sigma` and/or :math:`\alpha` parameter can
 be specified
 as an :doc:`equal-style variable <variable>`, in which case it should be
-specified as v\_name, where name is the variable name.  As with a
+specified as v_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and
 the result becomes the current epsilon or sigma of the wall.
 Equal-style variables can specify formulas with various mathematical
@@ -323,7 +323,7 @@ perturbation on the particles:
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

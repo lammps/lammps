@@ -90,12 +90,12 @@ the ring in the opposite direction and thus the weighting factor is
 Note that this dihedral weighting factor is unrelated to the scaling
 factor specified by the :doc:`special bonds <special_bonds>` command
 which applies to all 1-4 interactions in the system.  For CHARMM force
-fields, the special\_bonds 1-4 interaction scaling factor should be set
+fields, the special_bonds 1-4 interaction scaling factor should be set
 to 0.0. Since the corresponding 1-4 non-bonded interactions are
 computed with the dihedral.  This means that if any of the weighting
 factors defined as dihedral coefficients (4th coeff above) are
 non-zero, then you must use a pair style with "lj/charmm" and set the
-special\_bonds 1-4 scaling factor to 0.0 (which is the
+special_bonds 1-4 scaling factor to 0.0 (which is the
 default). Otherwise 1-4 non-bonded interactions in dihedrals will be
 computed twice.
 
@@ -110,11 +110,11 @@ i.e. within the outer cutoff specified for the pair style.  The
 :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>` commands.  Use
 the *charmm* style with the older :doc:`pair_style <pair_charmm>`
 commands that have just "charmm" in their style name.  See the
-discussion on the :doc:`CHARMM pair\_style <pair_charmm>` doc page for
+discussion on the :doc:`CHARMM pair_style <pair_charmm>` doc page for
 details.
 
 Note that for AMBER force fields, which use pair styles with "lj/cut",
-the special\_bonds 1-4 scaling factor should be set to the AMBER
+the special_bonds 1-4 scaling factor should be set to the AMBER
 defaults (1/2 and 5/6) and all the dihedral weighting factors (4th
 coeff above) must be set to 0.0. In this case, you can use any pair
 style you wish, since the dihedral does not need any Lennard-Jones
@@ -148,7 +148,7 @@ instructions on how to use the accelerated styles effectively.
 Restrictions
 """"""""""""
 
-When using run\_style :doc:`respa <run_style>`, these dihedral styles
+When using run_style :doc:`respa <run_style>`, these dihedral styles
 must be assigned to the same r-RESPA level as *pair* or *outer*\ .
 
 When used in combination with CHARMM pair styles, the 1-4

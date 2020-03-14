@@ -100,15 +100,15 @@ Also note that the N in the first formula above is really
 degrees-of-freedom divided by d = dimensionality, where the DOF value
 is calculated by the temperature compute.  See the various :doc:`compute temperature <compute>` styles for details.
 
-A compute of this style with the ID of "thermo\_press" is created when
+A compute of this style with the ID of "thermo_press" is created when
 LAMMPS starts up, as if this command were in the input script:
 
 .. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 
-where "thermo\_temp" is the ID of a similarly defined compute of style
-"temp".  See the "thermo\_style" command for more details.
+where "thermo_temp" is the ID of a similarly defined compute of style
+"temp".  See the "thermo_style" command for more details.
 
 ----------
 

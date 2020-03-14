@@ -54,7 +54,7 @@ between two particles are defined with respect to the separation of
 their respective rounded surfaces, not by the separation of the
 vertices and edges themselves.
 
-This means that the specified cutoff in the pair\_style command is the
+This means that the specified cutoff in the pair_style command is the
 cutoff distance, :math:`r_c`, for the surface separation, :math:`\delta_n` (see figure
 below).  This is the distance at which two particles no longer
 interact.  If :math:`r_c` is specified as 0.0, then it is a contact-only
@@ -121,8 +121,8 @@ above for force versus surface separation, for :math:`\delta_n < 0` and
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the

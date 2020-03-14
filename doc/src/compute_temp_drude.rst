@@ -69,7 +69,7 @@ Restrictions
 
 The number of degrees of freedom contributing to the temperature is
 assumed to be constant for the duration of the run unless the
-*fix\_modify* command sets the option *dynamic yes*\ .
+*fix_modify* command sets the option *dynamic yes*\ .
 
 Related commands
 """"""""""""""""

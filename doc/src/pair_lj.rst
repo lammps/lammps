@@ -225,7 +225,7 @@ Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
 constant which can be set by the :doc:`dielectric <dielectric>` command.
-If one cutoff is specified in the pair\_style command, it is used for
+If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic terms.  If two cutoffs are specified, they are
 used as cutoffs for the LJ and Coulombic terms respectively.
 
@@ -298,7 +298,7 @@ site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair\_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
+pair_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
 Coulomb interactions; style *lj/cut/tip4p/long* is for use with a
 long-range Coulombic solver (Ewald or PPPM).
 
@@ -337,7 +337,7 @@ Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -348,7 +348,7 @@ For *lj/cut/coul/long* and *lj/cut/coul/msm* and *lj/cut/tip4p/cut*
 and *lj/cut/tip4p/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
+pair_style command.
 
 ----------
 
@@ -385,7 +385,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 All of the *lj/cut* pair styles support the
@@ -401,13 +401,13 @@ All of the *lj/cut* pair styles support the
 tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
-All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
 *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run\_style respa.
+The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
 
 ----------

@@ -86,9 +86,9 @@ of all interactions in the specified group is simply reported.  This
 is useful for diagnostic purposes if bonds have been turned off by a
 bond-breaking potential during a previous run.
 
-The default behavior of the delete\_bonds command is to turn off
+The default behavior of the delete_bonds command is to turn off
 interactions by toggling their type to a negative value, but not to
-permanently remove the interaction.  E.g. a bond\_type of 2 is set to
+permanently remove the interaction.  E.g. a bond_type of 2 is set to
 -2.  The neighbor list creation routines will not include such an
 interaction in their interaction lists.  The default is also to not
 alter the list of 1-2, 1-3, 1-4 neighbors computed by the
@@ -105,7 +105,7 @@ interaction.  Instead, if any of the atoms in the interaction are in
 the specified group, it will be turned off (or on if the *undo*
 keyword is used).
 
-The *undo* keyword inverts the delete\_bonds command so that the
+The *undo* keyword inverts the delete_bonds command so that the
 specified bonds, angles, etc are turned on if they are currently
 turned off.  This means a negative value is toggled to positive.  For
 example, for style *angle*\ , if *type* is specified as 2, then all
@@ -113,14 +113,14 @@ angles with current type = -2, are reset to type = 2.  Note that the
 :doc:`fix shake <fix_shake>` command also sets bond and angle types
 negative, so this option should not be used on those interactions.
 
-The *remove* keyword is invoked at the end of the delete\_bonds
+The *remove* keyword is invoked at the end of the delete_bonds
 operation.  It causes turned-off bonds (angles, etc) to be removed
 from each atom's data structure and then adjusts the global bond
 (angle, etc) counts accordingly.  Removal is a permanent change;
 removed bonds cannot be turned back on via the *undo* keyword.
 Removal does not alter the pairwise 1-2, 1-3, 1-4 weighting list.
 
-The *special* keyword is invoked at the end of the delete\_bonds
+The *special* keyword is invoked at the end of the delete_bonds
 operation, after (optional) removal.  It re-computes the pairwise 1-2,
 1-3, 1-4 weighting list.  The weighting list computation treats
 turned-off bonds the same as turned-on.  Thus, turned-off bonds must
@@ -128,7 +128,7 @@ be removed if you wish to change the weighting list.
 
 Note that the choice of *remove* and *special* options affects how
 1-2, 1-3, 1-4 pairwise interactions will be computed across bonds that
-have been modified by the delete\_bonds command.
+have been modified by the delete_bonds command.
 
 Restrictions
 """"""""""""

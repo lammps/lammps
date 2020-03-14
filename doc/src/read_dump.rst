@@ -80,9 +80,9 @@ commands for alternative methods to do this.  Also see the
 from a dump file.
 
 Note that a simulation box must already be defined before using the
-read\_dump command.  This can be done by the
+read_dump command.  This can be done by the
 :doc:`create_box <create_box>`, :doc:`read_data <read_data>`, or
-:doc:`read_restart <read_restart>` commands.  The read\_dump command can
+:doc:`read_restart <read_restart>` commands.  The read_dump command can
 reset the simulation box dimensions, as explained below.
 
 Also note that reading per-atom information from a dump snapshot is
@@ -92,7 +92,7 @@ a valid simulation, such as atom charge, or bond topology information
 for a molecular system, are not read from (or even contained in) dump
 files.  Thus this auxiliary information should be defined in the usual
 way, e.g. in a data file read in by a :doc:`read_data <read_data>`
-command, before using the read\_dump command, or by the :doc:`set <set>`
+command, before using the read_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
 ----------
@@ -196,7 +196,7 @@ always work perfectly.
 
 Per-atom information from the dump file snapshot is then read from the
 dump file snapshot.  This corresponds to the specified *fields* listed
-in the read\_dump command.  It is an error to specify a z-dimension
+in the read_dump command.  It is an error to specify a z-dimension
 field, namely *z*\ , *vz*\ , or *iz*\ , for a 2d simulation.
 
 For dump files in *native* format, each column of per-atom data has a
@@ -371,7 +371,7 @@ Restrictions
 """"""""""""
 
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 The *molfile* dump file formats are part of the USER-MOLFILE package.

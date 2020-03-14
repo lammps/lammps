@@ -32,7 +32,7 @@ Description
 Style *list* computes interactions between explicitly listed pairs of
 atoms with the option to select functional form and parameters for
 each individual pair.  Because the parameters are set in the list
-file, the pair\_coeff command has no parameters (but still needs to be
+file, the pair_coeff command has no parameters (but still needs to be
 provided).  The *check* and *nocheck* keywords enable/disable a test
 that checks whether all listed bonds were present and computed.
 
@@ -119,7 +119,7 @@ pair style.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need
+This pair style does not write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

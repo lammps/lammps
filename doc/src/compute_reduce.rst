@@ -24,7 +24,7 @@ Syntax
 
 * mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq*
 * one or more inputs can be listed
-* input = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 

@@ -119,7 +119,7 @@ than the :doc:`pair_style gayberne <pair_gayberne>` potential uses.
 
 The :math:`\epsilon_i` and :math:`\epsilon_j` coefficients are defined
 for atom types, not for pairs of atom types.  Thus, in a series of
-pair\_coeff commands, they only need to be specified once for each atom
+pair_coeff commands, they only need to be specified once for each atom
 type.
 
 Specifically, if any of :math:`\epsilon_{i,a}`, :math:`\epsilon_{i,b}`,
@@ -129,19 +129,19 @@ ignored.  If any of :math:`\epsilon_{j,a}`, :math:`\epsilon_{j,b}`,
 :math:`\epsilon_{j,c}` are non-zero, the three values are assigned to
 atom type J.  If all three :math:`\epsilon_i` values are zero, they are
 ignored.  Thus the typical way to define the :math:`\epsilon_i` and
-:math:`\epsilon_j` coefficients is to list their values in "pair\_coeff
+:math:`\epsilon_j` coefficients is to list their values in "pair_coeff
 I J" commands when I = J, but set them to 0.0 when I != J.  If you do
 list them when I != J, you should insure they are consistent with their
-values in other pair\_coeff commands.
+values in other pair_coeff commands.
 
 Note that if this potential is being used as a sub-style of
-:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
+:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for RE-squared for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
-that type in a "pair\_coeff I J" command.
+that type in a "pair_coeff I J" command.
 
-For large uniform molecules it has been shown that the epsilon\_\*\_\*
+For large uniform molecules it has been shown that the :math:`\epsilon_{*,*}`
 energy parameters are approximately representable in terms of local
 contact curvatures :ref:`(Everaers) <Everaers3>`:
 
@@ -154,7 +154,7 @@ contact curvatures :ref:`(Everaers) <Everaers3>`:
 where a, b, and c give the particle diameters.
 
 The last coefficient is optional.  If not specified, the global cutoff
-specified in the pair\_style command is used.
+specified in the pair_style command is used.
 
 ----------
 
@@ -182,7 +182,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed, but only for sphere pairs.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+default mix value is *geometric*\ .  See the "pair_modify" command for
 details.  Other type pairs cannot be mixed, due to the different
 meanings of the energy prefactors used to calculate the interactions
 and the implicit dependence of the ellipsoid-sphere interaction on the
@@ -203,7 +203,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

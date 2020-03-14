@@ -35,7 +35,7 @@ The operation of this fix is exactly like that described by the :doc:`fix temp/r
 is also applied to the radial electron velocity for electron
 particles.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

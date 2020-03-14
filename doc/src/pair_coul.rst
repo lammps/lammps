@@ -269,7 +269,7 @@ a massless site located a short distance away from the oxygen atom
 along the bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair\_style arguments.  Style *tip4p/cut* uses a global cutoff for
+pair_style arguments.  Style *tip4p/cut* uses a global cutoff for
 Coulomb interactions; style *tip4p/long* is for use with a long-range
 Coulombic solver (Ewald or PPPM).
 
@@ -311,11 +311,11 @@ commands, or by mixing as described below:
 
 For *coul/cut* and *coul/debye*\ , the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
-global value specified in the pair\_style command is used.
+global value specified in the pair_style command is used.
 
 For *coul/long* and *coul/msm* no cutoff can be specified for an
-individual I,J type pair via the pair\_coeff command.  All type pairs
-use the same global Coulomb cutoff specified in the pair\_style
+individual I,J type pair via the pair_coeff command.  All type pairs
+use the same global Coulomb cutoff specified in the pair_style
 command.
 
 ----------
@@ -344,7 +344,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 The :doc:`pair_modify <pair_modify>` shift option is not relevant
 for these pair styles.
@@ -357,7 +357,7 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

@@ -82,7 +82,7 @@ the rigid fix (although it includes fewer optional arguments, and
 assumes the constituent atoms are point particles); see
 :doc:`fix rigid <fix_rigid>` for a complete documentation.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about the *rigid* and *rigid/nve* fixes are written to
 :doc:`binary restart files <restart>`.

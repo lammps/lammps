@@ -122,7 +122,7 @@ run from *Tstart* to *Tstop*\ .
 *Tstart* can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  In this case, the *Tstop* setting is
 ignored.  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 target temperature.
 
@@ -173,8 +173,8 @@ The keyword *angmom* and *omega* keywords enable thermostatting of
 rotational degrees of freedom in addition to the usual translational
 degrees of freedom.  This can only be done for finite-size particles.
 
-A simulation using atom\_style sphere defines an omega for finite-size
-spheres.  A simulation using atom\_style ellipsoid defines a finite
+A simulation using atom_style sphere defines an omega for finite-size
+spheres.  A simulation using atom_style ellipsoid defines a finite
 size and shape for aspherical particles and an angular momentum.
 The Langevin formulas for thermostatting the rotational degrees of
 freedom are the same as those above, where force is replaced by
@@ -288,7 +288,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -323,7 +323,7 @@ Restrictions
 """"""""""""
 
 For *gjf* do not choose damp=dt/2. *gjf* is not compatible
-with run\_style respa.
+with run_style respa.
 
 Related commands
 """"""""""""""""

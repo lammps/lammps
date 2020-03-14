@@ -46,7 +46,7 @@ is to have the desired effect.  For example, the
 :doc:`read_data <read_data>` command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
 values are not desired, the :doc:`processors <processors>` and
-:doc:`boundary <boundary>` commands need to be used before read\_data to
+:doc:`boundary <boundary>` commands need to be used before read_data to
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or

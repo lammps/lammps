@@ -105,7 +105,7 @@ The type is a number from -1 to 8.  The rmsd is a positive real number.
 The interatomic distance is computed from the scale factor in the RMSD equation.
 The (qw,qx,qy,qz) parameters represent the orientation of the local structure
 in quaternion form.  The reference coordinates for each template (from which the
-orientation is determined) can be found in the *ptm\_constants.h* file in the PTM source directory.
+orientation is determined) can be found in the *ptm_constants.h* file in the PTM source directory.
 For atoms that are not within the compute group-ID, all values are set to zero.
 
 Restrictions

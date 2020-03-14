@@ -25,8 +25,8 @@ and variables needed to define the new feature are in the 2 files you
 write, and thus shouldn't make the rest of LAMMPS more complex or
 cause side-effect bugs.
 
-Here is a concrete example.  Suppose you write 2 files pair\_foo.cpp
-and pair\_foo.h that define a new class PairFoo that computes pairwise
+Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
+and pair_foo.h that define a new class PairFoo that computes pairwise
 potentials described in the classic 1997 :ref:`paper <Foo>` by Foo, et al.
 If you wish to invoke those potentials in a LAMMPS input script with a
 command like
@@ -35,7 +35,7 @@ command like
 
    pair_style foo 0.1 3.5
 
-then your pair\_foo.h file should be structured as follows:
+then your pair_foo.h file should be structured as follows:
 
 .. code-block:: c++
 
@@ -47,12 +47,12 @@ then your pair\_foo.h file should be structured as follows:
    ...
    #endif
 
-where "foo" is the style keyword in the pair\_style command, and
-PairFoo is the class name defined in your pair\_foo.cpp and pair\_foo.h
+where "foo" is the style keyword in the pair_style command, and
+PairFoo is the class name defined in your pair_foo.cpp and pair_foo.h
 files.
 
 When you re-build LAMMPS, your new pairwise potential becomes part of
-the executable and can be invoked with a pair\_style command like the
+the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 
@@ -80,7 +80,7 @@ that are not set to 0 are functions you may override or not.  Those
 are usually defined with an empty function body.
 
 Additionally, new output options can be added directly to the
-thermo.cpp, dump\_custom.cpp, and variable.cpp files.  These are also
+thermo.cpp, dump_custom.cpp, and variable.cpp files.  These are also
 listed on the :doc:`Modify page <Modify>`.
 
 Here are additional guidelines for modifying LAMMPS and adding new

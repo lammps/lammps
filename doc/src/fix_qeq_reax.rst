@@ -71,7 +71,7 @@ The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reax/omp* style. Otherwise they are processed separately.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
 quantities are stored by this fix for access by various :doc:`output commands <Howto_output>`.  No parameter of this fix can be used

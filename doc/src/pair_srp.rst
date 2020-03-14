@@ -137,7 +137,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes global and per-atom information to :doc:`binary restart files <restart>`. Pair srp should be used with :doc:`pair_style hybrid <pair_hybrid>`, thus the pair\_coeff commands need to be
+This pair style writes global and per-atom information to :doc:`binary restart files <restart>`. Pair srp should be used with :doc:`pair_style hybrid <pair_hybrid>`, thus the pair_coeff commands need to be
 specified in the input script when reading a restart file.
 
 This pair style can only be used via the *pair* keyword of the

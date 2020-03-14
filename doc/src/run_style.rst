@@ -83,7 +83,7 @@ partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <b
 :doc:`kspace_style <kspace_style>` portion of the calculation is
 performed on the 2nd partition.
 
-This is most useful for the PPPM kspace\_style when its performance on
+This is most useful for the PPPM kspace_style when its performance on
 a large number of processors degrades due to the cost of communication
 in its 3d FFTs.  In this scenario, splitting your P total processors
 into 2 subsets of processors, P1 in the 1st partition and P2 in the
@@ -196,7 +196,7 @@ levels.  This can be useful, for example, to set different timesteps
 for hybrid coarse-grained/all-atom models.  The *hybrid* keyword
 requires as many level assignments as there are hybrid sub-styles,
 which assigns each sub-style to a rRESPA level, following their order
-of definition in the pair\_style command. Since the *hybrid* keyword
+of definition in the pair_style command. Since the *hybrid* keyword
 operates on pair style computations, it is mutually exclusive with
 either the *pair* or the *inner*\ /\ *middle*\ /\ *outer* keywords.
 
@@ -326,7 +326,7 @@ Default
 
    run_style verlet
 
-For run\_style respa, the default assignment of interactions
+For run_style respa, the default assignment of interactions
 to rRESPA levels is as follows:
 
 * bond forces = level 1 (innermost loop)

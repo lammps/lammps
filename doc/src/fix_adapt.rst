@@ -121,11 +121,11 @@ meaning of these parameters:
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`born <pair_born>`                                             | a,b,c                                            | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`born/coul/long, born/coul/msm <pair_born>`                    | coulombic\_cutoff                                | type global |
+| :doc:`born/coul/long, born/coul/msm <pair_born>`                    | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`buck <pair_buck>`                                             | a,c                                              | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`buck/coul/long, buck/coul/msm <pair_buck>`                    | coulombic\_cutoff                                | type global |
+| :doc:`buck/coul/long, buck/coul/msm <pair_buck>`                    | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`buck/mdf <pair_mdf>`                                          | a,c                                              | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -135,11 +135,11 @@ meaning of these parameters:
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`coul/debye <pair_coul>`                                       | scale                                            | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`coul/dsf <pair_coul>`                                         | coulombic\_cutoff                                | type global |
+| :doc:`coul/dsf <pair_coul>`                                         | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`coul/long, coul/msm <pair_coul>`                              | coulombic\_cutoff, scale                         | type pairs  |
+| :doc:`coul/long, coul/msm <pair_coul>`                              | coulombic_cutoff, scale                          | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`coul/long/soft <pair_fep_soft>`                               | scale, lambda, coulombic\_cutoff                 | type pairs  |
+| :doc:`coul/long/soft <pair_fep_soft>`                               | scale, lambda, coulombic_cutoff                  | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`eam, eam/alloy, eam/fs <pair_eam>`                            | scale                                            | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -149,17 +149,17 @@ meaning of these parameters:
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/class2 <pair_class2>`                                      | epsilon,sigma                                    | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`lj/class2/coul/cut, lj/class2/coul/long <pair_class2>`        | epsilon,sigma,coulombic\_cutoff                  | type pairs  |
+| :doc:`lj/class2/coul/cut, lj/class2/coul/long <pair_class2>`        | epsilon,sigma,coulombic_cutoff                   | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/cut <pair_lj>`                                             | epsilon,sigma                                    | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm <pair_lj>` | epsilon,sigma,coulombic\_cutoff                  | type pairs  |
+| :doc:`lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm <pair_lj>` | epsilon,sigma,coulombic_cutoff                   | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`lj/cut/coul/cut/soft, lj/cut/coul/long/soft <pair_fep_soft>`  | epsilon,sigma,lambda,coulombic\_cutoff           | type pairs  |
+| :doc:`lj/cut/coul/cut/soft, lj/cut/coul/long/soft <pair_fep_soft>`  | epsilon,sigma,lambda,coulombic_cutoff            | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/cut/coul/dsf <pair_lj>`                                    | cutoff                                           | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`lj/cut/tip4p/cut <pair_lj>`                                   | epsilon,sigma,coulombic\_cutoff                  | type pairs  |
+| :doc:`lj/cut/tip4p/cut <pair_lj>`                                   | epsilon,sigma,coulombic_cutoff                   | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/cut/soft <pair_fep_soft>`                                  | epsilon,sigma,lambda                             | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -171,7 +171,7 @@ meaning of these parameters:
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lubricate <pair_lubricate>`                                   | mu                                               | global      |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`mie/cut <pair_mie>`                                           | epsilon,sigma,gamma\_repulsive,gamma\_attractive | type pairs  |
+| :doc:`mie/cut <pair_mie>`                                           | epsilon,sigma,gamma_repulsive,gamma_attractive   | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`morse, morse/smooth/linear <pair_morse>`                      | D0,R0,alpha                                      | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -179,19 +179,19 @@ meaning of these parameters:
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`nm/cut <pair_nm>`                                             | E0,R0,m,n                                        | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                  | E0,R0,m,n,coulombic\_cutoff                      | type pairs  |
+| :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                  | E0,R0,m,n,coulombic_cutoff                       | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`reax/c <pair_reaxc>`                                          | chi, eta, gamma                                  | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`spin/dmi <pair_spin_dmi>`                                     | coulombic\_cutoff                                | type global |
+| :doc:`spin/dmi <pair_spin_dmi>`                                     | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`spin/exchange <pair_spin_exchange>`                           | coulombic\_cutoff                                | type global |
+| :doc:`spin/exchange <pair_spin_exchange>`                           | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`spin/magelec <pair_spin_magelec>`                             | coulombic\_cutoff                                | type global |
+| :doc:`spin/magelec <pair_spin_magelec>`                             | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`spin/neel <pair_spin_neel>`                                   | coulombic\_cutoff                                | type global |
+| :doc:`spin/neel <pair_spin_neel>`                                   | coulombic_cutoff                                 | type global |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`table <pair_table>`                                           | table\_cutoff                                    | type pairs  |
+| :doc:`table <pair_table>`                                           | table_cutoff                                     | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`ufm <pair_ufm>`                                               | epsilon,sigma                                    | type pairs  |
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -247,10 +247,10 @@ be a sub-style name.  You must specify I,J arguments that correspond
 to type pair values defined (via the :doc:`pair_coeff <pair_coeff>`
 command) for that sub-style.
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  Equal-style
+specified as v_name, where name is the variable name.  Equal-style
 variables can specify formulas with various mathematical functions,
 and include :doc:`thermo_style <thermo_style>` command keywords for the
 simulation box parameters and timestep and elapsed time.  Thus it is
@@ -284,9 +284,9 @@ from 1 to N.  A leading asterisk means all types from 1 to n (inclusive).
 A trailing asterisk means all types from n to N (inclusive).  A middle
 asterisk means all types from m to n (inclusive).
 
-Currently *bond* does not support bond\_style hybrid nor bond\_style
+Currently *bond* does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The only bonds that currently are
-working with fix\_adapt are
+working with fix_adapt are
 
 +---------------------------------+-------+------------+
 | :doc:`gromos <bond_gromos>`     | k, r0 | type bonds |
@@ -313,10 +313,10 @@ current list of atom parameters that can be varied by this fix:
 * charge = charge on particle
 * diameter = diameter of particle
 
-The *v\_name* argument of the *atom* keyword is the name of an
+The *v_name* argument of the *atom* keyword is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  See the
+specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
@@ -343,7 +343,7 @@ over the course of a 1000-step simulation:
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

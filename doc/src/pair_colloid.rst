@@ -137,12 +137,12 @@ particle of size :math:`\sigma`.  If either d1 = 0 or d2 = 0 and the other is
 larger, then the pair interacts via the colloid-solvent formula.
 
 Note that the diameter of a particular particle type may appear in
-multiple pair\_coeff commands, as it interacts with other particle
+multiple pair_coeff commands, as it interacts with other particle
 types.  You should insure the particle diameter is specified
 consistently each time it appears.
 
 The last coefficient is optional.  If not specified, the global cutoff
-specified in the pair\_style command is used.  However, you typically
+specified in the pair_style command is used.  However, you typically
 want different cutoffs for interactions between different particle
 sizes.  E.g. if colloidal particles of diameter 10 are used with
 solvent particles of diameter 1, then a solvent-solvent cutoff of 2.5
@@ -153,7 +153,7 @@ colloid-solvent cutoff in this case.
 
 .. note::
 
-   When using pair\_style colloid for a mixture with 2 (or more)
+   When using pair_style colloid for a mixture with 2 (or more)
    widely different particles sizes (e.g. sigma=10 colloids in a
    background sigma=1 LJ fluid), you will likely want to use these
    commands for efficiency: :doc:`neighbor multi <neighbor>` and
@@ -187,7 +187,7 @@ For atom type pairs I,J and I != J, the A, sigma, d1, and d2
 coefficients and cutoff distance for this pair style can be mixed.  A
 is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
-*geometric*\ .  See the "pair\_modify" command for details.
+*geometric*\ .  See the "pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
@@ -199,7 +199,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -216,14 +216,14 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 Normally, this pair style should be used with finite-size particles
 which have a diameter, e.g. see the :doc:`atom_style sphere <atom_style>` command.  However, this is not a requirement,
-since the only definition of particle size is via the pair\_coeff
+since the only definition of particle size is via the pair_coeff
 parameters for each type.  In other words, the physical radius of the
 particle is ignored.  Thus you should insure that the d1,d2 parameters
 you specify are consistent with the physical size of the particles of
 that type.
 
 Per-particle polydispersity is not yet supported by this pair style;
-only per-type polydispersity is enabled via the pair\_coeff parameters.
+only per-type polydispersity is enabled via the pair_coeff parameters.
 
 Related commands
 """"""""""""""""

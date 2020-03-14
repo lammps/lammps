@@ -101,7 +101,7 @@ would be the same as invoking
 
    % my_setup file1 10 file2
 
-from a command-line prompt.  The executable program "my\_setup" is run
+from a command-line prompt.  The executable program "my_setup" is run
 with 3 arguments: file1 10 file2.
 
 Restrictions

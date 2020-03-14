@@ -36,9 +36,9 @@ Syntax
 
 * style = *airebo* or *airebo/morse* or *rebo*
 * cutoff = LJ or Morse cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only)
-* LJ\_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
-* TORSION\_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
-* cutoff\_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only, optional)
+* LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
+* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
+* cutoff_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only, optional)
 
 Examples
 """"""""
@@ -87,7 +87,7 @@ The AIREBO potential consists of three terms:
     \sum_{k \neq i,j} \sum_{l \neq i,j,k} E^{\text{TORSION}}_{kijl} \right] \\
 
 By default, all three terms are included.  For the *airebo* style, if
-the first two optional flag arguments to the pair\_style command are
+the first two optional flag arguments to the pair_style command are
 included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
@@ -125,9 +125,9 @@ factor of 3.0 (the argument in pair_style), the resulting :math:`E^{\text{LJ}}` 
 would be 10.2 Angstroms.
 
 By default, the longer-ranged interaction is smoothly switched off
-between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff\_min* in addition
+between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff_min* in addition
 to *cutoff*\ , the switching can be configured to take place between
-*cutoff\_min* and *cutoff*\ . *cutoff\_min* can only be specified if all
+*cutoff_min* and *cutoff*\ . *cutoff_min* can only be specified if all
 optional arguments are given.
 
 The :math:`E^{\text{TORSION}}` term is an explicit 4-body potential that describes

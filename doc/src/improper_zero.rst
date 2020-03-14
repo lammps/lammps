@@ -33,7 +33,7 @@ command.  If no improper style is defined, this command cannot be
 used.
 
 The optional *nocoeff* flag allows to read data files with a ImproperCoeff
-section for any improper style. Similarly, any improper\_coeff commands
+section for any improper style. Similarly, any improper_coeff commands
 will only be checked for the improper type number and the rest ignored.
 
 Note that the :doc:`improper_coeff <improper_coeff>` command must be

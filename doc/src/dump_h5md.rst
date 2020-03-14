@@ -33,8 +33,8 @@ Note that at least one element must be specified and image may only be
 present if position is specified first.
 
 For the elements *position*\ , *velocity*\ , *force* and *species*\ , a
-sub-interval may be specified to write the data only every N\_element
-iterations of the dump (i.e. every N\*N\_element time steps). This is
+sub-interval may be specified to write the data only every N_element
+iterations of the dump (i.e. every N\*N_element time steps). This is
 specified by this option directly following the element declaration:
 
 .. parsed-literal::
@@ -58,15 +58,15 @@ Dump a snapshot of atom coordinates every N timesteps in the
 HDF5 files are binary, portable and self-describing.  This dump style
 will write only one file, on the root node.
 
-Several dumps may write to the same file, by using file\_from and
+Several dumps may write to the same file, by using file_from and
 referring to a previously defined dump.  Several groups may also be
 stored within the same file by defining several dumps.  A dump that
-refers (via *file\_from*) to an already open dump ID and that concerns
-another particle group must specify *create\_group yes*.
+refers (via *file_from*) to an already open dump ID and that concerns
+another particle group must specify *create_group yes*.
 
 .. _h5md: http://nongnu.org/h5md/
 
-Each data element is written every N\*N\_element steps. For *image*\ , no
+Each data element is written every N\*N_element steps. For *image*\ , no
 sub-interval is needed as it must be present at the same interval as
 *position*\ .  *image* must be given after *position* in any case.  The
 box information (edges in each dimension) is stored at the same
@@ -79,13 +79,13 @@ every N steps.
    timesteps when neighbor lists are rebuilt, the coordinates of an atom
    written to a dump file may be slightly outside the simulation box.
 
-**Use from write\_dump:**
+**Use from write_dump:**
 
 It is possible to use this dump style with the
 :doc:`write_dump <write_dump>` command.  In this case, the sub-intervals
-must not be set at all.  The write\_dump command can be used either to
+must not be set at all.  The write_dump command can be used either to
 create a new file or to add current data to an existing dump file by
-using the *file\_from* keyword.
+using the *file_from* keyword.
 
 Typically, the *species* data is fixed. The following two commands
 store the position data every 100 timesteps, with the image data, and
@@ -124,7 +124,7 @@ Related commands
 
 ----------
 
-.. _h5md\_cpc:
+.. _h5md_cpc:
 
 **(de Buyl)** de Buyl, Colberg and Hofling, H5MD: A structured,
 efficient, and portable file format for molecular data,

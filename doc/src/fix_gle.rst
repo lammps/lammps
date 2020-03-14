@@ -99,7 +99,7 @@ input matrix for :doc:`fix gle <fix_gle>`. While the GLE scheme is more
 general, the form used by :doc:`fix gld <fix_gld>` can be more directly
 related to the representation of an implicit solvent environment.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random

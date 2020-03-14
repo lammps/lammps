@@ -43,7 +43,7 @@ external electric field.
 For charges, any of the 3 quantities defining the E-field components
 can be specified as an equal-style or atom-style
 :doc:`variable <variable>`, namely *ex*\ , *ey*\ , *ez*\ .  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the E-field component.
 
@@ -101,7 +101,7 @@ minimize the orientation of dipoles in an applied electric field.
 The *energy* keyword specifies the name of an atom-style
 :doc:`variable <variable>` which is used to compute the energy of each
 atom as function of its position.  Like variables used for *ex*\ , *ey*\ ,
-*ez*\ , the energy variable is specified as v\_name, where name is the
+*ez*\ , the energy variable is specified as v_name, where name is the
 variable name.
 
 Note that when the *energy* keyword is used during an energy
@@ -114,7 +114,7 @@ minimization will not converge properly.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

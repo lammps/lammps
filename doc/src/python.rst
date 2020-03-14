@@ -139,14 +139,14 @@ itself.  This enables the function to call back to LAMMPS through its
 library interface as explained below.  This allows the Python function
 to query or set values internal to LAMMPS which can affect the
 subsequent execution of the input script.  A LAMMPS variable can also
-be used as an argument, specified as v\_name, where "name" is the name
+be used as an argument, specified as v_name, where "name" is the name
 of the variable.  Any style of LAMMPS variable can be used, as defined
 by the :doc:`variable <variable>` command.  Each time the Python
 function is invoked, the LAMMPS variable is evaluated and its value is
 passed to the Python function.
 
 The *return* keyword is only needed if the Python function returns a
-value.  The specified *varReturn* must be of the form v\_name, where
+value.  The specified *varReturn* must be of the form v_name, where
 "name" is the name of a python-style LAMMPS variable, defined by the
 :doc:`variable <variable>` command.  The Python function can return a
 numeric or string value, as specified by the *format* keyword.
@@ -231,7 +231,7 @@ conflict with the triple-quote parsing that the LAMMPS input script
 performs.
 
 All the Python code you specify via one or more python commands is
-loaded into the Python "main" module, i.e. \__main\__.  The code can
+loaded into the Python "main" module, i.e. __main__.  The code can
 define global variables or statements that are outside of function
 definitions.  It can contain multiple functions, only one of which
 matches the *func* setting in the python command.  This means you can
@@ -301,7 +301,7 @@ LAMMPS with that library.
 
 Third, if your Python code calls back to LAMMPS (discussed in the
 next section) and causes LAMMPS to perform an MPI operation requires
-global communication (e.g. via MPI\_Allreduce), such as computing the
+global communication (e.g. via MPI_Allreduce), such as computing the
 global temperature of the system, then you must insure all your Python
 functions (running independently on different processors) call back to
 LAMMPS.  Otherwise the code may hang.
@@ -384,15 +384,15 @@ with complex logic, much more so than can be created using the LAMMPS
 :doc:`jump <jump>` and :doc:`if <if>` commands.
 
 Several LAMMPS library functions are called from the loop function.
-Get\_natoms() returns the number of atoms in the simulation, so that it
+Get_natoms() returns the number of atoms in the simulation, so that it
 can be used to normalize the potential energy that is returned by
-extract\_compute() for the "thermo\_pe" compute that is defined by
-default for LAMMPS thermodynamic output.  Set\_variable() sets the
+extract_compute() for the "thermo_pe" compute that is defined by
+default for LAMMPS thermodynamic output.  Set_variable() sets the
 value of a string variable defined in LAMMPS.  This library function
 is a useful way for a Python function to return multiple values to
 LAMMPS, more than the single value that can be passed back via a
 return statement.  This cutoff value in the "cut" variable is then
-substituted (by LAMMPS) in the pair\_style command that is executed
+substituted (by LAMMPS) in the pair_style command that is executed
 next.  Alternatively, the "LAMMPS command option" line could be used
 in place of the 2 preceding lines, to have Python insert the value
 into the LAMMPS command string.

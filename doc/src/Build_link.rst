@@ -11,7 +11,7 @@ The :doc:`Build basics <Build_basics>` doc page explains how to build
 LAMMPS as either a shared or static library.  This results in one of
 these 2 files:
 
-.. parsed-literal::
+.. code-block:: bash
 
    liblammps.so      # shared library
    liblammps.a       # static library
@@ -25,7 +25,7 @@ these 2 files:
    then its mpi.h file needs to be included.  While it is technically
    possible to use a full MPI library in the calling code and link to
    a serial LAMMPS library compiled with MPI STUBS, it is recommended
-   to use the *same* MPI library for both, and then use MPI\_Comm\_split()
+   to use the *same* MPI library for both, and then use MPI_Comm_split()
    in the calling code to pass a suitable communicator with a subset
    of MPI ranks to the function creating the LAMMPS instance.
 
@@ -43,7 +43,7 @@ executable code from the library is copied into the calling executable.
 *CMake build*\ :
 
 This assumes that LAMMPS has been configured with "-D BUILD_LIB=yes"
-and installed with "make install" and the PKG\_CONFIG\_PATH environment
+and installed with "make install" and the PKG_CONFIG_PATH environment
 variable updated to include the *liblammps.pc* file installed into the
 configured destination folder, if needed.  The commands to compile and
 link the coupled executable are then:
@@ -167,7 +167,7 @@ traditional make build using "make mode=shlib serial" becomes:
 However, now the `liblammps.so` file is required at runtime and needs
 to be in a folder, where the shared linker program of the operating
 system can find it.  This would be either a folder like "/usr/local/lib64"
-or "${HOME}/.local/lib64" or a folder pointed to by the LD\_LIBRARY\_PATH
+or "${HOME}/.local/lib64" or a folder pointed to by the LD_LIBRARY_PATH
 environment variable. You can type
 
 .. code-block:: bash
@@ -177,7 +177,7 @@ environment variable. You can type
 to see what directories are in that list.
 
 Or you can add the LAMMPS src directory (or the directory you performed
-a CMake style build in) to your LD\_LIBRARY\_PATH, so that the current
+a CMake style build in) to your LD_LIBRARY_PATH, so that the current
 version of the shared library is always available to programs that use it.
 
 For the Bourne or Korn shells (/bin/sh, /bin/ksh, /bin/bash etc.), you
@@ -229,7 +229,7 @@ If a required library is missing, you would get a 'not found' entry:
 Either flavor of library (static or shared) allows one or more LAMMPS
 objects to be instantiated from the calling program. When used from a
 C++ program, most of the symbols and functions in LAMMPS are wrapped
-in a LAMMPS\_NS namespace; you can safely use any of its classes and
+in a LAMMPS_NS namespace; you can safely use any of its classes and
 methods from within the calling code, as needed, and you will not incur
 conflicts with functions and variables in your code that share the name.
 This, however, does not extend to all additional libraries bundled with

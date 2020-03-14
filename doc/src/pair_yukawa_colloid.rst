@@ -44,7 +44,7 @@ In contrast to :doc:`pair_style yukawa <pair_yukawa>`, this functional
 form arises from the Coulombic interaction between two colloid
 particles, screened due to the presence of an electrolyte, see the
 book by :ref:`Safran <Safran>` for a derivation in the context of DLVO
-theory.  :doc:`Pair\_style yukawa <pair_yukawa>` is a screened Coulombic
+theory.  :doc:`Pair_style yukawa <pair_yukawa>` is a screened Coulombic
 potential between two point-charges and uses no such approximation.
 
 This potential applies to nearby particle pairs for which the Derjagin
@@ -112,7 +112,7 @@ instructions on how to use the accelerated styles effectively.
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is an energy value mixed
 like a LJ epsilon.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details.
+"pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
@@ -124,7 +124,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

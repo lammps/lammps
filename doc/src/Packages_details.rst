@@ -10,7 +10,7 @@ scripts, and pictures/movies (if available) that illustrate use of the
 package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (-D PGK\_NAME for CMake) or command ("make yes-name" for
+single setting (-D PGK_NAME for CMake) or command ("make yes-name" for
 make).  See the :doc:`Build package <Build_package>` doc page for more
 info.  A few packages may require additional steps; this is indicated
 in the descriptions below.  The :doc:`Build extras <Build_extras>` doc
@@ -123,8 +123,8 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
-* `doc/PDF/pair\_gayberne\_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
-* `doc/PDF/pair\_resquared\_extra.pdf <PDF/pair_resquared_extra.pdf>`_
+* `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
+* `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
 * examples/ellipse
 * https://lammps.sandia.gov/movies.html#line
@@ -147,7 +147,7 @@ overview.
 **Supporting info:**
 
 * src/BODY filenames -> commands
-* :doc:`Howto\_body <Howto_body>`
+* :doc:`Howto_body <Howto_body>`
 * :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
@@ -367,7 +367,7 @@ This package contains a set of commands that serve as a wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs)
 enabling compatible ones to be used in LAMMPS simulations.
-This includes :doc:`kim_init and kim\_interactions <kim_commands>`
+This includes :doc:`kim_init and kim_interactions <kim_commands>`
 commands to select, initialize and instantiate the IM, and a
 :doc:`kim_query <kim_commands>` command to perform web queries
 for material property predictions of OpenKIM IMs.
@@ -377,7 +377,7 @@ is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair\_style kim* is called by *kim\_interactions* and
+   The command *pair_style kim* is called by *kim_interactions* and
    is not recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
@@ -392,7 +392,7 @@ The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
 and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 
 **Authors:** Ryan Elliott (U Minnesota) is the main developer for the KIM
-API and the *pair\_style kim* command. Axel Kohlmeyer (Temple U) and
+API and the *pair_style kim* command. Axel Kohlmeyer (Temple U) and
 Ellad Tadmor (U Minnesota) contributed to the :doc:`kim_commands <kim_commands>`
 interface in close collaboration with Ryan Elliott.
 
@@ -782,9 +782,9 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
-* `doc/PDF/PDLammps\_overview.pdf <PDF/PDLammps_overview.pdf>`_
-* `doc/PDF/PDLammps\_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
-* `doc/PDF/PDLammps\_VES.pdf <PDF/PDLammps_VES.pdf>`_
+* `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
+* `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
+* `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
 * :doc:`atom_style peri <atom_style>`
 * :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`
@@ -1890,7 +1890,7 @@ And a :doc:`dynamical_matrix <dynamical_matrix>` as well as a
 and third order tensor from finite differences.
 
 **Authors:** Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
-and Charlie Sievers (UC Davis) for "dynamical\_matrix" and "third\_order"
+and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 **Supporting info:**
 
@@ -1918,8 +1918,8 @@ Matching methodology.
 
 **Supporting info:**
 
-* src/USER-PTM: filenames not starting with ptm\\_ -> commands
-* src/USER-PTM: filenames starting with ptm\\_ -> supporting code
+* src/USER-PTM: filenames not starting with ptm\_ -> commands
+* src/USER-PTM: filenames starting with ptm\_ -> supporting code
 * src/USER-PTM/LICENSE
 * :doc:`compute ptm/atom <compute_ptm_atom>`
 
@@ -2132,7 +2132,7 @@ is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
 where thermal fluctuations are important (see the
 :ref:`USER-SPH package <PKG-USER-SPH>`).
 Also two fixes for moving and rigid body integration of SPH/SDPD particles
-(particles of atom\_style meso).
+(particles of atom_style meso).
 
 **Author:** Morteza Jalalvand (Institute for Advanced Studies in Basic
 Sciences, Iran).
@@ -2180,7 +2180,7 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 
 * src/USER-SMD: filenames -> commands
 * src/USER-SMD/README
-* doc/PDF/SMD\_LAMMPS\_userguide.pdf
+* doc/PDF/SMD_LAMMPS_userguide.pdf
 * examples/USER/smd
 * https://lammps.sandia.gov/movies.html#smd
 
@@ -2237,7 +2237,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/USER-SPH: filenames -> commands
 * src/USER-SPH/README
-* doc/PDF/SPH\_LAMMPS\_userguide.pdf
+* doc/PDF/SPH_LAMMPS_userguide.pdf
 * examples/USER/sph
 * https://lammps.sandia.gov/movies.html#sph
 

@@ -14,7 +14,7 @@ the following commands:
 
    % brew install lammps
 
-This will install the executables "lammps\_serial" and "lammps\_mpi", as well as
+This will install the executables "lammps_serial" and "lammps_mpi", as well as
 the LAMMPS "doc", "potentials", "tools", "bench", and "examples" directories.
 
 Once LAMMPS is installed, you can test the installation with the

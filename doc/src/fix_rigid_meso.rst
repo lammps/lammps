@@ -286,7 +286,7 @@ cross periodic boundaries during the simulation.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information is written to :doc:`binary restart files <restart>`.
 If the *infile* keyword is used, an auxiliary file is written out

@@ -87,8 +87,8 @@ I,J pairs must be specified explicitly.
 This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
@@ -112,6 +112,6 @@ The default seed is 0 (before mixing).
 
 ----------
 
-.. _Espanol\_Revenga:
+.. _Espanol_Revenga:
 
 **(Espanol and Revenga)** Espanol, Revenga, Physical Review E, 67, 026705 (2003).

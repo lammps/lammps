@@ -287,10 +287,10 @@ After each push, the automated checks are run again.
 
 LAMMPS developers may add labels to your pull request to assign it to
 categories (mostly for bookkeeping purposes), but a few of them are
-important: needs\_work, work\_in\_progress, test-for-regression, and
+important: needs_work, work_in_progress, test-for-regression, and
 full-regression-test. The first two indicate, that your pull request
-is not considered to be complete. With "needs\_work" the burden is on
-exclusively on you; while "work\_in\_progress" can also mean, that a
+is not considered to be complete. With "needs_work" the burden is on
+exclusively on you; while "work_in_progress" can also mean, that a
 LAMMPS developer may want to add changes. Please watch the comments
 to the pull requests. The two "test" labels are used to trigger
 extended tests before the code is merged. This is sometimes done by
@@ -458,7 +458,7 @@ should be submitted, there is now also an "unstable" and a "stable"
 branch; these have the same content as "master", but are only updated
 after a patch release or stable release was made.
 Furthermore, the naming of the patches now follow the pattern
-"patch\_<Day><Month><Year>" to simplify comparisons between releases.
+"patch_<Day><Month><Year>" to simplify comparisons between releases.
 Finally, all patches and submissions are subject to automatic testing
 and code checks to make sure they at the very least compile.
 

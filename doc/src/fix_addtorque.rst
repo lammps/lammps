@@ -39,7 +39,7 @@ This command can be used to drive a group of atoms into rotation.
 Any of the 3 quantities defining the torque components can be specified
 as an equal-style :doc:`variable <variable>`, namely *Tx*\ ,
 *Ty*\ , *Tz*\ .  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 torque component.
 
@@ -50,7 +50,7 @@ time.  Thus it is easy to specify a time-dependent torque.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

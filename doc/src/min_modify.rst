@@ -108,25 +108,25 @@ all atoms in the system:
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
-Keywords *alpha\_damp* and *discrete\_factor* only make sense when
+Keywords *alpha_damp* and *discrete_factor* only make sense when
 a :doc:`min_spin <min_spin>` command is declared.
-Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
+Keyword *alpha_damp* defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
 a given magnetic system.
-Keyword *discrete\_factor* defines a discretization factor for the
+Keyword *discrete_factor* defines a discretization factor for the
 adaptive timestep used in the *spin* minimization.
 See :doc:`min_spin <min_spin>` for more information about those
 quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
 *spin/lbfgs* styles can be specified via the *line* keyword.  The
-*spin\_cubic* and *spin\_none* keywords only make sense when one of those two
-minimization styles is declared.  The *spin\_cubic* performs the line
+*spin_cubic* and *spin_none* keywords only make sense when one of those two
+minimization styles is declared.  The *spin_cubic* performs the line
 search based on a cubic interpolation of the energy along the search
-direction. The *spin\_none* keyword deactivates the line search
-procedure.  The *spin\_none* is a default value for *line* keyword for
+direction. The *spin_none* keyword deactivates the line search
+procedure.  The *spin_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
-more robust if *spin\_cubic* line search is used.
+more robust if *spin_cubic* line search is used.
 
 The Newton *integrator* used for *fire* minimization can be selected
 to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
@@ -163,7 +163,7 @@ to the *fire/old* style by using the following set of parameters:
 Restrictions
 """"""""""""
 
-For magnetic GNEB calculations, only *spin\_none* value for *line*
+For magnetic GNEB calculations, only *spin_none* value for *line*
 keyword can be used when minimization styles *spin/cg* and *spin/lbfgs* are
 employed.  See :doc:`neb/spin <neb_spin>` for more explanation.
 
@@ -178,8 +178,8 @@ Default
 The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
 For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
-defaults are alpha\_damp = 1.0, discrete\_factor = 10.0, line =
-spin\_none, and norm = euclidean.
+defaults are alpha_damp = 1.0, discrete_factor = 10.0, line =
+spin_none, and norm = euclidean.
 
 For the *fire* style, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,

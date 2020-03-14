@@ -61,7 +61,7 @@ group.
 For a body particle, the *integer* keywords refer to fields calculated
 by the body style for each sub-particle.  The body style, as specified
 by the :doc:`atom_style body <atom_style>`, determines how many fields
-exist and what they are.  See the :doc:`Howto\_body <Howto_body>` doc
+exist and what they are.  See the :doc:`Howto_body <Howto_body>` doc
 page for details of the different styles.
 
 Here is an example of how to output body information using the :doc:`dump local <dump>` command with this compute.  If fields 1,2,3 for the

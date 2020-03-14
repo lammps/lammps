@@ -182,7 +182,7 @@ The *rigid* styles are typically the best choice for a system with a
 small number of large rigid bodies, each of which can extend across
 the domain of many processors.  It operates by creating a single
 global list of rigid bodies, which all processors contribute to.
-MPI\_Allreduce operations are performed each timestep to sum the
+MPI_Allreduce operations are performed each timestep to sum the
 contributions from each processor to the force and torque on all the
 bodies.  This operation will not scale well in parallel if large
 numbers of rigid bodies are simulated.
@@ -756,7 +756,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about the 4 NVE rigid styles is written to :doc:`binary restart files <restart>`.  The exception is if the *infile* or
 *mol* keyword is used, in which case an auxiliary file is written out

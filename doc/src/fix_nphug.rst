@@ -100,7 +100,7 @@ When the system reaches a stable equilibrium, the value of :math:`\Delta` should
 fluctuate about zero.
 
 The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the instantaneous values at the start of
-the simulation. These can be overridden using the fix\_modify keywords *e0*\ ,
+the simulation. These can be overridden using the fix_modify keywords *e0*\ ,
 *v0*\ , and *p0* described below.
 
 ----------
@@ -129,19 +129,19 @@ as if one of these two sets of commands had been issued:
    compute fix-ID_press all pressure fix-ID_temp
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix\_ID
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
 + underscore + "press".  The group for
 the new computes is "all" since pressure is computed for the entire
 system.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of this
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* or
-*thermo\_press* will have no effect on this fix.
+It also means that changing attributes of *thermo_temp* or
+*thermo_press* will have no effect on this fix.
 
 ----------
 
@@ -165,7 +165,7 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the values of :math:`E_0`, :math:`V_0`, and :math:`P_0`,
 as well as the state of all the thermostat and barostat variables to

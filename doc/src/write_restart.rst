@@ -37,7 +37,7 @@ Write a binary restart file of the current state of the simulation.
 
 During a long simulation, the :doc:`restart <restart>` command is
 typically used to output restart files periodically.  The
-write\_restart command is useful after a minimization or whenever you
+write_restart command is useful after a minimization or whenever you
 wish to write out a single current restart file.
 
 Similar to :doc:`dump <dump>` files, the restart filename can contain

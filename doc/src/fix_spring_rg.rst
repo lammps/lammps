@@ -57,7 +57,7 @@ for the aggregate force on the group of atoms, not a per-atom force.
 If :math:`R_{G0}` is specified as NULL, then the RG of the group is computed at
 the time the fix is specified, and that value is used as the target.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

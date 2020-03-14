@@ -58,7 +58,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global
-cutoff specified in the pair\_style command is used.
+cutoff specified in the pair_style command is used.
 
 ----------
 
@@ -69,7 +69,7 @@ and cutoff distance for all of the mie/cut pair styles can be mixed.
 If not explicitly defined, both the repulsive and attractive gamma
 exponents for different atoms will be calculated following the same
 mixing rule defined for distances.  The default mix value is
-*geometric*\ . See the "pair\_modify" command for details.
+*geometric*\ . See the "pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
@@ -78,7 +78,7 @@ This pair style supports the :doc:`pair_modify <pair_modify>` tail
 option for adding a long-range tail correction to the energy and
 pressure of the pair interaction.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ , and *outer*

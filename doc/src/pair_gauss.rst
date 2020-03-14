@@ -117,22 +117,22 @@ instructions on how to use the accelerated styles effectively.
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-For atom type pairs I,J and I != J, the A, B, H, sigma\_h, r\_mh
+For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
 A (energy units)
 sqrt(1/B) (distance units, see below)
 H (energy units)
-sigma\_h (distance units)
-r\_mh (distance units)
+sigma_h (distance units)
+r_mh (distance units)
 cutoff (distance units):ul
 
 The default mix value is *geometric*\ .
 Only *arithmetic* and *geometric* mix values are supported.
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 The A and H parameters are mixed using the same rules normally
 used to mix the "epsilon" parameter in a Lennard Jones interaction.
-The sigma\_h, r\_mh, and the cutoff distance are mixed using the same
+The sigma_h, r_mh, and the cutoff distance are mixed using the same
 rules used to mix the "sigma" parameter in a Lennard Jones interaction.
 The B parameter is converted to a distance (sigma), before mixing
 (using sigma=B\^-0.5), and converted back to a coefficient
@@ -154,7 +154,7 @@ interaction.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

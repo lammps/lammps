@@ -10,12 +10,12 @@ Syntax
 
    pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
 
-* max\_cell\_size = global maximum cell size for DSMC interactions (distance units)
+* max_cell_size = global maximum cell size for DSMC interactions (distance units)
 * seed = random # seed (positive integer)
 * weighting = macroparticle weighting
 * Tref = reference temperature (temperature units)
-* Nrecompute = re-compute v\*sigma\_max every this many timesteps (timesteps)
-* Nsample = sample this many times in recomputing v\*sigma\_max
+* Nrecompute = re-compute v\*sigma_max every this many timesteps (timesteps)
+* Nsample = sample this many times in recomputing v\*sigma_max
 
 Examples
 """"""""
@@ -34,13 +34,13 @@ direct simulation Monte Carlo (DSMC) model following the exposition in
 :ref:`(Bird) <Bird>`.  Each collision resets the velocities of the two
 particles involved.  The number of pairwise collisions for each pair
 or particle types and the length scale within which they occur are
-determined by the parameters of the pair\_style and pair\_coeff
+determined by the parameters of the pair_style and pair_coeff
 commands.
 
 Stochastic collisions are performed using the variable hard sphere
-(VHS) approach, with the user-defined *max\_cell\_size* value used as
+(VHS) approach, with the user-defined *max_cell_size* value used as
 the maximum DSMC cell size, and reference cross-sections for
-collisions given using the pair\_coeff command.
+collisions given using the pair_coeff command.
 
 There is no pairwise energy or virial contributions associated with
 this pair style.
@@ -53,7 +53,7 @@ commands:
 
 * sigma (area units, i.e. distance-squared)
 
-The global DSMC *max\_cell\_size* determines the maximum cell length
+The global DSMC *max_cell_size* determines the maximum cell length
 used in the DSMC calculation.  A structured mesh is overlayed on the
 simulation box such that an integer number of cells are created in
 each direction for each processor's sub-domain.  Cell lengths are
@@ -119,7 +119,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.  Note
 that the user-specified random number seed is stored in the restart
 file, so when a simulation is restarted, each processor will

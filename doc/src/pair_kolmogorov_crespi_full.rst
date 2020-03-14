@@ -11,7 +11,7 @@ Syntax
    pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag
 
 * cutoff = global cutoff (distance units)
-* tap\_flag = 0/1 to turn off/on the taper function
+* tap_flag = 0/1 to turn off/on the taper function
 
 Examples
 """"""""
@@ -72,10 +72,10 @@ list for calculating the normals for each atom pair.
 .. note::
 
    Two new sets of parameters of KC potential for hydrocarbons, CH.KC
-   (without the taper function) and CH\_taper.KC (with the taper function)
+   (without the taper function) and CH_taper.KC (with the taper function)
    are presented in :ref:`(Ouyang1) <Ouyang3>`.  The energy for the KC potential
    with the taper function goes continuously to zero at the cutoff.  The
-   parameters in both CH.KC and CH\_taper.KC provide a good description in
+   parameters in both CH.KC and CH_taper.KC provide a good description in
    both short- and long-range interaction regimes. While the original
    parameters (CC.KC) published in :ref:`(Kolmogorov) <Kolmogorov1>` are only
    suitable for long-range interaction regime.  This feature is essential
@@ -84,14 +84,14 @@ list for calculating the normals for each atom pair.
    comparison of these parameters can be found in :ref:`(Ouyang1) <Ouyang3>` and :ref:`(Ouyang2) <Ouyang4>`.
 
 This potential must be used in combination with hybrid/overlay.
-Other interactions can be set to zero using pair\_style *none*\ .
+Other interactions can be set to zero using pair_style *none*\ .
 
 This pair style tallies a breakdown of the total interlayer potential
 energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 2.
 The 2 values correspond to the following sub-categories:
 
-1. *E\_vdW* = vdW (attractive) energy
-2. *E\_Rep* = Repulsive energy
+1. *E_vdW* = vdW (attractive) energy
+2. *E_Rep* = Repulsive energy
 
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
@@ -107,12 +107,12 @@ headings) the following commands could be included in an input script:
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the pair\_modify mix, shift, table,
+This pair style does not support the pair_modify mix, shift, table,
 and tail options.
 
 This pair style does not write their information to binary restart
 files, since it is stored in potential files. Thus, you need to
-re-specify the pair\_style and pair\_coeff commands in an input script
+re-specify the pair_style and pair_coeff commands in an input script
 that reads a restart file.
 
 Restrictions
@@ -137,11 +137,11 @@ Related commands
 :doc:`pair_none <pair_none>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style drip <pair_drip>`,
-:doc:`pair_style pair\_lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
-**Default:** tap\_flag = 0
+**Default:** tap_flag = 0
 
 ----------
 

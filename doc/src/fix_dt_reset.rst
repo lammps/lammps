@@ -80,7 +80,7 @@ Note that the cumulative simulation time (in time units), which
 accounts for changes in the timestep size as a simulation proceeds,
 can be accessed by the :doc:`thermo_style time <thermo_style>` keyword.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

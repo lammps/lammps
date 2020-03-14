@@ -50,10 +50,10 @@ The bispectrum calculation is described in more detail
 in :doc:`compute sna/atom <compute_sna_atom>`.
 
 Note that unlike for other potentials, cutoffs for SNAP potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the SNAP potential files themselves.
 
-Only a single pair\_coeff command is used with the *snap* style which
+Only a single pair_coeff command is used with the *snap* style which
 specifies a SNAP coefficient file followed by a SNAP parameter file
 and then N additional arguments specifying the mapping of SNAP
 elements to LAMMPS atom types, where N is the number of
@@ -65,7 +65,7 @@ LAMMPS atom types:
 
 As an example, if a LAMMPS indium phosphide simulation has 4 atoms
 types, with the first two being indium and the 3rd and 4th being
-phophorous, the pair\_coeff command would look like this:
+phophorous, the pair_coeff command would look like this:
 
 .. code-block:: LAMMPS
 
@@ -175,13 +175,13 @@ for each element, the upper-triangular elements of alpha.
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
-specify a pair\_coeff command with I != J arguments for this style.
+specify a pair_coeff command with I != J arguments for this style.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

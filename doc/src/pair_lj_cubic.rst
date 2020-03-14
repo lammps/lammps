@@ -94,7 +94,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 The lj/cubic pair style does not support the
@@ -110,7 +110,7 @@ The lj/cubic pair style does not support the
 corrections to energy and pressure, since there are no corrections for
 a potential that goes to 0.0 at the cutoff.
 
-The lj/cubic pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+The lj/cubic pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The lj/cubic pair style can only be used via the *pair*

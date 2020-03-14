@@ -83,7 +83,7 @@ the :doc:`displace_atoms <displace_atoms>` command.  Note that atoms
 read from the data file are also always added to the "all" group.  The
 :doc:`group <group>` command discusses atom groups, as used in LAMMPS.
 
-The *nocoeff* keyword tells read\_data to ignore force field parameters.
+The *nocoeff* keyword tells read_data to ignore force field parameters.
 The various Coeff sections are still read and have to have the correct
 number of lines, but they are not applied. This also allows to read a
 data file without having any pair, bond, angle, dihedral or improper
@@ -95,22 +95,22 @@ The use of the *fix* keyword is discussed below.
 
 **Reading multiple data files**
 
-The read\_data command can be used multiple times with the same or
+The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
 contained in individual data files.  For example one data file could
 contain fluid in a confined domain; a second could contain wall atoms,
 and the second file could be read a third time to create a wall on the
 other side of the fluid.  The third set of atoms could be rotated to
 an opposing direction using the :doc:`displace_atoms <displace_atoms>`
-command, after the third read\_data command is used.
+command, after the third read_data command is used.
 
 The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
 useful in this context.
 
 If a simulation box does not yet exist, the *add* keyword
-cannot be used; the read\_data command is being used for the first
+cannot be used; the read_data command is being used for the first
 time.  If a simulation box does exist, due to using the
-:doc:`create_box <create_box>` command, or a previous read\_data command,
+:doc:`create_box <create_box>` command, or a previous read_data command,
 then the *add* keyword must be used.
 
 .. note::
@@ -174,12 +174,12 @@ to move a subset of atoms after they have been read from a data file.
 Likewise, the :doc:`delete_atoms <delete_atoms>` command can be used to
 remove overlapping atoms.  Note that the shift values (Sx, Sy, Sz) are
 also added to the simulation box information (xlo, xhi, ylo, yhi, zlo,
-zhi) in the data file to shift its boundaries.  E.g. xlo\_new = xlo +
-Sx, xhi\_new = xhi + Sx.
+zhi) in the data file to shift its boundaries.  E.g. xlo_new = xlo +
+Sx, xhi_new = xhi + Sx.
 
-The *extra* keywords can only be used the first time the read\_data
+The *extra* keywords can only be used the first time the read_data
 command is used.  They are useful if you intend to add new atom, bond,
-angle, etc types later with additional read\_data commands.  This is
+angle, etc types later with additional read_data commands.  This is
 because the maximum number of allowed atom, bond, angle, etc types is
 set by LAMMPS when the system is first initialized.  If you do not use
 the *extra* keywords, then the number of these types will be limited
@@ -205,10 +205,10 @@ you would still need to specify coefficients for H/Si and O/Si
 interactions in your input script to have a complete pairwise
 interaction model.
 
-An alternative to using the *extra* keywords with the read\_data
+An alternative to using the *extra* keywords with the read_data
 command, is to use the :doc:`create_box <create_box>` command to
 initialize the simulation box and all the various type limits you need
-via its *extra* keywords.  Then use the read\_data command one or more
+via its *extra* keywords.  Then use the read_data command one or more
 times to populate the system with atoms, bonds, angles, etc, using the
 *offset* keyword if desired to alter types used in the various data
 files you read.
@@ -379,13 +379,13 @@ data file.
    "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
    command), a huge (mostly empty) box may cause a parallel simulation to
    lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
-   read\_data command will generate an error in this case.
+   read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
 the system when a simulation runs, e.g. by using the :doc:`fix bond/create <fix_bond_create>` command. Using this header flag
 is deprecated; please use the *extra/bond/per/atom* keyword (and
-correspondingly for angles, dihedrals and impropers) in the read\_data
+correspondingly for angles, dihedrals and impropers) in the read_data
 command instead. Either will pre-allocate space in LAMMPS data
 structures for storing the new bonds (angles, dihedrals, impropers).
 
@@ -405,7 +405,7 @@ pages for more discussion of 1-2,1-3,1-4 neighbors.
 
    All of the "extra" settings are only applied in the first data
    file read and when no simulation box has yet been created; as soon as
-   the simulation box is created (and read\_data implies that), these
+   the simulation box is created (and read_data implies that), these
    settings are *locked* and cannot be changed anymore. Please see the
    description of the *add* keyword above for reading multiple data files.
    If they appear in later data files, they are ignored.
@@ -586,7 +586,7 @@ of analysis.
 +------------+---------------------------------------------------------------------------+
 | dpd        | atom-ID atom-type theta x y z                                             |
 +------------+---------------------------------------------------------------------------+
-| edpd       | atom-ID atom-type edpd\_temp edpd\_cv x y z                               |
+| edpd       | atom-ID atom-type edpd_temp edpd_cv x y z                                 |
 +------------+---------------------------------------------------------------------------+
 | mdpd       | atom-ID atom-type rho x y z                                               |
 +------------+---------------------------------------------------------------------------+
@@ -616,7 +616,7 @@ of analysis.
 +------------+---------------------------------------------------------------------------+
 | tri        | atom-ID molecule-ID atom-type triangleflag density x y z                  |
 +------------+---------------------------------------------------------------------------+
-| wavepacket | atom-ID atom-type charge spin eradius etag cs\_re cs\_im x y z            |
+| wavepacket | atom-ID atom-type charge spin eradius etag cs_re cs_im x y z              |
 +------------+---------------------------------------------------------------------------+
 | hybrid     | atom-ID atom-type x y z sub-style1 sub-style2 ...                         |
 +------------+---------------------------------------------------------------------------+
@@ -628,13 +628,13 @@ The per-atom values have these meanings and units, listed alphabetically:
 * bodyflag = 1 for body particles, 0 for point particles
 * cc = chemical concentration for tDPD particles for each species (mole/volume units)
 * contact-radius = ??? (distance units)
-* cs\_re,cs\_im = real/imaginary parts of wave packet coefficients
+* cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
 * e = energy (need units) for SPH particles
-* edpd\_temp = temperature for eDPD particles (temperature units)
-* edpd\_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
+* edpd_temp = temperature for eDPD particles (temperature units)
+* edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
 * etag = integer ID of electron that each wave packet belongs to
@@ -713,12 +713,12 @@ body is unknown.
 Note that for 2d simulations of spheres, this command will treat them
 as spheres when converting density to mass.  However, they can also be
 modeled as 2d discs (circles) if the :doc:`set density/disc <set>`
-command is used to reset their mass after the read\_data command is
+command is used to reset their mass after the read_data command is
 used.  A *disc* keyword can also be used with time integration fixes,
 such as :doc:`fix nve/sphere <fix_nve_sphere>` and :doc:`fix nvt/sphere <fix_nve_sphere>` to time integrate their motion as 2d
 discs (not 3d spheres), by changing their moment of inertia.
 
-For atom\_style hybrid, following the 5 initial values (ID,type,x,y,z),
+For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
 :doc:`atom_style <atom_style>` command.  The sub-style specific values
@@ -739,7 +739,7 @@ were used in the input script, each atom line would have these fields:
 
 Note that if a non-standard value is defined by multiple sub-styles,
 it must appear multiple times in the atom line.  E.g. the atom line
-for atom\_style hybrid dipole full would list "q" twice:
+for atom_style hybrid dipole full would list "q" twice:
 
 .. parsed-literal::
 
@@ -1176,7 +1176,7 @@ pair style.  See the :doc:`pair_style <pair_style>` and
 :doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are not specified, these will be
 generated automatically by the pair style's mixing rule.  See the
-individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
 be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
@@ -1206,7 +1206,7 @@ pair style.  See the :doc:`pair_style <pair_style>` and
 :doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are all specified, these values will
 turn off the default mixing rule defined by the pair style.  See the
-individual pair\_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
 be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
@@ -1277,7 +1277,7 @@ Vx, vy, vz, and ervel are in :doc:`units <units>` of velocity.  Lx, ly,
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
 Wz are in units of angular velocity (radians/time).
 
-For atom\_style hybrid, following the 4 initial values (ID,vx,vy,vz),
+For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
 :doc:`atom_style <atom_style>` command.  The sub-style specific values
@@ -1306,7 +1306,7 @@ Restrictions
 """"""""""""
 
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 Related commands

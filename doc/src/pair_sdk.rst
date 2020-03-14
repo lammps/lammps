@@ -96,7 +96,7 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
-* cg\_type (lj9\_6, lj12\_4, or lj12\_6)
+* cg_type (lj9_6, lj12_4, or lj12_6)
 * epsilon (energy units)
 * sigma (distance units)
 * cutoff1 (distance units)
@@ -106,7 +106,7 @@ distance for the potential, not as the energy minimum. The prefactors
 are chosen so that the potential minimum is at -epsilon.
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -115,7 +115,7 @@ type pair.
 For *lj/sdk/coul/long* and *lj/sdk/coul/msm* only the LJ cutoff can be
 specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
-Coulombic cutoff specified in the pair\_style command.
+Coulombic cutoff specified in the pair_style command.
 
 ----------
 
@@ -144,7 +144,7 @@ instructions on how to use the accelerated styles effectively.
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/sdk pair styles *cannot* be mixed,
 since different pairs may have different exponents. So all parameters
-for all pairs have to be specified explicitly through the "pair\_coeff"
+for all pairs have to be specified explicitly through the "pair_coeff"
 command. Defining then in a data file is also not supported, due to
 limitations of that file format.
 
@@ -156,7 +156,7 @@ The *lj/sdk/coul/long* pair styles support the
 :doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
-All of the lj/sdk pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the lj/sdk pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The lj/sdk and lj/cut/coul/long pair styles do not support

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * dihedral/local = style name of this compute command
 * one or more values may be appended
-* value = *phi* or *v\_name*
+* value = *phi* or *v_name*
 
   .. parsed-literal::
 
@@ -49,9 +49,9 @@ by the group parameter as explained below.
 The value *phi* is the dihedral angle, as defined in the diagram on
 the :doc:`dihedral_style <dihedral_style>` doc page.
 
-The value *v\_name* can be used together with the *set* keyword to
+The value *v_name* can be used together with the *set* keyword to
 compute a user-specified function of the dihedral angle phi.  The
-*name* specified for the *v\_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
+*name* specified for the *v_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
 variable which will store the angle phi.  This other variable must
 be an :doc:`internal-style variable <variable>` defined in the input
 script; its initial numeric value can be anything.  It must be an

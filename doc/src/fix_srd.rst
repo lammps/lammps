@@ -334,13 +334,13 @@ interactions is specified, the :doc:`pair_coeff <pair_coeff>` command
 should be used to turn off big/SRD interactions, e.g. by setting their
 epsilon or cutoff length to 0.0.
 
-The "delete\_atoms overlap" command may be useful in setting up an SRD
+The "delete_atoms overlap" command may be useful in setting up an SRD
 simulation to insure there are no initial overlaps between big and SRD
 particles.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

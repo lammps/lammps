@@ -78,10 +78,10 @@ identify crystal-like atoms in a system, as discussed in :ref:`ten Wolde <tenWol
 
 The ID of the previously specified :doc:`compute orientorder/atom <compute_orientorder_atom>` command is specified as
 *orientorderID*\ .  The compute must invoke its *components* option to
-calculate components of the *Ybar\_lm* vector for each atoms, as
+calculate components of the *Ybar_lm* vector for each atoms, as
 described in its documentation.  Note that orientorder/atom compute
 defines its own criteria for identifying neighboring atoms.  If the
-scalar product (*Ybar\_lm(i)*,*Ybar\_lm(j)*), calculated by the
+scalar product (*Ybar_lm(i)*,*Ybar_lm(j)*), calculated by the
 orientorder/atom compute is larger than the specified *threshold*\ ,
 then I and J are connected, and the coordination value of I is
 incremented by one.

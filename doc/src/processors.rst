@@ -213,9 +213,9 @@ mapped to the 3d grid of processors.  It is only used by the
 *onelevel* and *twolevel* grid settings.
 
 The *cart* style uses the family of MPI Cartesian functions to perform
-the mapping, namely MPI\_Cart\_create(), MPI\_Cart\_get(),
-MPI\_Cart\_shift(), and MPI\_Cart\_rank().  It invokes the
-MPI\_Cart\_create() function with its reorder flag = 0, so that MPI is
+the mapping, namely MPI_Cart_create(), MPI_Cart_get(),
+MPI_Cart_shift(), and MPI_Cart_rank().  It invokes the
+MPI_Cart_create() function with its reorder flag = 0, so that MPI is
 not free to reorder the processors.
 
 The *cart/reorder* style does the same thing as the *cart* style
@@ -244,7 +244,7 @@ of the 8 octants of the simulation domain will be:
 Note that, in principle, an MPI implementation on a particular machine
 should be aware of both the machine's network topology and the
 specific subset of processors and nodes that were assigned to your
-simulation.  Thus its MPI\_Cart calls can optimize the assignment of
+simulation.  Thus its MPI_Cart calls can optimize the assignment of
 MPI processes to the 3d grid to minimize communication costs.  In
 practice, however, few if any MPI implementations actually do this.
 So it is likely that the *cart* and *cart/reorder* styles simply give
@@ -328,7 +328,7 @@ I,J,K are the indices of the processor in the regular 3d grid, each
 from 1 to Nd, where Nd is the number of processors in that dimension
 of the grid.
 
-The *name* is what is returned by a call to MPI\_Get\_processor\_name()
+The *name* is what is returned by a call to MPI_Get_processor_name()
 and should represent an identifier relevant to the physical processors
 in your machine.  Note that depending on the MPI implementation,
 multiple cores can have the same *name*\ .

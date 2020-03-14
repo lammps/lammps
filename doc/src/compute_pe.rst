@@ -54,14 +54,14 @@ potential energy.
    The :doc:`fix_modify energy yes <fix_modify>` command must also be
    specified if a fix is to contribute potential energy to this command.
 
-A compute of this style with the ID of "thermo\_pe" is created when
+A compute of this style with the ID of "thermo_pe" is created when
 LAMMPS starts up, as if this command were in the input script:
 
 .. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
-See the "thermo\_style" command for more details.
+See the "thermo_style" command for more details.
 
 ----------
 

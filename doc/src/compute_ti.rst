@@ -58,7 +58,7 @@ to 1 (or vice versa) over the course of a :doc:`run <run>`.  The
 time-dependent adjustment is what the :doc:`fix adapt <fix_adapt>`
 command does.
 
-Assume that the unscaled energy of a pair\_style or kspace\_style is
+Assume that the unscaled energy of a pair_style or kspace_style is
 given by U.  Then the scaled energy is
 
 .. parsed-literal::
@@ -85,9 +85,9 @@ leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 
-You also specify two functions, as :doc:`equal-style variables <variable>`.  The first is specified as *v\_name1*, where
+You also specify two functions, as :doc:`equal-style variables <variable>`.  The first is specified as *v_name1*, where
 *name1* is the name of the variable, and is f(lambda) in the notation
-above.  The second is specified as *v\_name2*, where *name2* is the
+above.  The second is specified as *v_name2*, where *name2* is the
 name of the variable, and is df(lambda) / dlambda in the notation
 above.  I.e. it is the analytic derivative of f() with respect to
 lambda.  Note that the *name1* variable is also typically given as an

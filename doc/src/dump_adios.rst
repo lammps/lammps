@@ -42,11 +42,11 @@ ADIOS-BP files are binary, portable and self-describing.
 
 .. _adios: https://github.com/ornladios/ADIOS2
 
-**Use from write\_dump:**
+**Use from write_dump:**
 
 It is possible to use these dump styles with the
 :doc:`write_dump <write_dump>` command.  In this case, the sub-intervals
-must not be set at all.  The write\_dump command can be used to
+must not be set at all.  The write_dump command can be used to
 create a new file at each individual dump.
 
 .. code-block:: LAMMPS
@@ -61,7 +61,7 @@ Restrictions
 
 The number of atoms per snapshot CAN change with the adios style.
 When using the ADIOS tool 'bpls' to list the content of a .bp file,
-bpls will print *\__* for the size of the output table indicating that
+bpls will print *__* for the size of the output table indicating that
 its size is changing every step.
 
 The *atom/adios* and *custom/adios* dump styles are part of the USER-ADIOS

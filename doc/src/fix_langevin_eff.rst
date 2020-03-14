@@ -65,7 +65,7 @@ The operation of this fix is exactly like that described by the
 thermostatting is also applied to the radial electron velocity for
 electron particles.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  Because the state of the random number generator is not

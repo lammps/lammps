@@ -41,7 +41,7 @@ vdW potential
 
    E = 4\epsilon \left[ \left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^{6} \right]
 
-, which goes smoothly to zero at the cutoff r\_c as defined
+, which goes smoothly to zero at the cutoff r_c as defined
 by the switching function
 
 .. math::

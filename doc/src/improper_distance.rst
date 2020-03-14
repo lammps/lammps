@@ -42,8 +42,8 @@ linear dihedral. Normally, the bonds I-J, I-K, I-L would exist for an
 improper to be defined between the 4 atoms.
 
 The following coefficients must be defined for each improper type via
-the improper\_coeff command as in the example above, or in the data
-file or restart files read by the read\_data or read\_restart commands:
+the improper_coeff command as in the example above, or in the data
+file or restart files read by the read_data or read_restart commands:
 
 * :math:`K_2` (energy/distance\^2)
 * :math:`K_4` (energy/distance\^4)

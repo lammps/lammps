@@ -8,7 +8,7 @@ command.  This is the default.
 
 If using the :doc:`create box <create_box>` command to define a
 simulation box, set the z dimensions narrow, but finite, so that the
-create\_atoms command will tile the 3d simulation box with a single z
+create_atoms command will tile the 3d simulation box with a single z
 plane of atoms - e.g.
 
 .. code-block:: LAMMPS
@@ -17,7 +17,7 @@ plane of atoms - e.g.
 
 If using the :doc:`read data <read_data>` command to read in a file of
 atom coordinates, set the "zlo zhi" values to be finite but narrow,
-similar to the create\_box command settings just described.  For each
+similar to the create_box command settings just described.  For each
 atom in the file, assign a z coordinate so it falls inside the
 z-boundaries of the box - e.g. 0.0.
 

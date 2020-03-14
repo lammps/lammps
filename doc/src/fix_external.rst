@@ -67,13 +67,13 @@ The arguments are as follows:
 Note that *timestep* is a "bigint" which is defined in src/lmptype.h,
 typically as a 64-bit integer. And *ids* is a pointer to type "tagint"
 which is typically a 32-bit integer unless LAMMPS is compiled with
--DLAMMPS\_BIGBIG. For more info please see the :ref:`build settings
+-DLAMMPS_BIGBIG. For more info please see the :ref:`build settings
 <size>` section of the manual.  Finally, *fexternal* are the forces
 returned by the driver program.
 
-The fix has a set\_callback() method which the external driver can call
+The fix has a set_callback() method which the external driver can call
 to pass a pointer to its foo() function.  See the
-couple/lammps\_quest/lmpqst.cpp file in the LAMMPS distribution for an
+couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution for an
 example of how this is done.  This sample application performs
 classical MD using quantum forces computed by a density functional
 code `Quest <quest_>`_.
@@ -125,7 +125,7 @@ insure this energy setting is used appropriately in a minimization.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

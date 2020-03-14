@@ -369,7 +369,7 @@ calculation fails to converge properly to the MEP, and you wish to
 restart the calculation from an intermediate point with altered
 parameters.
 
-A c file script in provided in the tool/spin/interpolate\_gneb
+A c file script in provided in the tool/spin/interpolate_gneb
 directory, that interpolates the MEP given the information provided
 by the *verbose* output option (as detailed in Appendix D of
 :ref:`(BessarabA) <BessarabA>`).
@@ -383,7 +383,7 @@ This command can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-For magnetic GNEB calculations, only the *spin\_none* value for the
+For magnetic GNEB calculations, only the *spin_none* value for the
 *line* keyword can be used when minimization styles *spin/cg* and
 *spin/lbfgs* are employed.
 

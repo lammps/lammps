@@ -147,7 +147,7 @@ Compiling serial version
    cd src/
    make -j 4 serial
 
-This will create an executable called lmp\_serial in the src/ directory
+This will create an executable called lmp_serial in the src/ directory
 
 Compiling MPI version
 """""""""""""""""""""
@@ -157,7 +157,7 @@ Compiling MPI version
    cd src/
    make -j 4 mpi
 
-This will create an executable called lmp\_mpi in the src/ directory
+This will create an executable called lmp_mpi in the src/ directory
 
 ----------
 
@@ -192,8 +192,8 @@ examples/melt folder
 
    cd ../examples/melt
 
-The full path of the serial executable is $LAMMPS\_DIR/lmp\_serial, while the mpi
-version is $LAMMPS\_DIR/lmp\_mpi. You can run the melt example with either
+The full path of the serial executable is $LAMMPS_DIR/lmp_serial, while the mpi
+version is $LAMMPS_DIR/lmp_mpi. You can run the melt example with either
 version as follows:
 
 .. code-block:: bash
@@ -206,7 +206,7 @@ or
 
    mpirun -np 4 $LAMMPS_DIR/lmp_mpi -in in.melt
 
-Note the use of our variable $LAMMPS\_DIR, which expands into the full path of
+Note the use of our variable $LAMMPS_DIR, which expands into the full path of
 the LAMMPS src folder we saved earlier.
 
 Adding your executable directory to your PATH
@@ -241,7 +241,7 @@ and add this line
 
 **Example:**
 
-For an executable lmp\_serial with a full path
+For an executable lmp_serial with a full path
 
 .. code-block:: bash
 

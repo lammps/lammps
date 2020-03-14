@@ -13,11 +13,11 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * gld = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run (temperature units)
-* N\_k = number of terms in the Prony series representation of the memory kernel
+* N_k = number of terms in the Prony series representation of the memory kernel
 * seed = random number seed to use for white noise (positive integer)
 * series = *pprony* is presently the only available option
-* c\_k = the weight of the kth term in the Prony series (mass per time units)
-* tau\_k = the time constant of the kth term in the Prony series (time units)
+* c_k = the weight of the kth term in the Prony series (mass per time units)
+* tau_k = the time constant of the kth term in the Prony series (time units)
 * zero or more keyword/value pairs may be appended
 
   .. parsed-literal::

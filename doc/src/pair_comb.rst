@@ -67,16 +67,16 @@ that determine how often charge equilibration is performed, its
 convergence criterion, and which atoms are included in the
 calculation.
 
-Only a single pair\_coeff command is used with the *comb* and *comb3*
+Only a single pair_coeff command is used with the *comb* and *comb3*
 styles which specifies the COMB potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the potential file in the pair\_coeff
+N additional arguments after the potential file in the pair_coeff
 command, where N is the number of LAMMPS atom types.
 
 For example, if your LAMMPS simulation of a Si/SiO2/
 HfO2 interface has 4 atom types, and you want the 1st and
 last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
-use the following pair\_coeff command:
+use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -129,12 +129,12 @@ For style *comb3*\ , in addition to ffield.comb3, a special parameter
 file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
-directory pointed to by the environment variable LAMMPS\_POTENTIALS, as
+directory pointed to by the environment variable LAMMPS_POTENTIALS, as
 described on the :doc:`pair_coeff <pair_coeff>` command doc page.
 
 Keyword *polar* indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
-has not yet been implemented, it can only set polar\_off at present.
+has not yet been implemented, it can only set polar_off at present.
 
 .. note::
 
@@ -173,7 +173,7 @@ These pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 These pair styles do not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style, pair\_coeff, and :doc:`fix qeq/comb <fix_qeq_comb>` commands in an input script that reads a
+need to re-specify the pair_style, pair_coeff, and :doc:`fix qeq/comb <fix_qeq_comb>` commands in an input script that reads a
 restart file.
 
 These pair styles can only be used via the *pair* keyword of the

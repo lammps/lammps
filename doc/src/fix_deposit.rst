@@ -163,7 +163,7 @@ command which also appears in your input script.
    If you wish the new rigid molecules (and other rigid molecules)
    to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
    or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix\_modify dynamic/dof yes" command for the rigid fix.  This is to
+   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
    inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
@@ -271,7 +271,7 @@ units of distance or velocity.
    the :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the deposition to :doc:`binary restart files <restart>`.  This includes information about how many
 particles have been deposited, the random number generator seed, the

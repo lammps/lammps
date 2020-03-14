@@ -32,9 +32,9 @@ be computed with a *harmonic* potential.  The assignment of bond type
 to style is made via the :doc:`bond_coeff <bond_coeff>` command or in
 the data file.
 
-In the bond\_coeff commands, the name of a bond style must be added
+In the bond_coeff commands, the name of a bond style must be added
 after the bond type, with the remaining coefficients being those
-appropriate to that style.  In the example above, the 2 bond\_coeff
+appropriate to that style.  In the example above, the 2 bond_coeff
 commands set bonds of bond type 1 to be computed with a *harmonic*
 potential with coefficients 80.0, 1.2 for :math:`K`, :math:`r_0`.  All other bond types
 (2-N) are computed with a *fene* potential with coefficients 30.0,
@@ -54,7 +54,7 @@ line in the "Bond Coeffs" section, e.g.
    ...
 
 A bond style of *none* with no additional coefficients can be used in
-place of a bond style, either in a input script bond\_coeff command or
+place of a bond style, either in a input script bond_coeff command or
 in the data file, if you desire to turn off interactions for specific
 bond types.
 
@@ -69,7 +69,7 @@ info.
 
 Unlike other bond styles, the hybrid bond style does not store bond
 coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a restart
-file, you need to re-specify bond\_coeff commands.
+file, you need to re-specify bond_coeff commands.
 
 Related commands
 """"""""""""""""

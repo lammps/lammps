@@ -38,7 +38,7 @@ page), is performed with a :doc:`compute temp/deform/eff <compute_temp_deform_ef
 the eFF contribution to the temperature from the electron radial
 velocity.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that

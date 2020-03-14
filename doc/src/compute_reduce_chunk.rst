@@ -15,7 +15,7 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * mode = *sum* or *min* or *max*
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_ID
+* input = c_ID, c_ID[N], f_ID, f_ID[N], v_ID
 
   .. parsed-literal::
 

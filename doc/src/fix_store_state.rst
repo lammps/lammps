@@ -102,7 +102,7 @@ The requested values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified
 group.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
 simulation is restarted.  See the :doc:`read_restart <read_restart>`

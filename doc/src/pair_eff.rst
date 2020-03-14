@@ -89,9 +89,9 @@ electronically excited and ionized states of matter can occur and
 coexist.  Furthermore, the interactions between particles -nuclei and
 electrons- reduce to the sum of a set of effective pairwise potentials
 in the eFF formulation.  The *eff/cut* style computes the pairwise
-Coulomb interactions between nuclei and electrons (E\_NN,E\_Ne,E\_ee),
-and the quantum-derived Pauli (E\_PR) and Kinetic energy interactions
-potentials between electrons (E\_KE) for a total energy expression
+Coulomb interactions between nuclei and electrons (E_NN,E_Ne,E_ee),
+and the quantum-derived Pauli (E_PR) and Kinetic energy interactions
+potentials between electrons (E_KE) for a total energy expression
 given as,
 
 .. math::
@@ -108,10 +108,10 @@ The individual terms are defined as follows:
    E_{ee}  = & \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} \\
    E_{Pauli}  = & \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}} \\
 
-where, s\_i correspond to the electron sizes, the sigmas i's to the
-fixed spins of the electrons, Z\_i to the charges on the nuclei, R\_ij
+where, s_i correspond to the electron sizes, the sigmas i's to the
+fixed spins of the electrons, Z_i to the charges on the nuclei, R_ij
 to the distances between the nuclei or the nuclei and electrons, and
-r\_ij to the distances between electrons.  For additional details see
+r_ij to the distances between electrons.  For additional details see
 :ref:`(Jaramillo-Botero) <Jaramillo-Botero>`.
 
 The overall electrostatics energy is given in Hartree units of energy
@@ -143,11 +143,11 @@ commands, or by mixing as described below:
 
 For *eff/cut*\ , the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
-in the pair\_style command is used.
+in the pair_style command is used.
 
 For *eff/long* (not yet available) no cutoff will be specified for an
 individual I,J type pair via the :doc:`pair_coeff <pair_coeff>` command.
-All type pairs use the same global cutoff specified in the pair\_style
+All type pairs use the same global cutoff specified in the pair_style
 command.
 
 ----------
@@ -160,7 +160,7 @@ becoming excessively diffuse at very high temperatures were the
 Gaussian wave packet representation breaks down, and from expanding as
 free particles to infinite size.  If unset, electron radius is free to
 increase without bounds.  If set, a restraining harmonic potential of
-the form E = 1/2k\_ss\^2 for s > L\_box/2, where k\_s = 1 Hartrees/Bohr\^2,
+the form E = 1/2k_ss\^2 for s > L_box/2, where k_s = 1 Hartrees/Bohr\^2,
 is applied on the electron radius.
 
 The *pressure/evirials* keyword is used to control between two types
@@ -179,7 +179,7 @@ representations, after the "ecp" keyword.
 .. note::
 
    Default ECP parameters are provided for C, N, O, Al, and Si.
-   Users can modify these using the pair\_coeff command as exemplified
+   Users can modify these using the pair_coeff command as exemplified
    above.  For this, the User must distinguish between two different
    functional forms supported, one that captures the orbital overlap
    assuming the s-type core interacts with an s-like valence electron
@@ -191,7 +191,7 @@ representations, after the "ecp" keyword.
 .. note::
 
    there are two different pressures that can be reported for eFF
-   when defining this pair\_style, one (default) that considers electrons
+   when defining this pair_style, one (default) that considers electrons
    do not contribute radial virial components (i.e. electrons treated as
    incompressible 'rigid' spheres) and one that does.  The radial
    electronic contributions to the virials are only tallied if the
@@ -264,7 +264,7 @@ dihydride.
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *eff/cut* style can be mixed.  The default mix value is *geometric*\ .
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 The :doc:`pair_modify <pair_modify>` shift option is not relevant for
 these pair styles.
@@ -277,7 +277,7 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
@@ -310,7 +310,7 @@ Related commands
 Default
 """""""
 
-If not specified, limit\_eradius = 0 and pressure\_with\_evirials = 0.
+If not specified, limit_eradius = 0 and pressure_with_evirials = 0.
 
 ----------
 

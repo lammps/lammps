@@ -47,13 +47,13 @@ versus make.
 
 **CMake build**\ :
 
-.. code-block:: bash
+.. code-block:: csh
 
    -D PKG_NAME=value          # yes or no (default)
 
 Examples:
 
-.. code-block:: bash
+.. code-block:: csh
 
    -D PKG_MANYBODY=yes
    -D PKG_USER-INTEL=yes
@@ -185,7 +185,7 @@ one of them as a starting point and customize it to your needs.
 
 The following commands are useful for managing package source files
 and their installation when building LAMMPS via traditional make.
-Just type "make" in lammps/src to see a one-line summary.
+Just type ``make`` in lammps/src to see a one-line summary.
 
 These commands install/un-install sets of packages:
 
@@ -202,8 +202,8 @@ These commands install/un-install sets of packages:
     make yes-ext                        # install packages that require external libraries
     make no-ext                         # uninstall packages that require external libraries
 
-which install/un-install various sets of packages.  Typing "make
-package" will list all the these commands.
+which install/un-install various sets of packages.  Typing ``make
+package`` will list all the these commands.
 
 .. note::
 
@@ -220,23 +220,23 @@ need to use these commands unless you are editing LAMMPS files or are
 :doc:`installing a patch <Install_patch>` downloaded from the LAMMPS web
 site.
 
-Type "make package-status" or "make ps" to show which packages are
+Type ``make package-status`` or ``make ps`` to show which packages are
 currently installed.  For those that are installed, it will list any
 files that are different in the src directory and package
 sub-directory.
 
-Type "make package-installed" or "make pi" to show which packages are
+Type ``make package-installed`` or ``make pi`` to show which packages are
 currently installed, without listing the status of packages that are
 not installed.
 
-Type "make package-update" or "make pu" to overwrite src files with
+Type ``make package-update`` or ``make pu`` to overwrite src files with
 files from the package sub-directories if the package is installed.
 It should be used after a :doc:`patch has been applied <Install_patch>`,
 since patches only update the files in the package sub-directory, but
 not the src files.
 
-Type "make package-overwrite" to overwrite files in the package
+Type ``make package-overwrite`` to overwrite files in the package
 sub-directories with src files.
 
-Type "make package-diff" to list all differences between pairs of
+Type ``make package-diff`` to list all differences between pairs of
 files in both the source directory and the package directory.

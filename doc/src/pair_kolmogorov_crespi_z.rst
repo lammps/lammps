@@ -53,7 +53,7 @@ is available to facilitate scaling of energies in accordance with
 :ref:`(vanWijk) <vanWijk>`.
 
 This potential must be used in combination with hybrid/overlay.
-Other interactions can be set to zero using pair\_style *none*\ .
+Other interactions can be set to zero using pair_style *none*\ .
 
 Restrictions
 """"""""""""

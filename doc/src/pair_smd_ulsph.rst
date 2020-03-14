@@ -41,7 +41,7 @@ This pair style is invoked similar to the following command:
 Here, *i* and *j* denote the *LAMMPS* particle types for which this
 pair style is defined. Note that *i* and *j* can be different, i.e.,
 *ulsph* cross interactions between different particle types are
-allowed. However, *i*\ --\ *i* respectively *j*\ --\ *j* pair\_coeff lines have
+allowed. However, *i*\ --\ *i* respectively *j*\ --\ *j* pair_coeff lines have
 to precede a cross interaction.  In contrast to the usual *LAMMPS*
 *pair coeff* definitions, which are given solely a number of floats
 and integers, the *ulsph* *pair coeff* definition is organized using
@@ -55,8 +55,8 @@ diagonal components of the stress tensor), and a material model to
 compute shear stresses (the off-diagonal components of the stress
 tensor).
 
-Note that the use of \*GRADIENT\_CORRECTION can lead to severe numerical
-instabilities. For a general fluid simulation, \*NO\_GRADIENT\_CORRECTION
+Note that the use of \*GRADIENT_CORRECTION can lead to severe numerical
+instabilities. For a general fluid simulation, \*NO_GRADIENT_CORRECTION
 is recommended.
 
 Please see the `SMD user guide <PDF/SMD_LAMMPS_userguide.pdf>`_ for a

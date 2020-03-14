@@ -90,7 +90,7 @@ velocities of the undisturbed fluid, and :math:`E^{\infty}` represents
 the rate of strain tensor of the undisturbed fluid flow with viscosity
 *mu*\ . Again, note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.  Volume fraction
-corrections to R\_FU are included if *flagVF* is set to 1 (default).
+corrections to R_FU are included if *flagVF* is set to 1 (default).
 
 F\ *rest* represents the forces and torques due to all other types of
 interactions, e.g. Brownian, electrostatic etc.  Note that this
@@ -123,9 +123,9 @@ If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
 hydrodynamic interactions accordingly. Volume changes due to fix
 deform are accounted for when computing the volume fraction
-corrections to R\_FU.
+corrections to R_FU.
 
-When computing the volume fraction corrections to R\_FU, the presence
+When computing the volume fraction corrections to R_FU, the presence
 of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
 for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
@@ -133,7 +133,7 @@ for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
 :doc:`wall/harmonic <fix_wall>`.  For these wall styles, the correct
 volume fraction will be used when walls do not coincide with the box
 boundary, as well as when walls move and thereby cause a change in the
-volume fraction. To use these wall styles with pair\_style *lubricateU*
+volume fraction. To use these wall styles with pair_style *lubricateU*
 or *lubricateU/poly*\ , the *fld yes* option must be specified in the
 fix wall command.
 
@@ -156,7 +156,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The two coefficients are optional.  If neither is specified, the two
-cutoffs specified in the pair\_style command are used.  Otherwise both
+cutoffs specified in the pair_style command are used.  Otherwise both
 must be specified.
 
 ----------
@@ -165,7 +165,7 @@ must be specified.
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
-the "pair\_modify" command for details.
+the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
@@ -177,7 +177,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -199,10 +199,10 @@ the pair styles, and that no fixes apply additional constraint forces.
 One exception is the :doc:`fix wall/colloid <fix_wall>` commands, which
 has an "fld" option to apply their wall forces correctly.
 
-Only spherical monodisperse particles are allowed for pair\_style
+Only spherical monodisperse particles are allowed for pair_style
 lubricateU.
 
-Only spherical particles are allowed for pair\_style lubricateU/poly.
+Only spherical particles are allowed for pair_style lubricateU/poly.
 
 For sheared suspensions, it is assumed that the shearing is done in
 the xy plane, with x being the velocity direction and y being the

@@ -93,7 +93,7 @@ velocities with zero aggregate linear and/or angular momentum.
    simulation scenario is to use the :doc:`fix spring <fix_spring>` command
    to tether the molecule in place.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

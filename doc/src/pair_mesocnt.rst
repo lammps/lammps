@@ -106,7 +106,7 @@ shift, table, and tail options.
 
 The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`,
 since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair\_style and pair\_coeff commands in
+Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

@@ -58,7 +58,7 @@ tlsph pair style.
 
 **Related Commands:**
 
-:doc:`smd/tlsph\_defgrad <compute_smd_tlsph_defgrad>`
+:doc:`smd/tlsph_defgrad <compute_smd_tlsph_defgrad>`
 
 Default
 """""""

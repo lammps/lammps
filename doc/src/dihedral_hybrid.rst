@@ -32,10 +32,10 @@ boundary (of dihedral type 2) could be computed with a *helix*
 potential.  The assignment of dihedral type to style is made via the
 :doc:`dihedral_coeff <dihedral_coeff>` command or in the data file.
 
-In the dihedral\_coeff commands, the name of a dihedral style must be
+In the dihedral_coeff commands, the name of a dihedral style must be
 added after the dihedral type, with the remaining coefficients being
 those appropriate to that style.  In the example above, the 2
-dihedral\_coeff commands set dihedrals of dihedral type 1 to be
+dihedral_coeff commands set dihedrals of dihedral type 1 to be
 computed with a *harmonic* potential with coefficients 6.0, 1, 3 for
 K, d, n.  All other dihedral types (2-N) are computed with a *helix*
 potential with coefficients 10, 10, 10 for A, B, C.
@@ -74,7 +74,7 @@ input script, since AngleTorsion (or EndBondTorsion, etc) coefficients
 need not be specified at all for dihedral types that are not *class2*\ .
 
 A dihedral style of *none* with no additional coefficients can be used
-in place of a dihedral style, either in a input script dihedral\_coeff
+in place of a dihedral style, either in a input script dihedral_coeff
 command or in the data file, if you desire to turn off interactions
 for specific dihedral types.
 
@@ -89,7 +89,7 @@ for more info.
 
 Unlike other dihedral styles, the hybrid dihedral style does not store
 dihedral coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a
-restart file, you need to re-specify dihedral\_coeff commands.
+restart file, you need to re-specify dihedral_coeff commands.
 
 Related commands
 """"""""""""""""

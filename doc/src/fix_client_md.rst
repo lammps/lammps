@@ -40,7 +40,7 @@ for the interacting particles to LAMMPS, so it can complete the
 timestep.
 
 Note that the server code can be a quantum code, or another classical
-MD code which encodes a force field (pair\_style in LAMMPS lingo) which
+MD code which encodes a force field (pair_style in LAMMPS lingo) which
 LAMMPS does not have.  In the quantum case, this fix is a mechanism
 for running *ab initio* MD with quantum forces.
 
@@ -66,7 +66,7 @@ LAMMPS and another code in tandem to perform a coupled simulation.
 
 ----------
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

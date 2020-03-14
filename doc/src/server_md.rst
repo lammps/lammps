@@ -64,10 +64,10 @@ the two codes.  See the `CSlib website <https://cslib.sandia.gov>`_ doc
 pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 
-See the src/MESSAGE/server\_md.cpp and src/MESSAGE/fix\_client\_md.cpp
+See the src/MESSAGE/server_md.cpp and src/MESSAGE/fix_client_md.cpp
 files for details on how LAMMPS uses these messages.  See the
-examples/COUPLE/lammps\_vasp/vasp\_wrap.py or
-examples/COUPLE/lammps\_nwchem/nwchem\_wrap.py files for examples of how
+examples/COUPLE/lammps_vasp/vasp_wrap.py or
+examples/COUPLE/lammps_nwchem/nwchem_wrap.py files for examples of how
 a quantum code (VASP or NWChem) can use these messages.
 
 The following pseudo-code uses these values, defined as enums.

@@ -74,7 +74,7 @@ cutoff is used.
 
 The :doc:`fix adapt <fix_adapt>` command can be used to vary A for one
 or more pair types over the course of a simulation, in which case
-pair\_coeff settings for A must still be specified, but will be
+pair_coeff settings for A must still be specified, but will be
 overridden.  For example these commands will vary the prefactor A for
 all pairwise interactions from 0.0 at the beginning to 30.0 at the end
 of a run:
@@ -115,9 +115,9 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is always mixed via a
-*geometric* rule.  The cutoff is mixed according to the pair\_modify
+*geometric* rule.  The cutoff is mixed according to the pair_modify
 mix value.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details.
+"pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option, since the pair interaction goes to 0.0 at the cutoff.
@@ -125,7 +125,7 @@ shift option, since the pair interaction goes to 0.0 at the cutoff.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

@@ -54,7 +54,7 @@ between two point particles, where (:math:`\sigma, -\epsilon`) is the
 location of the (rightmost) minimum of the potential, as explained in
 the syntax section above.
 
-This potential was first used in (Cooke)\_#CKD for a coarse-grained lipid
+This potential was first used in (Cooke)_#CKD for a coarse-grained lipid
 membrane model.  It is generally very useful as a non-specific
 interaction potential because it is fully adjustable in depth and width
 while joining the minimum at (sigma, -epsilon) and zero at (cutoff, 0)
@@ -63,7 +63,7 @@ energy calculations etc. This evidently requires *cutoff* to be larger
 than *sigma*\ .
 
 If the *wca* option is used then a Weeks-Chandler-Andersen potential
-(Weeks)\_#WCA is added to the above specified cosine-squared potential,
+(Weeks)_#WCA is added to the above specified cosine-squared potential,
 specifically the following:
 
 .. math::
@@ -94,7 +94,7 @@ Mixing is not supported for this style.
 
 The *shift*\ , *table* and *tail* options are not relevant for this style.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

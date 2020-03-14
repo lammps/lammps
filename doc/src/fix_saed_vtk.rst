@@ -15,7 +15,7 @@ Syntax
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
-* c\_ID = saed compute ID
+* c_ID = saed compute ID
 
   .. parsed-literal::
 
@@ -56,7 +56,7 @@ outside the *Kmax* range assigned in the compute saed. The ghost data is
 assigned a value of -1 and can be removed setting a minimum isovolume
 of 0 within the visualization software. SAED images can be created by
 visualizing a spherical slice of the data that is centered at
-R\_Ewald\*[h k l]/norm([h k l]), where R\_Ewald=1/lambda.
+R_Ewald\*[h k l]/norm([h k l]), where R_Ewald=1/lambda.
 
 The group specified within this command is ignored. However, note that
 specified values may represent calculations performed by saed computes
@@ -94,7 +94,7 @@ averaging is done; values are simply generated on timesteps
 
 The output for fix ave/time/saed is a file written with the 3rd generation
 vtk image data formatting.  The filename assigned by the *file* keyword is
-appended with \_N.vtk where N is an index (0,1,2...) to account for multiple
+appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.
 
 By default the header contains the following information (with example data):
@@ -157,7 +157,7 @@ running or windowed average.
 The *file* keyword allows a filename to be specified.  Every *Nfreq*
 steps, the vector of saed intensity data is written to a new file using
 the 3rd generation vtk format.  The base of each file is assigned by
-the *file* keyword and this string is appended with \_N.vtk where N is
+the *file* keyword and this string is appended with _N.vtk where N is
 an index (0,1,2...) to account for situations with multiple diffraction
 intensity outputs.
 
@@ -165,7 +165,7 @@ The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the *ave running* setting.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -176,7 +176,7 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-The attributes for fix\_saed\_vtk must match the values assigned in the
+The attributes for fix_saed_vtk must match the values assigned in the
 associated :doc:`compute_saed <compute_saed>` command.
 
 Related commands

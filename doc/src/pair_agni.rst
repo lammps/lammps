@@ -48,11 +48,11 @@ of the method is to map the atomic environment numerically into a
 fingerprint, and use machine learning methods to create a mapping to the
 vectorial atomic forces.
 
-Only a single pair\_coeff command is used with the *agni* style which
+Only a single pair_coeff command is used with the *agni* style which
 specifies an AGNI potential file containing the parameters of the
 force field for the needed elements. These are mapped to LAMMPS atom
 types by specifying :math:`N` additional arguments after the filename in the
-pair\_coeff command, where :math:`N` is the number of LAMMPS atom types:
+pair_coeff command, where :math:`N` is the number of LAMMPS atom types:
 
 * filename
 * :math:`N` element names = mapping of AGNI elements to atom types
@@ -91,7 +91,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

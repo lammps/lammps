@@ -25,7 +25,7 @@ Description
 .. note::
 
    The behavior of the MEAM potential for alloy systems has changed
-   as of November 2010; see description below of the mixture\_ref\_t
+   as of November 2010; see description below of the mixture_ref_t
    parameter
 
 Style *meam/c* computes pairwise interactions for a variety of materials
@@ -65,13 +65,13 @@ distribution with a ".meam" suffix.  All of these are parameterized in
 terms of LAMMPS :doc:`metal units <units>`.
 
 Note that unlike for other potentials, cutoffs for MEAM potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the MEAM potential files themselves.
 
-Only a single pair\_coeff command is used with the *meam* style which
+Only a single pair_coeff command is used with the *meam* style which
 specifies two MEAM files and the element(s) to extract information
 for.  The MEAM elements are mapped to LAMMPS atom types by specifying
-N additional arguments after the 2nd filename in the pair\_coeff
+N additional arguments after the 2nd filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * MEAM library file
@@ -86,7 +86,7 @@ As an example, the potentials/library.meam file has generic MEAM
 settings for a variety of elements.  The potentials/SiC.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
-and the 4th to be C, you would use the following pair\_coeff command:
+and the 4th to be C, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -138,7 +138,7 @@ Cu and lat = dia or fcc.  Because the library file is used by Fortran
 MD codes, these strings may be enclosed in single quotes, but this is
 not required.  The other numeric parameters match values in the
 formulas above.  The value of the "elt" string is what is used in the
-pair\_coeff command to identify which settings from the library file
+pair_coeff command to identify which settings from the library file
 you wish to read in.  There can be multiple entries in the library
 file with the same "elt" value; LAMMPS reads the 1st matching entry it
 finds and ignores the rest.
@@ -203,7 +203,7 @@ an index of 1 would refer to Si and an index of 2 to C.
 The recognized keywords for the parameter file are as follows:
 
 Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
-augt1, gsmooth\_factor, re
+augt1, gsmooth_factor, re
 
 where
 
@@ -320,20 +320,20 @@ automatically.  When parameter values are fit using the modified
 density function, as in more recent literature, augt1 should be set to
 0.
 
-The mixture\_ref\_t parameter is available to match results with those
+The mixture_ref_t parameter is available to match results with those
 of previous versions of lammps (before January 2011).  Newer versions
 of lammps, by default, use the single-element values of the t
 parameters to compute the background reference density.  This is the
 proper way to compute these parameters.  Earlier versions of lammps
 used an alloy mixture averaged value of t to compute the background
-reference density.  Setting mixture\_ref\_t=1 gives the old behavior.
-WARNING: using mixture\_ref\_t=1 will give results that are demonstrably
+reference density.  Setting mixture_ref_t=1 gives the old behavior.
+WARNING: using mixture_ref_t=1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
 previous versions of lammps and should be avoided if possible.
 
 The parameters attrac and repuls, along with the integer selection
-parameter erose\_form, can be used to modify the Rose energy function
+parameter erose_form, can be used to modify the Rose energy function
 used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
 this function is:
@@ -357,9 +357,9 @@ recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
    in March 2009.  The current version is correct, but may show different
    behavior compared with earlier versions of lammps with the attrac
    and/or repuls parameters are non-zero.  To obtain the previous default
-   form, use erose\_form = 1 (this form does not seem to appear in the
+   form, use erose_form = 1 (this form does not seem to appear in the
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
-   available using erose\_form = 2.
+   available using erose_form = 2.
 
 ----------
 
@@ -368,13 +368,13 @@ recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
-specify a pair\_coeff command with I != J arguments for this style.
+specify a pair_coeff command with I != J arguments for this style.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -416,7 +416,7 @@ Related commands
 **(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
 This report may be accessed on-line via `this link <sandreport_>`_.
 
-.. _sandreport: http://infoserve.sandia.gov/sand\_doc/2003/038782.pdf
+.. _sandreport: http://infoserve.sandia.gov/sand_doc/2003/038782.pdf
 
 .. _Lee:
 

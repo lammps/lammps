@@ -77,7 +77,7 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 coefficients A, B, and C are computed by LAMMPS to perform the shifting
 and smoothing.  The function S(r) is actually applied once to each term
 of the LJ formula and once to the Coulombic formula, so there are 2 or 3
-sets of A,B,C coefficients depending on which pair\_style is used.  The
+sets of A,B,C coefficients depending on which pair_style is used.  The
 boundary conditions applied to the smoothing function are as follows:
 :math:`S'(r_1) = S''(r_1) = 0, S(r_c) = -E(r_c), S'(r_c) = -E'(r_c)`,
 and :math:`S''(r_c) = -E''(r_c)`, where E(r) is the corresponding term
@@ -87,7 +87,7 @@ respectively.
 
 The inner and outer cutoff for the LJ and Coulombic terms can be the
 same or different depending on whether 2 or 4 arguments are used in
-the pair\_style command.  The inner LJ cutoff must be > 0, but the
+the pair_style command.  The inner LJ cutoff must be > 0, but the
 inner Coulombic cutoff can be >= 0.
 
 The following coefficients must be defined for each pair of atoms
@@ -111,7 +111,7 @@ are used.
 The last 2 coefficients cannot be used with style
 *lj/gromacs/coul/gromacs* because this force field does not allow
 varying cutoffs for individual atom pairs; all pairs use the global
-cutoff(s) specified in the pair\_style command.
+cutoff(s) specified in the pair_style command.
 
 ----------
 
@@ -139,7 +139,7 @@ instructions on how to use the accelerated styles effectively.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 None of the GROMACS pair styles support the
@@ -155,7 +155,7 @@ None of the GROMACS pair styles support the
 corrections to energy and pressure, since there are no corrections for
 a potential that goes to 0.0 at the cutoff.
 
-All of the GROMACS pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the GROMACS pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 All of the GROMACS pair styles can only be used via the *pair*

@@ -40,7 +40,7 @@ to N.  A leading asterisk means all types from 1 to n (inclusive).  A
 trailing asterisk means all types from n to N (inclusive).  A middle
 asterisk means all types from m to n (inclusive).
 
-Note that using an improper\_coeff command can override a previous
+Note that using an improper_coeff command can override a previous
 setting for the same improper type.  For example, these commands set
 the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
@@ -51,7 +51,7 @@ improper type 2:
    improper_coeff 2 50.0 0.0
 
 A line in a data file that specifies improper coefficients uses the
-exact same format as the arguments of the improper\_coeff command in an
+exact same format as the arguments of the improper_coeff command in an
 input script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Improper Coeffs" section of a data file, the line that
@@ -74,7 +74,7 @@ in more compact form on the :ref:`Commands improper <improper>` doc page.
 
 On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
-improper\_coeff command.
+improper_coeff command.
 
 ----------
 

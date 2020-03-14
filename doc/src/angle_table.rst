@@ -87,7 +87,7 @@ keyword followed by one or more numeric values.
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
 specified in the :doc:`angle_style table <angle_style>` command.  Let
-Ntable = *N* in the angle\_style command, and Nfile = "N" in the
+Ntable = *N* in the angle_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
 uses these to interpolate as needed to generate energy and derivative
@@ -148,12 +148,12 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart info:**
 
-This angle style writes the settings for the "angle\_style table"
-command to :doc:`binary restart files <restart>`, so a angle\_style
+This angle style writes the settings for the "angle_style table"
+command to :doc:`binary restart files <restart>`, so a angle_style
 command does not need to specified in an input script that reads a
 restart file.  However, the coefficient information is not stored in
 the restart file, since it is tabulated in the potential files.  Thus,
-angle\_coeff commands do need to be specified in the restart input
+angle_coeff commands do need to be specified in the restart input
 script.
 
 Restrictions

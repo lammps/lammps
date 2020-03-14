@@ -103,11 +103,11 @@ discussed below, it can be referenced via the following bracket
 notation, where ID is the ID of the fix:
 
 +-------------+--------------------------------------------+
-| f\_ID       | entire scalar, vector, or array            |
+| f_ID       | entire scalar, vector, or array             |
 +-------------+--------------------------------------------+
-| f\_ID[I]    | one element of vector, one column of array |
+| f_ID[I]    | one element of vector, one column of array  |
 +-------------+--------------------------------------------+
-| f\_ID[I][J] | one element of array                       |
+| f_ID[I][J] | one element of array                        |
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the
@@ -119,7 +119,7 @@ or array.
 Note that commands and :doc:`variables <variable>` which use fix
 quantities typically do not allow for all kinds, e.g. a command may
 require a vector of values, not a scalar.  This means there is no
-ambiguity about referring to a fix quantity as f\_ID even if it
+ambiguity about referring to a fix quantity as f_ID even if it
 produces, for example, both a scalar and vector.  The doc pages for
 various commands explain the details.
 
@@ -146,7 +146,7 @@ e.g. temperature.  Extensive means the value scales with the number of
 atoms in the simulation, e.g. total rotational kinetic energy.
 :doc:`Thermodynamic output <thermo_style>` will normalize extensive
 values by the number of atoms in the system, depending on the
-"thermo\_modify norm" setting.  It will not normalize intensive values.
+"thermo_modify norm" setting.  It will not normalize intensive values.
 If a fix value is accessed in another way, e.g. by a
 :doc:`variable <variable>`, you may want to know whether it is an
 intensive or extensive value.  See the doc page for individual fixes

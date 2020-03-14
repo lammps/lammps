@@ -264,11 +264,11 @@ GPUs from different vendors or for CPU based accelerator support).
 In LAMMPS only one platform can be active at a time and by default
 the first platform with an accelerator is selected. This is equivalent
 to using a platform ID of -1. The platform ID is a number corresponding
-to the output of the ocl\_get\_devices tool. The platform ID is passed
+to the output of the ocl_get_devices tool. The platform ID is passed
 to the GPU library, by prefixing the *device* keyword with that number
 separated by a colon. For CUDA, the *device* keyword is ignored.
 Currently, the device tuning support is limited to NVIDIA Kepler, NVIDIA
-Fermi, AMD Cypress, Intel x86\_64 CPU, Intel Xeon Phi, or a generic device.
+Fermi, AMD Cypress, Intel x86_64 CPU, Intel Xeon Phi, or a generic device.
 More devices may be added later.  The default device type can be
 specified when building LAMMPS with the GPU library, via setting a
 variable in the lib/gpu/Makefile that is used.
@@ -278,19 +278,19 @@ In addition, a device type *custom* is available, which is followed by
 from the package command. It can be combined with the (colon separated)
 platform id. The individual settings are:
 
-* MEM\_THREADS
-* THREADS\_PER\_ATOM
-* THREADS\_PER\_CHARGE
-* BLOCK\_PAIR
-* MAX\_SHARED\_TYPES
-* BLOCK\_NBOR\_BUILD
-* BLOCK\_BIO\_PAIR
-* BLOCK\_ELLIPSE
-* WARP\_SIZE
-* PPPM\_BLOCK\_1D
-* BLOCK\_CELL\_2D
-* BLOCK\_CELL\_ID
-* MAX\_BIO\_SHARED\_TYPES
+* MEM_THREADS
+* THREADS_PER_ATOM
+* THREADS_PER_CHARGE
+* BLOCK_PAIR
+* MAX_SHARED_TYPES
+* BLOCK_NBOR_BUILD
+* BLOCK_BIO_PAIR
+* BLOCK_ELLIPSE
+* WARP_SIZE
+* PPPM_BLOCK_1D
+* BLOCK_CELL_2D
+* BLOCK_CELL_ID
+* MAX_BIO_SHARED_TYPES
 
 The *blocksize* keyword allows you to tweak the number of threads used
 per thread block. This number should be a multiple of 32 (for GPUs)
@@ -333,10 +333,10 @@ The *Nthread* value for the *omp* keyword sets the number of OpenMP
 threads allocated for each MPI task.  Setting *Nthread* = 0 (the
 default) instructs LAMMPS to use whatever value is the default for the
 given OpenMP environment. This is usually determined via the
-*OMP\_NUM\_THREADS* environment variable or the compiler runtime, which
+*OMP_NUM_THREADS* environment variable or the compiler runtime, which
 is usually a value of 1.
 
-For more details, including examples of how to set the OMP\_NUM\_THREADS
+For more details, including examples of how to set the OMP_NUM_THREADS
 environment variable, see the discussion of the *Nthreads* setting on
 this doc page for the "package omp" command.  Nthreads is a required
 argument for the USER-OMP package.  Its meaning is exactly the same
@@ -368,7 +368,7 @@ force calculation.
 The *lrt* keyword can be used to enable "Long Range Thread (LRT)"
 mode. It can take a value of *yes* to enable and *no* to disable.
 LRT mode generates an extra thread (in addition to any OpenMP threads
-specified with the OMP\_NUM\_THREADS environment variable or the *omp*
+specified with the OMP_NUM_THREADS environment variable or the *omp*
 keyword). The extra thread is dedicated for performing part of the
 :doc:`PPPM solver <kspace_style>` computations and communications. This
 can improve parallel performance on processors supporting
@@ -381,7 +381,7 @@ ignored and no extra threads are generated. Enabling LRT will replace
 the :doc:`run_style <run_style>` with the *verlet/lrt/intel* style that
 is identical to the default *verlet* style aside from supporting the
 LRT feature. This feature requires setting the pre-processor flag
--DLMP\_INTEL\_USELRT in the makefile when compiling LAMMPS.
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
 The *balance* keyword sets the fraction of :doc:`pair style <pair_style>` work offloaded to the co-processor for split
 values between 0.0 and 1.0 inclusive.  While this fraction of work is
@@ -421,7 +421,7 @@ with 16 threads, for a total of 128.
 Note that the default settings for *tpc* and *tptask* are fine for
 most problems, regardless of how many MPI tasks you assign to a Phi.
 
-The *no\_affinity* keyword will turn off automatic setting of core
+The *no_affinity* keyword will turn off automatic setting of core
 affinity for MPI tasks and OpenMP threads on the host when using
 offload to a co-processor. Affinity settings are used when possible
 to prevent MPI tasks and OpenMP threads from being on separate NUMA
@@ -538,7 +538,7 @@ keywords are set to *device*\ , the value for these *comm* keywords will
 be automatically changed to *host*\ . This setting has no effect if not
 running on GPUs or if using only one MPI rank. CUDA-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
-"MV2\_USE\_CUDA" environment variable is set to "1", CrayMPI, and IBM
+"MV2_USE_CUDA" environment variable is set to "1", CrayMPI, and IBM
 Spectrum MPI when the "-gpu" flag is used.
 
 ----------
@@ -557,10 +557,10 @@ tasks \* threads/task should not exceed the physical number of cores
 
 Setting *Nthread* = 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined
-via the *OMP\_NUM\_THREADS* environment variable or the compiler
+via the *OMP_NUM_THREADS* environment variable or the compiler
 runtime.  Note that in most cases the default for OpenMP capable
 compilers is to use one thread for each available CPU core when
-*OMP\_NUM\_THREADS* is not explicitly set, which can lead to poor
+*OMP_NUM_THREADS* is not explicitly set, which can lead to poor
 performance.
 
 Here are examples of how to set the environment variable when
@@ -576,7 +576,7 @@ or you can set it permanently in your shell's start-up script.
 All three of these examples use a total of 4 CPU cores.
 
 Note that different MPI implementations have different ways of passing
-the OMP\_NUM\_THREADS environment variable to all MPI processes.  The
+the OMP_NUM_THREADS environment variable to all MPI processes.  The
 2nd example line above is for MPICH; the 3rd example line with -x is
 for OpenMPI.  Check your MPI documentation for additional details.
 

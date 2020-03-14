@@ -41,9 +41,9 @@ This fix must be used with the :doc:`pair_style dpd/fdt/energy <pair_style>` com
 
 Note that numerous variants of DPD can be specified by choosing an
 appropriate combination of the integrator and :doc:`pair_style dpd/fdt/energy <pair_style>` command.  DPD under isoenergetic conditions
-can be specified by using fix *dpd/energy*\ , fix *nve* and pair\_style
+can be specified by using fix *dpd/energy*\ , fix *nve* and pair_style
 *dpd/fdt/energy*\ .  DPD under isoenthalpic conditions can
-be specified by using fix *dpd/energy*\ , fix *nph* and pair\_style
+be specified by using fix *dpd/energy*\ , fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
 examples/USER/dpd directory.
 

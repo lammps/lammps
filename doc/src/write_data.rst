@@ -51,7 +51,7 @@ value.
    the :doc:`pair_coeff <pair_coeff>` command.  Second, a few of the :doc:`atom styles <atom_style>` (body, ellipsoid, line, tri) that store
    auxiliary "bonus" information about aspherical particles, do not yet
    write the bonus info into the data file.  Both these functionalities
-   will be added to the write\_data command later.
+   will be added to the write_data command later.
 
 Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the

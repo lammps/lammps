@@ -262,10 +262,10 @@ the 3 tilt factors will be included on each of the 3 following lines.
 This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
-Note that the first two numbers on each line are now xlo\_bound instead
+Note that the first two numbers on each line are now xlo_bound instead
 of xlo, etc, since they represent a bounding box.  See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a geometric description
 of triclinic boxes, as defined by LAMMPS, simple formulas for how the
-6 bounding box extents (xlo\_bound,xhi\_bound,etc) are calculated from
+6 bounding box extents (xlo_bound,xhi_bound,etc) are calculated from
 the triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
 
@@ -280,7 +280,7 @@ scaled format (from 0 to 1).  I.e. an x value of 0.25 means the atom
 is at a location 1/4 of the distance from xlo to xhi of the box
 boundaries.  The format can be changed to unscaled coords via the
 :doc:`dump_modify <dump_modify>` settings.  Image flags can also be
-added for each atom via dump\_modify.
+added for each atom via dump_modify.
 
 Style *custom* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
@@ -502,7 +502,7 @@ between processor, there is no guarantee that the same index will be
 used for the same info (e.g. a particular bond) in successive
 snapshots.
 
-The *c\_ID* and *c\_ID[I]* attributes allow local vectors or arrays
+The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
 calculated by a :doc:`compute <compute>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -515,20 +515,20 @@ opposed to local quantities, cannot be output in a dump local command.
 Instead, global quantities can be output by the :doc:`thermo_style custom <thermo_style>` command, and per-atom quantities can be
 output by the dump custom command.
 
-If *c\_ID* is used as a attribute, then the local vector calculated by
-the compute is printed.  If *c\_ID[I]* is used, then I must be in the
+If *c_ID* is used as a attribute, then the local vector calculated by
+the compute is printed.  If *c_ID[I]* is used, then I must be in the
 range from 1-M, which will print the Ith column of the local array
 with M columns calculated by the compute.  See the discussion above
 for how I can be specified with a wildcard asterisk to effectively
 specify multiple values.
 
-The *f\_ID* and *f\_ID[I]* attributes allow local vectors or arrays
+The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
 calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
 should be replaced by the actual ID of the fix that has been defined
 previously in the input script.
 
-If *f\_ID* is used as a attribute, then the local vector calculated by
-the fix is printed.  If *f\_ID[I]* is used, then I must be in the
+If *f_ID* is used as a attribute, then the local vector calculated by
+the fix is printed.  If *f_ID[I]* is used, then I must be in the
 range from 1-M, which will print the Ith column of the local with M
 columns calculated by the fix.  See the discussion above for how I can
 be specified with a wildcard asterisk to effectively specify multiple
@@ -612,7 +612,7 @@ The *tqx*\ , *tqy*\ , *tqz* attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
 
-The *c\_ID* and *c\_ID[I]* attributes allow per-atom vectors or arrays
+The *c_ID* and *c_ID[I]* attributes allow per-atom vectors or arrays
 calculated by a :doc:`compute <compute>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -626,14 +626,14 @@ command.  Instead, global quantities can be output by the
 :doc:`thermo_style custom <thermo_style>` command, and local quantities
 can be output by the dump local command.
 
-If *c\_ID* is used as a attribute, then the per-atom vector calculated
-by the compute is printed.  If *c\_ID[I]* is used, then I must be in
+If *c_ID* is used as a attribute, then the per-atom vector calculated
+by the compute is printed.  If *c_ID[I]* is used, then I must be in
 the range from 1-M, which will print the Ith column of the per-atom
 array with M columns calculated by the compute.  See the discussion
 above for how I can be specified with a wildcard asterisk to
 effectively specify multiple values.
 
-The *f\_ID* and *f\_ID[I]* attributes allow vector or array per-atom
+The *f_ID* and *f_ID[I]* attributes allow vector or array per-atom
 quantities calculated by a :doc:`fix <fix>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the fix that has been
 defined previously in the input script.  The :doc:`fix ave/atom <fix_ave_atom>` command is one that calculates per-atom
@@ -642,14 +642,14 @@ any :doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
 :doc:`variable <variable>`, this allows those time-averaged results to
 be written to a dump file.
 
-If *f\_ID* is used as a attribute, then the per-atom vector calculated
-by the fix is printed.  If *f\_ID[I]* is used, then I must be in the
+If *f_ID* is used as a attribute, then the per-atom vector calculated
+by the fix is printed.  If *f_ID[I]* is used, then I must be in the
 range from 1-M, which will print the Ith column of the per-atom array
 with M columns calculated by the fix.  See the discussion above for
 how I can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-The *v\_name* attribute allows per-atom vectors calculated by a
+The *v_name* attribute allows per-atom vectors calculated by a
 :doc:`variable <variable>` to be output.  The name in the attribute
 should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
@@ -660,7 +660,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
 
-The *d\_name* and *i\_name* attributes allow to output custom per atom
+The *d_name* and *i_name* attributes allow to output custom per atom
 floating point or integer properties that are managed by
 :doc:`fix property/atom <fix_property_atom>`.
 
@@ -674,7 +674,7 @@ Restrictions
 """"""""""""
 
 To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS\_GZIP option or use the styles from the COMPRESS package.
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` doc page for details.
 
 The *atom/gz*\ , *cfg/gz*\ , *custom/gz*\ , and *xyz/gz* styles are part of

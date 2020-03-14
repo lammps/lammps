@@ -168,7 +168,7 @@ additional information is printed, e.g.
 The first line is the time spent doing 3d FFTs (several per timestep)
 and the fraction it represents of the total KSpace time (listed
 above).  Each 3d FFT requires computation (3 sets of 1d FFTs) and
-communication (transposes).  The total flops performed is 5Nlog\_2(N),
+communication (transposes).  The total flops performed is 5Nlog_2(N),
 where N is the number of points in the 3d grid.  The FFTs are timed
 with and without the communication and a Gflop rate is computed.  The
 3d rate is with communication; the 1d rate is without (just the 1d

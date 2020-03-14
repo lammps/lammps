@@ -18,7 +18,7 @@ Syntax
 * file = filename containing the reaction kinetic equations and Arrhenius parameters
 * localTemp = *none,lucy* = no local temperature averaging or local temperature defined through Lucy weighting function
 * matrix = *sparse, dense* format for the stoichiometric matrix
-* solver = *lammps\_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
+* solver = *lammps_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
 * minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
 * maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
 * relTol = relative tolerance for the rkf45 solver (rkf45 only)
@@ -63,10 +63,10 @@ constructed based on the *n* reaction rate equations.
 
 The ODE systems are solved over the full DPD timestep *dt* using either a 4th
 order Runge-Kutta *rk4* method with a fixed step-size *h*\ , specified
-by the *lammps\_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
+by the *lammps_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
 with an adaptive step-size for *h*\ . The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
-keyword. The ODE step-size is set as *dt/num\_steps*. Smaller
+keyword. The ODE step-size is set as *dt/num_steps*. Smaller
 step-sizes tend to yield more accurate results but there is not
 control on the error. For error control, use the rkf45 ODE solver.
 
@@ -74,13 +74,13 @@ The rkf45 method adjusts the step-size so that the local truncation error is hel
 within the specified absolute and relative tolerances. The initial step-size *h0*
 can be specified by the user or estimated internally. It is recommended that the user
 specify *h0* since this will generally reduced the number of ODE integration steps
-required. *h0* is defined as *dt / min\_steps* if min\_steps >= 1. If min\_steps == 0,
+required. *h0* is defined as *dt / min_steps* if min_steps >= 1. If min_steps == 0,
 *h0* is estimated such that an explicit Euler method would likely produce
 an acceptable solution. This is generally overly conservative for the 4th-order
 method and users are advised to specify *h0* as some fraction of the DPD timestep.
 For small DPD timesteps, only one step may be necessary depending upon the tolerances.
-Note that more than min\_steps ODE steps may be taken depending upon the ODE stiffness
-but no more than max\_steps will be taken. If max\_steps is reached, an error warning
+Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
+but no more than max_steps will be taken. If max_steps is reached, an error warning
 is printed and the simulation is stopped.
 
 After each ODE step, the solution error *e* is tested and weighted using the absTol
@@ -195,7 +195,7 @@ case, the :doc:`read_data <read_data>` command with the fix keyword
 should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_ suffix, e.g.
 
 fix          foo all rx reaction.file ...
-read\_data    data.dpd fix foo\_SPECIES NULL Species
+read_data    data.dpd fix foo_SPECIES NULL Species
 
 ----------
 

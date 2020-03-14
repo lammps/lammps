@@ -28,8 +28,8 @@ Description
 """""""""""
 
 Fix *eos/table* applies a tabulated mesoparticle equation of state to
-relate the particle internal energy (u\_i) to the particle internal
-temperature (dpdTheta\_i).
+relate the particle internal energy (u_i) to the particle internal
+temperature (dpdTheta_i).
 
 Fix *eos/table* creates interpolation tables of length *N* from
 internal energy values listed in a file as a function of internal

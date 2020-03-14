@@ -109,7 +109,7 @@ frequently.
    means those pairs will not be included in the group/group interaction.
    This does not apply when using long-range coulomb interactions
    (\ *coul/long*\ , *coul/msm*\ , *coul/wolf* or similar.  One way to get
-   around this would be to set special\_bond scaling factors to very tiny
+   around this would be to set special_bond scaling factors to very tiny
    numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
    is to write a dump file, and use the :doc:`rerun <rerun>` command to
    compute the group/group interactions for snapshots in the dump file.

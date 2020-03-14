@@ -102,10 +102,10 @@ new owning processors.
 
 .. note::
 
-   This means that you cannot use the change\_box command to enlarge
+   This means that you cannot use the change_box command to enlarge
    a shrink-wrapped box, e.g. to make room to insert more atoms via the
    :doc:`create_atoms <create_atoms>` command, because the simulation box
-   will be re-shrink-wrapped before the change\_box command completes.
+   will be re-shrink-wrapped before the change_box command completes.
    Instead you could do something like this, assuming the simulation box
    is non-periodic and atoms extend from 0 to 20 in all dimensions:
 
@@ -120,7 +120,7 @@ new owning processors.
 
 .. note::
 
-   Unlike the earlier "displace\_box" version of this command, atom
+   Unlike the earlier "displace_box" version of this command, atom
    remapping is NOT performed by default.  This command allows remapping
    to be done in a more general way, exactly when you specify it (zero or
    more times) in the sequence of transformations.  Thus if you do not
@@ -280,7 +280,7 @@ command.  This command allows the boundary conditions to be changed
 later in your input script.  Also note that the
 :doc:`read_restart <read_restart>` will change boundary conditions to
 match what is stored in the restart file.  So if you wish to change
-them, you should use the change\_box command after the read\_restart
+them, you should use the change_box command after the read_restart
 command.
 
 ----------
@@ -308,7 +308,7 @@ useful if you wish to use the *remap* keyword more than once or if you
 wish it to be applied to an intermediate box size/shape in a sequence
 of keyword operations.  Note that the box size/shape is saved before
 any of the keywords are processed, i.e. the box size/shape at the time
-the create\_box command is encountered in the input script.
+the create_box command is encountered in the input script.
 
 The *remap* keyword remaps atom coordinates from the last saved box
 size/shape to the current box state.  For example, if you stretch the
@@ -343,7 +343,7 @@ the input script when this command is issued, no :doc:`dumps <dump>` can
 be active, nor can a :doc:`fix deform <fix_deform>` be active.  This is
 because these commands test whether the simulation box is orthogonal
 when they are first issued.  Note that these commands can be used in
-your script before a change\_box command is issued, so long as an
+your script before a change_box command is issued, so long as an
 :doc:`undump <undump>` or :doc:`unfix <unfix>` command is also used to
 turn them off.
 

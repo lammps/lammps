@@ -64,9 +64,9 @@ examples/COUPLE/README for more details:
   library
 * plugin: simple driver program in C which invokes LAMMPS as a plugin
   from a shared library.
-* lammps\_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
+* lammps_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
   MD with quantum forces calculated by a density functional code
-* lammps\_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple
+* lammps_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple
   a kinetic Monte Carlo model for grain growth using MD to calculate
   strain induced across grain boundaries
 
@@ -89,7 +89,7 @@ The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See the :doc:`Howto library <Howto_library>` doc page for a
 description of the interface and how to extend it for your needs.
 
-Note that the lammps\_open() function that creates an instance of
+Note that the lammps_open() function that creates an instance of
 LAMMPS takes an MPI communicator as an argument.  This means that
 instance of LAMMPS will run on the set of processors in the
 communicator.  Thus the calling code can run LAMMPS on all or a subset

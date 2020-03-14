@@ -39,7 +39,7 @@ leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 
-Note that using a dihedral\_coeff command can override a previous setting
+Note that using a dihedral_coeff command can override a previous setting
 for the same dihedral type.  For example, these commands set the coeffs
 for all dihedral types, then overwrite the coeffs for just dihedral type 2:
 
@@ -49,7 +49,7 @@ for all dihedral types, then overwrite the coeffs for just dihedral type 2:
    dihedral_coeff 2 200.0 1 3
 
 A line in a data file that specifies dihedral coefficients uses the exact
-same format as the arguments of the dihedral\_coeff command in an input
+same format as the arguments of the dihedral_coeff command in an input
 script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Dihedral Coeffs" section of a data file, the line that
@@ -83,7 +83,7 @@ in more compact form on the :ref:`Commands dihedral <dihedral>` doc page.
 
 On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
-dihedral\_coeff command.
+dihedral_coeff command.
 
 ----------
 

@@ -164,7 +164,7 @@ I,J pairs must be specified explicitly.
 This style does not support the :doc:`pair_modify <pair_modify>` shift option
 for the energy of the exp() and 1/r\^6 portion of the pair interaction.
 
-This style does not support the pair\_modify tail option for adding long-range
+This style does not support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure for the A,C terms in the
 pair interaction.
 

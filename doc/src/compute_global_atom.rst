@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * global/atom = style name of this compute command
-* index = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* index = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -23,7 +23,7 @@ Syntax
        v_name = per-atom vector calculated by an atom-style variable with name
 
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
+* input = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 

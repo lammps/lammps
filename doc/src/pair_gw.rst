@@ -41,10 +41,10 @@ to release the code anyway with only the technical explanations.
 For details of the model and the parameters, please refer to the
 linked publication.
 
-Only a single pair\_coeff command is used with the *gw* and *gw/zbl*
+Only a single pair_coeff command is used with the *gw* and *gw/zbl*
 styles which specifies a Gao-Weber potential file with parameters
 for all needed elements.  These are mapped to LAMMPS atom types by
-specifying N additional arguments after the filename in the pair\_coeff
+specifying N additional arguments after the filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * filename
@@ -55,7 +55,7 @@ to specify the path for the potential file.
 
 As an example, imagine a file SiC.gw has Gao-Weber values for Si and C.
 If your LAMMPS simulation has 4 atoms types and you want the first 3 to
-be Si, and the 4th to be C, you would use the following pair\_coeff command:
+be Si, and the 4th to be C, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -89,7 +89,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the

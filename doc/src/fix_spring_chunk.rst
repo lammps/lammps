@@ -48,7 +48,7 @@ chunk.  Note that *K* thus represents the spring constant for the
 total force on each chunk of atoms, not for a spring applied to each
 atom.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

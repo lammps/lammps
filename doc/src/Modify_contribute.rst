@@ -90,8 +90,8 @@ packages in the src directory for examples. If you are uncertain, please ask.
 
 * All source files you provide must compile with the most current
   version of LAMMPS with multiple configurations. In particular you
-  need to test compiling LAMMPS from scratch with -DLAMMPS\_BIGBIG
-  set in addition to the default -DLAMMPS\_SMALLBIG setting. Your code
+  need to test compiling LAMMPS from scratch with -DLAMMPS_BIGBIG
+  set in addition to the default -DLAMMPS_SMALLBIG setting. Your code
   will need to work correctly in serial and in parallel using MPI.
 
 * For consistency with the rest of LAMMPS and especially, if you want
@@ -106,7 +106,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   (<cstdlib>, <cstdio>, or <cstring>) instead of the C-style names
   <stdlib.h>, <stdio.h>, or <string.h>), and forward declarations
   used where possible or needed to avoid including headers.
-  All added code should be placed into the LAMMPS\_NS namespace or a
+  All added code should be placed into the LAMMPS_NS namespace or a
   sub-namespace; global or static variables should be avoided, as they
   conflict with the modular nature of LAMMPS and the C++ class structure.
   Header files must **not** import namespaces with *using*\ .
@@ -164,7 +164,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   mathematical expression or figures (see doc/JPG for examples).
   Additional PDF files with further details (see doc/PDF for examples)
   may also be included.  The doc page should also include literature
-  citations as appropriate; see the bottom of doc/fix\_nh.rst for
+  citations as appropriate; see the bottom of doc/fix_nh.rst for
   examples and the earlier part of the same file for how to format the
   cite itself.  Citation labels must be unique across all .rst files.
   The "Restrictions" section of the doc page should indicate if your
@@ -191,7 +191,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
 * If there is a paper of yours describing your feature (either the
   algorithm/science behind the feature itself, or its initial usage, or
   its implementation in LAMMPS), you can add the citation to the \*.cpp
-  source file.  See src/USER-EFF/atom\_vec\_electron.cpp for an example.
+  source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
   A LaTeX citation is stored in a variable at the top of the file and a
   single line of code that references the variable is added to the
   constructor of the class.  Whenever a user invokes your feature from

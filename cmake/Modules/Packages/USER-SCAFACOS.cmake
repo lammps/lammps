@@ -13,9 +13,6 @@ if(PKG_USER-SCAFACOS)
   endif()
   option(DOWNLOAD_SCAFACOS "Download ScaFaCoS library instead of using an already installed one" ${DOWNLOAD_SCAFACOS_DEFAULT})
   if(DOWNLOAD_SCAFACOS)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded ScaFaCoS library with Ninja build tool")
-    endif()
     message(STATUS "ScaFaCoS download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(scafacos_build
@@ -29,6 +26,22 @@ if(PKG_USER-SCAFACOS)
                                                CXX=${CMAKE_MPI_CXX_COMPILER}
                                                CC=${CMAKE_MPI_C_COMPILER}
                                                F77=
+      BUILD_BYPRODUCTS 
+        <INSTALL_DIR>/lib/libfcs.a
+        <INSTALL_DIR>/lib/libfcs_direct.a
+        <INSTALL_DIR>/lib/libfcs_ewald.a
+        <INSTALL_DIR>/lib/libfcs_fmm.a
+        <INSTALL_DIR>/lib/libfcs_p2nfft.a
+        <INSTALL_DIR>/lib/libfcs_p3m.a
+        <INSTALL_DIR>/lib/libfcs_near.a
+        <INSTALL_DIR>/lib/libfcs_gridsort.a
+        <INSTALL_DIR>/lib/libfcs_resort.a
+        <INSTALL_DIR>/lib/libfcs_redist.a
+        <INSTALL_DIR>/lib/libfcs_common.a
+        <INSTALL_DIR>/lib/libfcs_pnfft.a
+        <INSTALL_DIR>/lib/libfcs_pfft.a
+        <INSTALL_DIR>/lib/libfcs_fftw3_mpi.a
+        <INSTALL_DIR>/lib/libfcs_fftw3.a
     )
     ExternalProject_get_property(scafacos_build INSTALL_DIR)
     set(SCAFACOS_BUILD_DIR ${INSTALL_DIR})

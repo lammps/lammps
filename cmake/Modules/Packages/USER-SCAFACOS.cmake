@@ -4,6 +4,7 @@ if(PKG_USER-SCAFACOS)
 
   find_package(GSL REQUIRED)
   find_package(PkgConfig QUIET)
+  find_package(MPI REQUIRED)
   set(DOWNLOAD_SCAFACOS_DEFAULT ON)
   if(PKG_CONFIG_FOUND)
     pkg_check_modules(SCAFACOS QUIET scafacos)

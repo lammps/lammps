@@ -23,7 +23,7 @@ if(PKG_MSCG)
                  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-      BUILD_COMMAND make mscg INSTALL_COMMAND ""
+      BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} libmscg.a INSTALL_COMMAND ""
       BUILD_BYPRODUCTS <BINARY_DIR>/libmscg.a
       )
     ExternalProject_get_property(mscg_build BINARY_DIR)

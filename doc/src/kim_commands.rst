@@ -1,16 +1,19 @@
-.. index:: kim_init, kim_interactions, kim_query, kim_param
+.. index:: kim_init, kim_interactions, kim_query, kim_param, kim_property
 
-kim_init command
-=================
+:ref:`kim_init<kim_init command>` command
+=========================================
 
-kim_interactions command
-=========================
+:ref:`kim_interactions<kim_interactions command>` command
+=========================================================
 
-kim_query command
-==================
+:ref:`kim_query<kim_query command>` command
+===========================================
 
-kim_param command
-==================
+:ref:`kim_param<kim_param command>` command
+===========================================
+
+:ref:`kim_property<kim_property command>` command
+=================================================
 
 Syntax
 """"""
@@ -22,6 +25,11 @@ Syntax
    kim_query variable formatarg query_function queryargs
    kim_param get param_name index_range variables formatarg
    kim_param set param_name index_range values
+   kim_property create  instance_id property_id
+   kim_property modify  instance_id key key_name key_name_key key_name_value
+   kim_property remove  instance_id key key_name
+   kim_property destroy instance_id
+   kim_property dump    file
 
 .. _formatarg_options:
 
@@ -41,13 +49,19 @@ Syntax
             on the prefix specified in *variable* and a number appended to
             indicate which element in the list of values is in the variable.
      *explicit* = returns the values separately in one more more variable names
-            provided as arguments that precede *formatarg*\ . [default for *kim_param*]
+            provided as arguments that preceed *formatarg*\ . [default for *kim_param*]
 
 * query_function = name of the OpenKIM web API query function to be used
 * queryargs = a series of *keyword=value* pairs that represent the web query; supported keywords depend on the query function
 * param_name = name of a KIM portable model parameter
 * index_range = KIM portable model parameter index range (an integer for a single element, or pair of integers separated by a colon for a range of elements)
 * values = new value(s) to replace the current value(s) of a KIM portable model parameter
+* instance_id = a positive integer identifying the KIM property instance
+* property_id = identifier of a `KIM Property Definition <https://openkim.org/properties>`_, which can be (1) a property short name, (2) the full unique ID of the property (including the contributor and date), (3) a file name corresponding to a local property definition file
+* key_name = one of the keys belonging to the specified KIM property definition
+* key_name_key = a key belonging to a key-value pair (standardized in the `KIM Properties Framework <https://openkim.org/doc/schema/properties-framework>`__)
+* key_name_value = value to be associated with a key_name_key in a key-value pair
+* file = name of a file to write the currently defined set of KIM property instances to
 
 Examples
 """"""""
@@ -64,6 +78,15 @@ Examples
    kim_query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Al"] units=["angstrom"]
    kim_param get gamma 1 varGamma
    kim_param set gamma 1 3.0
+   kim_property create  1 atomic-mass
+   kim_property modify  1 key mass source-value 26.98154
+   kim_property modify  1 key species source-value Al
+   kim_property remove  1 key species
+   kim_property destroy 1
+   kim_property dump    results.edn
+
+
+.. _kim_description:
 
 Description
 """""""""""
@@ -157,11 +180,10 @@ See the `current list of KIM PMs and SMs archived in OpenKIM <https://openkim.or
 This list is sorted by species and can be filtered to display only
 IMs for certain species combinations.
 
-See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_ to
-learn how to install a pre-build binary of the OpenKIM Repository of Models.
+See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
+learn how to install a pre-built binary of the OpenKIM Repository of Models.
 
 .. note::
-
    It is also possible to locally install IMs not archived in OpenKIM,
    in which case their names do not have to conform to the KIM ID format.
 
@@ -169,15 +191,17 @@ Using OpenKIM IMs with LAMMPS
 -----------------------------
 
 Two commands are employed when using OpenKIM IMs, one to select the
-IM and perform necessary initialization (*kim_init*), and the second
+IM and perform necessary initialization (\ *kim_init*\ ), and the second
 to set up the IM for use by executing any necessary LAMMPS commands
-(*kim_interactions*). Both are required.
+(\ *kim_interactions*\ ). Both are required.
 
 See the *examples/kim* directory for example input scripts that use KIM PMs
 and KIM SMs.
 
+.. _kim_init command:
+
 OpenKIM IM Initialization (*kim_init*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The *kim_init* mode command must be issued **before**
 the simulation box is created (normally at the top of the file).
@@ -219,7 +243,7 @@ either match the required units of the IM or the IM must be able
 to adjust its units to match. (The latter is only possible with some KIM PMs;
 SMs can never adjust their units.) If a match is possible, the LAMMPS
 :doc:`units <units>` command is called to set the units to
-*user_units*. If the match fails, the simulation is terminated with
+*user_units*\ . If the match fails, the simulation is terminated with
 an error.
 
 Here is an example of a LAMMPS script to compute the cohesive energy
@@ -324,8 +348,10 @@ be done to convert the box and all atomic positions to the correct units:
    all appropriate places in the input script. It is up to the user to do this
    correctly.
 
+.. _kim_interactions command:
+
 OpenKIM IM Execution (*kim_interactions*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The second and final step in using an OpenKIM IM is to execute the
 *kim_interactions* command. This command must be preceded by a *kim_init*
@@ -399,12 +425,17 @@ the *kim_interactions* command executes the following LAMMPS input commands:
    pair_coeff * * ffield.reax.rdx C H N O
    fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
 
-Note that the files *lmp_control*, *ffield.reax.rdx* and *param.qeq*
-are specific to the Strachan et al. (2003) ReaxFF parameterization
-and are archived as part of the SM package in OpenKIM.
-Note also that parameters like cutoff radii and charge tolerances,
-which have an effect on IM predictions, are also included in the
-SM definition ensuring reproducibility.
+.. note::
+
+    The files *lmp_control*, *ffield.reax.rdx* and *param.qeq*
+    are specific to the Strachan et al. (2003) ReaxFF parameterization
+    and are archived as part of the SM package in OpenKIM.
+
+.. note::
+
+    Parameters like cutoff radii and charge tolerances,
+    which have an effect on IM predictions, are also included in the
+    SM definition ensuring reproducibility.
 
 .. note::
 
@@ -414,8 +445,10 @@ SM definition ensuring reproducibility.
    bond_coeff, fixes related to charge equilibration, etc.) should normally
    not appear in the input script.
 
+.. _kim_query command:
+
 Using OpenKIM Web Queries in LAMMPS (*kim_query*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The *kim_query* command performs a web query to retrieve the predictions
 of an IM set by *kim_init* for material properties archived in
@@ -426,6 +459,7 @@ of an IM set by *kim_init* for material properties archived in
    The *kim_query* command must be preceded by a *kim_init* command.
 
 The syntax for the *kim_query* command is as follows:
+
 
 .. code-block:: LAMMPS
 
@@ -442,7 +476,7 @@ individual variables of the form *prefix_I*, where *prefix* is set to the
 *kim_query* *variable* argument and *I* ranges from 1 to the number of
 returned values. The number and order of the returned values is determined
 by the type of query performed.  (Note that the "explicit" setting of
-*formatarg* is not supported by *kim_query*.)
+*formatarg* is not supported by *kim_query*\ .)
 
 .. note::
 
@@ -452,7 +486,7 @@ by the type of query performed.  (Note that the "explicit" setting of
    cases will generate an error.
 
 The second required argument *query_function* is the name of the
-query function to be called (e.g. *get_lattice_constant_cubic*).
+query function to be called (e.g. *get_lattice_constant_cubic*\ ).
 All following :doc:`arguments <Commands_parse>` are parameters handed over to
 the web query in the format *keyword=value*\ , where *value* is always
 an array of one or more comma-separated items in brackets.
@@ -466,7 +500,7 @@ is available on the OpenKIM webpage at
    All query functions require the *model* keyword, which identifies
    the IM whose predictions are being queried. This keyword is automatically
    generated by *kim_query* based on the IM set in *kim_init* and must not
-   be specified as an argument to *kim_query*.
+   be specified as an argument to *kim_query*\ .
 
 .. note::
 
@@ -475,11 +509,11 @@ is available on the OpenKIM webpage at
    used to compute this property. In cases where there are multiple
    methods in OpenKIM for computing a property, a *method* keyword can
    be provided to select the method of choice.  See the
-   `query documentation <https://openkim.org/doc/repository/kim-query>`_
-   to see which methods are available for a given *query function*\ .
+   `query documentation <https://openkim.org/doc/usage/kim-query>`_
+   to see which methods are available for a given *query_function*\ .
 
 *kim_query* Usage Examples and Further Clarifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The data obtained by *kim_query* commands can be used as part of the setup
 or analysis phases of LAMMPS simulations. Some examples are given below.
@@ -502,10 +536,12 @@ crystal. By using *kim_query*, the user is saved the trouble and possible
 error of tracking this value down, or of having to perform an energy
 minimization to find the equilibrium lattice constant.
 
-Note that in *unit_conversion_mode* the results obtained from a
-*kim_query* would need to be converted to the appropriate units system.
-For example, in the above script, the lattice command would need to be
-changed to: "lattice fcc ${a0}\*${_u_distance}".
+.. note::
+
+    In *unit_conversion_mode* the results obtained from a
+    *kim_query* would need to be converted to the appropriate units system.
+    For example, in the above script, the lattice command would need to be
+    changed to: "lattice fcc ${a0}*${_u_distance}".
 
 **Define an equilibrium hcp crystal**
 
@@ -524,7 +560,7 @@ changed to: "lattice fcc ${a0}\*${_u_distance}".
 In this case the *kim_query* returns two arguments (since the hexagonal
 close packed (hcp) structure has two independent lattice constants).
 The *formatarg* keyword "split" places the two values into
-the variables *latconst_1* and *latconst_2*. (These variables are
+the variables *latconst_1* and *latconst_2*\ . (These variables are
 created if they do not already exist.) For convenience the variables
 *a0* and *c0* are created in order to make the remainder of the
 input script more readable.
@@ -555,9 +591,9 @@ potential.
    If no tolerance is passed a default value is used. If multiple results
    are returned (indicating that the tolerance is too large), *kim_query*
    will return an error. See the
-   `query documentation <https://openkim.org/doc/repository/kim-query>`_
+   `query documentation <https://openkim.org/doc/usage/kim-query>`_
    to see which numerical arguments and tolerances are available for a
-   given *query function*\ .
+   given *query_function*\ .
 
 **Compute defect formation energy**
 
@@ -586,8 +622,10 @@ ideal fcc cohesive energy of the atoms in the system obtained from
    from these programs are queried is tracked. No other information about
    the nature of the query or its source is recorded.
 
+.. _kim_param command:
+
 Accessing KIM Model Parameters from LAMMPS (*kim_param*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All IMs are functional forms containing a set of
 parameters.  The values of these parameters are typically
@@ -620,7 +658,7 @@ for details).
 
 .. note::
 
-   The *kim_param get/set* commands must be preceded by *kim_init*.
+   The *kim_param get/set* commands must be preceded by *kim_init*\ .
    The *kim_param set* command must additionally be preceded by a
    *kim_interactions* command (or alternatively by a *pair_style kim*
    and *pair_coeff* commands).  The *kim_param set* command may be used wherever a *pair_coeff* command may occur.
@@ -674,13 +712,13 @@ Multiple parameters can be retrieved with a single call to *kim_param get*
 by repeating the argument list following *get*\ .
 
 For a *set* operation, the *values* argument contains the new value(s)
-for the element(s) of the parameter specified by *index_range*. For the case
+for the element(s) of the parameter specified by *index_range*\ . For the case
 where multiple values are being set, *values* contains a set of values
 separated by spaces. Multiple parameters can be set with a single call to
 *kim_param set* by repeating the argument list following *set*\ .
 
 *kim_param* Usage Examples and Further Clarifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Examples of getting and setting KIM PM parameters with further
 clarifications are provided below.
@@ -722,7 +760,7 @@ determined by the *formatarg* argument.
 
 In this case, *formatarg* is not specified and therefore the default
 "explicit" mode is used. (The behavior would be the same if the word
-*explicit* were added after *LAM_TeSe*.) Elements 7, 8 and 9 of parameter
+*explicit* were added after *LAM_TeSe*\ .) Elements 7, 8 and 9 of parameter
 lambda retrieved by the *get* operation are placed in the LAMMPS variables
 *LAM_TeTe*, *LAM_TeZn* and *LAM_TeSe*, respectively.
 
@@ -765,7 +803,7 @@ contains the current value of lambda.
 
 In this case, the "split" mode of *formatarg* is used.
 The three values retrieved by the *get* operation are stored in
-the three LAMMPS variables *LAM_15*, *LAM_16* and *LAM_17*.
+the three LAMMPS variables *LAM_15*, *LAM_16* and *LAM_17*\ .
 The provided name "LAM" is used as prefix and the location in
 the lambda array is appended to create the variable names.
 
@@ -797,7 +835,7 @@ potential, while *NEW_GAMMA* will contain the value 2.6.
 
 **Setting multiple scalar parameters with a single call**
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
@@ -824,6 +862,421 @@ In this case, elements 2 through 6 of the parameter *sigma*
 are set to the values 2.35214, 2.23869, 2.04516, 2.43269 and 1.80415 in
 order.
 
+.. _kim_property command:
+
+Writing material properties computed in LAMMPS to standard KIM property instance format (*kim_property*)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As explained :ref:`above<kim_description>`,
+The OpenKIM system includes a collection of Tests (material property calculation codes),
+Models (interatomic potentials), Predictions, and Reference Data (DFT or experiments).
+Specifically, a KIM Test is a computation that when coupled with a KIM Model generates
+the prediction of that model for a specific material property rigorously defined
+by a KIM Property Definition (see the
+`KIM Properties Framework <https://openkim.org/doc/schema/properties-framework/>`__
+for further details). A prediction of a material property for a given model is a specific
+numerical realization of a property definition, referred to as a "Property
+Instance."  The objective of the *kim_property* command is to make it easy to
+output material properties in a standardized, machine readable, format that can be easily
+ingested by other programs.
+Additionally, it aims to make it as easy as possible to convert a LAMMPS script that computes a
+material property into a KIM Test that can then be uploaded to `openkim.org <https://openkim.org>`_
+
+A developer interested in creating a KIM Test using a LAMMPS script should
+first determine whether a property definition that applies to their calculation
+already exists in OpenKIM by searching the `properties page
+<https://openkim.org/properties>`_.  If none exists, it is possible to use a
+locally defined property definition contained in a file until it can be
+uploaded to the official repository (see below).  Once one or more applicable
+property definitions have been identified, the *kim_property create*,
+*kim_property modify*, *kim_property remove*, and *kim_property destroy*,
+commands provide an interface to create, set, modify, remove, and destroy
+instances of them within a LAMMPS script.  Their general syntax is as follows:
+
+.. code-block:: LAMMPS
+
+   kim_property create  instance_id property_id
+   kim_property modify  instance_id key key_name key_name_key key_name_value
+   kim_property remove  instance_id key key_name
+   kim_property destroy instance_id
+   kim_property dump    file
+
+Here, *instance_id* is a positive integer used to uniquely identify each
+property instance; (note that the results file can contain multiple property
+instances).  A property_id is an identifier of a
+`KIM Property Definition <https://openkim.org/properties>`_,
+which can be (1) a property short name, (2) the full unique ID of the property
+(including the contributor and date), (3) a file name corresponding to a local
+property definition file.  Examples of each of these cases are shown below:
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 atomic-mass
+   kim_property create 2 cohesive-energy-relation-cubic-crystal
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 tag:brunnels@noreply.openkim.org,2016-05-11:property/atomic-mass
+   kim_property create 2 tag:staff@noreply.openkim.org,2014-04-15:property/cohesive-energy-relation-cubic-crystal
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 new-property.edn
+   kim_property create 2 /home/mary/marys-kim-properties/dissociation-energy.edn
+
+In the last example, "new-property.edn" and "/home/mary/marys-kim-properties/dissociation-energy.edn" are the
+names of files that contain user-defined (local) property definitions.
+
+A KIM property instance takes the form of a "map," i.e. a set of key-value
+pairs akin to Perl's hash, Python's dictionary, or Java's Hashtable.  It
+consists of a set of property key names, each of which is referred to here by
+the *key_name* argument, that are defined as part of the relevant KIM Property
+Definition and include only lowercase alphanumeric characters and dashes.  The
+value paired with each property key is itself a map whose possible keys are
+defined as part of the `KIM Properties Framework
+<https://openkim.org/doc/schema/properties-framework>`__; these keys are
+referred to by the *key_name_key* argument and their associated values by the
+*key_name_value* argument.  These values may either be scalars or arrays,
+as stipulated in the property definition.
+
+.. note::
+
+    Each map assigned to a *key_name* must contain the *key_name_key*
+    "source-value" and an associated *key_name_value* of the appropriate
+    type (as defined in the relevant KIM Property Definition).  For keys that are
+    defined as having physical units, the
+    "source-unit" *key_name_key* must also be given a string value recognized
+    by `GNU units <https://www.gnu.org/software/units/>`_.
+
+Once a *kim_property create* command has been given to instantiate a property
+instance, maps associated with the property's keys can be edited using the
+*kim_property modify* command.  In using this command, the special keyword
+"key" should be given, followed by the property key name and the key-value pair
+in the map associated with the key that is to be set.  For example, the
+`atomic-mass <https://openkim.org/properties/show/2016-05-11/brunnels@noreply.openkim.org/atomic-mass>`_
+property definition consists of two property keys named "mass" and "species."
+An instance of this property could be created like so:
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 atomic-mass
+   kim_property modify 1 key species source-value Al
+   kim_property modify 1 key mass    source-value 26.98154
+   kim_property modify 1 key mass    source-unit amu
+
+or, equivalently,
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 atomic-mass
+   kim_property modify 1 key species source-value Al       &
+                         key mass    source-value 26.98154 &
+                                     source-unit  amu
+
+*kim_property* Usage Examples and Further Clarifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Create**
+
+.. code-block:: LAMMPS
+
+   kim_property create instance_id property_id
+
+The *kim_property create* command takes as input a property instance ID and the
+property definition name, and creates an initial empty property instance data
+structure.  For example,
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 atomic-mass
+   kim_property create 2 cohesive-energy-relation-cubic-crystal
+
+creates an empty property instance of the "atomic-mass" property definition
+with instance ID 1 and an empty instance of the
+"cohesive-energy-relation-cubic-crystal" property with ID 2.  A list of
+published property definitions in OpenKIM can be found on the `properties page
+<https://openkim.org/properties>`_.
+
+One can also provide the name of a file in the current working directory or the
+path of a file containing a valid property definition.  For example,
+
+.. code-block:: LAMMPS
+
+   kim_property create 1 new-property.edn
+
+where "new-property.edn" refers to a file name containing a new property
+definition that does not exist in OpenKIM.
+
+If the *property_id* given cannot be found in OpenKIM and no file of this name
+containing a valid property definition can be found, this command will produce
+an error with an appropriate message.  Calling *kim_property create* with the
+same instance ID multiple times will also produce an error.
+
+**Modify**
+
+.. code-block:: LAMMPS
+
+   kim_property modify instance_id key key_name key_name_key key_name_value
+
+The *kim_property modify* command incrementally builds the property instance
+by receiving property definition keys along with associated arguments. Each
+*key_name* is associated with a map containing one or more key-value pairs (in
+the form of *key_name_key*-*key_name_value* pairs).  For example,
+
+.. code-block:: LAMMPS
+
+   kim_property modify 1 key species source-value Al
+   kim_property modify 1 key mass    source-value 26.98154
+   kim_property modify 1 key mass    source-unit  amu
+
+where the special keyword "key" is followed by a *key_name* ("species" or
+"mass" in the above) and one or more key-value pairs.  These key-value pairs
+may continue until either another "key" keyword is given or the end of the
+command line is reached.  Thus, the above could equivalently be written as
+
+.. code-block:: LAMMPS
+
+   kim_property modify 1 key species source-value Al       &
+                         key mass    source-value 26.98154 &
+                         key mass    source-unit  amu
+
+As an example of modifying multiple key-value pairs belonging to the map of a
+single property key, the following command modifies the map of the
+"cohesive-potential-energy" property key to contain the key "source-unit" which
+is assigned a value of "eV" and the key "digits" which is assigned a value of
+5:
+
+.. code-block:: LAMMPS
+
+   kim_property modify 2 key cohesive-potential-energy source-unit eV digits 5
+
+.. note::
+
+    The relevant data types of the values in the map are handled
+    automatically based on the specification of the key in the
+    KIM Property Definition.  In the example above,
+    this means that the value "eV" will automatically be interpreted as a string
+    while the value 5 will be interpreted as an integer.
+
+The values contained in maps can either be scalars, as in all of the examples
+above, or arrays depending on which is stipulated in the corresponding Property
+Definition.  For one-dimensional arrays, a single one-based index must be
+supplied that indicates which element of the array is to be modified.  For
+multidimensional arrays, multiple indices must be given depending on the
+dimensionality of the array.
+
+.. note::
+
+   All array indexing used by *kim_property modify* is one-based, i.e. the
+   indices are enumerated 1, 2, 3, ...
+
+.. note::
+
+   The dimensionality of arrays are defined in the the corresponding Property
+   Definition.  The extent of each dimension of an array can either be a
+   specific finite number or indefinite and determined at run time.  If
+   an array has a fixed extent, attempting to modify an out-of-range index will
+   fail with an error message.
+
+For example, the "species" property key of the
+`cohesive-energy-relation-cubic-crystal
+<https://openkim.org/properties/show/2014-04-15/staff@noreply.openkim.org/cohesive-energy-relation-cubic-crystal>`_
+property is a one-dimensional array that can contain any number of entries
+based on the number of atoms in the unit cell of a given cubic crystal.  To
+assign an array containing the string "Al" four times to the "source-value" key
+of the "species" property key, we can do so by issuing:
+
+.. code-block:: LAMMPS
+
+   kim_property modify 2 key species source-value 1 Al
+   kim_property modify 2 key species source-value 2 Al
+   kim_property modify 2 key species source-value 3 Al
+   kim_property modify 2 key species source-value 4 Al
+
+.. note::
+
+    No declaration of the number of elements in this array was given;
+    *kim_property modify* will automatically handle memory management to allow
+    an arbitrary number of elements to be added to the array.
+
+.. note::
+
+   In the event that *kim_property modify* is used to set the value of an
+   array index without having set the values of all lesser indices, they will
+   be assigned default values based on the data type associated with the key in
+   the map:
+
+   .. table_from_list::
+      :columns: 2
+
+      * Data type
+      * Default value
+      * int
+      * 0
+      * float
+      * 0.0
+      * string
+      * \"\"
+      * file
+      * \"\"
+
+   For example, doing the following:
+
+   .. code-block:: LAMMPS
+
+      kim_property create 2 cohesive-energy-relation-cubic-crystal
+      kim_property modify 2 key species source-value 4 Al
+
+   will result in the "source-value" key in the map for the property key
+   "species" being assigned the array ["", "", "", "Al"].
+
+For convenience, the index argument provided may refer to an inclusive range of
+indices by specifying two integers separated by a colon (the first integer must
+be less than or equal to the second integer, and no whitespace should be
+included).  Thus, the snippet above could equivalently be written:
+
+.. code-block:: LAMMPS
+
+   kim_property modify 2 key species source-value 1:4 Al Al Al Al
+
+Calling this command with a non-positive index, e.g.
+``kim_property modify 2 key species source-value 0 Al``, or an incorrect
+number of input arguments, e.g.
+``kim_property modify 2 key species source-value 1:4 Al Al``, will result in an
+error.
+
+As an example of modifying multidimensional arrays, consider the "basis-atoms"
+key in the `cohesive-energy-relation-cubic-crystal
+<https://openkim.org/properties/show/2014-04-15/staff@noreply.openkim.org/cohesive-energy-relation-cubic-crystal>`_
+property definition.  This is a two-dimensional array containing the fractional
+coordinates of atoms in the unit cell of the cubic crystal.  In the case of,
+e.g. a conventional fcc unit cell, the "source-value" key in the map associated
+with this key should be assigned the following value:
+
+.. code-block:: LAMMPS
+
+   [[0.0, 0.0, 0.0],
+    [0.5, 0.5, 0.0],
+    [0.5, 0.0, 0.5],
+    [0.0, 0.5, 0.5]]
+
+While each of the twelve components could be set individually, we can instead set
+each row at a time using colon notation:
+
+.. code-block:: LAMMPS
+
+   kim_property modify 2 key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0
+   kim_property modify 2 key basis-atom-coordinates source-value 2 1:3 0.5 0.5 0.0
+   kim_property modify 2 key basis-atom-coordinates source-value 3 1:3 0.5 0.0 0.5
+   kim_property modify 2 key basis-atom-coordinates source-value 4 1:3 0.0 0.5 0.5
+
+Where the first index given refers to a row and the second index refers to a
+column.  We could, instead, choose to set each column at a time like so:
+
+.. code-block:: LAMMPS
+
+   kim_property modify 2 key basis-atom-coordinates source-value 1:4 1 0.0 0.5 0.5 0.0 &
+                         key basis-atom-coordinates source-value 1:4 2 0.0 0.5 0.0 0.5 &
+                         key basis-atom-coordinates source-value 1:4 3 0.0 0.0 0.5 0.5
+
+.. note::
+
+   Multiple calls of *kim_property modify* made for the same instance ID
+   can be combined into a single invocation, meaning the following are
+   both valid:
+
+   .. code-block:: LAMMPS
+
+      kim_property modify 2 key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0 &
+                            key basis-atom-coordinates source-value 2 1:3 0.5 0.5 0.0 &
+                            key basis-atom-coordinates source-value 3 1:3 0.5 0.0 0.5 &
+                            key basis-atom-coordinates source-value 4 1:3 0.0 0.5 0.5
+
+   .. code-block:: LAMMPS
+
+      kim_property modify 2 key short-name source-value 1 fcc                         &
+                            key species source-value 1:4 Al Al Al Al                  &
+                            key a source-value 1:5 3.9149 4.0000 4.032 4.0817 4.1602  &
+                                  source-unit angstrom                                &
+                                  digits 5                                            &
+                            key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0 &
+                            key basis-atom-coordinates source-value 2 1:3 0.5 0.5 0.0 &
+                            key basis-atom-coordinates source-value 3 1:3 0.5 0.0 0.5 &
+                            key basis-atom-coordinates source-value 4 1:3 0.0 0.5 0.5
+
+.. note::
+
+   For multidimensional arrays, only one colon-separated range is allowed
+   in the index listing.  Therefore,
+
+   .. code-block:: LAMMPS
+
+      kim_property modify 2 key basis-atom-coordinates 1 1:3 0.0 0.0 0.0
+
+   is valid but
+
+   .. code-block:: LAMMPS
+
+      kim_property modify 2 key basis-atom-coordinates 1:2 1:3 0.0 0.0 0.0 0.0 0.0 0.0
+
+   is not.
+
+.. note::
+
+   After one sets a value in a map with the *kim_property modify* command,
+   additional calls will overwrite the previous value.
+
+**Remove**
+
+.. code-block:: LAMMPS
+
+   kim_property remove instance_id key key_name
+
+The *kim_property remove* command can be used to remove a property key from a
+property instance.  For example,
+
+.. code-block:: LAMMPS
+
+   kim_property remove 2 key basis-atom-coordinates
+
+**Destroy**
+
+.. code-block:: LAMMPS
+
+   kim_property destroy instance_id
+
+The *kim_property destroy* command deletes a previously created property
+instance ID.  For example,
+
+.. code-block:: LAMMPS
+
+   kim_property destroy 2
+
+.. note::
+
+    If this command is called with an instance ID that does not exist, no
+    error is raised.
+
+**Dump**
+
+The *kim_property dump*  command can be used to write the content of all
+currently defined property instances to a file:
+
+.. code-block:: LAMMPS
+
+   kim_property dump file
+
+For example,
+
+.. code-block:: LAMMPS
+
+   kim_property dump results.edn
+
+.. note::
+
+    Issuing the *kim_property dump* command clears all existing property
+    instances from memory.
+
 Citation of OpenKIM IMs
 -----------------------
 
@@ -847,8 +1300,11 @@ LAMMPS is built with that package. A requirement for the KIM package,
 is the KIM API library that must be downloaded from the
 `OpenKIM website <https://openkim.org/kim-api/>`_ and installed before
 LAMMPS is compiled. When installing LAMMPS from binary, the kim-api package
-is a dependency that is automatically downloaded and installed. See the KIM
-section of the :doc:`Packages details <Packages_details>` for details.
+is a dependency that is automatically downloaded and installed. The *kim_query*
+command requires the *libcurl* library to be installed.  The *kim_property*
+command requires *Python* 3.6 or later and the *kim-property* python package to
+be installed. See the KIM section of the :doc:`Packages details <Packages_details>`
+for details.
 
 Furthermore, when using *kim_commands* to run KIM SMs, any packages required
 by the native potential being used or other commands or fixes that it invokes

@@ -168,6 +168,13 @@ for each element, the upper-triangular elements of alpha.
    The previously used *diagonalstyle* keyword was removed in 2019,
    since all known SNAP potentials use the default value of 3.
 
+**SNAP potentials are available from:**
+
+* The OpenKIM Project at
+  `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+  provides SNAP potentials that can be used directly in LAMMPS with the
+  :doc:`kim_commands <kim_commands>` interface.
+
 ----------
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :

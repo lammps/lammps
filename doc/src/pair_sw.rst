@@ -163,6 +163,13 @@ used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*\ , :math:`\gamma`)
 
+**SW potentials are available from:**
+
+* The OpenKIM Project at
+  `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+  provides SW potentials that can be used directly in LAMMPS with the
+  :doc:`kim_commands <kim_commands>` interface.
+
 ----------
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are

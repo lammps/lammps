@@ -133,6 +133,13 @@ optional arguments are given.
 The :math:`E^{\text{TORSION}}` term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.
 
+**AIREBO potentials are available from:**
+
+* The OpenKIM Project at
+  `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+  provides AIREBO potentials that can be used directly in LAMMPS with the
+  :doc:`kim_commands <kim_commands>` interface.
+
 ----------
 
 Only a single pair_coeff command is used with the *airebo*\ , *airebo*

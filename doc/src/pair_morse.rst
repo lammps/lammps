@@ -74,6 +74,13 @@ commands:
 The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 
+**MORSE potentials are available from:**
+
+* The OpenKIM Project at
+  `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+  provides MORSE potentials that can be used directly in LAMMPS with the
+  :doc:`kim_commands <kim_commands>` interface.
+
 ----------
 
 The *morse/smooth/linear* variant is similar to the lj/smooth/linear

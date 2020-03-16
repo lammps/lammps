@@ -56,8 +56,10 @@ command to specify them.
 * The NIST WWW site at http://www.ctcms.nist.gov/potentials.
   Note that ADP potentials obtained from NIST must be converted
   into the extended DYNAMO *setfl* format discussed below.
-* The OpenKIM Project at https://openkim.org/browse/models/by-type provides
-  ADP potentials that can be used directly in LAMMPS with the :doc:`kim_commands interface <kim_commands>`.
+* The OpenKIM Project at
+  `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+  provides ADP potentials that can be used directly in LAMMPS with the
+  :doc:`kim_commands <kim_commands>` interface.
 
 ----------
 

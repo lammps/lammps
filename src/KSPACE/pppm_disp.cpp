@@ -1659,7 +1659,7 @@ int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::allocate()
+void _noopt PPPMDisp::allocate()
 {
 
   int (*procneigh)[2] = comm->procneigh;

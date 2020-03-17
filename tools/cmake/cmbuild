@@ -9,7 +9,7 @@ MYARGS=""
 
 usage()
 {
-   echo "Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target1> [<target2>] ...]" >&2
+   echo "Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]" >&2
 }
 
 help()

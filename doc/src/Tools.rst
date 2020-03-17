@@ -200,7 +200,7 @@ tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
 
 .. parsed-literal::
 
-  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target1> [<target2>] ...]
+  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
 
   Options:
     -h                print this message

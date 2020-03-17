@@ -218,7 +218,8 @@ flags to tune for optimal performance on given hosts. By default these are
 initialized to some compiler specific flags, where known, to optimize the
 LAMMPS executable with optimizations and instructions available on the host
 where LAMMPS is compiled. For example, for Intel compilers this would be
-``-xHost`` and for GNU compilers this would be ``-march=native``.
+``-xHost`` and for GNU compilers this would be ``-march=native``. To turn
+these flags off, set ``-D CMAKE_TUNE_FLAGS=``.
 
 .. note::
 

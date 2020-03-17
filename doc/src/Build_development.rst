@@ -2,7 +2,7 @@ Development build options (CMake only)
 ======================================
 
 The CMake build of LAMMPS has a few extra options which are useful during
-development,  testing or debugging.
+development, testing or debugging.
 
 ----------
 
@@ -25,6 +25,12 @@ Another way of doing this without reconfiguration is calling make with variable 
 
    make VERBOSE=1
 
+Or when using the :ref:`"cmbuild" wrapper script <cmake>`:
+
+.. code-block:: bash
+
+   cmbuild -v
+
 ----------
 
 .. _sanitizer:
@@ -32,20 +38,27 @@ Another way of doing this without reconfiguration is calling make with variable 
 Address, Undefined Behavior, and Thread Sanitizer Support
 -------------------------------------------------------------------------
 
-Compilers such as GCC and Clang support generating binaries which use different
-sanitizers to detect problems in code during run-time. They can detect `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html>`_,
-code that runs into `undefined behavior <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_ of the
-language and `data races <https://clang.llvm.org/docs/ThreadSanitizer.html>`_ in threaded code.
+Compilers such as GCC and Clang support generating instrumented binaries
+which use different sanitizer libraries to detect problems in code
+during run-time. They can detect issues like:
 
-The following settings allow you enable these features if your compiler supports
-it. Please note that they come with a performance hit. However, they are
-usually faster than using tools like Valgrind.
+ - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html>`_
+ - `undefined behavior <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_
+ - `data races <https://clang.llvm.org/docs/ThreadSanitizer.html>`_
+
+Please note that this kind of instrumentation usually comes with a small
+performance hit (much less than using tools like `Valgrind <valgrind_>`_).
+The to enable these features additional compiler flags need to be added
+to the compilation and linking stages.  This is most easily done through
+setting the ``CMAKE_TUNE_FLAGS`` variable during configuration. Examples:
 
 .. code-block:: bash
 
-   -D ENABLE_SANITIZE_ADDRESS=value    # enable Address Sanitizer, value = no (default) or yes
-   -D ENABLE_SANITIZE_UNDEFINED=value  # enable Undefined Behaviour Sanitizer, value = no (default) or yes
-   -D ENABLE_SANITIZE_THREAD=value     # enable Thread Sanitizer, value = no (default) or yes
+   -D CMAKE_TUNE_FLAGS=-fsanitize=address    # enable address sanitizer / memory leak checker
+   -D CMAKE_TUNE_FLAGS=-fsanitize=undefined  # enable undefined behaviour sanitizer
+   -D CMAKE_TUNE_FLAGS=-fsanitize=thread     # enable thread sanitizer
+
+.. _valgrind: https://valgrind.org
 
 ----------
 

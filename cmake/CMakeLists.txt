@@ -51,33 +51,34 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
+# set required compiler flags and compiler/CPU arch specific optimizations
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-  if (NOT CMAKE_TUNE_FLAGS)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_TUNE_FLAGS "-xCOMMON-AVX512")
-    else()
-      set(CMAKE_TUNE_FLAGS "-xHost")
-    endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+  else()
+    set(CMAKE_TUNE_DEFAULT "-xHost")
   endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if(NOT CMAKE_TUNE_FLAGS)
-    set (CMAKE_TUNE_FLAGS "-ffast-math -march=native")
-  endif()
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
 # we require C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# GNU compiler features
+# GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable code coverage" OFF)
+  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
-    set (CMAKE_TUNE_FLAGS "--coverage")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   endif()
 endif()
 
@@ -339,6 +340,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
 endif()
 
+set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
 if(CMAKE_Fortran_FLAGS)
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")

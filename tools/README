@@ -12,36 +12,37 @@ at.
 
 These are the included tools:
 
-amber2lmp	       python scripts for using AMBER to setup LAMMPS input
-binary2txt	       convert a LAMMPS dump file from binary to ASCII text
-ch2lmp		       convert CHARMM files to LAMMPS input
-chain		       create a data file of bead-spring chains
-colvars		       post-process output of the fix colvars command        
-createatoms	       generate lattices of atoms within a geometry
+amber2lmp              python scripts for using AMBER to setup LAMMPS input
+binary2txt             convert a LAMMPS dump file from binary to ASCII text
+ch2lmp                 convert CHARMM files to LAMMPS input
+chain                  create a data file of bead-spring chains
+cmake                  tools and scripts for use with CMake
+colvars                post-process output of the fix colvars command
+createatoms            generate lattices of atoms within a geometry
 drude                  create Drude core/electron atom pairs in a data file
-eam_database	       one tool to generate EAM alloy potential files
-eam_generate	       2nd tool to generate EAM alloy potential files
-eff		       scripts for working with the eFF (electron force field)
-emacs		       add-ons to EMACS editor for editing LAMMPS input scripts
-fep		       scripts for free-energy perturbation with USER-FEP pkg
+eam_database           one tool to generate EAM alloy potential files
+eam_generate           2nd tool to generate EAM alloy potential files
+eff                    scripts for working with the eFF (electron force field)
+emacs                  add-ons to EMACS editor for editing LAMMPS input scripts
+fep                    scripts for free-energy perturbation with USER-FEP pkg
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
-ipp		       input pre-processor Perl tool for creating input scripts
+ipp                    input pre-processor Perl tool for creating input scripts
 kate                   add-ons to Kate editor for editing LAMMPS input scripts
-lmp2arc		       convert LAMMPS output to Accelrys Insight format
-lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
-matlab		       MatLab scripts for post-processing LAMMPS output
-micelle2d	       create a data file of small lipid chains in solvent
+lmp2arc                convert LAMMPS output to Accelrys Insight format
+lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
+matlab                 MatLab scripts for post-processing LAMMPS output
+micelle2d              create a data file of small lipid chains in solvent
 moltemplate            Instructions for installing the Moltemplate builder program
-msi2lmp		       use Accelrys Insight code to setup LAMMPS input
+msi2lmp                use Accelrys Insight code to setup LAMMPS input
 phonon                 post-process output of the fix phonon command
 polybond               Python tool for programmable polymer bonding
-pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
-python		       Python scripts for post-processing LAMMPS output
-reax	       	       Tools for analyzing output of ReaxFF simulations
-replica        tool to reorder LAMMPS replica trajectories according to temperature
+pymol_asphere          convert LAMMPS output of ellipsoids to PyMol format
+python                 Python scripts for post-processing LAMMPS output
+reax                   Tools for analyzing output of ReaxFF simulations
+replica                tool to reorder LAMMPS replica trajectories according to temperature
 smd                    convert Smooth Mach Dynamics triangles to VTK
 spin                   perform a cubic polynomial interpolation of a GNEB MEP
-vim		       add-ons to VIM editor for editing LAMMPS input scripts
+vim                    add-ons to VIM editor for editing LAMMPS input scripts
 xmgrace                a collection of scripts to generate xmgrace plots
 
 For tools that are single C, C++, or Fortran files, a Makefile for

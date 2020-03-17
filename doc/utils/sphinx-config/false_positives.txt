@@ -2553,8 +2553,7 @@ Salles
 sandia
 Sandia
 sandybrown
-Sanitizer
-sanitizers
+sanitizer
 Sanyal
 sc
 scafacos

@@ -973,12 +973,19 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         error->all(FLERR,"Incorrect atom format in data file");
     }
 
-    if (imageflag)
-      imagedata = ((imageint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-        (((imageint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-        (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
-    else imagedata = ((imageint) IMGMAX << IMG2BITS) |
-           ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+    int imx = 0;
+    int imy = 0;
+    int imz = 0;
+    if (imageflag) {
+      imx = utils::inumeric(FLERR,values[iptr],true,lmp);
+      imy = utils::inumeric(FLERR,values[iptr+1],true,lmp);
+      imz = utils::inumeric(FLERR,values[iptr+2],true,lmp);
+      if ((domain->dimension == 2) && (imz != 0))
+        error->one(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+    }
+    imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
+        (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (imz + IMGMAX) & IMGMASK) << IMG2BITS);
 
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);

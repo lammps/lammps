@@ -519,7 +519,7 @@ MEAM::phi_meam(double r, int a, int b)
 //   To avoid nan values of phir due to rapid decrease of b2nn^n or/and
 //   argument of phi_meam, i.e. r*arat^n, in some cases (3NN dia with low Cmin value)
 //
-const double
+double
 MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat)
 {
   double phi_sum = 0.0;

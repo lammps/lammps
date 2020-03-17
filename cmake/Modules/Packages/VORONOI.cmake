@@ -7,9 +7,6 @@ if(PKG_VORONOI)
   endif()
   option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" ${DOWNLOAD_VORO_DEFAULT})
   if(DOWNLOAD_VORO)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded Voro++ library with Ninja build tool")
-    endif()
     message(STATUS "Voro++ download requested - we will build our own")
     include(ExternalProject)
 
@@ -29,6 +26,7 @@ if(PKG_VORONOI)
       URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
       CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
+      BUILD_BYPRODUCTS <SOURCE_DIR>/src/libvoro++.a
       )
     ExternalProject_get_property(voro_build SOURCE_DIR)
     set(VORO_LIBRARIES ${SOURCE_DIR}/src/libvoro++.a)

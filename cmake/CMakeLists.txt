@@ -255,8 +255,9 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      status(FATAL_ERROR "Cannot build internal linear algebra library with Ninja build tool due to lack for Fortran support")
+    include(CheckGeneratorSupport)
+    if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
+      status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
     endif()
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
@@ -587,14 +588,14 @@ if(BUILD_TOOLS)
   add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-  # ninja-build currently does not support fortran. thus we skip building this tool
-  if(CMAKE_GENERATOR STREQUAL "Ninja")
-    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
-  else()
+  include(CheckGeneratorSupport)
+  if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
     install(TARGETS chain.x DESTINATION ${CMAKE_INSTALL_BINDIR})
+  else()
+    message(WARNING "CMake build doesn't support fortran, skipping building 'chain.x'")
   endif()
 
   enable_language(C)
@@ -686,6 +687,7 @@ feature_summary(DESCRIPTION "The following tools and libraries have been found a
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
+   Generator        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}
@@ -718,7 +720,7 @@ else()
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 if(BUILD_MPI)
-  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and these libraries: ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
 endif()
 if(PKG_GPU)
   message(STATUS "GPU API: ${GPU_API}")

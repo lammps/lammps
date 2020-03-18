@@ -747,6 +747,7 @@ electronegativity
 Eleftheriou
 ElementN
 elementset
+elementsets
 elif
 Elj
 Ellad
@@ -850,6 +851,7 @@ exy
 ey
 ez
 faceset
+facesets
 factorizable
 factorizations
 Fahrenberger
@@ -890,6 +892,7 @@ fhg
 Fi
 Fichthorn
 Fickian
+fieldname
 figshare
 Fij
 filelink
@@ -1988,6 +1991,7 @@ nocite
 nocoeff
 nodeless
 nodeset
+nodesets
 Noehring
 noforce
 Noid

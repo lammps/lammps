@@ -6,7 +6,6 @@ fix ehex command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ehex nevery F keyword value
@@ -17,9 +16,9 @@ Syntax
 * F = energy flux into the reservoir (energy/time units)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *constrain* or *com* or *hex*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region (reservoir) atoms must be in for added thermostatting force
        *constrain* value = none
@@ -29,13 +28,10 @@ Syntax
        *hex* value = none
          omit the coordinate correction to recover the HEX algorithm
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    # Lennard-Jones, from examples/in.ehex.lj
 
@@ -88,9 +84,9 @@ The thermostatting force is given by
 .. math::
 
    \mathbf g_i = \begin{cases}
-   \frac{m_i}{2}   \frac{ F_{\Gamma_{k(\mathbf r_i)}}}{ K_{\Gamma_{k(\mathbf r_i)}}} 
+   \frac{m_i}{2}   \frac{ F_{\Gamma_{k(\mathbf r_i)}}}{ K_{\Gamma_{k(\mathbf r_i)}}}
    \left(\mathbf v_i -  \mathbf v_{\Gamma_{k(\mathbf r_i)}} \right) &  \mbox{$k(\mathbf r_i)> 0$ (inside a reservoir),} \\
-    0                                     &  \mbox{otherwise, } 
+    0                                     &  \mbox{otherwise, }
    \end{cases}
 
 where :math:`m_i` is the mass and :math:`k(\mathbf r_i)` maps the particle
@@ -103,7 +99,7 @@ velocity of that reservoir. The thermostatting force does not affect
 the center of mass velocities of the individual reservoirs and the
 entire simulation box. A derivation of the equations and details on
 the numerical implementation with velocity Verlet in LAMMPS can be
-found in reference "(Wirnsberger)"#\_Wirnsberger.
+found in reference "(Wirnsberger)"#_Wirnsberger.
 
 .. note::
 
@@ -128,9 +124,7 @@ cool continuously.
 This fix will default to :doc:`fix_heat <fix_heat>` (HEX algorithm) if
 the keyword *hex* is specified.
 
-
 ----------
-
 
 **Compatibility with SHAKE and RATTLE (rigid molecules)**\ :
 
@@ -167,11 +161,9 @@ constraints will be satisfied.
    temperature gradients.  A higher precision can be achieved by
    decreasing the timestep.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -181,7 +173,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the RIGID package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -193,19 +184,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ikeshoji:
-
-
 
 **(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
 
 .. _Wirnsberger:
-
-
 
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143,
 124104 (2015).

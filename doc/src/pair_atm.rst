@@ -6,17 +6,15 @@ pair_style atm command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style atm cutoff cutoff_triple
 
 * cutoff = cutoff for each pair in 3-body interaction (distance units)
-* cutoff\_triple = additional cutoff applied to product of 3 pairwise distances (distance units)
+* cutoff_triple = additional cutoff applied to product of 3 pairwise distances (distance units)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -39,7 +37,6 @@ potential for the energy E of a system of atoms as
 .. math::
 
    E & = \nu\frac{1+3\cos\gamma_1\cos\gamma_2\cos\gamma_3}{r_{12}^3r_{23}^3r_{31}^3} \\
-
 
 where :math:`\nu` is the three-body interaction strength.  The distances
 between pairs of atoms :math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` and the angles :math:`\gamma_1`, :math:`\gamma_2`,
@@ -95,7 +92,6 @@ Note that a pair_coeff command can override a previous setting for the
 same :math:`I,J,K` triplet.  For example, these commands set :math:`\nu` for all :math:`I,J.K`
 triplets, then overwrite nu for just the :math:`I,J,K = 2,3,4` triplet:
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * * 0.25
@@ -104,14 +100,12 @@ triplets, then overwrite nu for just the :math:`I,J,K = 2,3,4` triplet:
 Note that for a simulation with a single atom type, only a single
 entry is required, e.g.
 
-
 .. code-block:: LAMMPS
 
    pair_coeff 1 1 1 0.25
 
 For a simulation with two atom types, four pair_coeff commands will
 specify all possible nu values:
-
 
 .. code-block:: LAMMPS
 
@@ -122,7 +116,6 @@ specify all possible nu values:
 
 For a simulation with three atom types, ten pair_coeff commands will
 specify all possible nu values:
-
 
 .. code-block:: LAMMPS
 
@@ -145,9 +138,7 @@ combination and all its permutations.  However, as with all pair
 styles, it is required to specify a pair_coeff command for all :math:`I,J`
 combinations, else an error will result.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -165,13 +156,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner* , *middle* , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -183,13 +171,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Axilrod:
-
-
 
 **(Axilrod)**
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);

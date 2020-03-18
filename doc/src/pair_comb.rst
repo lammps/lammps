@@ -12,23 +12,18 @@ pair_style comb3 command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style comb
    pair_style comb3 keyword
-
 
 .. parsed-literal::
 
    keyword = *polar*
      *polar* value = *polar_on* or *polar_off* = whether or not to include atomic polarization
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -51,8 +46,7 @@ total energy :math:`E_T` of a system of atoms is given by
 .. math::
 
    E_T  = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
-          & E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})] 
-
+          & E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})]
 
 where :math:`E_i^{self}` is the self-energy of atom *i* (including
 atomic ionization energies and electron affinities),
@@ -73,17 +67,16 @@ that determine how often charge equilibration is performed, its
 convergence criterion, and which atoms are included in the
 calculation.
 
-Only a single pair\_coeff command is used with the *comb* and *comb3*
+Only a single pair_coeff command is used with the *comb* and *comb3*
 styles which specifies the COMB potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the potential file in the pair\_coeff
+N additional arguments after the potential file in the pair_coeff
 command, where N is the number of LAMMPS atom types.
 
 For example, if your LAMMPS simulation of a Si/SiO2/
 HfO2 interface has 4 atom types, and you want the 1st and
 last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
-use the following pair\_coeff command:
-
+use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -132,26 +125,23 @@ following table:
 * M = Only optimized for dimer molecule
 * P = in progress, but have it from mixing rule
 
-
 For style *comb3*\ , in addition to ffield.comb3, a special parameter
 file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
-directory pointed to by the environment variable LAMMPS\_POTENTIALS, as
+directory pointed to by the environment variable LAMMPS_POTENTIALS, as
 described on the :doc:`pair_coeff <pair_coeff>` command doc page.
 
 Keyword *polar* indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
-has not yet been implemented, it can only set polar\_off at present.
+has not yet been implemented, it can only set polar_off at present.
 
 .. note::
 
    You can not use potential file *ffield.comb* with style *comb3*\ ,
    nor file *ffield.comb3* with style *comb*\ .
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -171,9 +161,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -185,20 +173,17 @@ These pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 These pair styles do not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style, pair\_coeff, and :doc:`fix qeq/comb <fix_qeq_comb>` commands in an input script that reads a
+need to re-specify the pair_style, pair_coeff, and :doc:`fix qeq/comb <fix_qeq_comb>` commands in an input script that reads a
 restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the MANYBODY package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -221,28 +206,20 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _COMB:
-
-
 
 **(COMB)**  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and
 S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
 
 .. _COMB3:
 
-
-
 **(COMB3)** T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek,
 Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74,
 255-279 (2013).
 
 .. _Rick2:
-
-
 
 **(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).

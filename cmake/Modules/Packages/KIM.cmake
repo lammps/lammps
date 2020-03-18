@@ -34,26 +34,22 @@ if(PKG_KIM)
   endif()
   option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
   if(DOWNLOAD_KIM)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded KIM-API library with Ninja build tool")
-    endif()
     message(STATUS "KIM-API download requested - we will build our own")
-    include(CheckLanguage)
     include(ExternalProject)
     enable_language(C)
-    check_language(Fortran)
-    if(NOT CMAKE_Fortran_COMPILER)
-      message(FATAL_ERROR "Compiling the KIM-API library requires a Fortran compiler")
-    endif()
+    enable_language(Fortran)
     ExternalProject_Add(kim_build
       URL https://s3.openkim.org/kim-api/kim-api-2.1.3.txz
       URL_MD5 6ee829a1bbba5f8b9874c88c4c4ebff8
       BINARY_DIR build
-      CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+      CMAKE_ARGS ${CMAKE_REQUEST_PIC}
+                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                  -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
                  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                 -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX} 
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api)

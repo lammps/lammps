@@ -6,7 +6,6 @@ and :doc:`built an executable <Build>`.  The :doc:`Commands <Commands>`
 doc page describes how input scripts are structured and the commands
 they can contain.
 
-
 .. toctree::
    :maxdepth: 1
 

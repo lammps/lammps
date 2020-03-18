@@ -6,7 +6,6 @@ fix atom/swap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID atom/swap N X seed T keyword values ...
@@ -19,9 +18,9 @@ Syntax
 * T = scaling temperature of the MC swaps (temperature units)
 * one or more keyword/value pairs may be appended to args
 * keyword = *types* or *mu* or *ke* or *semi-grand* or *region*
-  
+
   .. parsed-literal::
-  
+
        *types* values = two or more atom types
        *mu* values = chemical potential of swap types (energy units)
        *ke* value = *no* or *yes*
@@ -33,13 +32,10 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region to use as an exchange/move volume
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
    fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6
@@ -145,7 +141,7 @@ you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
 that fix.  The doc pages for individual :doc:`fix <fix>` commands
 specify if this should be done.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges, the number
@@ -178,7 +174,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -196,13 +191,9 @@ Default
 The option defaults are ke = yes, semi-grand = no, mu = 0.0 for
 all atom types.
 
-
 ----------
 
-
 .. _Sadigh:
-
-
 
 **(Sadigh)** B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and
 L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).

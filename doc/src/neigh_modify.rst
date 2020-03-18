@@ -6,15 +6,14 @@ neigh_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    neigh_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize*
        *delay* value = N
          N = delay building until this many steps since last build
@@ -49,11 +48,8 @@ Syntax
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -132,7 +128,6 @@ sample scenarios where this is useful:
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
 
-
 The *exclude type* option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
 *exclude group* option turns off the interaction if one atom is in the
@@ -164,7 +159,7 @@ turning off bond interactions.
    long-range solver treats the interaction.  This is done correctly for
    pairwise interactions that are excluded (or weighted) via the
    :doc:`special_bonds <special_bonds>` command.  But it is not done for
-   interactions that are excluded via these neigh\_modify exclude options.
+   interactions that are excluded via these neigh_modify exclude options.
 
 The *page* and *one* options affect how memory is allocated for the
 neighbor lists.  For most simulations the default settings for these
@@ -204,7 +199,6 @@ binsize of 1/2 the cutoff.
 
 Restrictions
 """"""""""""
-
 
 If the "delay" setting is non-zero, then it must be a multiple of the
 "every" setting.

@@ -5,8 +5,7 @@ Depending on how you obtained LAMMPS, the doc directory has up
 to 6 sub-directories, 2 Nroff files, and optionally 2 PDF files
 plus 2 e-book format files:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    src             # content files for LAMMPS documentation
    html            # HTML version of the LAMMPS manual (see html/Manual.html)
@@ -29,8 +28,8 @@ and PDF files are not included.  Instead you need to create them, in one
 of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type "make fetch".  This should download a html\_www
-   directory and Manual\_www.pdf/Developer\_www.pdf files.  Note that if
+   site.  Just type "make fetch".  This should download a html_www
+   directory and Manual_www.pdf/Developer_www.pdf files.  Note that if
    new LAMMPS features have been added more recently than the date of
    your LAMMPS version, the fetched documentation will include those
    changes (but your source code will not, unless you update your local
@@ -49,10 +48,8 @@ b. You can build the HTML or PDF files yourself, by typing "make html"
 
 ----------
 
-
 The generation of all documentation is managed by the Makefile in
 the doc directory.
-
 
 .. code-block:: bash
 
@@ -74,7 +71,6 @@ the doc directory.
 
 ----------
 
-
 Installing prerequisites for HTML build
 =======================================
 
@@ -84,7 +80,6 @@ have to be installed.  Here are instructions for common setups:
 Ubuntu
 ------
 
-
 .. code-block:: bash
 
    sudo apt-get install python-virtualenv
@@ -92,14 +87,12 @@ Ubuntu
 Fedora (up to version 21) and Red Hat Enterprise Linux or CentOS (up to version 7.x)
 ------------------------------------------------------------------------------------
 
-
 .. code-block:: bash
 
    sudo yum install python3-virtualenv
 
 Fedora (since version 22)
 -------------------------
-
 
 .. code-block:: bash
 
@@ -121,16 +114,13 @@ virtualenv
 
 Once Python 3 is installed, open a Terminal and type
 
-
 .. code-block:: bash
 
    pip3 install virtualenv
 
 This will install virtualenv from the Python Package Index.
 
-
 ----------
-
 
 Installing prerequisites for epub build
 =======================================

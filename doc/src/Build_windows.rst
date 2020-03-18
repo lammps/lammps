@@ -6,9 +6,7 @@ Notes for building LAMMPS on Windows
 * :ref:`Using GNU GCC ported to Windows <gnu>`
 * :ref:`Using a cross-compiler <cross>`
 
-
 ----------
-
 
 .. _generic:
 
@@ -57,8 +55,8 @@ and the corresponding new code. A machine makefile for using cygwin for
 the old build system is provided. Using CMake for this mode of compilation
 is untested and not likely to work.
 
-When compiling for Windows do **not** set the -DLAMMPS\_MEMALIGN define
-in the LMP\_INC makefile variable and add -lwsock32 -lpsapi to the linker
+When compiling for Windows do **not** set the -DLAMMPS_MEMALIGN define
+in the LMP_INC makefile variable and add -lwsock32 -lpsapi to the linker
 flags in LIB makefile variable. Try adding -static-libgcc or -static or
 both to the linker flags when your resulting LAMMPS Windows executable
 complains about missing .dll files. The CMake configuration should set

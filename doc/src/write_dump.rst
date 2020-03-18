@@ -6,7 +6,6 @@ write_dump command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    write_dump group-ID style file dump-args modify dump_modify-args
@@ -18,10 +17,8 @@ Syntax
 * modify = all args after this keyword are passed to :doc:`dump_modify <dump_modify>` (optional)
 * dump-modify-args = args for :doc:`dump_modify <dump_modify>` (optional)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -52,23 +49,20 @@ added.  The latter is so that the full range of
 :doc:`dump_modify <dump_modify>` options can be specified for the single
 snapshot, just as they can be for multiple snapshots.  The *modify*
 keyword separates the arguments that would normally be passed to the
-*dump* command from those that would be given the *dump\_modify*.  Both
+*dump* command from those that would be given the *dump_modify*.  Both
 support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 
 Note that if the specified filename uses wildcard characters "\*" or
 "%", as supported by the :doc:`dump <dump>` command, they will operate
 in the same fashion to create the new filename(s).  Normally, :doc:`dump image <dump_image>` files require a filename with a "\*" character
-for the timestep.  That is not the case for the write\_dump command; no
+for the timestep.  That is not the case for the write_dump command; no
 wildcard "\*" character is necessary.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 All restrictions for the :doc:`dump <dump>` and
 :doc:`dump_modify <dump_modify>` commands apply to this command as well,

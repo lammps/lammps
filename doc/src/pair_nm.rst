@@ -21,16 +21,15 @@ pair_style nm/cut/coul/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *nm/cut* or *nm/cut/coul/cut* or *nm/cut/coul/long*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *nm/cut* args = cutoff
          cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/coul/cut* args = cutoff (cutoff2)
@@ -40,11 +39,8 @@ Syntax
          cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
          cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -84,7 +80,7 @@ Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 where :math:`C` is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, and epsilon is the dielectric constant which can
 be set by the :doc:`dielectric <dielectric>` command.  If one cutoff is
-specified in the pair\_style command, it is used for both the N-M and Coulombic
+specified in the pair_style command, it is used for both the N-M and Coulombic
 terms.  If two cutoffs are specified, they are used as cutoffs for the N-M and
 Coulombic terms respectively.
 
@@ -112,7 +108,7 @@ commands.
 * cutoff2 (distance units)
 
 The latter 2 coefficients are optional.  If not specified, the global
-N-M and Coulombic cutoffs specified in the pair\_style command are used.
+N-M and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both N-M
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the N-M and Coulombic cutoffs for this
@@ -122,11 +118,9 @@ has no Coulombic terms.
 For *nm/cut/coul/long* only the N-M cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
+pair_style command.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -145,16 +139,14 @@ All of the *nm* pair styles support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the energy and
 pressure for the N-M portion of the pair interaction.
 
-All of the *nm* pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+All of the *nm* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of
 the :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -177,7 +169,6 @@ instructions on how to use the accelerated styles effectively.
 Restrictions
 """"""""""""
 
-
 These pair styles are part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -188,12 +179,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Clarke:
-
-
 
 **(Clarke)** Clarke and Smith, J Chem Phys, 84, 2290 (1986).

@@ -6,14 +6,13 @@ fix atc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix <fixID> <group> atc <type> <parameter_file>
 
 * fixID = name of fix
 * group = name of group fix is to be applied
-* type = *thermal* or *two\_temperature* or *hardy* or *field*
+* type = *thermal* or *two_temperature* or *hardy* or *field*
 
 .. parsed-literal::
 
@@ -22,14 +21,12 @@ Syntax
     *hardy* = on-the-fly post-processing using kernel localization functions (see "related" section for possible fields)
     *field* = on-the-fly post-processing using mesh-based localization functions (see "related" section for possible fields)
 
-* parameter\_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file
-
+* parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix AtC internal atc thermal Ar_thermal.dat
    fix AtC internal atc two_temperature Ar_ttm.mat
@@ -39,15 +36,15 @@ Examples
 Description
 """""""""""
 
-This fix is the beginning to creating a coupled FE/MD simulation and/or an on-the-fly estimation of continuum fields. The coupled versions of this fix do Verlet integration and the post-processing does not. After instantiating this fix, several other fix\_modify commands will be needed to set up the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
+This fix is the beginning to creating a coupled FE/MD simulation and/or an on-the-fly estimation of continuum fields. The coupled versions of this fix do Verlet integration and the post-processing does not. After instantiating this fix, several other fix_modify commands will be needed to set up the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
 .. image:: JPG/atc_nanotube.jpg
    :align: center
 
+The following coupling example is typical, but non-exhaustive:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   The following coupling example is typical, but non-exhaustive:
     # ... commands to create and initialize the MD system
 
     # initial fix to designate coupling type and group to apply it to
@@ -74,8 +71,7 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or an on-th
 
 likewise for this post-processing example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     # ... commands to create and initialize the MD system
 
@@ -87,7 +83,7 @@ likewise for this post-processing example:
     fix AtC kernel quartic_sphere 10.0
 
     # create a uniform 1 x 1 x 1 mesh that covers region contain the group
-    # with periodicity this effectively creats a system average
+    # with periodicity this effectively creates a system average
     fix_modify AtC mesh create 1 1 1 box p p p
 
     # change from default lagrangian map to eulerian
@@ -107,8 +103,7 @@ likewise for this post-processing example:
 the mesh's linear interpolation functions can be used as the localization function
 by using the field option:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     fix AtC internal atc field
     fix_modify AtC mesh create 1 1 1 box p p p
@@ -116,11 +111,9 @@ by using the field option:
 
 Note coupling and post-processing can be combined in the same simulations using separate fixes.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  The :doc:`fix_modify <fix_modify>` options
 relevant to this fix are listed below.  No global scalar or vector or
@@ -132,8 +125,7 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
-Thermal and two\_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. In addition, currently:
+Thermal and two_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. In addition, currently:
 
 * the coupling is restricted to thermal physics
 * the FE computations are done in serial on each processor.
@@ -143,7 +135,7 @@ Related commands
 
 After specifying this fix in your input script, several other :doc:`fix_modify <fix_modify>` commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
-*fix\_modify* commands for setup:
+*fix_modify* commands for setup:
 
 * `fix_modify AtC mesh create <USER/atc/man_mesh_create.html>`_
 * `fix_modify AtC mesh quadrature <USER/atc/man_mesh_quadrature.html>`_
@@ -164,7 +156,7 @@ After specifying this fix in your input script, several other :doc:`fix_modify <
 * `fix_modify AtC internal_element_set <USER/atc/man_internal_element_set.html>`_
 * `fix_modify AtC decomposition <USER/atc/man_decomposition.html>`_
 
-*fix\_modify* commands for boundary and initial conditions:
+*fix_modify* commands for boundary and initial conditions:
 
 * `fix_modify AtC initial <USER/atc/man_initial.html>`_
 * `fix_modify AtC fix <USER/atc/man_fix_nodes.html>`_
@@ -174,7 +166,7 @@ After specifying this fix in your input script, several other :doc:`fix_modify <
 * `fix_modify AtC source <USER/atc/man_source.html>`_
 * `fix_modify AtC remove_source <USER/atc/man_remove_source.html>`_
 
-*fix\_modify* commands for control and filtering:
+*fix_modify* commands for control and filtering:
 
 * `fix_modify AtC control <USER/atc/man_control.html>`_
 * `fix_modify AtC control thermal <USER/atc/man_control_thermal.html>`_
@@ -190,7 +182,7 @@ After specifying this fix in your input script, several other :doc:`fix_modify <
 * `fix_modify AtC extrinsic exchange <USER/atc/man_extrinsic_exchange.html>`_
 * `fix_modify AtC poisson_solver <USER/atc/man_poisson_solver.html>`_
 
-*fix\_modify* commands for output:
+*fix_modify* commands for output:
 
 * `fix_modify AtC output <USER/atc/man_output.html>`_
 * `fix_modify AtC output nodeset <USER/atc/man_output_nodeset.html>`_
@@ -201,7 +193,7 @@ After specifying this fix in your input script, several other :doc:`fix_modify <
 * `fix_modify AtC write_restart <USER/atc/man_write_restart.html>`_
 * `fix_modify AtC read_restart <USER/atc/man_read_restart.html>`_
 
-*fix\_modify* commands for post-processing:
+*fix_modify* commands for post-processing:
 
 * `fix_modify AtC kernel <USER/atc/man_hardy_kernel.html>`_
 * `fix_modify AtC fields <USER/atc/man_hardy_fields.html>`_
@@ -213,7 +205,7 @@ After specifying this fix in your input script, several other :doc:`fix_modify <
 * `fix_modify AtC sample_frequency <USER/atc/man_sample_frequency.html>`_
 * `fix_modify AtC set <USER/atc/man_set.html>`_
 
-miscellaneous *fix\_modify* commands:
+miscellaneous *fix_modify* commands:
 
 * `fix_modify AtC atom_element_map <USER/atc/man_atom_element_map.html>`_
 * `fix_modify AtC atom_weight <USER/atc/man_atom_weight.html>`_
@@ -241,51 +233,35 @@ Default
 """""""
 None
 
-
 ----------
-
 
 For detailed exposition of the theory and algorithms please see:
 
 .. _Wagner:
 
-
-
 **(Wagner)** Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.
 
 .. _Zimmeman2004:
-
-
 
 **(Zimmerman2004)** Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004), 12:S319.
 
 .. _Zimmerman2010:
 
-
-
 **(Zimmerman2010)** Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.
 
 .. _Templeton2010:
-
-
 
 **(Templeton2010)** Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.
 
 .. _Jones:
 
-
-
 **(Jones)** Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940.
 
 .. _Templeton2011:
 
-
-
 **(Templeton2011)** Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.
 
 .. _Mandadapu:
-
-
 
 **(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.
 

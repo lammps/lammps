@@ -260,6 +260,8 @@ Bogaerts
 Bogusz
 Bohrs
 Boltzman
+BondAngle
+BondBond
 bondchk
 bondmax
 bondtype
@@ -391,6 +393,7 @@ cmake
 CMake
 cmap
 Cmax
+cmd
 cmdlist
 Cmin
 cmm
@@ -486,6 +489,7 @@ cstring
 cstyle
 csvr
 Ctypes
+ctypes
 cuda
 Cuda
 CUDA
@@ -2345,6 +2349,7 @@ pymbar
 pymodule
 pymol
 pypar
+pythonic
 Pyy
 pz
 Pz

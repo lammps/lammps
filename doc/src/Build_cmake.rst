@@ -22,7 +22,7 @@ Makefile(s). Example:
    cd lammps                        # change to the LAMMPS distribution directory
    mkdir build; cd build            # create a new directory (folder) for build
    cmake [options ...] ../cmake     # configuration with (command-line) cmake
-   make                             # compilation (or use "cmbuild" from "tools/cmake")
+   cmake --build .                  # compilation (or type "make")
 
 The ``cmake`` command will detect available features, enable selected
 packages and options, and will generate the build environment.  By default
@@ -30,24 +30,22 @@ this build environment will be created for "Unix Makefiles" on most
 platforms and particularly on Linux.  However, alternate build tools
 (e.g. Ninja) and project files for Integrated Development Environments
 (IDEs) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
-selected via the ``-G`` command line flag. For the rest of the documentation
-we will assume that the build environment is generated for makefiles
+selected via the ``-G`` command line flag. Further details about features
+and settings for CMake are in the `CMake online documentation <cmake_doc>`_
+
+.. _cmake_doc: https://cmake.org/documentation/
+
+For the rest of the documentation
+we will assume that the build environment is generated for "Unix Makefiles"
 and thus the ``make`` command will be used to compile and link LAMMPS as
 indicated above, producing (by default) an executable called ``lmp`` and
-a library called ``liblammps.a`` in the ``build`` folder.  When generating
-a build environment for the "Ninja" build tool, the build command would
-be ``ninja`` instead of ``make``.  Or you may copy the ``cmbuild`` script
-from the :ref:`tools/cmake folder <cmake>` somewhere in your path and use that,
-as it will indirectly call CMake with the configured tool.  This is
-particularly, if you configured the build folder with a build tool
-in a non-standard location or name using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+a library called ``liblammps.a`` in the ``build`` folder.
 
-If your machine has multiple CPU cores (most do these days), using a
-command like ``make -j N`` (with N being the number of available local
-CPU cores) can be much faster.  If you plan to do development on
-LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
-``ccache`` (= Compiler Cache) software may speed up repeated compilation
-even more.
+If your machine has multiple CPU cores (most do these days), you can
+parallelize the compilation with a command like ``make -j N`` (with N
+being the number of designated CPU cores).  Also installation of
+the ``ccache`` (= Compiler Cache) software may speed up repeated
+compilation signficantly.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:
@@ -129,7 +127,7 @@ command-line options.  Several useful ones are:
    -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
    -D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
    -G output                     # style of output CMake generates (e.g. "Unix Makefiles" or "Ninja")
-   -D CMAKE_MAKE_PROGRAM=builder # name of the builder executable (e.g. set to "gmake" instead of "make")
+   -D CMAKE_MAKE_PROGRAM=builder # name of the builder executable (e.g. when using "gmake" instead of "make")
    -DVARIABLE=value              # setting for a LAMMPS feature to enable
    -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
    -C path/to/preset/file        # load some CMake settings before configuring
@@ -143,7 +141,7 @@ these forms can be used: yes/no, on/off, 1/0.
 On Unix/Linux machines, CMake generates a Makefile by default to
 perform the LAMMPS build.  Alternate forms of build info can be
 generated via the -G switch, e.g. Visual Studio on a Windows machine,
-Xcode on MacOS, or KDevelop on Linux.  Type "cmake --help" to see the
+Xcode on MacOS, or KDevelop on Linux.  Type ``cmake --help`` to see the
 "Generator" styles of output your system supports.
 
 .. note::

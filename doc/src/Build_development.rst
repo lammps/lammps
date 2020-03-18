@@ -25,12 +25,6 @@ Another way of doing this without reconfiguration is calling make with variable 
 
    make VERBOSE=1
 
-Or when using the :ref:`"cmbuild" wrapper script <cmake>`:
-
-.. code-block:: bash
-
-   cmbuild -v
-
 ----------
 
 .. _sanitizer:

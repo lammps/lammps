@@ -881,7 +881,7 @@ class Lmpsdata:
 class booleanarray:
 	"""A class that stores boolean values in a list of lists."""	
 	def __init__(self,rownum, colnum, initval): 		
-		""" initialise a list of lists (array) with
+		""" initialize a list of lists (array) with
 		rownum correspondinig to the number of lists in the list and 
 		colnum corresponding to the number of elements in the list's list.
 		initval is the value the list of lists will be initialized with.

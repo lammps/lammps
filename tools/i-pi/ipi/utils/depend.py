@@ -73,7 +73,7 @@ class synchronizer(object):
    """
 
    def __init__(self, deps=None):
-      """Initialises synchronizer.
+      """Initializes synchronizer.
 
       Args:
          deps: Optional dictionary giving the synched objects of the form
@@ -113,7 +113,7 @@ class depend_base(object):
    """
 
    def __init__(self, name, synchro=None, func=None, dependants=None, dependencies=None, tainted=None):
-      """Initialises depend_base.
+      """Initializes depend_base.
 
       An unusual initialization routine, as it has to be able to deal with the
       depend array mechanism for returning slices as new depend arrays.
@@ -291,7 +291,7 @@ class depend_value(depend_base):
    """
 
    def __init__(self, name, value=None, synchro=None, func=None, dependants=None, dependencies=None, tainted=None):
-      """Initialises depend_value.
+      """Initializes depend_value.
 
       Args:
          name: A string giving the name of self.
@@ -375,7 +375,7 @@ class depend_array(np.ndarray, depend_base):
       return obj
 
    def __init__(self, value, name, synchro=None, func=None, dependants=None, dependencies=None, tainted=None, base=None):
-      """Initialises depend_array.
+      """Initializes depend_array.
 
       Note that this is only called when a new array is created by an
       explicit constructor.

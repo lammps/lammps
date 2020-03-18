@@ -175,7 +175,7 @@ class Lammps:
 
 class Amber:
     def __init__(self):
-        'Initialise the Amber class'
+        'Initialize the Amber class'
         self.CRD_is_read = 0
         self.TOP_is_read = 0
 

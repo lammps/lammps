@@ -53,7 +53,7 @@ except ImportError:
 
 
 
-#### INITIALISE MPI ####
+#### INITIALIZE MPI ####
 # (note that all output on screen will be printed only on the ROOT proc)
 ROOT = 0
 comm = MPI.COMM_WORLD

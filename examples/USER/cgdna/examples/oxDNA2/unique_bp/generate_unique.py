@@ -373,7 +373,7 @@ def generate_strand(bp, sequence=None, start_pos=np.array([0, 0, 0]), \
     # if not provided switch off random orientation
     if perp is None or perp is False:
         v1 = np.random.random_sample(3)
-        # comment in to suppress randomised base vector
+        # comment in to suppress randomized base vector
         v1 = [1,0,0]
         v1 -= dir * (np.dot(dir, v1))
         v1 /= np.sqrt(sum(v1*v1))
@@ -644,12 +644,12 @@ def read_strands(filename):
 
             # generate random position of the first nucleotide
             com = box_offset + np.random.random_sample(3) * box
-            # comment out to randomise
+            # comment out to randomize
             com = [0,0,0]
 
             # generate the random direction of the helix 
             axis = np.random.random_sample(3)
-            # comment out to randomise
+            # comment out to randomize
             axis = [0,0,1]
             axis /= np.sqrt(np.dot(axis, axis))
 
@@ -702,12 +702,12 @@ def read_strands(filename):
 
 	    # generate random position of the first nucleotide
             com = box_offset + np.random.random_sample(3) * box
-            # comment out to randomise
+            # comment out to randomize
             com = [-30,0,0]
 
             # generate the random direction of the helix 
             axis = np.random.random_sample(3)
-            # comment out to randomise
+            # comment out to randomize
             axis = [0,0,1]
             axis /= np.sqrt(np.dot(axis, axis))
 

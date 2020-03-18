@@ -349,7 +349,7 @@ class CheckpointOutput(dobject):
       """Writes out the required trajectories.
 
       Used for both the checkpoint files and the soft-exit restart file.
-      We have slightly different behaviour for these two different types of
+      We have slightly different behavior for these two different types of
       checkpoint file, as the soft-exit files have their store() function
       called automatically, and we do not want this to be updated as the
       status of the simulation after a soft-exit call is unlikely to be in

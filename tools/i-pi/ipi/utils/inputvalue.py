@@ -22,7 +22,7 @@ attributes dictionary, which are filled with the tags and attributes that
 are allowed to be present, along with their default values and data type.
 
 These are then filled with the data from the xml file when the program
-is initialised, and are filled by the values calculated in the program which
+is initialized, and are filled by the values calculated in the program which
 are then output to the checkpoint file when a restart file is required.
 
 Also deals with checking for user input errors, of the form of misspelt tags,
@@ -65,14 +65,14 @@ class input_default(object):
    """
 
    def __init__(self, factory, args = None, kwargs = None):
-      """Initialises input_default.
+      """Initializes input_default.
 
       Args:
          type: The class or function to be used to create the default object.
-         args: A tuple giving the arguments to be used to initialise
+         args: A tuple giving the arguments to be used to initialize
             the default value.
          kwargs: A dictionary giving the key word arguments to be used
-            to initialise the default value.
+            to initialize the default value.
       """
 
       if args is None:
@@ -147,10 +147,10 @@ class Input(object):
                       #hyperlinks
 
    def __init__(self, help=None, default=None):
-      """Initialises Input.
+      """Initializes Input.
 
       Automatically adds all the fields and attribs names to the input object's
-      dictionary, then initialises all the appropriate input objects
+      dictionary, then initializes all the appropriate input objects
       as the corresponding values.
 
       Args:
@@ -676,7 +676,7 @@ class InputAttribute(Input):
    """
 
    def __init__(self,  help=None, default=None, dtype=None, options=None):
-      """Initialises InputAttribute.
+      """Initializes InputAttribute.
 
       Args:
          help: A help string.
@@ -773,7 +773,7 @@ class InputValue(InputAttribute):
    attribs= { "units" : ( InputAttribute, { "dtype" : str, "help" : "The units the input data is given in.", "default" : default_units } ) }
 
    def __init__(self,  help=None, default=None, dtype=None, options=None, dimension=None):
-      """Initialises InputValue.
+      """Initializes InputValue.
 
       Args:
          help: A help string.
@@ -874,7 +874,7 @@ class InputArray(InputValue):
    attribs["shape"] = (InputAttribute,  {"dtype": tuple,  "help": "The shape of the array.", "default": (0,)})
 
    def __init__(self,  help=None, default=None, dtype=None, dimension=None):
-      """Initialises InputArray.
+      """Initializes InputArray.
 
       Args:
          help: A help string.

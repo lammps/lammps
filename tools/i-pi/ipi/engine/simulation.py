@@ -20,7 +20,7 @@ along with this program. If not, see <http.//www.gnu.org/licenses/>.
 The root class for the whole simulation. Contains references to all the top
 level objects used in the simulation, and controls all the steps that are
 not inherently system dependent, like the running of each time step,
-choosing which properties to initialise, and which properties to output.
+choosing which properties to initialize, and which properties to output.
 
 Classes:
    Simulation: Deals with running the simulation and outputting the results.
@@ -81,7 +81,7 @@ class Simulation(dobject):
    """
 
    def __init__(self, beads, cell, forces, ensemble, prng, outputs, nm, init, step=0, tsteps=1000, ttime=0):
-      """Initialises Simulation class.
+      """Initializes Simulation class.
 
       Args:
          beads: A beads object giving the atom positions.

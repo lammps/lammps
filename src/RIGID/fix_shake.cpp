@@ -3059,7 +3059,7 @@ void FixShake::correct_velocities() {}
 void FixShake::correct_coordinates(int vflag) {
 
   // save current forces and velocities so that you
-  // initialise them to zero such that FixShake::unconstrained_coordinate_update has no effect
+  // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
   for (int j=0; j<nlocal; j++) {
     for (int k=0; k<3; k++) {

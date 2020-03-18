@@ -63,7 +63,7 @@ class xml_node(object):
    """
 
    def __init__(self, attribs=None, name="", fields=None):
-      """Initialises xml_node.
+      """Initializes xml_node.
 
       Args:
          attribs: An optional dictionary giving attribute data. Defaults to {}.
@@ -101,7 +101,7 @@ class xml_handler(ContentHandler):
    """
 
    def __init__(self):
-      """Initialises xml_handler."""
+      """Initializes xml_handler."""
 
       #root xml node with all the data
       self.root = xml_node(name="root", fields=[])

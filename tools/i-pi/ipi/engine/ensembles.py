@@ -78,7 +78,7 @@ class Ensemble(dobject):
    """
 
    def __init__(self, dt, temp, fixcom=False):
-      """Initialises Ensemble.
+      """Initializes Ensemble.
 
       Args:
          dt: The timestep of the simulation algorithms.
@@ -177,7 +177,7 @@ class NVEEnsemble(Ensemble):
    """
 
    def __init__(self, dt, temp, fixcom=False):
-      """Initialises NVEEnsemble.
+      """Initializes NVEEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -273,7 +273,7 @@ class NVTEnsemble(NVEEnsemble):
    """
 
    def __init__(self, dt, temp, thermostat=None, fixcom=False):
-      """Initialises NVTEnsemble.
+      """Initializes NVTEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -384,7 +384,7 @@ class NPTEnsemble(NVTEnsemble):
    """
 
    def __init__(self, dt, temp, pext, thermostat=None, barostat=None, fixcom=False):
-      """Initialises NPTEnsemble.
+      """Initializes NPTEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -508,7 +508,7 @@ class ReplayEnsemble(Ensemble):
    """
 
    def __init__(self, dt, temp, fixcom=False, intraj=None):
-      """Initialises ReplayEnsemble.
+      """Initializes ReplayEnsemble.
 
       Args:
          dt: The simulation timestep.

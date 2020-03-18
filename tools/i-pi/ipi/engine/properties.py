@@ -212,7 +212,7 @@ class Properties(dobject):
    _DEFAULT_MINFID = 1e-12
 
    def __init__(self):
-      """Initialises Properties."""
+      """Initializes Properties."""
 
       self.property_dict = {
       "step": {       "dimension" : "number",
@@ -1094,7 +1094,7 @@ class Trajectories(dobject):
    """
 
    def __init__(self):
-      """Initialises a Trajectories object."""
+      """Initializes a Trajectories object."""
 
       self.traj_dict = {
       # Note that here we want to return COPIES of the different arrays, so we make sure to make an operation in order not to return a reference.

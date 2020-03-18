@@ -3,7 +3,7 @@
 #	lmpsdata.py
 #
 #	For reading, writing and manipulating lammps data files
-# 	For calculation of certain proprieties using lammps data files
+# 	For calculation of certain properties using lammps data files
 # 	For creating VMD input text files using lammps data files
 #	All x,y,z calculations assume the information includes image flags
 

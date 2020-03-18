@@ -16,11 +16,13 @@ Syntax
 * filename_prefix = prefix for data files (for *output*)
 * frequency = frequency of output in time-steps (for *output*)
 * optional keywords for *output*:
+
   - text = creates text output of index, step and nodal variable values for unique nodes
   - full_text = creates text output index, nodal id, step, nodal coordinates and nodal variable values for unique and image nodes
   - binary = creates binary EnSight output
   - vector_components = outputs vectors as scalar components
   - tensor_components = outputs tensor as scalar components (for use with ParaView)
+
 * *step* or *time* = index output by step or by time (for *output index*)
 
 

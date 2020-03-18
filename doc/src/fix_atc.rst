@@ -18,8 +18,8 @@ Syntax
 
     *thermal* = thermal coupling with fields: temperature
     *two_temperature* = electron-phonon coupling with field: temperature and electron_temperature
-    *hardy* = on-the-fly post-processing using kernel localization functions (see "related" section for possible fields)
-    *field* = on-the-fly post-processing using mesh-based localization functions (see "related" section for possible fields)
+    *hardy* = on-the-fly post-processing using kernel localization functions
+    *field* = on-the-fly post-processing using mesh-based localization functions
 
 * parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file
 
@@ -196,13 +196,13 @@ conditions.
 *fix_modify* commands for output:
 
 * :doc:`fix_modify AtC output <atc_output>`
-* `fix_modify AtC output nodeset <USER/atc/man_output_nodeset.html>`_
-* `fix_modify AtC output elementset <USER/atc/man_output_elementset.html>`_
-* `fix_modify AtC output boundary_integral <USER/atc/man_boundary_integral.html>`_
-* `fix_modify AtC output contour_integral <USER/atc/man_contour_integral.html>`_
-* `fix_modify AtC mesh output <USER/atc/man_mesh_output.html>`_
-* `fix_modify AtC write_restart <USER/atc/man_write_restart.html>`_
-* `fix_modify AtC read_restart <USER/atc/man_read_restart.html>`_
+* :doc:`fix_modify AtC output nodeset <atc_output_nodeset>`
+* :doc:`fix_modify AtC output volume_integral <atc_output_volume_integral>`
+* :doc:`fix_modify AtC output boundary_integral <atc_output_boundary_integral>`
+* :doc:`fix_modify AtC output contour_integral <atc_output_contour_integral>`
+* :doc:`fix_modify AtC mesh output <atc_mesh_output>`
+* :doc:`fix_modify AtC write_restart <atc_write_restart>`
+* :doc:`fix_modify AtC read_restart <atc_read_restart>`
 
 *fix_modify* commands for post-processing:
 

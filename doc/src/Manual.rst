@@ -60,6 +60,15 @@ every LAMMPS command.
    Manual_build
 
 .. toctree::
+   :maxdepth: 2
+   :numbered: 3
+   :caption: Programmer Documentation
+   :name: progdoc
+   :includehidden:
+
+   pg_utils
+
+.. toctree::
    :caption: Index
    :name: index
    :hidden:

@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.autodoc',
     'table_from_list',
+    'breathe',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -337,3 +338,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'
+
+# breathe configuration
+
+breathe_projects = { "progguide" : "../../breathe/xml" }
+breathe_default_project = "progguide"

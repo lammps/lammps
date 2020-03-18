@@ -575,8 +575,8 @@ TreeNode *Tree::CopyTree(TreeNode *t)
 }
 
 
-// us the postorder scanning algorithm to traverse the nodes in
-// the tree and delete each node as the visit operation
+// use the postorder scanning algorithm to traverse the nodes in
+// the tree and delete each node at the visit operation
 void Tree::DeleteTree(TreeNode *t)
 {
   if (t != NULL) {

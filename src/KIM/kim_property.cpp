@@ -65,6 +65,7 @@
 #include "variable.h"
 #include "utils.h"
 #include "error.h"
+#include "lmppython.h"
 
 #include <string>
 
@@ -81,10 +82,7 @@ kimProperty::kimProperty(LAMMPS *lmp) : Pointers(lmp)
                     "3 >= 3.6 support.");
 #endif
   // one-time initialization of Python interpreter
-  if (!Py_IsInitialized()) {
-    Py_Initialize();
-    PyEval_InitThreads();
-  }
+  python->init();
 #else
   error->all(FLERR, "Error Python support missing! Compile with PYTHON "
                     "package installed!");
@@ -143,7 +141,7 @@ void kimProperty::command(int narg, char **arg)
                         "\nkim-property Python package can be installed "
                         "with pip:\n`pip install kim-property`\n"
                         "See the installation instructions at\n"
-                        "https://github.com/openkim/kim-property#installing-kim-property\n")
+                        "https://github.com/openkim/kim-property#installing-kim-property\n"
                         "for detailed information.");
     }
 

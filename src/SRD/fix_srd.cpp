@@ -454,7 +454,7 @@ void FixSRD::setup(int /*vflag*/)
     setup_search_stencil();
   } else nbins2 = 0;
 
-  // perform first binding of SRD and big particles and walls
+  // perform first binning of SRD and big particles and walls
   // set reneighflag to turn off SRD rotation
   // don't do SRD rotation in setup, only during timestepping
 

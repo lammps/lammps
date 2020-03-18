@@ -22,7 +22,7 @@ src directory and re-building LAMMPS.
 
 The advantage of C++ and its object-orientation is that all the code
 and variables needed to define the new feature are in the 2 files you
-write, and thus shouldn't make the rest of LAMMPS more complex or
+write, and thus should not make the rest of LAMMPS more complex or
 cause side-effect bugs.
 
 Here is a concrete example.  Suppose you write 2 files pair_foo.cpp

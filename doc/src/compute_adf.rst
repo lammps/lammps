@@ -209,7 +209,7 @@ atoms further away than that distance.  If you want an ADF for larger
 distances, you can use the :doc:`rerun <rerun>` command to post-process
 a dump file and set the cutoff for the potential to be longer in the
 rerun script.  Note that in the rerun context, the force cutoff is
-arbitrary, since you aren't running dynamics and thus are not changing
+arbitrary, since you are not running dynamics and thus are not changing
 your model.
 
 Related commands

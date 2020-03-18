@@ -66,7 +66,7 @@ CMAKE_INSTALL_PREFIX.
    make install
 
 This will also install the Python module into your virtualenv. Since virtualenv
-doesn't change your LD_LIBRARY_PATH, you still need to add its lib64 folder to
+does not change your LD_LIBRARY_PATH, you still need to add its lib64 folder to
 it, which contains the installed liblammps.so.
 
 .. code-block:: bash

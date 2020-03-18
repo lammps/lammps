@@ -177,7 +177,7 @@ atom can have.
    LAMMPS can crash without an error message if the number of
    neighbors for a single particle is larger than the *page* setting,
    which means it is much, much larger than the *one* setting.  This is
-   because LAMMPS doesn't error check these limits for every pairwise
+   because LAMMPS does not error check these limits for every pairwise
    interaction (too costly), but only after all the particle's neighbors
    have been found.  This problem usually means something is very wrong
    with the way you have setup your problem (particle spacing, cutoff

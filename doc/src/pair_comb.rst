@@ -196,7 +196,7 @@ with LAMMPS (see the potentials directory) are parameterized for metal
 :doc:`units <units>`.  You can use the COMB potential with any LAMMPS
 units, but you would need to create your own COMB potential file with
 coefficients listed in the appropriate units if your simulation
-doesn't use "metal" units.
+does not use "metal" units.
 
 Related commands
 """"""""""""""""

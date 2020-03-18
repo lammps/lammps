@@ -123,7 +123,7 @@ a description of the file.  Then lines are read one at a time.  Lines
 can have a trailing comment starting with '#' that is ignored.  If the
 line is blank (only white-space after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it doesn't contain a header
+value(s) is read from the line.  If it does not contain a header
 keyword, the line begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line

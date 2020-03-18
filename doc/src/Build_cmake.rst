@@ -42,10 +42,10 @@ indicated above, producing (by default) an executable called ``lmp`` and
 a library called ``liblammps.a`` in the ``build`` folder.
 
 If your machine has multiple CPU cores (most do these days), you can
-parallelize the compilation with a command like ``make -j N`` (with N
-being the number of designated CPU cores).  Also installation of
-the ``ccache`` (= Compiler Cache) software may speed up repeated
-compilation signficantly.
+compile sources in parallel with a command like ``make -j N`` (with N
+being the maximum number of concurrently executed tasks).  Also
+installation of the ``ccache`` (= Compiler Cache) software may speed
+up repeated compilation, e.g. during code development, significantly.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:

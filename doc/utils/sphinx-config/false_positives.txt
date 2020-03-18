@@ -820,6 +820,8 @@ erotate
 Ertas
 ervel
 Espanol
+Eshelby
+eshelby
 eskm
 esu
 esub
@@ -1166,6 +1168,8 @@ Hugoniot
 Hura
 hux
 hwloc
+hx
+hy
 hydrophobicity
 hydrostatic
 hydrostatically
@@ -1175,6 +1179,7 @@ hyperdynamics
 hyperradius
 hyperspherical
 hysteretic
+hz
 Ibanez
 ibar
 ibm

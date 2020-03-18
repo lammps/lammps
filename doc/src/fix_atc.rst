@@ -206,11 +206,11 @@ conditions.
 
 *fix_modify* commands for post-processing:
 
-* `fix_modify AtC kernel <USER/atc/man_hardy_kernel.html>`_
-* `fix_modify AtC fields <USER/atc/man_hardy_fields.html>`_
-* `fix_modify AtC grdients <USER/atc/man_hardy_gradients.html>`_
-* `fix_modify AtC rates <USER/atc/man_hardy_rates.html>`_
-* `fix_modify AtC computes <USER/atc/man_hardy_computes.html>`_
+* :doc:`fix_modify AtC kernel <atc_hardy_kernel>`
+* :doc:`fix_modify AtC fields <atc_hardy_fields>`
+* :doc:`fix_modify AtC gradients <atc_hardy_gradients>`
+* :doc:`fix_modify AtC rates <atc_hardy_rates>`
+* :doc:`fix_modify AtC computes <atc_hardy_computes>`
 * `fix_modify AtC on_the_fly <USER/atc/man_hardy_on_the_fly.html>`_
 * `fix_modify AtC pair_interactions/bond_interactions <USER/atc/man_pair_interactions.html>`_
 * `fix_modify AtC sample_frequency <USER/atc/man_sample_frequency.html>`_

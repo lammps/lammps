@@ -81,7 +81,6 @@ pair_style tip4p/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style coul/cut cutoff
@@ -100,7 +99,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -144,15 +142,12 @@ potential given by
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-
 where C is an energy-conversion constant, Qi and Qj are the charges on
 the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
 by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 
-
 ----------
-
 
 Style *coul/debye* adds an additional exp() damping factor to the
 Coulombic term, given by
@@ -161,22 +156,18 @@ Coulombic term, given by
 
    E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
 
-
 where :math:`\kappa` is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
 
-
 ----------
-
 
 Style *coul/dsf* computes Coulombic interactions via the damped
 shifted force model described in :ref:`Fennell <Fennell1>`, given by:
 
 .. math::
 
-   E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
-   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
-
+   E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter and erfc() is the
 complementary error-function. The potential corrects issues in the
@@ -184,20 +175,17 @@ Wolf model (described below) to provide consistent forces and energies
 (the Wolf potential is not differentiable at the cutoff) and smooth
 decay to zero.
 
-
 ----------
-
 
 Style *coul/wolf* computes Coulombic interactions via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
 .. math::
 
-   E_i = \frac{1}{2} \sum_{j \neq i} 
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
-   \frac{1}{2} \sum_{j \neq i} 
+   E_i = \frac{1}{2} \sum_{j \neq i}
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{1}{2} \sum_{j \neq i}
    \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
-
 
 where :math:`\alpha` is the damping parameter, and erc() and erfc() are
 error-function and complementary error-function terms.  This potential
@@ -212,9 +200,7 @@ forces calculated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
 
-
 ----------
-
 
 Style *coul/streitz* is the Coulomb pair interaction defined as part
 of the Streitz-Mintmire potential, as described in :ref:`this paper <Streitz2>`, in which charge distribution about an atom is modeled
@@ -225,7 +211,6 @@ used with :doc:`pair_style eam/alloy <pair_eam>` (or some other
 short-range potential that has been parameterized appropriately) via
 the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
 charge equilibration must be performed via the :doc:`fix qeq/slater <fix_qeq>` command. For example:
-
 
 .. code-block:: LAMMPS
 
@@ -239,7 +224,6 @@ Coulombic interactions via Wolf summation.  An additional damping
 parameter is required for the Wolf summation, as described for the
 coul/wolf potential above.  Alternatively, Coulombic interactions can
 be computed via an Ewald summation.  For example:
-
 
 .. code-block:: LAMMPS
 
@@ -269,9 +253,7 @@ any other pair style such as EAM, MEAM, Tersoff, or LJ in
 hybrid/overlay mode.  To do this, you would need to provide a
 Streitz-Mintmire parameterization for the material being modeled.
 
-
 ----------
-
 
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
@@ -287,7 +269,7 @@ a massless site located a short distance away from the oxygen atom
 along the bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair\_style arguments.  Style *tip4p/cut* uses a global cutoff for
+pair_style arguments.  Style *tip4p/cut* uses a global cutoff for
 Coulomb interactions; style *tip4p/long* is for use with a long-range
 Coulombic solver (Ewald or PPPM).
 
@@ -310,9 +292,7 @@ shrink the size of the neighbor list.  This leads to slightly larger
 cost for the long-range calculation, so you can test the trade-off for
 your model.
 
-
 ----------
-
 
 Note that these potentials are designed to be combined with other pair
 potentials via the :doc:`pair_style hybrid/overlay <pair_hybrid>`
@@ -331,16 +311,14 @@ commands, or by mixing as described below:
 
 For *coul/cut* and *coul/debye*\ , the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
-global value specified in the pair\_style command is used.
+global value specified in the pair_style command is used.
 
 For *coul/long* and *coul/msm* no cutoff can be specified for an
-individual I,J type pair via the pair\_coeff command.  All type pairs
-use the same global Coulomb cutoff specified in the pair\_style
+individual I,J type pair via the pair_coeff command.  All type pairs
+use the same global Coulomb cutoff specified in the pair_style
 command.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -360,15 +338,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 The :doc:`pair_modify <pair_modify>` shift option is not relevant
 for these pair styles.
@@ -381,20 +357,17 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *coul/long*\ , *coul/msm* and *tip4p/long* styles are part of the
 KSPACE package.  They are only enabled if LAMMPS was built with that
@@ -408,34 +381,24 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Wolf1:
-
-
 
 **(Wolf)** D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
 Phys, 110, 8254 (1999).
 
 .. _Fennell1:
 
-
-
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).
 
 .. _Streitz2:
 
-
-
 **(Streitz)** F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
 (1994).
 
 .. _Jorgensen3:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).

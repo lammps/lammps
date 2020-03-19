@@ -110,7 +110,7 @@ std::string human_memory_size(size_t arg_bytes)
  */
 
 /* Print call stack into an error stream,
- * so one knows in which function the error occured.
+ * so one knows in which function the error occurred.
  *
  * Code copied from:
  *   http://stupefydeveloper.blogspot.com/2008/10/cc-call-stack.html

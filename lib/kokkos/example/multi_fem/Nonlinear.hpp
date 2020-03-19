@@ -389,7 +389,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
     }
 
     //------------------------------------
-    // Solve linear sytem
+    // Solve linear system
 
     size_t cg_iteration_count = 0 ;
     double cg_residual_norm = 0 ;

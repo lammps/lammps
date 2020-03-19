@@ -252,7 +252,7 @@ int colvar::init(std::string const &conf)
     // components may have different types only for scripted functions
     if (!(is_enabled(f_cv_scripted) || is_enabled(f_cv_custom_function)) && (colvarvalue::check_types(cvcs[i]->value(),
                                                                 cvcs[0]->value())) ) {
-      cvm::error("ERROR: you are definining this collective variable "
+      cvm::error("ERROR: you are defining this collective variable "
                  "by using components of different types. "
                  "You must use the same type in order to "
                  "sum them together.\n", INPUT_ERROR);

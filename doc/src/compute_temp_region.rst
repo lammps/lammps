@@ -6,7 +6,6 @@ compute temp/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/region region-ID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mine flow temp/region boundary
 

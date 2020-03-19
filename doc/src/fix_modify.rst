@@ -6,7 +6,6 @@ fix_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix_modify fix-ID keyword value ...
@@ -14,9 +13,9 @@ Syntax
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces*
-  
+
   .. parsed-literal::
-  
+
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
        *energy* value = *yes* or *no*
@@ -27,11 +26,8 @@ Syntax
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -45,7 +41,7 @@ Description
 Modify one or more parameters of a previously defined fix.  Only
 specific fix styles support specific parameters.  See the doc pages
 for individual fix commands for info on which ones support which
-fix\_modify parameters.
+fix_modify parameters.
 
 The *temp* keyword is used to determine how a fix computes
 temperature.  The specified compute ID must have been previously
@@ -69,8 +65,8 @@ system. The fix's global and per-atom
 energy is included in the calculation performed by the :doc:`compute pe <compute_pe>` or :doc:`compute pe/atom <compute_pe_atom>`
 commands.  See the :doc:`thermo_style <thermo_style>` command for info
 on how potential energy is output.  For fixes that tally a global
-energy, it can be printed by using the keyword f\_ID in the
-thermo\_style custom command, where ID is the fix-ID of the appropriate
+energy, it can be printed by using the keyword f_ID in the
+thermo_style custom command, where ID is the fix-ID of the appropriate
 fix.
 
 .. note::
@@ -108,7 +104,7 @@ This is a number ranging from 1 to the number of levels. If the RESPA
 level is larger than the current maximum, the outermost level will be
 used, which is also the default setting. This default can be restored
 using a value of *0* for the RESPA level. The affected fix has to be
-enabled to support this feature; if not, *fix\_modify* will report an
+enabled to support this feature; if not, *fix_modify* will report an
 error. Active fixes with a custom RESPA level setting are reported
 with their specified level at the beginning of a r-RESPA run.
 

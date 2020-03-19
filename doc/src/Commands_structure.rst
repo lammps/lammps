@@ -9,7 +9,7 @@ page.
 A LAMMPS input script typically has 4 parts:
 
 1. :ref:`Initialization <init>`
-2. :ref:`System definition <system>` 
+2. :ref:`System definition <system>`
 3. :ref:`Simulation settings <settings>`
 4. :ref:`Run a simulation <run>`
 

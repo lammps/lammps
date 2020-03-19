@@ -219,7 +219,7 @@ int AtomVecSMD::pack_comm_vel(int n, int *list, double *buf, int pbc_flag, int *
 
         // no need to communicate x0 here, as it is not changed by time integration
         // if x0 is changed when the ref config is updated, this communication is performed in the fix_integrate/tlsph
-        // similarily, rmass could be removed here.
+        // similarly, rmass could be removed here.
         // radius should be communicated here for future time-integration of the radius with ulsph (not implemented yet)
         int i, j, m;
         double dx, dy, dz, dvx, dvy, dvz;

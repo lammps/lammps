@@ -6,7 +6,6 @@ compute temp/sphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/sphere keyword value ...
@@ -15,22 +14,19 @@ Syntax
 * temp/sphere = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *bias* or *dof*
-  
+
   .. parsed-literal::
-  
+
        *bias* value = bias-ID
          bias-ID = ID of a temperature compute that removes a velocity bias
        *dof* value = *all* or *rotate*
          all = compute temperature of translational and rotational degrees of freedom
          rotate = compute temperature of just rotational degrees of freedom
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/sphere
    compute myTemp mobile temp/sphere bias tempCOM
@@ -94,9 +90,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -114,9 +108,7 @@ that includes both translational and rotational degrees of freedom.  A
 setting of *rotate* calculates a temperature that includes only
 rotational degrees of freedom.
 
-
 ----------
-
 
 **Output info:**
 
@@ -134,7 +126,6 @@ vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the :doc:`atom_style sphere <atom_style>`

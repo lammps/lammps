@@ -6,7 +6,6 @@ compute smd/ulsph/stress command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/stress
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -46,7 +44,6 @@ stress tensor, i.e., the von Mises equivalent stress.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. This compute can

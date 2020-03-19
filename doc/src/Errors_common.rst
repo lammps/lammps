@@ -39,7 +39,7 @@ figure out your physics or numerical mistakes, like choosing too big a
 timestep, specifying erroneous force field coefficients, or putting 2
 atoms on top of each other!  If you run into errors that LAMMPS
 doesn't catch that you think it should flag, please send an email to
-the `developers <http://lammps.sandia.gov/authors.html>`_.
+the `developers <https://lammps.sandia.gov/authors.html>`_.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
@@ -63,24 +63,22 @@ is an integer or floating-point number, respectively, and reject the
 input with an error message (for instance, when an integer is required,
 but a floating-point number 1.0 is provided):
 
-
 .. parsed-literal::
 
    ERROR: Expected integer parameter instead of '1.0' in input script or data file
 
 Some commands allow for using variable references in place of numeric
 constants so that the value can be evaluated and may change over the
-course of a run.  This is typically done with the syntax *v\_name* for a
+course of a run.  This is typically done with the syntax *v_name* for a
 parameter, where name is the name of the variable. On the other hand,
-immediate variable expansion with the syntax $\ *name* is performed while
+immediate variable expansion with the syntax ${name} is performed while
 reading the input and before parsing commands,
 
 .. note::
 
-   Using a variable reference (i.e. *v\_name*) is only allowed if
+   Using a variable reference (i.e. *v_name*) is only allowed if
    the documentation of the corresponding command explicitly says it is.
    Otherwise, you will receive an error message of this kind:
-
 
 .. parsed-literal::
 

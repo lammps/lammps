@@ -201,7 +201,7 @@ inline pair<double,double> operator*(const pair<double,double> &right, double le
   return make_pair(right.first*left,right.second*left);
 }
 
-// Auxilary class to handle the normalizing term derivatives
+// Auxiliary class to handle the normalizing term derivatives
 class NormDeriv
 {
 public:
@@ -235,7 +235,7 @@ inline NormDeriv conj(const NormDeriv& src){
   return dst;
 }
 
-///\en Auxilary class to handle derivatives of overlaps
+///\en Auxiliary class to handle derivatives of overlaps
 class OverlapDeriv{
 public:
   WavePacket w1, w2, w12;
@@ -496,7 +496,7 @@ public:
   }
 
 protected:
-  //e translates wp2 to the nearest image postion relative to wp1
+  //e translates wp2 to the nearest image position relative to wp1
   //e gets the translation vector
   Vector_3 move_to_image(const WavePacket &wp1, WavePacket &wp2) const {
     Vector_3 r1=wp1.get_r();
@@ -646,7 +646,7 @@ public:
                     Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c=NULL);
 
 
-  ///\en Creates wave packet acording to the given physical parameters.
+  ///\en Creates wave packet according to the given physical parameters.
   ///    The function may change its arguments by applying existing constraints!
   ///    Default mass (-1) is the electron mass AWPMD::me.
   WavePacket create_wp(Vector_3 &x, Vector_3 &v, double &w, double &pw, double mass=-1);

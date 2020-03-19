@@ -15,16 +15,15 @@ pair_style tdpd command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *edpd* or *mdpd* or *mdpd/rhosum* or *tdpd*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *edpd* args = cutoff seed
          cutoff = global cutoff for eDPD interactions (distance units)
          seed = random # seed (integer) (if <= 0, eDPD will use current time as the seed)
@@ -38,11 +37,8 @@ Syntax
          cutoff = global cutoff for tDPD interactions (distance units)
          seed = random # seed (integer) (if <= 0, tDPD will use current time as the seed)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,7 +60,7 @@ Description
 
 The *edpd* style computes the pairwise interactions and heat fluxes
 for eDPD particles following the formulations in
-:ref:`(Li2014\_JCP) <Li2014_JCP>` and :ref:`Li2015\_CC <Li2015_CC>`. The time
+:ref:`(Li2014_JCP) <Li2014_JCP>` and :ref:`Li2015_CC <Li2015_CC>`. The time
 evolution of an eDPD particle is governed by the conservation of
 momentum and energy given by
 
@@ -109,9 +105,8 @@ where the mesoscopic heat friction :math:`\kappa` is given by
 
   \kappa  = \frac{315k_B\upsilon }{2\pi \rho C_v r_{ct}^5}\frac{1}{Pr},
 
-
 with :math:`\upsilon` being the kinematic viscosity. For more details,
-see Eq.(15) in :ref:`(Li2014\_JCP) <Li2014_JCP>`.
+see Eq.(15) in :ref:`(Li2014_JCP) <Li2014_JCP>`.
 
 The following coefficients must be defined in eDPD system for each
 pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as in
@@ -119,11 +114,11 @@ the examples above.
 
 * A (force units)
 * :math:`\gamma` (force/velocity units)
-* power\_f (positive real)
+* power_f (positive real)
 * cutoff (distance units)
 * kappa (thermal conductivity units)
-* power\_T (positive real)
-* cutoff\_T (distance units)
+* power_T (positive real)
+* cutoff_T (distance units)
 * optional keyword = power or kappa
 
 The keyword *power* or *kappa* is optional. Both "power" and "kappa"
@@ -132,12 +127,10 @@ dependence of the exponent :math:`s(T) = \mathrm{power}_f ( 1+c_1
 (T-1) + c_2 (T-1)^2 + c_3 (T-1)^3 + c_4 (T-1)^4 )` and of the mesoscopic
 heat friction :math:`s_T(T) = \kappa (1 + c_1 (T-1) + c_2 (T-1)^2 + c_3
 (T-1)^3 + c_4 (T-1)^4)`.  If the keyword *power* or *kappa* is not
-specified, the eDPD system will use constant power\_f and
+specified, the eDPD system will use constant power_f and
 :math:`\kappa`, which is independent to temperature changes.
 
-
 ----------
-
 
 The *mdpd/rhosum* style computes the local particle mass density
 :math:`\rho` for mDPD particles by kernel function interpolation.
@@ -151,7 +144,7 @@ via the :doc:`pair_coeff <pair_coeff>` command as in the examples above.
 
 The *mdpd* style computes the many-body interactions between mDPD
 particles following the formulations in
-:ref:`(Li2013\_POF) <Li2013_POF>`. The dissipative and random forces are in
+:ref:`(Li2013_POF) <Li2013_POF>`. The dissipative and random forces are in
 the form same as the classical DPD, but the conservative force is
 local density dependent, which are given by
 
@@ -173,14 +166,14 @@ The following coefficients must be defined for each pair of atom types via the
 * A (force units)
 * B (force units)
 * :math:`\gamma` (force/velocity units)
-* cutoff\_c (distance units)
-* cutoff\_d (distance units)
+* cutoff_c (distance units)
+* cutoff_d (distance units)
 
 ----------
 
 The *tdpd* style computes the pairwise interactions and chemical
 concentration fluxes for tDPD particles following the formulations in
-:ref:`(Li2015\_JCP) <Li2015_JCP>`.  The time evolution of a tDPD particle is
+:ref:`(Li2015_JCP) <Li2015_JCP>`.  The time evolution of a tDPD particle is
 governed by the conservation of momentum and concentration given by
 
 .. math::
@@ -198,7 +191,7 @@ force :math:`F_{ij}^C` are expressed as
   \mathbf{F}_{ij}^{D} & = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij}  \\
   \mathbf{F}_{ij}^{R} & = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij} \\
   \omega_{C}(r) & = 1 - r/r_c \\
-  \omega_{D}(r) & = \omega^2_{R}(r) = (1-r/r_c)^{\rm power\_f} \\
+  \omega_{D}(r) & = \omega^2_{R}(r) = (1-r/r_c)^{\rm power_f} \\
   \sigma^2 = 2\gamma k_B T
 
 The concentration flux between two tDPD particles includes the Fickian
@@ -209,13 +202,13 @@ by
 
    Q_{ij}^D & = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right) \\
    Q_{ij}^R & = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij} \\
-   w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power\_{cc}} \\
+   w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power_{cc}} \\
    \epsilon_{ij}^2 & = m_s^2\kappa_{ij}\rho
 
 where the parameters kappa and epsilon determine the strength of the
 Fickian and random fluxes. :math:`m_s` is the mass of a single solute
 molecule.  In general, :math:`m_s` is much smaller than the mass of a
-tDPD particle *m*\ . For more details, see :ref:`(Li2015\_JCP)
+tDPD particle *m*\ . For more details, see :ref:`(Li2015_JCP)
 <Li2015_JCP>`.
 
 The following coefficients must be defined for each pair of atom types via the
@@ -223,16 +216,16 @@ The following coefficients must be defined for each pair of atom types via the
 
 * A (force units)
 * :math:`\gamma` (force/velocity units)
-* power\_f (positive real)
+* power_f (positive real)
 * cutoff (distance units)
-* cutoff\_CC (distance units)
+* cutoff_CC (distance units)
 * :math:`\kappa_i` (diffusivity units)
 * :math:`\epsilon_i` (diffusivity units)
-* power\_cc\_i (positive real)
+* power_cc_i (positive real)
 
 The last 3 values must be repeated Nspecies times, so that values for
 each of the Nspecies chemical species are specified, as indicated by
-the "I" suffix.  In the first pair\_coeff example above for pair\_style
+the "I" suffix.  In the first pair_coeff example above for pair_style
 tdpd, Nspecies = 1.  In the second example, Nspecies = 2, so 3
 additional coeffs are specified (for species 2).
 
@@ -243,7 +236,7 @@ additional coeffs are specified (for species 2).
 There are example scripts for using all these pair styles in
 examples/USER/meso.  The example for an eDPD simulation models heat
 conduction with source terms analog of periodic Poiseuille flow
-problem. The setup follows Fig.12 in :ref:`(Li2014\_JCP) <Li2014_JCP>`. The
+problem. The setup follows Fig.12 in :ref:`(Li2014_JCP) <Li2014_JCP>`. The
 output of the short eDPD simulation (about 2 minutes on a single core)
 gives a temperature and density profiles as
 
@@ -252,7 +245,7 @@ gives a temperature and density profiles as
 
 The example for a mDPD simulation models the oscillations of a liquid
 droplet started from a liquid film. The mDPD parameters are adopted
-from :ref:`(Li2013\_POF) <Li2013_POF>`.  The short mDPD run (about 2 minutes
+from :ref:`(Li2013_POF) <Li2013_POF>`.  The short mDPD run (about 2 minutes
 on a single core) generates a particle trajectory which can
 be visualized as follows.
 
@@ -271,7 +264,7 @@ The example for a tDPD simulation computes the effective diffusion
 coefficient of a tDPD system using a method analogous to the periodic
 Poiseuille flow.  The tDPD system is specified with two chemical
 species, and the setup follows Fig.1 in
-:ref:`(Li2015\_JCP) <Li2015_JCP>`. The output of the short tDPD simulation
+:ref:`(Li2015_JCP) <Li2015_JCP>`. The output of the short tDPD simulation
 (about one and a half minutes on a single core) gives the
 concentration profiles of the two chemical species as
 
@@ -290,7 +283,7 @@ the :doc:`pair_modify <pair_modify>` shift, table, and tail options.
 
 The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not write
 information to :doc:`binary restart files <restart>`. Thus, you need
-to re-specify the pair\_style and pair\_coeff commands in an input script
+to re-specify the pair_style and pair_coeff commands in an input script
 that reads a restart file.
 
 Restrictions
@@ -312,34 +305,24 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
+.. _Li2014_JCP:
 
-.. _Li2014\_JCP:
-
-
-
-**(Li2014\_JCP)** Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys,
+**(Li2014_JCP)** Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys,
 265: 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
 
-.. _Li2015\_CC:
+.. _Li2015_CC:
 
-
-
-**(Li2015\_CC)** Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040
+**(Li2015_CC)** Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040
 (2015).  DOI: 10.1039/C5CC01684C.
 
-.. _Li2013\_POF:
+.. _Li2013_POF:
 
-
-
-**(Li2013\_POF)** Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013).
+**(Li2013_POF)** Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013).
 DOI: 10.1063/1.4812366.
 
-.. _Li2015\_JCP:
+.. _Li2015_JCP:
 
-
-
-**(Li2015\_JCP)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys,
+**(Li2015_JCP)** Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys,
 143: 014101 (2015).  DOI: 10.1063/1.4923254.

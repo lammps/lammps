@@ -6,15 +6,14 @@ shell command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    shell cmd args
 
 * cmd = *cd* or *mkdir* or *mv* or *rm* or *rmdir* or *putenv* or arbitrary command
-  
+
   .. parsed-literal::
-  
+
        *cd* arg = dir
          dir = directory to change to
        *mkdir* args = dir1 dir2 ...
@@ -30,13 +29,10 @@ Syntax
          var=value = one of more definitions of environment variables
        anything else is passed as a command to the shell for direct execution
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    shell cd sub1
    shell cd ..
@@ -93,8 +89,7 @@ Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,
 these lines in your input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable n equal 10
    variable foo string file2
@@ -102,17 +97,15 @@ these lines in your input script:
 
 would be the same as invoking
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % my_setup file1 10 file2
 
-from a command-line prompt.  The executable program "my\_setup" is run
+from a command-line prompt.  The executable program "my_setup" is run
 with 3 arguments: file1 10 file2.
 
 Restrictions
 """"""""""""
-
 
 LAMMPS does not detect errors or print warnings when any of these
 commands execute.  E.g. if the specified directory does not exist,

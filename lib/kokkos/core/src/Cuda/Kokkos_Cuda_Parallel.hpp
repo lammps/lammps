@@ -309,11 +309,11 @@ public:
     , m_thread_scratch_size {0,0}
     , m_chunk_size ( 32 )
     {
-      // Make sure league size is permissable
+      // Make sure league size is permissible
       if(league_size_ >= int(Impl::cuda_internal_maximum_grid_count()))
         Impl::throw_runtime_exception( "Requested too large league_size for TeamPolicy on Cuda execution space.");
 
-      // Make sure total block size is permissable
+      // Make sure total block size is permissible
       if ( m_team_size * m_vector_length > 1024 ) {
         Impl::throw_runtime_exception(std::string("Kokkos::TeamPolicy< Cuda > the team size is too large. Team size x vector length must be smaller than 1024."));
       }
@@ -332,7 +332,7 @@ public:
     , m_thread_scratch_size {0,0}
     , m_chunk_size ( 32 )
     {
-      // Make sure league size is permissable
+      // Make sure league size is permissible
       if(league_size_ >= int(Impl::cuda_internal_maximum_grid_count()))
         Impl::throw_runtime_exception( "Requested too large league_size for TeamPolicy on Cuda execution space.");
     }
@@ -348,11 +348,11 @@ public:
     , m_thread_scratch_size {0,0}
     , m_chunk_size ( 32 )
     {
-      // Make sure league size is permissable
+      // Make sure league size is permissible
       if(league_size_ >= int(Impl::cuda_internal_maximum_grid_count()))
         Impl::throw_runtime_exception( "Requested too large league_size for TeamPolicy on Cuda execution space.");
 
-      // Make sure total block size is permissable
+      // Make sure total block size is permissible
       if ( m_team_size * m_vector_length > 1024 ) {
         Impl::throw_runtime_exception(std::string("Kokkos::TeamPolicy< Cuda > the team size is too large. Team size x vector length must be smaller than 1024."));
       }
@@ -369,7 +369,7 @@ public:
     , m_thread_scratch_size {0,0}
     , m_chunk_size ( 32 )
     {
-      // Make sure league size is permissable
+      // Make sure league size is permissible
       if(league_size_ >= int(Impl::cuda_internal_maximum_grid_count()))
         Impl::throw_runtime_exception( "Requested too large league_size for TeamPolicy on Cuda execution space.");
     }

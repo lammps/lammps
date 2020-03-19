@@ -913,7 +913,7 @@ void PairTlsph::settings(int narg, char **arg) {
         /*
          * default value for update_threshold for updates of reference configuration:
          * The maximum relative displacement which is tracked by the construction of LAMMPS' neighborlists
-         * is the folowing.
+         * is the following.
          */
 
         cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.

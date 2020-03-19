@@ -6,7 +6,6 @@ fix bond/react command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/react common_keyword values ...
@@ -19,7 +18,7 @@ Syntax
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * this applies to all reaction specifications (below)
-* common\_keyword = *stabilization*
+* common_keyword = *stabilization*
 
   .. parsed-literal::
 
@@ -37,9 +36,9 @@ Syntax
 * Rmax = bonding pair atoms must be separated by less than Rmax to initiate reaction (distance units)
 * template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
-* map\_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
+* map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual\_keyword = *prob* or *max\_rxn* or *stabilize\_steps* or *update\_edges*
+* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *update_edges*
 
   .. parsed-literal::
 
@@ -55,15 +54,12 @@ Syntax
            charges = update atomic charges of all atoms in reaction templates
            custom = force the update of user-specified atomic charges
 
-
-
 Examples
 """"""""
 
 For unabridged example scripts and files, see examples/USER/reaction.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule mol1 pre_reacted_topology.txt
    molecule mol2 post_reacted_topology.txt
@@ -114,7 +110,7 @@ The *stabilization* keyword enables reaction site stabilization.
 Reaction site stabilization is performed by including reacting atoms
 in an internally-created fix :doc:`nve/limit <fix_nve_limit>` time
 integrator for a set number of timesteps given by the
-*stabilize\_steps* keyword. While reacting atoms are being time
+*stabilize_steps* keyword. While reacting atoms are being time
 integrated by the internal nve/limit, they are prevented from being
 involved in any new reactions. The *xmax* value keyword should
 typically be set to the maximum distance that non-reacting atoms move
@@ -127,7 +123,7 @@ automatically thermostatted by an internally-created
 :doc:`nve/limit <fix_nve_limit>` integrator. The second group contains
 all atoms currently not involved in a reaction. This group should be
 used by a thermostat in order to time integrate the system. The name
-of this group of non-reacting atoms is created by appending '\_REACT'
+of this group of non-reacting atoms is created by appending '_REACT'
 to the group-ID argument of the *stabilization* keyword, as shown in
 the second example above.
 
@@ -143,8 +139,8 @@ command creates a :doc:`dynamic group <group>` that is initialized to
 include all atoms. If the group-ID is that of an existing static
 group, the group is used as the parent group of new,
 internally-created dynamic group. In both cases, this new dynamic
-group is named by appending '\_REACT' to the group-ID, e.g.
-nvt\_grp\_REACT. By specifying an existing group, you may thermostat
+group is named by appending '_REACT' to the group-ID, e.g.
+nvt_grp_REACT. By specifying an existing group, you may thermostat
 constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
@@ -255,14 +251,12 @@ A map file has a header and a body. The header of map file the
 contains one mandatory keyword and five optional keywords. The
 mandatory keyword is 'equivalences':
 
-
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
 The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
 'constraints':
-
 
 .. parsed-literal::
 
@@ -291,17 +285,14 @@ Edges' and allows for forcing the update of a specific atom's atomic
 charge. The first column is the ID of an atom near the edge of the
 pre-reacted molecule template, and the value of the second column is
 either 'none' or 'charges.' Further details are provided in the
-discussion of the 'update\_edges' keyword. The fifth optional section
+discussion of the 'update_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
 there are four types of constraints available, as discussed below.
 
 A sample map file is given below:
 
-
 ----------
-
-
 
 .. parsed-literal::
 
@@ -330,9 +321,7 @@ A sample map file is given below:
    6   6
    7   7
 
-
 ----------
-
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
@@ -347,7 +336,6 @@ Any number of additional constraints may be specified in the
 Constraints section of the map file. The constraint of type 'distance'
 has syntax as follows:
 
-
 .. parsed-literal::
 
    distance *ID1* *ID2* *rmin* *rmax*
@@ -357,7 +345,6 @@ pre-reaction atom IDs, and these two atoms must be separated by a
 distance between *rmin* and *rmax* for the reaction to occur.
 
 The constraint of type 'angle' has the following syntax:
-
 
 .. parsed-literal::
 
@@ -371,7 +358,6 @@ constraint can be used to enforce a certain orientation between
 reacting molecules.
 
 The constraint of type 'dihedral' has the following syntax:
-
 
 .. parsed-literal::
 
@@ -395,9 +381,7 @@ probability according to the temperature-dependent Arrhenius equation:
 
    k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
 
-
 The Arrhenius constraint has the following syntax:
-
 
 .. parsed-literal::
 
@@ -438,9 +422,9 @@ actually occurs. The fraction setting must be a value between 0.0 and
 1.0. A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
-specified by the *max\_rxn* keyword.
+specified by the *max_rxn* keyword.
 
-The *stabilize\_steps* keyword allows for the specification of how many
+The *stabilize_steps* keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
 overall system thermostat. In order to produce the most physical
 behavior, this 'reaction site equilibration time' should be tuned to
@@ -451,7 +435,7 @@ individually tuned for each fix reaction step. Note that in some
 situations, decreasing rather than increasing this parameter will
 result in an increase in stability.
 
-The *update\_edges* keyword can increase the number of atoms whose
+The *update_edges* keyword can increase the number of atoms whose
 atomic charges are updated, when the pre-reaction template contains
 edge atoms. When the value is set to 'charges,' all atoms' atomic
 charges are updated to those specified by the post-reaction template,
@@ -477,13 +461,12 @@ such as small rings, that may be otherwise indistinguishable.
 Optionally, you can enforce additional behaviors on reacting atoms.
 For example, it may be beneficial to force reacting atoms to remain at
 a certain temperature. For this, you can use the internally-created
-dynamic group named "bond\_react\_MASTER\_group", which consists of all
+dynamic group named "bond_react_MASTER_group", which consists of all
 atoms currently involved in a reaction. For example, adding the
 following command would add an additional thermostat to the group of
 all currently-reacting atoms:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
@@ -502,11 +485,9 @@ you should be cautious about invoking this fix too frequently.
 You can dump out snapshots of the current bond topology via the dump
 local command.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
 reaction name (react-ID). Additionally, internally-created per-atom
@@ -532,7 +513,6 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
@@ -548,15 +528,11 @@ Related commands
 Default
 """""""
 
-The option defaults are stabilization = no, prob = 1.0, stabilize\_steps = 60,
-update\_edges = none
-
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
+update_edges = none
 
 ----------
 
-
 .. _Gissinger:
-
-
 
 **(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).

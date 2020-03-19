@@ -15,7 +15,6 @@ pair_style zbl/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style zbl inner outer
@@ -25,7 +24,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -41,7 +39,7 @@ repulsion for describing high-energy collisions between atoms.
 :ref:`(Ziegler) <Ziegler>`. It includes an additional switching function
 that ramps the energy, force, and curvature smoothly to zero
 between an inner and outer cutoff. The potential
-energy due to a pair of atoms at a distance r\_ij is given by:
+energy due to a pair of atoms at a distance r_ij is given by:
 
 .. math::
 
@@ -73,7 +71,7 @@ When used with :doc:`hybrid/overlay <pair_hybrid>` and pairs are
 assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style must
-be included in a pair\_coeff command.
+be included in a pair_coeff command.
 
 .. note::
 
@@ -85,9 +83,7 @@ be included in a pair\_coeff command.
    always be given as multiples of a proton's charge, e.g. 29.0 for
    copper.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -107,9 +103,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -121,7 +115,7 @@ specified for
 with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
 to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style
-must be included in a pair\_coeff command.
+must be included in a pair_coeff command.
 The :doc:`pair_modify <pair_modify>` mix option has no effect on
 the mixing behavior
 
@@ -137,16 +131,14 @@ tail option for adding long-range tail corrections to energy and
 pressure, since there are no corrections for a potential that goes to
 0.0 at the cutoff.
 
-This pair style does not write information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands must be
+This pair style does not write information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands must be
 specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -159,13 +151,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ziegler:
-
-
 
 **(Ziegler)** J.F. Ziegler, J. P. Biersack and U. Littmark, "The
 Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.

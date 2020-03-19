@@ -6,7 +6,6 @@ fix python/invoke command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID python/invoke N callback function_name
@@ -14,20 +13,17 @@ Syntax
 * ID, group-ID are ignored by this fix
 * python/invoke = style name of this fix command
 * N = execute every N steps
-* callback = *post\_force* or *end\_of\_step*
-  
+* callback = *post_force* or *end_of_step*
+
   .. parsed-literal::
-  
+
        *post_force* = callback after force computations on atoms every N time steps
        *end_of_step* = callback after every N time steps
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python post_force_callback here """
    from lammps import lammps
@@ -72,7 +68,6 @@ gives access to the LAMMPS state from Python.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the PYTHON package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -102,9 +102,9 @@ namespace Kokkos {
       //Initializing constructor: calls init(seed,Device_Specific_Number);
       Pool(unsigned int seed);
 
-      //Intialize Pool with seed as a starting seed with a pool_size of num_states
+      //Initialize Pool with seed as a starting seed with a pool_size of num_states
       //The Random_XorShift64 generator is used in serial to initialize all states,
-      //thus the intialization process is platform independent and deterministic.
+      //thus the initialization process is platform independent and deterministic.
       void init(unsigned int seed, int num_states);
 
       //Get a generator. This will lock one of the states, guaranteeing that each thread

@@ -9,7 +9,6 @@ fix tdpd/source command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID edpd/source keyword values ...
@@ -19,9 +18,9 @@ Syntax
 * edpd/source or tdpd/source = style name of this fix command
 * index (only specified for tdpd/source) = index of chemical species (1 to Nspecies)
 * keyword = *sphere* or *cuboid*
-  
+
   .. parsed-literal::
-  
+
        *sphere* values = cx,cy,cz,radius,source
          cx,cy,cz = x,y,z center of spherical domain (distance units)
          radius = radius of a spherical domain (distance units)
@@ -31,13 +30,10 @@ Syntax
          dLx,dLy,dLz = x,y,z side length of a cuboid domain (distance units)
          source = heat source or concentration source (flux units, see below)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all edpd/source sphere 0.0 0.0 0.0 5.0 0.01
    fix 1 all edpd/source cuboid 0.0 0.0 0.0 20.0 10.0 10.0 -0.01
@@ -66,11 +62,9 @@ spherical domain to apply the source flux to.
 If the *cuboid* keyword is used, the *cx,cy,cz,dLx,dLy,dLz* defines a
 cuboid domain to apply the source flux to.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -80,7 +74,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -96,13 +89,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Li2014b:
-
-
 
 **(Li2014)** Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis,
 "Energy-conserving dissipative particle dynamics with
@@ -110,8 +99,6 @@ temperature-dependent properties", J. Comput. Phys., 265: 113-127
 (2014). DOI: 10.1016/j.jcp.2014.02.003
 
 .. _Li2015b:
-
-
 
 **(Li2015)** Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis,
 "Transport dissipative particle dynamics model for mesoscopic

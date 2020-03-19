@@ -6,7 +6,6 @@ fix adapt/fep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID adapt/fep N attribute args ... keyword value ...
@@ -16,9 +15,9 @@ Syntax
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended
 * attribute = *pair* or *kspace* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *pair* args = pstyle pparam I J v_name
          pstyle = pair style name, e.g. lj/cut
          pparam = parameter to adapt over time
@@ -33,9 +32,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *scale* or *reset* or *after*
-  
+
   .. parsed-literal::
-  
+
        *scale* value = *no* or *yes*
          *no* = the variable value is the new setting
          *yes* = the variable value multiplies the original setting
@@ -47,17 +46,14 @@ Syntax
          *no* = parameters are adapted at timestep N
          *yes* = parameters are adapted one timestep after N
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all adapt/fep 1 pair soft a 1 1 v_prefactor
-   fix 1 all adapt/fep 1 pair soft a 2\* 3 v_prefactor
-   fix 1 all adapt/fep 1 pair lj/cut epsilon \* \* v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
+   fix 1 all adapt/fep 1 pair soft a 2* 3 v_prefactor
+   fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
 
 Description
@@ -73,7 +69,6 @@ with two differences,
   instead of scaling all the charges in the system.
 * There is a new option *after* for better compatibility with "fix
   ave/time".
-
 
 This version is suited for free energy calculations using
 :doc:`compute ti <compute_ti>` or :doc:`compute fep <compute_fep>`.
@@ -106,9 +101,7 @@ such as "fix ave/time" is used to calculate averages at every N
 timesteps, all the contributions to the average will be obtained with
 the same values of the parameters.
 
-
 ----------
-
 
 The *pair* keyword enables various parameters of potentials defined by
 the :doc:`pair_style <pair_style>` command to be changed, if the pair
@@ -224,10 +217,10 @@ be a sub-style name.  You must specify I,J arguments that correspond
 to type pair values defined (via the :doc:`pair_coeff <pair_coeff>`
 command) for that sub-style.
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  Equal-style
+specified as v_name, where name is the variable name.  Equal-style
 variables can specify formulas with various mathematical functions,
 and include :doc:`thermo_style <thermo_style>` command keywords for the
 simulation box parameters and timestep and elapsed time.  Thus it is
@@ -241,15 +234,12 @@ For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable prefactor equal ramp(10,30)
-   fix 1 all adapt 1 pair soft a \* \* v_prefactor
-
+   fix 1 all adapt 1 pair soft a * * v_prefactor
 
 ----------
-
 
 The *kspace* keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
@@ -259,9 +249,7 @@ variable has a value of 1.0, then the solver is unaltered.
 The *kspace* keyword works this way whether the *scale* keyword
 is set to *no* or *yes*\ .
 
-
 ----------
-
 
 The *atom* keyword enables various atom properties to be changed.  The
 *aparam* argument is the name of the parameter to change.  This is the
@@ -274,10 +262,10 @@ The *I* argument indicates which atom types are affected. A wild-card
 asterisk can be used in place of or in conjunction with the I argument
 to set the coefficients for multiple atom types.
 
-The *v\_name* argument of the *atom* keyword is the name of an
+The *v_name* argument of the *atom* keyword is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
-specified as v\_name, where name is the variable name.  See the
+specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
@@ -291,20 +279,17 @@ For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable size equal ramp(1.0,0.1)
-   fix 1 center adapt 10 atom diameter \* v_size
+   fix 1 center adapt 10 atom diameter * v_size
 
 For :doc:`rRESPA time integration <run_style>`, this fix changes
 parameters on the outermost rRESPA level.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

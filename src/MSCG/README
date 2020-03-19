@@ -8,7 +8,7 @@ developed by Jacob Wagner in Greg Voth's group at the University of
 Chicago.
 
 The library can be downloaded and built in lib/mscg or elsewhere on
-your system, which must be done before bulding LAMMPS with this
+your system, which must be done before building LAMMPS with this
 package.  Details of the download, build, and install process for MSCG
 are given in the lib/mscg/README file.  Also see the LAMMPS manual for
 general information on building LAMMPS with external libraries. The

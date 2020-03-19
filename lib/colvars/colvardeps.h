@@ -21,7 +21,7 @@
 /// system. They may be enabled or disabled depending on dependencies.
 /// 2. User features may be enabled based on user input (they may trigger a failure upon dependency resolution, though)
 /// 3. Static features are static properties of the object, determined
-///   programatically at initialization time.
+///   programmatically at initialization time.
 ///
 /// The following diagram summarizes the dependency tree at the bias, colvar, and colvarcomp levels.
 /// Isolated and atom group features are not shown to save space.

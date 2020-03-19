@@ -587,7 +587,7 @@ void PairLJCutTholeLong::write_data_all(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 // No point in having single() since it  has no information about topology or Drude particles.
-// Charges qi and qj are defined by the user (or 1.0 by defaut)
+// Charges qi and qj are defined by the user (or 1.0 by default)
 
 /* ---------------------------------------------------------------------- */
 

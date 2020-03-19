@@ -4,7 +4,6 @@ Test the Python/LAMMPS interface
 To test if LAMMPS is callable from Python, launch Python interactively
 and type:
 
-
 .. parsed-literal::
 
    >>> from lammps import lammps
@@ -12,7 +11,6 @@ and type:
 
 If you get no errors, you're ready to use LAMMPS from Python.  If the
 2nd command fails, the most common error to see is
-
 
 .. parsed-literal::
 
@@ -27,15 +25,14 @@ should give you an indication of what went wrong.
 You can also test the load directly in Python as follows, without
 first importing from the lammps.py file:
 
-
 .. parsed-literal::
 
    >>> from ctypes import CDLL
    >>> CDLL("liblammps.so")
 
 If an error occurs, carefully go through the steps on the
-:doc:`Build\_basics <Build_basics>` doc page about building a shared
-library and the :doc:`Python\_install <Python_install>` doc page about
+:doc:`Build_basics <Build_basics>` doc page about building a shared
+library and the :doc:`Python_install <Python_install>` doc page about
 insuring Python can find the necessary two files it needs.
 
 Test LAMMPS and Python in serial:
@@ -43,7 +40,6 @@ Test LAMMPS and Python in serial:
 
 To run a LAMMPS test in serial, type these lines into Python
 interactively from the bench directory:
-
 
 .. parsed-literal::
 
@@ -53,15 +49,13 @@ interactively from the bench directory:
 
 Or put the same lines in the file test.py and run it as
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % python test.py
 
 Either way, you should see the results of running the in.lj benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:
-
 
 .. parsed-literal::
 
@@ -74,8 +68,7 @@ To run LAMMPS in parallel, assuming you have installed the
 `PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
 above, create a test.py file containing these lines:
 
-
-.. parsed-literal::
+.. code-block:: python
 
    import pypar
    from lammps import lammps
@@ -88,8 +81,7 @@ To run LAMMPS in parallel, assuming you have installed the
 `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ package as discussed
 above, create a test.py file containing these lines:
 
-
-.. parsed-literal::
+.. code-block:: python
 
    from mpi4py import MPI
    from lammps import lammps
@@ -102,15 +94,13 @@ above, create a test.py file containing these lines:
 
 You can either script in parallel as:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 python test.py
 
 and you should see the same output as if you had typed
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % mpirun -np 4 lmp_g++ -in in.lj
 
@@ -134,8 +124,7 @@ Running Python scripts:
 Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % python foo.script
    % python -i foo.script
@@ -144,8 +133,7 @@ one of several ways:
 The last command requires that the first line of the script be
 something like this:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    #!/usr/local/bin/python
    #!/usr/local/bin/python -i
@@ -153,8 +141,7 @@ something like this:
 where the path points to where you have Python installed, and that you
 have made the script file executable:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % chmod +x foo.script
 

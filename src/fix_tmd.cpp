@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Paul Crozier (SNL)
-                         Christian Burisch (Bochum Univeristy, Germany)
+                         Christian Burisch (Bochum University, Germany)
 ------------------------------------------------------------------------- */
 
 #include "fix_tmd.h"

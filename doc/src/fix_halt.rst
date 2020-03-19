@@ -6,7 +6,6 @@ fix halt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID halt N attribute operator avalue keyword value ...
@@ -14,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * halt = style name of this fix command
 * N = check halt condition every N steps
-* attribute = *bondmax* or *tlimit* or *diskfree* or *v\_name*
+* attribute = *bondmax* or *tlimit* or v_name
 
   .. parsed-literal::
 
@@ -56,7 +55,7 @@ The specified group-ID is ignored by this fix.
 
 The specified *attribute* can be one of the options listed above, namely
 *bondmax*, *tlimit*\ , *diskfree*\ , or an :doc:`equal-style variable
-<variable>` referenced as *v\_name*, where "name" is the name of a
+<variable>` referenced as *v_name*, where "name" is the name of a
 variable that has been defined previously in the input script.
 
 The *bondmax* attribute will loop over all bonds in the system,
@@ -71,7 +70,7 @@ using this method versus the timer command option.  The first is that
 the clock starts at the beginning of the current run (not when the
 timer or fix command is specified), so that any setup time for the run
 is not included in the elapsed time.  The second is that the timer
-invocation and syncing across all processors (via MPI\_Allreduce) is
+invocation and syncing across all processors (via MPI_Allreduce) is
 not performed once every *N* steps by this command.  Instead it is
 performed (typically) only a small number of times and the elapsed
 times are used to predict when the end-of-the-run will be.  Both of
@@ -151,7 +150,7 @@ is printed; the run simply exits.  The latter may be desirable for
 post-processing tools that extract thermodynamic information from log
 files.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

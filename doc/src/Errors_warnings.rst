@@ -7,7 +7,6 @@ documentation for the offending command may help.  Warning messages
 also list the source file and line number where the warning was
 generated.  For example, a message like this:
 
-
 .. parsed-literal::
 
    WARNING: Bond atom missing in box size check (domain.cpp:187)
@@ -21,11 +20,7 @@ code or contact the author of the package.
 
 Doc page with :doc:`ERROR messages <Errors_messages>`
 
-
 ----------
-
-
-
 
 *Adjusting Coulombic cutoff for MSM, new cutoff = %g*
    The adjust/cutoff command is turned on and the Coulombic cutoff has been
@@ -42,7 +37,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 
 *Angles are defined but no angle style is set*
    The topology contains angles, but there are no angle forces computed
-   since there was no angle\_style command.
+   since there was no angle_style command.
 
 *Atom style in data file differs from currently defined atom style*
    Self-explanatory.
@@ -67,7 +62,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 
 *Bonds are defined but no bond style is set*
    The topology contains bonds, but there are no bond forces computed
-   since there was no bond\_style command.
+   since there was no bond_style command.
 
 *Bond/angle/dihedral extent > half of periodic box length*
    This is a restriction because LAMMPS can be confused about which image
@@ -88,8 +83,8 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero*
    Self-explanatory.
 
-*Calling write\_dump before a full system init.*
-   The write\_dump command is used before the system has been fully
+*Calling write_dump before a full system init.*
+   The write_dump command is used before the system has been fully
    initialized as part of a 'run' or 'minimize' command. Not all dump
    styles and features are fully supported at this point and thus the
    command may fail or produce incomplete or incorrect output. Insert
@@ -136,11 +131,11 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    degrees-of-freedom for the atoms in those partial rigid bodies will
    not be accounted for.
 
-*Create\_bonds max distance > minimum neighbor cutoff*
+*Create_bonds max distance > minimum neighbor cutoff*
    This means atom pairs for some atom types may not be in the neighbor
    list and thus no bond can be created between them.
 
-*Delete\_atoms cutoff > minimum neighbor cutoff*
+*Delete_atoms cutoff > minimum neighbor cutoff*
    This means atom pairs for some atom types may not be in the neighbor
    list and thus an atom in that pair cannot be deleted.
 
@@ -163,7 +158,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 
 *Dihedrals are defined but no dihedral style is set*
    The topology contains dihedrals, but there are no dihedral forces computed
-   since there was no dihedral\_style command.
+   since there was no dihedral_style command.
 
 *Dump dcd/xtc timestamp may be wrong with fix dt/reset*
    If the fix changes the timestep, the dump dcd file will not
@@ -177,7 +172,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Estimated error in splitting of dispersion coeffs is %g*
    Error is greater than 0.0001 percent.
 
-*Ewald/disp Newton solver failed, using old method to estimate g\_ewald*
+*Ewald/disp Newton solver failed, using old method to estimate g_ewald*
    Self-explanatory. Choosing a different cutoff value may help.
 
 *FENE bond too long*
@@ -217,8 +212,8 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    This is probably an error, since you should not delete only one atom
    of a molecule.
 
-*Fix gcmc using full\_energy option*
-   Fix gcmc has automatically turned on the full\_energy option since it
+*Fix gcmc using full_energy option*
+   Fix gcmc has automatically turned on the full_energy option since it
    is required for systems like the one specified by the user. User input
    included one or more of the following: kspace, triclinic, a hybrid
    pair style, an eam pair style, or no "single" function for the pair
@@ -273,19 +268,19 @@ This will most likely cause errors in kinetic fluctuations.
 *Fixes cannot send data in Kokkos communication, switching to classic communication*
    This is current restriction with Kokkos.
 
-*For better accuracy use 'pair\_modify table 0'*
+*For better accuracy use 'pair_modify table 0'*
    The user-specified force accuracy cannot be achieved unless the table
-   feature is disabled by using 'pair\_modify table 0'.
+   feature is disabled by using 'pair_modify table 0'.
 
 *Geometric mixing assumed for 1/r\^6 coefficients*
    Self-explanatory.
 
-*Group for fix\_modify temp != fix group*
-   The fix\_modify command is specifying a temperature computation that
+*Group for fix_modify temp != fix group*
+   The fix_modify command is specifying a temperature computation that
    computes a temperature on a different group of atoms than the fix
    itself operates on.  This is probably not what you want to do.
 
-*H matrix size has been exceeded: m\_fill=%d H.m=%d\n*
+*H matrix size has been exceeded: m_fill=%d H.m=%d\n*
    This is the size of the matrix.
 
 *Ignoring unknown or incorrect info command flag*
@@ -307,7 +302,7 @@ This will most likely cause errors in kinetic fluctuations.
 
 *Impropers are defined but no improper style is set*
    The topology contains impropers, but there are no improper forces computed
-   since there was no improper\_style command.
+   since there was no improper_style command.
 
 *Inconsistent image flags*
    The image flags for a pair on bonded atoms appear to be inconsistent.
@@ -342,22 +337,22 @@ This will most likely cause errors in kinetic fluctuations.
 *KIM Model does not provide 'particleVirial'; virial per atom will be zero*
    Self-explanatory.
 
-*Kspace\_modify slab param < 2.0 may cause unphysical behavior*
-   The kspace\_modify slab parameter should be larger to insure periodic
+*Kspace_modify slab param < 2.0 may cause unphysical behavior*
+   The kspace_modify slab parameter should be larger to insure periodic
    grids padded with empty space do not overlap.
 
 *Less insertions than requested*
    The fix pour command was unsuccessful at finding open space
    for as many particles as it tried to insert.
 
-*Library error in lammps\_gather\_atoms*
+*Library error in lammps_gather_atoms*
    This library function cannot be used if atom IDs are not defined
    or are not consecutively numbered.
 
-*Library error in lammps\_scatter\_atoms*
+*Library error in lammps_scatter_atoms*
    This library function cannot be used if atom IDs are not defined or
    are not consecutively numbered, or if no atom map is defined.  See the
-   atom\_modify command for details about atom maps.
+   atom_modify command for details about atom maps.
 
 *Likewise 1-2 special neighbor interactions != 1.0*
    The topology contains bonds, but there is no bond style defined
@@ -380,15 +375,15 @@ This will most likely cause errors in kinetic fluctuations.
    pairs in the neighbor list in expectation of interactions for
    those pairs being computed from the dihedral style.
 
-*Lost atoms via change\_box: original %ld current %ld*
+*Lost atoms via change_box: original %ld current %ld*
    The command options you have used caused atoms to be lost.
 
-*Lost atoms via displace\_atoms: original %ld current %ld*
+*Lost atoms via displace_atoms: original %ld current %ld*
    The command options you have used caused atoms to be lost.
 
 *Lost atoms: original %ld current %ld*
    Lost atoms are checked for each time thermo output is done.  See the
-   thermo\_modify lost command for options.  Lost atoms usually indicate
+   thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
    box, or moved further than one processor's sub-domain away before
    reneighboring.
@@ -411,8 +406,8 @@ This will most likely cause errors in kinetic fluctuations.
    This means the bonded atoms will not be excluded in pair-wise
    interactions.
 
-*Molecule template for create\_atoms has multiple molecules*
-   The create\_atoms command will only create molecules of a single type,
+*Molecule template for create_atoms has multiple molecules*
+   The create_atoms command will only create molecules of a single type,
    i.e. the first molecule in the template.
 
 *Molecule template for fix gcmc has multiple molecules*
@@ -477,21 +472,21 @@ This will most likely cause errors in kinetic fluctuations.
 *Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies*
    This is because excluding specific pair interactions also excludes
    them from long-range interactions which may not be the desired effect.
-   The special\_bonds command handles this consistently by insuring
+   The special_bonds command handles this consistently by insuring
    excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
    consistently by both the short-range pair style and the long-range
    solver.  This is not done for exclusions of charged atom pairs via the
-   neigh\_modify exclude command.
+   neigh_modify exclude command.
 
-*New thermo\_style command, previous thermo\_modify settings will be lost*
-   If a thermo\_style command is used after a thermo\_modify command, the
-   settings changed by the thermo\_modify command will be reset to their
-   default values.  This is because the thermo\_modify command acts on
-   the currently defined thermo style, and a thermo\_style command creates
+*New thermo_style command, previous thermo_modify settings will be lost*
+   If a thermo_style command is used after a thermo_modify command, the
+   settings changed by the thermo_modify command will be reset to their
+   default values.  This is because the thermo_modify command acts on
+   the currently defined thermo style, and a thermo_style command creates
    a new style.
 
 *No Kspace calculation with verlet/split*
-   The 2nd partition performs a kspace calculation so the kspace\_style
+   The 2nd partition performs a kspace calculation so the kspace_style
    command must be used.
 
 *No automatic unit conversion to XTC file format conventions possible for units lj*
@@ -515,7 +510,7 @@ This will most likely cause errors in kinetic fluctuations.
    of two and the number of grid points in one or more directions have been
    adjusted to meet this requirement.
 
-*OMP\_NUM\_THREADS environment is not set.*
+*OMP_NUM_THREADS environment is not set.*
    This environment variable must be set appropriately to use the
    USER-OMP package.
 
@@ -549,10 +544,10 @@ This will most likely cause errors in kinetic fluctuations.
 *Pair dpd needs newton pair on for momentum conservation*
    Self-explanatory.
 
-*Pair dsmc: num\_of\_collisions > number\_of\_A*
+*Pair dsmc: num_of_collisions > number_of_A*
    Collision model in DSMC is breaking down.
 
-*Pair dsmc: num\_of\_collisions > number\_of\_B*
+*Pair dsmc: num_of_collisions > number_of_B*
    Collision model in DSMC is breaking down.
 
 *Pair style in data file differs from currently defined pair style*
@@ -577,15 +572,15 @@ This will most likely cause errors in kinetic fluctuations.
    sub-domain before reneighboring is triggered.
 
 *Reducing PPPM order b/c stencil extends beyond nearest neighbor processor*
-   This may lead to a larger grid than desired.  See the kspace\_modify overlap
+   This may lead to a larger grid than desired.  See the kspace_modify overlap
    command to prevent changing of the PPPM order.
 
 *Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor*
-   This may lead to a larger grid than desired.  See the kspace\_modify overlap
+   This may lead to a larger grid than desired.  See the kspace_modify overlap
    command to prevent changing of the PPPM order.
 
 *Reducing PPPMDisp dispersion order b/c stencil extends beyond neighbor processor*
-   This may lead to a larger grid than desired.  See the kspace\_modify overlap
+   This may lead to a larger grid than desired.  See the kspace_modify overlap
    command to prevent changing of the PPPM order.
 
 *Replacing a fix, but new group != old group*
@@ -598,19 +593,19 @@ This will most likely cause errors in kinetic fluctuations.
    dimension to be replicated; this may cause unwanted behavior.
 
 *Resetting reneighboring criteria during PRD*
-   A PRD simulation requires that neigh\_modify settings be delay = 0,
+   A PRD simulation requires that neigh_modify settings be delay = 0,
    every = 1, check = yes.  Since these settings were not in place,
    LAMMPS changed them and will restore them to their original values
    after the PRD simulation.
 
 *Resetting reneighboring criteria during TAD*
-   A TAD simulation requires that neigh\_modify settings be delay = 0,
+   A TAD simulation requires that neigh_modify settings be delay = 0,
    every = 1, check = yes.  Since these settings were not in place,
    LAMMPS changed them and will restore them to their original values
    after the PRD simulation.
 
 *Resetting reneighboring criteria during minimization*
-   Minimization requires that neigh\_modify settings be delay = 0, every =
+   Minimization requires that neigh_modify settings be delay = 0, every =
    1, check = yes.  Since these settings were not in place, LAMMPS
    changed them and will restore them to their original values after the
    minimization.
@@ -714,7 +709,7 @@ This will most likely cause errors in kinetic fluctuations.
    which does operate on group all, so this may be inconsistent.
 
 *Temperature for thermo pressure is not for group all*
-   User-assigned temperature to thermo via the thermo\_modify command does
+   User-assigned temperature to thermo via the thermo_modify command does
    not compute temperature for all atoms.  Since thermo computes a global
    pressure, the kinetic energy contribution from the temperature is
    assumed to also be for all atoms.  Thus the pressure printed by thermo
@@ -746,12 +741,12 @@ This will most likely cause errors in kinetic fluctuations.
    LAMMPS simulation may be inefficient as a result.
 
 *Use special bonds = 0,1,1 with bond style fene*
-   Most FENE models need this setting for the special\_bonds command.
+   Most FENE models need this setting for the special_bonds command.
 
 *Use special bonds = 0,1,1 with bond style fene/expand*
-   Most FENE models need this setting for the special\_bonds command.
+   Most FENE models need this setting for the special_bonds command.
 
-*Using a many-body potential with bonds/angles/dihedrals and special\_bond exclusions*
+*Using a many-body potential with bonds/angles/dihedrals and special_bond exclusions*
    This is likely not what you want to do.  The exclusion settings will
    eliminate neighbors in the neighbor list, which the many-body potential
    needs to calculated its terms correctly.
@@ -780,13 +775,13 @@ This will most likely cause errors in kinetic fluctuations.
 *Using largest cutoff for lj/long/coul/long*
    Self-explanatory.
 
-*Using largest cutoff for pair\_style lj/long/tip4p/long*
+*Using largest cutoff for pair_style lj/long/tip4p/long*
    Self-explanatory.
 
 *Using package gpu without any pair style defined*
    Self-explanatory.
 
-*Using pair potential shift with pair\_modify compute no*
+*Using pair potential shift with pair_modify compute no*
    The shift effects will thus not be computed.
 
 *Using pair tail corrections with nonperiodic system*
@@ -794,8 +789,8 @@ This will most likely cause errors in kinetic fluctuations.
    computed by integrating the density of a periodic system out to
    infinity.
 
-*Using pair tail corrections with pair\_modify compute no*
+*Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
 
-*pair style reax is now deprecated and will soon be retired. Users should switch to pair\_style reax/c*
+*pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c*
    Self-explanatory.

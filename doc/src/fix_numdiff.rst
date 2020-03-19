@@ -6,22 +6,19 @@ fix numdiff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
-   fix ID group-ID numdiff Nevery Delta
+   fix ID group-ID numdiff Nevery delta
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * numdiff = style name of this fix command
 * Nevery = calculate force by finite difference every this many timesteps
-* Delta = finite difference displacement length (distance units)
-  
+* delta = finite difference displacement length (distance units)
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all numdiff 1 0.0001
    fix 1 all numdiff 10 1e-6
@@ -40,12 +37,12 @@ have their averages computed.  Results are set to 0.0 for atoms not in
 the group.
 
 This fix performs a loop over all atoms (in the group).  For each atom
-and each component of force it adds *Delta* to the position, and
+and each component of force it adds *delta* to the position, and
 computes the new energy of the entire system.  It then subtracts
-*Delta* from the original position and again computes the new energy
+*delta* from the original position and again computes the new energy
 of the system.  It then restores the original position.  That
 component of force is calculated as the difference in energy divided
-by two times *Delta*.
+by two times *delta*.
 
 .. note::
 
@@ -76,18 +73,15 @@ by two times *Delta*.
 
 ----------
 
-
-The *Nevery*\ argument specifies on what timesteps the force will 
+The *Nevery* argument specifies on what timesteps the force will
 be used calculated by finite difference.
 
-The *Delta*\ argument specifies the positional displacement each
+The *delta* argument specifies the positional displacement each
 atom will undergo.
-
 
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
@@ -97,7 +91,7 @@ This fix produces a per-atom array which can be accessed by various
 :doc:`output commands <Howto_output>`, which stores the components of
 the force on each atom as calculated by finite difference.  The
 per-atom values can only be accessed on timesteps that are multiples
-of *Nfreq* since that is when the finite difference forces are
+of *Nevery* since that is when the finite difference forces are
 calculated.
 
 No parameter of this fix can be used with the *start/stop* keywords of

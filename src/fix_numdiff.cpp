@@ -40,8 +40,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), numdiff_forces(NULL), temp_f(NULL),
-  id_pe(NULL)
+  Fix(lmp, narg, arg), id_pe(NULL), numdiff_forces(NULL),
+  temp_x(NULL), temp_f(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 
@@ -68,9 +68,6 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
 
   maxatom = 0;
-  numdiff_forces = NULL;
-  temp_x = NULL;
-  temp_f = NULL;
 
   if (atom->map_style == 0)
     error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
@@ -156,7 +153,7 @@ void FixNumDiff::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::post_force(int vflag)
+void FixNumDiff::post_force(int /* vflag */)
 {
   if (update->ntimestep % nevery) return;
 

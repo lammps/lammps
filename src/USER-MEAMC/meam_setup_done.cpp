@@ -163,11 +163,10 @@ MEAM::alloyparams(void)
 void
 MEAM::compute_pair_meam(void)
 {
-
-  double r, b2nn, phi_val;
+  double r;
   int j, a, b, nv2;
   double astar, frac, phizbl;
-  int n, Z1, Z2;
+  int Z1, Z2;
   double arat, rarat, scrn, scrn2;
   double phiaa, phibb /*unused:,phitmp*/;
   double C, s111, s112, s221, S11, S22;
@@ -320,7 +319,7 @@ MEAM::phi_meam(double r, int a, int b)
   double Eu;
   double arat, scrn, scrn2;
   int Z12, errorflag;
-  int n, Z1nn, Z2nn;
+  int Z1nn, Z2nn;
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
@@ -519,7 +518,7 @@ MEAM::phi_meam(double r, int a, int b)
 //   To avoid nan values of phir due to rapid decrease of b2nn^n or/and
 //   argument of phi_meam, i.e. r*arat^n, in some cases (3NN dia with low Cmin value)
 //
-const double
+double
 MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat)
 {
   double phi_sum = 0.0;

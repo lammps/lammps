@@ -34,10 +34,6 @@ class Molecule : protected Pointers {
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nibody,ndbody;
 
-  // fragment info
-  char **fragmentnames;
-  int **fragmentmask; // nfragments by natoms
-
   // max bond,angle,etc per atom
 
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
@@ -94,6 +90,11 @@ class Molecule : protected Pointers {
   class AtomVecBody *avec_body;
   int *ibodyparams;         // integer and double body params
   double *dbodyparams;
+
+  // fragment info
+
+  int **fragmentmask;       // nfragments by natoms
+  char **fragmentnames;
 
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule

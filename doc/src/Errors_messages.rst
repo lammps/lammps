@@ -1936,6 +1936,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute ID for fix ave/time does not exist*
    Self-explanatory.
 
+*Compute ID for fix numdiff does not exist*
+   Self-explanatory.
+
 *Compute ID for fix store/state does not exist*
    Self-explanatory.
 
@@ -3783,6 +3786,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.  The change in the box tilt is too extreme
    on a short timescale.
 
+*Fix numdiff requires an atom map, see atom_modify*
+   Self-explanatory. Efficient loop over all atoms for numerical
+   difference requires an atom map.
+
+*Fix numdiff requires consecutive atom IDs*
+   Self-explanatory. Efficient loop over all atoms for numerical
+   difference requires consecutive atom IDs.
+
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
 
@@ -4733,6 +4744,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid Masses section in molecule file*
    Self-explanatory.
 
+*Invalid molecule ID in molecule file*
+   Molecule ID must be a non-zero positive integer.
+
+*Invalid Molecules section in molecule file*
+   Self-explanatory.
+
 *Invalid REAX atom type*
    There is a mis-match between LAMMPS atom types and the elements
    listed in the ReaxFF force field file.
@@ -4798,6 +4815,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom ID in Dihedrals section of data file*
    Atom IDs must be positive integers and within range of defined
    atoms.
+
+*Invalid atom ID in Fragments section of molecule file*
+   Self-explanatory.
 
 *Invalid atom ID in Impropers section of data file*
    Atom IDs must be positive integers and within range of defined

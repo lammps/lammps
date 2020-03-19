@@ -539,7 +539,13 @@ void FixDeposit::pre_exchange()
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
-          if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecule_flag) {
+            if (onemols[imol]->moleculeflag) {
+              atom->molecule[n] = maxmol_all + onemols[imol]->molecule[m];
+            } else {
+              atom->molecule[n] = maxmol_all+1;
+            }
+          }
           if (atom->molecular == 2) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
@@ -603,7 +609,13 @@ void FixDeposit::pre_exchange()
     maxtag_all += natom;
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
+    if (mode == MOLECULE && atom->molecule_flag) {
+      if (onemols[imol]->moleculeflag) {
+        maxmol_all += onemols[imol]->nmolecules;
+      } else {
+        maxmol_all++;
+      }
+    }
     if (atom->map_style) {
       atom->map_init();
       atom->map_set();

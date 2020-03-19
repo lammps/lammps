@@ -41,7 +41,7 @@ Related AtC commands
 - :doc:`fix_modify AtC mesh create_faceset box <atc_mesh_create_faceset_box>`
 - :doc:`fix_modify AtC mesh create_faceset plane <atc_mesh_create_faceset_plane>`
 
-  Default
+Default
 """""""
 
 None.

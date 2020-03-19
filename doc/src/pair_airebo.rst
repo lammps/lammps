@@ -246,7 +246,7 @@ The CH.airebo and CH.airebo-m potential files provided with LAMMPS
 You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
 but you would need to create your own AIREBO or AIREBO-M potential file
 with coefficients listed in the appropriate units, if your simulation
-doesn't use "metal" units.
+does not use "metal" units.
 
 Related commands
 """"""""""""""""

@@ -2177,7 +2177,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The command is accessing a vector added by the fix property/atom
    command, that does not exist.
 
-*Compute property/atom for atom property that isn't allocated*
+*Compute property/atom for atom property that is not allocated*
    Self-explanatory.
 
 *Compute property/atom integer vector does not exist*
@@ -2194,7 +2194,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute property/local does not (yet) work with atom_style template*
    Self-explanatory.
 
-*Compute property/local for property that isn't allocated*
+*Compute property/local for property that is not allocated*
    Self-explanatory.
 
 *Compute rdf requires a pair style be defined*
@@ -3100,7 +3100,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dump_modify region ID does not exist*
    Self-explanatory.
 
-*Dumping an atom property that isn't allocated*
+*Dumping an atom property that is not allocated*
    The chosen atom style does not define the per-atom quantity being
    dumped.
 
@@ -3126,7 +3126,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied energy, but they didn't on this timestep.  See the
+   have tallied energy, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Epsilon or sigma reference not set by pair style in PPPMDisp*
@@ -4145,7 +4145,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Fixes that calculate global or local quantities cannot be used with
    fix store/state.
 
-*Fix store/state for atom property that isn't allocated*
+*Fix store/state for atom property that is not allocated*
    Self-explanatory.
 
 *Fix store/state variable is not atom-style variable*
@@ -4739,7 +4739,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid LAMMPS restart file*
    The file does not appear to be a LAMMPS restart file since
-   it doesn't contain the correct magic string at the beginning.
+   it does not contain the correct magic string at the beginning.
 
 *Invalid Masses section in molecule file*
    Self-explanatory.
@@ -6427,7 +6427,7 @@ keyword to allow for additional bonds to be formed
 
 *Pair hybrid sub-style does not support single call*
    You are attempting to invoke a single() call on a pair style
-   that doesn't support it.
+   that does not support it.
 
 *Pair hybrid sub-style is not used*
    No pair_coeff command used a sub-style specified in the pair_style
@@ -6901,7 +6901,7 @@ keyword to allow for additional bonds to be formed
 
 *Per-atom energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied energy, but they didn't on this timestep.  See the
+   have tallied energy, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Per-atom fix in equal-style variable formula*
@@ -6909,7 +6909,7 @@ keyword to allow for additional bonds to be formed
 
 *Per-atom virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to have
-   tallied the virial, but they didn't on this timestep.  See the
+   tallied the virial, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Per-processor system is too big*
@@ -7070,7 +7070,7 @@ keyword to allow for additional bonds to be formed
    It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
    integer.
 
-*Read dump of atom property that isn't allocated*
+*Read dump of atom property that is not allocated*
    Self-explanatory.
 
 *Read rerun dump file timestep > specified stop*
@@ -7231,7 +7231,7 @@ keyword to allow for additional bonds to be formed
    creates one large file for all processors.
 
 *Restart file byte ordering is not recognized*
-   The file does not appear to be a LAMMPS restart file since it doesn't
+   The file does not appear to be a LAMMPS restart file since it does not
    contain a recognized byte-ordering flag at the beginning.
 
 *Restart file byte ordering is swapped*
@@ -7701,7 +7701,7 @@ keyword to allow for additional bonds to be formed
    Keywords that refer to time (such as cpu, elapsed) do not
    make sense in between runs.
 
-*Threshold for an atom property that isn't allocated*
+*Threshold for an atom property that is not allocated*
    A dump threshold has been requested on a quantity that is
    not defined by the atom style used in this simulation.
 
@@ -8355,7 +8355,7 @@ keyword to allow for additional bonds to be formed
 *Variable name must be alphanumeric or underscore characters*
    Self-explanatory.
 
-*Variable uses atom property that isn't allocated*
+*Variable uses atom property that is not allocated*
    Self-explanatory.
 
 *Velocity command before simulation box is defined*
@@ -8396,7 +8396,7 @@ keyword to allow for additional bonds to be formed
 
 *Virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied the virial, but they didn't on this timestep.  See the
+   have tallied the virial, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Voro++ error: narea and neigh have a different size*
@@ -8423,7 +8423,7 @@ keyword to allow for additional bonds to be formed
    This is because LAMMPS does not compute the Lennard-Jones interactions
    with these particles for efficiency reasons.
 
-*World variable count doesn't match # of partitions*
+*World variable count does not match # of partitions*
    A world-style variable must specify a number of values equal to the
    number of processor partitions.
 

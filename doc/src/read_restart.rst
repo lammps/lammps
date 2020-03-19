@@ -92,7 +92,7 @@ value.  The file with the largest timestep value is read in.  Thus,
 this effectively means, read the latest restart file.  It's useful if
 you want your script to continue a run from where it left off.  See
 the :doc:`run <run>` command and its "upto" option for how to specify
-the run command so it doesn't need to be changed either.
+the run command so it does not need to be changed either.
 
 If a "%" character appears in the restart filename, LAMMPS expects a
 set of multiple files to exist.  The :doc:`restart <restart>` and

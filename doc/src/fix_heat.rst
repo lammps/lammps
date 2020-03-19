@@ -96,7 +96,7 @@ with optional time-dependence as well.
 
 Fix heat is different from a thermostat such as :doc:`fix nvt <fix_nh>`
 or :doc:`fix temp/rescale <fix_temp_rescale>` in that energy is
-added/subtracted continually.  Thus if there isn't another mechanism
+added/subtracted continually.  Thus if there is not another mechanism
 in place to counterbalance this effect, the entire system will heat or
 cool continuously.  You can use multiple heat fixes so that the net
 energy change is 0.0 or use :doc:`fix viscous <fix_viscous>` to drain

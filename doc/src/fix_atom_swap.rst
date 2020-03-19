@@ -108,7 +108,7 @@ non-zero molecule ID, but does not check for this at the time of
 swapping.
 
 If not using *semi-grand* this fix checks to ensure all atoms of the
-given types have the same atomic charge. LAMMPS doesn't enforce this
+given types have the same atomic charge. LAMMPS does not enforce this
 in general, but it is needed for this fix to simplify the
 swapping procedure. Successful swaps will swap the atom type and charge
 of the swapped atoms. Conversely, when using *semi-grand*\ , it is assumed that all the atom

@@ -6,19 +6,23 @@ PyLammps Tutorial
 Overview
 --------
 
-PyLammps is a Python wrapper class which can be created on its own or
-use an existing lammps Python object.  It creates a simpler,
-Python-like interface to common LAMMPS functionality, in contrast to
-the lammps.py wrapper on the C-style LAMMPS library interface which is
-written using Python ctypes.  The lammps.py wrapper is discussed on
-the :doc:`Python library <Python_library>` doc page.
+``PyLammps`` is a Python wrapper class for LAMMPS which can be created
+on its own or use an existing lammps Python object.  It creates a simpler,
+more "pythonic" interface to common LAMMPS functionality, in contrast to
+the ``lammps.py`` wrapper for the C-style LAMMPS library interface which
+is written using `Python ctypes <ctypes_>`_.  The ``lammps.py`` wrapper
+is discussed on the :doc:`Python library <Python_library>` doc page.
 
-Unlike the flat ctypes interface, PyLammps exposes a discoverable API.
-It no longer requires knowledge of the underlying C++ code
-implementation.  Finally, the IPyLammps wrapper builds on top of
-PyLammps and adds some additional features for IPython integration
-into IPython notebooks, e.g. for embedded visualization output from
-dump/image.
+Unlike the flat ``ctypes`` interface, PyLammps exposes a discoverable
+API.  It no longer requires knowledge of the underlying C++ code
+implementation.  Finally, the ``IPyLammps`` wrapper builds on top of
+``PyLammps`` and adds some additional features for
+`IPython integration <ipython_>`_ into `Jupyter notebooks <jupyter_>`_,
+e.g. for embedded visualization output from :doc:`dump style image <dump_image>`.
+
+.. _ctypes: https://docs.python.org/3/library/ctypes.html
+.. _ipython: https://ipython.org/
+.. _jupyter: https://jupyter.org/
 
 Comparison of lammps and PyLammps interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -26,7 +30,7 @@ Comparison of lammps and PyLammps interfaces
 lammps.lammps
 """""""""""""
 
-* uses C-Types
+* uses ``ctypes``
 * direct memory access to native C++ data
 * provides functions to send and receive data to LAMMPS
 * requires knowledge of how LAMMPS internally works (C pointers, etc)
@@ -34,7 +38,7 @@ lammps.lammps
 lammps.PyLammps
 """""""""""""""
 
-* higher-level abstraction built on top of original C-Types interface
+* higher-level abstraction built on top of original ctypes interface
 * manipulation of Python objects
 * communication with LAMMPS is hidden from API user
 * shorter, more concise Python

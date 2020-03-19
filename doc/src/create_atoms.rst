@@ -200,7 +200,7 @@ not overlap, regardless of their relative orientations.
    optional keywords allowed by the :doc:`create_box <create_box>` command
    for extra bonds (angles,etc) or extra special neighbors.  This is
    because by default, the :doc:`create_box <create_box>` command sets up a
-   non-molecular system which doesn't allow molecules to be added.
+   non-molecular system which does not allow molecules to be added.
 
 ----------
 

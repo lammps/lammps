@@ -31,7 +31,7 @@ platforms and particularly on Linux.  However, alternate build tools
 (e.g. Ninja) and project files for Integrated Development Environments
 (IDEs) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
 selected via the ``-G`` command line flag. Further details about features
-and settings for CMake are in the `CMake online documentation <cmake_doc>`_
+and settings for CMake are in the `CMake online documentation <cmake_doc_>`_
 
 .. _cmake_doc: https://cmake.org/documentation/
 

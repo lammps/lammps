@@ -240,9 +240,11 @@ C-style interface, provided in src/library.cpp and src/library.h.
 
 See the :doc:`Python library <Python_library>` doc page for a
 description of the Python interface to LAMMPS, which wraps the C-style
-interface from a shared library through the ctypes python module.
+interface from a shared library through the `ctypes python module <ctypes_>`_.
 
 See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS through its library interface.
 Other examples in the COUPLE directory use coupling ideas discussed on
 the :doc:`Howto couple <Howto_couple>` doc page.
+
+.. _ctypes: https://docs.python.org/3/library/ctypes.html

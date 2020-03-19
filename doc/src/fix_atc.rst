@@ -212,9 +212,9 @@ conditions.
 * :doc:`fix_modify AtC rates <atc_hardy_rates>`
 * :doc:`fix_modify AtC computes <atc_hardy_computes>`
 * :doc:`fix_modify AtC on_the_fly <atc_hardy_on_the_fly>`
-* `fix_modify AtC pair_interactions/bond_interactions <USER/atc/man_pair_interactions.html>`_
-* `fix_modify AtC sample_frequency <USER/atc/man_sample_frequency.html>`_
-* `fix_modify AtC set <USER/atc/man_set.html>`_
+* :doc:`fix_modify AtC pair/bond_interactions <atc_pair_interactions>`
+* :doc:`fix_modify AtC sample_frequency <atc_sample_frequency>`
+* :doc:`fix_modify AtC set <atc_set_reference_pe>`
 
 miscellaneous *fix_modify* commands:
 

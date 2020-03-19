@@ -12,7 +12,7 @@ Syntax
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
 * consistent_fe_initialization = name of the AtC sub-command
-* *on* or *off* = switch to activiate/deactiviate the initial setting of FE intrinsic field to match the projected MD field
+* *on* or *off* = switch to activate/deactivate the initial setting of the FE intrinsic field to match the projected MD field
 
 Examples
 """"""""

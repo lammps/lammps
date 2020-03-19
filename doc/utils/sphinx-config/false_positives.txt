@@ -874,6 +874,7 @@ fdotr
 fdt
 Fehlberg
 Fellinger
+fe
 femtosecond
 femtoseconds
 fene

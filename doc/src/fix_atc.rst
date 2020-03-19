@@ -227,19 +227,19 @@ miscellaneous *fix_modify* commands:
 * :doc:`fix_modify AtC fe_md_boundary <atc_fe_md_boundary>`
 * :doc:`fix_modify AtC boundary_faceset <atc_boundary_faceset>`
 * :doc:`fix_modify AtC consistent_fe_initialization <atc_consistent_fe_initialization>`
-* `fix_modify AtC mass_matrix <USER/atc/man_mass_matrix.html>`_
-* `fix_modify AtC material <USER/atc/man_material.html>`_
-* `fix_modify AtC atomic_charge <USER/atc/man_atomic_charge.html>`_
-* `fix_modify AtC source_integration <USER/atc/man_source_integration.html>`_
-* `fix_modify AtC temperature_definition <USER/atc/man_temperature_definition.html>`_
-* `fix_modify AtC track_displacement <USER/atc/man_track_displacement.html>`_
-* `fix_modify AtC boundary_dynamics <USER/atc/man_boundary_dynamics.html>`_
-* `fix_modify AtC add_species <USER/atc/man_add_species.html>`_
-* `fix_modify AtC add_molecule <USER/atc/man_add_molecule.html>`_
-* `fix_modify AtC remove_species <USER/atc/man_remove_species.html>`_
-* `fix_modify AtC remove_molecule <USER/atc/man_remove_molecule.html>`_
+* :doc:`fix_modify AtC mass_matrix <atc_mass_matrix>`
+* :doc:`fix_modify AtC material <atc_material>`
+* :doc:`fix_modify AtC atomic_charge <atc_atomic_charge>`
+* :doc:`fix_modify AtC source_integration <atc_source_integration>`
+* :doc:`fix_modify AtC temperature_definition <atc_temperature_definition>`
+* :doc:`fix_modify AtC track_displacement <atc_track_displacement>`
+* :doc:`fix_modify AtC boundary_dynamics <atc_boundary_dynamics>`
+* :doc:`fix_modify AtC add_species <atc_add_species>`
+* :doc:`fix_modify AtC add_molecule <atc_add_molecule>`
+* :doc:`fix_modify AtC remove_species <atc_remove_species>`
+* :doc:`fix_modify AtC remove_molecule <atc_remove_molecule>`
 
-Note: a set of example input files with the attendant material files are included with this package
+Note: a set of example input files with the attendant material files are included in the ``examples/USER/atc`` folders.
 
 Default
 """""""

@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix_modify <AtC fixID> on_the_fly on_the_fly <bond|kernel> <on|off>
+   fix_modify <AtC fixID> on_the_fly <bond|kernel> <on|off>
 
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
 * on_the_fly = name of the AtC sub-command

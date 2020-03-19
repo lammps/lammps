@@ -20,7 +20,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix_modify atc time_integration fractional_step
+   fix_modify AtC time_integration fractional_step
 
 
 Description

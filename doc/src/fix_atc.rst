@@ -212,20 +212,21 @@ conditions.
 * :doc:`fix_modify AtC rates <atc_hardy_rates>`
 * :doc:`fix_modify AtC computes <atc_hardy_computes>`
 * :doc:`fix_modify AtC on_the_fly <atc_hardy_on_the_fly>`
-* `fix_modify AtC pair_interactions/bond_interactions <USER/atc/man_pair_interactions.html>`_
-* `fix_modify AtC sample_frequency <USER/atc/man_sample_frequency.html>`_
-* `fix_modify AtC set <USER/atc/man_set.html>`_
+* :doc:`fix_modify AtC pair/bond_interactions <atc_pair_interactions>`
+* :doc:`fix_modify AtC sample_frequency <atc_sample_frequency>`
+* :doc:`fix_modify AtC set <atc_set_reference_pe>`
 
 miscellaneous *fix_modify* commands:
 
 * :doc:`fix_modify AtC atom_element_map <atc_atom_element_map>`
-* `fix_modify AtC atom_weight <USER/atc/man_atom_weight.html>`_
-* `fix_modify AtC write_atom_weights <USER/atc/man_write_atom_weights.html>`_
-* `fix_modify AtC reset_time <USER/atc/man_reset_time.html>`_
-* `fix_modify AtC reset_atomic_reference_positions <USER/atc/man_reset_atomic_reference_positions.html>`_
-* `fix_modify AtC fe_md_boundary <USER/atc/man_fe_md_boundary.html>`_
-* `fix_modify AtC boundary_faceset <USER/atc/man_boundary_faceset.html>`_
-* `fix_modify AtC consistent_fe_initialization <USER/atc/man_consistent_fe_initialization.html>`_
+* :doc:`fix_modify AtC atom_weight <atc_atom_weight>`
+* :doc:`fix_modify AtC write_atom_weights <atc_write_atom_weights>`
+* :doc:`fix_modify AtC kernel_bandwidth <atc_kernel_bandwidth>`
+* :doc:`fix_modify AtC reset_time <atc_reset_time>`
+* :doc:`fix_modify AtC reset_atomic_reference_positions <atc_reset_atomic_reference>`
+* :doc:`fix_modify AtC fe_md_boundary <atc_fe_md_boundary>`
+* :doc:`fix_modify AtC boundary_faceset <atc_boundary_faceset>`
+* :doc:`fix_modify AtC consistent_fe_initialization <atc_consistent_fe_initialization>`
 * `fix_modify AtC mass_matrix <USER/atc/man_mass_matrix.html>`_
 * `fix_modify AtC material <USER/atc/man_material.html>`_
 * `fix_modify AtC atomic_charge <USER/atc/man_atomic_charge.html>`_

@@ -21,7 +21,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix_modify atc initial temperature groupNAME 10.
+   fix_modify AtC initial temperature groupNAME 10.
 
 Description
 """""""""""

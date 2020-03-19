@@ -21,7 +21,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix_modify atc atom_element_map eulerian 100
+   fix_modify AtC atom_element_map eulerian 100
 
 Description
 """""""""""

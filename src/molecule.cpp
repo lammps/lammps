@@ -45,8 +45,8 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   improper_type(NULL), improper_atom1(NULL), improper_atom2(NULL),
   improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
   shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
-  dbodyparams(NULL), dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL),
-  fp(NULL), count(NULL), fragmentmask(NULL)
+  dbodyparams(NULL), fragmentmask(NULL), fragmentnames(NULL),
+  dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL), fp(NULL), count(NULL)
 {
   me = comm->me;
 

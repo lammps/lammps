@@ -35,6 +35,8 @@ if(PKG_KIM)
   option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
   if(DOWNLOAD_KIM)
     message(STATUS "KIM-API download requested - we will build our own")
+    # Workaround for cross compilation with MinGW, which messes up ${CMAKE_INSTALL_LIBDIR}
+    string(REPLACE ${CMAKE_INSTALL_PREFIX} "" _KIM_LIBDIR ${CMAKE_INSTALL_LIBDIR})
     include(ExternalProject)
     enable_language(C)
     enable_language(Fortran)
@@ -50,11 +52,11 @@ if(PKG_KIM)
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                  -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-      BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX} 
+                 BUILD_BYPRODUCTS <INSTALL_DIR>/${_KIM_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX} 
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api)
-    set(KIM-API_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(KIM-API_LDFLAGS ${INSTALL_DIR}/${_KIM_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
     find_package(KIM-API ${KIM-API_MIN_VERSION} REQUIRED)

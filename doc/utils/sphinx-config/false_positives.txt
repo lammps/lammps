@@ -202,7 +202,6 @@ bcolor
 bdiam
 bdw
 Beckman
-behaviour
 Belak
 Bellott
 benchmarking
@@ -2559,8 +2558,7 @@ Salles
 sandia
 Sandia
 sandybrown
-Sanitizer
-sanitizers
+sanitizer
 Sanyal
 sc
 scafacos

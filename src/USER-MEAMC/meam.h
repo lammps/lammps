@@ -214,7 +214,7 @@ protected:
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
-  const double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat);
+  double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat);
   void compute_reference_density();
   void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
                   double, double, double, int, int, lattice_t);

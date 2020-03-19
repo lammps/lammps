@@ -12,10 +12,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style coul/slater/cut lamda cutoff
-   pair_style coul/slater/long lamda cutoff
+   pair_style coul/slater/cut lambda cutoff
+   pair_style coul/slater/long lambda cutoff
 
-lamda = decay length of the charge (distance units)
+lambda = decay length of the charge (distance units)
 cutoff = cutoff (distance units)
 
 Examples
@@ -36,24 +36,23 @@ Description
 """""""""""
 
 Styles *coul/slater* compute electrostatic interactions in mesoscopic models
-which employ potentials without explicit excluded-volume interactions. 
-The goal is to prevent artificial ionic pair formation by including a charge 
-distribution in the Coulomb potential, following the formulation of 
-:ref:`(Melchor) <Melchor>`: 
+which employ potentials without explicit excluded-volume interactions.
+The goal is to prevent artificial ionic pair formation by including a charge
+distribution in the Coulomb potential, following the formulation of
+:ref:`(Melchor) <Melchor>`:
 
 .. math::
 
-   E  =  \frac{Cq_iq_j}{\epsilon r} \left( 1- \left( 1 + \frac{r_{ij}}{\lambda} exp\left( -2r_{ij}/\lambda \right) \right) \right)                       \qquad r < r_c 
-
+   E  =  \frac{Cq_iq_j}{\epsilon r} \left( 1- \left( 1 + \frac{r_{ij}}{\lambda} exp\left( -2r_{ij}/\lambda \right) \right) \right)                       \qquad r < r_c
 
 where :math:`r_c` is the cutoff distance and :math:`\lambda` is the decay length of the charge.
-C is the same Coulomb conversion factor as in the pair\_styles coul/cut and coul/long. In this way the Coulomb
-interaction between ions is corrected at small distances r. 
-For the *coul/slater/cut* style, the potential energy for distances larger than the cutoff is zero, 
+C is the same Coulomb conversion factor as in the pair_styles coul/cut and coul/long. In this way the Coulomb
+interaction between ions is corrected at small distances r.
+For the *coul/slater/cut* style, the potential energy for distances larger than the cutoff is zero,
 while for the *coul/slater/long*, the long-range interactions are computed either by the Ewald or the PPPM technique.
 
-Phenomena that can be captured at a mesoscopic level using this type of electrostatic 
-interactions include the formation of polyelectrolyte-surfactant aggregates, 
+Phenomena that can be captured at a mesoscopic level using this type of electrostatic
+interactions include the formation of polyelectrolyte-surfactant aggregates,
 charge stabilization of colloidal suspensions, and the formation of
 complexes driven by charged species in biological systems. :ref:`(Vaiwala) <Vaiwala>`.
 
@@ -66,17 +65,15 @@ commands:
 
 * :math:`r_c` (distance units)
 
-The global decay length of the charge (:math:`\lambda`) specified in the pair\_style command is used for all pairs.
-
+The global decay length of the charge (:math:`\lambda`) specified in the pair_style command is used for all pairs.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/slater* styles can be mixed.  The default mix value is *geometric*\ .
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
 The :doc:`pair_modify <pair_modify>` shift and table options are not relevant
 for these pair styles.
@@ -85,7 +82,7 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -95,7 +92,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The  *coul/slater/long* style requires the long-range solvers included in the KSPACE package. 
+The  *coul/slater/long* style requires the long-range solvers included in the KSPACE package.
 
 These styles are part of the "USER-MISC" package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -109,13 +106,11 @@ Related commands
 
 ----------
 
-
 .. _Melchor:
 
-**(Melchor)** Gonzalez-Melchor, Mayoral, Velázquez, and Alejandre, J Chem Phys, 125, 224107 (2006).
+**(Melchor)** Gonzalez-Melchor, Mayoral, Velazquez, and Alejandre, J Chem Phys, 125, 224107 (2006).
 
 .. _Vaiwala:
 
 **(Vaiwala)** Vaiwala, Jadhav, and Thaokar, J Chem Phys, 146, 124904 (2017).
-
 

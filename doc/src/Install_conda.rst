@@ -1,7 +1,7 @@
 Download an executable for Linux or Mac via Conda
 =================================================
 
-Binaries are available for macOS or Linux via `Conda <conda_>`_.
+Binaries are available for MacOS or Linux via `Conda <conda_>`_.
 
 First, one must setup the Conda package manager on your system.  Follow the
 instructions to install `Miniconda <mini_conda_install_>`_, then create a conda

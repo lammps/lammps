@@ -9,7 +9,8 @@ if(PKG_LATTE)
   option(DOWNLOAD_LATTE "Download the LATTE library instead of using an already installed one" ${DOWNLOAD_LATTE_DEFAULT})
   if(DOWNLOAD_LATTE)
     message(STATUS "LATTE download requested - we will build our own")
-    # Workaround for cross compilation with MinGW, which messes up ${CMAKE_INSTALL_LIBDIR}
+    # Workaround for cross compilation with MinGW where ${CMAKE_INSTALL_LIBDIR}
+    # is a full path, so we need to remove the prefix
     string(REPLACE ${CMAKE_INSTALL_PREFIX} "" _LATTE_LIBDIR ${CMAKE_INSTALL_LIBDIR})
     include(ExternalProject)
     ExternalProject_Add(latte_build

@@ -83,10 +83,16 @@ traditional build system, but CMake has also been successfully tested
 using the mingw32-cmake and mingw64-cmake wrappers that are bundled
 with the cross-compiler environment on Fedora machines. A CMake preset
 selecting all packages compatible with this cross-compilation build
-is provided. You will likely need to disable the GPU package unless you
-download and install the contents of the pre-compiled `OpenCL ICD loader library <https://download.lammps.org/thirdparty/opencl-win-devel.tar.gz>`_
-into your MinGW64 cross-compiler environment. The cross-compilation
-currently will only produce non-MPI serial binaries.
+is provided.  The GPU package can only be compiled with OpenCL support
+and you need to download and install the pre-compiled
+`OpenCL ICD loader library <https://download.lammps.org/thirdparty/opencl-win-devel.tar.gz>`_
+into your MinGW64 cross-compiler environment.  With CMake this will be
+done transparently.  To compile with MPI support, a pre-compiled
+library and the corresponding header files are required.  There is
+`one package for 32-bit Windows <https://download.lammps.org/thirdparty/mpich2-win32-devel.tar.gz>`_
+and `a second package for 64-bit Windows <https://download.lammps.org/thirdparty/mpich2-win64-devel.tar.gz>`_.
+When building with CMake, the matching package will be downloaded
+automatically, but MPI support has to be explicitly enabled with ``-DBUILD_MPI=on``.
 
 Please keep in mind, though, that this only applies to **compiling** LAMMPS.
 Whether the resulting binaries do work correctly is not tested by the

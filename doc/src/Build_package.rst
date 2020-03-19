@@ -151,9 +151,9 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
     cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
     cmake -C ../cmake/presets/intel.cmake   [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
-    cmake -C ../cmake/presets/mingw.cmake   [OPTIONS] ../cmake  # enable packages compatible with MinGW compilers for Windows
     cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
 
 .. note::
 

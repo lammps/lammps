@@ -68,7 +68,7 @@ namespace Kokkos { namespace Impl {
 //    called split_release
 //
 // The purporse of the split functions is to allow the last thread to arrive
-// an opprotunity to perform some actions before releasing the waiting threads
+// an opportunity to perform some actions before releasing the waiting threads
 //
 // If all threads have arrived (and split_release has been call if using split_arrive)
 // before a wait type call, the wait may return quickly

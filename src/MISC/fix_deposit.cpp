@@ -569,7 +569,7 @@ void FixDeposit::pre_exchange()
 
     // old code: unsuccessful if no proc performed insertion of an atom
     // don't think that check is necessary
-    // if get this far, should always be succesful
+    // if get this far, should always be successful
     // would be hard to undo partial insertion for a molecule
     // better to check how many atoms could be inserted (w/out inserting)
     //   then sum to insure all are inserted, before doing actual insertion

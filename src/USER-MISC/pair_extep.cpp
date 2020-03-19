@@ -718,7 +718,7 @@ void PairExTeP::read_file(char *file)
   // reallocate with new size
   words = new char*[params_per_line+1];
 
-  // intialize F_corr_data to all zeros
+  // initialize F_corr_data to all zeros
   for (int iel=0;iel<nelements;iel++)
     for (int jel=0;jel<nelements;jel++)
       for (int in=0;in<4;in++)

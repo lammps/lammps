@@ -12,7 +12,7 @@
 #               - $project.psf          ; CHARMM configs
 #               - top_$forcefield.rtf   ;
 #               - par_$forcefield.prm   ;
-#               Ouput:
+#               Output:
 #               - $project.data         ; LAMMPS data file
 #               - $project.in           ; LAMMPS input file
 #               - $project_ctrl.pdb     ; PDB control file
@@ -329,7 +329,7 @@
   }
 
 
-  sub PSFDihedrals                                      # hack to accomodate
+  sub PSFDihedrals                                      # hack to accommodate
   {                                                     # LAMMPS' way of calc
     $idihedral          = 0;                            # LJ 1-4 interactions
     return $ndihedral if (($dihedral_flag = $ndihedral ? 1 : 0));
@@ -1785,7 +1785,7 @@
 		$C_flag = 0;
 	}
 
-	# Quit if one of the atom types dosen't exist
+	# Quit if one of the atom types doesn't exist
 	if ( $C_counter == 0 or
 	    ($CA_counter == 0 and $CA_GLY_counter == 0 and $CA_PRO_counter == 0) or
 	    ($N_counter == 0 and $N_PRO_counter == 0) ) {

@@ -44,7 +44,7 @@ usually faster than using tools like Valgrind.
 .. code-block:: bash
 
    -D ENABLE_SANITIZE_ADDRESS=value    # enable Address Sanitizer, value = no (default) or yes
-   -D ENABLE_SANITIZE_UNDEFINED=value  # enable Undefined Behaviour Sanitizer, value = no (default) or yes
+   -D ENABLE_SANITIZE_UNDEFINED=value  # enable Undefined Behavior Sanitizer, value = no (default) or yes
    -D ENABLE_SANITIZE_THREAD=value     # enable Thread Sanitizer, value = no (default) or yes
 
 ----------

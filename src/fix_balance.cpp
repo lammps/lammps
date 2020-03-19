@@ -239,7 +239,7 @@ void FixBalance::pre_exchange()
 
 /* ----------------------------------------------------------------------
    compute final imbalance factor based on nlocal after comm->exchange()
-   only do this if rebalancing just occured
+   only do this if rebalancing just occurred
 ------------------------------------------------------------------------- */
 
 void FixBalance::pre_neighbor()

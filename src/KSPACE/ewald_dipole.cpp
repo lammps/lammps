@@ -493,7 +493,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
-  // substracting self energy and scaling
+  // subtracting self energy and scaling
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++) {

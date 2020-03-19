@@ -188,7 +188,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
   for (ii=0; ii<3; ii++)
     a_app[ii] = -f_tot[ii] / mTot;
 
-  //apply added accelleration to each atom
+  //apply added acceleration to each atom
   double f_app[3];
   double peAdded=0.0;
   for( ii = 0; ii<nlocal; ii++)

@@ -52,7 +52,7 @@
 #include <sched.h>
 #include <errno.h>
 
-/* Standard C++ libaries */
+/* Standard C++ libraries */
 
 #include <cstdlib>
 #include <string>
@@ -159,7 +159,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 #include <windows.h>
 #include <process.h>
 
-/* Standard C++ libaries */
+/* Standard C++ libraries */
 
 #include <cstdlib>
 #include <string>

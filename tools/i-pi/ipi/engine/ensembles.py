@@ -78,7 +78,7 @@ class Ensemble(dobject):
    """
 
    def __init__(self, dt, temp, fixcom=False):
-      """Initialises Ensemble.
+      """Initializes Ensemble.
 
       Args:
          dt: The timestep of the simulation algorithms.
@@ -104,7 +104,7 @@ class Ensemble(dobject):
       conserved quantity the dependencies are defined in bind.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are
@@ -177,7 +177,7 @@ class NVEEnsemble(Ensemble):
    """
 
    def __init__(self, dt, temp, fixcom=False):
-      """Initialises NVEEnsemble.
+      """Initializes NVEEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -273,7 +273,7 @@ class NVTEnsemble(NVEEnsemble):
    """
 
    def __init__(self, dt, temp, thermostat=None, fixcom=False):
-      """Initialises NVTEnsemble.
+      """Initializes NVTEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -303,7 +303,7 @@ class NVTEnsemble(NVEEnsemble):
       higher simulation temperature, as is appropriate.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are
@@ -384,7 +384,7 @@ class NPTEnsemble(NVTEnsemble):
    """
 
    def __init__(self, dt, temp, pext, thermostat=None, barostat=None, fixcom=False):
-      """Initialises NPTEnsemble.
+      """Initializes NPTEnsemble.
 
       Args:
          dt: The simulation timestep.
@@ -422,7 +422,7 @@ class NPTEnsemble(NVTEnsemble):
       higher simulation temperature, as is appropriate.
 
       Args:
-         beads: The beads object from whcih the bead positions are taken.
+         beads: The beads object from which the bead positions are taken.
          nm: A normal modes object used to do the normal modes transformation.
          cell: The cell object from which the system box is taken.
          bforce: The forcefield object from which the force and virial are
@@ -508,7 +508,7 @@ class ReplayEnsemble(Ensemble):
    """
 
    def __init__(self, dt, temp, fixcom=False, intraj=None):
-      """Initialises ReplayEnsemble.
+      """Initializes ReplayEnsemble.
 
       Args:
          dt: The simulation timestep.

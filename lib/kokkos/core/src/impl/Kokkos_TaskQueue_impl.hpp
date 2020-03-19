@@ -642,7 +642,7 @@ void TaskQueue< ExecSpace, MemorySpace>::complete
     // If 'task' is an aggregate then any of the runnable tasks that
     // it depends upon may be attempting to complete this 'task'.
     // Must only transition a task once to complete status.
-    // This is controled by atomically locking the wait queue.
+    // This is controlled by atomically locking the wait queue.
 
     // Stop other tasks from adding themselves to this task's wait queue
     // by locking the head of this task's wait queue.

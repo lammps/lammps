@@ -866,7 +866,7 @@ void PairMesoCNT::read_data(FILE *fp, double *data,
     }
   }
 
-  // warn if data was read incompletely, e.g. colums were missing
+  // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
     char str[128];
@@ -934,7 +934,7 @@ void PairMesoCNT::read_data(FILE *fp, double **data,
     }
   }
 
-  // warn if data was read incompletely, e.g. colums were missing
+  // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
     char str[128];

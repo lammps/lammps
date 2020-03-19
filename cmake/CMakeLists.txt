@@ -51,41 +51,34 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
+# set required compiler flags and compiler/CPU arch specific optimizations
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+  else()
+    set(CMAKE_TUNE_DEFAULT "-xHost")
+  endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
-  endif()
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
 # we require C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# GNU compiler features
+# GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable code coverage" OFF)
+  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  endif()
-  option(ENABLE_SANITIZE_ADDRESS "Enable address sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_ADDRESS)
-  if(ENABLE_SANITIZE_ADDRESS)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-  endif()
-  option(ENABLE_SANITIZE_UNDEFINED "Enable undefined behavior sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_UNDEFINED)
-  if(ENABLE_SANITIZE_UNDEFINED)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-  endif()
-  option(ENABLE_SANITIZE_THREAD "Enable thread sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_THREAD)
-  if(ENABLE_SANITIZE_THREAD)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
   endif()
 endif()
 
@@ -255,8 +248,9 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      status(FATAL_ERROR "Cannot build internal linear algebra library with Ninja build tool due to lack for Fortran support")
+    include(CheckGeneratorSupport)
+    if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
+      status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
     endif()
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
@@ -346,6 +340,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
 endif()
 
+set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
+if(CMAKE_Fortran_FLAGS)
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")
+endif()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -587,14 +586,14 @@ if(BUILD_TOOLS)
   add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-  # ninja-build currently does not support fortran. thus we skip building this tool
-  if(CMAKE_GENERATOR STREQUAL "Ninja")
-    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
-  else()
+  include(CheckGeneratorSupport)
+  if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
     install(TARGETS chain.x DESTINATION ${CMAKE_INSTALL_BINDIR})
+  else()
+    message(WARNING "CMake build doesn't support fortran, skipping building 'chain.x'")
   endif()
 
   enable_language(C)
@@ -686,6 +685,7 @@ feature_summary(DESCRIPTION "The following tools and libraries have been found a
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
+   Generator        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}
@@ -718,7 +718,7 @@ else()
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 if(BUILD_MPI)
-  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and these libraries: ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
 endif()
 if(PKG_GPU)
   message(STATUS "GPU API: ${GPU_API}")

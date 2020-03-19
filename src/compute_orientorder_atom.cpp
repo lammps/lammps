@@ -508,7 +508,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   // TODO:
   // 1. [done]Need to allocate extra memory in qnarray[] for this option
   // 2. [done]Need to add keyword option
-  // 3. [done]Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
+  // 3. [done]Need to calculate Clebsch-Gordan/Wigner 3j coefficients
   //     (Can try getting them from boop.py first)
   // 5. [done]Compare to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
   // 6. [done]I get the right answer for W_l, but need to make sure that factor of 1/sqrt(l+1) is right for cglist

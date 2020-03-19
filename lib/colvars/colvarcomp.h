@@ -1512,7 +1512,7 @@ protected:
     std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
-    /// Refernce colvar values from path
+    /// Reference colvar values from path
     std::vector<std::vector<colvarvalue>> ref_cv;
     /// If all sub-cvs use explicit gradients then we also use it
     bool use_explicit_gradients;

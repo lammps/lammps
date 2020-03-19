@@ -976,7 +976,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
   if (function[0]) {
 
-    //perfrom calculations for coulomb interactions only
+    //perform calculations for coulomb interactions only
 
     particle_map_c(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
                  nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
@@ -1024,7 +1024,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (function[1]) {
-    //perfrom calculations for geometric mixing
+    //perform calculations for geometric mixing
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
     make_rho_g();
@@ -1142,7 +1142,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (function[3]) {
-    //perfrom calculations if no mixing rule applies
+    //perform calculations if no mixing rule applies
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
 
@@ -1308,7 +1308,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
           Q[i][j] = 0.0;
       for (int i = 0; i < n; i++)
         Q[i][i] = 1.0;
-      // perfrom eigenvalue decomposition with QR algorithm
+      // perform eigenvalue decomposition with QR algorithm
       converged = qr_alg(A,Q,n);
       if (function[3] && !converged) {
         error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
@@ -1454,7 +1454,7 @@ int PPPMDisp::qr_alg(double **A, double **Q, int n)
   // allocate an auxiliary matrix Qi
   memory->create(Qi,n,n,"pppm/disp:Qi");
 
-  // alllocate an auxillary matrices for the matrix multiplication
+  // alllocate an auxiliary matrices for the matrix multiplication
   memory->create(C,n,n,"pppm/disp:C");
   memory->create(D,n,n,"pppm/disp:D");
   memory->create(E,n,n,"pppm/disp:E");
@@ -1659,7 +1659,7 @@ int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::allocate()
+void _noopt PPPMDisp::allocate()
 {
 
   int (*procneigh)[2] = comm->procneigh;
@@ -3657,7 +3657,7 @@ void PPPMDisp::set_n_pppm_6()
 
   // initial value for the grid spacing
   h = h_x = h_y = h_z = 4.0/g_ewald_6;
-  // decrease grid spacing untill required precision is obtained
+  // decrease grid spacing until required precision is obtained
   int count = 0;
   while(1) {
 
@@ -5760,7 +5760,7 @@ void PPPMDisp::fieldforce_c_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
     const double qfactor = force->qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;

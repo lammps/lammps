@@ -202,7 +202,6 @@ bcolor
 bdiam
 bdw
 Beckman
-behaviour
 Belak
 Bellott
 benchmarking
@@ -1041,6 +1040,7 @@ Gmask
 gneb
 GNEB
 Goldfarb
+Gonzalez-Melchor
 googlemail
 Gordan
 GPa
@@ -1307,6 +1307,7 @@ Izvekov
 izz
 Izz
 Jacobsen
+Jadhav
 jagreat
 Jalalvand
 james
@@ -1613,7 +1614,7 @@ Mackay
 Mackrodt
 Macromolecules
 macroparticle
-macOS
+MacOS
 Madura
 Magda
 Magdeburg
@@ -1682,6 +1683,7 @@ maxwell
 Maxwellian
 maxX
 Mayergoyz
+Mayoral
 mbt
 Mbytes
 MBytes
@@ -1710,6 +1712,7 @@ mediumvioletred
 Mees
 Mehl
 Mei
+Melchor
 Meloni
 Melrose
 Mem
@@ -2070,6 +2073,7 @@ nucleotides
 num
 numa
 numactl
+numdiff
 numericalfreedom
 numerics
 numpy
@@ -2283,6 +2287,7 @@ polyA
 polybond
 polydisperse
 polydispersity
+polyelectrolyte
 polyhedra
 popen
 Popov
@@ -2577,8 +2582,7 @@ Salles
 sandia
 Sandia
 sandybrown
-Sanitizer
-sanitizers
+sanitizer
 Sanyal
 sc
 scafacos
@@ -2795,6 +2799,7 @@ superset
 supersphere
 Supinski
 Surblys
+surfactant
 surfactants
 Suter
 Sutmann
@@ -2857,6 +2862,7 @@ tfmc
 tfMC
 th
 Thakkar
+Thaokar
 thb
 thei
 Theodorou
@@ -3052,6 +3058,7 @@ uwo
 Uzdin
 vacf
 Vaid
+Vaiwala
 valent
 Valeriu
 valgrind
@@ -3080,6 +3087,7 @@ Vectorization
 vectorized
 Vegt
 vel
+Velázquez
 Verlag
 verlet
 Verlet

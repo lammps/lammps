@@ -187,6 +187,9 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    A FENE bond has stretched dangerously far.  It's interaction strength
    will be truncated to attempt to prevent the bond from blowing up.
 
+*Fix halt condition for fix-id %s met on step %ld with value %g*
+   Self explanatory.
+
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
 

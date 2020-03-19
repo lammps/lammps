@@ -40,33 +40,61 @@ own sub-directories with their own Makefiles and/or README files.
 Pre-processing tools
 ====================
 
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`amber2lmp <amber>`    | :ref:`ch2lmp <charmm>` | :ref:`chain <chain>` | :ref:`createatoms <createatoms>` | :ref:`drude <drude>`             | :ref:`eam database <eamdb>` |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`eam generate <eamgn>` | :ref:`eff <eff>`       | :ref:`ipp <ipp>`     | :ref:`micelle2d <micelle>`       | :ref:`moltemplate <moltemplate>` | :ref:`msi2lmp <msi>`        |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`polybond <polybond>`  |                        |                      |                                  |                                  |                             |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`amber2lmp <amber>`
+   * :ref:`ch2lmp <charmm>`
+   * :ref:`chain <chain>`
+   * :ref:`createatoms <createatoms>`
+   * :ref:`drude <drude>`
+   * :ref:`eam database <eamdb>`
+   * :ref:`eam generate <eamgn>`
+   * :ref:`eff <eff>`
+   * :ref:`ipp <ipp>`
+   * :ref:`micelle2d <micelle>`
+   * :ref:`moltemplate <moltemplate>`
+   * :ref:`msi2lmp <msi>`
+   * :ref:`polybond <polybond>`
+
 
 Post-processing tools
 =====================
 
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`amber2lmp <amber>` | :ref:`binary2txt <binary>` | :ref:`ch2lmp <charmm>` | :ref:`colvars <colvars>` | :ref:`eff <eff>`              | :ref:`fep <fep>`            |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`lmp2arc <arc>`     | :ref:`lmp2cfg <cfg>`       | :ref:`matlab <matlab>` | :ref:`phonon <phonon>`   | :ref:`pymol_asphere <pymol>`  | :ref:`python <pythontools>` |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`reax <reax_tool>`  | :ref:`replica <replica>`   | :ref:`smd <smd>`       | :ref:`spin <spin>`       | :ref:`xmgrace <xmgrace>`      |                             |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`amber2lmp <amber>`
+   * :ref:`binary2txt <binary>`
+   * :ref:`ch2lmp <charmm>`
+   * :ref:`colvars <colvars>`
+   * :ref:`eff <eff>`
+   * :ref:`fep <fep>`
+   * :ref:`lmp2arc <arc>`
+   * :ref:`lmp2cfg <cfg>`
+   * :ref:`matlab <matlab>`
+   * :ref:`phonon <phonon>`
+   * :ref:`pymol_asphere <pymol>`
+   * :ref:`python <pythontools>`
+   * :ref:`reax <reax_tool>`
+   * :ref:`replica <replica>`
+   * :ref:`smd <smd>`
+   * :ref:`spin <spin>`
+   * :ref:`xmgrace <xmgrace>`
 
 Miscellaneous tools
 ===================
 
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
-| :ref:`doxygen <doxygen>` | :ref:`emacs <emacs>` | :ref:`i-pi <ipi>` | :ref:`kate <kate>` | :ref:`singularity <singularity_tool>` |
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
-| :ref:`vim <vim>`         |                      |                   |                    |                                       |
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`CMake <cmake>`
+   * :ref:`doxygen <doxygen>`
+   * :ref:`emacs <emacs>`
+   * :ref:`i-pi <ipi>`
+   * :ref:`kate <kate>`
+   * :ref:`singularity <singularity_tool>`
+   * :ref:`vim <vim>`
 
 ----------
 
@@ -156,6 +184,30 @@ The syntax for running the tool is
 See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the system
 for the :doc:`chain benchmark <Speed_bench>`.
+
+----------
+
+.. _cmake:
+
+CMake tools
+-----------
+
+The ``cmbuild`` script is a wrapper around using ``cmake --build <dir>
+--target`` and allows compiling LAMMPS in a :ref:`CMake build folder
+<cmake_build>` with a make-like syntax regardless of the actual build
+tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
+``gmake``) when using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+
+.. parsed-literal::
+
+  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
+
+  Options:
+    -h                print this message
+    -j <NUM>          allow processing of NUM concurrent tasks
+    -C DIRECTORY      execute build in folder DIRECTORY
+    -v                produce verbose output
+
 
 ----------
 

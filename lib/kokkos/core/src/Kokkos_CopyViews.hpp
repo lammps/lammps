@@ -1247,7 +1247,7 @@ void deep_copy
                   typename ViewType::value_type >::value
     , "deep_copy requires non-const type" );
 
-  // If contigous we can simply do a 1D flat loop
+  // If contiguous we can simply do a 1D flat loop
   if(dst.span_is_contiguous()) {
     typedef Kokkos::View<typename ViewType::value_type*,Kokkos::LayoutRight,
         Kokkos::Device<typename ViewType::execution_space,

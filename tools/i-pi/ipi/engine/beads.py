@@ -71,7 +71,7 @@ class Beads(dobject):
    """
 
    def __init__(self, natoms, nbeads):
-      """Initialises Beads.
+      """Initializes Beads.
 
       Args:
          natoms: Number of atoms.

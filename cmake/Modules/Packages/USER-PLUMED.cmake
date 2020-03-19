@@ -29,9 +29,6 @@ if(PKG_USER-PLUMED)
 
   option(DOWNLOAD_PLUMED "Download Plumed package instead of using an already installed one" ${DOWNLOAD_PLUMED_DEFAULT})
   if(DOWNLOAD_PLUMED)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded Plumed library with Ninja build tool")
-    endif()
     if(BUILD_MPI)
       set(PLUMED_CONFIG_MPI "--enable-mpi")
       set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
@@ -47,6 +44,13 @@ if(PKG_USER-PLUMED)
       set(PLUMED_CONFIG_OMP "--disable-openmp")
     endif()
     message(STATUS "PLUMED download requested - we will build our own")
+    if(PLUMED_MODE STREQUAL "STATIC")
+      set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumed.a")
+    elseif(PLUMED_MODE STREQUAL "SHARED")
+      set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumed${CMAKE_SHARED_LIBRARY_SUFFIX};<INSTALL_DIR>/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    elseif(PLUMED_MODE STREQUAL "RUNTIME")
+      set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumedWrapper.a")
+    endif()
     include(ExternalProject)
     ExternalProject_Add(plumed_build
       URL https://github.com/plumed/plumed2/releases/download/v2.6.0/plumed-src-2.6.0.tgz
@@ -59,6 +63,7 @@ if(PKG_USER-PLUMED)
                                                ${PLUMED_CONFIG_OMP}
                                                CXX=${PLUMED_CONFIG_CXX}
                                                CC=${PLUMED_CONFIG_CC}
+      BUILD_BYPRODUCTS ${PLUMED_BUILD_BYPRODUCTS} 
     )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})

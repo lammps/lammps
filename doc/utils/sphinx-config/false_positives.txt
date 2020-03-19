@@ -2052,6 +2052,7 @@ nucleotides
 num
 numa
 numactl
+numdiff
 numericalfreedom
 numerics
 numpy

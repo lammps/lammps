@@ -140,6 +140,8 @@ accelerated styles exist.
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulombic potential and core/shell
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulombic potential with a soft core
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulombics
+* :doc:`coul/slater/cut <pair_coul>` - smeared out Coulombics
+* :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulombics
 * :doc:`coul/shield <pair_coul_shield>` - Coulombics for boron nitride for use with :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` potential
 * :doc:`coul/streitz <pair_coul>` - Coulombics via Streitz/Mintmire Slater orbitals
 * :doc:`coul/wolf <pair_coul>` - Coulombics via Wolf potential

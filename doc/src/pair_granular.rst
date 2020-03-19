@@ -770,7 +770,7 @@ in contact.  J. Appl. Mech., ASME 16, 259-268.
 .. _Thornton2013:
 
 **(Thornton et al, 2013)** Thornton, C., Cummins, S. J., & Cleary,
-P. W. (2013).  An investigation of the comparative behaviour of
+P. W. (2013).  An investigation of the comparative behavior of
 alternative contact force models during inelastic collisions. Powder
 Technology, 233, 30-46.
 

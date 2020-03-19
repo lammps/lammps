@@ -52,7 +52,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = force->inumeric(FLERR,arg[3]);
   delta = force->numeric(FLERR,arg[4]);
-  if (nevery <= 0 || delta <= 0.0) 
+  if (nevery <= 0 || delta <= 0.0)
     error->all(FLERR,"Illegal fix numdiff command");
 
   int n = strlen(id) + 6;
@@ -114,7 +114,7 @@ void FixNumDiff::init()
 {
   // require consecutive atom IDs
 
-  if (!atom->tag_enable || !atom->tag_consecutive()) 
+  if (!atom->tag_enable || !atom->tag_consecutive())
     error->all(FLERR,"Fix numdiff requires consecutive atom IDs");
 
   // check for PE compute

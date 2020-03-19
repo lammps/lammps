@@ -1569,10 +1569,12 @@ void Molecule::allocate()
   if (xflag) memory->create(x,natoms,3,"molecule:x");
   if (typeflag) memory->create(type,natoms,"molecule:type");
   if (moleculeflag) memory->create(molecule,natoms,"molecule:molecule");
-  if (fragmentflag) fragmentnames = new char*[nfragments];
-  if (fragmentflag) memory->create(fragmentmask,nfragments,natoms,"molecule:fragmentmask");
-  for (int i = 0; i < nfragments; i++)
-    for (int j = 0; j < natoms; j++) fragmentmask[i][j] = 0;
+  if (fragmentflag) {
+     fragmentnames = new char*[nfragments];
+     memory->create(fragmentmask,nfragments,natoms,"molecule:fragmentmask");
+     for (int i = 0; i < nfragments; i++)
+       for (int j = 0; j < natoms; j++) fragmentmask[i][j] = 0;
+  }
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
@@ -1665,6 +1667,7 @@ void Molecule::deallocate()
   memory->destroy(radius);
   memory->destroy(rmass);
 
+  memory->destroy(molecule);
   memory->destroy(fragmentmask);
   if (fragmentflag) {
     for (int i = 0; i < nfragments; i++) delete [] fragmentnames[i];

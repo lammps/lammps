@@ -344,7 +344,7 @@ include(Packages/COMPRESS)
 
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
-if(CMAKE_Fortran_FLAGS)
+if(CMAKE_Fortran_COMPILER)
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")
 endif()
 ########################################################################

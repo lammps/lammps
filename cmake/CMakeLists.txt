@@ -167,18 +167,25 @@ if(PKG_USER-ADIOS)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
 endif()
 
-# do MPI detection after language activation, if MPI for these language is required
+# do MPI detection after language activation,
+# in case MPI for these languages is required
 set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+
 if(BUILD_MPI)
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_CXX_INCLUDE_PATH})
-  add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
-  list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
-  option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
-  if(LAMMPS_LONGLONG_TO_LONG)
-    add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+  # We use a non-standard procedure to compile with MPI on windows
+  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    include(MPI4WIN)
+  else()
+    find_package(MPI REQUIRED)
+    include_directories(${MPI_CXX_INCLUDE_PATH})
+    add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
+    option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
+    if(LAMMPS_LONGLONG_TO_LONG)
+      add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+    endif()
   endif()
 else()
   enable_language(C)
@@ -335,11 +342,6 @@ include(Packages/MESSAGE)
 include(Packages/MSCG)
 include(Packages/COMPRESS)
 
-# the windows version of LAMMPS requires a couple extra libraries
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
-endif()
-
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
 if(CMAKE_Fortran_FLAGS)
@@ -428,6 +430,9 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
+    if(LAMMPS_USE_MPI4WIN)
+      add_dependencies(${PKG_LIB} mpi4win_build)
+    endif()
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
@@ -464,6 +469,18 @@ include(Packages/KOKKOS)
 include(Packages/OPT)
 include(Packages/USER-INTEL)
 include(Packages/GPU)
+
+######################################################################
+# the windows version of LAMMPS requires a couple extra libraries
+# and the MPI library - if use - has to be linked right before those
+# and after everything else that is compiled locally
+######################################################################
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  if(LAMMPS_USE_MPI4WIN)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI4WIN_LIBRARIES})
+  endif()
+  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+endif()
 
 ######################################################
 # Generate style headers based on global list of

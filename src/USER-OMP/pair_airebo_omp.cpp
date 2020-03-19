@@ -1848,9 +1848,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
-atoms i and j are placed a ficticious distance rijmag_mod apart.
+atoms i and j are placed a fictitious distance rijmag_mod apart.
 Now there are two approaches to calculate the resulting forces:
-1. Carry through the ficticious distance and corresponding vector
+1. Carry through the fictitious distance and corresponding vector
    rij_mod, correcting afterwards using the derivative of r/|r|.
 2. Perform all the calculations using the real distance, and do not
    use a correction, only using rijmag_mod where necessary.

@@ -1944,7 +1944,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
       fraction2 = nMolecules2/nTotal;
     }
 
-    // If Site1 or Site2 matches is a fluid, then compute the paramters
+    // If Site1 or Site2 matches is a fluid, then compute the parameters
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
       rmi = d_params[iparam].rm;
@@ -2271,7 +2271,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       }
     }
 
-    // If Site1 or Site2 matches is a fluid, then compute the paramters
+    // If Site1 or Site2 matches is a fluid, then compute the parameters
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 

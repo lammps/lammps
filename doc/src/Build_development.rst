@@ -49,7 +49,7 @@ setting the ``CMAKE_TUNE_FLAGS`` variable during configuration. Examples:
 .. code-block:: bash
 
    -D CMAKE_TUNE_FLAGS=-fsanitize=address    # enable address sanitizer / memory leak checker
-   -D CMAKE_TUNE_FLAGS=-fsanitize=undefined  # enable undefined behaviour sanitizer
+   -D CMAKE_TUNE_FLAGS=-fsanitize=undefined  # enable undefined behavior sanitizer
    -D CMAKE_TUNE_FLAGS=-fsanitize=thread     # enable thread sanitizer
 
 .. _valgrind: https://valgrind.org

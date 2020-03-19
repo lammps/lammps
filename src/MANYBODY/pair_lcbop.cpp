@@ -256,7 +256,7 @@ void PairLCBOP::SR_neigh()
 
   double **x = atom->x;
 
-  if (atom->nmax > maxlocal) {  // ensure ther is enough space
+  if (atom->nmax > maxlocal) {  // ensure there is enough space
     maxlocal = atom->nmax;      // for atoms and ghosts allocated
     memory->destroy(SR_numneigh);
     memory->sfree(SR_firstneigh);

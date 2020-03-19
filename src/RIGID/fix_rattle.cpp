@@ -119,7 +119,7 @@ int FixRattle::setmask()
 
 void FixRattle::init() {
 
-  // initialise SHAKE first
+  // initialize SHAKE first
 
   FixShake::init();
 

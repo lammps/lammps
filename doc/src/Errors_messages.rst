@@ -4724,6 +4724,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid Masses section in molecule file*
    Self-explanatory.
 
+*Invalid molecule ID in molecule file*
+   Molecule ID must be a non-zero positive integer.
+
+*Invalid Molecules section in molecule file*
+   Self-explanatory.
+
 *Invalid REAX atom type*
    There is a mis-match between LAMMPS atom types and the elements
    listed in the ReaxFF force field file.
@@ -4789,6 +4795,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom ID in Dihedrals section of data file*
    Atom IDs must be positive integers and within range of defined
    atoms.
+
+*Invalid atom ID in Fragments section of molecule file*
+   Self-explanatory.
 
 *Invalid atom ID in Impropers section of data file*
    Atom IDs must be positive integers and within range of defined
@@ -7666,7 +7675,7 @@ keyword to allow for additional bonds to be formed
    Keywords that refer to time (such as cpu, elapsed) do not
    make sense in between runs.
 
-*Threshhold for an atom property that isn't allocated*
+*Threshold for an atom property that isn't allocated*
    A dump threshold has been requested on a quantity that is
    not defined by the atom style used in this simulation.
 

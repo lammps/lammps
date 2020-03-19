@@ -38,7 +38,7 @@ void FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx); // Appropriate For
 void FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 void FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 // The following LUSubsLH routine is incomplete at the moment.
-void FastLUSubsLH(Matrix& B, Matrix& LU, Matrix& C, int *indx); // Appropriate Forward and Back Subsitution
+void FastLUSubsLH(Matrix& B, Matrix& LU, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 void FastTripleSum(Vect3& a, Vect3& b, Vect3& c, Vect3& d); // d = a+b+c
 void FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d); // d = a+b-c
 

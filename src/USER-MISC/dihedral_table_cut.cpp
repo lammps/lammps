@@ -1140,7 +1140,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
       if (! line_ss) {
         stringstream err_msg;
         err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
-                << "   (Check to make sure the number of colums is correct.)";
+                << "   (Check to make sure the number of columns is correct.)";
         if ((! tb->f_unspecified) && (i==0))
           err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
         error->one(FLERR, err_msg.str().c_str());

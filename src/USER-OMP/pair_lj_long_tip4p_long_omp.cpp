@@ -66,7 +66,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -354,7 +354,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 void PairLJLongTIP4PLongOMP::compute_inner()
 {
    // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nall = atom->nlocal + atom->nghost;
 
@@ -432,7 +432,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
 
   if (atom->nmax > nmax) {

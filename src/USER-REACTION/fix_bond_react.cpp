@@ -617,7 +617,7 @@ void FixBondReact::post_constructor()
       delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
-      // intialize per-atom statted_flags to 1
+      // initialize per-atom statted_flags to 1
       // (only if not already initialized by restart)
       if (fix3->restart_reset != 1) {
         int flag;
@@ -650,7 +650,7 @@ void FixBondReact::post_constructor()
         statted_id = new char[len];
         strcpy(statted_id,idprop);
 
-        // intialize per-atom statted_tags to 1
+        // initialize per-atom statted_tags to 1
         // need to correct for smooth restarts
         //int flag;
         //int index = atom->find_custom(statted_id,flag);
@@ -1325,7 +1325,7 @@ void FixBondReact::make_a_guess()
   //  if so, this constitutes a fail
   //  because still undergoing a previous reaction!
   //  could technically fail unnecessarily during a wrong guess if near edge atoms
-  //  we accept this temporary and infrequent decrease in reaction occurences
+  //  we accept this temporary and infrequent decrease in reaction occurrences
 
   for (int i = 0; i < nxspecial[atom->map(glove[pion][1])][0]; i++) {
     if (atom->map(xspecial[atom->map(glove[pion][1])][i]) < 0) {
@@ -1922,7 +1922,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
 {
   // landlocked_atoms are atoms for which all topology is contained in reacted template
   // if dihedrals/impropers exist: this means that edge atoms are not in their 1-3 neighbor list
-  //   note: due to various usage/defintions of impropers, treated same as dihedrals
+  //   note: due to various usage/definitions of impropers, treated same as dihedrals
   // if angles exist: this means edge atoms not in their 1-2 neighbors list
   // if just bonds: this just means that edge atoms are not landlocked
   // Note: landlocked defined in terms of reacted template

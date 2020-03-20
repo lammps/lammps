@@ -12,16 +12,15 @@ pair_style lennard/mdf command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/mdf* or *buck/mdf* or *lennard/mdf*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *lj/mdf* args = cutoff1 cutoff2
          cutoff1 = inner cutoff for the start of the tapering function
          cutoff1 = out cutoff for the end of the tapering function
@@ -32,11 +31,8 @@ Syntax
          cutoff1 = inner cutoff for the start of the tapering function
          cutoff1 = out cutoff for the end of the tapering function
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,7 +60,6 @@ inner and outer cutoff.
 
    E_{smooth}(r) = E(r)*f(r)
 
-
 The tapering, *f(r)*\ , is done by using the Mei, Davenport, Fernando
 function :ref:`(Mei) <Mei>`.
 
@@ -80,24 +75,20 @@ where
 
    x = \frac{(r-r_m)}{(r_{cut}-r_m)}
 
-
 Here :math:`r_m` is the inner cutoff radius and :math:`r_{cut}` is the
 outer cutoff radius.
 
-
 ----------
 
-
-For the *lj/mdf* pair\_style, the potential energy, *E(r)*\ , is the
+For the *lj/mdf* pair_style, the potential energy, *E(r)*\ , is the
 standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 .. math::
 
    E(r) = 4\epsilon\biggl[\bigl(\frac{\sigma}{r}\bigr)^{12} - \bigl(\frac{\sigma}{r}\bigr)^6\biggr]
 
-
 Either the first two or all of the following coefficients must be
-defined for each pair of atoms types via the pair\_coeff command as in
+defined for each pair of atoms types via the pair_coeff command as in
 the examples above, or in the data file read by the :doc:`read_data
 <read_data>`. The two cutoffs default to the global values and
 :math:`\epsilon` and :math:`\sigma` can also be determined by mixing as
@@ -110,7 +101,7 @@ described below:
 
 ----------
 
-For the *buck/mdf* pair\_style, the potential energy, *E(r)*\ , is the
+For the *buck/mdf* pair_style, the potential energy, *E(r)*\ , is the
 standard Buckingham potential with three required coefficients.
 The two cutoffs can be omitted and default to the corresponding
 global values:
@@ -118,7 +109,6 @@ global values:
 .. math::
 
    E(r) = A e^{(-r/\rho)} -\frac{C}{r^6}
-
 
 * *A* (energy units)
 * :math:`\rho` (distance units)
@@ -128,17 +118,16 @@ global values:
 
 ----------
 
-For the *lennard/mdf* pair\_style, the potential energy, *E(r)*\ , is the
+For the *lennard/mdf* pair_style, the potential energy, *E(r)*\ , is the
 standard 12-6 Lennard-Jones written in the A/B form:
 
 .. math::
 
    E(r) = \frac{A}{r^{12}} - \frac{B}{r^{6}}
 
-
 The following coefficients must be defined for each pair of atoms
-types via the pair\_coeff command as in the examples above, or in the
-data file read by the read\_data commands, or by mixing as described below.
+types via the pair_coeff command as in the examples above, or in the
+data file read by the read_data commands, or by mixing as described below.
 The two cutoffs default to their global values and must be either both
 given or both left out:
 
@@ -154,7 +143,7 @@ given or both left out:
 For atom type pairs I,J and I != J, the :math:`\epsilon` and
 :math:`sigma` coefficients and cutoff distances for the lj/mdf pair
 style can be mixed.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details. The other two pair styles buck/mdf
+"pair_modify" command for details. The other two pair styles buck/mdf
 and lennard/mdf do not support mixing, so all I,J pairs of coefficients
 must be specified explicitly.
 
@@ -162,7 +151,7 @@ None of the lj/mdf, buck/mdf, or lennard/mdf pair styles supports
 the :doc:`pair_modify <pair_modify>` shift option or long-range
 tail corrections to pressure and energy.
 
-These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
@@ -184,12 +173,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mei:
-
-
 
 **(Mei)** Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)

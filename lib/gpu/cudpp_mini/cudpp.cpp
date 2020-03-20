@@ -27,7 +27,7 @@
  * defined in cudpp.h.  Public interface functions call functions in the
  * \link cudpp_app Application-Level\endlink interface. The public 
  * interface functions include Plan Interface functions and Algorithm
- * Interface functions.  Plan Inteface functions are used for creating
+ * Interface functions.  Plan Interface functions are used for creating
  * CUDPP Plan objects which contain configuration details, intermediate
  * storage space, and in the case of cudppSparseMatrix(), data.  The 
  * Algorithm Interface is the set of functions that do the real work 

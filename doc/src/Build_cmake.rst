@@ -9,48 +9,46 @@ Richard Berger (Temple U) has also written a `more comprehensive guide <https://
 for how to use CMake to build LAMMPS.  If you are new to CMake it is a
 good place to start.
 
-
 ----------
-
 
 Building LAMMPS with CMake is a two-step process.  First you use CMake
 to create a build environment in a new directory.  On Linux systems,
-this will be based on makefiles for use with make.  Then you use the
-make command to build LAMMPS, which uses the created
+this will be by default based on Unix-style makefiles for use with make.
+Then you use the *make* command to build LAMMPS, which uses the created
 Makefile(s). Example:
-
 
 .. code-block:: bash
 
    cd lammps                        # change to the LAMMPS distribution directory
    mkdir build; cd build            # create a new directory (folder) for build
    cmake [options ...] ../cmake     # configuration with (command-line) cmake
-   make                             # compilation
+   cmake --build .                  # compilation (or type "make")
 
-The cmake command will detect available features, enable selected
+The ``cmake`` command will detect available features, enable selected
 packages and options, and will generate the build environment.  By default
 this build environment will be created for "Unix Makefiles" on most
 platforms and particularly on Linux.  However, alternate build tools
-(e.g. Ninja) and support files for Integrated Development Environments
-(IDE) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
-selected via the "-G" command line flag. For the rest of the documentation
-we will assume that the build environment is generated for makefiles
-and thus the make command will be used to compile and link LAMMPS as
-indicated above, producing (by default) an executable called "lmp" and
-a library called "liblammps.a" in the "build" folder.  When generating
-a build environment for the "Ninja" build tool, the build command would
-be "ninja" instead of "make".
+(e.g. Ninja) and project files for Integrated Development Environments
+(IDEs) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
+selected via the ``-G`` command line flag. Further details about features
+and settings for CMake are in the `CMake online documentation <cmake_doc_>`_
 
-If your machine has multiple CPU cores (most do these days), using a
-command like "make -jN" (with N being the number of available local
-CPU cores) can be much faster.  If you plan to do development on
-LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
-ccache (= Compiler Cache) software may speed up repeated compilation
-even more.
+.. _cmake_doc: https://cmake.org/documentation/
+
+For the rest of the documentation
+we will assume that the build environment is generated for "Unix Makefiles"
+and thus the ``make`` command will be used to compile and link LAMMPS as
+indicated above, producing (by default) an executable called ``lmp`` and
+a library called ``liblammps.a`` in the ``build`` folder.
+
+If your machine has multiple CPU cores (most do these days), you can
+compile sources in parallel with a command like ``make -j N`` (with N
+being the maximum number of concurrently executed tasks).  Also
+installation of the ``ccache`` (= Compiler Cache) software may speed
+up repeated compilation, e.g. during code development, significantly.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:
-
 
 .. code-block:: bash
 
@@ -59,18 +57,19 @@ your system with:
 This will install the lammps executable and library (if requested), some
 tools (if configured) and additional files like library API headers,
 manpages, potential and force field files. The location of the installation
-tree is set by the CMake variable "CMAKE\_INSTALL\_PREFIX" which defaults
+tree is set by the CMake variable "CMAKE_INSTALL_PREFIX" which defaults
 to ${HOME}/.local
-
 
 ----------
 
+.. _cmake_build:
 
-There are 3 variants of CMake: a command-line version (cmake), a text mode
-UI version (ccmake), and a graphical GUI version (cmake-GUI).  You can use
-any of them interchangeably to configure and create the LAMMPS build
-environment.  On Linux all the versions produce a Makefile as their
-output.  See more details on each below.
+There are 3 variants of the CMake command itself: a command-line version
+(``cmake`` or ``cmake3``), a text mode UI version (``ccmake`` or ``ccmake3``),
+and a graphical GUI version (``cmake-gui``).  You can use any of them
+interchangeably to configure and create the LAMMPS build environment.
+On Linux all the versions produce a Makefile as their output by default.
+See more details on each below.
 
 You can specify a variety of options with any of the 3 versions, which
 affect how the build is performed and what is included in the LAMMPS
@@ -80,7 +79,7 @@ the :doc:`Build <Build>` doc page.
 You must perform the CMake build system generation and compilation in
 a new directory you create.  It can be anywhere on your local machine.
 In these Build pages we assume that you are building in a directory
-called "lammps/build".  You can perform separate builds independently
+called ``lammps/build``.  You can perform separate builds independently
 with different options, so long as you perform each of them in a
 separate directory you create.  All the auxiliary files created by one
 build process (executable, object files, log files, etc) are stored in
@@ -88,12 +87,13 @@ this directory or sub-directories within it that CMake creates.
 
 .. note::
 
-   To perform a CMake build, no packages can be installed or a
-   build been previously attempted in the LAMMPS src directory by using
-   "make" commands to :doc:`perform a conventional LAMMPS build <Build_make>`.  CMake detects if this is the case and
-   generates an error, telling you to type "make no-all purge" in the src
-   directory to un-install all packages.  The purge removes all the \*.h
-   files auto-generated by make.
+   To perform a CMake build, no packages can be installed or a build
+   been previously attempted in the LAMMPS src directory by using ``make``
+   commands to :doc:`perform a conventional LAMMPS build <Build_make>`.
+   CMake detects if this is the case and generates an error, telling you
+   to type ``make no-all purge`` in the src directory to un-install all
+   packages.  The purge removes all the \*.h files auto-generated by
+   make.
 
 You must have CMake version 3.10 or later on your system to build
 LAMMPS.  Installation instructions for CMake are below.
@@ -106,30 +106,28 @@ ccmake or cmake-gui) again from the same build directory and alter
 various options; see details below.  Or you can remove the entire build
 folder, recreate the directory and start over.
 
-
 ----------
-
 
 **Command-line version of CMake**\ :
 
-
 .. code-block:: bash
 
-   cmake [options ...] /path/to/lammps/cmake  # build from any dir
-   cmake [options ...] ../cmake               # build from lammps/build
+   cmake  [options ...] /path/to/lammps/cmake  # build from any dir
+   cmake  [options ...] ../cmake               # build from lammps/build
+   cmake3 [options ...] ../cmake               # build from lammps/build
 
 The cmake command takes one required argument, which is the LAMMPS
 cmake directory which contains the CMakeLists.txt file.
 
-The argument can be preceeded or followed by various CMake
+The argument can be prefixed or followed by various CMake
 command-line options.  Several useful ones are:
-
 
 .. code-block:: bash
 
    -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
    -D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
-   -G output                     # style of output CMake generates
+   -G output                     # style of output CMake generates (e.g. "Unix Makefiles" or "Ninja")
+   -D CMAKE_MAKE_PROGRAM=builder # name of the builder executable (e.g. when using "gmake" instead of "make")
    -DVARIABLE=value              # setting for a LAMMPS feature to enable
    -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
    -C path/to/preset/file        # load some CMake settings before configuring
@@ -137,13 +135,13 @@ command-line options.  Several useful ones are:
 All the LAMMPS-specific -D variables that a LAMMPS build supports are
 described on the pages linked to from the :doc:`Build <Build>` doc page.
 All of these variable names are upper-case and their values are
-lower-case, e.g. -D LAMMPS\_SIZES=smallbig.  For boolean values, any of
+lower-case, e.g. -D LAMMPS_SIZES=smallbig.  For boolean values, any of
 these forms can be used: yes/no, on/off, 1/0.
 
 On Unix/Linux machines, CMake generates a Makefile by default to
 perform the LAMMPS build.  Alternate forms of build info can be
 generated via the -G switch, e.g. Visual Studio on a Windows machine,
-Xcode on MacOS, or KDevelop on Linux.  Type "cmake --help" to see the
+Xcode on MacOS, or KDevelop on Linux.  Type ``cmake --help`` to see the
 "Generator" styles of output your system supports.
 
 .. note::
@@ -168,12 +166,9 @@ In these cases it is usually better to first remove all the
 files/directories in the build directory, or start with a fresh build
 directory.
 
-
 ----------
 
-
 **Curses version (terminal-style menu) of CMake**\ :
-
 
 .. code-block:: bash
 
@@ -186,12 +181,9 @@ required to edit some of the entries of CMake configuration variables
 in between.  Please see the `ccmake manual <https://cmake.org/cmake/help/latest/manual/ccmake.1.html>`_ for
 more information.
 
-
 ----------
 
-
 **GUI version of CMake**\ :
-
 
 .. code-block:: bash
 
@@ -205,14 +197,11 @@ edit some of the entries of CMake configuration variables in between.
 Please see the `cmake-gui manual <https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html>`_
 for more information.
 
-
 ----------
-
 
 **Installing CMake**
 
 Check if your machine already has CMake installed:
-
 
 .. code-block:: bash
 
@@ -222,7 +211,6 @@ Check if your machine already has CMake installed:
 
 On clusters or supercomputers which use environment modules to manage
 software packages, do this:
-
 
 .. code-block:: bash
 

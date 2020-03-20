@@ -61,10 +61,10 @@ typedef Kokkos::HostSpace::execution_space DefaultHostType;
 // In Kokkos you are required to create a pool of generator states, so that threads can
 // grep their own. On CPU architectures the pool size is equal to the thread number,
 // on CUDA about 128k states are generated (enough to give every potentially simultaneously
-// running thread its own state). With a kernel a thread is required to aquire a state from the
+// running thread its own state). With a kernel a thread is required to acquire a state from the
 // pool and later return it.
 // On CPUs the Random number generator is deterministic if using the same number of threads.
-// On GPUs (i.e. using the CUDA backend it is not deterministic because threads aquire states via
+// On GPUs (i.e. using the CUDA backend it is not deterministic because threads acquire states via
 // atomics.
 
 // A Functor for generating uint64_t random numbers templated on the GeneratorPool type
@@ -97,7 +97,7 @@ struct generate_random {
     for(int k = 0;k<samples;k++)
       vals(i*samples+k) = rand_gen.urand64();
 
-    // Give the state back, which will allow another thread to aquire it
+    // Give the state back, which will allow another thread to acquire it
     rand_pool.free_state(rand_gen);
   }
 };

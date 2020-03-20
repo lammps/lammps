@@ -6,7 +6,6 @@ fix phonon command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
@@ -16,15 +15,14 @@ Syntax
 * N = measure the Green's function every this many timesteps
 * Noutput = output the dynamical matrix every this many measurements
 * Nwait = wait this many timesteps before measuring
-* map\_file = *file* or *GAMMA*
-  
+* map_file = *file* or *GAMMA*
+
   .. parsed-literal::
-  
+
        *file* is the file that contains the mapping info between atom ID and the lattice indices.
 
-  
   .. parsed-literal::
-  
+
        *GAMMA* flags to treate the whole simulation box as a unit cell, so that the mapping
        info can be generated internally. In this case, dynamical matrix at only the gamma-point
        will/can be evaluated.
@@ -32,21 +30,18 @@ Syntax
 * prefix = prefix for output files
 * one or none keyword/value pairs may be appended
 * keyword = *sysdim* or *nasr*
-  
+
   .. parsed-literal::
-  
+
        *sysdim* value = d
          d = dimension of the system, usually the same as the MD model dimension
        *nasr* value = n
          n = number of iterations to enforce the acoustic sum rule
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
    fix 1 all phonon 20 5000 200000 map.in EAM3D
@@ -68,20 +63,17 @@ Based on fluctuation-dissipation theory, the force constant
 coefficients of the system in reciprocal space are given by
 (:ref:`Campana <Campana>` , :ref:`Kong <Kong>`)
 
-
 .. math::
 
    \mathbf{\Phi}_{k\alpha,k^\prime \beta}(\mathbf{q}) = k_B T \mathbf{G}^{-1}_{k\alpha,k^\prime \beta}(\mathbf{q})
 
 where :math:`\mathbf{G}` is the Green's functions coefficients given by
 
-
 .. math::
 
    \mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) = \left< \mathbf{u}_{k\alpha}(\mathbf{q}) \bullet \mathbf{u}_{k^\prime \beta}^*(\mathbf{q}) \right>
 
 where :math:`\left< \ldots \right>` denotes the ensemble average, and
-
 
 .. math::
 
@@ -91,7 +83,6 @@ is the :math:`\alpha` component of the atomic displacement for the :math:`k`
 th atom in the unit cell in reciprocal space at :math:`\mathbf{q}`. In
 practice, the Green's functions coefficients can also be measured
 according to the following formula,
-
 
 .. math::
 
@@ -106,7 +97,6 @@ easier to implement in an MD code.
 
 Once the force constant matrix is known, the dynamical matrix
 :math:`\mathbf{D}` can then be obtained by
-
 
 .. math::
 
@@ -141,14 +131,14 @@ provided by keyword *nasr* gives the total number of iterations. For a
 system whose unit cell has only one atom, *nasr* = 1 is sufficient;
 for other systems, *nasr* = 10 is typically sufficient.
 
-The *map\_file* contains the mapping information between the lattice
+The *map_file* contains the mapping information between the lattice
 indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
 code, `latgen <http://code.google.com/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.
 
 In case one simulates a non-periodic system, where the whole simulation
-box is treated as a unit cell, one can set *map\_file* as *GAMMA*\ , so
+box is treated as a unit cell, one can set *map_file* as *GAMMA*\ , so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
 will/can be evaluated. Please keep in mind that fix-phonon is designed
@@ -160,12 +150,12 @@ The calculated dynamical matrix elements are written out in
 points in the log file is in the units of the basis vectors of the
 corresponding reciprocal lattice.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
-fix. You can use it to change the temperature compute from thermo\_temp
+fix. You can use it to change the temperature compute from thermo_temp
 to the one that reflects the true temperature of atoms in the group.
 
 No global scalar or vector or per-atom quantities are stored by this
@@ -185,7 +175,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix assumes a crystalline system with periodical lattice. The
 temperature of the system should not exceed the melting temperature to
@@ -208,33 +197,25 @@ Default
 The option defaults are sysdim = the same dimension as specified by
 the :doc:`dimension <dimension>` command, and nasr = 20.
 
-
 ----------
-
 
 .. _Campana:
 
-
-
 **(Campana)** C. Campana and
 M. H. Muser, *Practical Green's function approach to the
-simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <http://dx.doi.org/10.1103/PhysRevB.74.075420>`_
+simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
 
 .. _Kong:
 
-
-
 **(Kong)** L.T. Kong, G. Bartels, C. Campana,
 C. Denniston, and Martin H. Muser, *Implementation of Green's
-function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <http://dx.doi.org/10.1016/j.cpc.2008.12.035>`_
+function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
 
 L.T. Kong, C. Denniston, and Martin H. Muser,
 *An improved version of the Green's function molecular dynamics
-method*\ , `Computer Physics Communications [182](2):540-541 (2011). <http://dx.doi.org/10.1016/j.cpc.2010.10.006>`_
+method*\ , `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
 
 .. _Kong2011:
 
-
-
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
-molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <http://dx.doi.org/10.1016/j.cpc.2011.04.019>`_
+molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_

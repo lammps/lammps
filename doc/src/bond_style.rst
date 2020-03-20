@@ -6,7 +6,6 @@ bond_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style style args
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -49,10 +47,10 @@ The coefficients associated with a bond style can be specified in a
 data or restart file or via the :doc:`bond_coeff <bond_coeff>` command.
 
 All bond potentials store their coefficient data in binary restart
-files which means bond\_style and :doc:`bond_coeff <bond_coeff>` commands
+files which means bond_style and :doc:`bond_coeff <bond_coeff>` commands
 do not need to be re-specified in an input script that restarts a
 simulation.  See the :doc:`read_restart <read_restart>` command for
-details on how to do this.  The one exception is that bond\_style
+details on how to do this.  The one exception is that bond_style
 *hybrid* only stores the list of sub-styles in the restart file; bond
 coefficients need to be re-specified.
 
@@ -66,16 +64,14 @@ coefficients need to be re-specified.
 In the formulas listed for each bond style, *r* is the distance
 between the 2 atoms in the bond.
 
-
 ----------
-
 
 Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the bond\_style command, and coefficients
+arguments specified in the bond_style command, and coefficients
 specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 There are also additional accelerated pair styles included in the
@@ -104,13 +100,10 @@ accelerated styles exist.
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
 * :doc:`table <bond_table>` - tabulated by bond length
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Bond styles can only be set for atom styles that allow bonds to be
 defined.

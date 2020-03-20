@@ -102,7 +102,7 @@ public:
   KOKKOS_FORCEINLINE_FUNCTION
   bool existing() const { return (m_status & EXISTING); }
 
-  /// Did the map fail to insert the key due to insufficent capacity
+  /// Did the map fail to insert the key due to insufficient capacity
   KOKKOS_FORCEINLINE_FUNCTION
   bool failed() const { return m_index == UnorderedMapInvalidIndex; }
 

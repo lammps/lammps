@@ -6,15 +6,14 @@ thermo_modify command
 Syntax
 """"""
 
- 
 .. code-block:: LAMMPS
 
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*\ :l
        *lost* value = *error* or *warn* or *ignore*
        *lost/bond* value = *error* or *warn* or *ignore*
@@ -27,11 +26,8 @@ Syntax
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -51,9 +47,9 @@ by LAMMPS.
    These options apply to the currently defined thermo style.  When
    you specify a :doc:`thermo_style <thermo_style>` command, all
    thermodynamic settings are restored to their default values, including
-   those previously reset by a thermo\_modify command.  Thus if your input
-   script specifies a thermo\_style command, you should use the
-   thermo\_modify command after it.
+   those previously reset by a thermo_modify command.  Thus if your input
+   script specifies a thermo_style command, you should use the
+   thermo_modify command after it.
 
 The *lost* keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
@@ -108,7 +104,7 @@ The *line* keyword determines whether thermodynamics will be output as
 a series of numeric values on one line or in a multi-line format with
 3 quantities with text strings per line and a dashed-line header
 containing the timestep and CPU time.  This modify option overrides
-the *one* and *multi* thermo\_style settings.
+the *one* and *multi* thermo_style settings.
 
 The *format* keyword can be used to change the default numeric format
 of any of quantities the :doc:`thermo_style <thermo_style>` command
@@ -148,7 +144,7 @@ The specified compute ID must have been previously defined by the user
 via the :doc:`compute <compute>` command and it must be a style of
 compute that calculates a temperature.  As described in the
 :doc:`thermo_style <thermo_style>` command, thermo output uses a default
-compute for temperature with ID = *thermo\_temp*.  This option allows
+compute for temperature with ID = *thermo_temp*.  This option allows
 the user to override the default.
 
 The *press* keyword is used to determine how thermodynamic pressure is
@@ -158,13 +154,13 @@ must have been previously defined by the user via the
 :doc:`compute <compute>` command and it must be a style of compute that
 calculates a pressure.  As described in the
 :doc:`thermo_style <thermo_style>` command, thermo output uses a default
-compute for pressure with ID = *thermo\_press*.  This option allows the
+compute for pressure with ID = *thermo_press*.  This option allows the
 user to override the default.
 
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by thermodynamics), but only
@@ -187,7 +183,7 @@ Default
 
 The option defaults are lost = error, norm = yes for unit style of
 *lj*\ , norm = no for unit style of *real* and *metal*\ , flush = no,
-and temp/press = compute IDs defined by thermo\_style.
+and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults

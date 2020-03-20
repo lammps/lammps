@@ -6,7 +6,6 @@ compute temp/deform/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/deform/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp/deform/eff
 
@@ -61,7 +59,6 @@ vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

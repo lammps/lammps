@@ -6,7 +6,6 @@ compute vacf command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID vacf
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all vacf
    compute 1 upper vacf
@@ -43,12 +41,11 @@ The integral of the VACF versus time is proportional to the diffusion
 coefficient of the diffusing atoms.  This can be computed in the
 following manner, using the :doc:`variable trap() <variable>` function:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all vacf
    fix             5 all vector 1 c_2[4]
-   variable        diff equal dt\*trap(f_5)
+   variable        diff equal dt*trap(f_5)
    thermo_style    custom step v_diff
 
 .. note::

@@ -12,14 +12,12 @@ pair_style dpd/fdt/energy/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *dpd/fdt* or *dpd/fdt/energy*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -33,7 +31,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -61,7 +58,6 @@ given as a sum of 3 terms
    F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
    F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
    w(r)     = & 1 - r/r_c
-
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
@@ -107,10 +103,9 @@ energies are computed within style *dpd/fdt/energy* as:
 .. math::
 
    du_{i}^{cond}  = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
-   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} - 
-   \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} - 
-   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2} 
-
+   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} -
+   \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} -
+   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2}
 
 where
 
@@ -119,7 +114,6 @@ where
    \alpha_{ij}^{2}  = & 2k_{B}\kappa_{ij} \\
    \sigma^{2}_{ij}  = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
    \Theta_{ij}^{-1}  = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}})
-
 
 :math:`\zeta_ij^q` is a second Gaussian random number with zero mean and unit
 variance that is used to compute the internal conductive energy. The
@@ -158,9 +152,7 @@ Shardlow splitting algorithm is advantageous, especially when
 performing DPD under isoenergetic conditions, as it allows
 significantly larger timesteps to be taken.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -180,13 +172,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These commands are part of the USER-DPD package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -206,13 +195,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lisal3:
-
-
 
 **(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and

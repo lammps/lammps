@@ -971,7 +971,7 @@ void FixDeform::restart(char *buf)
     set[i].hi_initial = set_restart[i].hi_initial;
     set[i].vol_initial = set_restart[i].vol_initial;
     set[i].tilt_initial = set_restart[i].tilt_initial;
-    // check if style settings are consitent (should do the whole set?)
+    // check if style settings are consistent (should do the whole set?)
     if (set[i].style != set_restart[i].style)
       samestyle = 0;
     if (set[i].substyle != set_restart[i].substyle)

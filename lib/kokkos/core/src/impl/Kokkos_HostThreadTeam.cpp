@@ -253,7 +253,7 @@ int HostThreadTeamData::get_work_stealing() noexcept
       HostThreadTeamData * const * const pool =
         (HostThreadTeamData**)( m_pool_scratch + m_pool_members );
 
-      // Attempt from begining failed, try to steal from end of neighbor
+      // Attempt from beginning failed, try to steal from end of neighbor
 
       pair_int_t volatile * steal_range =
         & ( pool[ m_steal_rank ]->m_work_range );

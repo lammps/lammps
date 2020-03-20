@@ -3,7 +3,6 @@ Introduction
 
 These pages provide a brief introduction to LAMMPS.
 
-
 .. toctree::
    :maxdepth: 1
 

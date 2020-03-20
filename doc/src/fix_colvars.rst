@@ -6,7 +6,6 @@ fix colvars command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID colvars configfile keyword values ...
@@ -15,9 +14,9 @@ Syntax
 * colvars = style name of this fix command
 * configfile = the configuration file for the colvars module
 * keyword = *input* or *output* or *seed* or *tstat*
-  
+
   .. parsed-literal::
-  
+
        *input* arg = colvars.state file name or prefix or NULL (default: NULL)
        *output* arg = output filename prefix (default: out)
        *seed* arg = seed for random number generator (default: 1966)
@@ -25,13 +24,10 @@ Syntax
          use unwrapped coordinates in collective variables (default: yes)
        *tstat* arg = fix id of a thermostat or NULL (default: NULL)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
    fix abf all colvars colvars.inp tstat 1
@@ -56,9 +52,7 @@ A detailed discussion of its implementation is in :ref:`(Fiorin) <Fiorin>`.
 There are some example scripts for using this package with LAMMPS in the
 examples/USER/colvars directory.
 
-
 ----------
-
 
 The only mandatory argument to the fix is the filename to the colvars
 input file that contains the input that is independent from the MD
@@ -96,7 +90,7 @@ fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the current status of the colvars module into
 :doc:`binary restart files <restart>`. This is in addition to the text
@@ -107,12 +101,12 @@ The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change from the biasing force added by the fix
 to the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
-The *fix\_modify configfile <config file>* option allows to add settings
+The *fix_modify configfile <config file>* option allows to add settings
 from an additional config file to the colvars module. This option can
 only be used, after the system has been initialized with a :doc:`run <run>`
 command.
 
-The *fix\_modify config <quoted string>* option allows to add settings
+The *fix_modify config <quoted string>* option allows to add settings
 from inline strings. Those have to fit on a single line when enclosed
 in a pair of double quotes ("), or can span multiple lines when bracketed
 by a pair of triple double quotes (""", like python embedded documentation).
@@ -124,7 +118,6 @@ fix is "extensive".
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -146,12 +139,8 @@ Default
 The default options are input = NULL, output = out, seed = 1966, unwrap yes,
 and tstat = NULL.
 
-
 ----------
 
-
 .. _Fiorin:
-
-
 
 **(Fiorin)** Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594

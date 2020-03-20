@@ -341,5 +341,5 @@ highlight_language = 'none'
 
 # breathe configuration
 
-breathe_projects = { "progguide" : "../../breathe/xml" }
+breathe_projects = { "progguide" : "../../doxygen/xml" }
 breathe_default_project = "progguide"

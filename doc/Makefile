@@ -29,7 +29,7 @@ endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xml
 
 # ------------------------------------------
 
@@ -59,7 +59,7 @@ clean: clean-spelling
 clean-spelling:
 	rm -rf spelling
 
-html: $(ANCHORCHECK) $(MATHJAX)
+html: xml $(ANCHORCHECK) $(MATHJAX)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
@@ -93,7 +93,7 @@ spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub: $(VENV)
+epub: xml $(VENV)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -112,7 +112,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: $(ANCHORCHECK)
+pdf: xml $(ANCHORCHECK)
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -178,6 +178,10 @@ package_check : $(VENV)
 		python utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)
+
+xml:
+	@cd doxygen; doxygen
+	@touch src/pg_*.rst
 
 # ------------------------------------------
 

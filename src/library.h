@@ -64,7 +64,7 @@ extern "C" {
  * \param ptr pointer to a location where reference to the created LAMMPS instance is stored. Will be pointing to a NULL
  * pointer if the function failed.
  */
-  void lammps_open_no_mpi(int argc, char **arg, void **ptr);
+  void lammps_open_no_mpi(int argc, char **argv, void **ptr);
 
 /** \brief Delete a LAMMPS instance created by lammps_open() or lammps_open_no_mpi()
  *

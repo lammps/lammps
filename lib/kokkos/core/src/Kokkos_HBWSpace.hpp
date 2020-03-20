@@ -63,10 +63,10 @@ namespace Impl {
 /// This function initializes the locks to zero (unset).
 void init_lock_array_hbw_space();
 
-/// \brief Aquire a lock for the address
+/// \brief Acquire a lock for the address
 ///
-/// This function tries to aquire the lock for the hash value derived
-/// from the provided ptr. If the lock is successfully aquired the
+/// This function tries to acquire the lock for the hash value derived
+/// from the provided ptr. If the lock is successfully acquired the
 /// function returns true. Otherwise it returns false.
 bool lock_address_hbw_space( void* ptr );
 
@@ -74,7 +74,7 @@ bool lock_address_hbw_space( void* ptr );
 ///
 /// This function releases the lock for the hash value derived
 /// from the provided ptr. This function should only be called
-/// after previously successfully aquiring a lock with
+/// after previously successfully acquiring a lock with
 /// lock_address.
 void unlock_address_hbw_space( void* ptr );
 

@@ -57,7 +57,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if(strcmp(arg[i+1],"pimd")==0) method=PIMD;
       else if(strcmp(arg[i+1],"nmpimd")==0) method=NMPIMD;
       else if(strcmp(arg[i+1],"cmd")==0) method=CMD;
-      else error->universe_all(FLERR,"Unkown method parameter for fix pimd");
+      else error->universe_all(FLERR,"Unknown method parameter for fix pimd");
     }
     else if(strcmp(arg[i],"fmass")==0)
     {
@@ -79,7 +79,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       nhc_nchain = atoi(arg[i+1]);
       if(nhc_nchain<2) error->universe_all(FLERR,"Invalid nhc value for fix pimd");
     }
-    else error->universe_all(arg[i],i+1,"Unkown keyword for fix pimd");
+    else error->universe_all(arg[i],i+1,"Unknown keyword for fix pimd");
   }
 
   /* Initiation */

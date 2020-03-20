@@ -51,41 +51,34 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
+# set required compiler flags and compiler/CPU arch specific optimizations
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+  else()
+    set(CMAKE_TUNE_DEFAULT "-xHost")
+  endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -ftree-vectorize -fexpensive-optimizations")
-  endif()
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
 # we require C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# GNU compiler features
+# GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable code coverage" OFF)
+  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  endif()
-  option(ENABLE_SANITIZE_ADDRESS "Enable address sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_ADDRESS)
-  if(ENABLE_SANITIZE_ADDRESS)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-  endif()
-  option(ENABLE_SANITIZE_UNDEFINED "Enable undefined behavior sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_UNDEFINED)
-  if(ENABLE_SANITIZE_UNDEFINED)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-  endif()
-  option(ENABLE_SANITIZE_THREAD "Enable thread sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_THREAD)
-  if(ENABLE_SANITIZE_THREAD)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
   endif()
 endif()
 
@@ -174,18 +167,25 @@ if(PKG_USER-ADIOS)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
 endif()
 
-# do MPI detection after language activation, if MPI for these language is required
+# do MPI detection after language activation,
+# in case MPI for these languages is required
 set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+
 if(BUILD_MPI)
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_CXX_INCLUDE_PATH})
-  add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
-  list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
-  option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
-  if(LAMMPS_LONGLONG_TO_LONG)
-    add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+  # We use a non-standard procedure to compile with MPI on windows
+  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    include(MPI4WIN)
+  else()
+    find_package(MPI REQUIRED)
+    include_directories(${MPI_CXX_INCLUDE_PATH})
+    add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
+    option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
+    if(LAMMPS_LONGLONG_TO_LONG)
+      add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+    endif()
   endif()
 else()
   enable_language(C)
@@ -262,8 +262,8 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
-    set(BLAS_LIBRARIES linalg)
-    set(LAPACK_LIBRARIES linalg)
+    set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
+    set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
@@ -342,11 +342,11 @@ include(Packages/MESSAGE)
 include(Packages/MSCG)
 include(Packages/COMPRESS)
 
-# the windows version of LAMMPS requires a couple extra libraries
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
+if(CMAKE_Fortran_COMPILER)
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")
 endif()
-
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -430,6 +430,9 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
+    if(LAMMPS_USE_MPI4WIN)
+      add_dependencies(${PKG_LIB} mpi4win_build)
+    endif()
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
@@ -466,6 +469,18 @@ include(Packages/KOKKOS)
 include(Packages/OPT)
 include(Packages/USER-INTEL)
 include(Packages/GPU)
+
+######################################################################
+# the windows version of LAMMPS requires a couple extra libraries
+# and the MPI library - if use - has to be linked right before those
+# and after everything else that is compiled locally
+######################################################################
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  if(LAMMPS_USE_MPI4WIN)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI4WIN_LIBRARIES})
+  endif()
+  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+endif()
 
 ######################################################
 # Generate style headers based on global list of

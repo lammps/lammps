@@ -127,7 +127,7 @@ The *C.drip* parameter file provided with LAMMPS (see the "potentials"
 directory) is parameterized for metal :doc:`units <units>`. You can use the DRIP
 potential with any LAMMPS units, but you would need to create your own custom
 parameter file with coefficients listed in the appropriate units, if your
-simulation doesn't use "metal" units.
+simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""

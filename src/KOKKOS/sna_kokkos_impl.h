@@ -877,7 +877,7 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
     });
     // In CUDA backend,
     // ThreadVectorRange has a __syncwarp (appropriately masked for
-    // vector lengths < 32) implict at the end
+    // vector lengths < 32) implicit at the end
 
     // swap double buffers
     auto tmp = buf1; buf1 = buf2; buf2 = tmp;

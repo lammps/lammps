@@ -31,11 +31,11 @@ Classes:
       the entire system.
    ThermoSVR: Holds the algorithms for a stochastic velocity rescaling
       thermostat.
-   ThermoGLE: Holds the algorithms for a generalised langevin equation
+   ThermoGLE: Holds the algorithms for a generalized langevin equation
       thermostat.
-   ThermoNMGLE: Holds the algorithms for a generalised langevin equation
+   ThermoNMGLE: Holds the algorithms for a generalized langevin equation
       thermostat in the normal mode representation.
-   ThermoNMGLEG: Holds the algorithms for a generalised langevin equation
+   ThermoNMGLEG: Holds the algorithms for a generalized langevin equation
       thermostat in the normal mode representation, with kinetic energy as
       well as potential energy sampling optimization.
 """
@@ -75,14 +75,14 @@ class Thermostat(dobject):
    """
 
    def __init__(self, temp = 1.0, dt = 1.0, ethermo=0.0):
-      """Initialises Thermostat.
+      """Initializes Thermostat.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
          dt: The simulation time step. Defaults to 1.0.
          ethermo: The initial heat energy transferred to the bath.
             Defaults to 0.0. Will be non-zero if the thermostat is
-            initialised from a checkpoint file.
+            initialized from a checkpoint file.
       """
 
       dset(self,"temp",   depend_value(name='temp', value=temp))
@@ -181,7 +181,7 @@ class ThermoLangevin(Thermostat):
       return np.sqrt(Constants.kb*self.temp*(1 - self.T**2))
 
    def __init__(self, temp = 1.0, dt = 1.0, tau = 1.0, ethermo=0.0):
-      """Initialises ThermoLangevin.
+      """Initializes ThermoLangevin.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
@@ -189,7 +189,7 @@ class ThermoLangevin(Thermostat):
          tau: The thermostat damping timescale. Defaults to 1.0.
          ethermo: The initial heat energy transferred to the bath.
             Defaults to 0.0. Will be non-zero if the thermostat is
-            initialised from a checkpoint file.
+            initialized from a checkpoint file.
       """
 
       super(ThermoLangevin,self).__init__(temp, dt, ethermo)
@@ -241,14 +241,14 @@ class ThermoPILE_L(Thermostat):
    """
 
    def __init__(self, temp = 1.0, dt = 1.0, tau = 1.0, ethermo=0.0, scale=1.0):
-      """Initialises ThermoPILE_L.
+      """Initializes ThermoPILE_L.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
          dt: The simulation time step. Defaults to 1.0.
          tau: The centroid thermostat damping timescale. Defaults to 1.0.
          ethermo: The initial conserved energy quantity. Defaults to 0.0. Will
-            be non-zero if the thermostat is initialised from a checkpoint file.
+            be non-zero if the thermostat is initialized from a checkpoint file.
          scale: A float used to reduce the intensity of the PILE thermostat if
             required.
 
@@ -404,14 +404,14 @@ class ThermoSVR(Thermostat):
       return Constants.kb*self.temp*0.5
 
    def __init__(self, temp = 1.0, dt = 1.0, tau = 1.0, ethermo=0.0):
-      """Initialises ThermoSVR.
+      """Initializes ThermoSVR.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
          dt: The simulation time step. Defaults to 1.0.
          tau: The thermostat damping timescale. Defaults to 1.0.
          ethermo: The initial conserved energy quantity. Defaults to 0.0. Will
-            be non-zero if the thermostat is initialised from a checkpoint file.
+            be non-zero if the thermostat is initialized from a checkpoint file.
       """
 
       super(ThermoSVR,self).__init__(temp,dt,ethermo)
@@ -459,14 +459,14 @@ class ThermoPILE_G(ThermoPILE_L):
    """
 
    def __init__(self, temp = 1.0, dt = 1.0, tau = 1.0, ethermo=0.0, scale = 1.0):
-      """Initialises ThermoPILE_G.
+      """Initializes ThermoPILE_G.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
          dt: The simulation time step. Defaults to 1.0.
          tau: The centroid thermostat damping timescale. Defaults to 1.0.
          ethermo: The initial conserved energy quantity. Defaults to 0.0. Will
-            be non-zero if the thermostat is initialised from a checkpoint file.
+            be non-zero if the thermostat is initialized from a checkpoint file.
          scale: A float used to reduce the intensity of the PILE thermostat if
             required.
       """
@@ -532,9 +532,9 @@ class ThermoGLE(Thermostat):
    J. Chem. Phys. 134, 084104 (2011)).
 
    Attributes:
-      ns: The number of auxilliary degrees of freedom.
+      ns: The number of auxiliary degrees of freedom.
       s: An array holding all the momenta, including the ones for the
-         auxilliary degrees of freedom.
+         auxiliary degrees of freedom.
 
    Depend objects:
       A: Drift matrix giving the damping time scales for all the different
@@ -556,11 +556,11 @@ class ThermoGLE(Thermostat):
       return matrix_exp(-0.5*self.dt*self.A)
 
    def get_S(self):
-      """Calculates the matrix for the coloured noise."""
+      """Calculates the matrix for the colored noise."""
 
       SST = Constants.kb*(self.C - np.dot(self.T,np.dot(self.C,self.T.T)))
 
-      # Uses a symetric decomposition rather than Cholesky, since it is more stable
+      # Uses a symmetric decomposition rather than Cholesky, since it is more stable
       return root_herm(SST)
 
    def get_C(self):
@@ -570,7 +570,7 @@ class ThermoGLE(Thermostat):
       return rC[:]
 
    def __init__(self, temp = 1.0, dt = 1.0, A = None, C = None, ethermo=0.0):
-      """Initialises ThermoGLE.
+      """Initializes ThermoGLE.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
@@ -582,7 +582,7 @@ class ThermoGLE(Thermostat):
             total number of degrees of freedom in the system.
          ethermo: The initial heat energy transferred to the bath.
             Defaults to 0.0. Will be non-zero if the thermostat is
-            initialised from a checkpoint file.
+            initialized from a checkpoint file.
       """
 
       super(ThermoGLE,self).__init__(temp,dt,ethermo)
@@ -643,15 +643,15 @@ class ThermoGLE(Thermostat):
       # allocates, initializes or restarts an array of s's
       if self.s.shape != (self.ns + 1, len(dget(self,"m"))):
          if len(self.s) > 0:
-            warning("Mismatch in GLE s array size on restart, will reinitialise to free particle.", verbosity.low)
+            warning("Mismatch in GLE s array size on restart, will reinitialize to free particle.", verbosity.low)
          self.s = np.zeros((self.ns + 1, len(dget(self,"m"))))
 
          # Initializes the s vector in the free-particle limit
-         info(" GLE additional DOFs initialised to the free-particle limit.", verbosity.low)
+         info(" GLE additional DOFs initialized to the free-particle limit.", verbosity.low)
          SC = stab_cholesky(self.C*Constants.kb)
          self.s[:] = np.dot(SC, self.prng.gvec(self.s.shape))
       else:
-         info("GLE additional DOFs initialised from input.", verbosity.medium)
+         info("GLE additional DOFs initialized from input.", verbosity.medium)
 
    def step(self):
       """Updates the bound momentum vector with a GLE thermostat"""
@@ -675,10 +675,10 @@ class ThermoNMGLE(Thermostat):
    GLE for each normal mode
 
    Attributes:
-      ns: The number of auxilliary degrees of freedom.
+      ns: The number of auxiliary degrees of freedom.
       nb: The number of beads.
       s: An array holding all the momenta, including the ones for the
-         auxilliary degrees of freedom.
+         auxiliary degrees of freedom.
 
    Depend objects:
       A: Drift matrix giving the damping time scales for all the different
@@ -699,7 +699,7 @@ class ThermoNMGLE(Thermostat):
       return rv[:]
 
    def __init__(self, temp = 1.0, dt = 1.0, A = None, C = None, ethermo=0.0):
-      """Initialises ThermoGLE.
+      """Initializes ThermoGLE.
 
       Args:
          temp: The simulation temperature. Defaults to 1.0.
@@ -711,7 +711,7 @@ class ThermoNMGLE(Thermostat):
             total number of degrees of freedom in the system.
          ethermo: The initial heat energy transferred to the bath.
             Defaults to 0.0. Will be non-zero if the thermostat is
-            initialised from a checkpoint file.
+            initialized from a checkpoint file.
       """
 
       super(ThermoNMGLE,self).__init__(temp,dt,ethermo)
@@ -767,16 +767,16 @@ class ThermoNMGLE(Thermostat):
       # allocates, initializes or restarts an array of s's
       if self.s.shape != (self.nb, self.ns + 1, nm.natoms *3) :
          if len(self.s) > 0:
-            warning("Mismatch in GLE s array size on restart, will reinitialise to free particle.", verbosity.low)
+            warning("Mismatch in GLE s array size on restart, will reinitialize to free particle.", verbosity.low)
          self.s = np.zeros((self.nb, self.ns + 1, nm.natoms*3))
 
          # Initializes the s vector in the free-particle limit
-         info(" GLE additional DOFs initialised to the free-particle limit.", verbosity.low)
+         info(" GLE additional DOFs initialized to the free-particle limit.", verbosity.low)
          for b in range(self.nb):
             SC = stab_cholesky(self.C[b]*Constants.kb)
             self.s[b] = np.dot(SC, self.prng.gvec(self.s[b].shape))
       else:
-         info("GLE additional DOFs initialised from input.", verbosity.medium)
+         info("GLE additional DOFs initialized from input.", verbosity.medium)
 
       prev_ethermo = self.ethermo
 

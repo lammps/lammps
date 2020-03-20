@@ -17,7 +17,7 @@ pair_style hybrid/overlay lj/cut 8.0 quip
 special_bonds lj/coul 0.999999999 0.999999999 0.999999999
 
 # Intermolecular: OPLS (JACS 118 (45), p. 11225 (1996))
-# Coulomb interactions ommitted for simplicity
+# Coulomb interactions omitted for simplicity
 pair_coeff 1 1 lj/cut 0.0028619844 3.5 # CT
 pair_coeff 2 2 lj/cut 0.0013009018 2.5 # HC
 pair_coeff 1 2 lj/cut 0.0019295487 2.95

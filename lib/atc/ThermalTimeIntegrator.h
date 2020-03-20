@@ -273,7 +273,7 @@ namespace ATC {
     /** change in FE temperature due to atomic motions */
     DENS_MAN atomicTemperatureDelta_;
 
-    /** fractional step auxilliary storage for restricted atomic energy */
+    /** fractional step auxiliary storage for restricted atomic energy */
     DENS_MAN * nodalAtomicEnergy_;
 
     /** power associated with thermostat for post-processing */

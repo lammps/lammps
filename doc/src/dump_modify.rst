@@ -520,7 +520,7 @@ includes an initial snapshot with the reference position of all atoms.
 Note that only computes with a *refresh* option will work with
 dump_modify refresh.  See individual compute doc pages for details.
 Currently, only compute displace/atom supports this option.  Others
-may be added at some point.  If you use a compute that doesn't support
+may be added at some point.  If you use a compute that does not support
 refresh operations, LAMMPS will not complain; dump_modify refresh will
 simply do nothing.
 

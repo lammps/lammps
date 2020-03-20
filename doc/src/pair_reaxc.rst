@@ -149,7 +149,7 @@ drops to zero.
 Optional keywords *safezone* and *mincap* are used for allocating
 reax/c arrays.  Increasing these values can avoid memory problems,
 such as segmentation faults and bondchk failed errors, that could
-occur under certain conditions. These keywords aren't used by the
+occur under certain conditions. These keywords are not used by the
 Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
@@ -341,7 +341,7 @@ The ReaxFF potential files provided with LAMMPS in the potentials
 directory are parameterized for real :doc:`units <units>`.  You can use
 the ReaxFF potential with any LAMMPS units, but you would need to
 create your own potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "real" units.
+appropriate units if your simulation does not use "real" units.
 
 Related commands
 """"""""""""""""

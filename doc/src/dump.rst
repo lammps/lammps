@@ -286,7 +286,7 @@ Style *custom* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
 listed above and will appear in the order specified.  You cannot
 specify a quantity that is not defined for a particular simulation -
-such as *q* for atom style *bond*\ , since that atom style doesn't
+such as *q* for atom style *bond*\ , since that atom style does not
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the possible dump custom attributes

@@ -2,7 +2,7 @@
 # ipp: a preprocessor script
 # author : Reese Jones rjones@sandia.gov (based on dprepro [Sandia])
 # to do :
-# priority (overide file defaults e.g. a=1 pfile a=2 -> a=2)
+# priority (override file defaults e.g. a=1 pfile a=2 -> a=2)
 #     also order precedence: a=10 -p p.file b=12
 # nested if/else/endif blocks
 

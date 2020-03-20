@@ -53,7 +53,7 @@ until one is found to be true, in which case its commands (f1, f2,
 ..., fN) are executed.  If no Boolean expression is TRUE, then the
 commands associated with the else keyword, namely (e1, e2, ..., eN),
 are executed.  The elif and else keywords and their associated
-commands are optional.  If they aren't specified and the initial
+commands are optional.  If they are not specified and the initial
 Boolean expression is FALSE, then no commands are executed.
 
 The syntax for Boolean expressions is described below.

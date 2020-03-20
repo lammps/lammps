@@ -38,9 +38,9 @@ class SparseMatrix : public Matrix<T>
   friend SparseMatrix<T> operator*<T>(const SparseMatrix<T> &A, const DiagonalMatrix<T>& D);
   //* SparseMatrix-SparseMatrix multiplication (S * S)
   friend SparseMatrix<T> operator*<T>(const SparseMatrix<T> &A, const SparseMatrix<T> &B);
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseMatrix<T> &M, const SparseVector<T> &v);
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseVector<T> &v, const SparseMatrix<T> &M);
 
   template<typename U>

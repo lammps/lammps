@@ -360,7 +360,7 @@ It looks something like this:
 .. image:: JPG/tutorial_reverse_pull_request.png
    :align: center
 
-For some reason, the highlighted button didn't work in my case, but I
+For some reason, the highlighted button did not work in my case, but I
 can go to my own repository and merge the pull request from there:
 
 .. image:: JPG/tutorial_reverse_pull_request2.png

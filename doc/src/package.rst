@@ -444,7 +444,7 @@ CPUs (i.e. the Kokkos CUDA back end is not enabled).
 A value of *full* uses a full neighbor lists and is the default when
 running on GPUs. This performs twice as much computation as the *half*
 option, however that is often a win because it is thread-safe and
-doesn't require atomic operations in the calculation of pair forces. For
+does not require atomic operations in the calculation of pair forces. For
 that reason, *full* is the default setting for GPUs. However, when
 running on CPUs, a *half* neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly,

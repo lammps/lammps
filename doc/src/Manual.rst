@@ -81,6 +81,7 @@ every LAMMPS command.
    angles
    dihedrals
    impropers
+   fix_modify_atc_commands
 
 Indices and tables
 ==================

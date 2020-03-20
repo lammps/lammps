@@ -81,7 +81,7 @@ DenseMatrix<double> inv(const MATRIX& A)
   GCK(A,A,info<0,"DenseMatrix::inv() dgetri error: Argument had bad value.");
   GCHK(info>0,"DenseMatrix::inv() dgetri error: Matrix not invertible.");
   
-  // Work size query succeded
+  // Work size query succeeded
   lwork = (int)work_dummy[0];  
   double *work = new double[lwork];    // Allocate vector of appropriate size
 
@@ -287,7 +287,7 @@ double det(const MATRIX& A)
 double max_eigenvalue(const Matrix<double>& A)
 {
 
-  GCK(A,A,!A.is_size(3,3), "max_eigenvalue only implimented for 3x3");
+  GCK(A,A,!A.is_size(3,3), "max_eigenvalue only implemented for 3x3");
   const double c0 = det(A);
   const double c1 = A(1,0)*A(0,1) + A(2,0)*A(0,2) + A(1,2)*A(2,1) 
                   - A(0,0)*A(1,1) - A(0,0)*A(2,2) - A(1,1)*A(2,2);

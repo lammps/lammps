@@ -250,7 +250,7 @@ public:
 
           const typename SetType::insert_result result = node_node_set.insert( key );
 
-          // A successfull insert: the first time this pair was added
+          // A successful insert: the first time this pair was added
           if ( result.success() ) {
 
             // If row node is owned then increment count

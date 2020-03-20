@@ -38,7 +38,7 @@ input script command that it was processing.  Of course, LAMMPS cannot
 figure out your physics or numerical mistakes, like choosing too big a
 timestep, specifying erroneous force field coefficients, or putting 2
 atoms on top of each other!  If you run into errors that LAMMPS
-doesn't catch that you think it should flag, please send an email to
+does not catch that you think it should flag, please send an email to
 the `developers <https://lammps.sandia.gov/authors.html>`_.
 
 If you get an error message about an invalid command in your input
@@ -96,13 +96,13 @@ cases:
 
 LAMMPS runs in the available memory a processor allows to be
 allocated.  Most reasonable MD runs are compute limited, not memory
-limited, so this shouldn't be a bottleneck on most platforms.  Almost
+limited, so this should not be a bottleneck on most platforms.  Almost
 all large memory allocations in the code are done via C-style malloc's
 which will generate an error message if you run out of memory.
 Smaller chunks of memory are allocated via C++ "new" statements.  If
 you are unlucky you could run out of memory just when one of these
 small requests is made, in which case the code will crash or hang (in
-parallel), since LAMMPS doesn't trap on those errors.
+parallel), since LAMMPS does not trap on those errors.
 
 Illegal arithmetic can cause LAMMPS to run slow or crash.  This is
 typically due to invalid physics and numerics that your simulation is

@@ -4189,8 +4189,7 @@ div[class^='highlight'] pre {
   }
 }
 .wy-affix {
-  position: fixed;
-  top: 1.618em;
+  position: fixed;  top: 0.618em;
 }
 
 .wy-menu a:hover {
@@ -4411,7 +4410,7 @@ div[class^='highlight'] pre {
   font-weight: bold;
   display: inline-block;
   padding: 4px 6px;
-  margin-bottom: 0.809em;
+  /*margin-bottom: 0.809em;*/
 }
 .wy-side-nav-search > a:hover, .wy-side-nav-search .wy-dropdown > a:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -4540,7 +4539,7 @@ div[class^='highlight'] pre {
 }
 
 .wy-nav-content {
-  padding: 1.618em 3.236em;
+  padding: 0.5em 1.0em;
   height: 100%;
   margin: auto;
 }
@@ -5103,6 +5102,12 @@ span[id*='MathJax-Span'] {
 
 .codeblock,div[class^='highlight'] {
   padding: 0;
+}
+
+.lammps_version {
+    text-align: center;
+    display: block;
+    margin-bottom: 0.809em;
 }
 
 /*# sourceMappingURL=theme.css.map */

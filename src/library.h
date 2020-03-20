@@ -20,8 +20,8 @@
  * and control instances of the LAMMPS C++ class and exchange
  * data with it.  The C bindings are then used as basis for
  * the ctypes based Python wrapper in lammps.py and also there
- * are fortran interfaces that expose the functionality by
- * using the ISO_C_BINDINGS module in modern fortran.
+ * are Fortran interfaces that expose the functionality by
+ * using the ISO_C_BINDINGS module in modern Fortran.
  * If needed, new LAMMPS-specific functions can be added to
  * expose additional LAMMPS functionality to this library interface.
 */
@@ -90,7 +90,7 @@ This function will process the commands in the file pointed to
 by ``filename`` line by line like a file processed with the
 :doc:`include <include>` command.  The function returns when
 the end of the file is reached or a :doc:`quit <quit>`
-command is encounterd.
+command is encountered.
 
 \endverbatim
   */

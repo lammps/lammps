@@ -47,6 +47,8 @@ usrpkg = []
 for d in pkgdirs:
   pkg = dirs.match(d)[1]
   if not os.path.isdir(os.path.join(src,pkg)): continue
+  files = glob(os.path.join(src,pkg,"*.cpp"))
+  if len(files) == 0: continue
   if pkg in ['DEPEND','MAKE','STUBS']: continue
   if user.match(pkg):
     usrpkg.append(pkg)
@@ -63,8 +65,7 @@ matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`',text,re.MULTILINE)
 for p in stdpkg:
   if not p in matches:
     ++counter
-    print("Standard package %s missing in Packages_standard.rst"
-          % p)
+    print("Standard package %s missing in Packages_standard.rst" % p)
 
 fp = open(os.path.join(doc,'Packages_user.rst'))
 text = fp.read()
@@ -73,8 +74,7 @@ matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`',text,re.MULTILINE)
 for p in usrpkg:
   if not p in matches:
     ++counter
-    print("User package %s missing in Packages_user.rst"
-          % p)
+    print("User package %s missing in Packages_user.rst" % p)
 
 fp = open(os.path.join(doc,'Packages_details.rst'))
 text = fp.read()

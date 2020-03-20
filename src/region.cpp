@@ -108,11 +108,11 @@ int Region::dynamic_check()
   return 0;
 }
 
-/* ----------------------------------------------------------------------
-   called before looping over atoms with match() or surface()
-   this insures any variables used by region are invoked once per timestep
-     also insures variables are invoked by all procs even those w/out atoms
-     necessary if equal-style variable invokes global operation
+/** ---------------------------------------------------------------------
+   Called before looping over atoms with match() or surface().
+   This insures any variables used by region are invoked once per timestep
+   also insures variables are invoked by all procs even those w/out atoms
+   necessary if equal-style variable invokes global operation
    with MPI_Allreduce, e.g. xcm() or count()
 ------------------------------------------------------------------------- */
 
@@ -122,8 +122,8 @@ void Region::prematch()
   if (dynamic) pretransform();
 }
 
-/* ----------------------------------------------------------------------
-   determine if point x,y,z is a match to region volume
+/** ----------------------------------------------------------------------
+   Determine if point x,y,z is a match to region volume
    XOR computes 0 if 2 args are the same, 1 if different
    note that inside() returns 1 for points on surface of region
    thus point on surface of exterior region will not match
@@ -141,7 +141,7 @@ int Region::match(double x, double y, double z)
   return !(inside(x,y,z) ^ interior);
 }
 
-/* ----------------------------------------------------------------------
+/** ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
    if region has variable shape, invoke shape_update() once per timestep
    if region is dynamic:

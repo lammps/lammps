@@ -358,6 +358,7 @@ charmm
 CHARMM
 charmmfsh
 charmmfsw
+charptr
 Chaudhuri
 checkbox
 checkmark
@@ -648,6 +649,7 @@ Donadio
 dotc
 Doty
 doxygen
+doxygenclass
 downarrow
 Doye
 dpd
@@ -894,6 +896,7 @@ ffplay
 fft
 fftbench
 fftw
+fgets
 fhg
 Fi
 Fichthorn
@@ -959,6 +962,7 @@ Fraige
 framerate
 Frauenheim
 Fraunhofer
+fread
 Freitas
 Frenkel
 Friedrichs
@@ -2290,6 +2294,7 @@ polydisperse
 polydispersity
 polyelectrolyte
 polyhedra
+polymorphism
 popen
 Popov
 popstore
@@ -2313,6 +2318,7 @@ precession
 prefactor
 prefactors
 prepend
+prepended
 preprint
 printf
 printflag
@@ -2322,6 +2328,7 @@ proc
 Proc
 procs
 Prony
+progguide
 ps
 Ps
 pscreen
@@ -2716,6 +2723,7 @@ sp
 spacings
 Spearot
 specular
+spellcheck
 Spellmeyer
 sph
 SPH
@@ -2780,6 +2788,9 @@ Streitz
 Streiz
 strided
 strietz
+strmatch
+strncmp
+strstr
 Stukowski
 Su
 subbox
@@ -2789,6 +2800,7 @@ subcycling
 Subramaniyan
 subscripted
 subscripting
+substrings
 sudo
 Sugaku
 Suhai
@@ -3217,6 +3229,7 @@ Xmax
 xmgrace
 xMIC
 xmin
+xml
 xmovie
 Xmovie
 xmu

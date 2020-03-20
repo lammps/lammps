@@ -1,7 +1,7 @@
-LAMMPS Region base class
+LAMMPS Region Base Class
 ************************
 
-.. doxygenclass:: Region
+.. doxygenclass:: LAMMPS_NS::Region
    :project: progguide
 
                  

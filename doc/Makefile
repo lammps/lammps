@@ -1,20 +1,26 @@
 # Makefile for LAMMPS documentation
 
-SHELL         = /bin/bash
-BUILDDIR      = ${CURDIR}
-RSTDIR        = $(BUILDDIR)/src
-VENV          = $(BUILDDIR)/docenv
-MATHJAX       = $(BUILDDIR)/mathjax
-TXT2RST       = $(VENV)/bin/txt2rst
-ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
+SHELL          = /bin/bash
+BUILDDIR       = ${CURDIR}
+RSTDIR         = $(BUILDDIR)/src
+VENV           = $(BUILDDIR)/docenv
+MATHJAX        = $(BUILDDIR)/mathjax
+TXT2RST        = $(VENV)/bin/txt2rst
+ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 
-PYTHON        = $(shell which python3)
+PYTHON         = $(shell which python3)
+DOXYGEN        = $(shell which doxygen)
 VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
+HAS_DOXYGEN    = NO
 
 ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
-HAS_PYTHON3 = YES
+HAS_PYTHON3    = YES
+endif
+
+ifeq ($(shell which doxygen >/dev/null 2>&1; echo $$?), 0)
+HAS_DOXYGEN    = YES
 endif
 
 ifeq ($(shell which virtualenv-3 >/dev/null 2>&1; echo $$?), 0)
@@ -29,7 +35,11 @@ endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xml
+# grab list of sources from doxygen config file.
+# we only want to use explicitly listed files.
+DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile | sed -e 's/\.\.\/src/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
+
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xmlgen
 
 # ------------------------------------------
 
@@ -54,12 +64,12 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
 
 clean: clean-spelling
-	rm -rf html epub latex
+	rm -rf html epub latex doxygen/xml doxygen-warn.log
 
 clean-spelling:
 	rm -rf spelling
 
-html: xml $(ANCHORCHECK) $(MATHJAX)
+html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
@@ -93,7 +103,7 @@ spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub: xml $(VENV)
+epub: xmlgen $(VENV)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -112,7 +122,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: xml $(ANCHORCHECK)
+pdf: xmlgen $(ANCHORCHECK)
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -179,15 +189,18 @@ package_check : $(VENV)
 		deactivate ;\
 	)
 
-xml:
-	@cd doxygen; doxygen
+xmlgen : doxygen/xml/index.xml
+
+doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
+	@(cd doxygen; doxygen Doxyfile)
 	@touch src/pg_*.rst
 
 # ------------------------------------------
 
 $(VENV):
-	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
-	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "python3 was not found! Please see README for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_DOXYGEN)" == "NO" ] ; then echo "doxygen was not found! Please see README for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \

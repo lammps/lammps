@@ -66,6 +66,7 @@ every LAMMPS command.
    :name: progdoc
    :includehidden:
 
+   pg_library
    pg_utils
 
 .. toctree::

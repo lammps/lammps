@@ -29,7 +29,7 @@ Description
 
 Calculate forces through finite difference calculations of energy
 versus position.  These forces can be compared to analytic forces
-computed by pair styles, bond styles, etc.  This can be usefule for
+computed by pair styles, bond styles, etc.  This can be useful for
 debugging or other purposes.
 
 The group specified with the command means only atoms within the group

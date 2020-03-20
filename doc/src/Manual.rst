@@ -67,6 +67,7 @@ every LAMMPS command.
    :includehidden:
 
    pg_library
+   pg_base
    pg_utils
 
 .. toctree::

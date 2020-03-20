@@ -29,14 +29,14 @@ Description
 
 Calculate forces through finite difference calculations of energy
 versus position.  These forces can be compared to analytic forces
-computed by pair styles, bond styles, etc.  E.g. for debugging
-purposes.
+computed by pair styles, bond styles, etc.  This can be usefule for
+debugging or other purposes.
 
 The group specified with the command means only atoms within the group
 have their averages computed.  Results are set to 0.0 for atoms not in
 the group.
 
-This fix performs a loop over all atoms (in the group).  For each atom
+This fix performs a loop over all atoms in the group.  For each atom
 and each component of force it adds *delta* to the position, and
 computes the new energy of the entire system.  It then subtracts
 *delta* from the original position and again computes the new energy
@@ -66,10 +66,10 @@ by two times *delta*.
 .. note::
 
    The cost of each energy evaluation is essentially the cost of an MD
-   timestep.  This invoking this fix once has a cost of 2N timesteps,
-   where N is the total number of atoms in the system (assuming all atoms
-   are included in the group).  So this fix can be very expensive to use
-   for large systems.
+   timestep.  Thus invoking this fix for a 3d system once has a cost
+   of 6N timesteps, where N is the total number of atoms in the system
+   (assuming all atoms are included in the group).  So this fix can be
+   very expensive to use for large systems.
 
 ----------
 

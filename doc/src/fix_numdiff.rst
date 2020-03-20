@@ -66,7 +66,7 @@ by two times *delta*.
 .. note::
 
    The cost of each energy evaluation is essentially the cost of an MD
-   timestep.  Thus invoking this fix for a 3d system once has a cost
+   timestep.  Thus invoking this fix once for a 3d system has a cost
    of 6N timesteps, where N is the total number of atoms in the system
    (assuming all atoms are included in the group).  So this fix can be
    very expensive to use for large systems.

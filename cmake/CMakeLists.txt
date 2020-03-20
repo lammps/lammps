@@ -242,9 +242,9 @@ if(BUILD_OMP)
 
   if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
     # GCC 9.x strictly implements OpenMP 4.0 semantics for consts.
-    add_definitions(-DLMP_OMP_COMPAT=4)
+    add_definitions(-DLAMMPS_OMP_COMPAT=4)
   else()
-    add_definitions(-DLMP_OMP_COMPAT=3)
+    add_definitions(-DLAMMPS_OMP_COMPAT=3)
   endif()
 endif()
 

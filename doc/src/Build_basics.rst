@@ -147,7 +147,8 @@ semantics, which are incompatible with the OpenMP 3.1 semantics used
 in LAMMPS (for maximal compatibility with compiler versions in use).
 LAMMPS will try to detect compilers that use OpenMP 4.0 semantics and
 change the directives accordingly, but if your compiler is not
-detected, you may set the CMake variable ``-D LMP_OMP_COMPAT=4``.
+detected, you may set the define ``-D LAMMPS_OMP_COMPAT=4`` in ``LMP_INC``
+or the CMake build command.
 
 ----------
 

@@ -139,7 +139,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double rc2){
     for (int m = 0; m < 2; m++) {
       nb_list_i[m].resize(0);
       int idx = segments[i][m];
-      if (idx >= nlocal) continue; 
+      if (idx >= nlocal) continue;
       int nnb = nblist->numneigh[idx];
       for (int j = 0; j < nnb; j++) {
         int jdx = nblist->firstneigh[idx][j];

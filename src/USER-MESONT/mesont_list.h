@@ -68,7 +68,7 @@ private:
 
 //=============================================================================
 
-inline const std::vector<std::vector<array2003<int, 2> > > & 
+inline const std::vector<std::vector<array2003<int, 2> > > &
  MESONTList::get_nbs() const {
   return nb_chains;
 }

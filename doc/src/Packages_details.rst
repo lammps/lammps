@@ -82,6 +82,7 @@ page gives those details.
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESO <PKG-USER-MESO>`
+   * :ref:`USER-MESONT <PKG-USER-MESONT>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
@@ -1821,6 +1822,44 @@ algorithm.
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/meso
 * http://lammps.sandia.gov/movies.html#mesodpd
+
+
+----------
+
+
+.. _PKG-USER-MESONT:
+
+USER-MESONT package
+-------------------
+
+**Contents:**
+
+USER-MESONT is a LAMMPS package for simulation of nanomechanics of carbon 
+nanotubes (NTs). The model is based on a coarse-grained representation 
+of CNTs as "flexible cylinders" consisting of a variable number of 
+segments. Internal interactions within a CNT and the van der Waals 
+interaction between the tubes are described by a mesoscopic force 
+field designed and parameterized based on the results of atomic-level 
+molecular dynamics simulations. The description of the force field 
+is provided in the papers listed below.
+
+**Author:** Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+
+**Supporting info:**
+
+* src/USER-MESONT: filenames -> commands
+* src/USER-MESONT/README
+* :doc:`atom_style mesont <atom_style>`
+* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
+* :doc:`mesont/Es <compute_mesont>`
+* :doc:`mesont/Eb <compute_mesont>`
+* :doc:`mesont/Et <compute_mesont>`
+* :doc:`mesont/B <compute_mesont>`
+* :doc:`mesont/Es_tot <compute_mesont>`
+* :doc:`mesont/Eb_tot <compute_mesont>`
+* :doc:`mesont/Et_tot <compute_mesont>`
+* examples/USER/mesont
+* tools/mesont
 
 
 ----------

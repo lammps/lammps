@@ -26,10 +26,6 @@ OPT.
    * :doc:`zero <pair_zero>`
    * :doc:`hybrid (k) <pair_hybrid>`
    * :doc:`hybrid/overlay (k) <pair_hybrid>`
-   * :doc:`kim <pair_kim>`
-   * :doc:`list <pair_list>`
-   *
-   *
    *
    *
    *
@@ -64,7 +60,6 @@ OPT.
    * :doc:`buck/mdf <pair_mdf>`
    * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>`
    * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>`
-   * :doc:`cnt/tpm <pair_cnt_tpm>`
    * :doc:`colloid (go) <pair_colloid>`
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`
@@ -113,12 +108,14 @@ OPT.
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+   * :doc:`kim <pair_kim>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`line/lj <pair_line_lj>`
+   * :doc:`list <pair_list>`
    * :doc:`lj/charmm/coul/charmm (iko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
@@ -178,6 +175,7 @@ OPT.
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
+   * :doc:`mesont/tpm <pair_mesont_tpm>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`

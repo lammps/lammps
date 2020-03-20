@@ -20,7 +20,7 @@ additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 6
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
@@ -39,13 +39,6 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`cluster/atom <compute_cluster_atom>`
    * :doc:`cna/atom <compute_cna_atom>`
    * :doc:`cnp/atom <compute_cnp_atom>`
-   * :doc:`cnt/Es <compute_cnt>`
-   * :doc:`cnt/Eb <compute_cnt>`
-   * :doc:`cnt/Et <compute_cnt>`
-   * :doc:`cnt/B <compute_cnt>`
-   * :doc:`cnt/Es_tot <compute_cnt>`
-   * :doc:`cnt/Eb_tot <compute_cnt>`
-   * :doc:`cnt/Et_tot <compute_cnt>`
    * :doc:`com <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
@@ -86,6 +79,13 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
+   * :doc:`mesont/Es <compute_mesont>`
+   * :doc:`mesont/Eb <compute_mesont>`
+   * :doc:`mesont/Et <compute_mesont>`
+   * :doc:`mesont/B <compute_mesont>`
+   * :doc:`mesont/Es_tot <compute_mesont>`
+   * :doc:`mesont/Eb_tot <compute_mesont>`
+   * :doc:`mesont/Et_tot <compute_mesont>`
    * :doc:`meso/e/atom <compute_meso_e_atom>`
    * :doc:`meso/rho/atom <compute_meso_rho_atom>`
    * :doc:`meso/t/atom <compute_meso_t_atom>`

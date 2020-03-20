@@ -1,0 +1,56 @@
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.gfortran
+
+# ------ FILES ------
+
+SRC = LinFun2.f90 Spline1.f90 Spline2.f90 TPMLib.f90 TPMGeom.f90 TubePotBase.f90 TubePotTrue.f90 \
+  TubePotMono.f90 TPMM0.f90 TPMM1.f90 CNTPot.f90 TPMForceField.f90 ExportCNT.f90
+
+FILES = $(SRC) Makefile 
+
+# ------ DEFINITIONS ------
+
+LIB = libmesont.a
+OBJ =   $(SRC:.f90=.o)
+
+# ------ SETTINGS ------
+
+F90 =           gfortran
+CC  =		gcc
+F90FLAGS =      -O3 -fPIC -ffast-math -ftree-vectorize -fexpensive-optimizations -fno-second-underscore -g -ffree-line-length-none -cpp 
+#F90FLAGS =      -O 
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+LINK =         	g++
+LINKFLAGS =	-O
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+%.o:%.F
+	$(F90) $(F90FLAGS) -c $<
+
+%.o:%.f90
+	$(F90) $(F90FLAGS) -c $<
+	
+%.o:%.c
+	$(CC) $(F90FLAGS) -c $<
+
+#include .depend
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *.mod $(LIB)
+
+tar:
+	-tar -cvf ../MESONT.tar $(FILES)

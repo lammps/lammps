@@ -197,13 +197,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`cluster/atom <compute_cluster_atom>` - cluster ID for each atom
 * :doc:`cna/atom <compute_cna_atom>` - common neighbor analysis (CNA) for each atom
 * :doc:`cnp/atom <compute_cnp_atom>` - common neighborhood parameter (CNP) for each atom
-* :doc:`cnt/Es <compute_cnt>` - Carbon Nanotube (CNT) stretching per node energy
-* :doc:`cnt/Eb <compute_cnt>` - CNT bending per node energy
-* :doc:`cnt/Et <compute_cnt>` - CNT intertube per node energy
-* :doc:`cnt/B <compute_cnt>` - CNT per node buckling flag
-* :doc:`cnt/Es_tot <compute_cnt>` - CNT stretching energy
-* :doc:`cnt/Eb_tot <compute_cnt>` - CNT bending energy
-* :doc:`cnt/Et_tot <compute_cnt>` - CNT intertube energy
 * :doc:`com <compute_com>` - center-of-mass of group of atoms
 * :doc:`com/chunk <compute_com_chunk>` - center-of-mass for each chunk
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
@@ -244,6 +237,13 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`mesont/Es <compute_mesont>` - Nanotube (NT) stretching per node energy
+* :doc:`mesont/Eb <compute_mesont>` - NT bending per node energy
+* :doc:`mesont/Et <compute_mesont>` - NT intertube per node energy
+* :doc:`mesont/B <compute_mesont>` - NT per node buckling flag
+* :doc:`mesont/Es_tot <compute_mesont>` - NT stretching energy
+* :doc:`mesont/Eb_tot <compute_mesont>` - NT bending energy
+* :doc:`mesont/Et_tot <compute_mesont>` - NT intertube energy
 * :doc:`meso/e/atom <compute_meso_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
 * :doc:`meso/rho/atom <compute_meso_rho_atom>` - per-atom mesoscopic density of Smooth-Particle Hydrodynamics atoms
 * :doc:`meso/t/atom <compute_meso_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms

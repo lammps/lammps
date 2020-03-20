@@ -108,7 +108,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cc = cc_flux = NULL;
   edpd_temp = edpd_flux = edpd_cv = NULL;
 
-  // USER-CNT package
+  // USER-MESONT package
 
   length = NULL;
   buckling = NULL;
@@ -376,7 +376,7 @@ Atom::~Atom()
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
 
-  // USER-CNT package
+  // USER-MESONT package
   memory->destroy(length);
   memory->destroy(buckling);
   memory->destroy(bond_cnt);
@@ -2298,7 +2298,7 @@ void *Atom::extract(char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
-  // USER-CNT package
+  // USER-MESONT package
   if (strcmp(name,"length") == 0) return (void *) length;
   if (strcmp(name,"buckling") == 0) return (void *) buckling;
   if (strcmp(name,"bond_cnt") == 0) return (void *) bond_cnt;

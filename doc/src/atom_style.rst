@@ -88,7 +88,7 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *cnt*        | mass, radius, length, buckling, connections, tube id| Carbon nanotubes                     |
+| *mesont*     | mass, radius, length, buckling, connections, tube id| Carbon nanotubes                     |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -223,7 +223,7 @@ For the *tri* style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
-For the *cnt* style, the particles represent nodes of Carbon Nanotube
+For the *mesont* style, the particles represent nodes of Nanotube
 segments, and each stores a per-particle mass, radius, segment
 length, tube id, buckling flag, and connections with neighbor nodes.
 
@@ -358,7 +358,7 @@ The *spin* style is part of the SPIN package.
 The *wavepacket* style is part of the USER-AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
 
-The *cnt* style is part of the USER-CNT package.
+The *mesont* style is part of the USER-MESONT package.
 
 Related commands
 """"""""""""""""

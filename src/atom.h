@@ -111,7 +111,7 @@ class Atom : protected Pointers {
   double *edpd_cv;               // heat capacity
   int cc_species;
 
-  // USER-CNT package
+  // USER-MESONT package
   double *length;
   int *buckling;
   tagint **bond_cnt;

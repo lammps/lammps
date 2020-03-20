@@ -6,14 +6,12 @@ dihedral_style none command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style none
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

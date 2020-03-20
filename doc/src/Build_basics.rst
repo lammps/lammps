@@ -10,9 +10,7 @@ CMake and make:
 * :ref:`Build the LAMMPS documentation <doc>`
 * :ref:`Install LAMMPS after a build <install>`
 
-
 ----------
-
 
 .. _serial:
 
@@ -42,14 +40,14 @@ is below.
    -D LAMMPS_MACHINE=name    # name = mpi, serial, mybox, titan, laptop, etc
                              # no default value
 
-The executable created by CMake (after running make) is named *lmp* unless
-the LAMMPS\_MACHINE option is set.  When setting `LAMMPS_MACHINE=name`
-the executable will be named *lmp\_name*\.  Using `BUILD\_MPI=no` will
+The executable created by CMake (after running make) is named ``lmp`` unless
+the LAMMPS_MACHINE option is set.  When setting ``LAMMPS_MACHINE=name``
+the executable will be called ``lmp_name``.  Using ``BUILD_MPI=no`` will
 enforce building a serial executable using the MPI STUBS library.
 
 **Traditional make**\ :
 
-The build with traditional makefiles has to be done inside the source folder `src`.
+The build with traditional makefiles has to be done inside the source folder ``src``.
 
 .. code-block:: bash
 
@@ -57,19 +55,18 @@ The build with traditional makefiles has to be done inside the source folder `sr
    make serial             # serial build, produces lmp_serial using Makefile/serial
    make mybox              # uses Makefile.mybox to produce lmp_mybox
 
-
 Any "make machine" command will look up the make settings from a file
-Makefile.machine, create a folder Obj\_machine with all objects and
-generated files and an executable called *lmp\_machine*\ .  The standard
-parallel build with `make mpi` assumes a standard MPI installation with
+Makefile.machine, create a folder Obj_machine with all objects and
+generated files and an executable called ``lmp_machine``\ .  The standard
+parallel build with ``make mpi`` assumes a standard MPI installation with
 MPI compiler wrappers where all necessary compiler and linker flags to
 get access and link with the suitable MPI headers and libraries are set
 by the wrapper programs.  For other cases or the serial build, you have
-to adjust the make file variables MPI\_INC, MPI\_PATH, MPI\_LIB as well
-as CC and LINK.  To enable OpenMP threading usually a compiler specific
-flag needs to be added to the compile and link commands.  For the GNU
-compilers, this is *-fopenmp*\ , which can be added to the CC and LINK
-makefile variables.
+to adjust the make file variables ``MPI_INC``, ``MPI_PATH``, ``MPI_LIB``
+as well as ``CC`` and ``LINK``\ .  To enable OpenMP threading usually
+a compiler specific flag needs to be added to the compile and link
+commands.  For the GNU compilers, this is ``-fopenmp``\ , which can be
+added to the ``CC`` and ``LINK`` makefile variables.
 
 For the serial build the following make variables are set (see src/MAKE/Makefile.serial):
 
@@ -82,8 +79,8 @@ For the serial build the following make variables are set (see src/MAKE/Makefile
    MPI_LIB =       -lmpi_stubs
 
 You also need to build the STUBS library for your platform before making
-LAMMPS itself.  A "make serial" build does this for you automatically,
-otherwise, type "make mpi-stubs" from the src directory, or "make" from
+LAMMPS itself.  A ``make serial`` build does this for you automatically,
+otherwise, type ``make mpi-stubs`` from the src directory, or ``make`` from
 the src/STUBS dir.  If the build fails, you will need to edit the
 STUBS/Makefile for your platform.  The stubs library does not provide
 MPI/IO functions required by some LAMMPS packages, e.g. MPIIO or USER-LB,
@@ -91,8 +88,8 @@ and thus is not compatible with those packages.
 
 .. note::
 
-   The file STUBS/mpi.c provides a CPU timer function called
-   MPI\_Wtime() that calls gettimeofday() .  If your operating system
+   The file ``src/STUBS/mpi.c`` provides a CPU timer function called
+   MPI_Wtime() that calls gettimeofday() .  If your operating system
    does not support gettimeofday() , you will need to insert code to
    call another timer.  Note that the ANSI-standard function clock()
    rolls over after an hour or so, and is therefore insufficient for
@@ -129,34 +126,32 @@ to: e.g. LATTE and USER-COLVARS.  See the :doc:`Packages details
 <Packages_details>` doc page for more info on these packages and the doc
 pages for their respective commands for OpenMP threading info.
 
-For CMake, if you use BUILD\_OMP=yes, you can use these packages and
-turn on their native OpenMP support and turn on their native OpenMP
-support at run time, by setting the OMP\_NUM\_THREADS environment
+For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
+and turn on their native OpenMP support and turn on their native OpenMP
+support at run time, by setting the ``OMP_NUM_THREADS`` environment
 variable before you launch LAMMPS.
 
-For building via conventional make, the CCFLAGS and LINKFLAGS
+For building via conventional make, the ``CCFLAGS`` and ``LINKFLAGS``
 variables in Makefile.machine need to include the compiler flag that
-enables OpenMP. For GNU compilers it is -fopenmp.  For (recent) Intel
-compilers it is -qopenmp.  If you are using a different compiler,
+enables OpenMP. For GNU compilers it is ``-fopenmp``\ .  For (recent) Intel
+compilers it is ``-qopenmp``\ .  If you are using a different compiler,
 please refer to its documentation.
 
 .. _default-none-issues:
 
-**OpenMP Compiler compatibility info**\ : 
+**OpenMP Compiler compatibility info**\ :
 
-Some compilers do not fully support the 'default(none)' directive
+Some compilers do not fully support the ``default(none)`` directive
 and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0
-semantics, which are incompatible with the OpenMP 3.1 directives used
+semantics, which are incompatible with the OpenMP 3.1 semantics used
 in LAMMPS (for maximal compatibility with compiler versions in use).
-In those case, all 'default(none)' directives (which aid in detecting
-incorrect and unwanted sharing) can be replaced with 'default(shared)'
-while dropping all 'shared()' directives. The script
-'src/USER-OMP/hack\_openmp\_for\_pgi\_gcc9.sh' can be used to automate
+In those case, all ``default(none)`` directives (which aid in detecting
+incorrect and unwanted sharing) can be replaced with ``default(shared)``
+while dropping all ``shared()`` directives. The script
+'src/USER-OMP/hack_openmp_for_pgi_gcc9.sh' can be used to automate
 this conversion.
 
-
 ----------
-
 
 .. _compile:
 
@@ -188,11 +183,11 @@ optimization flags appropriate to that compiler and any
 build.
 
 You can tell CMake to look for a specific compiler with these variable
-settings.  Likewise you can specify the FLAGS variables if you want to
-experiment with alternate optimization flags.  You should specify all
-3 compilers, so that the small number of LAMMPS source files written
-in C or Fortran are built with a compiler consistent with the one used
-for all the C++ files:
+settings.  Likewise you can specify the corresponding ``CMAKE_*_FLAGS``
+variables if you want to experiment with alternate optimization flags.
+You should specify all 3 compilers, so that the small number of LAMMPS
+source files written in C or Fortran are built with a compiler consistent
+with the one used for all the C++ files:
 
 .. code-block:: bash
 
@@ -203,7 +198,6 @@ for all the C++ files:
    -D CMAKE_CXX_FLAGS=string             # flags to use with C++ compiler
    -D CMAKE_C_FLAGS=string               # flags to use with C compiler
    -D CMAKE_Fortran_FLAGS=string         # flags to use with Fortran compiler
-
 
 A few example command lines are:
 
@@ -218,6 +212,14 @@ A few example command lines are:
 
 For compiling with the Clang/LLVM compilers a special CMake preset is
 included that can be loaded with `-C ../cmake/presets/clang.cmake`.
+
+In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add compiler
+flags to tune for optimal performance on given hosts. By default these are
+initialized to some compiler specific flags, where known, to optimize the
+LAMMPS executable with optimizations and instructions available on the host
+where LAMMPS is compiled. For example, for Intel compilers this would be
+``-xHost`` and for GNU compilers this would be ``-march=native``. To turn
+these flags off, set ``-D CMAKE_TUNE_FLAGS=``.
 
 .. note::
 
@@ -306,33 +308,32 @@ are set, defaults are applied.
    -D LAMMPS_LIB_SUFFIX=name    # name = mpi, serial, mybox, titan, laptop, etc
                                 # no default value
 
-Setting BUILD\_EXE=no will not produce an executable.  Setting
-BUILD\_LIB=yes will produce a static library named *liblammps.a*\ .
-Setting both BUILD\_LIB=yes and BUILD\_SHARED\_LIBS=yes will produce a
-shared library named *liblammps.so* instead. If LAMMPS\_LIB\_SUFFIX is
-set to *name* in addition, the name of the generated libraries will be
-changed to either *liblammps\_name.a* or *liblammps\_name.so*\ ,
-respectively.
+Setting ``BUILD_EXE=no`` will not produce an executable.  Setting
+``BUILD_LIB=yes`` will produce a static library named ``liblammps.a``\ .
+Setting both ``BUILD_LIB=yes`` and ``BUILD_SHARED_LIBS=yes`` will produce a
+shared library named ``liblammps.so`` instead. If ``LAMMPS_LIB_SUFFIX=name``
+is set in addition, the name of the generated libraries will be changed to
+either ``liblammps_name.a`` or ``liblammps_name.so``\ , respectively.
 
 **Traditional make**\ :
 
 With the traditional makefile based build process, the choice of
 the generated executable or library depends on the "mode" setting.
-Several options are available and "mode=exe" is the default.
+Several options are available and ``mode=exe`` is the default.
 
 .. code-block:: bash
 
    make machine               # build LAMMPS executable lmp_machine
-   mkae mode=exe machine      # same as "make machine"
+   make mode=exe machine      # same as "make machine"
    make mode=lib machine      # build LAMMPS static lib liblammps_machine.a
    make mode=shlib machine    # build LAMMPS shared lib liblammps_machine.so
    make mode=shexe machine    # same as "mode=exe" but uses objects from "mode=shlib"
 
-The two "exe" builds will generate and executable *lmp\_machine*\ ,
-while the two library builds will create a file *liblammps\_machine.a*
-or *liblammps\_machine.so*\ . They will also create generic soft links,
-named *liblammps.a* and *liblammps.so*\ , which point to the specific
-*liblammps\_machine.a/so* files.
+The two "exe" builds will generate and executable ``lmp_machine``\ ,
+while the two library builds will create a file ``liblammps_machine.a``
+or ``liblammps_machine.so``\ . They will also create generic soft links,
+named ``liblammps.a`` and ``liblammps.so``\ , which point to the specific
+``liblammps_machine.a/so`` files.
 
 **CMake and make info**\ :
 
@@ -341,12 +342,11 @@ the auxiliary libraries it depends on must also exist as shared
 libraries.  This will be the case for libraries included with LAMMPS,
 such as the dummy MPI library in src/STUBS or any package libraries in
 the lib/packages directory, since they are always built in a shared
-library compatible way using the -fPIC switch.  However, if a library
+library compatible way using the ``-fPIC`` switch.  However, if a library
 like MPI or FFTW does not exist as a shared library, the shared library
 build may generate an error.  This means you will need to install a
 shared library version of the auxiliary library.  The build instructions
 for the library should tell you how to do this.
-
 
 As an example, here is how to build and install the `MPICH library
 <mpich_>`_, a popular open-source version of MPI, as a shared library
@@ -360,10 +360,10 @@ in the default /usr/local/lib location:
    make
    make install
 
-You may need to use "sudo make install" in place of the last line if you
-do not have write privileges for /usr/local/lib.  The end result should
-be the file /usr/local/lib/libmpich.so.  On many Linux installations the
-folder "${HOME}/.local" is an alternative to using /usr/local and does
+You may need to use ``sudo make install`` in place of the last line if you
+do not have write privileges for ``/usr/local/lib``.  The end result should
+be the file ``/usr/local/lib/libmpich.so``.  On many Linux installations the
+folder ``${HOME}/.local`` is an alternative to using ``/usr/local`` and does
 not require superuser or sudo access.  In that case the configuration
 step becomes:
 
@@ -376,7 +376,6 @@ and not through a package manager tool provided by the OS) is generally
 recommended to ensure the integrity of the system software installation.
 
 ----------
-
 
 .. _doc:
 
@@ -412,7 +411,6 @@ LAMMPS source distribution.
   make package_check # check for complete and consistent package lists
   make spelling      # spell-check the manual
 
-
 Thus "make html" will create a "doc/html" directory with the HTML format
 manual pages so that you can browse them with a web browser locally on
 your system.
@@ -421,8 +419,7 @@ your system.
 
    You can also download a tarball of the documentation for the
    current LAMMPS version (HTML and PDF files), from the website
-   `download page <http://lammps.sandia.gov/download.html>`_.
-
+   `download page <https://lammps.sandia.gov/download.html>`_.
 
 **CMake build option**\ :
 
@@ -430,15 +427,13 @@ It is also possible to create the HTML version of the manual within
 the :doc:`CMake build directory <Build_cmake>`.  The reason for this
 option is to include the installation of the HTML manual pages into
 the "install" step when installing LAMMPS after the CMake build via
-"make install".
+``make install``.
 
 .. code-block:: bash
 
    -D BUILD_DOC=value       # yes or no (default)
 
-
 ----------
-
 
 .. _tools:
 
@@ -450,7 +445,6 @@ using CMake or Make.
 
 **CMake build3**\ :
 
-
 .. code-block:: bash
 
    -D BUILD_TOOLS=value       # yes or no (default)
@@ -459,7 +453,6 @@ The generated binaries will also become part of the LAMMPS installation
 (see below).
 
 **Traditional make**\ :
-
 
 .. code-block:: bash
 
@@ -470,9 +463,7 @@ The generated binaries will also become part of the LAMMPS installation
    make micelle2d        # build only micelle2d tool
    make thermo_extract   # build only thermo_extract tool
 
-
 ----------
-
 
 .. _install:
 
@@ -487,7 +478,6 @@ you want to copy files to is protected.
 
 **CMake build**\ :
 
-
 .. code-block:: bash
 
    cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
@@ -496,6 +486,6 @@ you want to copy files to is protected.
 
 **Traditional make**\ :
 
-There is no "install" option in the src/Makefile for LAMMPS.  If you
-wish to do this you will need to first build LAMMPS, then manually
+There is no "install" option in the ``src/Makefile`` for LAMMPS.  If
+you wish to do this you will need to first build LAMMPS, then manually
 copy the desired LAMMPS files to the appropriate system directories.

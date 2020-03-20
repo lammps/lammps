@@ -46,7 +46,7 @@ moment of inertia set to the value used in the standalone implementation
 of oxDNA (M = I = 1). The masses can be set directly in the input and 
 data file, whereas the moment of inertia is set via the diameter of the 
 ellipsoid in the data file and has a value of 3.16227766.
-The change of mass and moment of inertia allows direct comparision of 
+The change of mass and moment of inertia allows direct comparison of
 trajectory data or time-dependent observables on a per-timestep basis. 
 
 As mentioned above, the stacking and hydrogen-bonding interactions 

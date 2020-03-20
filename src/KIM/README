@@ -11,7 +11,7 @@ maintains the code that implements these commands.
 Using this package requires the KIM-API library and its models
 (interatomic potentials) to be downloaded and installed on your
 system.  The library can be downloaded and built in lib/kim or
-elsewhere on your system, which must be done before bulding LAMMPS
+elsewhere on your system, which must be done before building LAMMPS
 with this package.  Details of the download, build, and install
 process for the KIM-API are given in the lib/kim/README file, and
 scripts are provided to help automate the process.  Also see the

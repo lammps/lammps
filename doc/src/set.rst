@@ -6,7 +6,6 @@ set command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    set style ID keyword values ...
@@ -14,10 +13,10 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i\_name* or *d\_name*
-  
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *meso/e* or *meso/cv* or *meso/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i_name* or *d_name*
+
   .. parsed-literal::
-  
+
        *type* value = atom type
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
@@ -118,22 +117,19 @@ Syntax
        *i_name* value = value for custom integer vector with name
        *d_name* value = value for custom floating-point vector with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set group solvent type 2
    set group solvent type/fraction 2 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
-   set type 1\*3 charge 0.5
-   set atom \* charge v_atomfile
-   set atom 100\*200 x 0.5 y 1.0
+   set type 1*3 charge 0.5
+   set atom * charge v_atomfile
+   set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
 
@@ -158,9 +154,7 @@ their properties reset.  The remaining keywords specify which
 properties to reset and what the new values are.  Some strings like
 *type* or *mol* can be used as a style and/or a keyword.
 
-
 ----------
-
 
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
@@ -184,9 +178,7 @@ style *region* selects all the atoms in the specified geometric
 region.  See the :doc:`group <group>` and :doc:`region <region>` commands
 for details of how to specify a group or region.
 
-
 ----------
-
 
 This section describes the keyword options for which properties to
 change, for the selected atoms.
@@ -194,7 +186,7 @@ change, for the selected atoms.
 Note that except where explicitly prohibited below, all of the
 keywords allow an :doc:`atom-style or atomfile-style variable
 <variable>` to be used as the specified value(s).  If the value is a
-variable, it should be specified as v\_name, where name is the
+variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated, and its
 resulting per-atom value used to determine the value assigned to each
 selected atom.  Note that the per-atom value from the variable will be
@@ -462,27 +454,26 @@ value >= 0.0, the internal temperature is set to that value.  If it is
 temperature is set to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
-heat capacity of an eDPD particle as defined by the USER-MESO package.
+heat capacity of an eDPD particle as defined by the USER-MESODPD package.
 Currently, only :doc:`atom_style edpd <atom_style>` defines particles
 with these attributes. The values for the temperature and heat
 capacity must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
-specified species as defined by the USER-MESO package. Currently, only
+specified species as defined by the USER-MESODPD package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
-Nspecies) where Nspecies is set by the atom\_style command. The value
+Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
 
-Keywords *i\_name* and *d\_name* refer to custom integer and
+Keywords *i_name* and *d_name* refer to custom integer and
 floating-point properties that have been added to each atom via the
 :doc:`fix property/atom <fix_property_atom>` command.  When that command
 is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i\_name* or *d\_name*.
+specified as the "name" portion of *i_name* or *d_name*.
 
 Restrictions
 """"""""""""
-
 
 You cannot set an atom attribute (e.g. *mol* or *q* or *volume*\ ) if
 the :doc:`atom_style <atom_style>` does not have that attribute.

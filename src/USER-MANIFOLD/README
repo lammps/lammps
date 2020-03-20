@@ -31,7 +31,7 @@ To add a new manifold, do the following in the "USER-MANIFOLD" directory:
    c. In namespace LAMMPS_NS, add a new class that inherits publicly from manifold
      and protectedly from Pointers.
    d. The constructor has to take ( LAMMPS*, int, char ** ) as arguments,
-     and should initialise Pointers.
+     and should initialize Pointers.
    e. The header file has to contain somewhere the macro ManifoldStyle with as
      first argument the name of the manifold and as second argument the name
      of the class implementing this manifold. The macro expands into some code
@@ -45,7 +45,7 @@ To add a new manifold, do the following in the "USER-MANIFOLD" directory:
 +====================================+=========================================+
 |  destructor                        | Free space (can be empty)               |
 |  constructor                       | Has to take (LAMMPS *lmp, int, char **) |
-|                                    | as arguments and has to initialise      |
+|                                    | as arguments and has to initialize      |
 |                                    | Pointers with lmp.                      |
 |  double g( double *x )             | A function that is 0 if the 3-vector    |
 |                                    | x is on the manifold.                   |

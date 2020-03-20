@@ -105,7 +105,7 @@ EXCL_RC2 =  0.335388426126
 EXCL_RC3 =  0.52329943261
 
 """
-Define auxillary variables for the construction of a helix
+Define auxiliary variables for the construction of a helix
 """
 # center of the double strand
 COM_CENTRE_DS = POS_BASE + 0.2
@@ -127,7 +127,7 @@ number_to_base = {1 : 'A', 2 : 'C', 3 : 'G', 4 : 'T'}
 base_to_number = {'A' : 1, 'a' : 1, 'C' : 2, 'c' : 2,
                   'G' : 3, 'g' : 3, 'T' : 4, 't' : 4}
 
-# auxillary arrays
+# auxiliary arrays
 positions = []
 a1s = []
 a3s = []
@@ -373,7 +373,7 @@ def generate_strand(bp, sequence=None, start_pos=np.array([0, 0, 0]), \
     # if not provided switch off random orientation
     if perp is None or perp is False:
         v1 = np.random.random_sample(3)
-        # comment in to suppress randomised base vector
+        # comment in to suppress randomized base vector
         v1 = [1,0,0]
         v1 -= dir * (np.dot(dir, v1))
         v1 /= np.sqrt(sum(v1*v1))
@@ -551,7 +551,7 @@ def read_strands(filename):
                 smallest_n_bases = n_g
              
             if smallest_n_bases < N_BASE_TYPES:
-                print('## Not enough occurances of base types in the sequence for ' + str(N_BASE_TYPES))
+                print('## Not enough occurrences of base types in the sequence for ' + str(N_BASE_TYPES))
                 print('## unique base types, switching to ' + str(smallest_n_bases) + ' unique types')
             else:
                 smallest_n_bases = N_BASE_TYPES
@@ -644,12 +644,12 @@ def read_strands(filename):
 
             # generate random position of the first nucleotide
             com = box_offset + np.random.random_sample(3) * box
-            # comment out to randomise
+            # comment out to randomize
             com = [0,0,0]
 
             # generate the random direction of the helix 
             axis = np.random.random_sample(3)
-            # comment out to randomise
+            # comment out to randomize
             axis = [0,0,1]
             axis /= np.sqrt(np.dot(axis, axis))
 
@@ -702,12 +702,12 @@ def read_strands(filename):
 
 	    # generate random position of the first nucleotide
             com = box_offset + np.random.random_sample(3) * box
-            # comment out to randomise
+            # comment out to randomize
             com = [-30,0,0]
 
             # generate the random direction of the helix 
             axis = np.random.random_sample(3)
-            # comment out to randomise
+            # comment out to randomize
             axis = [0,0,1]
             axis /= np.sqrt(np.dot(axis, axis))
 

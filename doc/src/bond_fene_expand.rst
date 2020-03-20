@@ -9,14 +9,12 @@ bond_style fene/expand/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style fene/expand
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -31,7 +29,6 @@ The *fene/expand* bond style uses the potential
 .. math::
 
    E = -0.5 K R_0^2 \ln \left[1 -\left( \frac{\left(r - \Delta\right)}{R_0}\right)^2 \right] + 4 \epsilon \left[ \left(\frac{\sigma}{\left(r - \Delta\right)}\right)^{12} - \left(\frac{\sigma}{\left(r - \Delta\right)}\right)^6 \right] + \epsilon
-
 
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <feneexpand-Kremer>`, used for bead-spring polymer models.  The first
@@ -53,9 +50,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\sigma` (distance)
 * :math:`\Delta` (distance)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -75,13 +70,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -98,12 +90,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _feneexpand-Kremer:
-
-
 
 **(Kremer)** Kremer, Grest, J Chem Phys, 92, 5057 (1990).

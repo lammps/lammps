@@ -31,7 +31,7 @@ will need to perform the remaining steps manually, as outlined below.
 -------------------------------------------------
 
 WARNING: This is code depending on two software packages that are
-independently maitained and are under continuous active developement.
+independently maitained and are under continuous active development.
 It is thus much easier to break the QM/MM interface without noticing.
 Thus please test *very* carefully before using this software for
 production calculations. 

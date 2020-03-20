@@ -56,8 +56,8 @@ protected:
   double rmin,dr,ds;            // table parameter
   int kmax;
   bigint Qstep;                 // Frequency of charge resolution
-  double precision;             // acuracy of convergence
-  int loopmax;                  // max of interation
+  double precision;             // accuracy of convergence
+  int loopmax;                  // max of iteration
 
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements

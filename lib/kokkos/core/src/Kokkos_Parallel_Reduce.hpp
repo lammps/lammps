@@ -1253,7 +1253,7 @@ void parallel_reduce(const std::string& label,
 } //namespace Kokkos
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-//backwards compatiblity for Kokkos::Experimental reducers
+//backwards compatibility for Kokkos::Experimental reducers
 namespace Kokkos { namespace Experimental {
 using Kokkos::Sum;
 using Kokkos::Prod;

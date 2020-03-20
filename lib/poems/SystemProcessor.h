@@ -124,7 +124,7 @@ POEMSChain * SystemProcessor::AddNewChain(POEMSNode * currentNode){
 		return NULL;
 	}
 	int * tmp;
-	POEMSNode * nextNode = NULL;	//nextNode stores the proposed next node to add to the chain.  this will be checked to make sure no backtracking is occuring before being assigned as the current node.
+	POEMSNode * nextNode = NULL;	//nextNode stores the proposed next node to add to the chain.  this will be checked to make sure no backtracking is occurring before being assigned as the current node.
 	POEMSChain * newChain = new POEMSChain;	//make a new POEMSChain object.  This will be the object returned
 
 	if(currentNode->links.GetNumElements() == 0)	//if we have no links from this node, then the whole chain is only one node.  Add this node to the chain and return it; mark node as visited for future reference
@@ -226,7 +226,7 @@ bool SystemProcessor::setLinkVisited(POEMSNode * firstNode, POEMSNode * secondNo
 	//cout << "Checking link between nodes " << firstNode->idNumber << " and " << secondNode->idNumber << "... ";
 	ListElement<POEMSNode> * tmp = firstNode->links.GetHeadElement();	//get the head element of the list of pointers for node 1
 	ListElement<bool> * tmp2 = firstNode->taken.GetHeadElement();		//get the head element of the list of bool isVisited flags for node 1
-	while(tmp->value != NULL || tmp2->value != NULL)					//go through untill we reach the end of the lists
+	while(tmp->value != NULL || tmp2->value != NULL)					//go through until we reach the end of the lists
 	{
 		if(tmp->value == secondNode)							//if we find the link to the other node
 		{

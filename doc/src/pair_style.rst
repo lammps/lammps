@@ -6,8 +6,7 @@ pair\_style command
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
    pair_style eam/alloy
@@ -65,29 +63,27 @@ pairwise interaction between two atoms separated by a distance *r*\ .
 The force between the atoms is the negative derivative of this
 expression.
 
-If the pair\_style command has a cutoff argument, it sets global
+If the pair_style command has a cutoff argument, it sets global
 cutoffs for all pairs of atom types.  The distance(s) can be smaller
 or larger than the dimensions of the simulation box.
 
 Typically, the global cutoff value can be overridden for a specific
 pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
 pair style settings (including global cutoffs) can be changed by a
-subsequent pair\_style command using the same style.  This will reset
+subsequent pair_style command using the same style.  This will reset
 the cutoffs for all atom type pairs, including those previously set
 explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
-to this are that pair\_style *table* and *hybrid* settings cannot be
-reset.  A new pair\_style command for these styles will wipe out all
-previously specified pair\_coeff values.
-
+to this are that pair_style *table* and *hybrid* settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
 
 ----------
-
 
 Here is an alphabetic list of pair styles defined in LAMMPS.  They are
 also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc page.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the pair\_style command, and coefficients
+arguments specified in the pair_style command, and coefficients
 specified by the associated :doc:`pair_coeff <pair_coeff>` command.
 
 There are also additional accelerated pair styles included in the
@@ -145,6 +141,8 @@ accelerated styles exist.
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulombic potential and core/shell
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulombic potential with a soft core
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulombics
+* :doc:`coul/slater/cut <pair_coul>` - smeared out Coulombics
+* :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulombics
 * :doc:`coul/shield <pair_coul_shield>` - Coulombics for boron nitride for use with :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` potential
 * :doc:`coul/streitz <pair_coul>` - Coulombics via Streitz/Mintmire Slater orbitals
 * :doc:`coul/wolf <pair_coul>` - Coulombics via Wolf potential
@@ -163,7 +161,7 @@ accelerated styles exist.
 * :doc:`eam/fs <pair_eam>` - Finnis-Sinclair EAM
 * :doc:`edip <pair_edip>` - three-body EDIP potential
 * :doc:`edip/multi <pair_edip>` - multi-element EDIP potential
-* :doc:`edpd <pair_meso>` - eDPD particle interactions
+* :doc:`edpd <pair_mesodpd>` - eDPD particle interactions
 * :doc:`eff/cut <pair_eff>` - electron force field with a cutoff
 * :doc:`eim <pair_eim>` - embedded ion method (EIM)
 * :doc:`exp6/rx <pair_exp6_rx>` - reactive DPD potential
@@ -240,8 +238,8 @@ accelerated styles exist.
 * :doc:`lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
 * :doc:`lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
 * :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
-* :doc:`mdpd <pair_meso>` - mDPD particle interactions
-* :doc:`mdpd/rhosum <pair_meso>` - mDPD particle interactions for mass density
+* :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
+* :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
 * :doc:`meam/c <pair_meamc>` - modified embedded atom method (MEAM) in C
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
@@ -310,7 +308,7 @@ accelerated styles exist.
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
-* :doc:`tdpd <pair_meso>` - tDPD particle interactions
+* :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions
 * :doc:`tersoff <pair_tersoff>` - Tersoff 3-body potential
 * :doc:`tersoff/mod <pair_tersoff_mod>` - modified Tersoff 3-body potential
 * :doc:`tersoff/mod/c <pair_tersoff_mod>` -
@@ -328,13 +326,10 @@ accelerated styles exist.
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must be used before any coefficients are set by the
 :doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`, or
@@ -354,8 +349,7 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 

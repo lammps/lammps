@@ -6,14 +6,12 @@ angle_style cosine/buck6d command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style cosine/buck6d
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -52,13 +50,10 @@ with the :doc:`pair_style buck6d <pair_buck6d_coul_gauss>` styles and needs
 the :doc:`special_bonds <special_bonds>` 1-3 interactions to be weighted
 0.0 to prevent double counting.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 *cosine/buck6d* can only be used in combination with the
 :doc:`pair_style buck6d <pair_buck6d_coul_gauss>` style and with a

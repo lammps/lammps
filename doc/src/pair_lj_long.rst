@@ -21,14 +21,12 @@ pair_style lj/long/tip4p/long/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/long/coul/long* or *lj/long/tip4p/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -58,7 +56,6 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/long/coul/long cut off 2.5
@@ -79,7 +76,7 @@ Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones potential:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c \\
 
@@ -90,17 +87,16 @@ potential parameters, plus the Coulomb potential, given by:
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j` are the charges on
 the 2 atoms, :math:`\epsilon` is the dielectric constant which can be set by
 the :doc:`dielectric <dielectric>` command, and :math:`r_c` is the cutoff.  If
-one cutoff is specified in the pair\_style command, it is used for both
+one cutoff is specified in the pair_style command, it is used for both
 the LJ and Coulombic terms.  If two cutoffs are specified, they are
 used as cutoffs for the LJ and Coulombic terms respectively.
 
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r\^6 Lennard-Jones and Coulombic 1/r
-interactions.  This is done by use of the *flag\_lj* and *flag\_coul*
+interactions.  This is done by use of the *flag_lj* and *flag_coul*
 settings.  The :ref:`In 't Veld <Veld2>` paper has more details on when it is
 appropriate to include long-range 1/r\^6 interactions, using this
 potential.
@@ -110,7 +106,7 @@ Style *lj/long/tip4p/long* implements the TIP4P water model of
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
-massless charge site are specified as pair\_style arguments.
+massless charge site are specified as pair_style arguments.
 
 .. note::
 
@@ -130,22 +126,22 @@ LJ cutoff >= Coulombic cutoff + 2\*qdist, to shrink the size of the
 neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 
-If *flag\_lj* is set to *long*\ , no cutoff is used on the LJ 1/r\^6
+If *flag_lj* is set to *long*\ , no cutoff is used on the LJ 1/r\^6
 dispersion term.  The long-range portion can be calculated by using
 the :doc:`kspace_style ewald/disp or pppm/disp <kspace_style>` commands.
 The specified LJ cutoff then determines which portion of the LJ
 interactions are computed directly by the pair potential versus which
 part is computed in reciprocal space via the Kspace style.  If
-*flag\_lj* is set to *cut*\ , the LJ interactions are simply cutoff, as
+*flag_lj* is set to *cut*\ , the LJ interactions are simply cutoff, as
 with :doc:`pair_style lj/cut <pair_lj>`.
 
-If *flag\_coul* is set to *long*\ , no cutoff is used on the Coulombic
+If *flag_coul* is set to *long*\ , no cutoff is used on the Coulombic
 interactions.  The long-range portion can calculated by using any of
 several :doc:`kspace_style <kspace_style>` command options such as
-*pppm* or *ewald*\ .  Note that if *flag\_lj* is also set to long, then
+*pppm* or *ewald*\ .  Note that if *flag_lj* is also set to long, then
 the *ewald/disp* or *pppm/disp* Kspace style needs to be used to
 perform the long-range calculations for both the LJ and Coulombic
-interactions.  If *flag\_coul* is set to *off*\ , Coulombic interactions
+interactions.  If *flag_coul* is set to *off*\ , Coulombic interactions
 are not computed.
 
 The following coefficients must be defined for each pair of atoms
@@ -164,35 +160,31 @@ distance for the potential, not as the energy minimum at 2\^(1/6)
 sigma.
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 
-Note that if you are using *flag\_lj* set to *long*\ , you
+Note that if you are using *flag_lj* set to *long*\ , you
 cannot specify a LJ cutoff for an atom type pair, since only one
-global LJ cutoff is allowed.  Similarly, if you are using *flag\_coul*
+global LJ cutoff is allowed.  Similarly, if you are using *flag_coul*
 set to *long*\ , you cannot specify a Coulombic cutoff for an atom type
 pair, since only one global Coulombic cutoff is allowed.
 
 For *lj/long/tip4p/long* only the LJ cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
-specified in the pair\_style command.
-
+specified in the pair_style command.
 
 ----------
-
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
 free energy calculations, is part of the USER-FEP package and is documented with
 the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
 only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -212,20 +204,18 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/long pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 These pair styles support the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
-interaction, assuming *flag\_lj* is *cut*\ .
+interaction, assuming *flag_lj* is *cut*\ .
 
 These pair styles support the :doc:`pair_modify <pair_modify>` table and
 table/disp options since they can tabulate the short-range portion of
@@ -235,7 +225,7 @@ Thes pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the
 Lennard-Jones portion of the energy and pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 The pair lj/long/coul/long styles support the use of the *inner*\ ,
@@ -244,13 +234,10 @@ command, meaning the pairwise forces can be partitioned by distance at
 different levels of the rRESPA hierarchy.  See the
 :doc:`run_style <run_style>` command for details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the KSPACE package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -262,19 +249,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Veld2:
-
-
 
 **(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
 
 .. _Jorgensen4:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).

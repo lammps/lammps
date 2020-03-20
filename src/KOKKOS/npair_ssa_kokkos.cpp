@@ -234,7 +234,7 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
-   for use by Shardlow Spliting Algorithm
+   for use by Shardlow Splitting Algorithm
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */

@@ -48,12 +48,12 @@ class PairBOP : public Pair {
   int maxbopn;                  // maximum size of bop neighbor list for allocation
   int maxnall;                  // maximum size of bop neighbor list for allocation
   int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elments
+  int nelements;                // # of unique elements
   int nr;                       // increments for the BOP pair potential
   int ntheta;                   // increments for the angle function
   int npower;                   // power of the angular function
   int nBOt;                     // second BO increments
-  int bop_types;                // number of elments in potential
+  int bop_types;                // number of elements in potential
   int npairs;                   // number of element pairs
   char **elements;              // names of unique elements
   int ***elem2param;

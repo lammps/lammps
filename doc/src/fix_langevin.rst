@@ -9,7 +9,6 @@ fix langevin/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin Tstart Tstop damp seed keyword values ...
@@ -22,9 +21,9 @@ Syntax
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *angmom* or *omega* or *scale* or *tally* or *zero*
-  
+
   .. parsed-literal::
-  
+
        *angmom* value = *no* or factor
          *no* = do not thermostat rotational degrees of freedom via the angular momentum
          factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
@@ -45,11 +44,8 @@ Syntax
          *no* = do not set total random force to zero
          *yes* = set total random force to zero
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -65,7 +61,6 @@ to a group of atoms which models an interaction with a background
 implicit solvent.  Used with :doc:`fix nve <fix_nve>`, this command
 performs Brownian dynamics (BD), since the total force on each atom
 will have the form:
-
 
 .. math::
 
@@ -127,7 +122,7 @@ run from *Tstart* to *Tstop*\ .
 *Tstart* can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  In this case, the *Tstop* setting is
 ignored.  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 target temperature.
 
@@ -170,9 +165,7 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -180,8 +173,8 @@ The keyword *angmom* and *omega* keywords enable thermostatting of
 rotational degrees of freedom in addition to the usual translational
 degrees of freedom.  This can only be done for finite-size particles.
 
-A simulation using atom\_style sphere defines an omega for finite-size
-spheres.  A simulation using atom\_style ellipsoid defines a finite
+A simulation using atom_style sphere defines an omega for finite-size
+spheres.  A simulation using atom_style ellipsoid defines a finite
 size and shape for aspherical particles and an angular momentum.
 The Langevin formulas for thermostatting the rotational degrees of
 freedom are the same as those above, where force is replaced by
@@ -273,9 +266,7 @@ Regardless of the choice of output velocity, the sampling of the configurational
 distribution of atom positions is the same, and linearly consistent with the
 target temperature.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -295,11 +286,9 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -333,9 +322,8 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 For *gjf* do not choose damp=dt/2. *gjf* is not compatible
-with run\_style respa.
+with run_style respa.
 
 Related commands
 """"""""""""""""
@@ -348,37 +336,25 @@ Default
 The option defaults are angmom = no, omega = no, scale = 1.0 for all
 types, tally = no, zero = no, gjf = no.
 
-
 ----------
 
-
 .. _Dunweg1:
-
-
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
 .. _Schneider1:
 
-
-
 **(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
 
 .. _Gronbech-Jensen:
-
-
 
 **(Gronbech-Jensen)** Gronbech-Jensen and Farago, Mol Phys, 111, 983
 (2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm, 185, 524 (2014)
 
 .. _2Gronbech-Jensen:
 
-
-
 **(Gronbech-Jensen)** Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)
 
 .. _1Gronbech-Jensen:
-
-
 
 **(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506

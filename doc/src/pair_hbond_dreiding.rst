@@ -15,21 +15,19 @@ pair_style hbond/dreiding/morse/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
 
 * style = *hbond/dreiding/lj* or *hbond/dreiding/morse*
 * n = cosine angle periodicity
-* inner\_distance\_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
-* outer\_distance\_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
-* angle\_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
+* inner_distance_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
+* outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
+* angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
 * interactions (degrees)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -55,12 +53,11 @@ force field, given by:
          \epsilon\left\lbrace 5\left[ \frac{\sigma}{r}\right]^{12}-
          6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n\theta\\
    Morse(r)  = & D_0\left\lbrace \chi^2 - 2\chi\right\rbrace cos^n\theta=
-         D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} 
+         D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
          \right\rbrace cos^n\theta \\
-   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
-   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
+   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
+   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
    { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
-
 
 where :math:`r_{\rm in}` is the inner spline distance cutoff,
 :math:`r_{\rm out}` is the outer distance cutoff, :math:`\theta_c` is
@@ -115,12 +112,10 @@ on the DREIDING force field.
 
    In the original Dreiding force field paper 1-4 non-bonded
    interactions ARE allowed.  If this is desired for your model, use the
-   special\_bonds command (e.g. "special\_bonds lj 0.0 0.0 1.0") to turn
+   special_bonds command (e.g. "special_bonds lj 0.0 0.0 1.0") to turn
    these interactions on.
 
-
 ----------
-
 
 The following coefficients must be defined for pairs of eligible
 donor/acceptor types via the :doc:`pair_coeff <pair_coeff>` command as
@@ -130,7 +125,7 @@ in the examples above.
 
    Unlike other pair styles and their associated
    :doc:`pair_coeff <pair_coeff>` commands, you do not need to specify
-   pair\_coeff settings for all possible I,J type pairs.  Only I,J type
+   pair_coeff settings for all possible I,J type pairs.  Only I,J type
    pairs for atoms which act as joint donors/acceptors need to be
    specified; all other type pairs are assumed to be inactive.
 
@@ -139,11 +134,11 @@ in the examples above.
    A :doc:`pair_coeff <pair_coeff>` command can be specified multiple
    times for the same donor/acceptor type pair.  This enables multiple
    hydrogen types to be assigned to the same donor/acceptor type pair.
-   For other pair\_styles, if the pair\_coeff command is re-used for the
+   For other pair_styles, if the pair_coeff command is re-used for the
    same I.J type pair, the settings for that type pair are overwritten.
    For the hydrogen bond potentials this is not the case; the settings
    are cumulative.  This means the only way to turn off a previous
-   setting, is to re-use the pair\_style command and start over.
+   setting, is to re-use the pair_style command and start over.
 
 For the *hbond/dreiding/lj* style the list of coefficients is as
 follows:
@@ -176,9 +171,9 @@ select multiple types as hydrogen atoms.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
 command doc page for details.
 
-If the donor flag is *i*\ , then the atom of type I in the pair\_coeff
+If the donor flag is *i*\ , then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
-flag is *j*\ , then the atom of type J in the pair\_coeff command is
+flag is *j*\ , then the atom of type J in the pair_coeff command is
 treated as the donor and I is the donor.  This option is required
 because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
@@ -192,13 +187,11 @@ hydrogen bond potential based on a Morse functional form.
 
 The last 3 coefficients for both styles are optional.  If not
 specified, the global n, distance cutoff, and angle cutoff specified
-in the pair\_style command are used.  If you wish to only override the
+in the pair_style command are used.  If you wish to only override the
 2nd or 3rd optional parameter, you must also specify the preceding
 optional parameters.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -218,9 +211,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -237,7 +228,7 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles do not write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need to be
+These pair styles do not write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need to be
 re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
@@ -252,7 +243,6 @@ command as a vector of values of length 2.
 To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute hb all pair hbond/dreiding/lj
@@ -260,9 +250,7 @@ heading) the following commands could be included in an input script:
    variable E_hbond equal c_hb[2] #hbond energy
    thermo_style custom step temp epair v_E_hbond
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -275,20 +263,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _pair-Mayo:
-
-
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
 
 .. _Liu:
-
-
 
 **(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)

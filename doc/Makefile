@@ -61,7 +61,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax LAMMPS.mobi LAMMPS.epub Manual.pdf Developer.pdf
 
 clean: clean-spelling
 	rm -rf html epub latex doxygen/xml doxygen-warn.log

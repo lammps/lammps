@@ -1,0 +1,10 @@
+BootStrap: docker
+From: fedora:30
+
+%post
+	dnf -y update
+	dnf -y install vim-enhanced ccache gcc-c++ gdb make cmake patch which file git enchant python3-virtualenv valgrind eigen3-devel mingw64-binutils mingw32-crt mingw32-gcc mingw32-libgomp mingw64-filesystem mingw64-libjpeg-turbo mingw32-libjpeg-turbo mingw32-nsis mingw32-libpng mingw64-sqlite-static mingw64-libpng-static mingw32-pkg-config mingw64-crt mingw32-cpp mingw64-expat-static mingw64-libpng mingw32-expat mingw64-winpthreads-static mingw64-zlib-static mingw32-gcc-gfortran mingw64-gcc mingw32-binutils mingw32-expat-static mingw64-gcc-gfortran mingw64-headers mingw-filesystem-base mingw32-libjpeg-turbo-static mingw64-gcc-c++ mingw64-pkg-config mingw64-libjpeg-turbo-static mingw32-winpthreads mingw32-filesystem mingw32-zlib-static mingw64-expat mingw32-gcc-c++ mingw64-zlib mingw32-sqlite-static mingw64-cpp mingw32-libpng-static mingw-binutils-generic mingw32-eigen3 mingw64-eigen3 mingw32-winpthreads-static mingw32-zlib mingw32-headers mingw64-libgomp mingw64-winpthreads texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex texlive-latexbug texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of texlive-needspace texlive-anyfontsize texlive-dvipng texlive-titlesec dos2unix findutils rsync calibre
+
+
+%labels
+	Author akohlmey

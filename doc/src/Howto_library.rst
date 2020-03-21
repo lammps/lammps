@@ -7,37 +7,39 @@ used in a :doc:`coupled manner <Howto_couple>` with other codes, or
 driven through a :doc:`Python interface <Python_head>`.
 
 All of these methodologies use a C-style interface to LAMMPS that is
-provided in the files src/library.cpp and src/library.h.  The
-functions therein have a C-style argument list, but contain C++ code
-you could write yourself in a C++ application that was invoking LAMMPS
+provided in the files ``src/library.cpp`` and ``src/library.h``.  The
+functions therein have a C-style argument list, but contain C++ code you
+could write yourself in a C++ application that was invoking LAMMPS
 directly.  The C++ code in the functions illustrates how to invoke
-internal LAMMPS operations.  Note that LAMMPS classes are defined
-within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
-application.
+internal LAMMPS operations.  Note that LAMMPS classes are defined within
+a LAMMPS namespace (``LAMMPS_NS``), thus if you use them from another C++
+application, you have to prefix the class names with ``LAMMPS_NS::`` or
+add the statement ``using LAMMPS_NS;`` to the source files where you
+use those classes.
 
-The examples/COUPLE and python/examples directories have example C++
-and C and Python codes which show how a driver code can link to LAMMPS
-as a library, run LAMMPS on a subset of processors, grab data from
-LAMMPS, change it, and put it back into LAMMPS.
+The ``examples/COUPLE`` and ``python/examples`` directories have example
+C++, C, Fortran, and Python codes which show how a driver code can link to
+LAMMPS as a library, run LAMMPS on a subset of processors, grab data
+from LAMMPS, change it, and put it back into LAMMPS.
 
 Thread-safety
 -------------
 
-LAMMPS has not initially been conceived as a thread-safe program, but
+LAMMPS has initially not been conceived as a thread-safe program, but
 over the years changes have been applied to replace operations that
-collide with creating multiple LAMMPS instances from multiple-threads
-of the same process with thread-safe alternatives.  This primarily
-applies to the core LAMMPS code and less so on add-on packages, especially
-when those packages require additional code in the *lib* folder,
-interface LAMMPS to Fortran libraries, or the code uses static variables
-(like the USER-COLVARS package.
+collide with creating multiple LAMMPS instances from multiple-threads of
+the same process with thread-safe alternatives.  This primarily applies
+to the core LAMMPS code and less so on add-on packages, especially when
+those packages require additional code in the *lib* folder, interface
+LAMMPS to Fortran libraries, or the code uses static variables (like the
+USER-COLVARS package.
 
 Another major issue to deal with is to correctly handle MPI.  Creating
 a LAMMPS instance requires passing an MPI communicator, or it assumes
-the MPI_COMM_WORLD communicator, which spans all MPI processor ranks.
+the ``MPI_COMM_WORLD`` communicator, which spans all MPI processor ranks.
 When creating multiple LAMMPS object instances from different threads,
 this communicator has to be different for each thread or else collisions
-can happen, or it has to be guaranteed, that only one thread at a time
+can happen.   or it has to be guaranteed, that only one thread at a time
 is active.  MPI communicators, however, are not a problem, if LAMMPS is
 compiled with the MPI STUBS library, which implies that there is no MPI
 communication and only 1 MPI rank.

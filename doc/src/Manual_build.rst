@@ -1,9 +1,9 @@
 Building the LAMMPS manual
 **************************
 
-Depending on how you obtained LAMMPS and whether you have built
-the manual yourself, this directory has a varying number of
-sub-directories and files. Here is a list with descriptions:
+Depending on how you obtained LAMMPS and whether you have built the
+manual yourself, this directory has a number of sub-directories and
+files. Here is a list with descriptions:
 
 .. code-block:: bash
 
@@ -17,7 +17,7 @@ sub-directories and files. Here is a list with descriptions:
    Developer.pdf    # small PDF with info about how LAMMPS is structured
    LAMMPS.epub      # Manual in ePUB e-book format
    LAMMPS.mobi      # Manual in MOBI e-book format
-   docenv           # virtualenv for processing the manual sources
+   docenv           # virtualenv folder for processing the manual sources
    doctrees         # temporary data from processing the manual
    mathjax          # code and fonts for rendering math in html
    doxygen          # doxygen configuration and output
@@ -52,7 +52,7 @@ b. You can build the HTML or PDF files yourself, by typing ``make html``
 ----------
 
 The generation of all documentation is managed by the Makefile in the
-doc directory. The following documentation related build options are
+doc directory. The following documentation related make commands are
 available:
 
 .. code-block:: bash
@@ -64,8 +64,10 @@ available:
                       #   as a tarball and unpack into html dir and 2 PDFs
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
+
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
+
    make anchor_check  # check for duplicate anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists

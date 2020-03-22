@@ -1601,18 +1601,15 @@ void CommCAC::overlap_element_comm(int iswap){
       if (sendself[iswap]) {
 
         for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
-          int self_accumulation=0;
           for (int sendcounter = 0; sendcounter < overlap_sendnum[iswap][selfcount]; sendcounter++) {
 
 
-          if (self_accumulation+overlap_sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+overlap_sendsize[iswap][selfcount],1);
+          if (overlap_sendsize[iswap][selfcount] > maxsend) grow_send(overlap_sendsize[iswap][selfcount],1);
           overlap_sendsize[iswap][selfcount] += pack_eboxes(1,&overlap_sendlist[iswap][selfcount][sendcounter],
-                                &buf_send[sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount],iswap);
+                                &buf_send[overlap_sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount],iswap);
 
 
           }
-          //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
-          self_accumulation+=overlap_sendsize[iswap][m];
           unpack_eboxes(overlap_recvnum[iswap][selfcount],overlap_firstrecv[iswap][selfcount],
             buf_send);
         }
@@ -1900,18 +1897,11 @@ void CommCAC::borders()
       if (sendself[iswap]) {
 
         for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
-          int self_accumulation=0;
           for (int sendcounter = 0; sendcounter < sendnum[iswap][selfcount]; sendcounter++) {
-
-
-          if (self_accumulation+sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+sendsize[iswap][selfcount],1);
-          sendsize[iswap][selfcount] += avec->pack_border(1,&sendlist[iswap][selfcount][sendcounter],
-            &buf_send[sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
-
-
-          }
-          //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
-          self_accumulation+=sendsize[iswap][m];
+            if (sendsize[iswap][selfcount] > maxsend) grow_send(sendsize[iswap][selfcount],1);
+            sendsize[iswap][selfcount] += avec->pack_border(1,&sendlist[iswap][selfcount][sendcounter],
+              &buf_send[sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
+            }
           avec->unpack_border(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],
             buf_send);
         }
@@ -2102,14 +2092,11 @@ void CommCAC::forward_comm_pair(Pair *pair)
   }
   if (sendself[iswap]) {
     for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
-      int self_accumulation=0;
         for (int sendcounter = 0; sendcounter < sendnum[iswap][selfcount]; sendcounter++) {
-          if (self_accumulation+other_sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+other_sendsize[iswap][selfcount],1);
+          if (other_sendsize[iswap][selfcount] > maxsend) grow_send(other_sendsize[iswap][selfcount],1);
           other_sendsize[iswap][selfcount] += pair->pack_forward_comm(1,&sendlist[iswap][selfcount][sendcounter],
             &buf_send[other_sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
         }
-        //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
-        self_accumulation+=other_sendsize[iswap][m];
         pair->unpack_forward_comm(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],buf_send);
     }
   }
@@ -2212,14 +2199,11 @@ void CommCAC::forward_comm_fix(Fix *fix ,int size)
   }
   if (sendself[iswap]) {
     for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
-      int self_accumulation=0;
         for (int sendcounter = 0; sendcounter < sendnum[iswap][selfcount]; sendcounter++) {
-          if (self_accumulation+other_sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+other_sendsize[iswap][selfcount],1);
+          if (other_sendsize[iswap][selfcount] > maxsend) grow_send(other_sendsize[iswap][selfcount],1);
           other_sendsize[iswap][selfcount] += fix->pack_forward_comm(1,&sendlist[iswap][selfcount][sendcounter],
             &buf_send[other_sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
         }
-        //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
-        self_accumulation+=other_sendsize[iswap][m];
         fix->unpack_forward_comm(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],buf_send);
     }
   }
@@ -2322,14 +2306,11 @@ void CommCAC::forward_comm_npair(NPair *npair, int size)
   }
   if (sendself[iswap]) {
     for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
-      int self_accumulation=0;
         for (int sendcounter = 0; sendcounter < sendnum[iswap][selfcount]; sendcounter++) {
-          if (self_accumulation+other_sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+other_sendsize[iswap][selfcount],1);
+          if (other_sendsize[iswap][selfcount] > maxsend) grow_send(other_sendsize[iswap][selfcount],1);
           other_sendsize[iswap][selfcount] += npair->pack_forward_comm(1,&sendlist[iswap][selfcount][sendcounter],
             &buf_send[other_sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
         }
-        //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
-        self_accumulation+=other_sendsize[iswap][m];
         npair->unpack_forward_comm(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],buf_send);
     }
   }
@@ -2423,11 +2404,10 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
 
     for (int ibin_counter=0; ibin_counter<nbin_element_overlap[current_element]; ibin_counter++){
       int ibin=bin_element_overlap[current_element][ibin_counter];
-      for (int k = 0; k < nstencil; k++) {
-      for (int jj = 0; jj < bin_ncontent[ibin + stencil[k]]; jj++) {
-      if(ibin + stencil[k]<0) error->one(FLERR," negative bin index");
-      if(ibin + stencil[k]>=bin_pointer->mbins) error->one(FLERR," excessive bin index");
-      iebox = bin_content[ibin + stencil[k]][jj];
+      for (int jj = 0; jj < bin_ncontent[ibin]; jj++) {
+      if(ibin<0) error->one(FLERR," negative bin index");
+      if(ibin>=bin_pointer->mbins) error->one(FLERR," excessive bin index");
+      iebox = bin_content[ibin][jj];
 
 
       //check if this ebox is relevant to this sendbox first
@@ -2464,7 +2444,6 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
         return 1;
       }
 
-      }
       }
     }
 

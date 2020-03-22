@@ -108,6 +108,6 @@ if(PKG_USER-INTEL)
     RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
   endif()
 
-  list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
+  target_sources(lammps PRIVATE ${USER-INTEL_SOURCES})
   include_directories(${USER-INTEL_SOURCES_DIR})
 endif()

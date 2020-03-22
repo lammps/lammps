@@ -8,6 +8,6 @@ if(PKG_OPT)
 
     get_property(OPT_SOURCES GLOBAL PROPERTY OPT_SOURCES)
 
-    list(APPEND LIB_SOURCES ${OPT_SOURCES})
+    target_sources(lammps PRIVATE ${OPT_SOURCES})
     include_directories(${OPT_SOURCES_DIR})
 endif()

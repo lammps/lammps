@@ -37,6 +37,6 @@ if(PKG_USER-OMP)
                                    ${USER-OMP_SOURCES_DIR}/reaxc_valence_angles_omp.cpp)
     endif()
 
-    list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
+    target_sources(lammps PRIVATE ${USER-OMP_SOURCES})
     include_directories(${USER-OMP_SOURCES_DIR})
 endif()

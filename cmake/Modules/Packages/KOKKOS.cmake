@@ -69,6 +69,6 @@ if(PKG_KOKKOS)
 
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 
-  list(APPEND LIB_SOURCES ${KOKKOS_PKG_SOURCES})
+  target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
   include_directories(${KOKKOS_PKG_SOURCES_DIR})
 endif()

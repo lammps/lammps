@@ -15,6 +15,6 @@ if(PKG_QEQ)
   endforeach()
 
   get_property(QEQ_SOURCES GLOBAL PROPERTY QEQ_SOURCES)
-  list(APPEND LIB_SOURCES ${QEQ_SOURCES})
+  target_sources(lammps PRIVATE ${QEQ_SOURCES})
   include_directories(${QEQ_SOURCES_DIR})
 endif()

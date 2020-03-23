@@ -27,10 +27,6 @@
 
 #include "math_eigen.h"   //functions to calculate eigenvalues and eigenvectors
 
-namespace superpose3d {
-
-using namespace math_eigen;
-
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
 // -----------------------------------------------------------
@@ -46,7 +42,7 @@ class Superpose3D {
 private:
   size_t N;              //number of points in the point clouds
   Scalar *aWeights;      //weights applied to points when computing RMSD
-  Jacobi<double, double*, double**> eigen_calc; // calculates eigenvectors
+  MathEigen::Jacobi<double, double*, double**> eigen_calc; // calc eigenvectors
   Scalar **aaXf_shifted; //preallocated space for fixed point cloud (Nx3 array)
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
 
@@ -465,10 +461,6 @@ operator = (Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> source) {
   this->swap(source);
   return *this;
 }
-
-
-} //namespace superposed3d
-
 
 
 #endif //#ifndef _SUPERPOSE3D_H

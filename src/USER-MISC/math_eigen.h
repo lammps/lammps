@@ -49,11 +49,13 @@
 #include <random>
 #include <functional>
 
-namespace math_eigen {
+namespace MathEigen {
 
 // --- Memory allocation for matrices ---
 
 /// @brief Allocate an arbitrary 2-dimensional array.  (Uses row-major order.)
+/// @note  This function was intended for relatively small matrices (eg 4x4).
+///        For large arrays, please use the 2d create() function from "memory.h"
 template<typename Entry>
 void Alloc2D(size_t nrows,          //!< size of the array (number of rows)
              size_t ncols,          //!< size of the array (number of columns)
@@ -1372,7 +1374,7 @@ PrincipalEigen(ConstMatrix matrix,
 }
 
 
-} //namespace math_eigen
+} //namespace MathEigen
 
 
 #endif //#ifndef _MATH_EIGEN_H

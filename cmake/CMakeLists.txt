@@ -105,6 +105,7 @@ endif()
 
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 
+include(GNUInstallDirs)
 file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 if(BUILD_LIB)
   file(GLOB MAIN_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
@@ -126,7 +127,6 @@ else()
 endif()
 
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
-include(GNUInstallDirs)
 
 set(LAMMPS_API_DEFINES)
 

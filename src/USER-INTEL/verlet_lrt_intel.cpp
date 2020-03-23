@@ -185,7 +185,7 @@ void VerletLRTIntel::setup(int flag)
   _kspace_done = 0;
   pthread_mutex_unlock(&_kmutex);
   #elif defined(_LMP_INTEL_LRT_11)
-  kspace_thread.join();
+  _kspace_thread.join();
   #endif
 
   if (kspace_compute_flag) _intel_kspace->compute_second(eflag,vflag);
@@ -298,9 +298,9 @@ void VerletLRTIntel::run(int n)
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
-    std::thread kspace_thread;
+    std::thread _kspace_thread;
     if (kspace_compute_flag)
-      kspace_thread=std::thread([=] {
+      _kspace_thread=std::thread([=] {
         _intel_kspace->compute_first(eflag, vflag);
         timer->stamp(Timer::KSPACE);
       } );
@@ -332,7 +332,7 @@ void VerletLRTIntel::run(int n)
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
     if (kspace_compute_flag)
-      kspace_thread.join();
+      _kspace_thread.join();
     #endif
 
     if (kspace_compute_flag) {

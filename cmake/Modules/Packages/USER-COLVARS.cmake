@@ -16,10 +16,10 @@ if(PKG_USER-COLVARS)
 
   add_library(colvars STATIC ${COLVARS_SOURCES})
   target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
-  list(APPEND LAMMPS_LINK_LIBS colvars)
+  target_link_libraries(lammps PRIVATE colvars)
 
   if(COLVARS_LEPTON)
-    list(APPEND LAMMPS_LINK_LIBS lepton)
+    target_link_libraries(lammps PRIVATE lepton)
     target_compile_options(colvars PRIVATE -DLEPTON)
     target_include_directories(colvars PUBLIC ${LEPTON_DIR}/include)
   endif()

@@ -1,5 +1,4 @@
 if(PKG_COMPRESS)
   find_package(ZLIB REQUIRED)
-  include_directories(${ZLIB_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${ZLIB_LIBRARIES})
+  target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 endif()

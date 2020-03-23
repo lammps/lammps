@@ -27,6 +27,6 @@ if(PKG_MESSAGE)
     target_include_directories(cslib PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src/STUBS_ZMQ)
   endif()
 
-  list(APPEND LAMMPS_LINK_LIBS cslib)
+  target_link_libraries(lammps PRIVATE cslib)
   include_directories(${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src)
 endif()

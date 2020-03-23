@@ -1,5 +1,5 @@
 if(PKG_USER-QUIP)
   enable_language(Fortran)
   find_package(QUIP REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES})
+  target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()

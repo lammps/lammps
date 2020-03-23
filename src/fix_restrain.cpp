@@ -87,11 +87,11 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       if (iarg+6 == narg) {
-    	  deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
-    	  iarg += 6;
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        iarg += 6;
       } else {
-    	  deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
-    	  iarg += 7;
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        iarg += 7;
       }
     } else if (strcmp(arg[iarg],"lbound") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
@@ -102,11 +102,11 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       if (iarg+6 == narg) {
-    	  deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
-    	  iarg += 6;
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        iarg += 6;
       } else {
-    	  deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
-    	  iarg += 7;
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        iarg += 7;
       }
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");

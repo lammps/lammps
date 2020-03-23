@@ -150,16 +150,19 @@ is included in :math:`K`.
 
 ----------
 
-The *lbond* keyword applies a lowerbound bond restraint to the specified atoms
+The *lbond* keyword applies a lower bound bond restraint to the specified atoms
 using the same functional form used by the :doc:`bond_style harmonic <bond_harmonic>` command if the distance between
 the atoms is smaller than the equilibrium bond distance and 0 otherwise. The potential associated with
 the restraint is
 
 .. math::
 
-   E = K (r - r_0)^2   if r < r_0
-   E = 0               if r >= r_0
+   E = K (r - r_0)^2 ,if\;r < r_0
 
+.. math::
+
+   E = 0 \qquad\quad\quad ,if\;r \ge r_0
+   
 with the following coefficients:
 
 * :math:`K` (energy/distance\^2)

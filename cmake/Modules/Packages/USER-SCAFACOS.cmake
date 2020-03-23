@@ -47,7 +47,7 @@ if(PKG_USER-SCAFACOS)
     ExternalProject_get_property(scafacos_build INSTALL_DIR)
     set(SCAFACOS_BUILD_DIR ${INSTALL_DIR})
     set(SCAFACOS_INCLUDE_DIRS ${SCAFACOS_BUILD_DIR}/include)
-    list(APPEND LAMMPS_DEPS scafacos_build)
+    add_dependencies(lammps scafacos_build)
     # list and order from pkg_config file of ScaFaCoS build
     target_link_libraries(lammps PRIVATE ${SCAFACOS_BUILD_DIR}/lib/libfcs.a)
     target_link_libraries(lammps PRIVATE ${SCAFACOS_BUILD_DIR}/lib/libfcs_direct.a)

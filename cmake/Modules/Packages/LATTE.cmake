@@ -24,7 +24,7 @@ if(PKG_LATTE)
       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
       BUILD_BYPRODUCTS <INSTALL_DIR>/${_LATTE_LIBDIR}/liblatte.a
     )
-    list(APPEND LAMMPS_DEPS latte_build)
+    add_dependencies(lammps latte_build)
     ExternalProject_get_property(latte_build INSTALL_DIR)
     set(LATTE_LIBRARIES ${INSTALL_DIR}/${_LATTE_LIBDIR}/liblatte.a)
   else()

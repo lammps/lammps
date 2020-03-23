@@ -126,7 +126,6 @@ endif()
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 include(GNUInstallDirs)
 
-set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
@@ -526,7 +525,7 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
   -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
-list(APPEND LAMMPS_DEPS gitversion)
+add_dependencies(lammps gitversion)
 
 ###########################################
 # Actually add executable and lib to build
@@ -537,9 +536,6 @@ if (${_index} GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 if(BUILD_LIB)
-  if(LAMMPS_DEPS)
-    add_dependencies(lammps ${LAMMPS_DEPS})
-  endif()
   set(LAMMPS_CXX_HEADERS
     ${LAMMPS_SOURCE_DIR}/angle.h
     ${LAMMPS_SOURCE_DIR}/atom.h
@@ -584,12 +580,6 @@ if(BUILD_LIB)
 endif()
 
 if(BUILD_EXE)
-  if(NOT BUILD_LIB)
-    if(LAMMPS_DEPS)
-      add_dependencies(${LAMMPS_EXE} ${LAMMPS_DEPS})
-    endif()
-  endif()
-
   set_target_properties(${LAMMPS_EXE} PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
   install(TARGETS ${LAMMPS_EXE} DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)

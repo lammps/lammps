@@ -22,7 +22,7 @@
 # CMakeLists.txt:
 # find_package(PkgConfig)
 # pkg_check_modules(LAMMPS IMPORTED_TARGET lammps)
-# target_link_libraries(<lib> PkgConfig::LAMMPS)
+# target_link_libraries(<lib> PRIVATE PkgConfig::LAMMPS)
 
 prefix=@CMAKE_INSTALL_PREFIX@
 libdir=@CMAKE_INSTALL_FULL_LIBDIR@

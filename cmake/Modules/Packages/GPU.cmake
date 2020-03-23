@@ -99,7 +99,7 @@ if(PKG_GPU)
 
 
       add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-      target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+      target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
       target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
       target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT ${GPU_CUDA_MPS_FLAGS})
       if(CUDPP_OPT)
@@ -166,7 +166,7 @@ if(PKG_GPU)
       )
 
       add_library(gpu STATIC ${GPU_LIB_SOURCES})
-      target_link_libraries(gpu ${OpenCL_LIBRARIES})
+      target_link_libraries(gpu PRIVATE ${OpenCL_LIBRARIES})
       target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
       target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)

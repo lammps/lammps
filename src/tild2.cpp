@@ -327,13 +327,6 @@ void TILD::setup(){
     ind++;
   }
 
-  for (int j = 0; j < npot; j++) {
-    ind = 0;
-    for (int i = 0; i < MAX_GROUP; i++) {
-      if (assigned_pot[i] == j)
-      group_with_potential[j][ind++] = i;
-    }
-  }
 
   memory->create(potent_map, potent_with_params.size(),potent_with_params.size(), "tild:potent_map");
 
@@ -1721,23 +1714,11 @@ int TILD::modify_param(int narg, char** arg)
       chi_values[0][0] = atof(arg[2]);
     } else {
       if (narg != 4) error->all(FLERR, "Illegal kspace_modify tild command");
-      igroup1 = group->find(arg[1]);
-      igroup2 = group->find(arg[2]);
-
-      if (igroup1 == -1) {
-        error->all(FLERR, "group1 not found in kspace_modify tild command");
-      }
-      if (igroup2 == -1) {
-        error->all(FLERR, "group2 not found in kspace_modify tild command");
-      }
-      if (igroup1 == 0 || igroup2 == 0)
-        error->all(FLERR,
-                   "all group specified in 'group1 group2 chi_values' format");
-
-      chi_values[igroup1][igroup2] = chi_values[igroup2][igroup1] = atof(arg[3]);
+      igroup1 = atoi(arg[1]);
+      igroup2 = atoi(arg[2]);
 
       expanded_chi_interactions.push_back(
-          std::make_tuple(igroup1, igroup2, atof(arg[3]),
+          std::make_tuple(atoi(arg[1]), atoi(arg[2]), atof(arg[3]),
                           identify_potential_for_type(igroup1),
                           identify_potential_for_type(igroup2)));
       if (igroup1 != igroup2) {

@@ -1,6 +1,6 @@
 if(PKG_USER-VTK)
   find_package(VTK REQUIRED NO_MODULE)
   include(${VTK_USE_FILE})
-  add_definitions(-DLAMMPS_VTK)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_VTK)
   target_link_libraries(lammps PRIVATE ${VTK_LIBRARIES})
 endif()

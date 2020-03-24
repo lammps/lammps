@@ -12,6 +12,10 @@ via apt-get and all files are accessible in both the Windows Explorer and your
 Linux shell (bash). This avoids switching to a different operating system or
 installing a virtual machine. Everything runs on Windows.
 
+.. seealso::
+
+   You can find more detailed information at the `Windows Subsystem for Linux Installation Guide for Windows 10 <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
+
 Installing Bash on Windows
 --------------------------
 

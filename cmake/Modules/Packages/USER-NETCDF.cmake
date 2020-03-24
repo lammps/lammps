@@ -9,14 +9,12 @@ if(PKG_USER-NETCDF)
   endif(NETCDF_FOUND)
 
   if(NETCDF_FOUND)
-    include_directories(${NETCDF_INCLUDE_DIRS})
-    target_link_libraries(lammps PRIVATE ${NETCDF_LIBRARIES})
+    target_link_libraries(lammps PRIVATE NetCDF::NetCDF)
     target_compile_definitions(lammps PRIVATE -DLMP_HAS_NETCDF)
   endif(NETCDF_FOUND)
 
   if(PNETCDF_FOUND)
-    include_directories(${PNETCDF_INCLUDES})
-    target_link_libraries(lammps PRIVATE ${PNETCDF_LIBRARIES})
+    target_link_libraries(lammps PRIVATE PNetCDF::PNetCDF)
     target_compile_definitions(lammps PRIVATE -DLMP_HAS_PNETCDF)
   endif(PNETCDF_FOUND)
 

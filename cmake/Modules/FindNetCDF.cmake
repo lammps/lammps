@@ -112,11 +112,23 @@ NetCDF_check_interface (F90 netcdf.mod  netcdff)
 
 #export accumulated results to internal varS that rest of project can depend on
 list (APPEND NetCDF_libs "${NETCDF_C_LIBRARIES}")
-set (NETCDF_LIBRARIES ${NetCDF_libs})
-set (NETCDF_INCLUDE_DIRS ${NetCDF_includes})
 
 # handle the QUIETLY and REQUIRED arguments and set NETCDF_FOUND to TRUE if
 # all listed variables are TRUE
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (NetCDF
   DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIRS NETCDF_HAS_INTERFACES)
+
+# Copy the results to the output variables and target.
+if(NetCDF_FOUND)
+  set (NETCDF_LIBRARIES ${NetCDF_libs})
+  set (NETCDF_INCLUDE_DIRS ${NetCDF_includes})
+
+  if(NOT TARGET NetCDF::NetCDF)
+    add_library(NetCDF::NetCDF UNKNOWN IMPORTED)
+    set_target_properties(NetCDF::NetCDF PROPERTIES
+      IMPORTED_LOCATION "${NETCDF_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${NetCDF_includes}"
+      INTERFACE_LINK_LIBRARIES "${NETCDF_LIBRARIES}")
+  endif()
+endif()

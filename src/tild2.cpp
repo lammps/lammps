@@ -144,6 +144,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
+  memory->create(assigned_pot,MAX_GROUP,"tild:assigned_pot");
   memory->create(chi_values,group->ngroup,group->ngroup,"pppm:chi_values");
   memory->create(potent_param,MAX_GROUP,MAXPARAM,
   "tild:potent_param");
@@ -614,6 +615,7 @@ void TILD::allocate()
 
   int Dim = domain->dimension;
   int (*procneigh)[2] = comm->procneigh;
+  int npot = potent_with_params.size();
 
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
@@ -643,12 +645,11 @@ void TILD::allocate()
   memory->create(grad_uG_hat,domain->dimension,2*nfft_both,"pppm:grad_uG_hat");
   memory->create(density_fft_types, types_and_potentials.size(), nfft_both, "pppm/tild:density_fft_types");
   memory->create(density_of_potentials_fft_ed, potent_with_params.size(), nfft_both, "pppm/tild:density_of_potentials_fft_ed");
-  memory->create(potent,npot*(npot+1)/2,nfft_both,"pppm:potent");
+  // memory->create(potent,npot*(npot+1)/2,nfft_both,"pppm:potent");
   memory->create(potent_hat,npot*(npot+1)/2,2*nfft_both,"pppm:potent_hat");
   memory->create(grad_potent,npot*(npot+1)/2,domain->dimension,nfft_both,"pppm:grad_potent");
   memory->create(grad_potent_hat,npot*(npot+1)/2, domain->dimension,2*nfft_both,"pppm:grad_potent_hat");
-  memory->create(assigned_pot,MAX_GROUP,"tild:assigned_pot");
-  for (int ind = 0; ind < MAX_GROUP; ind++) assigned_pot[ind] = -1;
+  // for (int ind = 0; ind < MAX_GROUP; ind++) assigned_pot[ind] = -1;
 
   if (triclinic == 0) {
     memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");

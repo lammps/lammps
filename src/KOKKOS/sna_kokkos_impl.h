@@ -333,7 +333,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   // VMK Section 4.8.2
 
   // All writes go to global memory and shared memory
-  // so we can avoid all global memory reads!
+  // so we can avoid all global memory reads
   Kokkos::single(Kokkos::PerThread(team), [=]() {
     //ulist(0,iatom,jnbor) = { 1.0, 0.0 };
     buf1[0] = {1.,0.};

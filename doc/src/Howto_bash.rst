@@ -103,7 +103,7 @@ needed for various LAMMPS features:
 
 .. code-block:: bash
 
-   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
+   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
 Files in Ubuntu on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

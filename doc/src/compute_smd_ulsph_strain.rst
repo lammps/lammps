@@ -6,7 +6,6 @@ compute smd/ulsph/strain command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/strain
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -46,7 +44,6 @@ The per-particle tensor values will be given dimensionless, see
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. This compute can

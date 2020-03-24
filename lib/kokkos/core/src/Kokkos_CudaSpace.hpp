@@ -126,7 +126,7 @@ int* atomic_lock_array_cuda_space_ptr(bool deallocate = false);
 /// \brief Retrieve the pointer to the scratch array for team and thread private global memory.
 ///
 /// Team and Thread private scratch allocations in
-/// global memory are aquired via locks.
+/// global memory are acquired via locks.
 /// This function retrieves the lock array pointer.
 /// If the array is not yet allocated it will do so.
 int* scratch_lock_array_cuda_space_ptr(bool deallocate = false);

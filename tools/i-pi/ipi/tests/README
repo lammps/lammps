@@ -3,7 +3,7 @@
  * This is the directory containing the tests that can be run with nosetests.
 
  * Files:
-   - common.py: Common helper funtions for use in the tests.
+   - common.py: Common helper functions for use in the tests.
    - datest.py: Tests the dependency utility and some of the numpy
       facilities.
    - test_*.py: The actual tests for at least some of the code basis.

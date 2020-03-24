@@ -189,7 +189,7 @@ void FixHyperGlobal::pre_neighbor()
   //   closest current I or J atoms to old I may now be ghost atoms
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
-  //   drift = displacement from quenched coord while event has not yet occured
+  //   drift = displacement from quenched coord while event has not yet occurred
   // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;

@@ -6,23 +6,22 @@ tad command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    tad N t_event T_lo T_hi delta tmax compute-ID keyword value ...
 
 * N = # of timesteps to run (not including dephasing/quenching)
-* t\_event = timestep interval between event checks
-* T\_lo = temperature at which event times are desired
-* T\_hi = temperature at which MD simulation is performed
+* t_event = timestep interval between event checks
+* T_lo = temperature at which event times are desired
+* T_hi = temperature at which MD simulation is performed
 * delta = desired confidence level for stopping criterion
 * tmax = reciprocal of lowest expected pre-exponential factor (time units)
 * compute-ID = ID of the compute used for event detection
 * zero or more keyword/value pairs may be appended
-* keyword = *min* or *neb* or *min\_style* or *neb\_style* or *neb\_log*
-  
+* keyword = *min* or *neb* or *min_style* or *neb_style* or *neb_log*
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy (energy units)
          ftol = stopping tolerance for force (force units)
@@ -39,13 +38,10 @@ Syntax
          dtneb = timestep for NEB damped dynamics minimization
        *neb_log* value = file where NEB statistics are printed
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    tad 2000 50 1800 2300 0.01 0.01 event
    tad 2000 50 1800 2300 0.01 0.01 event &
@@ -103,7 +99,6 @@ page for further discussion of multi-replica simulations.
 A TAD run has several stages, which are repeated each time an event is
 performed.  The logic for a TAD run is as follows:
 
-
 .. parsed-literal::
 
    while (time remains):
@@ -124,7 +119,7 @@ initial state and storing the resulting coordinates for reference.
 
 Inside the inner loop, dynamics is run continuously according to
 whatever integrator has been specified by the user, stopping every
-*t\_event* steps to check if a transition event has occurred.  This
+*t_event* steps to check if a transition event has occurred.  This
 check is performed by quenching the system and comparing the resulting
 atom coordinates to the coordinates from the previous basin.
 
@@ -145,18 +140,16 @@ distance.  If so, an "event" has occurred.
 The NEB calculation is similar to that invoked by the :doc:`neb <neb>`
 command, except that the final state is generated internally, instead
 of being read in from a file.  The style of minimization performed by
-NEB is determined by the *neb\_style* keyword and must be a damped
+NEB is determined by the *neb_style* keyword and must be a damped
 dynamics minimizer.  The tolerances and limits for each NEB
 calculation can be set by the *neb* keyword.  As discussed on the
 :doc:`neb <neb>`, it is often advantageous to use a larger timestep for
 NEB than for normal dynamics.  Since the size of the timestep set by
 the :doc:`timestep <timestep>` command is used by TAD for performing
-dynamics, there is a *neb\_step* keyword which can be used to set a
+dynamics, there is a *neb_step* keyword which can be used to set a
 larger timestep for each NEB calculation if desired.
 
-
 ----------
-
 
 A key aspect of the TAD method is setting the stopping criterion
 appropriately.  If this criterion is too conservative, then many
@@ -171,15 +164,13 @@ are not well characterized (the most common case), it will be
 necessary to experiment with the values of *delta* and *tmax* to get a
 good trade-off between accuracy and performance.
 
-A second key aspect is the choice of *t\_hi*. A larger value greatly
+A second key aspect is the choice of *t_hi*. A larger value greatly
 increases the rate at which new events are generated.  However, too
 large a value introduces errors due to anharmonicity (not accounted
 for within hTST). Once again, for any given system, experimentation is
-necessary to determine the best value of *t\_hi*.
-
+necessary to determine the best value of *t_hi*.
 
 ----------
-
 
 Five kinds of output can be generated during a TAD run: event
 statistics, NEB statistics, thermodynamic output by each replica, dump
@@ -188,7 +179,7 @@ files, and restart files.
 Event statistics are printed to the screen and master log.lammps file
 each time an event is executed. The quantities are the timestep, CPU
 time, global event number *N*\ , local event number *M*\ , event status,
-energy barrier, time margin, *t\_lo* and *delt\_lo*.  The timestep is
+energy barrier, time margin, *t_lo* and *delt_lo*.  The timestep is
 the usual LAMMPS timestep, which corresponds to the high-temperature
 time at which the event was detected, in units of timestep.  The CPU
 time is the total processor time since the start of the TAD run.  The
@@ -203,9 +194,9 @@ The time margin is the ratio of the high temperature time in the
 current basin to the stopping time. This last number can be used to
 judge whether the stopping time is too short or too long (see above).
 
-*t\_lo* is the low-temperature event time when the current basin was
-entered, in units of timestep.  del*t\_lo* is the time of each detected
-event, measured relative to *t\_lo*.  *delt\_lo* is equal to the
+*t_lo* is the low-temperature event time when the current basin was
+entered, in units of timestep.  del*t_lo* is the time of each detected
+event, measured relative to *t_lo*.  *delt_lo* is equal to the
 high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
@@ -214,11 +205,11 @@ On lines for executed events, with status *E*\ , the global event number
 is incremented by one,
 the local event number and time margin are reset to zero,
 while the global event number, energy barrier, and
-*delt\_lo* match the last event with status *DF*
+*delt_lo* match the last event with status *DF*
 in the immediately preceding block of detected events.
-The low-temperature event time *t\_lo* is incremented by *delt\_lo*.
+The low-temperature event time *t_lo* is incremented by *delt_lo*.
 
-NEB statistics are written to the file specified by the *neb\_log*
+NEB statistics are written to the file specified by the *neb_log*
 keyword. If the keyword value is "none", then no NEB statistics are
 printed out. The statistics are written every *Nevery* timesteps.  See
 the :doc:`neb <neb>` command for a full description of the NEB
@@ -276,19 +267,16 @@ files do not always increase monotonically. However, the timestep
 values printed to the master log file, dump files, and restart files
 are always monotonically increasing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-*N* setting must be integer multiple of *t\_event*.
+*N* setting must be integer multiple of *t_event*.
 
 Runs restarted from restart files written during a TAD run will only
 produce identical results if the user-specified integrator supports
@@ -313,22 +301,16 @@ Default
 """""""
 
 The option defaults are *min* = 0.1 0.1 40 50, *neb* = 0.01 100 100
-10, *neb\_style* = *quickmin*\ , *neb\_step* = the same timestep set by
-the :doc:`timestep <timestep>` command, and *neb\_log* = "none".
-
+10, *neb_style* = *quickmin*\ , *neb_step* = the same timestep set by
+the :doc:`timestep <timestep>` command, and *neb_log* = "none".
 
 ----------
 
-
 .. _Voter2000:
-
-
 
 **(Voter2000)** Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
 .. _Voter2002:
-
-
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

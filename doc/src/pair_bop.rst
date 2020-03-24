@@ -6,7 +6,6 @@ pair_style bop command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style bop keyword ...
@@ -18,11 +17,8 @@ Syntax
 
      save = pre-compute and save some values
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -40,15 +36,15 @@ quantum mechanical theory incorporating both :math:`\sigma` and :math:`\pi` bond
 By analytically deriving the BOP from quantum mechanical theory its
 transferability to different phases can approach that of quantum
 mechanical methods.  This potential is similar to the original BOP
-developed by Pettifor (:ref:`Pettifor\_1 <Pettifor_1>`,
-:ref:`Pettifor\_2 <Pettifor_2>`, :ref:`Pettifor\_3 <Pettifor_3>`) and later updated
+developed by Pettifor (:ref:`Pettifor_1 <Pettifor_1>`,
+:ref:`Pettifor_2 <Pettifor_2>`, :ref:`Pettifor_3 <Pettifor_3>`) and later updated
 by Murdick, Zhou, and Ward (:ref:`Murdick <Murdick>`, :ref:`Ward <Ward>`).
 Currently, BOP potential files for these systems are provided with
 LAMMPS: AlCu, CCu, CdTe, CdTeSe, CdZnTe, CuH, GaAs.  A system with
 only a subset of these elements, including a single element (e.g. C or
 Cu or Al or Ga or Zn or CdZn), can also be modeled by using the
 appropriate alloy file and assigning all atom types to the
-single element or subset of elements via the pair\_coeff command, as
+single element or subset of elements via the pair_coeff command, as
 discussed below.
 
 The BOP potential consists of three terms:
@@ -57,13 +53,12 @@ The BOP potential consists of three terms:
 
    E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left( r_{ij} \right) - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\sigma,ij} \left( r_{ij} \right) \cdot \Theta_{\sigma,ij} - \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \beta_{\pi,ij} \left( r_{ij} \right) \cdot \Theta_{\pi,ij} + U_{prom}
 
-
 where :math:`\phi_{ij}(r_{ij})` is a short-range two-body function
 representing the repulsion between a pair of ion cores,
 :math:`\beta_{\sigma,ij}(r_{ij})` and :math:`\beta_{\sigma,ij}(r_{ij})`
 are respectively sigma and :math:`\pi` bond integrals, :math:`\Theta_{\sigma,ij}`
 and :math:`\Theta_{\pi,ij}` are :math:`\sigma` and :math:`\pi`
-bond-orders, and U\_prom is the promotion energy for sp-valent systems.
+bond-orders, and U_prom is the promotion energy for sp-valent systems.
 
 The detailed formulas for this potential are given in Ward
 (:ref:`Ward <Ward>`); here we provide only a brief description.
@@ -89,7 +84,7 @@ efficient potential formulation suitable for MD simulations, the derived
 BOP only takes (and retains) the first two levels of the recursive
 representations for both the :math:`\sigma` and the :math:`\pi` bond-orders. Bond-order
 terms can be understood in terms of molecular orbital hopping paths
-based upon the Cyrot-Lackmann theorem (:ref:`Pettifor\_1 <Pettifor_1>`).
+based upon the Cyrot-Lackmann theorem (:ref:`Pettifor_1 <Pettifor_1>`).
 The :math:`\sigma` bond-order with a half-full valence shell is used to
 interpolate the bond-order expression that incorporated explicit valance
 band filling.  This :math:`\pi` bond-order expression also contains also contains
@@ -101,7 +96,7 @@ length 4.  This enables the incorporation of dihedral angles effects.
 .. note::
 
    Note that unlike for other potentials, cutoffs for BOP
-   potentials are not set in the pair\_style or pair\_coeff command; they
+   potentials are not set in the pair_style or pair_coeff command; they
    are specified in the BOP potential files themselves.  Likewise, the
    BOP potential files list atomic masses; thus you do not need to use
    the :doc:`mass <mass>` command to specify them.  Note that for BOP
@@ -111,7 +106,7 @@ length 4.  This enables the incorporation of dihedral angles effects.
    :doc:`pair_coeff <pair_coeff>` command to read the BOP potential
    file.
 
-One option can be specified as a keyword with the pair\_style command.
+One option can be specified as a keyword with the pair_style command.
 
 The *save* keyword gives you the option to calculate in advance and
 store a set of distances, angles, and derivatives of angles.  The
@@ -121,14 +116,12 @@ The latter requires less memory, but may be slower.  It is best to
 test this option to optimize the speed of BOP for your particular
 system configuration.
 
-
 ----------
 
-
-Only a single pair\_coeff command is used with the *bop* style which
+Only a single pair_coeff command is used with the *bop* style which
 specifies a BOP potential file, with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -137,8 +130,7 @@ where N is the number of LAMMPS atom types:
 As an example, imagine the CdTe.bop file has BOP values for Cd
 and Te.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Cd, and the 4th to be Te, you would use the following
-pair\_coeff command:
-
+pair_coeff command:
 
 .. parsed-literal::
 
@@ -151,17 +143,15 @@ element in the BOP file.  The final Te argument maps LAMMPS atom type
 
 BOP files in the *potentials* directory of the LAMMPS distribution
 have a ".bop" suffix.  The potentials are in tabulated form containing
-pre-tabulated pair functions for phi\_ij(r\_ij), beta\_(sigma,ij)(r\_ij),
-and beta\_pi,ij)(r\_ij).
+pre-tabulated pair functions for phi_ij(r_ij), beta_(sigma,ij)(r_ij),
+and beta_pi,ij)(r_ij).
 
 The parameters/coefficients format for the different kinds of BOP
 files are given below with variables matching the formulation of Ward
 (:ref:`Ward <Ward>`) and Zhou (:ref:`Zhou <Zhou1>`). Each header line containing a
 ":" is preceded by a blank line.
 
-
 ----------
-
 
 **No angular table file format**\ :
 
@@ -180,100 +170,91 @@ the tabulated functions are given.
 
 * Line 1: nr, nBOt (nr is the number of divisions the radius is broken
   into for function tables and MUST be a factor of 5; nBOt is the number
-  of divisions for the tabulated values of THETA\_(S,ij)
-* Line 2: delta\_1-delta\_7 (if all are not used in the particular
+  of divisions for the tabulated values of THETA_(S,ij)
+* Line 2: delta_1-delta_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
+Following this N lines for e_1-e_N containing p_pi.
 
-Following this N lines for e\_1-e\_N containing p\_pi.
-
-* Line 3: p\_pi (for e\_1)
-* Line 4: p\_pi (for e\_2 and continues to e\_N)
+* Line 3: p_pi (for e_1)
+* Line 4: p_pi (for e_2 and continues to e_N)
 
 The next section contains several pair constants for the number of
-interaction types e\_i-e\_j, with i=1->N, j=i->N
+interaction types e_i-e_j, with i=1->N, j=i->N
 
-* Line 1: r\_cut (for e\_1-e\_1 interactions)
-* Line 2: c\_sigma, a\_sigma, c\_pi, a\_pi
-* Line 3: delta\_sigma, delta\_pi
-* Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
+* Line 1: r_cut (for e_1-e_1 interactions)
+* Line 2: c_sigma, a_sigma, c_pi, a_pi
+* Line 3: delta_sigma, delta_pi
+* Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
-e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
+e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
-* Line 1: g\_(sigma0), g\_(sigma1), g\_(sigma2) (These are coefficients for
-  g\_(sigma,jik)(THETA\_ijk) for e\_1-e\_1-e\_1 interaction. :ref:`Ward <Ward>`
+* Line 1: g_(sigma0), g_(sigma1), g_(sigma2) (These are coefficients for
+  g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. :ref:`Ward <Ward>`
   contains the full expressions for the constants as functions of
-  b\_(sigma,ijk), p\_(sigma,ijk), u\_(sigma,ijk))
-* Line 2: g\_(sigma0), g\_(sigma1), g\_(sigma2) (for e\_1-e\_1-e\_2)
-
+  b_(sigma,ijk), p_(sigma,ijk), u_(sigma,ijk))
+* Line 2: g_(sigma0), g_(sigma1), g_(sigma2) (for e_1-e_1-e_2)
 
 The next section contains a block for each interaction type for the
-phi\_ij(r\_ij).  Each block has nr entries with 5 entries per line.
+phi_ij(r_ij).  Each block has nr entries with 5 entries per line.
 
-* Line 1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5) (for the e\_1-e\_1
+* Line 1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5) (for the e_1-e_1
   interaction type)
 * Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues
   until nr)
 * ...
-* Line nr/5\_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the
-  e\_1-e\_1 interaction type)
-
+* Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the
+  e_1-e_1 interaction type)
 
 The next section contains a block for each interaction type for the
-beta\_(sigma,ij)(r\_ij).  Each block has nr entries with 5 entries per
+beta_(sigma,ij)(r_ij).  Each block has nr entries with 5 entries per
 line.
 
-* Line 1: beta\_sigma(r1), beta\_sigma(r2), beta\_sigma(r3), beta\_sigma(r4),
-  beta\_sigma(r5) (for the e\_1-e\_1 interaction type)
-* Line 2: beta\_sigma(r6), beta\_sigma(r7), beta\_sigma(r8), beta\_sigma(r9),
-  beta\_sigma(r10) (this continues until nr)
+* Line 1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), beta_sigma(r4),
+  beta_sigma(r5) (for the e_1-e_1 interaction type)
+* Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9),
+  beta_sigma(r10) (this continues until nr)
 * ...
-* Line nr/5+1: beta\_sigma(r1), beta\_sigma(r2), beta\_sigma(r3),
-  beta\_sigma(r4), beta\_sigma(r5) (for the e\_1-e\_2 interaction type)
-
+* Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3),
+  beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type)
 
 The next section contains a block for each interaction type for
-beta\_(pi,ij)(r\_ij).  Each block has nr entries with 5 entries per line.
+beta_(pi,ij)(r_ij).  Each block has nr entries with 5 entries per line.
 
-* Line 1: beta\_pi(r1), beta\_pi(r2), beta\_pi(r3), beta\_pi(r4), beta\_pi(r5)
-  (for the e\_1-e\_1 interaction type)
-* Line 2: beta\_pi(r6), beta\_pi(r7), beta\_pi(r8), beta\_pi(r9),
-  beta\_pi(r10) (this continues until nr)
+* Line 1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), beta_pi(r5)
+  (for the e_1-e_1 interaction type)
+* Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9),
+  beta_pi(r10) (this continues until nr)
 * ...
-* Line nr/5+1: beta\_pi(r1), beta\_pi(r2), beta\_pi(r3), beta\_pi(r4),
-  beta\_pi(r5) (for the e\_1-e\_2 interaction type)
-
+* Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4),
+  beta_pi(r5) (for the e_1-e_2 interaction type)
 
 The next section contains a block for each interaction type for the
-THETA\_(S,ij)((THETA\_(sigma,ij))\^(1/2), f\_(sigma,ij)).  Each block has
+THETA_(S,ij)((THETA_(sigma,ij))\^(1/2), f_(sigma,ij)).  Each block has
 nBOt entries with 5 entries per line.
 
-* Line 1: THETA\_(S,ij)(r1), THETA\_(S,ij)(r2), THETA\_(S,ij)(r3),
-  THETA\_(S,ij)(r4), THETA\_(S,ij)(r5) (for the e\_1-e\_2 interaction type)
-* Line 2: THETA\_(S,ij)(r6), THETA\_(S,ij)(r7), THETA\_(S,ij)(r8),
-  THETA\_(S,ij)(r9), THETA\_(S,ij)(r10) (this continues until nBOt)
+* Line 1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3),
+  THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type)
+* Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8),
+  THETA_(S,ij)(r9), THETA_(S,ij)(r10) (this continues until nBOt)
 * ...
-* Line nBOt/5+1: THETA\_(S,ij)(r1), THETA\_(S,ij)(r2), THETA\_(S,ij)(r3),
-  THETA\_(S,ij)(r4), THETA\_(S,ij)(r5) (for the e\_1-e\_2 interaction type)
+* Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3),
+  THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type)
 
+The next section contains a block of N lines for e_1-e_N
 
-The next section contains a block of N lines for e\_1-e\_N
+* Line 1: delta\^mu (for e_1)
+* Line 2: delta\^mu (for e_2 and repeats to e_N)
 
-* Line 1: delta\^mu (for e\_1)
-* Line 2: delta\^mu (for e\_2 and repeats to e\_N)
-
-The last section contains more constants for e\_i-e\_j interactions with
+The last section contains more constants for e_i-e_j interactions with
 i=0->N, j=i->N
 
-* Line 1: (A\_ij)\^(mu\*nu) (for e1-e1)
-* Line 2: (A\_ij)\^(mu\*nu) (for e1-e2 and repeats as above)
-
+* Line 1: (A_ij)\^(mu\*nu) (for e1-e1)
+* Line 2: (A_ij)\^(mu\*nu) (for e1-e2 and repeats as above)
 
 ----------
-
 
 **Angular spline table file format**\ :
 
@@ -293,45 +274,40 @@ the tabulated functions are given.
 * Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken
   into for function tables and MUST be a factor of 5; ntheta is the power of the
   power of the spline used to fit the angular function; nBOt is the number
-  of divisions for the tabulated values of THETA\_(S,ij)
-* Line 2: delta\_1-delta\_7 (if all are not used in the particular
+  of divisions for the tabulated values of THETA_(S,ij)
+* Line 2: delta_1-delta_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
+Following this N lines for e_1-e_N containing p_pi.
 
-Following this N lines for e\_1-e\_N containing p\_pi.
-
-* Line 3: p\_pi (for e\_1)
-* Line 4: p\_pi (for e\_2 and continues to e\_N)
+* Line 3: p_pi (for e_1)
+* Line 4: p_pi (for e_2 and continues to e_N)
 
 The next section contains several pair constants for the number of
-interaction types e\_i-e\_j, with i=1->N, j=i->N
+interaction types e_i-e_j, with i=1->N, j=i->N
 
-* Line 1: r\_cut (for e\_1-e\_1 interactions)
-* Line 2: c\_sigma, a\_sigma, c\_pi, a\_pi
-* Line 3: delta\_sigma, delta\_pi
-* Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
+* Line 1: r_cut (for e_1-e_1 interactions)
+* Line 2: c_sigma, a_sigma, c_pi, a_pi
+* Line 3: delta_sigma, delta_pi
+* Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
-e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
+e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
 * Line 1: g0, g1, g2... (These are coefficients for the angular spline
-  of the g\_(sigma,jik)(THETA\_ijk) for e\_1-e\_1-e\_1 interaction.  The
+  of the g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction.  The
   function can contain up to 10 term thus 10 constants.  The first line
   can contain up to five constants.  If the spline has more than five
   terms the second line will contain the remaining constants The
   following lines will then contain the constants for the remaining g0,
-  g1, g2... (for e\_1-e\_1-e\_2) and the other three body
+  g1, g2... (for e_1-e_1-e_2) and the other three body
   interactions
-
 
 The rest of the table has the same structure as the previous section
 (see above).
 
-
 ----------
-
 
 **Angular no-spline table file format**\ :
 
@@ -351,43 +327,38 @@ the tabulated functions are given.
 * Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken
   into for function tables and MUST be a factor of 5; ntheta is the number of
   divisions for the tabulated values of the g angular function; nBOt is the number
-  of divisions for the tabulated values of THETA\_(S,ij)
-* Line 2: delta\_1-delta\_7 (if all are not used in the particular
+  of divisions for the tabulated values of THETA_(S,ij)
+* Line 2: delta_1-delta_7 (if all are not used in the particular
 * formulation, set unused values to 0.0)
 
+Following this N lines for e_1-e_N containing p_pi.
 
-Following this N lines for e\_1-e\_N containing p\_pi.
-
-* Line 3: p\_pi (for e\_1)
-* Line 4: p\_pi (for e\_2 and continues to e\_N)
+* Line 3: p_pi (for e_1)
+* Line 4: p_pi (for e_2 and continues to e_N)
 
 The next section contains several pair constants for the number of
-interaction types e\_i-e\_j, with i=1->N, j=i->N
+interaction types e_i-e_j, with i=1->N, j=i->N
 
-* Line 1: r\_cut (for e\_1-e\_1 interactions)
-* Line 2: c\_sigma, a\_sigma, c\_pi, a\_pi
-* Line 3: delta\_sigma, delta\_pi
-* Line 4: f\_sigma, k\_sigma, delta\_3 (This delta\_3 is similar to that of
+* Line 1: r_cut (for e_1-e_1 interactions)
+* Line 2: c_sigma, a_sigma, c_pi, a_pi
+* Line 3: delta_sigma, delta_pi
+* Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
   the previous section but is interaction type dependent)
 
-
 The next section contains a line for each three body interaction type
-e\_j-e\_i-e\_k with i=0->N, j=0->N, k=j->N
+e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
-* Line 1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5) (for the e\_1-e\_1-e\_1
+* Line 1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5) (for the e_1-e_1-e_1
   interaction type)
 * Line 2: g(theta6), g(theta7), g(theta8), g(theta9), g(theta10) (this continues
   until ntheta)
 * ...
 * Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the
-  e\_1-e\_1-e\_2 interaction type)
-
+  e_1-e_1-e_2 interaction type)
 
 The rest of the table has the same structure as the previous section (see above).
 
-
 ----------
-
 
 **Mixing, shift, table tail correction, restart**\ :
 
@@ -395,20 +366,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -430,49 +398,35 @@ Related commands
 Default
 """""""
 
-non-tabulated potential file, a\_0 is non-zero.
-
+non-tabulated potential file, a_0 is non-zero.
 
 ----------
 
+.. _Pettifor_1:
 
-.. _Pettifor\_1:
-
-
-
-**(Pettifor\_1)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487
+**(Pettifor_1)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487
 (1999).
 
-.. _Pettifor\_2:
+.. _Pettifor_2:
 
-
-
-**(Pettifor\_2)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84,
+**(Pettifor_2)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84,
 4124 (2000).
 
-.. _Pettifor\_3:
+.. _Pettifor_3:
 
-
-
-**(Pettifor\_3)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103
+**(Pettifor_3)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103
 (2002).
 
 .. _Murdick:
-
-
 
 **(Murdick)** D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R.
 Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 
 .. _Ward:
 
-
-
 **(Ward)** D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A.
 Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
 .. _Zhou1:
-
-
 
 **(Zhou)** X.W. Zhou, D.K. Ward, M. Foster (TBP).

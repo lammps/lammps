@@ -6,7 +6,6 @@ compute ke/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/eff
 
@@ -45,7 +43,7 @@ energy, calculated by the simple formula above.  For thermodynamic
 output, the *ke* keyword infers kinetic energy from the temperature of
 the system with :math:`\frac{1}{2} k_B T` of energy for each degree of
 freedom.  For the eFF temperature computation via the :doc:`compute
-temp\_eff <compute_temp_eff>` command, these are the same.  But
+temp_eff <compute_temp_eff>` command, these are the same.  But
 different computes that calculate temperature can subtract out different
 non-thermal components of velocity and/or include other degrees of
 freedom.
@@ -58,7 +56,7 @@ freedom.
    :doc:`thermo_modify <thermo_modify>` command, as shown in the following
    example:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press
@@ -78,7 +76,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

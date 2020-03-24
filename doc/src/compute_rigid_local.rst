@@ -6,7 +6,6 @@ compute rigid/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID rigid/local rigidID input1 input2 ...
@@ -15,9 +14,9 @@ Syntax
 * rigid/local = style name of this compute command
 * rigidID = ID of fix rigid/small command or one of its variants
 * input = one or more rigid body attributes
-  
+
   .. parsed-literal::
-  
+
        possible attributes = id, mol, mass,
                              x, y, z, xu, yu, zu, ix, iy, iz
                              vx, vy, vz, fx, fy, fz,
@@ -40,13 +39,10 @@ Syntax
            tqx,tqy,tqz = torque on body
            inertiax,inertiay,inertiaz = diagonalized moments of inertia of body
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rigid/local myRigid mol x y z
 
@@ -91,15 +87,12 @@ vector or array from one timestep to the next.
 Here is an example of how to use this compute to dump rigid body info
 to a file:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all rigid/local myRigid mol x y z fx fy fz
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_1[5] c_1[6] c_1[7]
 
-
 ----------
-
 
 This section explains the rigid body attributes that can be specified.
 
@@ -155,9 +148,7 @@ diagonalized inertia tensor for the body, i.e the 3 moments of inertia
 for the body around its principal axes, as computed internally by
 LAMMPS.
 
-
 ----------
-
 
 **Output info:**
 
@@ -187,7 +178,6 @@ corresponding attribute is in:
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the RIGID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -6,7 +6,6 @@ compute event/displace command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID event/displace threshold
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all event/displace 0.5
 
@@ -57,7 +55,6 @@ scalar value will be a 0 or 1 as explained above.
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc

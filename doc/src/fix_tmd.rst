@@ -6,14 +6,13 @@ fix tmd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID tmd rho_final file1 N file2
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * tmd = style name of this fix command
-* rho\_final = desired value of rho at the end of the run (distance units)
+* rho_final = desired value of rho at the end of the run (distance units)
 * file1 = filename to read target structure from
 * N = dump TMD statistics every this many timesteps, 0 = no dump
 * file2 = filename to write TMD statistics to (only needed if N > 0)
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve
    fix 2 tmdatoms tmd 1.0 target_file 100 tmd_dump_file
@@ -34,17 +32,16 @@ Perform targeted molecular dynamics (TMD) on a group of atoms.  A
 holonomic constraint is used to force the atoms to move towards (or
 away from) the target configuration.  The parameter "rho" is
 monotonically decreased (or increased) from its initial value to
-rho\_final at the end of the run.
+rho_final at the end of the run.
 
 Rho has distance units and is a measure of the root-mean-squared
 distance (RMSD) between the current configuration of the atoms in the
 group and the target coordinates listed in file1.  Thus a value of
-rho\_final = 0.0 means move the atoms all the way to the final
+rho_final = 0.0 means move the atoms all the way to the final
 structure during the course of the run.
 
 The target file1 can be ASCII text or a gzipped text file (detected by
 a .gz suffix).  The format of the target file1 is as follows:
-
 
 .. parsed-literal::
 
@@ -81,10 +78,10 @@ The atoms in the fix tmd group should be integrated (via a fix nve,
 nvt, npt) along with other atoms in the system.
 
 Restarts can be used with a fix tmd command.  For example, imagine a
-10000 timestep run with a rho\_initial = 11 and a rho\_final = 1.  If a
+10000 timestep run with a rho_initial = 11 and a rho_final = 1.  If a
 restart file was written after 2000 time steps, then the configuration
 in the file would have a rho value of 9.  A new 8000 time step run
-could be performed with the same rho\_final = 1 to complete the
+could be performed with the same rho_final = 1 to complete the
 conformational change at the same transition rate.  Note that for
 restarted runs, the name of the TMD statistics file should be changed
 to prevent it being overwritten.
@@ -92,7 +89,7 @@ to prevent it being overwritten.
 For more information about TMD, see :ref:`(Schlitter1) <Schlitter1>` and
 :ref:`(Schlitter2) <Schlitter2>`.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -107,7 +104,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 All TMD fixes must be listed in the input script after all integrator
 fixes (nve, nvt, npt) are applied.  This ensures that atoms are moved
 before their positions are corrected to comply with the constraint.
@@ -118,28 +114,22 @@ are not multiple competing holonomic constraints applied to the same
 atoms.
 
 To read gzipped target files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 **Related commands:** none
 
 **Default:** none
 
-
 ----------
 
-
 .. _Schlitter1:
-
-
 
 **(Schlitter1)** Schlitter, Swegat, Mulders, "Distance-type reaction
 coordinates for modelling activated processes", J Molecular Modeling,
 7, 171-177 (2001).
 
 .. _Schlitter2:
-
-
 
 **(Schlitter2)** Schlitter and Klahn, "The free energy of a reaction
 coordinate at multiple constraints: a concise formulation", Molecular

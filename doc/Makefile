@@ -76,13 +76,9 @@ html: $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/USER
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
-	@cp -r src/USER html/USER
 	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
+	@cp `grep -A2 '\.\. .*image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
-	@rm -rf html/USER/.[sg]*
-	@rm -rf html/USER/*/.[sg]*
-	@rm -rf html/USER/*/*.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
 	@echo "Build finished. The HTML pages are in doc/html."
@@ -151,11 +147,7 @@ pdf: $(ANCHORCHECK)
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
 	@cp -r src/PDF latex/PDF
-	@cp -r src/USER latex/USER
 	@rm -rf latex/PDF/.[sg]*
-	@rm -rf latex/USER/.[sg]*
-	@rm -rf latex/USER/*/.[sg]*
-	@rm -rf latex/USER/*/*.[sg]*
 	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
 fetch:

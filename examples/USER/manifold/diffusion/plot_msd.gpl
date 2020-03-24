@@ -47,7 +47,7 @@ set object 1 rectangle from graph 0,0 to graph 1,1 fillcolor rgb "white" behind
 unset key
 set grid front
 
-set title 'Short time behaviour' offset 0,-0.8
+set title 'Short time behavior' offset 0,-0.8
 set ylabel ''
 set xrange[0:10]
 set yrange[0:40]

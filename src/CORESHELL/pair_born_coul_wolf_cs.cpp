@@ -98,7 +98,7 @@ void PairBornCoulWolfCS::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
                 rsq += EPSILON;
-                // Add EPISLON for case: r = 0; Interaction must be removed
+                // Add EPSILON for case: r = 0; Interaction must be removed
                 // by special bond
         r2inv = 1.0/rsq;
 

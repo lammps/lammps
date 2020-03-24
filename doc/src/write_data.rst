@@ -6,7 +6,6 @@ write_data command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    write_data file keyword value ...
@@ -14,20 +13,17 @@ Syntax
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *nocoeff*
-  
+
   .. parsed-literal::
-  
+
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
          *ij* = write one line of pair coefficient info per IJ atom type pair
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -55,7 +51,7 @@ value.
    the :doc:`pair_coeff <pair_coeff>` command.  Second, a few of the :doc:`atom styles <atom_style>` (body, ellipsoid, line, tri) that store
    auxiliary "bonus" information about aspherical particles, do not yet
    write the bonus info into the data file.  Both these functionalities
-   will be added to the write\_data command later.
+   will be added to the write_data command later.
 
 Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the
@@ -87,9 +83,7 @@ Bonds that are broken (e.g. by a bond-breaking potential) are not
 written to the data file.  Thus these bonds will not exist when the
 data file is read.
 
-
 ----------
-
 
 The *nocoeff* keyword requests that no force field parameters should
 be written to the data file. This can be very helpful, if one wants
@@ -123,13 +117,10 @@ in the input script after reading the data file, by specifying
 additional :doc:`pair_coeff <pair_coeff>` commands for any desired I,J
 pairs.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command requires inter-processor communication to migrate atoms
 before the data file is written.  This means that your system must be

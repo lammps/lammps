@@ -86,7 +86,6 @@ LAMMPS:
 
    This can be useful for formatting print output to a desired precision:
 
-
    .. code-block:: LAMMPS
 
       print "Final energy per atom: $(pe/atoms:%10.3f) eV/atom"
@@ -102,7 +101,7 @@ LAMMPS:
       print           "B2 = ${b$a}"
 
    Nor can you specify an expression like "$($x-1.0)" for an immediate
-   variable, but you could use $(v\_x-1.0), since the latter is valid
+   variable, but you could use $(v_x-1.0), since the latter is valid
    syntax for an :doc:`equal-style variable <variable>`.
 
    See the :doc:`variable <variable>` command for more details of how
@@ -116,7 +115,7 @@ LAMMPS:
    underscores, or punctuation characters.
 
 .. _five:
-   
+
 5. The first word is the command name.  All successive words in the line
    are arguments.
 

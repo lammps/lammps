@@ -6,7 +6,6 @@ fix ffl command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID id-group ffl tau Tstart Tstop seed [flip-type]
@@ -17,18 +16,15 @@ Syntax
 * Tstart, Tstop = temperature ramp during the run
 * seed = random number seed to use for generating noise (positive integer)
 * one more value may be appended
-  
+
   .. parsed-literal::
-  
+
          flip-type  = determines the flipping type, can be chosen between rescale - no_flip - hard - soft, if no flip type is given, rescale will be chosen by default
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary ffl 10 300 300 31415
    fix 1 all ffl 100 500 500 9265 soft
@@ -46,11 +42,9 @@ on the same atom groups.
 The time-evolution of a single particle undergoing Langevin dynamics is described
 by the equations
 
-
 .. math::
 
     \frac {dq}{dt} = \frac{p}{m},
-
 
 .. math::
 
@@ -74,11 +68,11 @@ different numbers of processors.
 
 The flipping type *flip-type* can be chosen between 4 types described in
 :ref:`(Hijazi) <Hijazi>`. The flipping operation occurs during the thermostatting
-step and it flips the momenta of the atoms. If no\_flip is chosen, no flip
+step and it flips the momenta of the atoms. If no_flip is chosen, no flip
 will be executed and the integration will be the same as a standard
 Langevin thermostat :ref:`(Bussi) <Bussi3>`. The other flipping types are : rescale - hard - soft.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random
@@ -107,7 +101,6 @@ fix is "extensive".
 Restrictions
 """"""""""""
 
-
 In order to perform constant-pressure simulations please use
 :doc:`fix press/berendsen <fix_press_berendsen>`, rather than
 :doc:`fix npt <fix_nh>`, to avoid duplicate integration of the
@@ -121,17 +114,12 @@ Related commands
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`, :doc:`fix gld <fix_gld>`, :doc:`fix gle <fix_gle>`
 
-
 ----------
 
-
 .. _Hijazi:
-
-
 
 .. _Bussi3:
 
 **(Hijazi)** M. Hijazi, D. M. Wilkins, M. Ceriotti, J. Chem. Phys. 148, 184109 (2018)
-
 
 **(Bussi)** G. Bussi, M. Parrinello, Phs. Rev. E 75, 056707 (2007)

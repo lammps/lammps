@@ -31,7 +31,7 @@ machines, especially workstations, desktops, and laptops, so we suggest
 you try it first when building LAMMPS in those cases.
 
 The commands below perform a default LAMMPS build, producing the LAMMPS
-executable lmp\_serial and lmp\_mpi in lammps/src:
+executable lmp_serial and lmp_mpi in lammps/src:
 
 .. code-block:: bash
 
@@ -73,8 +73,7 @@ in the LAMMPS distribution.  Typing "make machine" uses
 use Makefile.serial and Makefile.mpi, respectively.  Other makefiles
 are in these directories:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    OPTIONS      # Makefiles which enable specific options
    MACHINES     # Makefiles for specific machines
@@ -92,7 +91,6 @@ for optimized performance.  Please note, however, that some of these
 customized machine Makefile are contributed by users.  Since both
 compilers, OS configurations, and LAMMPS itself keep changing, their
 settings may become outdated:
-
 
 .. code-block:: bash
 

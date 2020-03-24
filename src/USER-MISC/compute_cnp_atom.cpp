@@ -12,7 +12,7 @@
 
    Common Neighbor Parameter as proposed in:
    Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007)
-   Cite: http://dx.doi.org/10.1063/1.2197987
+   Cite: https://doi.org/10.1063/1.2197987
 
 ------------------------------------------------------------------------- */
 
@@ -161,7 +161,7 @@ void ComputeCNPAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // find the neigbors of each atom within cutoff using full neighbor list
+  // find the neighbors of each atom within cutoff using full neighbor list
   // nearest[] = atom indices of nearest neighbors, up to MAXNEAR
   // do this for all atoms, not just compute group
   // since CNP calculation requires neighbors of neighbors

@@ -6,7 +6,6 @@ fix print command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID print N string keyword value ...
@@ -17,22 +16,19 @@ Syntax
 * string = text string to print with optional variable names
 * zero or more keyword/value pairs may be appended
 * keyword = *file* or *append* or *screen* or *title*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
        *append* value = filename
        *screen* value = *yes* or *no*
        *title* value = string
          string =  text to print as 1st line of output file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix extra all print 100 "Coords of marker atom = $x $y $z"
    fix extra all print 100 "Coords of marker atom = $x $y $z" file coord.txt
@@ -48,7 +44,7 @@ If it contains variables it must be enclosed in double quotes to
 insure they are not evaluated when the input script line is read, but
 will instead be evaluated each time the string is printed.
 
-Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v\_name, where
+Instead of a numeric value, N can be specified as an :doc:`equal-style variable <variable>`, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the **next** timestep at which the
 string will be written out.  On that timestep, the variable will be
@@ -58,8 +54,7 @@ and logfreq() and stride() math functions for :doc:`equal-style variables <varia
 this context. For example, the following commands will print output at
 timesteps 10,20,30,100,200,300,1000,2000,etc:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        s equal logfreq(10,3,10)
    fix extra all print v_s "Coords of marker atom = $x $y $z"
@@ -88,14 +83,13 @@ The *title* keyword allow specification of the string that will be
 printed as the first line of the output file, assuming the *file*
 keyword was used.  By default, the title line is as follows:
 
-
 .. parsed-literal::
 
    # Fix print output for fix ID
 
 where ID is replaced with the fix-ID.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

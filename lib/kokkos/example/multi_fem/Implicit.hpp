@@ -222,7 +222,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
   }
 
   //------------------------------------
-  // Solve linear sytem
+  // Solve linear system
 
   cgsolve( mesh.parallel_data_map ,
            linsys_matrix , linsys_rhs , linsys_solution ,

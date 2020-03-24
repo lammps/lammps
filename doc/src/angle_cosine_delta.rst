@@ -9,14 +9,12 @@ angle_style cosine/delta/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style cosine/delta
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,7 +30,6 @@ The *cosine/delta* angle style uses the potential
 
    E = K [1 - \cos(\theta - \theta_0)]
 
-
 where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
 prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
 
@@ -47,9 +44,7 @@ or :doc:`read_restart <read_restart>` commands:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -69,13 +64,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

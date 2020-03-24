@@ -15,7 +15,6 @@ pair_style gayberne/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style gayberne gamma upsilon mu cutoff
@@ -27,7 +26,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -100,7 +98,7 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global
-cutoff specified in the pair\_style command is used.
+cutoff specified in the pair_style command is used.
 
 It is typical with the Gay-Berne potential to define :math:`\sigma` as
 the minimum of the 3 shape diameters of the particles involved in an I,I
@@ -110,7 +108,7 @@ meaning for :math:`\sigma` than the :doc:`pair_style resquared
 
 The :math:`\epsilon_i` and :math:`\epsilon_j` coefficients are actually
 defined for atom types, not for pairs of atom types.  Thus, in a series
-of pair\_coeff commands, they only need to be specified once for each
+of pair_coeff commands, they only need to be specified once for each
 atom type.
 
 Specifically, if any of :math:`\epsilon_{i,a}`, :math:`\epsilon_{i,b}`,
@@ -118,20 +116,20 @@ Specifically, if any of :math:`\epsilon_{i,a}`, :math:`\epsilon_{i,b}`,
 atom type I.  If all the :math:`\epsilon_i` values are zero, they are
 ignored.  If any of :math:`\epsilon_{j,a}`, :math:`\epsilon_{j,b}`,
 :math:`\epsilon_{j,c}` are non-zero, the three values are assigned to
-atom type J.  If all three epsilon\_j values are zero, they are ignored.
+atom type J.  If all three epsilon_j values are zero, they are ignored.
 Thus the typical way to define the :math:`\epsilon_i` and
-:math:`\epsilon_j` coefficients is to list their values in "pair\_coeff
+:math:`\epsilon_j` coefficients is to list their values in "pair_coeff
 I J" commands when I = J, but set them to 0.0 when I != J.  If you do
 list them when I != J, you should insure they are consistent with their
-values in other pair\_coeff commands, since only the last setting will
+values in other pair_coeff commands, since only the last setting will
 be in effect.
 
 Note that if this potential is being used as a sub-style of
-:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
+:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for Gay-Berne for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the :math:`\epsilon` a,b,c coefficients are assigned to
-that type. e.g. in a "pair\_coeff I J" command.
+that type. e.g. in a "pair_coeff I J" command.
 
 .. note::
 
@@ -144,13 +142,13 @@ that type. e.g. in a "pair\_coeff I J" command.
    as the standard LJ parameters.  This is much cheaper to compute than
    the full Gay-Berne formula.  To treat the particle as a LJ sphere
    with sigma = D, you should normally set :math:`\epsilon` a = b = c =
-   1.0, set the pair\_coeff :math:`\sigma = D`, and also set the 3 shape
+   1.0, set the pair_coeff :math:`\sigma = D`, and also set the 3 shape
    parameters for the particle to D.  The one exception is that if the 3
    shape parameters are set to 0.0, which is a valid way in LAMMPS to
    specify a point particle, then the Gay-Berne potential will treat
    that as shape parameters of 1.0 (i.e. a LJ particle with
    :math:`\sigma = 1`), since it requires finite-size particles.  In
-   this case you should still set the pair\_coeff :math:`\sigma` to 1.0
+   this case you should still set the pair_coeff :math:`\sigma` to 1.0
    as well.
 
 ----------
@@ -173,15 +171,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for this pair style can be mixed.  The default mix
-value is *geometric*\ .  See the "pair\_modify" command for details.
+value is *geometric*\ .  See the "pair_modify" command for details.
 
 This pair styles supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
@@ -196,20 +192,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *gayberne* style is part of the ASPHERE package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -241,31 +234,21 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers2:
-
-
 
 **(Everaers)** Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 .. _Berardi:
-
-
 
 **(Berardi)** Berardi, Fava, Zannoni, Chem Phys Lett, 297, 8-14 (1998).
 Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 
 .. _Perram:
 
-
-
 **(Perram)** Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).
 
 .. _Allen3:
-
-
 
 **(Allen)** Allen and Germano, Mol Phys 104, 3225-3235 (2006).

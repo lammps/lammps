@@ -15,14 +15,12 @@ improper_style harmonic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style harmonic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -37,7 +35,6 @@ The *harmonic* improper style uses the potential
 .. math::
 
    E = K (\chi - \chi_0)^2
-
 
 where :math:`\chi` is the improper angle, :math:`\chi_0` is its equilibrium
 value, and :math:`K` is a prefactor.  Note that the usual 1/2 factor is
@@ -68,9 +65,7 @@ commands:
 :math:`\chi_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian\^2.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -90,13 +85,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

@@ -8,9 +8,6 @@ if(PKG_MSCG)
   endif()
   option(DOWNLOAD_MSCG "Download MSCG library instead of using an already installed one)" ${DOWNLOAD_MSCG_DEFAULT})
   if(DOWNLOAD_MSCG)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      message(FATAL_ERROR "Cannot build downloaded MSCG library with Ninja build tool")
-    endif()
     include(ExternalProject)
     if(NOT LAPACK_FOUND)
       set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
@@ -19,8 +16,17 @@ if(PKG_MSCG)
       URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
       URL_MD5 8c45e269ee13f60b303edd7823866a91
       SOURCE_SUBDIR src/CMake
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC} ${EXTRA_MSCG_OPTS}
-      BUILD_COMMAND make mscg INSTALL_COMMAND ""
+      CMAKE_ARGS ${CMAKE_REQUEST_PIC} ${EXTRA_MSCG_OPTS}
+                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                 -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                 -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                 -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+                 -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+      BUILD_COMMAND ${CMAKE_COMMAND} --build . --target mscg
+      INSTALL_COMMAND ""
+      BUILD_BYPRODUCTS <BINARY_DIR>/libmscg.a
       )
     ExternalProject_get_property(mscg_build BINARY_DIR)
     set(MSCG_LIBRARIES ${BINARY_DIR}/libmscg.a)

@@ -856,7 +856,6 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
 
 /* ----------------------------------------------------------------------
    compute Bi by summing conj(Ui)*Zi
-   not updated yet
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>

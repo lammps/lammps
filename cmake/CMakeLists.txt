@@ -465,6 +465,7 @@ if(PKG_USER-ATC)
     message(FATAL_ERROR "The USER-ATC Package is not compatible with -DLAMMPS_BIGBIG")
   endif()
   target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES})
+  target_include_directories(atc PRIVATE ${LAMMPS_SOURCE_DIR})
 endif()
 
 include(Packages/USER-H5MD)

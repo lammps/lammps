@@ -28,5 +28,5 @@ if(PKG_MESSAGE)
   endif()
 
   target_link_libraries(lammps PRIVATE cslib)
-  include_directories(${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src)
+  target_include_directories(lammps PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src)
 endif()

@@ -38,5 +38,5 @@ if(PKG_USER-OMP)
     endif()
 
     target_sources(lammps PRIVATE ${USER-OMP_SOURCES})
-    include_directories(${USER-OMP_SOURCES_DIR})
+    target_include_directories(lammps PRIVATE ${USER-OMP_SOURCES_DIR})
 endif()

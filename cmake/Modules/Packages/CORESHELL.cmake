@@ -9,5 +9,5 @@ if(PKG_CORESHELL)
     get_property(CORESHELL_SOURCES GLOBAL PROPERTY CORESHELL_SOURCES)
 
     target_sources(lammps PRIVATE ${CORESHELL_SOURCES})
-    include_directories(${CORESHELL_SOURCES_DIR})
+    target_include_directories(lammps PRIVATE ${CORESHELL_SOURCES_DIR})
 endif()

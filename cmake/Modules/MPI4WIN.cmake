@@ -17,7 +17,7 @@ endif()
 
 ExternalProject_get_property(mpi4win_build SOURCE_DIR)
 target_compile_definitions(lammps PRIVATE -DMPICH_SKIP_MPICXX)
-include_directories("${SOURCE_DIR}/include")
+target_include_directories(lammps PRIVATE "${SOURCE_DIR}/include")
 set(MPI4WIN_LIBRARIES "${SOURCE_DIR}/lib/libmpi.a")
 add_dependencies(lammps mpi4win_build)
 set(LAMMPS_USE_MPI4WIN ON)

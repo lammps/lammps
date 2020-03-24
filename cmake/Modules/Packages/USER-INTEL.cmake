@@ -109,5 +109,5 @@ if(PKG_USER-INTEL)
   endif()
 
   target_sources(lammps PRIVATE ${USER-INTEL_SOURCES})
-  include_directories(${USER-INTEL_SOURCES_DIR})
+  target_include_directories(lammps PRIVATE ${USER-INTEL_SOURCES_DIR})
 endif()

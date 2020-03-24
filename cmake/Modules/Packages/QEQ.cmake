@@ -16,5 +16,5 @@ if(PKG_QEQ)
 
   get_property(QEQ_SOURCES GLOBAL PROPERTY QEQ_SOURCES)
   target_sources(lammps PRIVATE ${QEQ_SOURCES})
-  include_directories(${QEQ_SOURCES_DIR})
+  target_include_directories(lammps PRIVATE ${QEQ_SOURCES_DIR})
 endif()

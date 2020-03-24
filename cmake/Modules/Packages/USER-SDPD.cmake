@@ -11,5 +11,5 @@ if(PKG_USER-SDPD)
   endif()
   set_property(GLOBAL PROPERTY FIX "${hlist}")
 
-  include_directories(${USER-SDPD_SOURCES_DIR})
+  target_include_directories(lammps PRIVATE ${USER-SDPD_SOURCES_DIR})
 endif()

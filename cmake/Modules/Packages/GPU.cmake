@@ -193,5 +193,5 @@ if(PKG_GPU)
     get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
     target_sources(lammps PRIVATE ${GPU_SOURCES})
-    include_directories(${GPU_SOURCES_DIR})
+    target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})
 endif()

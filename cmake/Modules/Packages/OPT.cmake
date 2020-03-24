@@ -9,5 +9,5 @@ if(PKG_OPT)
     get_property(OPT_SOURCES GLOBAL PROPERTY OPT_SOURCES)
 
     target_sources(lammps PRIVATE ${OPT_SOURCES})
-    include_directories(${OPT_SOURCES_DIR})
+    target_include_directories(lammps PRIVATE ${OPT_SOURCES_DIR})
 endif()

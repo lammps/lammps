@@ -1,6 +1,6 @@
 if(PKG_PYTHON)
   find_package(PythonLibs REQUIRED)
   target_compile_definitions(lammps PRIVATE -DLMP_PYTHON)
-  include_directories(${PYTHON_INCLUDE_DIR})
+  target_include_directories(lammps PRIVATE ${PYTHON_INCLUDE_DIR})
   target_link_libraries(lammps PRIVATE ${PYTHON_LIBRARY})
 endif()

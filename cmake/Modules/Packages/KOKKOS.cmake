@@ -15,7 +15,7 @@ if(PKG_KOKKOS)
                             ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
                             ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
                             ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-    include_directories(${Kokkos_INCLUDE_DIRS})
+    target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
     target_link_libraries(lammps PRIVATE kokkos)
   endif()
   target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS)
@@ -70,5 +70,5 @@ if(PKG_KOKKOS)
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 
   target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
-  include_directories(${KOKKOS_PKG_SOURCES_DIR})
+  target_include_directories(lammps PRIVATE ${KOKKOS_PKG_SOURCES_DIR})
 endif()

@@ -41,7 +41,7 @@ if(PKG_KSPACE)
     if(FFT_MKL_THREADS)
       target_compile_definitions(lammps PRIVATE -DFFT_MKL_THREADS)
     endif()
-    include_directories(${MKL_INCLUDE_DIRS})
+    target_include_directories(lammps PRIVATE ${MKL_INCLUDE_DIRS})
     target_link_libraries(lammps PRIVATE ${MKL_LIBRARIES})
   else()
     # last option is KISSFFT

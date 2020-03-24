@@ -165,7 +165,7 @@ endif()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-include_directories(${LAMMPS_SOURCE_DIR})
+target_include_directories(lammps PRIVATE ${LAMMPS_SOURCE_DIR})
 
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
@@ -200,7 +200,7 @@ else()
   enable_language(C)
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
-  include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
+  target_include_directories(mpi_stubs PUBLIC ${LAMMPS_SOURCE_DIR}/STUBS)
   target_link_libraries(lammps PRIVATE mpi_stubs)
 endif()
 
@@ -285,7 +285,7 @@ if(WITH_JPEG)
   find_package(JPEG REQUIRED)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_JPEG)
   if(CMAKE_VERSION VERSION_LESS 3.12)
-    include_directories(${JPEG_INCLUDE_DIR})
+    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIR})
     target_link_libraries(lammps PRIVATE ${JPEG_LIBRARIES})
   else()
     target_link_libraries(lammps PRIVATE JPEG::JPEG)
@@ -404,7 +404,7 @@ foreach(PKG ${DEFAULT_PACKAGES})
     RegisterStyles(${${PKG}_SOURCES_DIR})
 
     target_sources(lammps PRIVATE ${${PKG}_SOURCES})
-    include_directories(${${PKG}_SOURCES_DIR})
+    target_include_directories(lammps PRIVATE ${${PKG}_SOURCES_DIR})
   endif()
 
   RegisterPackages(${${PKG}_SOURCES_DIR})
@@ -504,7 +504,7 @@ set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 
-include_directories(${LAMMPS_STYLE_HEADERS_DIR})
+target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 
 ######################################
 # Generate lmpinstalledpkgs.h

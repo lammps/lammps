@@ -462,7 +462,6 @@ void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<Dev
 
 /* ----------------------------------------------------------------------
    compute Zi by summing over products of Ui
-   not updated yet
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>

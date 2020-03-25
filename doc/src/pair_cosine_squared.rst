@@ -31,7 +31,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
-   pair_coeff \* \* 1.0 1.3
+   pair_coeff * * 1.0 1.3
    pair_coeff 1 3 1.0 1.3 2.0
    pair_coeff 1 3 1.0 1.3 wca
    pair_coeff 1 3 1.0 1.3 2.0 wca

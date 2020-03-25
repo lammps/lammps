@@ -661,6 +661,8 @@ int Variable::next(int narg, char **arg)
 
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
+    uloop_again:
+
     // wait until lock file can be created and owned by proc 0 of this world
     // rename() is not atomic in practice, but no known simple fix
     //   means multiple procs can read/write file at the same time (bad!)
@@ -669,7 +671,7 @@ int Variable::next(int narg, char **arg)
     // delay for random fraction of 1 second before subsequent tries
     // when successful, read next available index and Bcast it within my world
 
-    int nextindex;
+    int nextindex = -1;
     if (me == 0) {
       int seed = 12345 + universe->me + which[find(arg[0])];
       RanMars *random = new RanMars(lmp,seed);
@@ -682,10 +684,33 @@ int Variable::next(int narg, char **arg)
       }
       delete random;
 
-      FILE *fp = fopen("tmp.lammps.variable.lock","r");
-      fscanf(fp,"%d",&nextindex);
+      // if the file cannot be found, we may have a race with some
+      // other MPI rank that has called rename at the same time
+      // and we have to start over.
+      // if the read is short (we need at least one byte) we try reading again.
+
+      FILE *fp;
+      char buf[64];
+      for (int loopmax = 0; loopmax < 100; ++loopmax) {
+        fp = fopen("tmp.lammps.variable.lock","r");
+        if (fp == NULL) goto uloop_again;
+
+        buf[0] = buf[1] = '\0';
+        fread(buf,1,64,fp);
+        fclose(fp);
+
+        if (strlen(buf) > 0) {
+           nextindex = atoi(buf);
+           break;
+        }
+        delay = (int) (1000000*random->uniform());
+        usleep(delay);
+      }
+      if (nextindex < 0)
+        error->one(FLERR,"Unexpected error while incrementing uloop "
+                   "style variable. Please contact LAMMPS developers.");
+
       //printf("READ %d %d\n",universe->me,nextindex);
-      fclose(fp);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
       //printf("WRITE %d %d\n",universe->me,nextindex+1);

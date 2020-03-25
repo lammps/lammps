@@ -31,7 +31,7 @@ if(PKG_USER-INTEL)
     endif()
   endif()
   if(INTEL_LRT_MODE STREQUAL "C++11")
-    target_compile_definitions(lammps PRIVATE -DLMP_INTEL_USERLRT -DLMP_INTEL_LRT11)
+    target_compile_definitions(lammps PRIVATE -DLMP_INTEL_USELRT -DLMP_INTEL_LRT11)
   endif()
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")

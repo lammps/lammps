@@ -30,7 +30,6 @@
 #include "kokkos.h"
 #include "sna.h"
 
-
 #define MAXLINE 1024
 #define MAXWORD 3
 
@@ -255,26 +254,19 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
       // scratch size: 2 * team_size * (twojmax+1)^2, to cover all `m1`,`m2` values
         // 2 is for double buffer
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi> policy_ui(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
 
+      const int tile_size = (twojmax+1)*(twojmax+1);
       typedef Kokkos::View< SNAcomplex*,
                             Kokkos::DefaultExecutionSpace::scratch_memory_space,
                             Kokkos::MemoryTraits<Kokkos::Unmanaged> >
               ScratchViewType;
-      int scratch_size = ScratchViewType::shmem_size( 2 * team_size * (twojmax+1)*(twojmax+1));
+      int scratch_size = ScratchViewType::shmem_size( 2 * team_size * tile_size );
+
+      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi> policy_ui(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
       policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
 
       Kokkos::parallel_for("ComputeUi",policy_ui,*this);
 
-      // ComputeUitot
-      vector_length = 1;
-      team_size = 128;
-      team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiTot>::team_size_max(*this);
-      if (team_size*vector_length > team_size_max)
-        team_size = team_size_max/vector_length;
-
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiTot> policy_ui_tot(((idxu_max+team_size-1)/team_size)*chunk_size,team_size,vector_length);
-      Kokkos::parallel_for("ComputeUiTot",policy_ui_tot,*this);
     }
 
 
@@ -316,7 +308,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     typename Kokkos::RangePolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(0,chunk_size*idxz_max);
     Kokkos::parallel_for("ComputeYi",policy_yi,*this);
 
-    //ComputeDuidrj
+    //ComputeDuidrj and Deidrj
     if (lmp->kokkos->ngpus == 0) { // CPU
       int vector_length = 1;
       int team_size = 1;
@@ -324,51 +316,35 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrjCPU> policy_duidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
       snaKK.set_dir(-1); // technically doesn't do anything
       Kokkos::parallel_for("ComputeDuidrjCPU",policy_duidrj_cpu,*this);
-    } else { // GPU, utilize scratch memory and splitting over dimensions
 
-      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj>::team_size_max(*this);
+      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU> policy_deidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
+
+      Kokkos::parallel_for("ComputeDeidrjCPU",policy_deidrj_cpu,*this);
+    } else { // GPU, utilize scratch memory and splitting over dimensions, fused dui and dei
+
+      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>::team_size_max(*this);
       int vector_length = 32;
       int team_size = 2; // need to cap b/c of shared memory reqs
       if (team_size*vector_length > team_size_max)
         team_size = team_size_max/vector_length;
 
-      // scratch size: 2 * 2 * team_size * (twojmax+1)^2, to cover all `m1`,`m2` values
+      // scratch size: 2 * 2 * team_size * (twojmax+1)*(twojmax/2+1), to cover half `m1`,`m2` values due to symmetry
       // 2 is for double buffer
-      typedef Kokkos::View< SNAcomplex*,
-                          Kokkos::DefaultExecutionSpace::scratch_memory_space,
-                          Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-            ScratchViewType;
+      const int tile_size = (twojmax+1)*(twojmax/2+1);
 
-      int scratch_size = ScratchViewType::shmem_size( 4 * team_size * (twojmax+1)*(twojmax+1));
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj> policy_duidrj(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
-      policy_duidrj = policy_duidrj.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
-      // Need to call three times, once for each direction
+      typedef Kokkos::View< SNAcomplex*,
+                            Kokkos::DefaultExecutionSpace::scratch_memory_space,
+                            Kokkos::MemoryTraits<Kokkos::Unmanaged> >
+              ScratchViewType;
+      int scratch_size = ScratchViewType::shmem_size( 4 * team_size * tile_size);
+
+      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj> policy_fused_deidrj(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
+      policy_fused_deidrj = policy_fused_deidrj.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
+
       for (int k = 0; k < 3; k++) {
         snaKK.set_dir(k);
-        Kokkos::parallel_for("ComputeDuidrj",policy_duidrj,*this);
+        Kokkos::parallel_for("ComputeFusedDeidrj",policy_fused_deidrj,*this);
       }
-    }
-
-    //ComputeDeidrj
-    if (lmp->kokkos->ngpus == 0) { // CPU
-      int vector_length = 1;
-      int team_size = 1;
-
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU> policy_deidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
-
-      Kokkos::parallel_for("ComputeDeidrjCPU",policy_deidrj_cpu,*this);
-
-    } else { // GPU, different loop strategy internally
-
-      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj>::team_size_max(*this);
-      int vector_length = 32; // coalescing disaster right now, will fix later
-      int team_size = 8;
-      if (team_size*vector_length > team_size_max)
-        team_size = team_size_max/vector_length;
-
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj> policy_deidrj(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
-
-      Kokkos::parallel_for("ComputeDeidrj",policy_deidrj,*this);
     }
 
     //ComputeForce
@@ -644,25 +620,6 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUiTot,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiTot>::member_type& team) const {
-  SNAKokkos<DeviceType> my_sna = snaKK;
-
-  // Extract the quantum number
-  const int idx = team.team_rank() + team.team_size() * (team.league_rank() % ((my_sna.idxu_max+team.team_size()-1)/team.team_size()));
-  if (idx >= my_sna.idxu_max) return;
-
-  // Extract the atomic index
-  const int ii = team.league_rank() / ((my_sna.idxu_max+team.team_size()-1)/team.team_size());
-  if (ii >= chunk_size) return;
-
-  // Extract the number of neighbors neighbor number
-  const int ninside = d_ninside(ii);
-
-  my_sna.compute_uitot(team,idx,ii,ninside);
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiCPU>::member_type& team) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
 
@@ -718,7 +675,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeBi,const typename
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDuidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj>::member_type& team) const {
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>::member_type& team) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
@@ -730,7 +687,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDuidrj,const type
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
 
-  my_sna.compute_duidrj(team,ii,jj);
+  my_sna.compute_fused_deidrj(team,ii,jj);
 }
 
 template<class DeviceType>
@@ -748,24 +705,6 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDuidrjCPU,const t
   if (jj >= ninside) return;
 
   my_sna.compute_duidrj_cpu(team,ii,jj);
-}
-
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj>::member_type& team) const {
-  SNAKokkos<DeviceType> my_sna = snaKK;
-
-  // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((chunk_size+team.team_size()-1)/team.team_size()));
-  if (ii >= chunk_size) return;
-
-  // Extract the neighbor number
-  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
-  const int ninside = d_ninside(ii);
-  if (jj >= ninside) return;
-
-  my_sna.compute_deidrj(team,ii,jj);
 }
 
 template<class DeviceType>

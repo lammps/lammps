@@ -64,7 +64,9 @@ NULL values are placeholders for atom types that will be used with
 other potentials. An example of a pair_coeff command for use with the
 *hybrid* pair style is:
 
-pair_coeff \* \* nb3b/harmonic MgOH.nb3b.harmonic Mg O H
+.. code-block:: LAMMPS
+
+   pair_coeff * * nb3b/harmonic MgOH.nb3b.harmonic Mg O H
 
 Three-body non-bonded harmonic files in the *potentials* directory of
 the LAMMPS distribution have a ".nb3b.harmonic" suffix.  Lines that

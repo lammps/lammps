@@ -236,7 +236,15 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
 
+# detect if we may enable OpenMP support by default
+set(BUILD_OMP_DEFAULT OFF)
 find_package(OpenMP QUIET)
+if(OpenMP_FOUND)
+  check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
+  if(HAVE_OMP_H_INCLUDE)
+    set(BUILD_OMP_DEFAULT ON)
+  endif()
+endif()
 
 # TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
 # GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
@@ -246,14 +254,14 @@ find_package(OpenMP QUIET)
 if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
   option(BUILD_OMP "Build with OpenMP support" OFF)
 else()
-  option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+  option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
 endif()
 
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
   if(NOT HAVE_OMP_H_INCLUDE)
-    message(FATAL_ERROR "Cannot find required 'omp.h' header file")
+    message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()

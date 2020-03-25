@@ -18,12 +18,6 @@
 # myapp_CFLAGS = $(LAMMPS_CFLAGS)
 # myapp_LDADD = $(LAMMPS_LIBS)
 
-# Use this in CMake:
-# CMakeLists.txt:
-# find_package(PkgConfig)
-# pkg_check_modules(LAMMPS IMPORTED_TARGET lammps)
-# target_link_libraries(<lib> PRIVATE PkgConfig::LAMMPS)
-
 prefix=@CMAKE_INSTALL_PREFIX@
 libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
@@ -31,7 +25,7 @@ includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 Name: liblammps@LAMMPS_MACHINE@
 Description: Large-scale Atomic/Molecular Massively Parallel Simulator Library
 URL: http://lammps.sandia.gov
-Version: @LAMMPS_VERSION@
+Version: @PROJECT_VERSION@
 Requires:
 Libs: -L${libdir} -llammps@LAMMPS_LIB_SUFFIX@
 Libs.private: -lm

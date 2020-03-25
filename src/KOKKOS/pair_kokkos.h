@@ -444,7 +444,7 @@ struct PairComputeFunctor  {
           ev.evdwl += fev.evdwl;
 
         if (c.eflag_atom)
-          d_eatom(i,0) += fev.evdwl;
+          d_eatom(i) += fev.evdwl;
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -554,7 +554,7 @@ struct PairComputeFunctor  {
         }
 
         if (c.eflag_atom)
-          d_eatom(i,0) += fev.evdwl + fev.ecoul;
+          d_eatom(i) += fev.evdwl + fev.ecoul;
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -850,8 +850,14 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
 }
 
 template<class FunctorStyle>
-int GetTeamSize(FunctorStyle& functor, int team_size, int vector_length) {
-    int team_size_max = Kokkos::TeamPolicy<>::team_size_max(functor);
+int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
+    int team_size_max;
+    if (reduce_flag) {
+      EV_FLOAT ev;
+      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,ev,Kokkos::ParallelReduceTag());
+    } else {
+      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
+    }
 
 #ifdef KOKKOS_ENABLE_CUDA
     if(team_size*vector_length > team_size_max)
@@ -877,13 +883,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
 
     if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
-      atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
+      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
-      atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
+      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);

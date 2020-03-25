@@ -1012,7 +1012,7 @@ void memset_kokkos (ViewType &view) {
   #else
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #endif
-  ViewType::execution_space::fence();
+  ViewType::execution_space().fence();
 }
 
 struct params_lj_coul {

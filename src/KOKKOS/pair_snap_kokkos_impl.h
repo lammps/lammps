@@ -182,11 +182,14 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (max_neighs<num_neighs) max_neighs = num_neighs;
   }*/
   max_neighs = 0;
-  Kokkos::parallel_reduce("PairSNAPKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Experimental::Max<int>(max_neighs));
+  Kokkos::parallel_reduce("PairSNAPKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(max_neighs));
+
+  int chunk_size = MIN(2000,inum);
+  chunk_offset = 0;
 
   int vector_length = 1;
   int team_size = 1;
-  int team_size_max = Kokkos::TeamPolicy<DeviceType>::team_size_max(*this);
+  int team_size_max = Kokkos::TeamPolicy<DeviceType>(chunk_size,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
 #ifdef KOKKOS_ENABLE_CUDA
   team_size = 32;//max_neighs;
   if (team_size*vector_length > team_size_max)

@@ -120,7 +120,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
   // post all recvs into scratch space
 
   for (irecv = 0; irecv < plan->nrecv; irecv++) {
-    FFT_SCALAR* scratch = d_scratch.ptr_on_device() + plan->recv_bufloc[irecv];
+    FFT_SCALAR* scratch = d_scratch.data() + plan->recv_bufloc[irecv];
     MPI_Irecv(scratch,plan->recv_size[irecv],
               MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
               plan->comm,&plan->request[irecv]);
@@ -132,7 +132,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
     int in_offset = plan->send_offset[isend];
     plan->pack(d_in,in_offset,
                plan->d_sendbuf,0,&plan->packplan[isend]);
-    MPI_Send(plan->d_sendbuf.ptr_on_device(),plan->send_size[isend],MPI_FFT_SCALAR,
+    MPI_Send(plan->d_sendbuf.data(),plan->send_size[isend],MPI_FFT_SCALAR,
              plan->send_proc[isend],0,plan->comm);
   }
 

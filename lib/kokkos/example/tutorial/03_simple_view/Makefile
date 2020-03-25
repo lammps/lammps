@@ -43,7 +43,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 
 build: $(EXE)
 
-#for unit testing only, for best preformance with OpenMP 4.0 or better
+#for unit testing only, for best performance with OpenMP 4.0 or better
 test: $(EXE)
 	./$(EXE)
 

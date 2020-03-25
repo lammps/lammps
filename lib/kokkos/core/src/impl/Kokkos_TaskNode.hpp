@@ -499,7 +499,7 @@ class RunnableTaskBase
   void acquire_predecessor_from(runnable_task_type& other) {
     KOKKOS_EXPECTS(m_predecessor == nullptr ||
                    other.m_predecessor == m_predecessor);
-    // since we're transfering, no need to modify the reference count
+    // since we're transferring, no need to modify the reference count
     m_predecessor       = other.m_predecessor;
     other.m_predecessor = nullptr;
   }
@@ -508,7 +508,7 @@ class RunnableTaskBase
   void acquire_predecessor_from(runnable_task_type& other) volatile {
     KOKKOS_EXPECTS(m_predecessor == nullptr ||
                    other.m_predecessor == m_predecessor);
-    // since we're transfering, no need to modify the reference count
+    // since we're transferring, no need to modify the reference count
     m_predecessor       = other.m_predecessor;
     other.m_predecessor = nullptr;
   }

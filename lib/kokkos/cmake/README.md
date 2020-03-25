@@ -81,7 +81,7 @@ add_library(B b.cpp)
 target_compile_features(B PUBLIC cxx_std_14)
 target_link_libraries(A B)
 ````
-I have requested two diferent features.
+I have requested two different features.
 CMake understands the requests and knows that `cxx_std_11` is a subset of `cxx_std_14`.
 CMake then picks C++14 for library `B`.
 CMake would not have been able to do feature resolution if we had directly done:
@@ -179,7 +179,7 @@ If you do not find the TPL where you expect it, you should error out rather than
 #### Finding TPLs
 
 If finding a TPL that is not a modern CMake project, refer to the `FindHWLOC.cmake` file in `cmake/Modules` for an example.
-You will ususally need to verify expected headers with `find_path`
+You will usually need to verify expected headers with `find_path`
 ````
 find_path(TPL_INCLUDE_DIR mytpl.h PATHS "${KOKKOS_MYTPL_DIR}/include")
 ````

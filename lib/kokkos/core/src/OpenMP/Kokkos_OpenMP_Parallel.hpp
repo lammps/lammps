@@ -930,7 +930,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       if (is_dynamic) {
         // Must synchronize to make sure each team has set its
-        // partition before begining the work stealing loop.
+        // partition before beginning the work stealing loop.
         if (data.pool_rendezvous()) data.pool_rendezvous_release();
       }
 
@@ -1077,7 +1077,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       if (is_dynamic) {
         // Must synchronize to make sure each team has set its
-        // partition before begining the work stealing loop.
+        // partition before beginning the work stealing loop.
         if (data.pool_rendezvous()) data.pool_rendezvous_release();
       }
 

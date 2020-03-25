@@ -74,7 +74,7 @@ find cmake/kokkos -name KokkosTargets.cmake -exec grep -h INTERFACE_COMPILE_OPTI
 
 #-I flags and -std= flags are not part of CMake's compile options
 #that's fine, let's ignore thse below
-#redunant lines - tail the last one
+#redundant lines - tail the last one
 #awk print each on new line
 #grep out blank lines
 #grep out include flags

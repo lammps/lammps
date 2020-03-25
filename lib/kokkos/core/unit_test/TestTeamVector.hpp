@@ -605,7 +605,7 @@ struct functor_vec_single {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename policy_type::member_type team) const {
-    // Warning: this test case intentionally violates permissable semantics.
+    // Warning: this test case intentionally violates permissible semantics.
     // It is not valid to get references to members of the enclosing region
     // inside a parallel_for and write to it.
     Scalar value = 0;

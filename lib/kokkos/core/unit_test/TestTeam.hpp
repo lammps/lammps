@@ -1218,7 +1218,7 @@ struct TestTeamBroadcast {
                                // expected_result=%d,
                                // total=%d\n",expected_result, total);
 
-    // team_broadcast with funtion object
+    // team_broadcast with function object
     total = 0;
 
     Kokkos::parallel_reduce(policy_type_f(league_size, team_size), functor,
@@ -1230,7 +1230,7 @@ struct TestTeamBroadcast {
       expected_result += val;
     }
     ASSERT_EQ(size_t(expected_result),
-              size_t(total));  // printf("team_broadcast with funtion object --
+              size_t(total));  // printf("team_broadcast with function object --
                                // expected_result=%d,
                                // total=%d\n",expected_result, total);
   }

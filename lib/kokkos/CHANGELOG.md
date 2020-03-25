@@ -31,7 +31,7 @@
 - OffsetView: Kokkos::OffsetView missing constructor which takes pointer [\#2247](https://github.com/kokkos/kokkos/issues/2247)
 - OffsetView: Kokkos::OffsetView: allow offset=0 [\#2246](https://github.com/kokkos/kokkos/issues/2246)
 - DeepCopy: Missing DeepCopy instrumentation in Kokkos [\#2522](https://github.com/kokkos/kokkos/issues/2522)
-- nvcc\_wrapper: --host-only fails with mutiple -W\* flags [\#2484](https://github.com/kokkos/kokkos/issues/2484)
+- nvcc\_wrapper: --host-only fails with multiple -W\* flags [\#2484](https://github.com/kokkos/kokkos/issues/2484)
 - nvcc\_wrapper: taking first -std option is counterintuitive [\#2553](https://github.com/kokkos/kokkos/issues/2553)
 - Subview: Error taking subviews of views with static_extents of min rank [\#2448](https://github.com/kokkos/kokkos/issues/2448)
 - TeamPolicy: reducers with valuetypes without += broken on CUDA [\#2410](https://github.com/kokkos/kokkos/issues/2410)

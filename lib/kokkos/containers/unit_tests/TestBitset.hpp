@@ -192,7 +192,7 @@ void test_bitset() {
 
     bitset_type bitset(test_sizes[i]);
 
-    // std::cout << "  Check inital count " << std::endl;
+    // std::cout << "  Check initial count " << std::endl;
     // nothing should be set
     {
       Impl::TestBitsetTest<bitset_type> f(bitset);

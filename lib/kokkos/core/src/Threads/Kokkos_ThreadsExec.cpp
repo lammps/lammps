@@ -611,7 +611,7 @@ void ThreadsExec::initialize(unsigned thread_count, unsigned use_numa_count,
 
       // Spawn thread executing the 'driver()' function.
       // Wait until spawned thread has attempted to initialize.
-      // If spawning and initialization is successfull then
+      // If spawning and initialization is successful then
       // an entry in 's_threads_exec' will be assigned.
       if (ThreadsExec::spawn()) {
         wait_yield(s_threads_process.m_pool_state, ThreadsExec::Inactive);
@@ -639,7 +639,7 @@ void ThreadsExec::initialize(unsigned thread_count, unsigned use_numa_count,
 
     if (!thread_spawn_failed) {
       // Bind process to the core on which it was located before spawning
-      // occured
+      // occurred
       if (hwloc_can_bind) {
         Kokkos::hwloc::bind_this_thread(proc_coord);
       }

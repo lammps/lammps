@@ -18,7 +18,7 @@ Then for every executable or library in your project:
 target_link_libraries(myTarget Kokkos::kokkos)
 ````
 That's it! There is no checking Kokkos preprocessor, compiler, or linker flags.
-Kokkos propagates all the necesssary flags to your project.
+Kokkos propagates all the necessary flags to your project.
 This means not only is linking to Kokkos easy, but Kokkos itself can actually configure compiler and linker flags for *your*
 project. If building in-tree, there is no `find_package` and you link with `target_link_libraries(kokkos)`.
 
@@ -103,7 +103,7 @@ endif()
 # Kokkos Keyword Listing
 
 ## Device Backends
-Device backends can be enabled by specifiying `-DKokkos_ENABLE_X`.
+Device backends can be enabled by specifying `-DKokkos_ENABLE_X`.
 
 * Kokkos_ENABLE_CUDA
     * Whether to build CUDA backend
@@ -122,7 +122,7 @@ Device backends can be enabled by specifiying `-DKokkos_ENABLE_X`.
     * BOOL Default: ON
 
 ## Enable Options
-Options can be enabled by specifiying `-DKokkos_ENABLE_X`.
+Options can be enabled by specifying `-DKokkos_ENABLE_X`.
 
 * Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION
     * Whether to aggressively vectorize loops
@@ -225,7 +225,7 @@ The following options control `find_package` paths for CMake-based TPLs:
     * PATH Default:
 
 ## Architecture Keywords
-Architecture-specific optimizations can be enabled by specifiying `-DKokkos_ARCH_X`.
+Architecture-specific optimizations can be enabled by specifying `-DKokkos_ARCH_X`.
 
 * Kokkos_ARCH_AMDAVX
     * Whether to optimize for the AMDAVX architecture

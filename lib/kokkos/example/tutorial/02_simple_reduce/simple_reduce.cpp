@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -72,30 +73,33 @@ struct squaresum {
   // (If the reduction type is an array like int[], indicating an
   // array reduction result, then the second argument is just int[].)
   KOKKOS_INLINE_FUNCTION
-  void operator () (const int i, int& lsum) const {
-    lsum += i*i; // compute the sum of squares
+  void operator()(const int i, int& lsum) const {
+    lsum += i * i;  // compute the sum of squares
   }
 };
 
-int main (int argc, char* argv[]) {
-  Kokkos::initialize (argc, argv);
+int main(int argc, char* argv[]) {
+  Kokkos::initialize(argc, argv);
   const int n = 10;
 
   // Compute the sum of squares of integers from 0 to n-1, in
   // parallel, using Kokkos.
   int sum = 0;
-  Kokkos::parallel_reduce (n, squaresum (), sum);
-  printf ("Sum of squares of integers from 0 to %i, "
-          "computed in parallel, is %i\n", n - 1, sum);
+  Kokkos::parallel_reduce(n, squaresum(), sum);
+  printf(
+      "Sum of squares of integers from 0 to %i, "
+      "computed in parallel, is %i\n",
+      n - 1, sum);
 
   // Compare to a sequential loop.
   int seqSum = 0;
   for (int i = 0; i < n; ++i) {
-    seqSum += i*i;
+    seqSum += i * i;
   }
-  printf ("Sum of squares of integers from 0 to %i, "
-          "computed sequentially, is %i\n", n - 1, seqSum);
-  Kokkos::finalize ();
+  printf(
+      "Sum of squares of integers from 0 to %i, "
+      "computed sequentially, is %i\n",
+      n - 1, seqSum);
+  Kokkos::finalize();
   return (sum == seqSum) ? 0 : -1;
 }
-

@@ -383,7 +383,7 @@ fi
 # Check unknown arguments
 ################################################################################
 if [[ ${#UNKNOWN_ARGS[*]} > 0 ]]; then
-  echo "HPCBIND Unknown options: ${UNKNOWN_ARGS[*]}" > >(tee -a ${HPCBIND_LOG})
+  echo "HPCBIND Uknown options: ${UNKNOWN_ARGS[*]}" > >(tee -a ${HPCBIND_LOG})
   exit 1
 fi
 

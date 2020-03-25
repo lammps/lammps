@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -49,86 +50,94 @@ namespace Kokkos {
 namespace Impl {
 
 #ifndef KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT
-#define KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT 10*8192
+#define KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT 10 * 8192
 #endif
 
-void hostspace_parallel_deepcopy(void * dst, const void * src, ptrdiff_t n) {
-  if((n<KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT) || (Kokkos::DefaultHostExecutionSpace().concurrency()==1)) {
-    std::memcpy(dst,src,n);
+void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
+  if ((n < KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT) ||
+      (Kokkos::DefaultHostExecutionSpace().concurrency() == 1)) {
+    std::memcpy(dst, src, n);
     return;
   }
 
   typedef Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace> policy_t;
 
   // Both src and dst are aligned the same way with respect to 8 byte words
-  if(reinterpret_cast<ptrdiff_t>(src)%8 == reinterpret_cast<ptrdiff_t>(dst)%8) {
-    char* dst_c = reinterpret_cast<char*>(dst);
+  if (reinterpret_cast<ptrdiff_t>(src) % 8 ==
+      reinterpret_cast<ptrdiff_t>(dst) % 8) {
+    char* dst_c       = reinterpret_cast<char*>(dst);
     const char* src_c = reinterpret_cast<const char*>(src);
-    int count = 0;
+    int count         = 0;
     // get initial bytes copied
-    while(reinterpret_cast<ptrdiff_t>(dst_c)%8!=0) {
-      *dst_c=*src_c;
-      dst_c++; src_c++; count++;
+    while (reinterpret_cast<ptrdiff_t>(dst_c) % 8 != 0) {
+      *dst_c = *src_c;
+      dst_c++;
+      src_c++;
+      count++;
     }
 
     // copy the bulk of the data
-    double* dst_p = reinterpret_cast<double*>(dst_c);
+    double* dst_p       = reinterpret_cast<double*>(dst_c);
     const double* src_p = reinterpret_cast<const double*>(src_c);
-    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_double",policy_t(0,(n-count)/8),[=](const ptrdiff_t i) {
-      dst_p[i] = src_p[i];
-    });
+    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_double",
+                         policy_t(0, (n - count) / 8),
+                         [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
 
     // get final data copied
-    dst_c += ((n-count)/8) * 8;
-    src_c += ((n-count)/8) * 8;
-    char* dst_end = reinterpret_cast<char*>(dst)+n;
-    while(dst_c != dst_end) {
+    dst_c += ((n - count) / 8) * 8;
+    src_c += ((n - count) / 8) * 8;
+    char* dst_end = reinterpret_cast<char*>(dst) + n;
+    while (dst_c != dst_end) {
       *dst_c = *src_c;
-      dst_c++; src_c++;
+      dst_c++;
+      src_c++;
     }
     return;
   }
 
   // Both src and dst are aligned the same way with respect to 4 byte words
-  if(reinterpret_cast<ptrdiff_t>(src)%4 == reinterpret_cast<ptrdiff_t>(dst)%4) {
-    char* dst_c = reinterpret_cast<char*>(dst);
+  if (reinterpret_cast<ptrdiff_t>(src) % 4 ==
+      reinterpret_cast<ptrdiff_t>(dst) % 4) {
+    char* dst_c       = reinterpret_cast<char*>(dst);
     const char* src_c = reinterpret_cast<const char*>(src);
-    int count = 0;
+    int count         = 0;
     // get initial bytes copied
-    while(reinterpret_cast<ptrdiff_t>(dst_c)%4!=0) {
-      *dst_c=*src_c;
-      dst_c++; src_c++; count++;
+    while (reinterpret_cast<ptrdiff_t>(dst_c) % 4 != 0) {
+      *dst_c = *src_c;
+      dst_c++;
+      src_c++;
+      count++;
     }
 
     // copy the bulk of the data
-    int32_t* dst_p = reinterpret_cast<int32_t*>(dst_c);
+    int32_t* dst_p       = reinterpret_cast<int32_t*>(dst_c);
     const int32_t* src_p = reinterpret_cast<const int32_t*>(src_c);
-    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_int",policy_t(0,(n-count)/4),[=](const ptrdiff_t i) {
-      dst_p[i] = src_p[i];
-    });
+    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_int",
+                         policy_t(0, (n - count) / 4),
+                         [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
 
     // get final data copied
-    dst_c += ((n-count)/4) * 4;
-    src_c += ((n-count)/4) * 4;
-    char* dst_end = reinterpret_cast<char*>(dst)+n;
-    while(dst_c != dst_end) {
+    dst_c += ((n - count) / 4) * 4;
+    src_c += ((n - count) / 4) * 4;
+    char* dst_end = reinterpret_cast<char*>(dst) + n;
+    while (dst_c != dst_end) {
       *dst_c = *src_c;
-      dst_c++; src_c++;
+      dst_c++;
+      src_c++;
     }
     return;
   }
 
   // Src and dst are not aligned the same way, we can only to byte wise copy.
   {
-    char* dst_p = reinterpret_cast<char*>(dst);
+    char* dst_p       = reinterpret_cast<char*>(dst);
     const char* src_p = reinterpret_cast<const char*>(src);
-    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_char",policy_t(0,n),[=](const ptrdiff_t i) {
-      dst_p[i] = src_p[i];
-    });
+    Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_char",
+                         policy_t(0, n),
+                         [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
   }
 }
 
-} // namespace Impl
+}  // namespace Impl
 
-} // namespace Kokkos
-
+}  // namespace Kokkos

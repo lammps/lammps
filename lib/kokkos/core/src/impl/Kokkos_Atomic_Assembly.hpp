@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -42,74 +43,62 @@
 */
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_ASSEMBLY_HPP )
+#if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_ATOMIC_ASSEMBLY_HPP)
 #define KOKKOS_ATOMIC_ASSEMBLY_HPP
 namespace Kokkos {
 
 namespace Impl {
-  struct cas128_t
-  {
-    uint64_t lower;
-    uint64_t upper;
+struct cas128_t {
+  uint64_t lower;
+  uint64_t upper;
 
-    KOKKOS_INLINE_FUNCTION
-    cas128_t () {
-      lower = 0;
-      upper = 0;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    cas128_t (const cas128_t& a) {
-      lower = a.lower;
-      upper = a.upper;
-    }
-    KOKKOS_INLINE_FUNCTION
-    cas128_t (volatile cas128_t* a) {
-      lower = a->lower;
-      upper = a->upper;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    bool operator != (const cas128_t& a) const {
-      return (lower != a.lower) || upper!=a.upper;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const cas128_t& a) {
-      lower = a.lower;
-      upper = a.upper;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const cas128_t& a) volatile {
-      lower = a.lower;
-      upper = a.upper;
-    }
+  KOKKOS_INLINE_FUNCTION
+  cas128_t() {
+    lower = 0;
+    upper = 0;
   }
-  __attribute__ (( __aligned__( 16 ) ));
 
-
-  #if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_ENABLE_ISA_X86_64 )
-  inline cas128_t cas128( volatile cas128_t * ptr, cas128_t cmp,  cas128_t swap )
-  {
-      bool swapped = false;
-      __asm__ __volatile__
-      (
-       "lock cmpxchg16b %1\n\t"
-       "setz %0"
-       : "=q" ( swapped )
-       , "+m" ( *ptr )
-       , "+d" ( cmp.upper )
-       , "+a" ( cmp.lower )
-       : "c" ( swap.upper )
-       , "b" ( swap.lower )
-       , "q" ( swapped )
-     );
-      return cmp;
+  KOKKOS_INLINE_FUNCTION
+  cas128_t(const cas128_t& a) {
+    lower = a.lower;
+    upper = a.upper;
   }
-  #endif
+  KOKKOS_INLINE_FUNCTION
+  cas128_t(volatile cas128_t* a) {
+    lower = a->lower;
+    upper = a->upper;
+  }
 
-}
-}
+  KOKKOS_INLINE_FUNCTION
+  bool operator!=(const cas128_t& a) const {
+    return (lower != a.lower) || upper != a.upper;
+  }
 
+  KOKKOS_INLINE_FUNCTION
+  void operator=(const cas128_t& a) {
+    lower = a.lower;
+    upper = a.upper;
+  }
+  KOKKOS_INLINE_FUNCTION
+  void operator=(const cas128_t& a) volatile {
+    lower = a.lower;
+    upper = a.upper;
+  }
+} __attribute__((__aligned__(16)));
+
+#if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)
+inline cas128_t cas128(volatile cas128_t* ptr, cas128_t cmp, cas128_t swap) {
+  bool swapped = false;
+  __asm__ __volatile__(
+      "lock cmpxchg16b %1\n\t"
+      "setz %0"
+      : "=q"(swapped), "+m"(*ptr), "+d"(cmp.upper), "+a"(cmp.lower)
+      : "c"(swap.upper), "b"(swap.lower), "q"(swapped));
+  return cmp;
+}
 #endif
 
+}  // namespace Impl
+}  // namespace Kokkos
+
+#endif

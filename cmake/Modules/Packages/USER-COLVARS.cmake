@@ -11,10 +11,12 @@ if(PKG_USER-COLVARS)
     set(LEPTON_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton)
     file(GLOB LEPTON_SOURCES ${LEPTON_DIR}/src/[^.]*.cpp)
     add_library(lepton STATIC ${LEPTON_SOURCES})
+    install(TARGETS lepton EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
     target_include_directories(lepton PRIVATE ${LEPTON_DIR}/include)
   endif()
 
   add_library(colvars STATIC ${COLVARS_SOURCES})
+  install(TARGETS colvars EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
   target_link_libraries(lammps PRIVATE colvars)
 

@@ -15,7 +15,7 @@ if(PKG_USER-SMD)
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)
-    target_include_directories(lammps ${SOURCE_DIR})
+    target_include_directories(lammps PRIVATE ${SOURCE_DIR})
     add_dependencies(lammps Eigen3_build)
   else()
     find_package(Eigen3 NO_MODULE)

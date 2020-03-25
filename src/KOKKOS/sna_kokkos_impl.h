@@ -382,7 +382,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       const SNAcomplex u_up2 = (ma > 0)?rootpq2*buf1[jjup_shared_idx-1]:SNAcomplex(0.,0.);
       //const SNAcomplex u_up2 = (ma > 0)?rootpq2*ulist(jjup_index-1,iatom,jnbor):SNAcomplex(0.,0.);
       caconjxpy(b, u_up2, u_accum);
-      
+
       // VMK recursion relation: grab contribution which is multiplied by a*
       const double rootpq1 = rootpqarray(j - ma, j - mb);
       const SNAcomplex u_up1 = (ma < j)?rootpq1*buf1[jjup_shared_idx]:SNAcomplex(0.,0.);
@@ -399,12 +399,12 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       // copy left side to right side with inversion symmetry VMK 4.4(2)
       // u[ma-j,mb-j] = (-1)^(ma-mb)*Conj([u[ma,mb))
       // if j is even (-> physical j integer), last element maps to self, skip
-      //if (!(m == total_iters - 1 && j % 2 == 0)) { 
+      //if (!(m == total_iters - 1 && j % 2 == 0)) {
       if (m < total_iters - 1 || j % 2 == 1) {
         const int sign_factor = (((ma+mb)%2==0)?1:-1);
         const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
         const int jjup_flip = jju + jju_shared_flip; // jju+(j+1-mb)*(j+1)-(ma+1);
-        
+
 
         if (sign_factor == 1) {
           u_accum.im = -u_accum.im;
@@ -419,12 +419,12 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       }
     });
     // In CUDA backend,
-    // ThreadVectorRange has a __syncwarp (appropriately masked for 
+    // ThreadVectorRange has a __syncwarp (appropriately masked for
     // vector lengths < 32) implict at the end
 
     // swap double buffers
     auto tmp = buf1; buf1 = buf2; buf2 = tmp;
-    
+
 
   }
 }
@@ -760,7 +760,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
       // copy left side to right side with inversion symmetry VMK 4.4(2)
       // u[ma-j][mb-j] = (-1)^(ma-mb)*Conj([u[ma][mb])
       if (j%2==1 && mb+1==n_mb) {
-        int sign_factor = (((ma+mb)%2==0)?1:-1); 
+        int sign_factor = (((ma+mb)%2==0)?1:-1);
         //const int jjup_flip = jju+(j+1-mb)*(j+1)-(ma+1); // no longer needed b/c we don't update dulist
         const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
 
@@ -787,18 +787,18 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
     auto tmp = ulist_buf1; ulist_buf1 = ulist_buf2; ulist_buf2 = tmp;
     tmp = dulist_buf1; dulist_buf1 = dulist_buf2; dulist_buf2 = tmp;
 
-    // Accumulate dedr. This "should" be in a single, but 
+    // Accumulate dedr. This "should" be in a single, but
     // a Kokkos::single call implies a warp sync, and we may
     // as well avoid that. This does no harm as long as the
     // final assignment is in a single block.
     //Kokkos::single(Kokkos::PerThread(team), [=]() {
-      dedr_full_sum += dedr_sum; 
+    dedr_full_sum += dedr_sum;
     //});
   }
 
   // Store the accumulated dedr.
   Kokkos::single(Kokkos::PerThread(team), [&] () {
-      dedr(iatom,jnbor,dir) = dedr_full_sum*2.0;
+    dedr(iatom,jnbor,dir) = dedr_full_sum*2.0;
   });
 }
 

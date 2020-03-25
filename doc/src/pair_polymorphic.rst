@@ -180,9 +180,9 @@ functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
 would use the following pair_coeff command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* SiC_tersoff.poly Si Si Si C
+   pair_coeff * * SiC_tersoff.poly Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom
 types. The first three Si arguments map LAMMPS atom types 1,2,3 to the

@@ -75,7 +75,9 @@ If your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potential, you would use the following pair_coeff
 command:
 
-pair_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+.. code-block:: LAMMPS
+
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element

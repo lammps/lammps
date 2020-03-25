@@ -32,7 +32,7 @@ Examples
    bond_coeff * 2.0 0.25 0.7564
 
    bond_style oxrna2/fene
-   bond_coeff \* 2.0 0.25 0.76107
+   bond_coeff * 2.0 0.25 0.76107
 
 Description
 """""""""""

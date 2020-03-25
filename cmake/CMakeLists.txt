@@ -476,6 +476,7 @@ if(PKG_USER-ATC)
   endif()
   target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES} MPI::MPI_CXX)
   target_include_directories(atc PRIVATE ${LAMMPS_SOURCE_DIR})
+  target_compile_definitions(atc PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 endif()
 
 include(Packages/USER-H5MD)

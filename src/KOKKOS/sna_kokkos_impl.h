@@ -1024,7 +1024,7 @@ void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy
         const int jju_index = jju+mb+mb*j+ma;
         const int jjup_index = jjup+mb*j+ma;
         rootpq = rootpqarray(j - ma,j - mb);
-        ulist(jju_index,iatom,jnbor,jju).re +=
+        ulist(jju_index,iatom,jnbor).re +=
           rootpq *
           (a_r * ulist(jjup_index,iatom,jnbor).re +
            a_i * ulist(jjup_index,iatom,jnbor).im);

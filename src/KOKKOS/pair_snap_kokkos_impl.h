@@ -229,7 +229,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       if (lmp->kokkos->ngpus != 0) {
         vector_length = 32;
         team_size = 32;//max_neighs;
-        int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>::team_size_max(*this);
+        int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>(chunk_size,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
         if (team_size*vector_length > team_size_max)
           team_size = team_size_max/vector_length;
       }
@@ -251,7 +251,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       // ComputeUi
       int vector_length = 32;
       int team_size = 4; // need to cap b/c of shared memory reqs
-      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::team_size_max(*this);
+      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>(chunk_size,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
       if (team_size*vector_length > team_size_max)
         team_size = team_size_max/vector_length;
 
@@ -294,7 +294,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     {
       int vector_length = 1;
       int team_size = 1;
-      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYi>::team_size_max(*this);
+      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYi>(chunk_size,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
 
 #ifdef KOKKOS_ENABLE_CUDA
       team_size = 128;
@@ -325,7 +325,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for("ComputeDeidrjCPU",policy_deidrj_cpu,*this);
     } else { // GPU, utilize scratch memory and splitting over dimensions, fused dui and dei
 
-      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>::team_size_max(*this);
+      int team_size_max = Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>(chunk_size,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
       int vector_length = 32;
       int team_size = 2; // need to cap b/c of shared memory reqs
       if (team_size*vector_length > team_size_max)

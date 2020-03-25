@@ -1643,7 +1643,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   }
 #endif
   bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot
-  if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
+  if (!std::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
     bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
 
   bytes += natom * idxz_max * sizeof(double) * 2;        // zlist

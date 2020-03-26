@@ -201,7 +201,7 @@ else()
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   install(TARGETS mpi_stubs  EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   target_include_directories(mpi_stubs PUBLIC ${LAMMPS_SOURCE_DIR}/STUBS)
-  target_link_libraries(lammps PRIVATE mpi_stubs)
+  target_link_libraries(lammps PUBLIC mpi_stubs)
   add_library(MPI::MPI_CXX ALIAS mpi_stubs)
 endif()
 

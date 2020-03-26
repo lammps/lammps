@@ -165,7 +165,7 @@ endif()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-target_include_directories(lammps PRIVATE ${LAMMPS_SOURCE_DIR})
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
 
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
@@ -575,6 +575,7 @@ if(BUILD_LIB)
     ${LAMMPS_SOURCE_DIR}/lammps.h
     ${LAMMPS_SOURCE_DIR}/lattice.h
     ${LAMMPS_SOURCE_DIR}/lmppython.h
+    ${LAMMPS_SOURCE_DIR}/lmptype.h
     ${LAMMPS_SOURCE_DIR}/memory.h
     ${LAMMPS_SOURCE_DIR}/modify.h
     ${LAMMPS_SOURCE_DIR}/neighbor.h
@@ -591,6 +592,8 @@ if(BUILD_LIB)
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
   install(TARGETS lammps EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  add_library(LAMMPS::lammps ALIAS lammps)
   install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   install(FILES ${LAMMPS_CXX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)

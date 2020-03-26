@@ -64,6 +64,12 @@ public:
   void compute(int, int);
   double memory_usage();
 
+  template<class TagStyle>
+  void check_team_size_for(int, int&, int);
+
+  template<class TagStyle>
+  void check_team_size_reduce(int, int&, int);
+
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const;
@@ -131,6 +137,7 @@ protected:
   SNAKokkos<DeviceType> snaKK;
 
   int inum,max_neighs,chunk_size,chunk_offset;
+  int host_flag;
 
   int eflag,vflag;
 

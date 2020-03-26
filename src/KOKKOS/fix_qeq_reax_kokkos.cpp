@@ -223,7 +223,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // compute_H
 
-  if (lmp->kokkos->ngpus == 0) { // CPU
+  if (execution_space == Host) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
       Kokkos::parallel_scan(inum,computeH_functor);

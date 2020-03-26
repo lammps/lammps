@@ -1,6 +1,6 @@
-.. index:: pair\_style mesont/tpm
+.. index:: pair_style mesont/tpm
 
-pair\_style mesont/tpm command
+pair_style mesont/tpm command
 ==============================
 
 Syntax
@@ -9,13 +9,14 @@ Syntax
 
 .. parsed-literal::
 
-   pair_style mesont/tpm cut table\_path BendingMode TPMType 
+   pair_style mesont/tpm cut table_path BendingMode TPMType 
 
 * cut = the cutoff distance
-* table\_path = the path to the potential table, the default value is ./
+* table_path = the path to the potential table, the default value is ./
 * BendingMode = the parameter defining the type of the bending potential for nanotubes: 0 - harmonic bending :ref:`[1] <Srivastava>`, 1 - anharmonic potential of bending and bending-buckling :ref:`[2] <Zhigilei1>`
 * TPMType = the parameter determining the type of the inter-tube interaction term: 0 - segment-segment approach, 1 - segment-chain approach :ref:`[3 <Zhigilei2>`, :ref:`4] <Zhigilei3>`
 
+The segment-segment approach is approximetly 5 times slower than segment-chain approximation.
 The parameter BendingMode also affects the calculation of the inter-tube interaction term when TPMType = 1. In this case, when BendingMode = 1, each continuous chain of segments is additionally replaced by a number of sub-chains divided by bending buckling kinks.
 
 Examples
@@ -160,76 +161,51 @@ Related commands
 
 ----------
 
-
 .. _Srivastava:
-
-
 
 **[1]** Zhigilei, Wei, Srivastava, Phys. Rev. B 71, 165417 (2005).
 
 .. _Zhigilei1:
 
-
-
 **[2]** Volkov and Zhigilei, ACS Nano 4, 6187 (2010).
 
 .. _Zhigilei2:
-
-
 
 **[3]** Volkov, Simov, Zhigilei, ASME paper IMECE2008, 68021 (2008).
 
 .. _Zhigilei3:
 
-
-
 **[4]** Volkov, Zhigilei, J. Phys. Chem. C 114, 5513 (2010).
 
 .. _Zhigilei4:
-
-
 
 **[5]** Wittmaack, Banna, Volkov, Zhigilei, Carbon 130, 69 (2018).
 
 .. _Zhigilei5:
 
-
-
 **[6]** Wittmaack, Volkov, Zhigilei, Compos. Sci. Technol. 166, 66 (2018).
 
 .. _Zhigilei6:
-
-
 
 **[7]** Wittmaack, Volkov, Zhigilei, Carbon 143, 587 (2019).
 
 .. _Zhigilei7:
 
-
-
 **[8]** Volkov, Zhigilei, Phys. Rev. Lett. 104, 215902 (2010).
 
 .. _Zhigilei8:
-
-
 
 **[9]** Volkov, Shiga, Nicholson, Shiomi, Zhigilei, J. Appl. Phys. 111, 053501 (2012).
 
 .. _Zhigilei9:
 
-
-
 **[10]** Volkov, Zhigilei, Appl. Phys. Lett. 101, 043113 (2012).
 
 .. _Zhigilei10:
 
-
-
 **[11]** Jacobs, Nicholson, Zemer, Volkov, Zhigilei, Phys. Rev. B 86, 165414 (2012).
 
 .. _Banna:
-
-
 
 **[12]** Volkov, Banna, Comp. Mater. Sci. 176, 109410 (2020).
 

@@ -15,30 +15,34 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(mesont/Eb,ComputeMESONT_Eb)
+ComputeStyle(mesont,ComputeMesoNT)
 
 #else
 
-#ifndef LMP_COMPUTE_MESONT_EB_ATOM_H
-#define LMP_COMPUTE_MESONT_EB_ATOM_H
+#ifndef LMP_COMPUTE_MESONT_ATOM_H
+#define LMP_COMPUTE_MESONT_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMESONT_Eb : public Compute {
+class ComputeMesoNT : public Compute {
  public:
-  ComputeMESONT_Eb(class LAMMPS *, int, char **);
-  ~ComputeMESONT_Eb();
+  ComputeMesoNT(class LAMMPS *, int, char **);
+  ~ComputeMesoNT();
   void init() {}
   void compute_peratom();
+  double compute_scalar();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
-
+  
  private:
   int nmax;
   double *energy;
+  
+  enum ComputeType {ES, EB, ET, ESTOT, EBTOT, ETTOT};
+  ComputeType compute_type;
 };
 
 }
@@ -48,7 +52,7 @@ class ComputeMESONT_Eb : public Compute {
 
 /* ERROR/WARNING messages:
 
-E: Illegal compute mesont/Eb command
+E: Illegal compute mesont command
 
 Incorrect argument list in the compute init.
 
@@ -56,8 +60,8 @@ E: Per-atom energy was not tallied on needed timestep
 
 UNSPECIFIED.
 
-E: mesont/Eb is allowed only with mesont pair/tpm style
+E: compute mesont is allowed only with mesont/tpm pair style
 
-Use mesont/tpm pair style.
+Use mesont pair style.
 
 */

@@ -19,7 +19,7 @@ OBJ =   $(SRC:.f90=.o)
 # ------ SETTINGS ------
 
 F90 =           ifort
-F90FLAGS =      -Ofast -fPIC -ipo -fpp
+F90FLAGS =      -Ofast -fPIC -ipo
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

@@ -20,7 +20,7 @@ additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
@@ -79,16 +79,10 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
-   * :doc:`mesont/Es <compute_mesont>`
-   * :doc:`mesont/Eb <compute_mesont>`
-   * :doc:`mesont/Et <compute_mesont>`
-   * :doc:`mesont/B <compute_mesont>`
-   * :doc:`mesont/Es_tot <compute_mesont>`
-   * :doc:`mesont/Eb_tot <compute_mesont>`
-   * :doc:`mesont/Et_tot <compute_mesont>`
    * :doc:`meso/e/atom <compute_meso_e_atom>`
    * :doc:`meso/rho/atom <compute_meso_rho_atom>`
    * :doc:`meso/t/atom <compute_meso_t_atom>`
+   * :doc:`mesont <compute_mesont>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
@@ -170,4 +164,3 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
-

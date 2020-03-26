@@ -9,7 +9,6 @@ Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 
 "bundle" is an example with a single bundle composed of 7 nanotubes. 
 
-"system" is an example with a film composed of 396 200-nm-long 
+"film" is an example with a film composed of 396 200-nm-long 
   nanotubes (79596 nodes).
-  
 

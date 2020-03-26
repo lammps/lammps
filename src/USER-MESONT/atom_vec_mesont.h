@@ -15,7 +15,7 @@
 
 #ifdef ATOM_CLASS
 
-AtomStyle(mesont,AtomVecMESONT)
+AtomStyle(mesont,AtomVecMesoNT)
 
 #else
 
@@ -26,10 +26,10 @@ AtomStyle(mesont,AtomVecMESONT)
 
 namespace LAMMPS_NS {
 
-class AtomVecMESONT : public AtomVec {
+class AtomVecMesoNT : public AtomVec {
  public:
-  AtomVecMESONT(class LAMMPS *);
-  virtual ~AtomVecMESONT() {}
+  AtomVecMesoNT(class LAMMPS *);
+  virtual ~AtomVecMesoNT() {}
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -66,7 +66,7 @@ class AtomVecMESONT : public AtomVec {
   double **x,**v,**f;
   double *rmass, *radius, *length;
   int *buckling;
-  tagint **bond_cnt;
+  tagint **bond_nt;
   tagint *molecule;
 };
 

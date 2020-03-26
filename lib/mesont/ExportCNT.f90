@@ -79,9 +79,9 @@ contains
         real(c_double), intent(inout)                           :: U1, U2       ! Interaction energies associated with nodes X1 and X2
         real(c_double), intent(inout), dimension(0:2)           :: F1, F2       ! Forces exerted on nodes X1 and X2
         real(c_double), intent(inout), dimension(0:2,0:2)       :: S1, S2       ! Contributions of nodes X1 and X2 to the virial stress tensor
-        real(c_double), intent(in), dimension(0:2)              :: X1, X2       ! Coordinates of the segmnet nodes 
+        real(c_double), intent(in), dimension(0:2)              :: X1, X2       ! Coordinates of the segment nodes 
         real(c_double), intent(in)                              :: R12          ! Radius of nanotube the segment (X1,X2) belongs to
-        real(c_double), intent(in)                              :: L12          ! Equilubrium length of segment (X1,X2)
+        real(c_double), intent(in)                              :: L12          ! Equilibrium length of segment (X1,X2)
         
         call TubeStretchingForceField(U1, U2, F1, F2, S1, S2, X1, X2, R12, L12)
     endsubroutine
@@ -93,7 +93,7 @@ contains
         real(c_double), intent(inout), dimension(0:2,0:2)       :: S1, S2, S3   ! Contributions of nodes X1, X2, and X3 to the virial stress tensor
         real(c_double), intent(in), dimension(0:2)              :: X1, X2, X3   ! Coordinates of nodes 
         real(c_double), intent(in)                              :: R123         ! Radius of nanotube the segment (X1,X2) belongs to
-        real(c_double), intent(in)                              :: L123         ! Equilubrium length of segment (X1,X2) and (X2,X3) (It is assumed to be the same for both segments)
+        real(c_double), intent(in)                              :: L123         ! Equilibrium length of segment (X1,X2) and (X2,X3) (It is assumed to be the same for both segments)
         integer(c_int), intent(inout)                        :: BBF2
         
         call TubeBendingForceField(U1, U2, U3, F1, F2, F3, S1, S2, S3, X1, X2, X3, R123, L123, BBF2 )
@@ -110,13 +110,13 @@ contains
         real(c_double), intent(inout), dimension(0:2,0:2)       :: S1, S2       ! Contributions of nodes X1 and X2 to the virial stress tensor
         real(c_double), intent(inout), dimension(0:2,0:2,0:N-1) :: S            ! Contributions of nodes X to the virial stress tensor
         real(c_double), intent(inout), dimension(0:2,0:2)       :: Se           ! Contributions of node Xe to the virial stress tensor (can be updated only if Ee > 0)
-        real(c_double), intent(in), dimension(0:2)              :: X1, X2       ! Coordinates of the segmnet nodes 
+        real(c_double), intent(in), dimension(0:2)              :: X1, X2       ! Coordinates of the segment nodes 
         real(c_double), intent(in)                              :: R12          ! Radius of nanotube the segment (X1,X2) belongs to
         real(c_double), intent(in), dimension(0:2,0:N-1)        :: X            ! Coordinates of the nanotube nodes
         real(c_double), intent(in), dimension(0:2)              :: Xe           ! Additional node of the extended chain if Ee > 0
         integer(c_int), intent(in), dimension(0:N-1)         :: BBF          ! Bending buckling flags (BBF(i) = 1 in a case of buckling in node i)
         real(c_double), intent(in)                              :: R            ! Radius of nanotube X
-        integer(c_int), intent(in)                           :: E1, E2       ! E1 = 1 if the chnane node 0 is a CNT end; E2 = 1 if the chnane node N-1 is a CNT end;
+        integer(c_int), intent(in)                           :: E1, E2       ! E1 = 1 if the chain node 0 is a CNT end; E2 = 1 if the chain node N-1 is a CNT end;
         integer(c_int), intent(in)                           :: Ee           ! Parameter defining the type of the extended chain (0,1,2)
         integer(c_int), intent(in)                           :: TPMType      ! Type of the tubular potential (0 or 1)
         

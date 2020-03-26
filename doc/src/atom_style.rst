@@ -6,14 +6,15 @@ atom_style command
 Syntax
 """"""
 
+
 .. code-block:: LAMMPS
 
    atom_style style args
 
 * style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *edpd* or *mdpd* or *tdpd* or *electron* or *ellipsoid* or         *full* or *line* or *meso* or *molecular* or *peri* or *smd* or         *sphere* or *spin* or *tri* or *template* or *hybrid*
-
+  
   .. parsed-literal::
-
+  
        args = none for any style except the following
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
@@ -27,8 +28,10 @@ Syntax
 
 * accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
 
+
 Examples
 """"""""
+
 
 .. code-block:: LAMMPS
 
@@ -85,8 +88,6 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *mesont*     | mass, radius, length, buckling, connections, tube id| Carbon nanotubes                     |
-+--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dpd*        | internal temperature and internal energies          | DPD particles                        |
@@ -107,6 +108,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *meso*       | rho, e, cv                                          | SPH particles                        |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
@@ -121,9 +124,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *tri*        | corner points, angular momentum                     | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *wavepacket* | charge, spin, eradius, etag, cs_re, cs_im           | AWPMD                                |
+| *wavepacket* | charge, spin, eradius, etag, cs\_re, cs\_im         | AWPMD                                |
 +--------------+-----------------------------------------------------+--------------------------------------+
-
 
 .. note::
 
@@ -161,7 +163,7 @@ For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
 spheres as in a Stockmayer potential for a dipolar fluid, so that the
 particles can rotate due to dipole-dipole interactions, then you need
-to use atom_style hybrid sphere dipole, which will assign both a
+to use atom\_style hybrid sphere dipole, which will assign both a
 diameter and dipole moment to each particle.
 
 For the *electron* style, the particles representing electrons are 3d
@@ -174,14 +176,14 @@ per-particle mass and volume.
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
 Note that it is part of the USER-DPD package, and is not for use with
 the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
-simply use atom_style atomic.  Atom_style dpd extends DPD particle
+simply use atom\_style atomic.  Atom\_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
 energy (uCond), internal mechanical energy (uMech), and internal
 chemical energy (uChem).
 
 The *edpd* style is for energy-conserving dissipative particle
-dynamics (eDPD) particles which store a temperature (edpd_temp), and
-heat capacity(edpd_cv).
+dynamics (eDPD) particles which store a temperature (edpd\_temp), and
+heat capacity(edpd\_cv).
 
 The *mdpd* style is for many-body dissipative particle dynamics (mDPD)
 particles which store a density (rho) for considering
@@ -189,7 +191,7 @@ density-dependent many-body interactions.
 
 The *tdpd* style is for transport dissipative particle dynamics (tDPD)
 particles which store a set of chemical concentration. An integer
-"cc_species" is required to specify the number of chemical species
+"cc\_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
 The *meso* style is for smoothed particle hydrodynamics (SPH)
@@ -208,7 +210,7 @@ Those spins have a norm (their magnetic moment) and a direction.
 
 The *wavepacket* style is similar to *electron*\ , but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
-cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
+cs= (cs\_re,cs\_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
 have identical *etag* values.
 
@@ -239,7 +241,7 @@ can be advantageous for large-scale coarse-grained systems.
 .. note::
 
    When using the *template* style with a :doc:`molecule template <molecule>` that contains multiple molecules, you should
-   insure the atom types, bond types, angle_types, etc in all the
+   insure the atom types, bond types, angle\_types, etc in all the
    molecules are consistent.  E.g. if one molecule represents H2O and
    another CO2, then you probably do not want each molecule file to
    define 2 atom types and a single bond type, because they will conflict
@@ -263,10 +265,12 @@ orientation and position can be time integrated due to forces and
 torques.
 
 Note that there may be additional arguments required along with the
-*bstyle* specification, in the atom_style body command.  These
+*bstyle* specification, in the atom\_style body command.  These
 arguments are described on the :doc:`Howto body <Howto_body>` doc page.
 
+
 ----------
+
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -278,7 +282,7 @@ If some atoms have bonds, but others do not, use the *bond* style.
 The only scenario where the *hybrid* style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
 example, as mentioned above, if you want dipolar particles which will
-rotate due to torque, you need to use "atom_style hybrid sphere
+rotate due to torque, you need to use "atom\_style hybrid sphere
 dipole".  When a hybrid style is used, atoms store and communicate the
 union of all quantities implied by the individual styles.
 
@@ -289,7 +293,9 @@ per-atom basis.
 LAMMPS can be extended with new atom styles as well as new body
 styles; see the :doc:`Modify <Modify>` doc page.
 
+
 ----------
+
 
 Styles with a *kk* suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
@@ -315,6 +321,7 @@ instructions on how to use the accelerated styles effectively.
 Restrictions
 """"""""""""
 
+
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
@@ -337,7 +344,7 @@ The *electron* style is part of the USER-EFF package for :doc:`electronic force 
 The *dpd* style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
-The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package
+The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESO package
 for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
@@ -345,12 +352,12 @@ dynamics (tDPD), respectively.
 The *meso* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
+The *mesont* style is part of the USER-MESONT package.
+
 The *spin* style is part of the SPIN package.
 
 The *wavepacket* style is part of the USER-AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
-
-The *mesont* style is part of the USER-MESONT package.
 
 Related commands
 """"""""""""""""
@@ -360,11 +367,15 @@ Related commands
 Default
 """""""
 
-atom_style atomic
+atom\_style atomic
+
 
 ----------
 
+
 .. _Grime:
+
+
 
 **(Grime)** Grime and Voth, to appear in J Chem Theory & Computation
 (2014).

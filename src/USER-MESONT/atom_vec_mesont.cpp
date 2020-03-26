@@ -27,10 +27,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecMESONT::AtomVecMESONT(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecMesoNT::AtomVecMesoNT(LAMMPS *lmp) : AtomVec(lmp)
 {
   mass_type = 1;
-
+  atom->mesont_flag = 1;
+  molecular = 0;
+  
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
   size_reverse = 3;
@@ -47,7 +49,7 @@ AtomVecMESONT::AtomVecMESONT(LAMMPS *lmp) : AtomVec(lmp)
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::grow(int n)
+void AtomVecMesoNT::grow(int n)
 {
   if (n == 0) grow_nmax();
   else nmax = n;
@@ -68,7 +70,7 @@ void AtomVecMESONT::grow(int n)
   length = memory->grow(atom->length,nmax,"atom:length");
   buckling = memory->grow(atom->buckling,nmax,"atom:buckling");
   molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
-  bond_cnt = memory->grow(atom->bond_cnt,nmax,2,"atom:bond_cnt");
+  bond_nt = memory->grow(atom->bond_nt,nmax,2,"atom:bond_nt");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -79,7 +81,7 @@ void AtomVecMESONT::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::grow_reset()
+void AtomVecMesoNT::grow_reset()
 {
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
@@ -90,14 +92,14 @@ void AtomVecMESONT::grow_reset()
   length = atom->length;
   buckling = atom->buckling;
   molecule = atom->molecule;
-  bond_cnt = atom->bond_cnt;
+  bond_nt = atom->bond_nt;
 }
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::copy(int i, int j, int delflag)
+void AtomVecMesoNT::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];
@@ -115,8 +117,8 @@ void AtomVecMESONT::copy(int i, int j, int delflag)
   length[j] = length[i];
   buckling[j] = buckling[i];
   molecule[j] = molecule[i];
-  bond_cnt[j][0] = bond_cnt[i][0];
-  bond_cnt[j][1] = bond_cnt[i][1];
+  bond_nt[j][0] = bond_nt[i][0];
+  bond_nt[j][1] = bond_nt[i][1];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -125,7 +127,7 @@ void AtomVecMESONT::copy(int i, int j, int delflag)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_comm(int n, int *list, double *buf,
+int AtomVecMesoNT::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -161,7 +163,7 @@ int AtomVecMESONT::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_comm_vel(int n, int *list, double *buf,
+int AtomVecMesoNT::pack_comm_vel(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -224,7 +226,7 @@ int AtomVecMESONT::pack_comm_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecMESONT::unpack_comm(int n, int first, double *buf)
+void AtomVecMesoNT::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -239,7 +241,7 @@ void AtomVecMESONT::unpack_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecMESONT::unpack_comm_vel(int n, int first, double *buf)
+void AtomVecMesoNT::unpack_comm_vel(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -257,7 +259,7 @@ void AtomVecMESONT::unpack_comm_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_reverse(int n, int first, double *buf)
+int AtomVecMesoNT::pack_reverse(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -273,7 +275,7 @@ int AtomVecMESONT::pack_reverse(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecMESONT::unpack_reverse(int n, int *list, double *buf)
+void AtomVecMesoNT::unpack_reverse(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -288,7 +290,7 @@ void AtomVecMESONT::unpack_reverse(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_border(int n, int *list, double *buf,
+int AtomVecMesoNT::pack_border(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -310,8 +312,8 @@ int AtomVecMESONT::pack_border(int n, int *list, double *buf,
       buf[m++] = length[j];
       buf[m++] = ubuf(buckling[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(bond_cnt[j][0]).d;
-      buf[m++] = ubuf(bond_cnt[j][1]).d;
+      buf[m++] = ubuf(bond_nt[j][0]).d;
+      buf[m++] = ubuf(bond_nt[j][1]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -337,8 +339,8 @@ int AtomVecMESONT::pack_border(int n, int *list, double *buf,
       buf[m++] = length[j];
       buf[m++] = ubuf(buckling[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(bond_cnt[j][0]).d;
-      buf[m++] = ubuf(bond_cnt[j][1]).d;
+      buf[m++] = ubuf(bond_nt[j][0]).d;
+      buf[m++] = ubuf(bond_nt[j][1]).d;
     }
   }
 
@@ -352,7 +354,7 @@ int AtomVecMESONT::pack_border(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_border_vel(int n, int *list, double *buf,
+int AtomVecMesoNT::pack_border_vel(int n, int *list, double *buf,
                                    int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -373,8 +375,8 @@ int AtomVecMESONT::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = length[j];
       buf[m++] = ubuf(buckling[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(bond_cnt[j][0]).d;
-      buf[m++] = ubuf(bond_cnt[j][1]).d;
+      buf[m++] = ubuf(bond_nt[j][0]).d;
+      buf[m++] = ubuf(bond_nt[j][1]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -403,8 +405,8 @@ int AtomVecMESONT::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = length[j];
         buf[m++] = ubuf(buckling[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
-        buf[m++] = ubuf(bond_cnt[j][0]).d;
-        buf[m++] = ubuf(bond_cnt[j][1]).d;
+        buf[m++] = ubuf(bond_nt[j][0]).d;
+        buf[m++] = ubuf(bond_nt[j][1]).d;
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
@@ -426,8 +428,8 @@ int AtomVecMESONT::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = length[j];
         buf[m++] = ubuf(buckling[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
-        buf[m++] = ubuf(bond_cnt[j][0]).d;
-        buf[m++] = ubuf(bond_cnt[j][1]).d;
+        buf[m++] = ubuf(bond_nt[j][0]).d;
+        buf[m++] = ubuf(bond_nt[j][1]).d;
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
@@ -451,7 +453,7 @@ int AtomVecMESONT::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_border_hybrid(int n, int *list, double *buf)
+int AtomVecMesoNT::pack_border_hybrid(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -463,15 +465,15 @@ int AtomVecMESONT::pack_border_hybrid(int n, int *list, double *buf)
     buf[m++] = length[j];
     buf[m++] = ubuf(buckling[j]).d;
     buf[m++] = ubuf(molecule[j]).d;
-    buf[m++] = ubuf(bond_cnt[j][0]).d;
-    buf[m++] = ubuf(bond_cnt[j][1]).d;
+    buf[m++] = ubuf(bond_nt[j][0]).d;
+    buf[m++] = ubuf(bond_nt[j][1]).d;
   }
   return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecMESONT::unpack_border(int n, int first, double *buf)
+void AtomVecMesoNT::unpack_border(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -491,8 +493,8 @@ void AtomVecMESONT::unpack_border(int n, int first, double *buf)
     length[i] = buf[m++];
     buckling[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][0] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][1] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][0] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][1] = (tagint) ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -503,7 +505,7 @@ void AtomVecMESONT::unpack_border(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecMESONT::unpack_border_vel(int n, int first, double *buf)
+void AtomVecMesoNT::unpack_border_vel(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -522,8 +524,8 @@ void AtomVecMESONT::unpack_border_vel(int n, int first, double *buf)
     length[i] = buf[m++];
     buckling[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][0] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][1] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][0] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][1] = (tagint) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -537,7 +539,7 @@ void AtomVecMESONT::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::unpack_border_hybrid(int n, int first, double *buf)
+int AtomVecMesoNT::unpack_border_hybrid(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -549,8 +551,8 @@ int AtomVecMESONT::unpack_border_hybrid(int n, int first, double *buf)
     length[i] = buf[m++];
     buckling[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][0] = (tagint) ubuf(buf[m++]).i;
-    bond_cnt[i][1] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][0] = (tagint) ubuf(buf[m++]).i;
+    bond_nt[i][1] = (tagint) ubuf(buf[m++]).i;
   }
   return m;
 }
@@ -560,7 +562,7 @@ int AtomVecMESONT::unpack_border_hybrid(int n, int first, double *buf)
    xyz must be 1st 3 values, so comm::exchange() can test on them
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_exchange(int i, double *buf)
+int AtomVecMesoNT::pack_exchange(int i, double *buf)
 {
   int m = 1;
   buf[m++] = x[i][0];
@@ -579,8 +581,8 @@ int AtomVecMESONT::pack_exchange(int i, double *buf)
   buf[m++] = length[i];
   buf[m++] = ubuf(buckling[i]).d;
   buf[m++] = ubuf(molecule[i]).d;
-  buf[m++] = ubuf(bond_cnt[i][0]).d;
-  buf[m++] = ubuf(bond_cnt[i][1]).d;
+  buf[m++] = ubuf(bond_nt[i][0]).d;
+  buf[m++] = ubuf(bond_nt[i][1]).d;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -592,7 +594,7 @@ int AtomVecMESONT::pack_exchange(int i, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMESONT::unpack_exchange(double *buf)
+int AtomVecMesoNT::unpack_exchange(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -614,8 +616,8 @@ int AtomVecMESONT::unpack_exchange(double *buf)
   length[nlocal] = buf[m++];
   buckling[nlocal] = (int) ubuf(buf[m++]).i;
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
-  bond_cnt[nlocal][0] = (tagint) ubuf(buf[m++]).i;
-  bond_cnt[nlocal][1] = (tagint) ubuf(buf[m++]).i;
+  bond_nt[nlocal][0] = (tagint) ubuf(buf[m++]).i;
+  bond_nt[nlocal][1] = (tagint) ubuf(buf[m++]).i;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -631,7 +633,7 @@ int AtomVecMESONT::unpack_exchange(double *buf)
    include extra data stored by fixes
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::size_restart()
+int AtomVecMesoNT::size_restart()
 {
   int i;
 
@@ -652,7 +654,7 @@ int AtomVecMESONT::size_restart()
    molecular types may be negative, but write as positive
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_restart(int i, double *buf)
+int AtomVecMesoNT::pack_restart(int i, double *buf)
 {
   int m = 1;
   buf[m++] = x[i][0];
@@ -667,8 +669,8 @@ int AtomVecMESONT::pack_restart(int i, double *buf)
   buf[m++] = length[i];
   buf[m++] = ubuf(buckling[i]).d;
   buf[m++] = ubuf(molecule[i]).d;
-  buf[m++] = ubuf(bond_cnt[i][0]).d;
-  buf[m++] = ubuf(bond_cnt[i][1]).d;
+  buf[m++] = ubuf(bond_nt[i][0]).d;
+  buf[m++] = ubuf(bond_nt[i][1]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
@@ -685,7 +687,7 @@ int AtomVecMESONT::pack_restart(int i, double *buf)
    unpack data for one atom from restart file including extra quantities
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::unpack_restart(double *buf)
+int AtomVecMesoNT::unpack_restart(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) {
@@ -707,8 +709,8 @@ int AtomVecMESONT::unpack_restart(double *buf)
   length[nlocal] = buf[m++];
   buckling[nlocal] = (int) ubuf(buf[m++]).i;
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
-  bond_cnt[nlocal][0] = (tagint) ubuf(buf[m++]).i;
-  bond_cnt[nlocal][1] = (tagint) ubuf(buf[m++]).i;
+  bond_nt[nlocal][0] = (tagint) ubuf(buf[m++]).i;
+  bond_nt[nlocal][1] = (tagint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
@@ -728,7 +730,7 @@ int AtomVecMESONT::unpack_restart(double *buf)
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::create_atom(int itype, double *coord)
+void AtomVecMesoNT::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -746,8 +748,8 @@ void AtomVecMESONT::create_atom(int itype, double *coord)
   length[nlocal] = 1.0;
   buckling[nlocal] = 0;
   molecule[nlocal] = 0;
-  bond_cnt[nlocal][0] = -1;
-  bond_cnt[nlocal][1] = -1;
+  bond_nt[nlocal][0] = -1;
+  bond_nt[nlocal][1] = -1;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
@@ -760,7 +762,7 @@ void AtomVecMESONT::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecMesoNT::data_atom(double *coord, imageint imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -770,8 +772,8 @@ void AtomVecMESONT::data_atom(double *coord, imageint imagetmp, char **values)
   type[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
-  bond_cnt[nlocal][0] = utils::inumeric(FLERR,values[3],true,lmp);
-  bond_cnt[nlocal][1] = utils::inumeric(FLERR,values[4],true,lmp);
+  bond_nt[nlocal][0] = utils::inumeric(FLERR,values[3],true,lmp);
+  bond_nt[nlocal][1] = utils::inumeric(FLERR,values[4],true,lmp);
   rmass[nlocal] = utils::numeric(FLERR,values[5],true,lmp);
   radius[nlocal] = utils::numeric(FLERR,values[6],true,lmp);
   length[nlocal] = utils::numeric(FLERR,values[7],true,lmp);
@@ -796,11 +798,11 @@ void AtomVecMESONT::data_atom(double *coord, imageint imagetmp, char **values)
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::data_atom_hybrid(int nlocal, char **values)
+int AtomVecMesoNT::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
-  bond_cnt[nlocal][0] = utils::inumeric(FLERR,values[1],true,lmp);
-  bond_cnt[nlocal][1] = utils::inumeric(FLERR,values[2],true,lmp);
+  bond_nt[nlocal][0] = utils::inumeric(FLERR,values[1],true,lmp);
+  bond_nt[nlocal][1] = utils::inumeric(FLERR,values[2],true,lmp);
   rmass[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
   radius[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
   length[nlocal] = utils::numeric(FLERR,values[5],true,lmp);
@@ -813,7 +815,7 @@ int AtomVecMESONT::data_atom_hybrid(int nlocal, char **values)
    pack atom info for data file including 3 image flags
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::pack_data(double **buf)
+void AtomVecMesoNT::pack_data(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
@@ -821,8 +823,8 @@ void AtomVecMESONT::pack_data(double **buf)
     buf[i][m++] = ubuf(tag[i]).d;
     buf[i][m++] = ubuf(molecule[i]).d;
     buf[i][m++] = ubuf(type[i]).d;
-    buf[i][m++] = ubuf(bond_cnt[i][0]).d;
-    buf[i][m++] = ubuf(bond_cnt[i][1]).d;
+    buf[i][m++] = ubuf(bond_nt[i][0]).d;
+    buf[i][m++] = ubuf(bond_nt[i][1]).d;
     buf[i][m++] = rmass[i];
     buf[i][m++] = radius[i];
     buf[i][m++] = length[i];
@@ -840,12 +842,12 @@ void AtomVecMESONT::pack_data(double **buf)
    pack hybrid atom info for data file
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::pack_data_hybrid(int i, double *buf)
+int AtomVecMesoNT::pack_data_hybrid(int i, double *buf)
 {
   int m = 0;
   buf[m++] = ubuf(molecule[i]).d;
-  buf[m++] = ubuf(bond_cnt[i][0]).d;
-  buf[m++] = ubuf(bond_cnt[i][1]).d;
+  buf[m++] = ubuf(bond_nt[i][0]).d;
+  buf[m++] = ubuf(bond_nt[i][1]).d;
   buf[m++] = rmass[i];
   buf[m++] = radius[i];
   buf[m++] = length[i];
@@ -857,7 +859,7 @@ int AtomVecMESONT::pack_data_hybrid(int i, double *buf)
    write atom info to data file including 3 image flags
 ------------------------------------------------------------------------- */
 
-void AtomVecMESONT::write_data(FILE *fp, int n, double **buf)
+void AtomVecMesoNT::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp, TAGINT_FORMAT " " TAGINT_FORMAT " %d "
@@ -876,7 +878,7 @@ void AtomVecMESONT::write_data(FILE *fp, int n, double **buf)
    write hybrid atom info to data file
 ------------------------------------------------------------------------- */
 
-int AtomVecMESONT::write_data_hybrid(FILE *fp, double *buf)
+int AtomVecMesoNT::write_data_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
     " %-1.16e %-1.16e %-1.16e %d",
@@ -889,7 +891,7 @@ int AtomVecMESONT::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecMESONT::memory_usage()
+bigint AtomVecMesoNT::memory_usage()
 {
   bigint bytes = 0;
 
@@ -906,7 +908,7 @@ bigint AtomVecMESONT::memory_usage()
   if (atom->memcheck("length")) bytes += memory->usage(length,nmax);
   if (atom->memcheck("buckling")) bytes += memory->usage(buckling,nmax);
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
-  if (atom->memcheck("bond_cnt")) bytes += memory->usage(bond_cnt,nmax,2);
+  if (atom->memcheck("bond_nt")) bytes += memory->usage(bond_nt,nmax,2);
 
   return bytes;
 }

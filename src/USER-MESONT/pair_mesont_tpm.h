@@ -66,9 +66,9 @@ class PairMESONTTPM : public Pair {
 
 /* ERROR/WARNING messages:
 
-E: set newton_pair
+E: Pair style mesont/tpm requires newton pair on
 
-newton_pair must be set to true
+newton_pair must be set to on
 
 E: The selected cutoff is too small for the current system
 

@@ -114,7 +114,7 @@ class Atom : protected Pointers {
   // USER-MESONT package
   double *length;
   int *buckling;
-  tagint **bond_cnt;
+  tagint **bond_nt;
 
   // molecular info
 
@@ -160,6 +160,7 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+  int mesont_flag;
 
   //USER-SPIN package
 

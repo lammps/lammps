@@ -1,7 +1,7 @@
-.. index:: pair\_style
+.. index:: pair_style
 
-pair\_style command
-===================
+pair_style command
+==================
 
 Syntax
 """"""
@@ -127,7 +127,6 @@ accelerated styles exist.
 * :doc:`buck/mdf <pair_mdf>` - Buckingham with a taper function
 * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with damped-shift-force model
 * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with long-range Coulombics
-* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`colloid <pair_colloid>` - integrated colloidal potential
 * :doc:`comb <pair_comb>` - charge-optimized many-body (COMB) potential
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
@@ -244,6 +243,7 @@ accelerated styles exist.
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - mesoscale model for (carbon) nanotubes
+* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
@@ -352,8 +352,3 @@ Default
 .. code-block:: LAMMPS
 
    pair_style none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

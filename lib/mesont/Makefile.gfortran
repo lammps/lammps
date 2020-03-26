@@ -20,7 +20,7 @@ OBJ =   $(SRC:.f90=.o)
 
 F90 =           gfortran
 CC  =		gcc
-F90FLAGS =      -O3 -fPIC -ffast-math -ftree-vectorize -fexpensive-optimizations -fno-second-underscore -g -ffree-line-length-none -cpp 
+F90FLAGS =      -O3 -fPIC -ffast-math -ftree-vectorize -fexpensive-optimizations -fno-second-underscore -g -ffree-line-length-none 
 #F90FLAGS =      -O 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

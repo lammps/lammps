@@ -32,14 +32,12 @@ pair_style mesont/tpm cut table_path BendingMode TPMType
   and Tcut = 10.2 A is the maximum distance between surfaces of interacting 
   segments.
 
-compute mesont/Es, mesont/Eb, mesont/Et, mesont/B
-  These commands allow for the evaluation of per atom values of stretching, 
-  bending, and intertube interaction components of energies, and buckling
-  flags.
-
-compute mesont/Es_tot, mesont/Eb_tot, mesont/Et_tot
-  These commands allow for the evaluation of total values of stretching, 
-  bending, and intertube interaction energies.
+compute mesont
+  This command allows evaluation of per atom and total values of stretching, 
+  bending, and intertube interaction components of energies. Use the following 
+  flags to obtain specific values: 'estretch' and 'estretch_tot' are per atom (node) 
+  and total stretching energies, 'ebend' and 'ebend_tot' are per atom and total 
+  bending energy, 'etube' and 'etube_tot' are per atom and total intertube energies
 
 --
 

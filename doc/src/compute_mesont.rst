@@ -1,25 +1,7 @@
 .. index:: compute mesont
 
-compute mesont/Es command
+compute mesont command
 ==========================
-
-compute mesont/Eb command
-==========================
-
-compute mesont/Et command
-==========================
-
-compute mesont/B  command
-==========================
-
-compute mesont/Es\_tot command
-===============================
-
-compute mesont/Eb\_tot command
-===============================
-
-compute mesont/Et\_tot command
-===============================
 
 Syntax
 """"""
@@ -27,10 +9,11 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID mesont/Es
+   compute ID group-ID mesont mode
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* mesont/Es = style name of the compute command
+* mesont = style name of the compute command
+* mode = one of estretch, ebend, etube, stretch_tot, ebend_tot, and etube_tot (see details below)
 
 Examples
 """"""""
@@ -38,23 +21,25 @@ Examples
 
 .. parsed-literal::
 
-   compute 1 all mesont/Es
+   compute 1 all mesont estretch
 
 Description
 """""""""""
 
-These computes define computations for the per-node stretching (mesont/Es),
-bending (mesont/Eb), and intertube (mesont/Et) energies, buckling flag (mesont/B),
-as well as the total stretching (mesont/Es\_tot), bending (mesont/Eb\_tot), and
-intertube (mesont/Et\_tot) energies for each atom (node) in a group.
+These computes define computations for the per-node stretching (estretch),
+bending (ebend), and intertube (etube) energies, as well as the total 
+stretching (estretch_tot), bending (ebend_tot), and intertube (etube_tot) 
+energies for each atom (node) in a group. The evaluated value is selected by 
+a parameter passed to the compute: estretch, ebend, etube, estretch_tot, 
+ebend_tot, and etube_tot.
 
 **Output info:**
 
-These computes calculate per-node (per-atom) vectors (mesont/Es, mesont/Eb, mesont/Et, mesont/B), 
+These computes calculate per-node (per-atom) vectors (estretch, ebend, etube), 
 which can be accessed by any command that uses per-atom values from a 
-compute as input, and global scalars (mesont/Es\_tot, mesont/Eb\_tot, 
-mesont/Et\_tot). See the :doc:`Howto output <Howto_output>` doc page for an 
-overview of LAMMPS output options.
+compute as input, and global scalars (stretch_tot, ebend_tot, and etube_tot). 
+See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS 
+output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
 

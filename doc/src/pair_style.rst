@@ -243,8 +243,8 @@ accelerated styles exist.
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - mesoscale model for (carbon) nanotubes
-* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
+* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field

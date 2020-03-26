@@ -109,7 +109,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   edpd_temp = edpd_flux = edpd_cv = NULL;
 
   // USER-MESONT package
-  
+
   mesont_flag = 0;
   length = NULL;
   buckling = NULL;
@@ -378,7 +378,7 @@ Atom::~Atom()
   memory->sfree(molecules);
 
   // USER-MESONT package
-  
+
   memory->destroy(length);
   memory->destroy(buckling);
   memory->destroy(bond_nt);

@@ -32,7 +32,7 @@ AtomVecMesoNT::AtomVecMesoNT(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = 1;
   atom->mesont_flag = 1;
   molecular = 0;
-  
+
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
   size_reverse = 3;

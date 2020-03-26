@@ -36,11 +36,11 @@ class ComputeMesoNT : public Compute {
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
-  
+
  private:
   int nmax;
   double *energy;
-  
+
   enum ComputeType {ES, EB, ET, ESTOT, EBTOT, ETTOT};
   ComputeType compute_type;
 };

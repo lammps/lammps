@@ -19,11 +19,11 @@ Examples
 .. code-block:: LAMMPS
 
    pair_coeff 1 2 1.0 1.0 2.5
-   pair_coeff 2 \* 1.0 1.0
-   pair_coeff 3\* 1\*2 1.0 1.0 2.5
-   pair_coeff \* \* 1.0 1.0
-   pair_coeff \* \* nialhjea 1 1 2
-   pair_coeff \* 3 morse.table ENTRY1
+   pair_coeff 2 * 1.0 1.0
+   pair_coeff 3* 1*2 1.0 1.0 2.5
+   pair_coeff * * 1.0 1.0
+   pair_coeff * * nialhjea 1 1 2
+   pair_coeff * 3 morse.table ENTRY1
    pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid)
 
 Description
@@ -55,7 +55,7 @@ pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
 
 .. code-block:: LAMMPS
 
-   pair_coeff \* \* 1.0 1.0 2.5
+   pair_coeff * * 1.0 1.0 2.5
    pair_coeff 2 3 2.0 1.0 1.12
 
 A line in a data file that specifies pair coefficients uses the exact

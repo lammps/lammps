@@ -132,9 +132,9 @@ and Te.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Cd, and the 4th to be Te, you would use the following
 pair_coeff command:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   pair_coeff \* \* CdTe Cd Cd Cd Te
+   pair_coeff * * CdTe Cd Cd Cd Te
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Cd arguments map LAMMPS atom types 1,2,3 to the Cd

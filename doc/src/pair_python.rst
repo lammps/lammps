@@ -113,8 +113,8 @@ which the parameters epsilon and sigma are both 1.0:
    class LJCutMelt(LAMMPSPairPotential):
        def __init__(self):
            super(LJCutMelt,self).__init__()
-           # set coeffs: 48\*eps\*sig\*\*12, 24\*eps\*sig\*\*6,
-           #              4\*eps\*sig\*\*12,  4\*eps\*sig\*\*6
+           # set coeffs: 48*eps*sig**12, 24*eps*sig**6,
+           #              4*eps*sig**12,  4*eps*sig**6
            self.units = 'lj'
            self.coeff = {'lj'  : {'lj'  : (48.0,24.0,4.0,4.0)}}
 
@@ -137,18 +137,18 @@ the *LJCutMelt* example, here are the two functions:
       def compute_force(self,rsq,itype,jtype):
            coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
            r2inv  = 1.0/rsq
-           r6inv  = r2inv\*r2inv\*r2inv
+           r6inv  = r2inv*r2inv*r2inv
            lj1 = coeff[0]
            lj2 = coeff[1]
-           return (r6inv \* (lj1\*r6inv - lj2))\*r2inv
+           return (r6inv * (lj1*r6inv - lj2))*r2inv
 
        def compute_energy(self,rsq,itype,jtype):
            coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
            r2inv  = 1.0/rsq
-           r6inv  = r2inv\*r2inv\*r2inv
+           r6inv  = r2inv*r2inv*r2inv
            lj3 = coeff[2]
            lj4 = coeff[3]
-           return (r6inv \* (lj3\*r6inv - lj4))
+           return (r6inv * (lj3*r6inv - lj4))
 
 .. note::
 

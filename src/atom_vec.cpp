@@ -36,6 +36,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   forceclearflag = 0;
   size_data_bonus = 0;
   maxexchange = 0;
+  molecular = 0;
 
   kokkosable = 0;
 

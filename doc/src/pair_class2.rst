@@ -60,18 +60,18 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style lj/class2 10.0
-   pair_coeff \* \* 100.0 2.5
-   pair_coeff 1 2\* 100.0 2.5 9.0
+   pair_coeff * * 100.0 2.5
+   pair_coeff 1 2* 100.0 2.5 9.0
 
    pair_style lj/class2/coul/cut 10.0
    pair_style lj/class2/coul/cut 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
    pair_coeff 1 1 100.0 3.5 9.0 9.0
 
    pair_style lj/class2/coul/long 10.0
    pair_style lj/class2/coul/long 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description

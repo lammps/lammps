@@ -80,7 +80,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"bond:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 

@@ -4026,7 +4026,7 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 

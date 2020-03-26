@@ -80,7 +80,7 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 

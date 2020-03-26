@@ -90,7 +90,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
       k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType>("dihedral:vatom_pair",maxvatom);
       d_vatom_pair = k_vatom.template view<DeviceType>();

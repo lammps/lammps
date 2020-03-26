@@ -16,7 +16,7 @@ Syntax
 * BendingMode = the parameter defining the type of the bending potential for nanotubes: 0 - harmonic bending :ref:`[1] <Srivastava>`, 1 - anharmonic potential of bending and bending-buckling :ref:`[2] <Zhigilei1>`
 * TPMType = the parameter determining the type of the inter-tube interaction term: 0 - segment-segment approach, 1 - segment-chain approach :ref:`[3 <Zhigilei2>`, :ref:`4] <Zhigilei3>`
 
-The segment-segment approach is approximetly 5 times slower than segment-chain approximation.
+The segment-segment approach is approximately 5 times slower than segment-chain approximation.
 The parameter BendingMode also affects the calculation of the inter-tube interaction term when TPMType = 1. In this case, when BendingMode = 1, each continuous chain of segments is additionally replaced by a number of sub-chains divided by bending buckling kinks.
 
 Examples

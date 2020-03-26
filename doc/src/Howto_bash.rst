@@ -12,6 +12,10 @@ via apt-get and all files are accessible in both the Windows Explorer and your
 Linux shell (bash). This avoids switching to a different operating system or
 installing a virtual machine. Everything runs on Windows.
 
+.. seealso::
+
+   You can find more detailed information at the `Windows Subsystem for Linux Installation Guide for Windows 10 <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
+
 Installing Bash on Windows
 --------------------------
 
@@ -103,7 +107,7 @@ needed for various LAMMPS features:
 
 .. code-block:: bash
 
-   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
+   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
 Files in Ubuntu on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

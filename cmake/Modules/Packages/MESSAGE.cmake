@@ -8,6 +8,7 @@ if(PKG_MESSAGE)
       ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.cpp)
 
   add_library(cslib STATIC ${cslib_SOURCES})
+  install(TARGETS cslib EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   if(BUILD_MPI)
     target_compile_definitions(cslib PRIVATE -DMPI_YES)
     set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")

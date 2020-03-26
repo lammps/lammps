@@ -83,7 +83,7 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
   size_data_vel = 9*nodes_per_element*maxpoly +9+ 2 * maxpoly;
   xcol_data = 4;
 
-  comm->maxexchange_atom=size_border;
+  maxexchange=size_border;
 
   //initialize node counts associated with each element type
   //call setup for element types

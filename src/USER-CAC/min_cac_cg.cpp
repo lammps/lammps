@@ -61,7 +61,8 @@ CACMinCG::CACMinCG(LAMMPS *lmp) : Min(lmp)
   searchflag = 1;
   gextra = hextra = NULL;
   x0extra_atom = gextra_atom = hextra_atom = NULL;
-  copy_flag=1;
+  copy_flag = force_copy_flag = 1;
+  densemax=0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,22 +148,17 @@ void CACMinCG::reset_vectors()
   int *npoly = atom->poly_count;
   int *nodes_per_element_list = atom->nodes_per_element_list;
   int *element_type = atom->element_type;
-  double ****nodal_positions = atom->nodal_positions;
-  double ****nodal_forces = atom->nodal_forces;
-  double *min_x = atom->min_x;
-  double *min_f = atom->min_f;
+  
+  atom->dense_count=0;
+  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
+     atom->dense_count+=3*npoly[element_counter]*nodes_per_element_list[element_type[element_counter]];
+  }
+  //copy nodal arrays to the continuous arrays for the min algorithm
+  copy_force();
   nvec=atom->dense_count;
-
-
-  //lammps uses a 1D representation of N-D arrays constructed with memory->grow and memory->create
-  //as a result the algorithm here seems to just dereference up to the rank one pointer status
-  //hence the three dereferences for the 4-D array
-  //nvec will loop over all elements of the array with that size
-  if (nvec) xvec = min_x;
-  if (nvec) fvec = min_f;
-  //if you want to use the computed nodal forces instead of energy gradients comment out gradients
-  //and uncomment the forces below
-  //if (nvec) fvec = atom->nodal_forces[0][0][0];
+  if (nvec) xvec = atom->min_x;
+  if (nvec) fvec = atom->min_f;
+  
   x0 = fix_minimize->request_vector(0);
   g = fix_minimize->request_vector(1);
   h = fix_minimize->request_vector(2);
@@ -195,8 +191,6 @@ int *npoly = atom->poly_count;
   double *min_f = atom->min_f;
   double **x = atom->x;
   int nodes_per_element;
-
-
 
   //copy contents to these vectors
   int dense_count_x=0;
@@ -237,6 +231,52 @@ int *npoly = atom->poly_count;
 
 }
 
+
+/* ----------------------------------------------------------------------
+   copy atomvec arrays to continuous arrays after energy_force evaluation
+------------------------------------------------------------------------- */
+
+void CACMinCG::copy_force(){
+  int *npoly = atom->poly_count;
+  int *nodes_per_element_list = atom->nodes_per_element_list;
+  int *element_type = atom->element_type;
+  double ****nodal_positions = atom->nodal_positions;
+  double ****nodal_velocities = atom->nodal_velocities;
+  double ****nodal_forces = atom->nodal_forces;
+  double *min_x = atom->min_x;
+  double *min_v = atom->min_v;
+  double *min_f = atom->min_f;
+  
+  //copy contents of min vectors to the avec arrays and vice versa
+  int dense_count_x=0;
+  int dense_count_v=0;
+  int dense_count_f=0;
+  
+  //grow the dense aligned vectors
+  if(atom->dense_count>densemax){
+  min_x = memory->grow(atom->min_x,atom->dense_count,"min_CAC_cg:min_x");
+  min_v = memory->grow(atom->min_v,atom->dense_count,"min_CAC_cg:min_x");
+  min_f = memory->grow(atom->min_f,atom->dense_count,"min_CAC_cg:min_f");
+  densemax=atom->dense_count;
+  }
+
+  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
+    for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
+      for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][0];
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][1];
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][2];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][0];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][1];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][2];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][0];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][1];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][2];
+       }
+     }
+  }
+}
+
 /* ----------------------------------------------------------------------
 minimization via conjugate gradient iterations
 ------------------------------------------------------------------------- */
@@ -246,7 +286,10 @@ int CACMinCG::iterate(int maxiter)
   int i, m, n, fail, ntimestep;
   double beta, gg, dot[2], dotall[2];
   double *fatom, *gatom, *hatom;
-  nvec=atom->dense_count; //needed for setup step so nvec isn't zero
+ 
+  //copy nodal arrays to the continuous arrays for the min algorithm
+  copy_force();
+  nvec=atom->dense_count;
   if (nvec) xvec = atom->min_x;
   if (nvec) fvec = atom->min_f;
   // nlimit = max # of CG iterations before restarting

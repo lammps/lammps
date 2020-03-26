@@ -32,7 +32,10 @@ class CACMinFire : public Min {
   void reset_vectors();
   virtual int iterate(int);
  protected:
+  int densemax;               // bounds arrays size for continuous x,v,f nodal arrays
+
   virtual void copy_vectors();
+  virtual void copy_force();
  private:
   double dt,dtmax;
   double alpha;

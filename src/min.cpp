@@ -19,10 +19,10 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include "min.h"
-#include <mpi.h>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include "min.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -66,7 +66,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   extra_peratom = extra_nlen = NULL;
   extra_max = NULL;
   requestor = NULL;
-  copy_flag=0;
+  copy_flag = force_copy_flag = 0;
 
   external_force_clear = 0;
 }
@@ -587,6 +587,9 @@ double Min::energy_force(int resetflag)
     if (resetflag) fix_minimize->reset_coords();
     reset_vectors();
   }
+  
+  //check if it is necessary to copy off of avec arrays
+  if(force_copy_flag) copy_force();
 
   return energy;
 }

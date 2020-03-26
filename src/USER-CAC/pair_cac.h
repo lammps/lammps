@@ -119,7 +119,6 @@ class PairCAC : public Pair {
   int qi, pqi;
   int local_inner_max;
   int local_outer_max;
-  int densemax;
   double **inner_neighbor_coords;
   double **outer_neighbor_coords;
   int *inner_neighbor_types;
@@ -127,7 +126,6 @@ class PairCAC : public Pair {
   double *inner_neighbor_charges;
 
 	virtual void allocate();
-  void copy_vectors(int copymode);
 
   //further CAC functions 
   void check_existence_flags();

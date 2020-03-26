@@ -48,6 +48,8 @@ class CACMinCG : public Min {
   double **gextra_atom;
   double **hextra_atom;
 
+  int densemax;               // bounds arrays size for continuous x,v,f nodal arrays
+
 
   typedef int (CACMinCG::*FnPtr)(double, double &);
   FnPtr linemin;
@@ -58,6 +60,7 @@ class CACMinCG : public Min {
   double alpha_step(double, int);
   double compute_dir_deriv(double &);
   virtual void copy_vectors();
+  virtual void copy_force();
 };
 
 }

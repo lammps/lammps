@@ -38,7 +38,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 CACMinFire::CACMinFire(LAMMPS *lmp) : Min(lmp) {
-  copy_flag=1;
+  copy_flag = force_copy_flag = 1;
+  densemax=0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,12 +78,19 @@ void CACMinFire::setup_style()
 
 void CACMinFire::reset_vectors()
 {
-  double *min_x = atom->min_x;
-  double *min_f = atom->min_f;
+  int *npoly = atom->poly_count;
+  int *nodes_per_element_list = atom->nodes_per_element_list;
+  int *element_type = atom->element_type;
+  
+  atom->dense_count=0;
+  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
+     atom->dense_count+=3*npoly[element_counter]*nodes_per_element_list[element_type[element_counter]];
+  }
+  //copy nodal arrays to the continuous arrays for the min algorithm
+  copy_force();
   nvec=atom->dense_count;
-
-  if (nvec) xvec = min_x;
-  if (nvec) fvec = min_f;
+  if (nvec) xvec = atom->min_x;
+  if (nvec) fvec = atom->min_f;
 
 }
 
@@ -100,6 +108,12 @@ int CACMinFire::iterate(int maxiter)
   int **node_types = atom->node_types;
   int *npoly = atom->poly_count;
   int *nodes_per_element_list = atom->nodes_per_element_list;
+
+  //copy nodal arrays to the continuous arrays for the min algorithm
+  copy_force();
+  nvec=atom->dense_count;
+  if (nvec) xvec = atom->min_x;
+  if (nvec) fvec = atom->min_f;
 
   alpha_final = 0.0;
 
@@ -312,19 +326,14 @@ int *npoly = atom->poly_count;
   int *element_type = atom->element_type;
   double ****nodal_positions = atom->nodal_positions;
   double ****nodal_forces = atom->nodal_forces;
-  double ****nodal_velocities = atom->nodal_velocities;
   double *min_x = atom->min_x;
   double *min_f = atom->min_f;
-  double *min_v = atom->min_v;
   double **x = atom->x;
   int nodes_per_element;
-
-
 
   //copy contents to these vectors
   int dense_count_x=0;
   int dense_count_f=0;
-  int dense_count_v=0;
   for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
     for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
       for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
@@ -334,9 +343,6 @@ int *npoly = atom->poly_count;
          nodal_forces[element_counter][poly_counter][node_counter][0] = min_f[dense_count_f++];
          nodal_forces[element_counter][poly_counter][node_counter][1] = min_f[dense_count_f++];
          nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];
-         nodal_velocities[element_counter][poly_counter][node_counter][0] = min_v[dense_count_v++];
-         nodal_velocities[element_counter][poly_counter][node_counter][1] = min_v[dense_count_v++];
-         nodal_velocities[element_counter][poly_counter][node_counter][2] = min_v[dense_count_v++];
        }
      }
   }
@@ -362,5 +368,51 @@ int *npoly = atom->poly_count;
   x[i][2] = x[i][2] / nodes_per_element / npoly[i];
   }
 
+}
+
+
+/* ----------------------------------------------------------------------
+   copy atomvec arrays to continuous arrays after energy_force evaluation
+------------------------------------------------------------------------- */
+
+void CACMinFire::copy_force(){
+  int *npoly = atom->poly_count;
+  int *nodes_per_element_list = atom->nodes_per_element_list;
+  int *element_type = atom->element_type;
+  double ****nodal_positions = atom->nodal_positions;
+  double ****nodal_velocities = atom->nodal_velocities;
+  double ****nodal_forces = atom->nodal_forces;
+  double *min_x = atom->min_x;
+  double *min_v = atom->min_v;
+  double *min_f = atom->min_f;
+  
+  //copy contents of min vectors to the avec arrays and vice versa
+  int dense_count_x=0;
+  int dense_count_v=0;
+  int dense_count_f=0;
+  
+  //grow the dense aligned vectors
+  if(atom->dense_count>densemax){
+  min_x = memory->grow(atom->min_x,atom->dense_count,"min_CAC_cg:min_x");
+  min_v = memory->grow(atom->min_v,atom->dense_count,"min_CAC_cg:min_x");
+  min_f = memory->grow(atom->min_f,atom->dense_count,"min_CAC_cg:min_f");
+  densemax=atom->dense_count;
+  }
+
+  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
+    for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
+      for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][0];
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][1];
+         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][2];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][0];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][1];
+         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][2];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][0];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][1];
+         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][2];
+       }
+     }
+  }
 }
 

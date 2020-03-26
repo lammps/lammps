@@ -83,7 +83,7 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
   size_data_vel = 9*nodes_per_element*maxpoly +9+ 2 * maxpoly;
   xcol_data = 4;
 
-  maxexchange=size_border;
+  comm->maxexchange_atom=size_border;
 
   //initialize node counts associated with each element type
   //call setup for element types
@@ -1630,6 +1630,9 @@ void AtomVecCAC_Charge::data_atom(double *coord, imageint imagetmp, char **value
     nodal_velocities[nlocal][poly_index][node_index][0] = 0;
     nodal_velocities[nlocal][poly_index][node_index][1] = 0;
     nodal_velocities[nlocal][poly_index][node_index][2] = 0;
+    nodal_forces[nlocal][poly_index][node_index][0] = 0;
+    nodal_forces[nlocal][poly_index][node_index][1] = 0;
+    nodal_forces[nlocal][poly_index][node_index][2] = 0;
   }
   }
 

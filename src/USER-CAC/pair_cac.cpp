@@ -65,7 +65,6 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
   sector_flag = 0;
   one_layer_flag = 0;
   shape_quad_result = NULL;
-  densemax=0;
   neighbor->pgsize=10;
   neighbor->oneatom=1;
   old_atom_count=0;
@@ -189,9 +188,6 @@ void PairCAC::compute(int eflag, int vflag) {
     if (evflag) ev_tally_full(i,
           2 * element_energy, 0.0, fpair, delx, dely, delz);
   }
-
-  if(update->whichflag==2)
-  copy_vectors(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -886,73 +882,6 @@ void PairCAC::LUPSolve(double **A, int *P, double *b, int N, double *x) {
     }
 }
 
-
-/* ----------------------------------------------------------------------
-   copy dense arrays to atomvec arrays for energy_force evaluation
-------------------------------------------------------------------------- */
-
-void PairCAC::copy_vectors(int copymode){
-int *npoly = atom->poly_count;
-  int *nodes_per_element_list = atom->nodes_per_element_list;
-  int *element_type = atom->element_type;
-  double ****nodal_positions = atom->nodal_positions;
-  double ****nodal_velocities = atom->nodal_velocities;
-  double ****nodal_forces = atom->nodal_forces;
-  double *min_x = atom->min_x;
-  double *min_v = atom->min_v;
-  double *min_f = atom->min_f;
-  atom->dense_count=0;
-
-  
-  //copy contents of min vectors to the avec arrays and vice versa
-  int dense_count_x=0;
-  int dense_count_v=0;
-  int dense_count_f=0;
-  if(copymode==0){
-  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
-    for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
-      for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
-         nodal_positions[element_counter][poly_counter][node_counter][0] = min_x[dense_count_x++];
-         nodal_positions[element_counter][poly_counter][node_counter][1] = min_x[dense_count_x++];
-         nodal_positions[element_counter][poly_counter][node_counter][2] = min_x[dense_count_x++];
-         nodal_forces[element_counter][poly_counter][node_counter][0] = min_f[dense_count_f++];
-         nodal_forces[element_counter][poly_counter][node_counter][1] = min_f[dense_count_f++];
-         nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];
-       }
-     }
-  }
-  }
-  if(copymode==1){
-   for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
-     atom->dense_count+=3*npoly[element_counter]*nodes_per_element_list[element_type[element_counter]];
-  }
-  
-  //grow the dense aligned vectors
-  if(atom->dense_count>densemax){
-  min_x = memory->grow(atom->min_x,atom->dense_count,"min_CAC_cg:min_x");
-  min_v = memory->grow(atom->min_v,atom->dense_count,"min_CAC_cg:min_x");
-  min_f = memory->grow(atom->min_f,atom->dense_count,"min_CAC_cg:min_f");
-  densemax=atom->dense_count;
-  }
-
-  for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
-    for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
-      for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
-         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][0];
-         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][1];
-         min_x[dense_count_x++] = nodal_positions[element_counter][poly_counter][node_counter][2];
-         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][0];
-         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][1];
-         min_v[dense_count_v++] = nodal_velocities[element_counter][poly_counter][node_counter][2];
-         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][0];
-         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][1];
-         min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][2];
-       }
-     }
-  }
-  }
-
-}
 
 //memory usage due to quadrature point list memory structure
 double PairCAC::memory_usage()

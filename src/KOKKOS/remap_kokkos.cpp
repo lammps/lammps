@@ -505,7 +505,7 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
 
 namespace LAMMPS_NS {
 template class RemapKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class RemapKokkos<LMPHostType>;
 #endif
 }

@@ -900,7 +900,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
 
 namespace LAMMPS_NS {
 template class FFT3dKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FFT3dKokkos<LMPHostType>;
 #endif
 }

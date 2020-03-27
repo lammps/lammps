@@ -75,24 +75,20 @@ using namespace LAMMPS_NS;
 
 kimProperty::kimProperty(LAMMPS *lmp) : Pointers(lmp)
 {
-#if LMP_PYTHON
-#if PY_MAJOR_VERSION != 3
-  error->all(FLERR, "Invalid Python version.\n"
-                    "The kim-property Python package requires Python "
-                    "3 >= 3.6 support.");
-#endif
   // one-time initialization of Python interpreter
   python->init();
-#else
-  error->all(FLERR, "Error Python support missing! Compile with PYTHON "
-                    "package installed!");
-#endif // LMP_PYTHON
+
+  if (!python->has_minimum_version(3, 6)) {
+    error->all(FLERR, "Invalid Python version.\n"
+                      "The kim-property Python package requires Python "
+                      "3 >= 3.6 support.");
+  }
 }
 
 void kimProperty::command(int narg, char **arg)
 {
 #if LMP_PYTHON
-#if PY_MAJOR_VERSION == 3
+#if PY_MAJOR_VERSION >= 3
   if (narg < 2)
     error->all(FLERR, "Invalid `kim_property` command.");
 

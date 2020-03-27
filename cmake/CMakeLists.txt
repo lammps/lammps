@@ -584,6 +584,7 @@ if(BUILD_LIB)
     ${LAMMPS_SOURCE_DIR}/kspace.h
     ${LAMMPS_SOURCE_DIR}/lammps.h
     ${LAMMPS_SOURCE_DIR}/lattice.h
+    ${LAMMPS_SOURCE_DIR}/library.h
     ${LAMMPS_SOURCE_DIR}/lmppython.h
     ${LAMMPS_SOURCE_DIR}/lmptype.h
     ${LAMMPS_SOURCE_DIR}/memory.h
@@ -598,13 +599,15 @@ if(BUILD_LIB)
     ${LAMMPS_SOURCE_DIR}/universe.h
     ${LAMMPS_SOURCE_DIR}/update.h
     ${LAMMPS_SOURCE_DIR}/variable.h)
+  if(LAMMPS_EXCEPTIONS)
+    list(APPEND LAMMPS_CXX_HEADERS ${LAMMPS_SOURCE_DIR}/exceptions.h)
+  endif()
 
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
   install(TARGETS lammps EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   add_library(LAMMPS::lammps ALIAS lammps)
-  install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   install(FILES ${LAMMPS_CXX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

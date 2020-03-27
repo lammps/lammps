@@ -186,9 +186,6 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   max_neighs = 0;
   Kokkos::parallel_reduce("PairSNAPKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(max_neighs));
 
-  int chunk_size = MIN(2000,inum);
-  chunk_offset = 0;
-
   int vector_length_default = 1;
   int team_size_default = 1;
 #ifdef KOKKOS_ENABLE_CUDA

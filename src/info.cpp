@@ -1028,6 +1028,8 @@ static vector<string> get_style_names(map<string, ValueType> * styles)
 
   names.reserve(styles->size());
   for(auto const& kv : *styles) {
+    // skip "secret" styles
+    if (isupper(kv.first[0])) continue;
     names.push_back(kv.first);
   }
 

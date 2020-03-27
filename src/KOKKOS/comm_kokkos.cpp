@@ -831,9 +831,8 @@ void CommKokkos::borders_device() {
   atomKK->sync(exec_space,ALL_MASK);
 
   int team_size = 1;
-#ifdef KOKKOS_ENABLE_CUDA
-  team_size = 128;
-#endif
+  if (exec_space == Device)
+    team_size = 128;
 
   // do swaps over all 3 dimensions
 

@@ -188,9 +188,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int vector_length_default = 1;
   int team_size_default = 1;
-#ifdef KOKKOS_ENABLE_CUDA
-  team_size_default = 32;//max_neighs;
-#endif
+  if (!host_flag)
+    team_size_default = 32;//max_neighs;
 
   if (beta_max < inum) {
     beta_max = inum;
@@ -904,12 +903,8 @@ void PairSNAPKokkos<DeviceType>::check_team_size_for(int inum, int &team_size, i
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
 
-#ifdef KOKKOS_ENABLE_CUDA
   if(team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
-#else
-  team_size = 1;
-#endif
 }
 
 template<class DeviceType>
@@ -919,12 +914,8 @@ void PairSNAPKokkos<DeviceType>::check_team_size_reduce(int inum, int &team_size
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelReduceTag());
 
-#ifdef KOKKOS_ENABLE_CUDA
   if(team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
-#else
-  team_size = 1;
-#endif
 }
 
 }

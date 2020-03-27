@@ -278,7 +278,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       //ComputeBi
       int vector_length = vector_length_default;
       int team_size = team_size_default;
-      check_team_size_for<TagPairSNAPComputeBi>(chunk_size,team_size,vector_length);      
+      check_team_size_for<TagPairSNAPComputeBi>(chunk_size,team_size,vector_length);
       typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeBi> policy_bi(chunk_size,team_size,vector_length);
       Kokkos::parallel_for("ComputeBi",policy_bi,*this);
     }
@@ -345,7 +345,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
           Kokkos::parallel_for("ComputeFusedDeidrj",policy_fused_deidrj,*this);
         }
       }
-    }  
+    }
 
     //ComputeForce
     {

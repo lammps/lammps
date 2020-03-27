@@ -11,4 +11,4 @@ else()
 endif()
 
 add_executable(simple simple.cpp)
-target_link_libraries(simple LAMMPS::lammps MPI::MPI_CXX)
+target_link_libraries(simple LAMMPS::lammps)

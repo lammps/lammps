@@ -905,7 +905,7 @@ void CommKokkos::borders_device() {
 
               BuildBorderListFunctor<DeviceType> f(atomKK->k_x,k_sendlist,
                   k_total_send,nfirst,nlast,dim,lo,hi,iswap,maxsendlist[iswap]);
-              Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+127)/128,128);
+              Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+team_size-1)/team_size,team_size);
               Kokkos::parallel_for(config,f);
 
               k_total_send.template modify<DeviceType>();

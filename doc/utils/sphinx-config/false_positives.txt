@@ -717,6 +717,7 @@ edgeIDs
 edihed
 edim
 edip
+edn
 edpd
 eDPD
 edu
@@ -1102,6 +1103,7 @@ Harting
 Hartree
 Hartrees
 Hasan
+Hashtable
 Haswell
 Haugk
 Hayoun
@@ -1363,6 +1365,7 @@ Kai
 Kalia
 Kamberaj
 Kapfer
+Karls
 Karlsruhe
 Karniadakis
 Karplus
@@ -1651,6 +1654,8 @@ Marroquin
 Marsaglia
 Marseille
 Martyna
+mary
+marys
 Masaglia
 Mashayak
 Massimilliano
@@ -3171,6 +3176,7 @@ Westview
 wget
 Whelan
 whitesmoke
+whitespace
 Wi
 Wicaksono
 Wijk
@@ -3238,6 +3244,7 @@ xzhou
 yaff
 YAFF
 Yamada
+Yaser
 Yazdani
 Ybar
 ybox

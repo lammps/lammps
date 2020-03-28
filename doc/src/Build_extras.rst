@@ -189,13 +189,27 @@ KIM package
 ---------------------
 
 To build with this package, the KIM library with API v2 must be downloaded
-and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the :doc:`kim_query <kim_commands>`
+and built on your system. It must include the KIM models that you want to
+use with LAMMPS.
+
+If you would like to use the :doc:`kim_query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-See the `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
-web page to
+If you would like to use the :doc:`kim_property <kim_commands>`
+command, you need to build LAMMPS with the Python 3.6 or later package
+installed. See the :doc:`Python <python>` doc page for more info on building
+LAMMPS with the version of Python on your system.
+After successfully building LAMMPS with Python, you need to
+install the kim-property Python package, which can be easily done using
+*pip* as ``pip install kim-property``, or from the *conda-forge* channel as
+``conda install kim-property`` if LAMMPS is built in Conda. More detailed
+information is available at:
+`kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
+
+In addition to installing the KIM API, it is also necessary to install the
+library of KIM models (interatomic potentials).
+See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_ to
 learn how to install a pre-build binary of the OpenKIM Repository of Models.
 See the list of all KIM models here: https://openkim.org/browse/models
 

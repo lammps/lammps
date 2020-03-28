@@ -570,42 +570,11 @@ if (${_index} GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 if(BUILD_LIB)
-  set(LAMMPS_CXX_HEADERS
-    ${LAMMPS_SOURCE_DIR}/angle.h
-    ${LAMMPS_SOURCE_DIR}/atom.h
-    ${LAMMPS_SOURCE_DIR}/bond.h
-    ${LAMMPS_SOURCE_DIR}/citeme.h
-    ${LAMMPS_SOURCE_DIR}/comm.h
-    ${LAMMPS_SOURCE_DIR}/compute.h
-    ${LAMMPS_SOURCE_DIR}/dihedral.h
-    ${LAMMPS_SOURCE_DIR}/domain.h
-    ${LAMMPS_SOURCE_DIR}/error.h
-    ${LAMMPS_SOURCE_DIR}/fix.h
-    ${LAMMPS_SOURCE_DIR}/force.h
-    ${LAMMPS_SOURCE_DIR}/group.h
-    ${LAMMPS_SOURCE_DIR}/improper.h
-    ${LAMMPS_SOURCE_DIR}/input.h
-    ${LAMMPS_SOURCE_DIR}/info.h
-    ${LAMMPS_SOURCE_DIR}/kspace.h
-    ${LAMMPS_SOURCE_DIR}/lammps.h
-    ${LAMMPS_SOURCE_DIR}/lattice.h
-    ${LAMMPS_SOURCE_DIR}/library.h
-    ${LAMMPS_SOURCE_DIR}/lmppython.h
-    ${LAMMPS_SOURCE_DIR}/lmptype.h
-    ${LAMMPS_SOURCE_DIR}/memory.h
-    ${LAMMPS_SOURCE_DIR}/modify.h
-    ${LAMMPS_SOURCE_DIR}/neighbor.h
-    ${LAMMPS_SOURCE_DIR}/neigh_list.h
-    ${LAMMPS_SOURCE_DIR}/output.h
-    ${LAMMPS_SOURCE_DIR}/pair.h
-    ${LAMMPS_SOURCE_DIR}/pointers.h
-    ${LAMMPS_SOURCE_DIR}/region.h
-    ${LAMMPS_SOURCE_DIR}/timer.h
-    ${LAMMPS_SOURCE_DIR}/universe.h
-    ${LAMMPS_SOURCE_DIR}/update.h
-    ${LAMMPS_SOURCE_DIR}/variable.h)
+  set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
+    input.h info.h kspace.h lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h
+    pair.h pointers.h region.h timer.h universe.h update.h variable.h)
   if(LAMMPS_EXCEPTIONS)
-    list(APPEND LAMMPS_CXX_HEADERS ${LAMMPS_SOURCE_DIR}/exceptions.h)
+    list(APPEND LAMMPS_CXX_HEADERS exceptions.h)
   endif()
 
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
@@ -614,15 +583,13 @@ if(BUILD_LIB)
   target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps)
   foreach(_HEADER ${LAMMPS_CXX_HEADERS})
-    get_filename_component(_HEADER_FILE ${_HEADER} NAME)
-    set(_FULL_HEADER_FILE ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER_FILE})
-    add_custom_command(OUTPUT ${_FULL_HEADER_FILE} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_HEADER} ${_FULL_HEADER_FILE} DEPENDS ${_HEADER})
-    add_custom_target(${_HEADER_FILE} DEPENDS ${_FULL_HEADER_FILE})
-    add_dependencies(lammps ${_HEADER_FILE})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_SOURCE_DIR}/${_HEADER} ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} DEPENDS ${LAMMPS_SOURCE_DIR}/${_HEADER})
+    add_custom_target(${_HEADER} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER})
+    add_dependencies(lammps ${_HEADER})
+    install(FILES ${LAMMPS_SOURCE_DIR}/${_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   endforeach()
   target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/includes>)
   add_library(LAMMPS::lammps ALIAS lammps)
-  install(FILES ${LAMMPS_CXX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)

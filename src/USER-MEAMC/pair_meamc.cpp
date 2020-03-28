@@ -595,16 +595,15 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     int errorflag = 0;
     meam_inst->meam_setup_param(which,value,nindex,index,&errorflag);
     if (errorflag) {
-      char str[128];
-      snprintf(str,80,"Error in MEAM parameter file: keyword %s",params[0]);
-      switch(errorflag) {
-        case 1: strcat(str, " is out of range (please report a bug)"); break;
-        case 2: strcat(str, " expected more indices"); break;
-        case 3: strcat(str, " has out of range element index"); break;
-      }
+      const char *descr[] = { "has an unknown error",
+              "is out of range (please report a bug)",
+              "expected more indices",
+              "has out of range element index"};
+      char str[256];
+      if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
+      snprintf(str,256,"Error in MEAM parameter file: keyword %s %s",params[0],descr[errorflag]);
       error->all(FLERR,str);
     }
-    
   }
   delete [] params;
 }

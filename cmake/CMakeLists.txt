@@ -585,6 +585,7 @@ if(BUILD_LIB)
     ${LAMMPS_SOURCE_DIR}/group.h
     ${LAMMPS_SOURCE_DIR}/improper.h
     ${LAMMPS_SOURCE_DIR}/input.h
+    ${LAMMPS_SOURCE_DIR}/info.h
     ${LAMMPS_SOURCE_DIR}/kspace.h
     ${LAMMPS_SOURCE_DIR}/lammps.h
     ${LAMMPS_SOURCE_DIR}/lattice.h

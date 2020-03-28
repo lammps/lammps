@@ -459,7 +459,6 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     file(GLOB_RECURSE ${PKG_LIB}_SOURCES
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.F
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})

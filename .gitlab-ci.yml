@@ -13,7 +13,7 @@ compile-tests:
     - cmake --version
     - mkdir build; cd build
     - cmake -DCMAKE_BUILD_TYPE=Release ../cmake
-    - cmake -- build .
+    - cmake --build .
   artifacts:
     paths:
       - build/lmp

@@ -16,13 +16,13 @@ context of your application.
    this scenario, LAMMPS is the driver code.  During its timestepping,
    the fix is invoked, and can make library calls to the other code,
    which has been linked to LAMMPS as a library.  This is the way the
-   `POEMS <poems_>`_ package that performs constrained rigid-body motion
+   :ref:`POEMS <PKG-POEMS>` package that performs constrained rigid-body motion
    on groups of atoms is hooked to LAMMPS.  See the :doc:`fix poems
    <fix_poems>` command for more details.  See the :doc:`Modify
    <Modify>` doc pages for info on how to add a new fix to LAMMPS.
 
-.. _poems: http://www.rpi.edu/~anderk5/lab
-
+.. spacer
+   
 2. Define a new LAMMPS command that calls the other code.  This is
    conceptually similar to method (1), but in this case LAMMPS and the
    other code are on a more equal footing.  Note that now the other code
@@ -51,8 +51,8 @@ context of your application.
    Again, the :doc:`run <run>` command has options that allow it to be
    invoked with minimal overhead (no setup or clean-up) if you wish to
    do multiple short runs, driven by another program.  Details about
-   using the library interface are given in the :doc:`library howto page
-   <Howto_library>`.
+   using the library interface are given in the :doc:`library API
+   <pg_library>` documentation.
 
 .. spacer
 

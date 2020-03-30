@@ -38,7 +38,7 @@ useful for treating a large biomolecule as a collection of connected,
 coarse-grained particles.
 
 The coupling, associated motion constraints, and time integration is
-performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS) <poems_>`_ which computes the
+performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS)` which computes the
 constrained rigid-body motion of articulated (jointed) multibody
 systems :ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed
 by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
@@ -46,8 +46,6 @@ and other members of his group at Rensselaer Polytechnic Institute
 (RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
 copyright information on POEMS and other details, please refer to the
 documents in the poems directory distributed with LAMMPS.
-
-.. _poems: http://www.rpi.edu/~anderk5/lab
 
 This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
@@ -122,7 +120,7 @@ command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the POEMS package.  It is only enabled if LAMMPS
+This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
 built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
 

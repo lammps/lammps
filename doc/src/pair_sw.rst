@@ -1,37 +1,35 @@
-.. index:: pair\_style sw
+.. index:: pair_style sw
 
-pair\_style sw command
-======================
+pair_style sw command
+=====================
 
-pair\_style sw/gpu command
-==========================
-
-pair\_style sw/intel command
-============================
-
-pair\_style sw/kk command
+pair_style sw/gpu command
 =========================
 
-pair\_style sw/omp command
-==========================
+pair_style sw/intel command
+===========================
+
+pair_style sw/kk command
+========================
+
+pair_style sw/omp command
+=========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sw
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style sw
-   pair_coeff \* \* si.sw Si
-   pair_coeff \* \* GaN.sw Ga N Ga
+   pair_coeff * * si.sw Si
+   pair_coeff * * GaN.sw Ga N Ga
 
 Description
 """""""""""
@@ -39,17 +37,27 @@ Description
 The *sw* style computes a 3-body :ref:`Stillinger-Weber <Stillinger2>`
 potential for the energy E of a system of atoms as
 
-.. image:: Eqs/pair_sw.jpg
-   :align: center
+.. math::
 
-where phi2 is a two-body term and phi3 is a three-body term.  The
-summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = a\*sigma.
+   E & =  \sum_i \sum_{j > i} \phi_2 (r_{ij}) +
+          \sum_i \sum_{j \neq i} \sum_{k > j}
+          \phi_3 (r_{ij}, r_{ik}, \theta_{ijk}) \\
+  \phi_2(r_{ij}) & =  A_{ij} \epsilon_{ij} \left[ B_{ij} (\frac{\sigma_{ij}}{r_{ij}})^{p_{ij}} -
+                    (\frac{\sigma_{ij}}{r_{ij}})^{q_{ij}} \right]
+                    \exp \left( \frac{\sigma_{ij}}{r_{ij} - a_{ij} \sigma_{ij}} \right) \\
+  \phi_3(r_{ij},r_{ik},\theta_{ijk}) & = \lambda_{ijk} \epsilon_{ijk} \left[ \cos \theta_{ijk} -
+                    \cos \theta_{0ijk} \right]^2
+                    \exp \left( \frac{\gamma_{ij} \sigma_{ij}}{r_{ij} - a_{ij} \sigma_{ij}} \right)
+                    \exp \left( \frac{\gamma_{ik} \sigma_{ik}}{r_{ik} - a_{ik} \sigma_{ik}} \right)
 
-Only a single pair\_coeff command is used with the *sw* style which
+where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
+three-body term.  The summations in the formula are over all neighbors J
+and K of atom I within a cutoff distance :math:`a `\sigma`.
+
+Only a single pair_coeff command is used with the *sw* style which
 specifies a Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -61,12 +69,11 @@ to specify the path for the potential file.
 As an example, imagine a file SiC.sw has Stillinger-Weber values for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
 the 1st 3 to be Si, and the 4th to be C, you would use the following
-pair\_coeff command:
+pair_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* SiC.sw Si Si Si C
+   pair_coeff * * SiC.sw Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -86,24 +93,25 @@ and three-body coefficients in the formula above:
 * element 1 (the center atom in a 3-body interaction)
 * element 2
 * element 3
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * a
-* lambda
-* gamma
-* costheta0
+* :math:`\lambda`
+* :math:`\gamma`
+* :math:`\cos\theta_0`
 * A
 * B
 * p
 * q
 * tol
 
-The A, B, p, and q parameters are used only for two-body
-interactions.  The lambda and costheta0 parameters are used only for
-three-body interactions. The epsilon, sigma and a parameters are used
-for both two-body and three-body interactions. gamma is used only in the
-three-body interactions, but is defined for pairs of atoms.
-The non-annotated parameters are unitless.
+The A, B, p, and q parameters are used only for two-body interactions.
+The :math:`\lambda` and :math:`\cos\theta_0` parameters are used only
+for three-body interactions. The :math:`\epsilon`, :math:`\sigma` and
+*a* parameters are used for both two-body and three-body
+interactions. :math:`\gamma` is used only in the three-body
+interactions, but is defined for pairs of atoms.  The non-annotated
+parameters are unitless.
 
 LAMMPS introduces an additional performance-optimization parameter tol
 that is used for both two-body and three-body interactions.  In the
@@ -118,7 +126,7 @@ can be separately controlled. If tol = 0.0, then the standard
 Stillinger-Weber cutoff is used.
 
 The Stillinger-Weber potential file must contain entries for all the
-elements listed in the pair\_coeff command.  It can also contain
+elements listed in the pair_coeff command.  It can also contain
 entries for additional elements not being used in a particular
 simulation; LAMMPS ignores those entries.
 
@@ -141,9 +149,9 @@ are usually defined by simple formulas involving two sets of pair-wise
 parameters, corresponding to the ij and ik pairs, where i is the
 center atom. The user must ensure that the correct combining rule is
 used to calculate the values of the three-body parameters for
-alloys. Note also that the function phi3 contains two exponential
+alloys. Note also that the function :math:`\phi_3` contains two exponential
 screening factors with parameter values from the ij pair and ik
-pairs. So phi3 for a C atom bonded to a Si atom and a second C atom
+pairs. So :math:`\phi_3` for a C atom bonded to a Si atom and a second C atom
 will depend on the three-body parameters for the CSiC entry, and also
 on the two-body parameters for the CCC and CSiSi entries. Since the
 order of the two neighbors is arbitrary, the three-body parameters for
@@ -152,12 +160,10 @@ parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in
 entries whose 2nd and 3rd element are different (e.g. SiCSi) are not
 used for anything and can be set to 0.0 if desired.
-This is also true for the parameters in phi3 that are
-taken from the ij and ik pairs (sigma, a, gamma)
-
+This is also true for the parameters in :math:`\phi_3` that are
+taken from the ij and ik pairs (:math:`\sigma`, *a*\ , :math:`\gamma`)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -182,9 +188,7 @@ These parameters are common for modeling silicon and water.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -196,20 +200,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -221,7 +222,7 @@ The Stillinger-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the SW potential with any LAMMPS units, but you would need
 to create your own SW potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
+appropriate units if your simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -230,17 +231,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _Stillinger2:
 
-
-
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

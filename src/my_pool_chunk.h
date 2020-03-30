@@ -18,7 +18,7 @@ MyPoolChunk = templated class for storing chunks of datums in pages
   replaces many small mallocs with a few large mallocs
   pages are never freed, so can reuse w/out reallocs
 usage:
-  continously get() and put() chunks as needed
+  continuously get() and put() chunks as needed
   NOTE: could add a clear() if retain info on mapping of pages to bins
 inputs:
    template T = one datum, e.g. int, double, struct

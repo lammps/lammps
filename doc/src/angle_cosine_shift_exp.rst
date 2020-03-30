@@ -9,14 +9,12 @@ angle_style cosine/shift/exp/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style cosine/shift/exp
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -56,9 +54,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\theta` (angle)
 * :math:`A` (real number)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -78,13 +74,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -94,7 +87,7 @@ Related commands
 """"""""""""""""
 
 :doc:`angle_coeff <angle_coeff>`,
-:doc:`angle\_cosine\_shift <angle_cosine_shift>`,
-:doc:`dihedral\_cosine\_shift\_exp <dihedral_cosine_shift_exp>`
+:doc:`angle_style cosine/shift <angle_cosine_shift>`,
+:doc:`dihedral_style cosine/shift/exp <dihedral_cosine_shift_exp>`
 
 **Default:** none

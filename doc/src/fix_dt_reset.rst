@@ -6,7 +6,6 @@ fix dt/reset command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
@@ -20,7 +19,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *emax* or *units*
 
-
 .. parsed-literal::
 
      *emax* value = Emax
@@ -32,8 +30,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all dt/reset 10 1.0e-5 0.01 0.1
    fix 5 all dt/reset 10 0.01 2.0 0.2 units box
@@ -83,7 +80,7 @@ Note that the cumulative simulation time (in time units), which
 accounts for changes in the timestep size as a simulation proceeds,
 can be accessed by the :doc:`thermo_style time <thermo_style>` keyword.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -111,8 +108,3 @@ Default
 
 The option defaults are units = lattice, and no emax kinetic energy
 limit.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

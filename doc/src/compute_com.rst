@@ -6,7 +6,6 @@ compute com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID com
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all com
 
@@ -62,8 +60,3 @@ Related commands
 :doc:`compute com/chunk <compute_com_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

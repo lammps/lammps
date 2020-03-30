@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include "kokkos_type.h"
+#include "fftdata_kokkos.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -32,6 +33,7 @@ class GridCommKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   GridCommKokkos(class LAMMPS *, MPI_Comm, int, int,
            int, int, int, int, int, int,
@@ -70,8 +72,8 @@ class GridCommKokkos : protected Pointers {
 
   int nbuf;
   //FFT_SCALAR *buf1,*buf2;
-  DAT::tdual_FFT_SCALAR_1d k_buf1;
-  DAT::tdual_FFT_SCALAR_1d k_buf2;
+  FFT_DAT::tdual_FFT_SCALAR_1d k_buf1;
+  FFT_DAT::tdual_FFT_SCALAR_1d k_buf2;
 
   struct Swap {
     int sendproc;       // proc to send to for forward comm

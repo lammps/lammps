@@ -12,7 +12,6 @@ There are four basic kinds of LAMMPS output:
   screen.
 * :doc:`Restart files <restart>`.
 
-
 A simulation prints one set of thermodynamic output and (optionally)
 restart files.  It can generate any number of dump files and fix
 output files, depending on what :doc:`dump <dump>` and :doc:`fix <fix>`
@@ -69,11 +68,11 @@ notation, where ID in this case is the ID of a compute.  The leading
 "c\_" would be replaced by "f\_" for a fix, or "v\_" for a variable:
 
 +-------------+--------------------------------------------+
-| c\_ID       | entire scalar, vector, or array            |
+| c_ID        | entire scalar, vector, or array            |
 +-------------+--------------------------------------------+
-| c\_ID[I]    | one element of vector, one column of array |
+| c_ID[I]     | one element of vector, one column of array |
 +-------------+--------------------------------------------+
-| c\_ID[I][J] | one element of array                       |
+| c_ID[I][J]  | one element of array                       |
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the data
@@ -93,7 +92,7 @@ The frequency and format of thermodynamic output is set by the
 :doc:`thermo_style <thermo_style>` command also specifies what values
 are calculated and written out.  Pre-defined keywords can be specified
 (e.g. press, etotal, etc).  Three additional kinds of keywords can
-also be specified (c\_ID, f\_ID, v\_name), where a :doc:`compute <compute>`
+also be specified (c_ID, f_ID, v_name), where a :doc:`compute <compute>`
 or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
 output.  In each case, the compute, fix, or variable must generate
 global values for input to the :doc:`thermo_style custom <dump>`
@@ -122,7 +121,7 @@ pre-defined formats (dump atom, dump xtc, etc).
 There is also a :doc:`dump custom <dump>` format where the user
 specifies what values are output with each atom.  Pre-defined atom
 attributes can be specified (id, x, fx, etc).  Three additional kinds
-of keywords can also be specified (c\_ID, f\_ID, v\_name), where a
+of keywords can also be specified (c_ID, f_ID, v_name), where a
 :doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
 provides the values to be output.  In each case, the compute, fix, or
 variable must generate per-atom values for input to the :doc:`dump custom <dump>` command.
@@ -130,7 +129,7 @@ variable must generate per-atom values for input to the :doc:`dump custom <dump>
 There is also a :doc:`dump local <dump>` format where the user specifies
 what local values to output.  A pre-defined index keyword can be
 specified to enumerate the local values.  Two additional kinds of
-keywords can also be specified (c\_ID, f\_ID), where a
+keywords can also be specified (c_ID, f_ID), where a
 :doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
 provides the values to be output.  In each case, the compute or fix
 must generate local values for input to the :doc:`dump local <dump>`
@@ -342,8 +341,3 @@ vector input could be a column of an array.
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 | :doc:`fix store/state <fix_store_state>`               | per-atom vectors                             | per-atom vector/array                     |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

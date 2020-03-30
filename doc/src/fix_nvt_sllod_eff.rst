@@ -6,7 +6,6 @@ fix nvt/sllod/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/sllod/eff keyword value ...
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1
    fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1 drag 0.2
@@ -40,7 +38,7 @@ page), is performed with a :doc:`compute temp/deform/eff <compute_temp_deform_ef
 the eFF contribution to the temperature from the electron radial
 velocity.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
@@ -68,7 +66,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -86,18 +83,9 @@ Default
 
 Same as :doc:`fix nvt/eff <fix_nh_eff>`, except tchain = 1.
 
-
 ----------
-
 
 .. _Tuckerman2:
 
-
-
 **(Tuckerman)** Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

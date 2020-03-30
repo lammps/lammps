@@ -1,19 +1,18 @@
-.. index:: pair\_style edip
+.. index:: pair_style edip
 
-pair\_style edip command
-========================
+pair_style edip command
+=======================
 
-pair\_style edip/omp command
-============================
+pair_style edip/omp command
+===========================
 
-pair\_style edip/multi command
-==============================
+pair_style edip/multi command
+=============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style
 
@@ -22,8 +21,10 @@ Syntax
 Examples
 """"""""
 
-pair\_style edip
-pair\_coeff \* \* Si.edip Si
+.. code-block:: LAMMPS
+
+   pair_style edip
+   pair_coeff * * Si.edip Si
 
 Description
 """""""""""
@@ -37,20 +38,31 @@ potentials, while *edip/multi* supports multi-element EDIP runs.
 
 In EDIP, the energy E of a system of atoms is
 
-.. image:: Eqs/pair_edip.jpg
-   :align: center
+.. math::
 
-where phi2 is a two-body term and phi3 is a three-body term.  The
-summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = a.
-Both terms depend on the local environment of atom I through its
-effective coordination number defined by Z, which is unity for a
-cutoff distance < c and gently goes to 0 at distance = a.
+   E  = & \sum_{j \ne i} \phi_{2}(R_{ij}, Z_{i}) + \sum_{j \ne i} \sum_{k \ne i,k > j} \phi_{3}(R_{ij}, R_{ik}, Z_{i}) \\
+   \phi_{2}(r, Z)  = & A\left[\left(\frac{B}{r}\right)^{\rho} - e^{-\beta Z^2}\right]exp{\left(\frac{\sigma}{r-a}\right)} \\
+   \phi_{3}(R_{ij}, R_{ik}, Z_i)  = & exp{\left(\frac{\gamma}{R_{ij}-a}\right)}exp{\left(\frac{\gamma}{R_{ik}-a}\right)}h(cos\theta_{ijk},Z_i) \\
+   Z_i  = & \sum_{m \ne i} f(R_{im}) \qquad
+   f(r) = \begin{cases}
+          1 & \quad r<c \\
+          \exp\left(\frac{\alpha}{1-x^{-3}}\right) & \quad c<r<a \\
+          0 & \quad r>a
+          \end{cases} \\
+   h(l,Z)  = & \lambda [(1-e^{-Q(Z)(l+\tau(Z))^2}) + \eta Q(Z)(l+\tau(Z))^2 ] \\
+   Q(Z)  = & Q_0 e^{-\mu Z} \qquad \tau(Z) = u_1 + u_2 (u_3 e^{-u_4 Z} - e^{-2u_4 Z})
 
-Only a single pair\_coeff command is used with the *edip* style which
+where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
+three-body term.  The summations in the formula are over all neighbors J
+and K of atom I within a cutoff distance = a.  Both terms depend on the
+local environment of atom I through its effective coordination number
+defined by Z, which is unity for a cutoff distance < c and gently goes
+to 0 at distance = a.
+
+Only a single pair_coeff command is used with the *edip* style which
 specifies a EDIP potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -74,14 +86,14 @@ and three-body coefficients in the formula above:
 * B (distance units)
 * cutoffA (distance units)
 * cutoffC (distance units)
-* alpha
-* beta
-* eta
-* gamma (distance units)
-* lambda (energy units)
-* mu
-* tho
-* sigma (distance units)
+* :math:`\alpha`
+* :math:`\beta`
+* :math:`\eta`
+* :math:`\gamma` (distance units)
+* :math:`lambda` (energy units)
+* :math:`\mu`
+* :math:`\tau`
+* :math:`\sigma` (distance units)
 * Q0
 * u1
 * u2
@@ -94,7 +106,7 @@ for three-body interactions. The alpha and cutoffC parameters are used
 for the coordination environment function only.
 
 The EDIP potential file must contain entries for all the
-elements listed in the pair\_coeff command.  It can also contain
+elements listed in the pair_coeff command.  It can also contain
 entries for additional elements not being used in a particular
 simulation; LAMMPS ignores those entries.
 
@@ -111,9 +123,7 @@ multi-element EDIP parameterization. If you know any and
 you are interest in that, please contact the author of
 the EDIP package.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -133,9 +143,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -143,20 +151,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -169,7 +174,7 @@ The EDIP potential files provided with LAMMPS (see the potentials directory)
 are parameterized for metal :doc:`units <units>`.
 You can use the EDIP potential with any LAMMPS units, but you would need
 to create your own EDIP potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
+appropriate units if your simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -178,17 +183,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _EDIP:
 
-
-
 **(EDIP)** J F Justo et al, Phys Rev B 58, 2539 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

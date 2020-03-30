@@ -1,38 +1,37 @@
-.. index:: pair\_style srp
+.. index:: pair_style srp
 
-pair\_style srp command
-=======================
+pair_style srp command
+======================
 
 Syntax
 """"""
 
-pair\_style srp cutoff btype dist keyword value ...
+.. code-block:: LAMMPS
+
+   pair_style srp cutoff btype dist keyword value ...
 
 * cutoff = global cutoff for SRP interactions (distance units)
 * btype = bond type to apply SRP interactions to (can be wildcard, see below)
 * distance = *min* or *mid*
 * zero or more keyword/value pairs may be appended
 * keyword = *exclude*
-  
+
   .. parsed-literal::
-  
+
        *bptype* value = atom type for bond particles
        *exclude* value = *yes* or *no*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 mid exclude yes
    pair_coeff 1 1 dpd 60.0 4.5 1.0
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 100.0 0.8
 
-   pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 \* min exclude yes
+   pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 * min exclude yes
    pair_coeff 1 1 dpd 60.0 50 1.0
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 40.0
@@ -56,19 +55,23 @@ Bonds of specified type *btype* interact with one another through a
 bond-pairwise potential, such that the force on bond *i* due to bond
 *j* is as follows
 
-.. image:: Eqs/pair_srp1.jpg
-   :align: center
+.. math::
 
-where *r* and *rij* are the distance and unit vector between the two
-bonds.  Note that *btype* can be specified as an asterisk "\*", which
-case the interaction is applied to all bond types.  The *mid* option
-computes *r* and *rij* from the midpoint distance between bonds. The
-*min* option computes *r* and *rij* from the minimum distance between
-bonds. The force acting on a bond is mapped onto the two bond atoms
-according to the lever rule,
+   F^{\mathrm{SRP}}_{ij} = C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c
 
-.. image:: Eqs/pair_srp2.jpg
-   :align: center
+where *r* and :math:`\hat{r}_{ij}` are the distance and unit vector
+between the two bonds.  Note that *btype* can be specified as an
+asterisk "\*", which case the interaction is applied to all bond types.
+The *mid* option computes *r* and :math:`\hat{r}_{ij}` from the midpoint
+distance between bonds. The *min* option computes *r* and
+:math:`\hat{r}_{ij}` from the minimum distance between bonds. The force
+acting on a bond is mapped onto the two bond atoms according to the
+lever rule,
+
+.. math::
+
+   F_{i1}^{\mathrm{SRP}} & = F^{\mathrm{SRP}}_{ij}(L) \\
+   F_{i2}^{\mathrm{SRP}} & = F^{\mathrm{SRP}}_{ij}(1-L)
 
 where *L* is the normalized distance from the atom to the point of
 closest approach of bond *i* and *j*\ . The *mid* option takes *L* as
@@ -80,7 +83,7 @@ the data file or restart file read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
 * *C* (force units)
-* *rc* (distance units)
+* :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global cutoff
 is used.
@@ -114,11 +117,9 @@ Pair style *srp* turns off normalization of thermodynamic properties
 by particle number, as if the command :doc:`thermo_modify norm no <thermo_modify>` had been issued.
 
 The pairwise energy associated with style *srp* is shifted to be zero
-at the cutoff distance *rc*\ .
-
+at the cutoff distance :math:`r_c`.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -127,7 +128,7 @@ This pair styles does not support mixing.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction. Note that as
 discussed above, the energy term is already shifted to be 0.0 at the
-cutoff distance *rc*\ .
+cutoff distance :math:`r_c`.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant for
 this pair style.
@@ -136,20 +137,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes global and per-atom information to :doc:`binary restart files <restart>`. Pair srp should be used with :doc:`pair_style hybrid <pair_hybrid>`, thus the pair\_coeff commands need to be
+This pair style writes global and per-atom information to :doc:`binary restart files <restart>`. Pair srp should be used with :doc:`pair_style hybrid <pair_hybrid>`, thus the pair_coeff commands need to be
 specified in the input script when reading a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MISC package. It is only enabled
 if LAMMPS was built with that package. See the Making LAMMPS section
@@ -173,18 +171,9 @@ Default
 
 The default keyword value is exclude = yes.
 
-
 ----------
-
 
 .. _Sirk2:
 
-
-
 **(Sirk)** Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

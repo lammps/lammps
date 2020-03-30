@@ -6,7 +6,6 @@ compute ackland/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ackland/atom keyword/value
@@ -15,18 +14,15 @@ Syntax
 * ackland/atom = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *legacy*
-  
+
   .. parsed-literal::
-  
+
        *legacy* yes/no = use (\ *yes*\ ) or do not use (\ *no*\ ) legacy ackland algorithm implementation
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ackland/atom
    compute 1 all ackland/atom legacy yes
@@ -72,7 +68,6 @@ LAMMPS output options.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -88,17 +83,8 @@ Default
 """""""
 The keyword *legacy* defaults to *no*\ .
 
-
 ----------
-
 
 .. _Ackland:
 
-
-
 **(Ackland)** Ackland, Jones, Phys Rev B, 73, 054104 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

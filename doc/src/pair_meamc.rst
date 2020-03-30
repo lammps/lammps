@@ -1,27 +1,23 @@
-.. index:: pair\_style meam/c
+.. index:: pair_style meam/c
 
-pair\_style meam/c command
-==========================
+pair_style meam/c command
+=========================
 
 Syntax
 """"""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_style style
-
-style = *meam/c*
+   pair_style meam/c
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/c
-   pair_coeff \* \* ../potentials/library.meam Si ../potentials/si.meam Si
-   pair_coeff \* \* ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
+   pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
+   pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 
 Description
 """""""""""
@@ -29,7 +25,7 @@ Description
 .. note::
 
    The behavior of the MEAM potential for alloy systems has changed
-   as of November 2010; see description below of the mixture\_ref\_t
+   as of November 2010; see description below of the mixture_ref_t
    parameter
 
 Style *meam/c* computes pairwise interactions for a variety of materials
@@ -46,15 +42,17 @@ the 12 December 2018 release.
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
 
-.. image:: Eqs/pair_meam.jpg
-   :align: center
+.. math::
 
-where F is the embedding energy which is a function of the atomic
-electron density rho, and phi is a pair potential interaction.  The
-pair interaction is summed over all neighbors J of atom I within the
-cutoff distance.  As with EAM, the multi-body nature of the MEAM
-potential is a result of the embedding energy term.  Details of the
-computation of the embedding and pair energies, as implemented in
+   E = \sum_i \left\{ F_i(\bar{\rho}_i)
+       + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
+
+where *F* is the embedding energy which is a function of the atomic
+electron density :math:`\rho`, and :math:`\phi` is a pair potential
+interaction.  The pair interaction is summed over all neighbors J of
+atom I within the cutoff distance.  As with EAM, the multi-body nature
+of the MEAM potential is a result of the embedding energy term.  Details
+of the computation of the embedding and pair energies, as implemented in
 LAMMPS, are given in :ref:`(Gullet) <Gullet>` and references therein.
 
 The various parameters in the MEAM formulas are listed in two files
@@ -67,13 +65,13 @@ distribution with a ".meam" suffix.  All of these are parameterized in
 terms of LAMMPS :doc:`metal units <units>`.
 
 Note that unlike for other potentials, cutoffs for MEAM potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the MEAM potential files themselves.
 
-Only a single pair\_coeff command is used with the *meam* style which
+Only a single pair_coeff command is used with the *meam* style which
 specifies two MEAM files and the element(s) to extract information
 for.  The MEAM elements are mapped to LAMMPS atom types by specifying
-N additional arguments after the 2nd filename in the pair\_coeff
+N additional arguments after the 2nd filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * MEAM library file
@@ -88,20 +86,20 @@ As an example, the potentials/library.meam file has generic MEAM
 settings for a variety of elements.  The potentials/SiC.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
-and the 4th to be C, you would use the following pair\_coeff command:
+and the 4th to be C, you would use the following pair_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
-The two filenames are for the library and parameter file respectively.
-The Si and C arguments (between the file names) are the two elements
-for which info will be extracted from the library file.  The first
-three trailing Si arguments map LAMMPS atom types 1,2,3 to the MEAM Si
-element.  The final C argument maps LAMMPS atom type 4 to the MEAM C
-element.
+The first filename is the element library file. The list of elements following
+it extracts lines from the library file and assigns numeric indices to these
+elements. The second filename is the alloy parameter file, which refers to
+elements using the numeric indices assigned before.
+The arguments after the parameter file map LAMMPS atom types to elements, i.e.
+LAMMPS atom types 1,2,3 to the MEAM Si element.  The final C argument maps
+LAMMPS atom type 4 to the MEAM C element.
 
 If the 2nd filename is specified as NULL, no parameter file is read,
 which simply means the generic parameters in the library file are
@@ -122,7 +120,7 @@ that will be used with other potentials.
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
    example above.  However, if the 2nd filename is not NULL (as in the
    example above), it contains settings that are Fortran-indexed for the
-   elements that preceed it.  Thus you need to insure you list the
+   elements that precede it.  Thus you need to insure you list the
    elements between the filenames in an order consistent with how the
    values in the 2nd filename are indexed.  See details below on the
    syntax for settings in the 2nd file.
@@ -141,14 +139,13 @@ Cu and lat = dia or fcc.  Because the library file is used by Fortran
 MD codes, these strings may be enclosed in single quotes, but this is
 not required.  The other numeric parameters match values in the
 formulas above.  The value of the "elt" string is what is used in the
-pair\_coeff command to identify which settings from the library file
+pair_coeff command to identify which settings from the library file
 you wish to read in.  There can be multiple entries in the library
-file with the same "elt" value; LAMMPS reads the 1st matching entry it
+file with the same "elt" value; LAMMPS reads the first matching entry it
 finds and ignores the rest.
 
 Other parameters in the MEAM library file correspond to single-element
 potential parameters:
-
 
 .. parsed-literal::
 
@@ -170,7 +167,6 @@ is typically 1.0 for single-element systems.  The ibar parameter
 selects the form of the function G(Gamma) used to compute the electron
 density; options are
 
-
 .. parsed-literal::
 
       0 => G = sqrt(1+Gamma)
@@ -188,7 +184,6 @@ blank and comment lines (start with #) which can appear anywhere, each
 line has one of the following forms.  Each line can also have a
 trailing comment (starting with #) which is ignored.
 
-
 .. parsed-literal::
 
    keyword = value
@@ -198,22 +193,15 @@ trailing comment (starting with #) which is ignored.
 
 The indices I, J, K correspond to the elements selected from the
 MEAM library file numbered in the order of how those elements were
-selected starting from 1. Thus for the example given below
+selected starting from 1. Thus for the example given before
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* library.meam Si C sic.meam Si Si Si C
+   pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 an index of 1 would refer to Si and an index of 2 to C.
 
 The recognized keywords for the parameter file are as follows:
-
-Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
-augt1, gsmooth\_factor, re
-
-where
-
 
 .. parsed-literal::
 
@@ -238,7 +226,7 @@ where
                    hcp = hexagonal close-packed
                    dim = dimer
                    dia = diamond (interlaced fcc for alloy)
-                   dia3= diamond structure with primary 1NN and secondary 3NN interation
+                   dia3= diamond structure with primary 1NN and secondary 3NN interaction
                    b1  = rock salt (NaCl structure)
                    c11 = MoSi2 structure
                    l12 = Cu3Au structure (lower case L, followed by 12)
@@ -306,7 +294,6 @@ where N is the number of MEAM elements being used.
 
 Thus these lines
 
-
 .. parsed-literal::
 
    rho0(2) = 2.25
@@ -329,24 +316,23 @@ automatically.  When parameter values are fit using the modified
 density function, as in more recent literature, augt1 should be set to
 0.
 
-The mixture\_ref\_t parameter is available to match results with those
+The mixture_ref_t parameter is available to match results with those
 of previous versions of lammps (before January 2011).  Newer versions
 of lammps, by default, use the single-element values of the t
 parameters to compute the background reference density.  This is the
 proper way to compute these parameters.  Earlier versions of lammps
 used an alloy mixture averaged value of t to compute the background
-reference density.  Setting mixture\_ref\_t=1 gives the old behavior.
-WARNING: using mixture\_ref\_t=1 will give results that are demonstrably
+reference density.  Setting mixture_ref_t=1 gives the old behavior.
+WARNING: using mixture_ref_t=1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
 previous versions of lammps and should be avoided if possible.
 
 The parameters attrac and repuls, along with the integer selection
-parameter erose\_form, can be used to modify the Rose energy function
+parameter erose_form, can be used to modify the Rose energy function
 used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
 this function is:
-
 
 .. parsed-literal::
 
@@ -367,39 +353,34 @@ recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
    in March 2009.  The current version is correct, but may show different
    behavior compared with earlier versions of lammps with the attrac
    and/or repuls parameters are non-zero.  To obtain the previous default
-   form, use erose\_form = 1 (this form does not seem to appear in the
+   form, use erose_form = 1 (this form does not seem to appear in the
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
-   available using erose\_form = 2.
-
+   available using erose_form = 2.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
-specify a pair\_coeff command with I != J arguments for this style.
+specify a pair_coeff command with I != J arguments for this style.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *meam/c* style is provided in the USER-MEAMC package. It is
 only enabled if LAMMPS was built with that package.
@@ -420,59 +401,36 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Baskes:
-
-
 
 **(Baskes)** Baskes, Phys Rev B, 46, 2727-2742 (1992).
 
 .. _Gullet:
 
-
-
 **(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
 This report may be accessed on-line via `this link <sandreport_>`_.
 
-.. _sandreport: http://infoserve.sandia.gov/sand\_doc/2003/038782.pdf
-
-
+.. _sandreport: http://infoserve.sandia.gov/sand_doc/2003/038782.pdf
 
 .. _Lee:
-
-
 
 **(Lee)** Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
 
 .. _Lee2:
 
-
-
 **(Lee2)** Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
 
 .. _Valone:
-
-
 
 **(Valone)** Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
 
 .. _Wang2:
 
-
-
 **(Wang)** Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 .. _ZBL:
 
-
-
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
 of Ions in Matter", Vol 1, 1985, Pergamon Press.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

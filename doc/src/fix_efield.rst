@@ -6,7 +6,6 @@ fix efield command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID efield ex ey ez keyword value ...
@@ -17,21 +16,18 @@ Syntax
 * any of ex,ey,ez can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *energy*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added E-field
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix kick external-field efield 1.0 0.0 0.0
    fix kick external-field efield 0.0 0.0 v_oscillate
@@ -47,7 +43,7 @@ external electric field.
 For charges, any of the 3 quantities defining the E-field components
 can be specified as an equal-style or atom-style
 :doc:`variable <variable>`, namely *ex*\ , *ey*\ , *ez*\ .  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the E-field component.
 
@@ -71,9 +67,7 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
-
 ----------
-
 
 Adding a force or torque to atoms implies a change in their potential
 energy as they move or rotate due to the applied E-field.
@@ -107,7 +101,7 @@ minimize the orientation of dipoles in an applied electric field.
 The *energy* keyword specifies the name of an atom-style
 :doc:`variable <variable>` which is used to compute the energy of each
 atom as function of its position.  Like variables used for *ex*\ , *ey*\ ,
-*ez*\ , the energy variable is specified as v\_name, where name is the
+*ez*\ , the energy variable is specified as v_name, where name is the
 variable name.
 
 Note that when the *energy* keyword is used during an energy
@@ -118,11 +112,9 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -169,7 +161,6 @@ the iteration count during the minimization.
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -179,8 +170,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

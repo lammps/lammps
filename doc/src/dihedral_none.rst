@@ -1,21 +1,19 @@
-.. index:: dihedral\_style none
+.. index:: dihedral_style none
 
-dihedral\_style none command
-============================
+dihedral_style none command
+===========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style none
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style none
 
@@ -39,8 +37,3 @@ Related commands
 :doc:`dihedral_style zero <dihedral_zero>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

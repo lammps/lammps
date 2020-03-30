@@ -9,33 +9,28 @@ fix temp/csld command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
-
    fix ID group-ID temp/csld Tstart Tstop Tdamp seed
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/csvr or temp/csld = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
-  
+
   .. parsed-literal::
-  
+
        Tstart can be a variable (see below)
 
 * Tdamp = temperature damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all temp/csvr 300.0 300.0 100.0 54324
-
    fix 1 all temp/csld 100.0 300.0 10.0 123321
 
 Description
@@ -69,7 +64,7 @@ of (roughly) 100 time units (tau or fmsec or psec - see the
 
 *Tstart* can be specified as an equal-style :doc:`variable <variable>`.
 In this case, the *Tstop* setting is ignored.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the target temperature.
 
@@ -97,8 +92,7 @@ These fixes compute a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
 
@@ -107,12 +101,12 @@ that the ID of the new compute is the fix-ID + underscore + "temp",
 and the group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, these fixes can be used
@@ -129,11 +123,9 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about these fixes are written to :doc:`binary restart files <restart>`.
 
@@ -157,7 +149,6 @@ is "extensive".
 Restrictions
 """"""""""""
 
-
 These fixes are not compatible with :doc:`fix shake <fix_shake>`.
 
 The fix can be used with dynamic groups as defined by the
@@ -177,22 +168,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Bussi1:
-
-
 
 .. _Bussi2:
 
 **(Bussi1)** Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
 
-
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

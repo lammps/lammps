@@ -6,7 +6,6 @@ compute body/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID body/local input1 input2 ...
@@ -15,20 +14,17 @@ Syntax
 * body/local = style name of this compute command
 * one or more keywords may be appended
 * keyword = *id* or *type* or *integer*
-  
+
   .. parsed-literal::
-  
+
        *id* = atom ID of the body particle
        *type* = atom type of the body particle
        *integer* = 1,2,3,etc = index of fields defined by body style
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    compute 1 all body/local 3 6
@@ -65,7 +61,7 @@ group.
 For a body particle, the *integer* keywords refer to fields calculated
 by the body style for each sub-particle.  The body style, as specified
 by the :doc:`atom_style body <atom_style>`, determines how many fields
-exist and what they are.  See the :doc:`Howto\_body <Howto_body>` doc
+exist and what they are.  See the :doc:`Howto_body <Howto_body>` doc
 page for details of the different styles.
 
 Here is an example of how to output body information using the :doc:`dump local <dump>` command with this compute.  If fields 1,2,3 for the
@@ -73,8 +69,7 @@ body sub-particles are x,y,z coordinates, then the dump file will be
 formatted similar to the output of a :doc:`dump atom or custom <dump>`
 command.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all body/local type 1 2 3
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4]
@@ -103,8 +98,3 @@ Related commands
 :doc:`dump local <dump>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

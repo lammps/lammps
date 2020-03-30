@@ -8,17 +8,16 @@ command.  This is the default.
 
 If using the :doc:`create box <create_box>` command to define a
 simulation box, set the z dimensions narrow, but finite, so that the
-create\_atoms command will tile the 3d simulation box with a single z
+create_atoms command will tile the 3d simulation box with a single z
 plane of atoms - e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    :doc:`create box <create_box>` 1 -10 10 -10 10 -0.25 0.25
 
 If using the :doc:`read data <read_data>` command to read in a file of
 atom coordinates, set the "zlo zhi" values to be finite but narrow,
-similar to the create\_box command settings just described.  For each
+similar to the create_box command settings just described.  For each
 atom in the file, assign a z coordinate so it falls inside the
 z-boundaries of the box - e.g. 0.0.
 
@@ -41,8 +40,3 @@ are for 2d models.
    and the *disc* option for the :doc:`fix nve/sphere <fix_nve_sphere>`,
    :doc:`fix nvt/sphere <fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere <fix_npt_sphere>`
    commands.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -86,7 +86,7 @@ void ResetIDs::command(int narg, char ** /* arg */)
     tag[i] = 0;
   }
 
-  // assign new contigous IDs to owned atoms via tag_extend()
+  // assign new contiguous IDs to owned atoms via tag_extend()
 
   atom->tag_extend();
 

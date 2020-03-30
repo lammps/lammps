@@ -1,7 +1,7 @@
 Benchmarks
 ==========
 
-Current LAMMPS performance is discussed on the `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of the `LAMMPS website <lws_>`_
+Current LAMMPS performance is discussed on the `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of the `LAMMPS website <lws_>`_
 where timings and parallel efficiency are listed.  The page has
 several sections, which are briefly described below:
 
@@ -26,7 +26,6 @@ The 5 standard problems are as follow:
    particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
    integration
 
-
 Input files for these 5 problems are provided in the bench directory
 of the LAMMPS distribution.  Each has 32,000 atoms and runs for 100
 timesteps.  The size of the problem (number of atoms) can be varied
@@ -36,26 +35,24 @@ scalability on your machine.
 
 The bench directory includes a few log.\* files that show performance
 of these 5 problems on 1 or 4 cores of Linux desktop.  The bench/FERMI
-and bench/KEPLER dirs have input files and scripts and instructions
+and bench/KEPLER directories have input files and scripts and instructions
 for running the same (or similar) problems using OpenMP or GPU or Xeon
-Phi acceleration options.  See the README files in those dirs and the
+Phi acceleration options.  See the README files in those directories and the
 :doc:`Speed packages <Speed_packages>` doc pages for instructions on how
 to build LAMMPS and run on that kind of hardware.
 
 The bench/POTENTIALS directory has input files which correspond to the
 table of results on the
-`Potentials <http://lammps.sandia.gov/bench.html#potentials>`_ section of
+`Potentials <https://lammps.sandia.gov/bench.html#potentials>`_ section of
 the Benchmarks web page.  So you can also run those test problems on
 your machine.
 
-The `billion-atom <http://lammps.sandia.gov/bench.html#billion>`_ section
+The `billion-atom <https://lammps.sandia.gov/bench.html#billion>`_ section
 of the Benchmarks web page has performance data for very large
 benchmark runs of simple Lennard-Jones (LJ) models, which use the
 bench/in.lj input script.
 
-
 ----------
-
 
 For all the benchmarks, a useful metric is the CPU cost per atom per
 timestep.  Since performance scales roughly linearly with problem size
@@ -76,7 +73,4 @@ estimate parallel performance for multi-node runs using the same logic
 as for all-MPI mode, except that now you will typically need many more
 atoms/node to achieve good scalability.
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+.. _lws: https://lammps.sandia.gov

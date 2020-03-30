@@ -6,7 +6,6 @@ dimension command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dimension N
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension 2
 
@@ -43,7 +41,6 @@ additional instructions on how to run 2d simulations.
 Restrictions
 """"""""""""
 
-
 This command must be used before the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
@@ -55,12 +52,6 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension 3
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

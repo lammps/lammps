@@ -6,7 +6,6 @@ units command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    units style
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    units metal
    units lj
@@ -51,33 +49,32 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
-
 ----------
 
-
 For style *lj*\ , all quantities are unitless.  Without loss of
-generality, LAMMPS sets the fundamental quantities mass, sigma,
-epsilon, and the Boltzmann constant = 1.  The masses, distances,
-energies you specify are multiples of these fundamental values.  The
-formulas relating the reduced or unitless quantity (with an asterisk)
-to the same quantity with units is also given.  Thus you can use the
-mass & sigma & epsilon values for a specific material and convert the
-results from a unitless LJ simulation into physical quantities.
+generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
+:math:`\epsilon`, and the Boltzmann constant :math:`k_B = 1`.  The
+masses, distances, energies you specify are multiples of these
+fundamental values.  The formulas relating the reduced or unitless
+quantity (with an asterisk) to the same quantity with units is also
+given.  Thus you can use the mass & :math:`\sigma` & :math:`\epsilon`
+values for a specific material and convert the results from a unitless
+LJ simulation into physical quantities.
 
-* mass = mass or m
-* distance = sigma, where x\* = x / sigma
-* time = tau, where t\* = t (epsilon / m / sigma\^2)\^1/2
-* energy = epsilon, where E\* = E / epsilon
-* velocity = sigma/tau, where v\* = v tau / sigma
-* force = epsilon/sigma, where f\* = f sigma / epsilon
-* torque = epsilon, where t\* = t / epsilon
-* temperature = reduced LJ temperature, where T\* = T Kb / epsilon
-* pressure = reduced LJ pressure, where P\* = P sigma\^3 / epsilon
-* dynamic viscosity = reduced LJ viscosity, where eta\* = eta sigma\^3 / epsilon / tau
-* charge = reduced LJ charge, where q\* = q / (4 pi perm0 sigma epsilon)\^1/2
-* dipole = reduced LJ dipole, moment where \*mu = mu / (4 pi perm0 sigma\^3 epsilon)\^1/2
-* electric field = force/charge, where E\* = E (4 pi perm0 sigma epsilon)\^1/2 sigma / epsilon
-* density = mass/volume, where rho\* = rho sigma\^dim
+* mass = mass or *m*
+* distance = :math:`\sigma`, where :math:`x^* = \frac{x}{\sigma}`
+* time = :math:`\tau`, where :math:`\tau^* = \tau \sqrt{\frac{\epsilon}{m \sigma^2}}`
+* energy = :math:`\epsilon`, where :math:`E^* = \frac{E}{\epsilon}`
+* velocity = :math:`\frac{\sigma}{\tau}`, where :math:`v^* = v \frac{\tau}{\sigma}`
+* force = :math:`\frac{\epsilon}{\sigma}`, where :math:`f^* = f \frac{\sigma}{\epsilon}`
+* torque = :math:`\epsilon`, where :math:`t^* = \frac{t}{\epsilon}`
+* temperature = reduced LJ temperature, where :math:`T^* = \frac{T k_B}{\epsilon}`
+* pressure = reduced LJ pressure, where :math:`p^* = p \frac{\sigma^3}{\epsilon}`
+* dynamic viscosity = reduced LJ viscosity, where :math:`\eta^* = \eta \frac{\sigma^3}{\epsilon\tau}`
+* charge = reduced LJ charge, where :math:`q^* = q \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon}}`
+* dipole = reduced LJ dipole, moment where :math:`\mu^* = \mu \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma^3 \epsilon}}`
+* electric field = force/charge, where :math:`E^* = E \frac{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon} \sigma}{\epsilon}`
+* density = mass/volume, where :math:`\rho^* = \rho \sigma^{dim}`
 
 Note that for LJ units, the default mode of thermodynamic output via
 the :doc:`thermo_style <thermo_style>` command is to normalize all
@@ -218,7 +215,6 @@ distance to default values for each style:
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
@@ -227,12 +223,6 @@ This command cannot be used after the simulation box is defined by a
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    units lj
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

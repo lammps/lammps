@@ -52,7 +52,7 @@ user-gpu_SYSLIB = CUDA libraries needed by this package
 user-gpu_SYSPATH = path(s) to where those libraries are
 
 Because you have the CUDA compilers on your system, you should have
-the needed libraries.  If the CUDA developement tools were installed
+the needed libraries.  If the CUDA development tools were installed
 in the standard manner, the settings in the Makefile.lammps.standard
 file should work.
 

@@ -1,23 +1,21 @@
-.. index:: write\_coeff
+.. index:: write_coeff
 
-write\_coeff command
-====================
+write_coeff command
+===================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_coeff file
 
-   file = name of data file to write out
+* file = name of data file to write out
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_coeff polymer.coeff
 
@@ -32,17 +30,14 @@ the Coeffs sections from a data file into a separate file.
 
 .. note::
 
-   The write\_coeff command is not yet fully implemented as
+   The write_coeff command is not yet fully implemented as
    some pair styles do not output their coefficient information.
    This means you will need to add/copy this information manually.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 none
 
@@ -51,8 +46,3 @@ Related commands
 
 :doc:`read_data <read_data>`, :doc:`write_restart <write_restart>`,
 :doc:`write_data <write_data>`
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

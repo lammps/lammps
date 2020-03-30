@@ -6,7 +6,6 @@ mass command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    mass I value
@@ -17,12 +16,11 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    mass 1 1.0
-   mass \* 62.5
-   mass 2\* 62.5
+   mass * 62.5
+   mass 2* 62.5
 
 Description
 """""""""""
@@ -47,7 +45,6 @@ keyword specifies mass using the same format as the arguments of the
 mass command in an input script, except that no wild-card asterisk can
 be used.  For example, under the "Masses" section of a data file, the
 line that corresponds to the 1st example above would be listed as
-
 
 .. parsed-literal::
 
@@ -75,7 +72,6 @@ per-atom mass will be used by LAMMPS.
 Restrictions
 """"""""""""
 
-
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
 :doc:`create_box <create_box>` command.
@@ -88,8 +84,3 @@ The mass assigned to any type or atom must be > 0.0.
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -9,7 +9,6 @@ minimize/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    minimize etol ftol maxiter maxeval
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    minimize 1.0e-4 1.0e-6 100 1000
    minimize 0.0 1.0e-8 1000 100000
@@ -52,10 +50,12 @@ or :doc:`limited timestep <fix_nve_limit>`.  Or dynamics can be run
 using :doc:`fix viscous <fix_viscous>` to impose a damping force that
 slowly drains all kinetic energy from the system.  The :doc:`pair_style soft <pair_soft>` potential can be used to un-overlap atoms while
 running dynamics.
+un-overlap atoms while running dynamics.
 
 Note that you can minimize some atoms in the system while holding the
-coordinates of other atoms fixed by applying :doc:`fix setforce <fix_setforce>` to the other atoms.  See a fuller
-discussion of using fixes while minimizing below.
+coordinates of other atoms fixed by applying :doc:`fix setforce
+<fix_setforce>` to the other atoms.  See a fuller discussion of using
+fixes while minimizing below.
 
 The :doc:`minimization styles <min_style>` *cg*\ , *sd*\ , and *hftn*
 involves an outer iteration loop which sets the search direction along
@@ -68,42 +68,45 @@ be more robust than previous line searches we've tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
-The :doc:`minimization styles <min_style>` *quickmin* and *fire* perform
-damped dynamics using an Euler integration step.  Thus they require a
-:doc:`timestep <timestep>` be defined.
+The :doc:`minimization styles <min_style>` *quickmin*\ , *fire* and
+*fire/old* perform damped dynamics using an Euler integration step.  Thus
+they require a :doc:`timestep <timestep>` be defined.
 
 .. note::
 
    The damped dynamic minimizers use whatever timestep you have
-   defined via the :doc:`timestep <timestep>` command.  Often they will
-   converge more quickly if you use a timestep about 10x larger than you
-   would normally use for dynamics simulations.
-
+   defined via the :doc:`timestep <timestep>` command.  Often they
+   will converge more quickly if you use a timestep about 10x larger
+   than you would normally use for dynamics simulations.
 
 ----------
-
 
 In all cases, the objective function being minimized is the total
 potential energy of the system as a function of the N atom
 coordinates:
 
-.. image:: Eqs/min_energy.jpg
-   :align: center
+.. math::
+ E(r_1,r_2, \ldots ,r_N)  = & \sum_{i,j} E_{\it pair}(r_i,r_j) +
+                              \sum_{ij} E_{\it bond}(r_i,r_j) +
+                              \sum_{ijk} E_{\it angle}(r_i,r_j,r_k) + \\
+                            & \sum_{ijkl} E_{\it dihedral}(r_i,r_j,r_k,r_l) +
+                              \sum_{ijkl} E_{\it improper}(r_i,r_j,r_k,r_l) +
+                              \sum_i E_{\it fix}(r_i)
 
-where the first term is the sum of all non-bonded :doc:`pairwise interactions <pair_style>` including :doc:`long-range Coulombic interactions <kspace_style>`, the 2nd through 5th terms are
-:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
-:doc:`dihedral <dihedral_style>`, and :doc:`improper <improper_style>`
-interactions respectively, and the last term is energy due to
-:doc:`fixes <fix>` which can act as constraints or apply force to atoms,
-such as through interaction with a wall.  See the discussion below about
-how fix commands affect minimization.
+where the first term is the sum of all non-bonded :doc:`pairwise
+interactions <pair_style>` including :doc:`long-range Coulombic
+interactions <kspace_style>`, the 2nd through 5th terms are :doc:`bond
+<bond_style>`, :doc:`angle <angle_style>`, :doc:`dihedral
+<dihedral_style>`, and :doc:`improper <improper_style>` interactions
+respectively, and the last term is energy due to :doc:`fixes <fix>`
+which can act as constraints or apply force to atoms, such as through
+interaction with a wall.  See the discussion below about how fix
+commands affect minimization.
 
 The starting point for the minimization is the current configuration
 of the atoms.
 
-
 ----------
-
 
 The minimization procedure stops if any of several criteria are met:
 
@@ -126,9 +129,9 @@ The minimization procedure stops if any of several criteria are met:
 .. note::
 
    You can also use the :doc:`fix halt <fix_halt>` command to specify
-   a general criterion for exiting a minimization, that is a calculation
-   performed on the state of the current system, as defined by an
-   :doc:`equal-style variable <variable>`.
+   a general criterion for exiting a minimization, that is a
+   calculation performed on the state of the current system, as
+   defined by an :doc:`equal-style variable <variable>`.
 
 For the first criterion, the specified energy tolerance *etol* is
 unitless; it is met when the energy change between successive
@@ -163,9 +166,8 @@ freedom, such as from the :doc:`fix box/relax <fix_box_relax>` command.
 
 Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
-information about the energy, force, final line search, and
-iteration counts.  An example is as follows:
-
+information about the energy, force, final line search, and iteration
+counts.  An example is as follows:
 
 .. parsed-literal::
 
@@ -204,9 +206,7 @@ reduced.
 The iterations and force evaluation values are what is checked by the
 *maxiter* and *maxeval* parameters.
 
-
 ----------
-
 
 .. note::
 
@@ -277,9 +277,7 @@ that can be used include:
    :doc:`fix shake <fix_shake>` or :doc:`fix rigid <fix_rigid>`.  See more
    info in the Restrictions section below.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -299,13 +297,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Features that are not yet implemented are listed here, in case someone
 knows how they could be coded:
@@ -337,8 +332,3 @@ Related commands
 :doc:`run_style <run_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

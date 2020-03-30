@@ -6,7 +6,6 @@ fix ave/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/chunk Nevery Nrepeat Nfreq chunkID value1 value2 ... keyword args ...
@@ -18,10 +17,10 @@ Syntax
 * Nfreq = calculate averages every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more input values can be listed
-* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c\_ID, c\_ID[I], f\_ID, f\_ID[I], v\_name
-  
+* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c_ID, c_ID[I], f_ID, f_ID[I], v_name
+
   .. parsed-literal::
-  
+
        vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
        density/number, density/mass = number or mass density
        temp = temperature
@@ -33,9 +32,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *norm* arg = *all* or *sample* or *none* = how output on *Nfreq* steps is normalized
          all = output is sum of atoms across all *Nrepeat* samples, divided by atom count
          sample = output is sum of *Nrepeat* sample averages, divided by *Nrepeat*
@@ -62,13 +61,10 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/chunk 10000 1 10000 binchunk c_myCentro title1 "My output values"
    fix 1 flow ave/chunk 100 10 1000 molchunk vx vz norm sample file vel.profile
@@ -82,15 +78,13 @@ with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <comput
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 
 could be replaced by:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 flow chunk/atom bin/1d y 0.0 1.0
    fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
@@ -154,11 +148,10 @@ had been listed one by one.  E.g. these 2 fix ave/chunk commands are
 equivalent, since the :doc:`compute property/atom <compute_property_atom>` command creates, in this
 case, a per-atom array with 3 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myAng all property/atom angmomx angmomy angmomz
-   fix 1 all ave/chunk 100 1 100 cc1 c_myAng[\*] file tmp.angmom
+   fix 1 all ave/chunk 100 1 100 cc1 c_myAng[*] file tmp.angmom
    fix 2 all ave/chunk 100 1 100 cc1 c_myAng[1] c_myAng[2] c_myAng[3] file tmp.angmom
 
 .. note::
@@ -173,9 +166,7 @@ case, a per-atom array with 3 columns:
    computational cost (summing across processors), so be careful to
    define a reasonable number of chunks.
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be accessed and contribute to the
@@ -219,9 +210,7 @@ discussed below.
    the size of each bin can vary at each timestep if the simulation box
    size changes, e.g. for an NPT simulation.
 
-
 ----------
-
 
 The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
 As noted above, any other atom attributes can be used as input values
@@ -303,9 +292,7 @@ attributes, or invoke other computes, fixes, or variables when they
 are evaluated, so this is a very general means of generating per-atom
 quantities to average within chunks.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix
 and its outputs.
@@ -430,7 +417,6 @@ values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows:
 
-
 .. parsed-literal::
 
    # Chunk-averaged data for fix ID and group name
@@ -440,7 +426,7 @@ By default, these header lines are as follows:
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
-replaced with the appropriate value names, e.g. fx or c\_myCompute[2].
+replaced with the appropriate value names, e.g. fx or c_myCompute[2].
 
 The words in parenthesis only appear with corresponding columns if the
 chunk style specified for the :doc:`compute chunk/atom <compute_chunk_atom>` command supports them.  The OrigID
@@ -468,11 +454,9 @@ be in unitless reduced units (0-1).  This is not true for the Coord1 value
 of style *bin/sphere* or *bin/cylinder* which both represent radial
 dimensions.  Those values are always in distance :doc:`units <units>`.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -513,8 +497,3 @@ Default
 
 The option defaults are norm = all, ave = one, bias = none, no file output, and
 title 1,2,3 = strings as described above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ fix gle command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride]
@@ -18,22 +17,19 @@ Syntax
 * Amatrix = file to read the drift matrix A from
 * seed = random number seed to use for generating noise (positive integer)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *noneq* or *every*
          *noneq* Cmatrix  = file to read the non-equilibrium covariance matrix from
          *every* stride   = apply the GLE once every time steps. Reduces the accuracy
              of the integration of the GLE, but has \*no effect\* on the accuracy of equilibrium
              sampling. It might change sampling properties when used together with *noneq*\ .
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 boundary gle 6 300 300 31415 smart.A
    fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C
@@ -54,7 +50,6 @@ on the same atom groups.
 Each degree of freedom in the thermostatted group is supplemented
 with Ns additional degrees of freedom s, and the equations of motion
 become
-
 
 .. parsed-literal::
 
@@ -104,7 +99,7 @@ input matrix for :doc:`fix gle <fix_gle>`. While the GLE scheme is more
 general, the form used by :doc:`fix gld <fix_gld>` can be more directly
 related to the representation of an implicit solvent environment.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random
@@ -133,7 +128,6 @@ fix is "extensive".
 Restrictions
 """"""""""""
 
-
 The GLE thermostat in its current implementation should not be used
 with rigid bodies, SHAKE or RATTLE. It is expected that all the
 thermostatted degrees of freedom are fully flexible, and the sampled
@@ -152,31 +146,18 @@ Related commands
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`, :doc:`fix gld <fix_gld>`
 
-
 ----------
 
-
 .. _Ceriotti:
-
-
 
 **(Ceriotti)** Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6,
 1170-80 (2010)
 
 .. _GLE4MD:
 
-
-
 **(GLE4MD)** `http://gle4md.org/ <http://gle4md.org/>`_
 
 .. _Ceriotti2:
 
-
-
 **(Ceriotti2)** Ceriotti, Bussi and Parrinello, Phys Rev Lett 103,
 030603 (2009)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

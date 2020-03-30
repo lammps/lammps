@@ -6,7 +6,6 @@ fix addtorque command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID addtorque Tx Ty Tz
@@ -16,12 +15,10 @@ Syntax
 * Tx,Ty,Tz = torque component values (torque units)
 * any of Tx,Ty,Tz can be a variable (see below)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix kick bead addtorque 2.0 3.0 5.0
    fix kick bead addtorque 0.0 0.0 v_oscillate
@@ -37,13 +34,12 @@ the group such that:
 * the group would move as a rigid body in the absence of other
   forces.
 
-
 This command can be used to drive a group of atoms into rotation.
 
 Any of the 3 quantities defining the torque components can be specified
 as an equal-style :doc:`variable <variable>`, namely *Tx*\ ,
 *Ty*\ , *Tz*\ .  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 torque component.
 
@@ -52,11 +48,9 @@ functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent torque.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -91,7 +85,6 @@ the iteration count during the minimization.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -101,8 +94,3 @@ Related commands
 :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

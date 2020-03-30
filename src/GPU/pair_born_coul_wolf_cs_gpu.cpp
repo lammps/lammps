@@ -249,7 +249,7 @@ void PairBornCoulWolfCSGPU::cpu_compute(int start, int inum, int eflag,
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        rsq += EPSILON; // Add EPISLON for case: r = 0; Interaction must be removed by special bond
+        rsq += EPSILON; // Add EPSILON for case: r = 0; Interaction must be removed by special bond
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {

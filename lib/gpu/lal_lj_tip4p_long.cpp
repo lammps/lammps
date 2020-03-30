@@ -74,11 +74,11 @@ int LJTIP4PLongT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-//  int max_shared_types=this->device->max_shared_types();
-//  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
-//    lj_types=max_shared_types;
-//    shared_types=true;
-//  }
+  int max_shared_types=this->device->max_shared_types();
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    lj_types=max_shared_types;
+    shared_types=true;
+  }
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
@@ -202,7 +202,6 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
 
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
-  this->k_pair.set_size(GX,BX);
   if (vflag) {
           this->ansO.resize_ib(ainum*3);
   } else {
@@ -210,13 +209,25 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   }
   this->ansO.zero();
   this->device->gpu->sync();
-  this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
+  if(shared_types) {
+    this->k_pair_fast.set_size(GX,BX);
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
           &ainum, &nbor_pitch, &this->_threads_per_atom,
           &hneight, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
           &cut_coulsq, &cut_coulsqplus, &this->ansO);
+  } else {
+    this->k_pair.set_size(GX,BX);
+    this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
+          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+          &this->ans->force, &this->ans->engv, &eflag, &vflag,
+          &ainum, &nbor_pitch, &this->_threads_per_atom,
+          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
+          &cut_coulsq, &cut_coulsqplus, &this->ansO);
+  }
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   this->k_pair_distrib.set_size(GX,BX);
   this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv,

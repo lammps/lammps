@@ -6,7 +6,6 @@ compute property/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/atom input1 input2 ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/atom = style name of this compute command
 * input = one or more atom attributes
-  
+
   .. parsed-literal::
-  
+
        possible attributes = id, mol, proc, type, mass,
                              x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
                              vx, vy, vz, fx, fy, fz,
@@ -36,9 +35,8 @@ Syntax
                              rho, drho, e, de, cv,
                              i_name, d_name
 
-  
   .. parsed-literal::
-  
+
            id = atom ID
            mol = molecule ID
            proc = ID of processor that owns atom
@@ -66,25 +64,22 @@ Syntax
            corner123x, corner123y, corner123z = corner points of triangle
            nbonds = number of bonds assigned to an atom
 
-  
   .. parsed-literal::
-  
+
            PERI package per-atom properties:
            vfrac = ???
            s0 = ???
 
-  
   .. parsed-literal::
-  
+
            USER-EFF and USER-AWPMD package per-atom properties:
            spin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
 
-  
   .. parsed-literal::
-  
+
            USER-SPH package per-atom properties:
            rho = ???
            drho = ???
@@ -92,20 +87,16 @@ Syntax
            de = ???
            cv = ???
 
-  
   .. parsed-literal::
-  
+
            :doc:`fix property/atom <fix_property_atom>` per-atom properties:
            i_name = custom integer vector with name
            d_name = custom integer vector with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/atom xs vx fx mux
    compute 2 all property/atom type
@@ -156,11 +147,11 @@ two atoms in the bond.  Thus a bond between atoms I,J may be tallied
 for either atom I or atom J.  If :doc:`newton bond off <newton>` is set,
 it will be tallied with both atom I and atom J.
 
-The *i\_name* and *d\_name* attributes refer to custom integer and
+The *i_name* and *d_name* attributes refer to custom integer and
 floating-point properties that have been added to each atom via the
 :doc:`fix property/atom <fix_property_atom>` command.  When that command
 is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i\_name* or *d\_name*.
+specified as the "name" portion of *i_name* or *d_name*.
 
 **Output info:**
 
@@ -191,8 +182,3 @@ Related commands
 :doc:`fix property/atom <fix_property_atom>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

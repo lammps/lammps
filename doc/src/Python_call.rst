@@ -59,8 +59,7 @@ new potential.
 To use any of these commands, you only need to build LAMMPS with the
 PYTHON package installed:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-python
    make machine
@@ -77,8 +76,3 @@ If you want to write Python code with callbacks to LAMMPS, then you
 must also follow the steps summarized in the :doc:`Python run <Python_run>` doc page.  I.e. you must build LAMMPS as a shared
 library and insure that Python can find the python/lammps.py file and
 the shared library.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

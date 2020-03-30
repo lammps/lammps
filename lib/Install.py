@@ -45,8 +45,11 @@ if not args.machine and not args.extramake:
   sys.exit(HELP)
 
 machine = args.machine
-extraflag = not args.extramake
-suffix = args.extramake
+extraflag = args.extramake
+if extraflag:
+    suffix = args.extramake
+else:
+    suffix = 'empty'
 
 # set lib from working dir
 

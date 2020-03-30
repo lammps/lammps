@@ -6,25 +6,21 @@ box command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    box keyword value ...
 
 * one or more keyword/value pairs may be appended
 * keyword = *tilt*
-  
+
   .. parsed-literal::
-  
+
        *tilt* value = *small* or *large*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    box tilt large
    box tilt small
@@ -58,7 +54,6 @@ error.
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
 :doc:`read_restart <read_restart>` command.
@@ -69,8 +64,3 @@ Default
 """""""
 
 The default value is tilt = small.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

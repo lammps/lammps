@@ -9,7 +9,6 @@ fix dpd/energy/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID dpd/energy
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all dpd/energy
 
@@ -43,15 +41,13 @@ This fix must be used with the :doc:`pair_style dpd/fdt/energy <pair_style>` com
 
 Note that numerous variants of DPD can be specified by choosing an
 appropriate combination of the integrator and :doc:`pair_style dpd/fdt/energy <pair_style>` command.  DPD under isoenergetic conditions
-can be specified by using fix *dpd/energy*\ , fix *nve* and pair\_style
+can be specified by using fix *dpd/energy*\ , fix *nve* and pair_style
 *dpd/fdt/energy*\ .  DPD under isoenthalpic conditions can
-be specified by using fix *dpd/energy*\ , fix *nph* and pair\_style
+be specified by using fix *dpd/energy*\ , fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
 examples/USER/dpd directory.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -71,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -99,13 +92,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lisal1:
-
-
 
 **(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and
@@ -114,14 +103,7 @@ J. Chem. Phys., 135, 204105 (2011).
 
 .. _Larentzos3:
 
-
-
 **(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
 Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 Laboratory, Aberdeen Proving Ground, MD (2014).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

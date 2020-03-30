@@ -6,16 +6,15 @@ variable command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    variable name style args ...
 
 * name = name of variable to define
 * style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *internal* or *equal* or *vector* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *index* args = one or more strings
        *loop* args = N
@@ -74,22 +73,19 @@ Syntax
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable x index run1 run2 run3 run4 run5 run6 run7 run8
    variable LoopVar loop $n
    variable beta equal temp/3.0
-   variable b1 equal x[234]+0.5\*vol
-   variable b1 equal "x[234] + 0.5\*vol"
+   variable b1 equal x[234]+0.5*vol
+   variable b1 equal "x[234] + 0.5*vol"
    variable b equal xcm(mol1,x)/2.0
    variable b equal c_myTemp
-   variable b atom x\*y/vol
+   variable b atom x*y/vol
    variable foo string myfile
    variable foo internal 3.5
    variable myPy python increase
@@ -198,7 +194,7 @@ There are two exceptions to this rule.  First, variables of style
 allows these style of variables to be redefined multiple times in an
 input script.  In a loop, this means the formula associated with an
 *equal* or *atom* style variable can change if it contains a
-substitution for another variable, e.g. $x or v\_x.
+substitution for another variable, e.g. $x or v_x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the :doc:`next <next>` command, it is removed
@@ -206,9 +202,7 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
-
 ----------
-
 
 The :doc:`Commands parse <Commands_parse>` doc page explains how
 occurrences of a variable name in an input script line are replaced by
@@ -231,8 +225,7 @@ script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the :doc:`if <if>` and :doc:`jump <jump>`
 commands before the variable would become exhausted.  For example,
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label       loop
    variable    a loop 5
@@ -243,9 +236,7 @@ commands before the variable would become exhausted.  For example,
    label       break
    variable    a delete
 
-
 ----------
-
 
 This section describes how all the various variable styles are defined
 and what they store.  Except for the *equal* and *vector* and *atom*
@@ -379,7 +370,6 @@ the count N of per-atom lines to immediately follow.  N can be the
 total number of atoms in the system, or only a subset.  The next N
 lines have the following format
 
-
 .. parsed-literal::
 
    ID value
@@ -398,8 +388,7 @@ to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
 keyword.  For example these two commands would be self-consistent:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable foo python myMultiply
    python myMultiply return v_foo format f file funcs.py
@@ -430,9 +419,7 @@ internal-style variable can be used in place of an equal-style
 variable anywhere else in an input script, e.g. as an argument to
 another command that allows for equal-style variables.
 
-
 ----------
-
 
 For the *equal* and *vector* and *atom* styles, a single string is
 specified which represents a formula that will be evaluated afresh
@@ -468,10 +455,9 @@ simple, but multiple quantities can be nested and combined in various
 ways to build up formulas of arbitrary complexity.  For example, this
 is a valid (though strange) variable formula:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   variable x equal "pe + c_MyTemp / vol\^(1/3)"
+   variable x equal "pe + c_MyTemp / vol^(1/3)"
 
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
@@ -499,11 +485,11 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                   |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c\_ID, c\_ID[i], c\_ID[i][j], C\_ID, C\_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                  |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f\_ID, f\_ID[i], f\_ID[i][j], F\_ID, F\_ID[i]                                                                                                                                                                                                                                                                                                             |
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                                  |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v\_name, v\_name[i]                                                                                                                                                                                                                                                                                                                                       |
+| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                         |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
@@ -530,9 +516,7 @@ the atom-style variable, only atoms in the group are included in the
 formula evaluation.  The variable evaluates to 0.0 for atoms not in
 the group.
 
-
 ----------
-
 
 Numbers, constants, and thermo keywords
 ---------------------------------------
@@ -551,8 +535,7 @@ adapt automatically to LAMMPS versions, when non-backwards compatible
 syntax changes are introduced. Here is an illustrative example (which
 will not work, since the *version* has been introduced more recently):
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes"
 
@@ -562,7 +545,7 @@ require a :doc:`compute <compute>` to calculate their values such as
 "temp" or "press", use computes stored and invoked by the
 :doc:`thermo_style <thermo_style>` command.  This means that you can
 only use those keywords in a variable if the style you are using with
-the thermo\_style command (and the thermo keywords associated with that
+the thermo_style command (and the thermo keywords associated with that
 style) also define and use the needed compute.  Note that some thermo
 keywords use a compute indirectly to calculate their value (e.g. the
 enthalpy keyword uses temp, pe, and pressure).  If a variable is
@@ -570,9 +553,7 @@ evaluated directly in an input script (not during a run), then the
 values accessed by the thermo keyword must be current.  See the
 discussion below about "Variable Accuracy".
 
-
 ----------
-
 
 Math Operators
 --------------
@@ -622,9 +603,7 @@ whose properties satisfy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the :doc:`compute reduce <compute_reduce>` command.
 
-
 ----------
-
 
 Math Functions
 --------------
@@ -673,7 +652,6 @@ The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course
 of a run, according to this formula:
 
-
 .. parsed-literal::
 
    value = x + (y-x) \* (timestep-startstep) / (stopstep-startstep)
@@ -691,7 +669,6 @@ timestep in the sequence is returned.  Thus if stagger(1000,100) is
 used in a variable by the :doc:`dump_modify every <dump_modify>`
 command, it will generate the sequence of output timesteps:
 
-
 .. parsed-literal::
 
    100,1000,1100,2000,2100,3000,etc
@@ -706,7 +683,6 @@ any current timestep, the next timestep in the sequence is returned.
 Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, it will generate this sequence of
 output timesteps:
 
-
 .. parsed-literal::
 
    100,200,300,400,1000,2000,3000,4000,10000,20000,etc
@@ -717,7 +693,6 @@ all of them are output.  Y < z is not required.  Thus, if
 logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, then the interval between 100 and
 1000 is divided as 900/18 = 50 steps, and it will generate the
 sequence of output timesteps:
-
 
 .. parsed-literal::
 
@@ -730,7 +705,6 @@ a variable by the :doc:`fix print <fix_print>` command, then the interval
 between 10 and 1000 is divided into 24 parts with a multiplicative
 separation of ~1.21, and it will generate the following sequence of output
 timesteps:
-
 
 .. parsed-literal::
 
@@ -745,7 +719,6 @@ that does not exceed y.  For any current timestep, the next timestep
 in the sequence is returned.  Thus if stride(1000,2000,100) is used
 in a variable by the :doc:`dump_modify every <dump_modify>` command, it
 will generate the sequence of output timesteps:
-
 
 .. parsed-literal::
 
@@ -766,7 +739,6 @@ if stride2(1000,2000,100,1350,1360,1) is used in a variable by the
 :doc:`dump_modify every <dump_modify>` command, it will generate the
 sequence of output timesteps:
 
-
 .. parsed-literal::
 
    1000,1100,1200,1300,1350,1351,1352, ... 1359,1360,1400,1500, ... ,2000
@@ -775,7 +747,6 @@ The vdisplace(x,y) function takes 2 arguments: x = value0 and y =
 velocity, and uses the elapsed time to change the value by a linear
 displacement due to the applied velocity over the course of a run,
 according to this formula:
-
 
 .. parsed-literal::
 
@@ -794,7 +765,6 @@ x = value0, y = amplitude, z = period.  They use the elapsed time to
 oscillate the value by a sin() or cos() function over the course of a
 run, according to one of these formulas, where omega = 2 PI / period:
 
-
 .. parsed-literal::
 
    value = value0 + Amplitude \* sin(omega\*(timestep-startstep)\*dt)
@@ -808,9 +778,7 @@ the *start* keyword of the :doc:`run <run>` command.  See the
 :doc:`thermo_style <thermo_style>` keyword elaplong =
 timestep-startstep.
 
-
 ----------
-
 
 Group and Region Functions
 --------------------------
@@ -845,9 +813,7 @@ The function is computed for all atoms that are in both the group and
 the region.  If the group is "all", then the only criteria for atom
 inclusion is that it be in the region.
 
-
 ----------
-
 
 Special Functions
 -----------------
@@ -856,15 +822,15 @@ Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
-each take 1 argument which is of the form "c\_ID" or "c\_ID[N]" or
-"f\_ID" or "f\_ID[N]" or "v\_name".  The first two are computes and the
+each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
+"f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
 second two are fixes; the ID in the reference should be replaced by
 the ID of a compute or fix defined elsewhere in the input script.  The
 compute or fix must produce either a global vector or array.  If it
 produces a global vector, then the notation without "[N]" should be
 used.  If it produces a global array, then the notation with "[N]"
 should be used, when N is an integer, to specify which column of the
-global array is being referenced.  The last form of argument "v\_name"
+global array is being referenced.  The last form of argument "v_name"
 is for a vector-style variable where "name" is replaced by the name of
 the variable.
 
@@ -909,7 +875,7 @@ variables.  It returns a 1 for atoms that are in both the group and
 region, and a 0 for atoms that are not in both.
 
 The next(x) function takes 1 argument which is a variable ID (not
-"v\_foo", just "foo").  It must be for a file-style or atomfile-style
+"v_foo", just "foo").  It must be for a file-style or atomfile-style
 variable.  Each time the next() function is invoked (i.e. each time
 the equal-style or atom-style variable is evaluated), the following
 steps occur.
@@ -933,9 +899,7 @@ invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the :doc:`next <next>` command
 operates.
 
-
 ----------
-
 
 Feature Functions
 -----------------
@@ -948,23 +912,23 @@ themselves (only $-style immediate variable expansion is possible).
 Return value is either 1.0 or 0.0 depending on whether the function
 evaluates to true or false, respectively.
 
-The *is\_active()* function allows to query for active settings which
+The *is_active()* function allows to query for active settings which
 are grouped by categories. Currently supported categories and
 arguments are:
 
 * *package* (argument = *gpu* or *intel* or *kokkos* or *omp*\ )
 * *newton* (argument = *pair* or *bond* or *any*\ )
 * *pair* (argument = *single* or *respa* or *manybody* or *tail* or *shift*\ )
-* *comm\_style* (argument = *brick* or *tiled*\ )
-* *min\_style* (argument = any of the compiled in minimizer styles)
-* *run\_style* (argument = any of the compiled in run styles)
-* *atom\_style* (argument = any of the compiled in atom styles)
-* *pair\_style* (argument = any of the compiled in pair styles)
-* *bond\_style* (argument = any of the compiled in bond styles)
-* *angle\_style* (argument = any of the compiled in angle styles)
-* *dihedral\_style* (argument = any of the compiled in dihedral styles)
-* *improper\_style* (argument = any of the compiled in improper styles)
-* *kspace\_style* (argument = any of the compiled in kspace styles)
+* *comm_style* (argument = *brick* or *tiled*\ )
+* *min_style* (argument = any of the compiled in minimizer styles)
+* *run_style* (argument = any of the compiled in run styles)
+* *atom_style* (argument = any of the compiled in atom styles)
+* *pair_style* (argument = any of the compiled in pair styles)
+* *bond_style* (argument = any of the compiled in bond styles)
+* *angle_style* (argument = any of the compiled in angle styles)
+* *dihedral_style* (argument = any of the compiled in dihedral styles)
+* *improper_style* (argument = any of the compiled in improper styles)
+* *kspace_style* (argument = any of the compiled in kspace styles)
 
 Most of the settings are self-explanatory, the *single* argument in the
 *pair* category allows to check whether a pair style supports a
@@ -975,8 +939,7 @@ the checking is also done using suffix flags, if available and enabled.
 
 Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/coul/long 14.0
    if $(is_active(package,gpu)) then "suffix off"
@@ -984,20 +947,19 @@ Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on
 
 Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   timestep $(2.0\*(1.0+2.0\*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
-The *is\_defined()* function allows to query categories like *compute*\ ,
+The *is_defined()* function allows to query categories like *compute*\ ,
 *dump*\ , *fix*\ , *group*\ , *region*\ , and *variable* whether an entry
 with the provided name or id is defined.
 
-The *is\_available(category,name)* function allows to query whether
+The *is_available(category,name)* function allows to query whether
 a specific optional feature is available, i.e. compiled in.
 This currently works for the following categories: *command*\ ,
-*compute*\ , *fix*\ , *pair\_style* and *feature*\ . For all categories
+*compute*\ , *fix*\ , *pair_style* and *feature*\ . For all categories
 except *command* and *feature* also appending active suffixes is
 tried before reporting failure.
 
@@ -1009,30 +971,27 @@ and C++ exceptions for error handling. Corresponding values for name are
 This enables writing input scripts which only dump using a given format if
 the compiled binary supports it.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
 
    if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
 
-
 ----------
-
 
 Atom Values and Vectors
 -----------------------
 
 Atom values take an integer argument I from 1 to N, where I is the
 atom-ID, e.g. x[243], which means use the x coordinate of the atom
-with ID = 243.  Or they can take a variable name, specified as v\_name,
-where name is the name of the variable, like x[v\_myIndex].  The
+with ID = 243.  Or they can take a variable name, specified as v_name,
+where name is the name of the variable, like x[v_myIndex].  The
 variable can be of any style except *vector* or *atom* or *atomfile*
 variables.  The variable is evaluated and the result is expected to be
 numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an
 index, which must be a value from 1 to N.  Note that a "formula"
 cannot be used as the argument between the brackets, e.g. x[243+10]
-or x[v\_myIndex+1] are not allowed.  To do this a single variable can
+or x[v_myIndex+1] are not allowed.  To do this a single variable can
 be defined that contains the needed formula.
 
 Note that the 0 < atom-ID <= N, where N is the largest atom ID
@@ -1052,9 +1011,7 @@ Note that many other atom attributes can be used as inputs to a
 variable by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
 a quantity from that compute.
 
-
 ----------
-
 
 Compute References
 ------------------
@@ -1081,15 +1038,15 @@ reference means, since computes only produce either global or per-atom
 quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID       | global scalar, or per-atom vector                                                                     |
+| c_ID       | global scalar, or per-atom vector                                                                      |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| c_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| c\_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
@@ -1099,17 +1056,16 @@ global vector.  Consider a compute with ID "foo" that does this,
 referenced as follows by variable "a", where "myVec" is another
 vector-style variable:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
+   variable a vector c_foo*v_myVec
 
-   variable a vector c_foo\*v_myVec
-
-The reference "c\_foo" could refer to either the global scalar or
-global vector produced by compute "foo".  In this case, "c\_foo" will
-always refer to the global scalar, and "C\_foo" can be used to
+The reference "c_foo" could refer to either the global scalar or
+global vector produced by compute "foo".  In this case, "c_foo" will
+always refer to the global scalar, and "C_foo" can be used to
 reference the global vector.  Similarly if the compute produces both a
-global vector and global array, then "c\_foo[I]" will always refer to
-an element of the global vector, and "C\_foo[I]" can be used to
+global vector and global array, then "c_foo[I]" will always refer to
+an element of the global vector, and "C_foo[I]" can be used to
 reference the Ith column of the global array.
 
 Note that if a variable containing a compute is evaluated directly in
@@ -1117,9 +1073,7 @@ an input script (not during a run), then the values accessed by the
 compute must be current.  See the discussion below about "Variable
 Accuracy".
 
-
 ----------
-
 
 Fix References
 --------------
@@ -1144,15 +1098,15 @@ as to what a reference means, since fixes only produce either global
 or per-atom quantities, never both.
 
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID       | global scalar, or per-atom vector                                                                     |
+| f_ID       | global scalar, or per-atom vector                                                                      |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array |
+| f_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
 +-------------+-------------------------------------------------------------------------------------------------------+
-| f\_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
+| f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
 +-------------+-------------------------------------------------------------------------------------------------------+
 
 For I and J indices, integers can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
@@ -1160,10 +1114,10 @@ One source of ambiguity for fix references is the same ambiguity
 discussed for compute references above.  Namely when a vector-style
 variable refers to a fix that produces both a global scalar and a
 global vector.  The solution is the same as for compute references.
-For a fix with ID "foo", "f\_foo" will always refer to the global
-scalar, and "F\_foo" can be used to reference the global vector.  And
+For a fix with ID "foo", "f_foo" will always refer to the global
+scalar, and "F_foo" can be used to reference the global vector.  And
 similarly for distinguishing between a fix's global vector versus
-global array with "f\_foo[I]" versus "F\_foo[I]".
+global array with "f_foo[I]" versus "F_foo[I]".
 
 Note that if a variable containing a fix is evaluated directly in an
 input script (not during a run), then the values accessed by the fix
@@ -1176,9 +1130,7 @@ error is generated.  For example, the :doc:`fix ave/time <fix_ave_time>`
 command may only generate averaged quantities every 100 steps.  See
 the doc pages for individual fix commands for details.
 
-
 ----------
-
 
 Variable References
 -------------------
@@ -1195,7 +1147,7 @@ generate a per-atom vector of numeric values.  All other variables
 store one or more strings.
 
 The formula for an equal-style variable can use any style of variable
-including a vector\_style or atom-style or atomfile-style.  For these
+including a vector_style or atom-style or atomfile-style.  For these
 3 styles, a subscript must be used to access a single value from
 the vector-, atom-, or atomfile-style variable.  If a string-storing
 variable is used, the string is converted to a numeric value.  Note
@@ -1217,25 +1169,23 @@ There is no ambiguity as to what a reference means, since variables
 produce only a global scalar or global vector or per-atom vector.
 
 +------------+----------------------------------------------------------------------+
-| v\_name    | global scalar from equal-style variable                              |
+| v_name    | global scalar from equal-style variable                               |
 +------------+----------------------------------------------------------------------+
-| v\_name    | global vector from vector-style variable                             |
+| v_name    | global vector from vector-style variable                              |
 +------------+----------------------------------------------------------------------+
-| v\_name    | per-atom vector from atom-style or atomfile-style variable           |
+| v_name    | per-atom vector from atom-style or atomfile-style variable            |
 +------------+----------------------------------------------------------------------+
-| v\_name[I] | Ith element of a global vector from vector-style variable            |
+| v_name[I] | Ith element of a global vector from vector-style variable             |
 +------------+----------------------------------------------------------------------+
-| v\_name[I] | value of atom with ID = I from atom-style or atomfile-style variable |
+| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable  |
 +------------+----------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
-specified as v\_name, where name is the name of the variable.  The
+specified as v_name, where name is the name of the variable.  The
 rules for this syntax are the same as for the "Atom Values and
 Vectors" discussion above.
 
-
 ----------
-
 
 **Immediate Evaluation of Variables:**
 
@@ -1250,12 +1200,12 @@ named variable.
 
 More generally, there is a difference between referencing a variable
 with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
-(e.g. v\_x or v\_abc).  The former can be used in any input script
+(e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
 into the command.  As explained on the :doc:`Commands parse <Commands_parse>` doc page, you can also use un-named
 "immediate" variables for this purpose.  For example, a string like
-this $((xlo+xhi)/2+sqrt(v\_area)) in an input script command evaluates
+this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
 the string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v\_" is an optional or required
@@ -1269,23 +1219,21 @@ evaluated.
 As an example, suppose you use this command in your input script to
 define the variable "v" as
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable v equal vol
 
 before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
-(using the thermo\_style keyword "vol") to the variable "v".  If you
+(using the thermo_style keyword "vol") to the variable "v".  If you
 use the variable "v" in some other command like :doc:`fix ave/time <fix_ave_time>` then the current volume of the box will be
 evaluated continuously during the run.
 
 If you want to store the initial volume of the system, you can do it
 this way:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable v equal vol
    variable v0 equal $v
@@ -1294,8 +1242,7 @@ The second command will force "v" to be evaluated (yielding the
 initial volume) and assign that value to the variable "v0".  Thus the
 command
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style custom step v_v v_v0
 
@@ -1305,8 +1252,7 @@ during the run.
 Note that it is a mistake to enclose a variable formula in double
 quotes if it contains variables preceded by $ signs.  For example,
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable vratio equal "${vfinal}/${v0}"
 
@@ -1314,9 +1260,7 @@ This is because the quotes prevent variable substitution (explained on
 the :doc:`Commands parse <Commands_parse>` doc page), and thus an error
 will occur when the formula for "vratio" is evaluated later.
 
-
 ----------
-
 
 **Variable Accuracy:**
 
@@ -1365,8 +1309,7 @@ timestep of the preceding run, e.g. by thermodynamic output.
 One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t equal temp
    print "Initial temperature = $t"
@@ -1378,8 +1321,7 @@ a compute for calculating the temperature to be invoked.
 
 However, this sequence of commands would be fine:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run 0
    variable t equal temp
@@ -1413,8 +1355,7 @@ a 0-timestep run before printing the variable has the desired effect.
 way to detect this has occurred.  Consider the following sequence of
 commands:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff 1 1 1.0 1.0
    run 1000
@@ -1440,8 +1381,7 @@ the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_coeff 1 1 1.0 1.0
    run 1000
@@ -1450,13 +1390,10 @@ coefficient:
    variable e equal pe
    print "Final potential energy = $e"
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Indexing any formula element by global atom ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in
@@ -1474,8 +1411,3 @@ Related commands
 :doc:`temper <temper>`, :doc:`fix print <fix_print>`, :doc:`print <print>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

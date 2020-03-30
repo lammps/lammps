@@ -6,7 +6,6 @@ fix spring command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring keyword values
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * spring = style name of this fix command
 * keyword = *tether* or *couple*
-  
+
   .. parsed-literal::
-  
+
        *tether* values = K x y z R0
          K = spring constant (force/distance units)
          x,y,z = point to which spring is tethered
@@ -27,13 +26,10 @@ Syntax
          x,y,z = direction of spring
          R0 = equilibrium distance of spring (distance units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
    fix pull ligand spring tether 50.0 0.0 0.0 0.0 5.0
@@ -49,7 +45,7 @@ Apply a spring force to a group of atoms or between two groups of
 atoms.  This is useful for applying an umbrella force to a small
 molecule or lightly tethering a large group of atoms (e.g. all the
 solvent or a large molecule) to the center of the simulation box so
-that it doesn't wander away over the course of a long simulation.  It
+that it does not wander away over the course of a long simulation.  It
 can also be used to hold the centers of mass of two groups of atoms at
 a given distance or orientation with respect to each other.
 
@@ -101,7 +97,7 @@ last example holds the ion a distance 5 away from the pore axis
    spring connecting two groups or a group and the tether point can cross
    a periodic boundary and its length be calculated correctly.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -154,8 +150,3 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`, :doc:`fix smd <fix_smd>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

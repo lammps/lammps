@@ -6,7 +6,6 @@ compute temp/ramp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
@@ -20,7 +19,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
 
-
 .. parsed-literal::
 
      *units* value = *lattice* or *box*
@@ -28,8 +26,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice
 
@@ -118,8 +115,3 @@ Default
 """""""
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

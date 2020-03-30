@@ -6,7 +6,6 @@ fix nve/body command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/body
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/body
 
@@ -34,7 +32,7 @@ particles.
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
 assumes point particles and only updates their position and velocity.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -44,7 +42,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -62,8 +59,3 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ fix smd/setvel command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID smd/setvel vx vy vz keyword value ...
@@ -17,21 +16,18 @@ Syntax
 * any of vx,vy,vz can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region particles must be in to have their velocities set
-
-
 
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   fix top_velocity top_group setvel 1.0 0.0 0.0
+   fix top_velocity top_group smd/setvel 1.0 0.0 0.0
 
 Description
 """""""""""
@@ -48,7 +44,7 @@ This fix is indented to be used together with a time integration fix.
 Any of the 3 quantities defining the velocity components can be specified
 as an equal-style or atom-style :doc:`variable <variable>`, namely *vx*\ ,
 *vy*\ , *vz*\ .  If the value is a variable, it should be specified as
-v\_name, where name is the variable name.  In this case, the variable
+v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 force component.
 
@@ -65,11 +61,9 @@ field with optional time-dependence as well.
 If the *region* keyword is used, the particle must also be in the
 specified geometric :doc:`region <region>` in order to have its velocity set by this command.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Currently, no part of USER-SMD supports restarting nor minimization
 None of the :doc:`fix_modify <fix_modify>` options
@@ -86,15 +80,9 @@ the :doc:`run <run>` command.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

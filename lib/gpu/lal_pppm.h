@@ -41,7 +41,7 @@ class PPPM {
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** Success will be:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -2 if GPU could not be found
     * - -3 if there is an out of memory error

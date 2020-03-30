@@ -1,52 +1,50 @@
-.. index:: pair\_style born
+.. index:: pair_style born
 
-pair\_style born command
-========================
+pair_style born command
+=======================
 
-pair\_style born/omp command
-============================
+pair_style born/omp command
+===========================
 
-pair\_style born/gpu command
-============================
+pair_style born/gpu command
+===========================
 
-pair\_style born/coul/long command
-==================================
-
-pair\_style born/coul/long/gpu command
-======================================
-
-pair\_style born/coul/long/omp command
-======================================
-
-pair\_style born/coul/msm command
+pair_style born/coul/long command
 =================================
 
-pair\_style born/coul/msm/omp command
+pair_style born/coul/long/gpu command
 =====================================
 
-pair\_style born/coul/wolf command
-==================================
+pair_style born/coul/long/omp command
+=====================================
 
-pair\_style born/coul/wolf/gpu command
-======================================
+pair_style born/coul/msm command
+================================
 
-pair\_style born/coul/wolf/omp command
-======================================
+pair_style born/coul/msm/omp command
+====================================
 
-pair\_style born/coul/dsf command
+pair_style born/coul/wolf command
 =================================
+
+pair_style born/coul/wolf/gpu command
+=====================================
+
+pair_style born/coul/wolf/omp command
+=====================================
+
+pair_style born/coul/dsf command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *born* or *born/coul/long* or *born/coul/msm* or *born/coul/wolf*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -70,30 +68,29 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style born 10.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/long 10.0
    pair_style born/coul/long 10.0 8.
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/msm 10.0
    pair_style born/coul/msm 10.0 8.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/wolf 0.25 10.0
    pair_style born/coul/wolf 0.25 10.0 9.0
-   pair_coeff \* \* 6.08 0.317 2.340 24.18 11.51
+   pair_coeff * * 6.08 0.317 2.340 24.18 11.51
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/dsf 0.1 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
 Description
@@ -102,11 +99,14 @@ Description
 The *born* style computes the Born-Mayer-Huggins or Tosi/Fumi
 potential described in :ref:`(Fumi and Tosi) <FumiTosi>`, given by
 
-.. image:: Eqs/pair_born.jpg
-   :align: center
+.. math::
 
-where sigma is an interaction-dependent length parameter, rho is an
-ionic-pair dependent length parameter, and Rc is the cutoff.
+   E = A \exp \left(\frac{\sigma - r}{\rho} \right) -
+   \frac{C}{r^6} + \frac{D}{r^8} \qquad r < r_c
+
+where :math:`\sigma` is an interaction-dependent length parameter,
+:math:`\rho` is an ionic-pair dependent length parameter, and
+:math:`r_c` is the cutoff.
 
 The styles with *coul/long* or *coul/msm* add a Coulombic term as
 described for the :doc:`lj/cut <pair_lj>` pair styles.  An additional
@@ -138,8 +138,8 @@ above, or in the data file or restart files read by the
 commands, or by mixing as described below:
 
 * A (energy units)
-* rho (distance units)
-* sigma (distance units)
+* :math:`\rho` (distance units)
+* :math:`\sigma` (distance units)
 * C (energy units \* distance units\^6)
 * D (energy units \* distance units\^8)
 * cutoff (distance units)
@@ -147,16 +147,14 @@ commands, or by mixing as described below:
 The second coefficient, rho, must be greater than zero.
 
 The last coefficient is optional.  If not specified, the global A,C,D
-cutoff specified in the pair\_style command is used.
+cutoff specified in the pair_style command is used.
 
 For *born/coul/long*\ , *born/coul/wolf* and *born/coul/dsf* no
 Coulombic cutoff can be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
+pair_style command.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -176,9 +174,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -193,23 +189,20 @@ The *born/coul/long* pair style supports the
 :doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
-These styles support the pair\_modify tail option for adding long-range
+These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure.
 
 Thess styles writes thei information to binary :doc:`restart <restart>`
-files, so pair\_style and pair\_coeff commands do not need to be
+files, so pair_style and pair_coeff commands do not need to be
 specified in an input script that reads a restart file.
 
 These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *born/coul/long* style is part of the KSPACE package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -221,18 +214,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _FumiTosi:
 
-
-
 Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
 Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,22 +1,21 @@
-.. index:: read\_dump
+.. index:: read_dump
 
-read\_dump command
-==================
+read_dump command
+=================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump file Nstep field1 field2 ... keyword values ...
 
 * file = name of dump file to read
 * Nstep = snapshot timestep to read from file
 * one or more fields may be appended
-  
+
   .. parsed-literal::
-  
+
      field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
        *x*\ ,\ *y*\ ,\ *z* = atom coordinates
        *vx*\ ,\ *vy*\ ,\ *vz* = velocity components
@@ -26,9 +25,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *nfile* or *box* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
-  
+
   .. parsed-literal::
-  
+
        *nfile* value = Nfiles = how many parallel dump files exist
        *box* value = *yes* or *no* = replace simulation box with dump box
        *replace* value = *yes* or *no* = overwrite atoms with dump atoms
@@ -50,13 +49,10 @@ Syntax
            style = *dcd* or *xyz* or others supported by molfile plugins
            path = optional path for location of molfile plugins
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_dump dump.file 5000 x y z
    read_dump dump.xyz 5 x y z box no format xyz
@@ -84,9 +80,9 @@ commands for alternative methods to do this.  Also see the
 from a dump file.
 
 Note that a simulation box must already be defined before using the
-read\_dump command.  This can be done by the
+read_dump command.  This can be done by the
 :doc:`create_box <create_box>`, :doc:`read_data <read_data>`, or
-:doc:`read_restart <read_restart>` commands.  The read\_dump command can
+:doc:`read_restart <read_restart>` commands.  The read_dump command can
 reset the simulation box dimensions, as explained below.
 
 Also note that reading per-atom information from a dump snapshot is
@@ -96,12 +92,10 @@ a valid simulation, such as atom charge, or bond topology information
 for a molecular system, are not read from (or even contained in) dump
 files.  Thus this auxiliary information should be defined in the usual
 way, e.g. in a data file read in by a :doc:`read_data <read_data>`
-command, before using the read\_dump command, or by the :doc:`set <set>`
+command, before using the read_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
-
 ----------
-
 
 If the dump filename specified as *file* ends with ".gz", the dump
 file is read in gzipped format.  You cannot (yet) read a dump file
@@ -141,39 +135,36 @@ contain multiple directories separated by a colon (or semi-colon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 
-The *adios* format supports reading data that was written by the 
-:doc:`dump adios <dump_adios>` command. The 
+The *adios* format supports reading data that was written by the
+:doc:`dump adios <dump_adios>` command. The
 entire dump is read in parallel across all the processes, dividing
 the atoms evenly among the processes. The number of writers that
 has written the dump file does not matter. Using the adios style for
-dump and read_dump is a convenient way to dump all atoms from *N* 
-writers and read it back by *M* readers. If one is running two 
-LAMMPS instances concurrently where one dumps data and the other is 
-reading it with the rerun command, the timeout option can be specified 
-to wait on the reader side for the arrival of the requested step. 
+dump and read_dump is a convenient way to dump all atoms from *N*
+writers and read it back by *M* readers. If one is running two
+LAMMPS instances concurrently where one dumps data and the other is
+reading it with the rerun command, the timeout option can be specified
+to wait on the reader side for the arrival of the requested step.
 
 Support for other dump format readers may be added in the future.
 
-
 ----------
-
 
 Global information is first read from the dump file, namely timestep
 and box information.
 
 The dump file is scanned for a snapshot with a timestamp that matches
 the specified *Nstep*\ .  This means the LAMMPS timestep the dump file
-snapshot was written on for the *native* or *adios* formats.  
+snapshot was written on for the *native* or *adios* formats.
 
-The list of timestamps available in an adios .bp file is stored in the 
+The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
 .. parsed-literal::
 
   $ bpls dump.bp -d ntimestep
-    uint64_t  ntimestep  5*scalar 
-      (0)    0 50 100 150 200 
-
+    uint64_t  ntimestep  5*scalar
+      (0)    0 50 100 150 200
 
 Note that the *xyz*
 and *molfile* formats do not store the timestep.  For these formats,
@@ -201,20 +192,17 @@ orthogonal/triclinic box shape is available.  The USER-MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
 always work perfectly.
 
-
 ----------
-
 
 Per-atom information from the dump file snapshot is then read from the
 dump file snapshot.  This corresponds to the specified *fields* listed
-in the read\_dump command.  It is an error to specify a z-dimension
+in the read_dump command.  It is an error to specify a z-dimension
 field, namely *z*\ , *vz*\ , or *iz*\ , for a 2d simulation.
 
 For dump files in *native* format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
 appear, e.g. the label "vy" for the field *vy*\ .  For the *x*\ , *y*\ , *z*
 fields any of the following labels are considered a match:
-
 
 .. parsed-literal::
 
@@ -261,7 +249,7 @@ See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
 
 The *adios* format supports all fields that the *native* format supports
-except for the *q* charge field. 
+except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 
@@ -271,10 +259,7 @@ The list of fields stored in an adios .bp file is recorded in the attributes
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}
     string    columnstr          attr   = "id type x y z vx vy vz "
 
-
-
 ----------
-
 
 Information from the dump file snapshot is used to overwrite or
 replace properties of the current system.  There are various options
@@ -330,9 +315,7 @@ Any other attributes (e.g. charge or particle diameter for spherical
 particles) will be set to default values, the same as if the
 :doc:`create_atoms <create_atoms>` command were used.
 
-
 ----------
-
 
 Atom coordinates read from the dump file are first converted into
 unscaled coordinates, relative to the box dimensions of the snapshot.
@@ -382,16 +365,13 @@ coordinates are scaled and the simulation box is triclinic, then all 3
 of the *x*\ , *y*\ , *z* fields must be specified, since they are all
 needed to generate absolute, unscaled coordinates.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 The *molfile* dump file formats are part of the USER-MOLFILE package.
@@ -416,10 +396,3 @@ The option defaults are box = yes, replace = yes, purge = no, trim =
 no, add = no, scaled = no, wrapped = yes, and format = native.
 
 .. _vmd: http://www.ks.uiuc.edu/Research/vmd
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

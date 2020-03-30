@@ -6,7 +6,6 @@ compute temp/profile command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/profile xflag yflag zflag binstyle args
@@ -15,9 +14,9 @@ Syntax
 * temp/profile = style name of this compute command
 * xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension
 * binstyle = *x* or *y* or *z* or *xy* or *yz* or *xz* or *xyz*
-  
+
   .. parsed-literal::
-  
+
        *x* arg = Nx
        *y* arg = Ny
        *z* arg = Nz
@@ -29,18 +28,15 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *out*
-  
+
   .. parsed-literal::
-  
+
        *out* value = *tensor* or *bin*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp flow temp/profile 1 1 1 x 10
    compute myTemp flow temp/profile 1 1 1 x 10 out bin
@@ -169,7 +165,6 @@ temperature :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 You should not use too large a velocity-binning grid, especially in
 3d.  In the current implementation, the binned velocity averages are
 summed across all processors, so this will be inefficient if the grid
@@ -186,17 +181,8 @@ Default
 
 The option default is out = tensor.
 
-
 ----------
-
 
 .. _Evans1:
 
-
-
 **(Evans)** Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

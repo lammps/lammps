@@ -6,7 +6,6 @@ fix orient/fcc command
 fix orient/bcc command
 ======================
 
-
 .. parsed-literal::
 
    fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1
@@ -23,8 +22,7 @@ fix orient/bcc command
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix gb all orient/fcc 0 1 4.032008 0.001 0.25 0.75 xi.vec chi.vec
    fix gb all orient/bcc 0 1 2.882 0.001 0.25 0.75 ngb.left ngb.right
@@ -58,8 +56,21 @@ accounted for in measuring the grain boundary velocity.
 
 The potential energy added to atom I is given by these formulas
 
-.. image:: Eqs/fix_orient_fcc.jpg
-   :align: center
+.. math::
+
+   \xi_{i} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(1\right) \\
+   \\
+  \xi_{\rm IJ} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j}^{\rm J} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(2\right)\\
+  \\
+  \xi_{\rm low}  = & {\rm cutlo} \, \xi_{\rm IJ}  \qquad\qquad\qquad\left(3\right)\\
+  \xi_{\rm high}  = & {\rm cuthi} \, \xi_{\rm IJ} \qquad\qquad\qquad\left(4\right) \\
+  \\
+  \omega_{i} = & \frac{\pi}{2} \frac{\xi_{i} - \xi_{\rm low}}{\xi_{\rm high} - \xi_{\rm low}} \qquad\qquad\left(5\right)\\
+  \\
+  u_{i}  = & 0 \quad\quad\qquad\qquad\qquad \textrm{ for } \qquad \xi_{i} < \xi_{\rm low}\\
+         = & {\rm dE}\,\frac{1 - \cos(2 \omega_{i})}{2}
+   \qquad \mathrm{ for }\qquad \xi_{\rm low} < \xi_{i} < \xi_{\rm high}  \quad \left(6\right) \\
+         = & {\rm dE} \quad\qquad\qquad\qquad\textrm{ for } \qquad \xi_{\rm high} < \xi_{i}
 
 which are fully explained in :ref:`(Janssens) <Janssens>`.  For fcc crystals
 this order parameter Xi for atom I in equation (1) is a sum over the
@@ -126,7 +137,7 @@ equal-and-opposite neighbors.  A pair of orientation files for a
 Sigma=5 tilt boundary are shown below. A tutorial that can help for
 writing the orientation files is given in :ref:`(Wicaksono2) <Wicaksono2>`
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -155,7 +166,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -168,41 +178,30 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Janssens:
-
-
 
 **(Janssens)** Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature
 Materials, 5, 124-127 (2006).
 
 .. _Wicaksono1:
 
-
-
 **(Wicaksono1)** Wicaksono, Sinclair, Militzer, Computational Materials
 Science, 117, 397-405 (2016).
 
 .. _Wicaksono2:
 
-
-
 **(Wicaksono2)** Wicaksono, figshare,
-https://dx.doi.org/10.6084/m9.figshare.1488628.v1 (2015).
-
+https://doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
 ----------
-
 
 For illustration purposes, here are example files that specify a
 Sigma=5 <100> tilt boundary.  This is for a lattice constant of 3.5706
 Angs.
 
 file0:
-
 
 .. parsed-literal::
 
@@ -215,7 +214,6 @@ file0:
 
 file1:
 
-
 .. parsed-literal::
 
        -0.798410432046075    1.785300000000000    1.596820864092150
@@ -224,8 +222,3 @@ file1:
         2.395231296138225    0.000000000000000   -0.798410432046075
         1.596820864092150    1.785300000000000    0.798410432046075
         1.596820864092150   -1.785300000000000    0.798410432046075
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

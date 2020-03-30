@@ -2,7 +2,7 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -36,7 +36,6 @@ get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 include(PreventInSourceBuilds)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-  #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
@@ -52,38 +51,34 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
+# set required compiler flags and compiler/CPU arch specific optimizations
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+  else()
+    set(CMAKE_TUNE_DEFAULT "-xHost")
+  endif()
 endif()
 
-option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
-if(DISABLE_CXX11_REQUIREMENT)
-  add_definitions(-DLAMMPS_CXX98)
-# else()
-#  set(CMAKE_CXX_STANDARD 11)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
-# GNU compiler features
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+endif()
+
+# we require C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable code coverage" OFF)
+  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  endif()
-  option(ENABLE_SANITIZE_ADDRESS "Enable address sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_ADDRESS)
-  if(ENABLE_SANITIZE_ADDRESS)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-  endif()
-  option(ENABLE_SANITIZE_UNDEFINED "Enable undefined behavior sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_UNDEFINED)
-  if(ENABLE_SANITIZE_UNDEFINED)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-  endif()
-  option(ENABLE_SANITIZE_THREAD "Enable thread sanitizer" OFF)
-  mark_as_advanced(ENABLE_SANITIZE_THREAD)
-  if(ENABLE_SANITIZE_THREAD)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
   endif()
 endif()
 
@@ -129,12 +124,12 @@ set(LAMMPS_API_DEFINES)
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
   REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
+  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK USER-COLVARS
   USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
   USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
-  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
-  USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
-  USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
+  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REACTION
+  USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY
+  USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
@@ -172,17 +167,25 @@ if(PKG_USER-ADIOS)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
 endif()
 
-# do MPI detection after language activation, if MPI for these language is required
+# do MPI detection after language activation,
+# in case MPI for these languages is required
 set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+
 if(BUILD_MPI)
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_CXX_INCLUDE_PATH})
-  list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
-  option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
-  if(LAMMPS_LONGLONG_TO_LONG)
-    add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+  # We use a non-standard procedure to compile with MPI on windows
+  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    include(MPI4WIN)
+  else()
+    find_package(MPI REQUIRED)
+    include_directories(${MPI_CXX_INCLUDE_PATH})
+    add_definitions(-DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
+    option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
+    if(LAMMPS_LONGLONG_TO_LONG)
+      add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
+    endif()
   endif()
 else()
   enable_language(C)
@@ -224,7 +227,15 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
 
+# detect if we may enable OpenMP support by default
+set(BUILD_OMP_DEFAULT OFF)
 find_package(OpenMP QUIET)
+if(OpenMP_FOUND)
+  check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
+  if(HAVE_OMP_H_INCLUDE)
+    set(BUILD_OMP_DEFAULT ON)
+  endif()
+endif()
 
 # TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
 # GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
@@ -234,14 +245,14 @@ find_package(OpenMP QUIET)
 if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
   option(BUILD_OMP "Build with OpenMP support" OFF)
 else()
-  option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+  option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
 endif()
 
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
   if(NOT HAVE_OMP_H_INCLUDE)
-    message(FATAL_ERROR "Cannot find required 'omp.h' header file")
+    message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -252,14 +263,15 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
-    if(CMAKE_GENERATOR STREQUAL "Ninja")
-      status(FATAL_ERROR "Cannot build internal linear algebra library with Ninja build tool due to lack for Fortran support")
+    include(CheckGeneratorSupport)
+    if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
+      status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
     endif()
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
-    set(BLAS_LIBRARIES linalg)
-    set(LAPACK_LIBRARIES linalg)
+    set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
+    set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
@@ -338,11 +350,11 @@ include(Packages/MESSAGE)
 include(Packages/MSCG)
 include(Packages/COMPRESS)
 
-# the windows version of LAMMPS requires a couple extra libraries
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
+if(CMAKE_Fortran_COMPILER)
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")
 endif()
-
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -356,9 +368,6 @@ endforeach(HEADER)
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
-if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't supported without a C compiler before v3.4
-endif()
 # RB: disabled this check because it breaks with KOKKOS CUDA enabled
 #foreach(FUNC sin cos)
 #  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
@@ -420,7 +429,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-QMMM)
+foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
@@ -429,6 +438,9 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-QMMM)
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
+    if(LAMMPS_USE_MPI4WIN)
+      add_dependencies(${PKG_LIB} mpi4win_build)
+    endif()
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
@@ -465,6 +477,18 @@ include(Packages/KOKKOS)
 include(Packages/OPT)
 include(Packages/USER-INTEL)
 include(Packages/GPU)
+
+######################################################################
+# the windows version of LAMMPS requires a couple extra libraries
+# and the MPI library - if use - has to be linked right before those
+# and after everything else that is compiled locally
+######################################################################
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  if(LAMMPS_USE_MPI4WIN)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI4WIN_LIBRARIES})
+  endif()
+  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+endif()
 
 ######################################################
 # Generate style headers based on global list of
@@ -587,14 +611,14 @@ if(BUILD_TOOLS)
   add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-  # ninja-build currently does not support fortran. thus we skip building this tool
-  if(CMAKE_GENERATOR STREQUAL "Ninja")
-    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
-  else()
+  include(CheckGeneratorSupport)
+  if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
     install(TARGETS chain.x DESTINATION ${CMAKE_INSTALL_BINDIR})
+  else()
+    message(WARNING "CMake build doesn't support fortran, skipping building 'chain.x'")
   endif()
 
   enable_language(C)
@@ -682,10 +706,11 @@ endforeach()
 
 get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 include(FeatureSummary)
-feature_summary(DESCRIPTION "The following packages have been found:" WHAT PACKAGES_FOUND)
+feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
+   Generator        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}
@@ -702,7 +727,7 @@ if (${_index} GREATER -1)
 endif()
 list (FIND LANGUAGES "C" _index)
 if (${_index} GREATER -1)
-  message(STATUS "C Compiler ${CMAKE_C_COMPILER}
+  message(STATUS "C compiler ${CMAKE_C_COMPILER}
      Type     ${CMAKE_C_COMPILER_ID}
      Version  ${CMAKE_C_COMPILER_VERSION}
      C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
@@ -712,22 +737,22 @@ if(CMAKE_EXE_LINKER_FLAGS)
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared library flags:  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static libraries  ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static library flags:  ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 if(BUILD_MPI)
-  message(STATUS "Using mpi with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and these libraries: ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
 endif()
 if(PKG_GPU)
-  message(STATUS "GPU Api: ${GPU_API}")
+  message(STATUS "GPU API: ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "GPU Arch: ${GPU_ARCH}")
+    message(STATUS "GPU architecture: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OCL Tune: ${OCL_TUNE}")
+    message(STATUS "OpenCL parameter tuning: ${OCL_TUNE}")
   endif()
-  message(STATUS "GPU Precision: ${GPU_PREC}")
+  message(STATUS "GPU precision: ${GPU_PREC}")
 endif()
 if(PKG_KOKKOS)
   message(STATUS "Kokkos Arch: ${KOKKOS_ARCH}")
@@ -739,7 +764,7 @@ if(PKG_KSPACE)
   else()
     message(STATUS "Using double precision FFTs")
   endif()
-  if(FFT_FFTW_THREADS)
+  if(FFT_FFTW_THREADS OR FFT_MKL_THREADS)
     message(STATUS "Using threaded FFTs")
   else()
     message(STATUS "Using non-threaded FFTs")

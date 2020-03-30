@@ -6,7 +6,6 @@ compute dipole/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID dipole/chunk chunkID charge-correction
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid dipole/chunk molchunk
    compute dw water dipole/chunk 1 geometry
@@ -67,12 +65,11 @@ The simplest way to output the results of the compute com/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all dipole/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
 **Output info:**
 
@@ -96,8 +93,3 @@ Related commands
 :doc:`compute com/chunk <compute_com_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

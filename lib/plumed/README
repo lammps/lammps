@@ -3,7 +3,7 @@ to use the PLUMED package and its fix plumed command in a
 LAMMPS input script.  PLUMED should only be downloaded into this directory if
 you wish to statically link the library.  If you wish to link PLUMED as
 a dynamic library (as we recommend) then you can compile and build PLUMED
-separately to LAMMPS.  To use PLUMED in conjuction with LAMMPS you then simply
+separately to LAMMPS.  To use PLUMED in conjunction with LAMMPS you then simply
 need to ensure that the PLUMED library is in your path at runtime.
 
 More info about the PLUMED library can be found at http://www.plumed.org.

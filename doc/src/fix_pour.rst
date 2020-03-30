@@ -6,7 +6,6 @@ fix pour command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID pour N type seed keyword values ...
@@ -18,9 +17,9 @@ Syntax
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
 * keyword = *region* or *diam* or *vol* or *rate* or *dens* or *vel* or *mol* or *rigid* or *shake* or *ignore*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region to use as insertion volume
        *diam* values = dstyle args
@@ -61,13 +60,10 @@ Syntax
          skip any line or triangle particles when detecting possible
            overlaps with inserted particles
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all pour 1000 2 29494 region myblock
    fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1
@@ -130,7 +126,7 @@ command which also appears in your input script.
    If you wish the new rigid molecules (and other rigid molecules)
    to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
    or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix\_modify dynamic/dof yes" command for the rigid fix.  This is to
+   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
    inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
@@ -157,9 +153,7 @@ many timesteps until the desired # of particles has been inserted.
    should use the :doc:`compute_modify dynamic yes <compute_modify>`
    command for the temperature compute you are using.
 
-
 ----------
-
 
 All other keywords are optional with defaults as shown below.
 
@@ -229,11 +223,9 @@ causes the overlap check to skip any line or triangle particles.
 Obviously you should only use it if there is in fact no overlap of the
 line or triangle particles with the insertion region.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  This means you must be careful when restarting a
 pouring simulation, when the restart file was written in the middle of
@@ -257,7 +249,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -284,8 +275,3 @@ setting is defined.  If the *mol* keyword is used, the default for
 Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
 0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0 (for 3d), vel = 0.0 0.0 0.0
 (for 2d), and id = max.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

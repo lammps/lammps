@@ -1,7 +1,6 @@
 Commands
 ########
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -121,4 +120,3 @@ Commands
    write_data
    write_dump
    write_restart
-

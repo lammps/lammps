@@ -18,7 +18,6 @@ fix qeq/fire command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
@@ -32,20 +31,17 @@ Syntax
 * qfile = a filename with QEq parameters or *coul/streitz* or *reax/c*
 * zero or more keyword/value pairs may be appended
 * keyword = *alpha* or *qdamp* or *qstep*
-  
+
   .. parsed-literal::
-  
+
        *alpha* value = Slater type orbital exponent (qeq/slater only)
        *qdamp* value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *qstep* value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
    fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
@@ -99,7 +95,6 @@ atoms) by adjusting the partial charge on individual atoms based on
 interactions with their neighbors within *cutoff*\ .  It requires a few
 parameters, in *metal* units, for each atom type which provided in a
 file specified by *qfile*\ .  The file has the following format
-
 
 .. parsed-literal::
 
@@ -198,7 +193,7 @@ better on larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
    arbitrary choices of these parameters.  We do not develop these QEq
    parameters.  See the examples/qeq directory for some examples.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about these fixes is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
 quantities are stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
@@ -208,7 +203,6 @@ Thexe fixes are invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 These fixes are part of the QEQ package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -220,51 +214,32 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Rappe1:
-
-
 
 **(Rappe and Goddard)** A. K. Rappe and W. A. Goddard III, J Physical
 Chemistry, 95, 3358-3363 (1991).
 
 .. _Nakano1:
 
-
-
 **(Nakano)** A. Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 .. _Rick1:
-
-
 
 **(Rick and Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chemical Physics
 101, 16141 (1994).
 
 .. _Streitz1:
 
-
-
 **(Streitz-Mintmire)** F. H. Streitz, J. W. Mintmire, Physical Review B, 50,
 16, 11996 (1994)
 
 .. _vanDuin:
-
-
 
 **(ReaxFF)** A. C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J
 Physical Chemistry, 105, 9396-9049 (2001)
 
 .. _Shan:
 
-
-
 **(QEq/Fire)** T.-R. Shan, A. P. Thompson, S. J. Plimpton, in preparation
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

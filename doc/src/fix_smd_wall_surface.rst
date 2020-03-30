@@ -1,22 +1,21 @@
-.. index:: fix smd/wall\_surface
+.. index:: fix smd/wall_surface
 
-fix smd/wall\_surface command
-=============================
+fix smd/wall_surface command
+============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/wall_surface arg type mol-ID
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* smd/wall\_surface = style name of this fix command
+* smd/wall_surface = style name of this fix command
 * arg = *file*
-  
+
   .. parsed-literal::
-  
+
         *file* = file name of a triangular mesh in stl format
 
 * type = particle type to be given to the new particles created by this fix
@@ -25,8 +24,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix stl_surf all smd/wall_surface tool.stl 2 65535
 
@@ -40,26 +38,25 @@ the new particle is that of the minimum circle which encompasses the
 triangle vertices.
 
 The triangulated surface can be used as a complex rigid wall via the
-:doc:`smd/tri\_surface <pair_smd_triangulated_surface>` pair style.  It
+:doc:`smd/tri_surface <pair_smd_triangulated_surface>` pair style.  It
 is possible to move the triangulated surface via the
-:doc:`smd/move\_tri\_surf <fix_smd_move_triangulated_surface>` fix style.
+:doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>` fix style.
 
 Immediately after a .STL file has been read, the simulation needs to
 be run for 0 timesteps in order to properly register the new particles
-in the system. See the "funnel\_flow" example in the USER-SMD examples
+in the system. See the "funnel_flow" example in the USER-SMD examples
 directory.
 
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Currently, no part of USER-SMD supports restarting nor
 minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -74,13 +71,8 @@ multiple objects in one file.
 Related commands
 """"""""""""""""
 
-:doc:`smd/triangle\_mesh\_vertices <compute_smd_triangle_vertices>`,
-:doc:`smd/move\_tri\_surf <fix_smd_move_triangulated_surface>`,
-:doc:`smd/tri\_surface <pair_smd_triangulated_surface>`
+:doc:`smd/triangle_mesh_vertices <compute_smd_triangle_vertices>`,
+:doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`,
+:doc:`smd/tri_surface <pair_smd_triangulated_surface>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

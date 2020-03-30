@@ -1,20 +1,19 @@
-.. index:: run\_style
+.. index:: run_style
 
-run\_style command
-==================
+run_style command
+=================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style style args
 
 * style = *verlet* or *verlet/split* or *respa* or *respa/omp*
-  
+
   .. parsed-literal::
-  
+
        *verlet* args = none
        *verlet/split* args = none
        *respa* args = N n1 n2 ... keyword values ...
@@ -52,13 +51,10 @@ Syntax
            *kspace* value = M
              M = which level (1-N) to compute kspace forces in
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
    run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
@@ -73,9 +69,7 @@ simulations performed by LAMMPS.
 
 The *verlet* style is a standard velocity-Verlet integrator.
 
-
 ----------
-
 
 The *verlet/split* style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
@@ -89,7 +83,7 @@ partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <b
 :doc:`kspace_style <kspace_style>` portion of the calculation is
 performed on the 2nd partition.
 
-This is most useful for the PPPM kspace\_style when its performance on
+This is most useful for the PPPM kspace_style when its performance on
 a large number of processors degrades due to the cost of communication
 in its 3d FFTs.  In this scenario, splitting your P total processors
 into 2 subsets of processors, P1 in the 1st partition and P2 in the
@@ -111,17 +105,15 @@ match the integer multiple constraint.  See the
 :doc:`processors <processors>` command with its *part* keyword for a way
 to control this, e.g.
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   procssors \* \* \* part 1 2 multiple
+   processors * * * part 1 2 multiple
 
 You can also use the :doc:`partition <partition>` command to explicitly
 specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 3 4 5
    partition yes 2 processors 3 1 5
@@ -140,9 +132,7 @@ processors in the 2 partitions to the physical cores of a parallel
 machine.  The :doc:`processors <processors>` command has options to
 support this, and strategies are discussed in :doc:`Section 5 <Speed>` of the manual.
 
-
 ----------
-
 
 The *respa* style implements the rRESPA multi-timescale integrator
 :ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level 1 is
@@ -206,7 +196,7 @@ levels.  This can be useful, for example, to set different timesteps
 for hybrid coarse-grained/all-atom models.  The *hybrid* keyword
 requires as many level assignments as there are hybrid sub-styles,
 which assigns each sub-style to a rRESPA level, following their order
-of definition in the pair\_style command. Since the *hybrid* keyword
+of definition in the pair_style command. Since the *hybrid* keyword
 operates on pair style computations, it is mutually exclusive with
 either the *pair* or the *inner*\ /\ *middle*\ /\ *outer* keywords.
 
@@ -234,8 +224,7 @@ cutoffs) works reasonably well.  We thus recommend the following
 settings for use of the *respa* style without SHAKE in biomolecular
 simulations:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  4.0
    run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
@@ -256,8 +245,7 @@ the size of the time steps in the respa hierarchy.  The following
 settings can be used for biomolecular simulations with SHAKE and
 rRESPA:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix             2 all shake 0.000001 500 0 m 1.0 a 1
    timestep        4.0
@@ -272,8 +260,7 @@ advantageous if there is a clear separation of time scales - fast and
 slow modes in the simulation.  For example, a system of slowly-moving
 charged polymer chains could be setup as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 4.0
    run_style respa 2 8
@@ -291,15 +278,12 @@ In real units, for a pure LJ fluid at liquid density, with a sigma of
 3.0 angstroms, and epsilon of 0.1 Kcal/mol, the following settings
 seem to work well:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep  36.0
    run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
 
-
 ----------
-
 
 The *respa/omp* style is a variant of *respa* adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an *omp*
@@ -317,13 +301,10 @@ input script.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *verlet/split* style can only be used if LAMMPS was built with the
 REPLICA package. Correspondingly the *respa/omp* style is available
@@ -341,12 +322,11 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run_style verlet
 
-For run\_style respa, the default assignment of interactions
+For run_style respa, the default assignment of interactions
 to rRESPA levels is as follows:
 
 * bond forces = level 1 (innermost loop)
@@ -357,18 +337,9 @@ to rRESPA levels is as follows:
 * kspace forces = same level as pair forces
 * inner, middle, outer forces = no default
 
-
 ----------
-
 
 .. _Tuckerman3:
 
-
-
 **(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ fix flow/gauss command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID flow/gauss xflag yflag zflag keyword
@@ -14,28 +13,25 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * flow/gauss = style name of this fix command
 * xflag,yflag,zflag = 0 or 1
-  
+
   .. parsed-literal::
-  
+
          0 = do not conserve current in this dimension
          1 = conserve current in this dimension
 
 * zero or more keyword/value pairs may be appended
 * keyword = *energy*
-  
+
   .. parsed-literal::
-  
+
        *energy* value = no or yes
          no = do not compute work done by this fix
          yes = compute work done by this fix
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix GD fluid flow/gauss 1 0 0
    fix GD fluid flow/gauss 1 1 1 energy yes
@@ -72,7 +68,7 @@ other methods, such as the pump method :ref:`(Zhu) <Zhu>`. The pressure
 correction is discussed and described in :ref:`(Strong) <Strong>`.
 
 For a complete example including the considerations discussed
-above, see the examples/USER/flow\_gauss directory.
+above, see the examples/USER/flow_gauss directory.
 
 .. note::
 
@@ -95,13 +91,13 @@ expensive than usual, so it is not performed by default. To invoke the
 work calculation, use the *energy* keyword. The
 :doc:`fix_modify <fix_modify>` *energy* option also invokes the work
 calculation, and overrides an *energy no* setting here. If neither
-*energy yes* or *fix\_modify energy yes* are set, the global scalar
+*energy yes* or *fix_modify energy yes* are set, the global scalar
 computed by the fix will return zero.
 
 .. note::
 
    In order to check energy conservation, any other fixes that do
-   work on the system must have *fix\_modify energy yes* set as well. This
+   work on the system must have *fix_modify energy yes* set as well. This
    includes thermostat fixes and any constraints that hold the positions
    of wall atoms fixed, such as :doc:`fix spring/self <fix_spring_self>`.
 
@@ -115,14 +111,12 @@ computed at different rRESPA levels, then there must be a separate flow/gauss
 fix for each level. For example, if the flowing fluid and obstacle interact
 through pairwise and long-range Coulomb interactions, which are computed at
 rRESPA levels 3 and 4, respectively, then there must be two separate
-flow/gauss fixes, one that specifies *fix\_modify respa 3* and one with
-*fix\_modify respa 4*.
-
+flow/gauss fixes, one that specifies *fix_modify respa 3* and one with
+*fix_modify respa 4*.
 
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -162,29 +156,16 @@ Default
 
 The option default for the *energy* keyword is energy = no.
 
-
 ----------
 
-
 .. _Strong:
-
-
 
 **(Strong)** Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).
 
 .. _Evans2:
 
-
-
 **(Evans)** Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).
 
 .. _Zhu:
 
-
-
 **(Zhu)** Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ compute improper command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID improper
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all improper
 
@@ -36,7 +34,7 @@ total energy contributed by one or more of the hybrid sub-styles.
 **Output info:**
 
 This compute calculates a global vector of length N where N is the
-number of sub\_styles defined by the :doc:`improper_style hybrid <improper_style>` command.  which can be accessed by indices
+number of sub_styles defined by the :doc:`improper_style hybrid <improper_style>` command.  which can be accessed by indices
 1-N.  These values can be used by any command that uses global scalar
 or vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
 options.
@@ -54,8 +52,3 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pair <compute_pair>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

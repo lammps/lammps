@@ -183,7 +183,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
   int mode,index,oldindex,newvalue,nflip,which,niter;
   int active[2],first[2],last[2];
   int newactive[2],newfirst[2],newlast[2];
-  bigint nmark,nactive,nactiveall,nflipall,bnflip;
+  bigint nmark,nflipall;
   bigint activeall[2],bsum[3],bsumall[3];
   double thresh;
 
@@ -210,15 +210,12 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 
     // choose to ADD or SUBTRACT from current nmark
     // thresh = desired flips / size of active set
-    // nactive = size of current active set, only for debug output below
 
     if (ntarget-nmark > 0) {
       mode = ADD;
-      // nactive = active[mode];
       thresh = 1.0 * (ntarget-nmark) / activeall[mode];
     } else {
       mode = SUBTRACT;
-      // nactive = active[mode];
       thresh = 1.0 * (nmark-ntarget) / activeall[mode];
     }
 
@@ -278,12 +275,10 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     bsum[0] = nflip;
     bsum[1] = active[0];
     bsum[2] = active[1];
-    bsum[3] = nactive;
-    MPI_Allreduce(&bsum,&bsumall,4,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&bsum,&bsumall,3,MPI_LMP_BIGINT,MPI_SUM,world);
     nflipall = bsumall[0];
     activeall[0] = bsumall[1];
     activeall[1] = bsumall[2];
-    nactiveall = bsumall[3];
 
     if (mode == ADD) nmark += nflipall;
     else if (mode == SUBTRACT) nmark -= nflipall;

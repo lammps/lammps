@@ -25,8 +25,3 @@ for thermo output of quantities calculated by :doc:`fixes <fix>`,
 :doc:`computes <compute>`, and :doc:`variables <variable>`.  Thus, it may
 be simpler to compute what you wish via one of those constructs, than
 by adding a new keyword to the thermo command.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

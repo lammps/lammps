@@ -1,28 +1,26 @@
-.. index:: pair\_style mgpt
+.. index:: pair_style mgpt
 
-pair\_style mgpt command
-========================
+pair_style mgpt command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style mgpt
-   pair_coeff \* \* Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
+   pair_coeff * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
    cp ~/lammps/potentials/Ta6.8x.mgpt.parmin parmin
    cp ~/lammps/potentials/Ta6.8x.mgpt.potin potin
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 1234 precision double
-   pair_coeff \* \* parmin potin Omega volpress yes nbody 12
+   pair_coeff * * parmin potin Omega volpress yes nbody 1234 precision double
+   pair_coeff * * parmin potin Omega volpress yes nbody 12
 
 Description
 """""""""""
@@ -33,21 +31,25 @@ multi-ion interatomic potentials in d-band transition metals, with a
 volume-dependent, real-space total-energy functional for the N-ion
 elemental bulk material in the form
 
-.. image:: Eqs/pair_mgpt.jpg
-   :align: center
+.. math::
+
+   E_{\rm tot}({\bf R}_1 \ldots {\bf R}_N) = NE_{\rm vol}(\Omega )
+   + \frac{1}{2} \sum _{i,j} \mbox{}^\prime \ v_2(ij;\Omega )
+   + \frac{1}{6} \sum _{i,j,k} \mbox{}^\prime \ v_3(ijk;\Omega )
+   + \frac{1}{24} \sum _{i,j,k,l} \mbox{}^\prime \ v_4(ijkl;\Omega )
 
 where the prime on each summation sign indicates the exclusion of all
 self-interaction terms from the summation.  The leading volume term
-E\_vol as well as the two-ion central-force pair potential v\_2 and the
-three- and four-ion angular-force potentials, v\_3 and v\_4, depend
+E_vol as well as the two-ion central-force pair potential v_2 and the
+three- and four-ion angular-force potentials, v_3 and v_4, depend
 explicitly on the atomic volume Omega, but are structure independent
 and transferable to all bulk ion configurations, either ordered or
 disordered, and with of without the presence of point and line
 defects.  The simplified model GPT or MGPT (:ref:`Moriarty2 <Moriarty2>`,
-:ref:`Moriarty3 <Moriarty3>`), which retains the form of E\_tot and permits
+:ref:`Moriarty3 <Moriarty3>`), which retains the form of E_tot and permits
 more efficient large-scale atomistic simulations, derives from the GPT
-through a series of systematic approximations applied to E\_vol and the
-potentials v\_n that are valid for mid-period transition metals with
+through a series of systematic approximations applied to E_vol and the
+potentials v_n that are valid for mid-period transition metals with
 nearly half-filled d bands.
 
 Both analytic (:ref:`Moriarty2 <Moriarty2>`) and matrix
@@ -62,12 +64,12 @@ algorithms have been developed independently by Glosli
 (:ref:`Oppelstrup <Oppelstrup>`)
 
 The *mgpt* pair style calculates forces, energies, and the total
-energy per atom, E\_tot/N, using the Oppelstrup matrix-MGPT algorithm.
+energy per atom, E_tot/N, using the Oppelstrup matrix-MGPT algorithm.
 Input potential and control data are entered through the
 :doc:`pair_coeff <pair_coeff>` command.  Each material treated requires
 input parmin and potin potential files, as shown in the above
 examples, as well as specification by the user of the initial atomic
-volume Omega through pair\_coeff.  At the beginning of a time step in
+volume Omega through pair_coeff.  At the beginning of a time step in
 any simulation, the total volume of the simulation cell V should
 always be equal to Omega\*N, where N is the number of metal ions
 present, taking into account the presence of any vacancies and/or
@@ -77,25 +79,25 @@ style, Omega, V and N all remain constant throughout the simulation
 and thus are equal to their initial values.  In a constant-stress
 simulation, the cell volume V will change (slowly) as the simulation
 proceeds.  After each time step, the atomic volume should be updated
-by the code as Omega = V/N.  In addition, the volume term E\_vol and
-the potentials v\_2, v\_3 and v\_4 have to be removed at the end of the
+by the code as Omega = V/N.  In addition, the volume term E_vol and
+the potentials v_2, v_3 and v_4 have to be removed at the end of the
 time step, and then respecified at the new value of Omega.  In all
 simulations, Omega must remain within the defined volume range for
-E\_vol and the potentials for the given material.
+E_vol and the potentials for the given material.
 
 The default option volpress yes in the :doc:`pair_coeff <pair_coeff>`
-command includes all volume derivatives of E\_tot required to calculate
+command includes all volume derivatives of E_tot required to calculate
 the stress tensor and pressure correctly.  The option volpress no
 disregards the pressure contribution resulting from the volume term
-E\_vol, and can be used for testing and analysis purposes.  The
+E_vol, and can be used for testing and analysis purposes.  The
 additional optional variable nbody controls the specific terms in
-E\_tot that are calculated.  The default option and the normal option
+E_tot that are calculated.  The default option and the normal option
 for mid-period transition and actinide metals is nbody 1234 for which
-all four terms in E\_tot are retained.  The option nbody 12, for
+all four terms in E_tot are retained.  The option nbody 12, for
 example, retains only the volume term and the two-ion pair potential
 term and can be used for GPT series-end transition metals that can be
-well described without v\_3 and v\_4.  The nbody option can also be used
-to test or analyze the contribution of any of the four terms in E\_tot
+well described without v_3 and v_4.  The nbody option can also be used
+to test or analyze the contribution of any of the four terms in E_tot
 to a given calculated property.
 
 The *mgpt* pair style makes extensive use of matrix algebra and
@@ -145,9 +147,7 @@ before proceeding to more complex simulations.
    as provided, it will build with whatever low-level compiler (g++, icc,
    etc) is the default for your MPI installation.
 
-
 ----------
-
 
 **Mixing, shift, table tail correction, restart**\ :
 
@@ -155,20 +155,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-needs to re-specify the pair\_style and pair\_coeff commands in an input
+needs to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MGPT package and is only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -182,7 +179,7 @@ energies in Rydbergs and distances in Bohr radii. The *mgpt* pair
 style converts Rydbergs to Hartrees to make the potential files
 compatible with LAMMPS electron :doc:`units <units>`.
 
-The form of E\_tot used in the *mgpt* pair style is only appropriate
+The form of E_tot used in the *mgpt* pair style is only appropriate
 for elemental bulk solids and liquids.  This includes solids with
 point and extended defects such as vacancies, interstitials, grain
 boundaries and dislocations.  Alloys and free surfaces, however,
@@ -209,33 +206,23 @@ Default
 The options defaults for the :doc:`pair_coeff <pair_coeff>` command are
 volpress yes, nbody 1234, and precision double.
 
-
 ----------
 
-
 .. _Moriarty1:
-
-
 
 **(Moriarty1)** Moriarty, Physical Review B, 38, 3199 (1988).
 
 .. _Moriarty2:
-
-
 
 **(Moriarty2)** Moriarty, Physical Review B, 42, 1609 (1990).
 Moriarty, Physical Review B 49, 12431 (1994).
 
 .. _Moriarty3:
 
-
-
 **(Moriarty3)** Moriarty, Benedict, Glosli, Hood, Orlikowski, Patel, Soderlind, Streitz, Tang, and Yang,
 Journal of Materials Research, 21, 563 (2006).
 
 .. _Glosli:
-
-
 
 **(Glosli)** Glosli, unpublished, 2005.
 Streitz, Glosli, Patel, Chan, Yates, de Supinski, Sexton and Gunnels, Journal of Physics: Conference
@@ -243,12 +230,5 @@ Series, 46, 254 (2006).
 
 .. _Oppelstrup:
 
-
-
 **(Oppelstrup)** Oppelstrup, unpublished, 2015.
 Oppelstrup and Moriarty, to be published.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

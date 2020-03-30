@@ -9,7 +9,6 @@ via the :doc:`print <print>`, :doc:`fix print <fix_print>`, or
 "equal" can compute complex equations that involve the following types
 of arguments:
 
-
 .. parsed-literal::
 
    thermo keywords = ke, vol, atoms, ...
@@ -38,8 +37,3 @@ to find the appropriate location.
 
 Adding new :doc:`compute styles <compute>` (whose calculated values can
 then be accessed by variables) is discussed on the :doc:`Modify compute <Modify_compute>` doc page.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

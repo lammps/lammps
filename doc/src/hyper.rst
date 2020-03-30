@@ -6,7 +6,6 @@ hyper command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    hyper N Nevent fix-ID compute-ID keyword values ...
@@ -17,9 +16,9 @@ Syntax
 * compute-ID = ID of a compute that identifies when an event has occurred
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *dump* or *rebond*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy, used in quenching
          ftol = stopping tolerance for force, used in quenching
@@ -30,13 +29,10 @@ Syntax
        *rebond* value = Nrebond
          Nrebond = frequency at which to reset bonds, even if no event has occurred
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute event all event/displace 1.0
    fix HG mobile hyper/global 3.0 0.3 0.4 800.0
@@ -82,7 +78,6 @@ occur.  See the :doc:`prd <prd>` doc page for more info about PRD.
 
 An HD run has several stages, which are repeated each time an event
 occurs, as explained below.  The logic for an HD run is as follows:
-
 
 .. parsed-literal::
 
@@ -142,9 +137,7 @@ local hyperdynamics, such as the number of events and the elapsed
 hyper time (accelerated time), And it includes info specific to one or
 the other, depending on which style of fix was specified by *fix-ID*\ .
 
-
 ----------
-
 
 The optional keywords operate as follows.
 
@@ -173,13 +166,10 @@ if more frequent resets alter event statistics, perhaps because the
 parameters chosen for defining what is a bond and what is an event are
 producing bad dynamics in the presence of the bias potential.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
@@ -195,25 +185,14 @@ Default
 
 The option defaults are min = 0.1 0.1 40 50 and time = steps.
 
-
 ----------
 
-
 .. _Voter2013:
-
-
 
 **(Voter2013)** S. Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139,
 144110 (2013).
 
 .. _Voter2002hd:
 
-
-
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

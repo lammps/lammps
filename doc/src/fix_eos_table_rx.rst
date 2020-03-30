@@ -9,7 +9,6 @@ fix eos/table/rx/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID eos/table/rx style file1 N keyword ...
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD thermo.table
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD 1.5
@@ -40,30 +38,33 @@ Description
 
 Fix *eos/table/rx* applies a tabulated mesoparticle equation
 of state to relate the concentration-dependent particle internal
-energy (u\_i) to the particle internal temperature (dpdTheta\_i).
+energy (:math:`u_i`) to the particle internal temperature (:math:`\theta_i`).
 
-The concentration-dependent particle internal energy (u\_i) is
+The concentration-dependent particle internal energy (:math:`u_i`) is
 computed according to the following relation:
 
-.. image:: Eqs/fix_eos_table_rx.jpg
-   :align: center
+.. math::
 
-where *m* is the number of species, *c\_i,j* is the concentration of
-species *j* in particle *i*\ , *u\_j* is the internal energy of species j,
-*DeltaH\_f,j* is the heat of formation of species *j*\ , N is the number of
-molecules represented by the coarse-grained particle, kb is the
-Boltzmann constant, and T is the temperature of the system.  Additionally,
-it is possible to modify the concentration-dependent particle internal
+   U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\
+
+where *m* is the number of species, :math:`c_{i,j}` is the
+concentration of species *j* in particle *i*\ , :math:`u_j` is the
+internal energy of species j, :math:`\Delta H_{f,j} is the heat of
+formation of species *j*\ , N is the number of molecules represented
+by the coarse-grained particle, :math:`k_b` is the Boltzmann constant,
+and *T* is the temperature of the system.  Additionally, it is
+possible to modify the concentration-dependent particle internal
 energy relation by adding an energy correction, temperature-dependent
-correction, and/or a molecule-dependent correction.  An energy correction can
-be specified as a constant (in energy units).  A temperature correction can be
-specified by multiplying a temperature correction coefficient by the
-internal temperature.  A molecular correction can be specified by
-by multiplying a molecule correction coefficient by the average number of
-product gas particles in the coarse-grain particle.
+correction, and/or a molecule-dependent correction.  An energy
+correction can be specified as a constant (in energy units).  A
+temperature correction can be specified by multiplying a temperature
+correction coefficient by the internal temperature.  A molecular
+correction can be specified by by multiplying a molecule correction
+coefficient by the average number of product gas particles in the
+coarse-grain particle.
 
 Fix *eos/table/rx* creates interpolation tables of length *N* from *m*
-internal energy values of each species *u\_j* listed in a file as a
+internal energy values of each species :math:`u_j` listed in a file as a
 function of internal temperature.  During a simulation, these tables
 are used to interpolate internal energy or temperature values as needed.
 The interpolation is done with the *linear* style.  For the *linear* style,
@@ -72,28 +73,26 @@ which an internal energy is computed by linear interpolation.  A secant
 solver is used to determine the internal temperature from the internal energy.
 
 The first filename specifies a file containing tabulated internal
-temperature and *m* internal energy values for each species *u\_j*.
+temperature and *m* internal energy values for each species :math:`u_j`.
 The keyword specifies a section of the file.  The format of this
 file is described below.
 
 The second filename specifies a file containing heat of formation
-*DeltaH\_f,j* for each species.
+:math:`\Delta H_{f,j}` for each species.
 
 In cases where the coarse-grain particle represents a single molecular
-species (i.e., no reactions occur and fix *rx* is not present in the input file),
-fix *eos/table/rx* can be applied in a similar manner to fix *eos/table*
-within a non-reactive DPD simulation.  In this case, the heat of formation
-filename is replaced with the heat of formation value for the single species.
-Additionally, the energy correction and temperature correction coefficients may
-also be specified as fix arguments.
-
+species (i.e., no reactions occur and fix *rx* is not present in the
+input file), fix *eos/table/rx* can be applied in a similar manner to
+fix *eos/table* within a non-reactive DPD simulation.  In this case,
+the heat of formation filename is replaced with the heat of formation
+value for the single species.  Additionally, the energy correction and
+temperature correction coefficients may also be specified as fix
+arguments.
 
 ----------
 
-
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -133,13 +132,10 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 The format of a heat of formation file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -161,7 +157,6 @@ three additional columns that correspond to the energy correction,
 the temperature correction coefficient and molecule correction
 coefficient.  In this case, the format of the file is as follows:
 
-
 .. parsed-literal::
 
    # HEAT OF FORMATION TABLE     (one or more comment or blank lines)
@@ -173,9 +168,7 @@ coefficient.  In this case, the format of the file is as follows:
    ...
    no      0.93 0.00 0.000 -1.76
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -195,13 +188,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -221,12 +211,3 @@ Related commands
 :doc:`pair dpd/fdt <pair_dpd_fdt>`
 
 **Default:** none
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

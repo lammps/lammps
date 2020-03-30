@@ -64,7 +64,7 @@ demonstrating its use:
 The LAMMPS library will be using the MPI library it was compiled with
 and will either run on all processors in the ``MPI_COMM_WORLD``
 communicator or on the set of processors in the communicator given in
-the ``comm`` argument of :ref:`lammps_open <lammps_open>`.  This means
+the ``comm`` argument of :ref:`lammps_open() <lammps_open>`.  This means
 the calling code can run LAMMPS on all or a subset of processors.  For
 example, a wrapper script might decide to alternate between LAMMPS and
 another code, allowing them both to run on all the processors.  Or it
@@ -84,30 +84,42 @@ that may only be called once. See
 :ref:`lammps_finalize() <lammps_finalize>` for how to call this
 without explicit MPI support in the calling program.
 
+-----------------------
+
 .. _lammps_open:
 .. doxygenfunction:: lammps_open
    :project: progguide
    :no-link:
+
+-----------------------
 
 .. _lammps_open_no_mpi:
 .. doxygenfunction:: lammps_open_no_mpi
    :project: progguide
    :no-link:
 
+-----------------------
+
 .. _lammps_close:
 .. doxygenfunction:: lammps_close
    :project: progguide
    :no-link:
+
+-----------------------
 
 .. _lammps_finalize:
 .. doxygenfunction:: lammps_finalize
    :project: progguide
    :no-link:
 
+-----------------------
+
 .. _lammps_version:
 .. doxygenfunction:: lammps_version
    :project: progguide
    :no-link:
+
+-----------------------
 
 Executing LAMMPS commands
 =========================

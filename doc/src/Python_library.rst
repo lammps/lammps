@@ -254,12 +254,3 @@ following steps:
 * You should now be able to invoke the new interface function from a
   Python script.
 
-----------
-
-.. autoclass:: lammps.lammps
-   :members:
-   :no-undoc-members:
-
-.. autoclass:: lammps.NeighList
-   :members:
-   :no-undoc-members:

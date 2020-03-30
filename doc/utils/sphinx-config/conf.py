@@ -20,7 +20,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src/_ext'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'src', '_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -66,7 +66,7 @@ copyright = '2003-2020 Sandia Corporation'
 def get_lammps_version():
     import os
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(script_dir, '../../../src/version.h'), 'r') as f:
+    with open(os.path.join(script_dir, '..', '..', '..', 'src', 'version.h'), 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)

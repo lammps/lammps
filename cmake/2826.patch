@@ -1,0 +1,13 @@
+diff --git a/lib/kokkos/containers/src/Kokkos_ScatterView.hpp b/lib/kokkos/containers/src/Kokkos_ScatterView.hpp
+index a8c05e3..1d83aed 100644
+--- a/lib/kokkos/containers/src/Kokkos_ScatterView.hpp
++++ b/lib/kokkos/containers/src/Kokkos_ScatterView.hpp
+@@ -681,7 +681,7 @@ class ScatterView<DataType
+                    ,contribution>
+ {
+ public:
+-  typedef Kokkos::View<DataType, Layout, ExecSpace> original_view_type;
++  typedef Kokkos::View<DataType, Layout, Kokkos::Device<ExecSpace, Kokkos::Cuda::memory_space> > original_view_type;
+   typedef typename original_view_type::value_type original_value_type;
+   typedef typename original_view_type::reference_type original_reference_type;
+   friend class ScatterAccess<DataType, Op, ExecSpace, Layout, ScatterNonDuplicated, contribution, ScatterNonAtomic>;

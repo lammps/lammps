@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -45,37 +46,32 @@
 
 namespace Test {
 
-TEST_F( qthreads, impl_shared_alloc )
-{
+TEST_F(qthreads, impl_shared_alloc) {
 #if 0
   test_shared_alloc< Kokkos::HostSpace, Kokkos::Qthreads >();
 #endif
 }
 
-TEST_F( qthreads, impl_view_mapping_b )
-{
+TEST_F(qthreads, impl_view_mapping_b) {
 #if 0
   test_view_mapping_subview< Kokkos::Qthreads >();
   TestViewMappingAtomic< Kokkos::Qthreads >::run();
 #endif
 }
 
-TEST_F( qthreads, view_api )
-{
+TEST_F(qthreads, view_api) {
 #if 0
   TestViewAPI< double, Kokkos::Qthreads >();
 #endif
 }
 
-TEST_F( qthreads, view_nested_view )
-{
+TEST_F(qthreads, view_nested_view) {
 #if 0
   ::Test::view_nested_view< Kokkos::Qthreads >();
 #endif
 }
 
-TEST_F( qthreads, view_remap )
-{
+TEST_F(qthreads, view_remap) {
 #if 0
   enum { N0 = 3, N1 = 2, N2 = 8, N3 = 9 };
 
@@ -121,18 +117,16 @@ TEST_F( qthreads, view_remap )
 #endif
 }
 
-TEST_F( qthreads, view_aggregate )
-{
+TEST_F(qthreads, view_aggregate) {
 #if 0
   TestViewAggregate< Kokkos::Qthreads >();
 #endif
 }
 
-TEST_F( qthreads, template_meta_functions )
-{
+TEST_F(qthreads, template_meta_functions) {
 #if 0
   TestTemplateMetaFunctions< int, Kokkos::Qthreads >();
 #endif
 }
 
-} // namespace Test
+}  // namespace Test

@@ -1,5 +1,5 @@
 if(PKG_KOKKOS)
-  option(EXTERNAL_KOKKOS "Build against external kokkos library")
+  option(EXTERNAL_KOKKOS "Build against external kokkos library" OFF)
   option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
   if(DOWNLOAD_KOKKOS)
     if(CMAKE_VERSION VERSION_LESS 3.11)

@@ -1,21 +1,20 @@
 if(PKG_KOKKOS)
-  find_package(Kokkos 3 QUIET)
-  if(Kokkos_FOUND)
-    set(DOWNLOAD_KOKKOS_DEFAULT OFF)
-  else()
-    set(DOWNLOAD_KOKKOS_DEFAULT ON)
-  endif()
-  option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using an already installed one" ${DOWNLOAD_KOKKOS_DEFAULT})
+  option(EXTERNAL_KOKKOS "Build against external kokkos library")
+  option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using an already installed one" OFF)
   if(DOWNLOAD_KOKKOS)
+    if(CMAKE_VERSION VERSION_LESS 3.11)
+      message(FATAL_ERROR "Downloading kokkos currently only works with cmake-3.11 and hiigher")
+    endif()
     message(STATUS "KOKKOS download requested - we will build our own")
     # Workaround for cross compilation with MinGW where ${CMAKE_INSTALL_LIBDIR}
     # is a full path, so we need to remove the prefix
     string(REPLACE ${CMAKE_INSTALL_PREFIX} "" _KOKKOS_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+    file(DOWNLOAD https://github.com/kokkos/kokkos/compare/3.0.00...stanmoore1:lammps.diff ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch)
     include(ExternalProject)
     ExternalProject_Add(kokkos_build
       URL https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz
       URL_MD5 281c7093aa3a603276e93abdf4be23b9
-      PATCH_COMMAND patch -p3 < ${CMAKE_CURRENT_SOURCE_DIR}/2826.patch
+      PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -26,13 +25,24 @@ if(PKG_KOKKOS)
     set(KOKKOS_LIBRARIES ${INSTALL_DIR}/${_KOKKOS_LIBDIR}/libkokkoscore.a) 
     set(KOKKOS_INCLUDE_DIRS ${INSTALL_DIR}/include)
     include_directories(${KOKKOS_INCLUDE_DIRS})
-    list(APPEND LAMMPS_LINK_LIBS ${KOKKOS_LIBRARIES})
-  else()
+    list(APPEND LAMMPS_LINK_LIBS ${KOKKOS_LIBRARIES} ${CMAKE_DL_LIBS})
+  elseif(EXTERNAL_KOKKOS)
     find_package(Kokkos 3)
     if(NOT Kokkos_FOUND)
       message(FATAL_ERROR "KOKKOS library not found, help CMake to find it by setting KOKKOS_LIBRARY, or set DOWNLOAD_KOKKOS=ON to download it")
     endif()
     list(APPEND LAMMPS_LINK_LIBS Kokkos::kokkos)
+  else()
+    set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
+    set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+    add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+
+    set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
+                            ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
+                            ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
+                            ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+    include_directories(${Kokkos_INCLUDE_DIRS})
+    list(APPEND LAMMPS_LINK_LIBS kokkos)
   endif()
   add_definitions(-DLMP_KOKKOS)
 

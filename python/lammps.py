@@ -309,6 +309,12 @@ class lammps(object):
     self.lmp = None
     self.opened = 0
 
+  def finalize(self):
+    if self.opened: self.lib.lammps_close(self.lmp)
+    self.lmp = None
+    self.opened = 0
+    self.lib.lammps_finalize()
+
   def version(self):
     return self.lib.lammps_version(self.lmp)
 

@@ -31,7 +31,7 @@ fix		2 all nve
 
 thermo 		1
 thermo_style 	custom step etotal pe ke pxx pyy pzz press temp vol
-print "Run NVE for 500 steps"
-run		500
+print "Run NVE for 2500 steps"
+run		2500
 print "DONE"
 

@@ -1,6 +1,6 @@
 if(PKG_KOKKOS)
   option(EXTERNAL_KOKKOS "Build against external kokkos library")
-  option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using an already installed one" OFF)
+  option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
   if(DOWNLOAD_KOKKOS)
     if(CMAKE_VERSION VERSION_LESS 3.11)
       message(FATAL_ERROR "Downloading kokkos currently only works with cmake-3.11 and higher")

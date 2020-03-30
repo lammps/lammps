@@ -16,6 +16,10 @@ provide an outline of the fundamental class hierarchy
 and some selected examples for derived classes of
 specific models.
 
+.. note:: Thread-safety
+
+   Please see the :ref:`note about thread-safety <thread-safety>`
+   in the library Howto doc page.
 
 .. toctree::
    :caption: Individual Base Classes

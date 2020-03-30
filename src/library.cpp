@@ -122,11 +122,26 @@ void concatenate_lines(char *ptr)
 //   and communicate commands to it
 // ----------------------------------------------------------------------
 
-/* ----------------------------------------------------------------------
-   create an instance of LAMMPS and return pointer to it
-   pass in command-line args and MPI communicator to run on
-------------------------------------------------------------------------- */
+/** \brief Create an instance of the LAMMPS class and store reference in ptr
+ *
+ * \param argc number of command line arguments
+ * \param argv list of command line argument strings
+ * \param comm MPI communicator for this LAMMPS instance.
+ * \param ptr pointer to a location where a reference to the
+ *            created LAMMPS instance is stored. Will be pointing
+ *            to a NULL pointer if the function failed.
 
+\verbatim embed:rst
+The :ref:`lammps_open() <lammps_open>` function will create a new
+LAMMPS instance while passing in a list of strings as if they were
+:doc:`command-line arguments <Run_options>` when LAMMPS is run in
+stand-alone mode from the command line, and an MPI communicator for
+LAMMPS to run under.
+
+If for some reason the initialization of the LAMMPS instance failed
+the ptr handle will be set to a NULL pointer.
+\endverbatim 
+ */
 void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 {
 #ifdef LAMMPS_EXCEPTIONS
@@ -145,12 +160,15 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 #endif
 }
 
-/* ----------------------------------------------------------------------
-   create an instance of LAMMPS and return pointer to it
-   caller doesn't know MPI communicator, so use MPI_COMM_WORLD
-   initialize MPI if needed
-------------------------------------------------------------------------- */
-
+/** \brief Variant of lammps_open() that will implicitly use MPI_COMM_WORLD.
+ *  Will run MPI_Init() if it has not been called before.
+ *
+ * \param argc number of command line arguments
+ * \param argv list of command line argument strings
+ * \param ptr pointer to a location where a reference to the
+ *            created LAMMPS instance is stored. Will be pointing
+ *            to a NULL pointer if the function failed.
+ */
 void lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
   int flag;
@@ -180,19 +198,45 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
 #endif
 }
 
-/* ----------------------------------------------------------------------
-   destruct an instance of LAMMPS
-------------------------------------------------------------------------- */
-
+/** \brief Delete a LAMMPS instance created by lammps_open() or
+ *   lammps_open_no_mpi()
+ *
+ * \param ptr pointer to a previously created LAMMPS instance.
+ *
+\verbatim embed:rst
+This function does **not** call MPI_Finalize() to allow creating
+and deleting multiple LAMMPS instances. See :ref:`lammps_finalize()
+<lammps_finalize>` for a function to call at the end of the program
+in order to close down the MPI infrastructure in case the calling
+program is not using MPI and was creating the LAMMPS instance
+through `lammps_open_no_mpi() <lammps_open_no_mpi>`.
+\endverbatim
+*/
 void lammps_close(void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
   delete lmp;
 }
 
-/* ----------------------------------------------------------------------
-   get the numerical representation of the current LAMMPS version
-------------------------------------------------------------------------- */
+/** \brief Get the numerical representation of the current LAMMPS version.
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \return an integer representing the version data in the format YYYYMMDD
+
+\verbatim embed:rst
+
+The :ref:`lammps_version() <lammps_version>` function can be used to
+determine the specific version of the underlying LAMMPS code. This is
+particularly useful when loading LAMMPS as a shared library via dlopen()
+so that the calling code can handle changes in the C API, or differences
+in behavior, or available features (exported functions).
+
+The returned LAMMPS version code is an integer (e.g. a LAMMPS version
+string of 2 Sep 2015 results in 20150902) that will grows with every
+new LAMMPS release and thus is suitable for simple numerical comparisons.
+
+\endverbatim
+ */
 
 int lammps_version(void *ptr)
 {
@@ -200,10 +244,41 @@ int lammps_version(void *ptr)
   return atoi(lmp->universe->num_ver);
 }
 
-/* ----------------------------------------------------------------------
-   process an input script in filename str
-------------------------------------------------------------------------- */
+/** \brief Shut down the MPI infrastructure
 
+\verbatim embed:rst
+The MPI standard requires that any MPI application calls
+MPI_Finalize() before exiting.  If a calling program does
+not do any MPI calls and creates the LAMMPS instance through
+:ref:`lammps_open_no_mpi() `<lammps_open_no_mpi>`,
+MPI is initialized implicitly using the MPI_COMM_WORLD
+communicator, then this function should then be called
+before exiting the program to wait until all parallel
+tasks are completed and cleanly shut down MPI.
+\endverbatim
+*/
+void lammps_finalize()
+{
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Finalize();
+}
+
+// ----------------------------------------------------------------------
+// library API functions to process commands 
+// ----------------------------------------------------------------------
+
+/** \brief Process LAMMPS input from a file
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param filename name of a file with LAMMPS input
+
+\verbatim embed:rst
+This function will process the commands in the file pointed to
+by ``filename`` line by line like a file processed with the
+:doc:`include <include>` command.  The function returns when
+the end of the file is reached.
+\endverbatim
+  */
 void lammps_file(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

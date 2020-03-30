@@ -22,7 +22,7 @@ context of your application.
    <Modify>` doc pages for info on how to add a new fix to LAMMPS.
 
 .. spacer
-   
+
 2. Define a new LAMMPS command that calls the other code.  This is
    conceptually similar to method (1), but in this case LAMMPS and the
    other code are on a more equal footing.  Note that now the other code

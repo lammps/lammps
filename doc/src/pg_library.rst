@@ -1,5 +1,5 @@
-LAMMPS library APIs
-*******************
+LAMMPS C library API
+********************
 
 Overview
 ========
@@ -8,38 +8,124 @@ As described on the :doc:`library interface to LAMMPS <Howto_library>`
 doc page, LAMMPS can be built as a library, so that it can be called by
 another code, used in a :doc:`coupled manner <Howto_couple>` with other
 codes, or driven through a :doc:`Python interface <Python_head>`.
+Several of these approaches are based on a C language wrapper functions
+in the files ``src/library.h`` and ``src/library.cpp``, which are
+documented below.  Behind the scenes this will create, delete, or
+modify and instance of the ``LAMMPS`` class.  Thus all functions require
+an argument containing a ``handle`` in the form of a ``void`` pointer,
+which contains or will be assigned to a reference of this class instance.
 
-.. note:: Thread-safety
+.. note::
 
-   LAMMPS was initially not conceived as a thread-safe program, but over
-   the years changes have been applied to replace operations that
-   collide with creating multiple LAMMPS instances from multiple-threads
-   of the same process with thread-safe alternatives.  This primarily
-   applies to the core LAMMPS code and less so on add-on packages,
-   especially when those packages require additional code in the *lib*
-   folder, interface LAMMPS to Fortran libraries, or the code uses
-   static variables (like the USER-COLVARS package).
+   Please see the :ref:`note about thread-safety <thread-safety>`
+   in the library Howto doc page.
 
-   Another major issue to deal with is to correctly handle MPI.
-   Creating a LAMMPS instance requires passing an MPI communicator, or
-   it assumes the ``MPI_COMM_WORLD`` communicator, which spans all MPI
-   processor ranks.  When creating multiple LAMMPS object instances from
-   different threads, this communicator has to be different for each
-   thread or else collisions can happen.  or it has to be guaranteed,
-   that only one thread at a time is active.  MPI communicators,
-   however, are not a problem, if LAMMPS is compiled with the MPI STUBS
-   library, which implies that there is no MPI communication and only 1
-   MPI rank.
+Creating or deleting a LAMMPS object
+====================================
 
-Provided APIs
--------------
+The :ref:`lammps_open() <lammps_open>` and :ref:`lammps_open_no_mpi()
+<lammps_open_no_mpi>` functions are used to create and initialize a
+LAMMPS instance.  The calling program has to provide a handle where
+a reference to this instance can be stored and which has to be used
+in all subsequent function calls until that instance is destroyed
+by calling :ref:`lammps_close() <lammps_close>`.  Here is a simple example
+demonstrating its use:
 
-.. removed from Howto_library.rst
+.. code-block:: C
 
-The file ``src/library.cpp`` contains the following functions for creating
-and destroying an instance of LAMMPS and sending it commands to
-execute.  See the documentation in the src/library.cpp file for
-details.
+   #include <library.h>
+   #include <stdio.h>
+
+   int main(int argc, char **argv)
+   {
+     void *handle;
+     int version;
+     const char *lmpargv[] { "lammps", "-log", "none"};
+     int lmpargc = 3;
+
+     /* create LAMMPS instance */
+     lammps_open_no_mpi(lmpargc, lmpargv, &handle);
+     if (handle == NULL) {
+       printf("LAMMPS initialization failed");
+       lammps_finalize();
+       return 1;
+     }
+
+     /* get and print numerical version */
+     version = lammps_version(handle);
+     printf("LAMMPS Version: %d\n",version);
+
+     /* delete LAMMPS instance and shut down MPI */
+     lammps_close(handle);
+     lammps_finalize();
+     return 0;
+   }
+
+The LAMMPS library will be using the MPI library it was compiled with
+and will either run on all processors in the ``MPI_COMM_WORLD``
+communicator or on the set of processors in the communicator given in
+the ``comm`` argument of :ref:`lammps_open <lammps_open>`.  This means
+the calling code can run LAMMPS on all or a subset of processors.  For
+example, a wrapper script might decide to alternate between LAMMPS and
+another code, allowing them both to run on all the processors.  Or it
+might allocate half the processors to LAMMPS and half to the other code
+by creating a custom communicator with ``MPI_Comm_split()`` and run both
+codes concurrently before syncing them up periodically.  Or it might
+instantiate multiple instances of LAMMPS to perform different
+calculations and either alternate between them or run them one after the
+other.  The :ref:`lammps_open() <lammps_open>` function may be called
+multiple times, to create multiple instances of LAMMPS.
+
+The :ref:`lammps_close() <lammps_close>` function is used to shut down
+an instance of LAMMPS and free all its memory. This has to be called for
+every instance created with any of the :ref:`lammps_open()
+<lammps_open>` functions. It will **not** call ``MPI_Finalize()``, since
+that may only be called once. See
+:ref:`lammps_finalize() <lammps_finalize>` for how to call this
+without explicit MPI support in the calling program.
+
+.. _lammps_open:
+.. doxygenfunction:: lammps_open
+   :project: progguide
+   :no-link:
+
+.. _lammps_open_no_mpi:
+.. doxygenfunction:: lammps_open_no_mpi
+   :project: progguide
+   :no-link:
+
+.. _lammps_close:
+.. doxygenfunction:: lammps_close
+   :project: progguide
+   :no-link:
+
+.. _lammps_finalize:
+.. doxygenfunction:: lammps_finalize
+   :project: progguide
+   :no-link:
+
+.. _lammps_version:
+.. doxygenfunction:: lammps_version
+   :project: progguide
+   :no-link:
+
+Executing LAMMPS commands
+=========================
+
+Once a LAMMPS instance is created, there are multiple ways
+to "drive" a simulation.  In most cases it is easiest to
+process single or multiple LAMMPS commands like in an input
+file.  This can be done through reading a file or passing
+single commands or lists of commands with the following functions.
+
+.. _lammps_file:
+.. doxygenfunction:: lammps_file
+   :project: progguide
+   :no-link:
+
+-------------------
+
+TODO: this part still needs to be edited/adapted
 
 .. note::
 
@@ -51,46 +137,11 @@ details.
 
 .. code-block:: c
 
-   void lammps_open(int, char **, MPI_Comm, void **)
-   void lammps_open_no_mpi(int, char **, void **)
-   void lammps_close(void *)
-   int lammps_version(void *)
    void lammps_file(void *, char *)
    char *lammps_command(void *, char *)
    void lammps_commands_list(void *, int, char **)
    void lammps_commands_string(void *, char *)
    void lammps_free(void *)
-
-The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were :doc:`command-line arguments <Run_options>` when LAMMPS is run in stand-alone mode
-from the command line, and a MPI communicator for LAMMPS to run under.
-It returns a ptr to the LAMMPS object that is created, and which is
-used in subsequent library calls.  The lammps_open() function can be
-called multiple times, to create multiple instances of LAMMPS.
-
-LAMMPS will run on the set of processors in the communicator.  This
-means the calling code can run LAMMPS on all or a subset of
-processors.  For example, a wrapper script might decide to alternate
-between LAMMPS and another code, allowing them both to run on all the
-processors.  Or it might allocate half the processors to LAMMPS and
-half to the other code and run both codes simultaneously before
-syncing them up periodically.  Or it might instantiate multiple
-instances of LAMMPS to perform different calculations.
-
-The lammps_open_no_mpi() function is similar except that no MPI
-communicator is passed from the caller.  Instead, MPI_COMM_WORLD is
-used to instantiate LAMMPS, and MPI is initialized if necessary.
-
-The lammps_close() function is used to shut down an instance of LAMMPS
-and free all its memory.
-
-The lammps_version() function can be used to determined the specific
-version of the underlying LAMMPS code. This is particularly useful
-when loading LAMMPS as a shared library via dlopen(). The code using
-the library interface can than use this information to adapt to
-changes to the LAMMPS command syntax between versions. The returned
-LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
-20150902) that grows with every new LAMMPS version.
 
 The lammps_file(), lammps_command(), lammps_commands_list(), and
 lammps_commands_string() functions are used to pass one or more
@@ -306,10 +357,5 @@ before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
    
 
-C language API
-==============
-
-.. doxygenfile:: library.h
-   :project: progguide
 
                  

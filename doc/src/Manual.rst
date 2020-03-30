@@ -32,7 +32,7 @@ a brief description of the basic code structure of LAMMPS.
 
 ----------
 
-Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands>` since it gives quick access to a doc page for
+Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
 every LAMMPS command.
 
 .. _lws: https://lammps.sandia.gov

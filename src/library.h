@@ -14,8 +14,7 @@
 #ifndef LAMMPS_LIBRARY_H
 #define LAMMPS_LIBRARY_H
 
-/*! \file library.h
- *
+/*
  * C style library interface to LAMMPS which allows to create
  * and control instances of the LAMMPS C++ class and exchange
  * data with it.  The C bindings are then used as basis for
@@ -24,7 +23,7 @@
  * using the ISO_C_BINDINGS module in modern Fortran.
  * If needed, new LAMMPS-specific functions can be added to
  * expose additional LAMMPS functionality to this library interface.
-*/
+ */
 
 /*
  * Follow the behavior of regular LAMMPS compilation and assume
@@ -39,61 +38,17 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
-/* ifdefs allow this file to be included in a C program */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** \brief Create an instance of the LAMMPS class and return a pointer
- *  to it. Pass a list of command line arguments and the MPI communicator.
- *
- * \param argc number of command line arguments
- * \param argv list of command line argument strings
- * \param comm MPI communicator for this LAMMPS instance.
- * \param ptr pointer to a location where reference to the created LAMMPS instance is stored. Will be pointing to a NULL
- * pointer if the function failed.
- */
+/* create or delete a LAMMPS instance and related functions */
   void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
-
-/** \brief Variant of lammps_open() that will implicitly use MPI_COMM_WORLD.
- *  Will run MPI_Init() if it has not been called before.
- *
- * \param argc number of command line arguments
- * \param argv list of command line argument strings
- * \param ptr pointer to a location where reference to the created LAMMPS instance is stored. Will be pointing to a NULL
- * pointer if the function failed.
- */
   void lammps_open_no_mpi(int argc, char **argv, void **ptr);
-
-/** \brief Delete a LAMMPS instance created by lammps_open() or lammps_open_no_mpi()
- *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
- */
   void lammps_close(void *ptr);
-
-  /** \brief Get the numerical representation of the current LAMMPS version.
-   *
-   * \param ptr pointer to a previously created LAMMPS instance cast to void *.
-   * \return an integer representing the version data in the format YYYYMMDD
-   */
+  void lammps_finalize();
   int  lammps_version(void *ptr);
 
-  /** \brief Process LAMMPS input from a file
-   *
-   * \param ptr pointer to a previously created LAMMPS instance cast to void *.
-   * \param filename name of a file with LAMMPS input
-
-\verbatim embed:rst
-
-This function will process the commands in the file pointed to
-by ``filename`` line by line like a file processed with the
-:doc:`include <include>` command.  The function returns when
-the end of the file is reached or a :doc:`quit <quit>`
-command is encountered.
-
-\endverbatim
-  */
   void lammps_file(void * ptr, char * filename);
 
   char *lammps_command(void *, char *);

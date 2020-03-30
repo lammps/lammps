@@ -328,18 +328,19 @@ if spelling_spec:
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+conf_script_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(conf_script_dir, '.'))
 import LAMMPSLexer
 from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))
+sys.path.append(os.path.join(conf_script_dir, '..', '..', '..', 'python'))
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'
 
 # breathe configuration
 
-breathe_projects = { "progguide" : "../../doxygen/xml" }
+breathe_projects = { "progguide" : os.path.join(conf_script_dir, '..', '..', 'doxygen', 'xml') }
 breathe_default_project = "progguide"

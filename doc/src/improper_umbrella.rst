@@ -1,24 +1,22 @@
-.. index:: improper\_style umbrella
+.. index:: improper_style umbrella
 
-improper\_style umbrella command
-================================
+improper_style umbrella command
+===============================
 
-improper\_style umbrella/omp command
-====================================
+improper_style umbrella/omp command
+===================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style umbrella
    improper_coeff 1 100.0 180.0
@@ -32,9 +30,8 @@ commonly referred to as a classic inversion and used in the
 
 .. math::
 
-  E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
-  E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
-
+   E = & \frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o \\
+   E = & K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
 
 where :math:`K` is the force constant and :math:`\omega` is the angle between the IL
 axis and the IJK plane:
@@ -57,9 +54,7 @@ commands:
 * :math:`K` (energy)
 * :math:`\omega_0` (degrees)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,13 +74,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
@@ -98,13 +90,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _umbrella-Mayo:
-
-
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990),

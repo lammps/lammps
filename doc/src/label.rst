@@ -6,7 +6,6 @@ label command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    label ID
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label xyz
    label loop

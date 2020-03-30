@@ -6,14 +6,12 @@ clear command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    clear
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 

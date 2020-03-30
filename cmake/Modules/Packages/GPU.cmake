@@ -1,7 +1,4 @@
 if(PKG_GPU)
-    if (CMAKE_VERSION VERSION_LESS "3.1")
-      message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
-    endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -111,6 +108,9 @@ if(PKG_GPU)
       endif()
 
       list(APPEND LAMMPS_LINK_LIBS gpu)
+      if(LAMMPS_USE_MPI4WIN)
+        add_dependencies(gpu mpi4win_build)
+      endif()
 
       add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
       target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
@@ -172,6 +172,9 @@ if(PKG_GPU)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
       list(APPEND LAMMPS_LINK_LIBS gpu)
+      if(LAMMPS_USE_MPI4WIN)
+        add_dependencies(gpu mpi4win_build)
+      endif()
 
       add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
       target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)

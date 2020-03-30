@@ -1,46 +1,44 @@
-.. index:: pair\_style born/coul/dsf/cs
+.. index:: pair_style born/coul/dsf/cs
 
-pair\_style born/coul/dsf/cs command
+pair_style born/coul/dsf/cs command
 ====================================
 
-pair\_style born/coul/long/cs command
+pair_style born/coul/long/cs command
 =====================================
 
-pair\_style born/coul/long/cs/gpu command
+pair_style born/coul/long/cs/gpu command
 =========================================
 
-pair\_style born/coul/wolf/cs command
+pair_style born/coul/wolf/cs command
 =====================================
 
-pair\_style born/coul/wolf/cs/gpu command
+pair_style born/coul/wolf/cs/gpu command
 =========================================
 
-pair\_style buck/coul/long/cs command
+pair_style buck/coul/long/cs command
 =====================================
 
-pair\_style coul/long/cs command
+pair_style coul/long/cs command
 ================================
 
-pair\_style coul/long/cs/gpu command
+pair_style coul/long/cs/gpu command
 ====================================
 
-pair\_style coul/wolf/cs command
+pair_style coul/wolf/cs command
 ================================
 
-pair\_style lj/cut/coul/long/cs command
+pair_style lj/cut/coul/long/cs command
 =======================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -70,34 +68,33 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style born/coul/dsf/cs 0.1 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style born/coul/long/cs 10.0 8.0
    pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
 
    pair_style born/coul/wolf/cs 0.25 10.0 12.0
-   pair_coeff \* \*   0.0 1.00 0.00 0.00 0.00
+   pair_coeff * *   0.0 1.00 0.00 0.00 0.00
    pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50
 
    pair_style buck/coul/long/cs 10.0
    pair_style buck/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 1.5 200.0
+   pair_coeff * * 100.0 1.5 200.0
    pair_coeff 1 1 100.0 1.5 200.0 9.0
 
    pair_style coul/long/cs 10.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style coul/wolf/cs 0.2 9.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style lj/cut/coul/long/cs 10.0
    pair_style lj/cut/coul/long/cs 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description
@@ -135,24 +132,23 @@ to 0.0, which works because the core and shell atoms are bonded to
 each other.  This induces a long-range correction approximation which
 fails at small distances (~< 10e-8). Therefore, the Coulomb term which
 is used to calculate the correction factor is extended by a minimal
-distance (r\_min = 1.0-6) when the interaction between a core/shell
+distance (r_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
-.. image:: Eqs/pair_cs.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the core and shell, epsilon is the dielectric constant and r\_min is the
-minimal distance.
+   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the core and shell, epsilon is the dielectric
+constant and :math:`r_{min}` is the minimal distance.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of
 a minimal distance to avoid the possible r = 0.0 case for a core/shell
 pair.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -172,9 +168,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -182,13 +176,10 @@ See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
 restarting, and rRESPA are handled by theses pair styles.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the CORESHELL package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -201,13 +192,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _MitchellFinchham2:
-
-
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

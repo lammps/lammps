@@ -38,8 +38,7 @@ The dipole style does not actually define finite-size particles, but
 is often used in conjunction with spherical particles, via a command
 like
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole
 
@@ -116,7 +115,7 @@ such interactions.  These are the various :doc:`pair styles <pair_style>` that g
 
 * :doc:`pair_style gran/history <pair_gran>`
 * :doc:`pair_style gran/hertzian <pair_gran>`
-* :doc:`pair_style gran/no\_history <pair_gran>`
+* :doc:`pair_style gran/no_history <pair_gran>`
 * :doc:`pair_style dipole/cut <pair_dipole>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`

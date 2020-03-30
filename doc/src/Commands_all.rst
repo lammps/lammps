@@ -17,7 +17,7 @@ General commands
 An alphabetic list of all general LAMMPS commands.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
@@ -70,6 +70,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`kim_init <kim_commands>`
    * :doc:`kim_interactions <kim_commands>`
    * :doc:`kim_param <kim_commands>`
+   * :doc:`kim_property <kim_commands>`
    * :doc:`kim_query <kim_commands>`
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`

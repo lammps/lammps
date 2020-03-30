@@ -281,7 +281,7 @@ void PPPMCGOMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -570,7 +570,7 @@ void PPPMCGOMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;

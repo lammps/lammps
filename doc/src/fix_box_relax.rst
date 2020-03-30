@@ -6,16 +6,15 @@ fix box/relax command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID box/relax keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * box/relax = style name of this fix command
-  
+
   .. parsed-literal::
-  
+
      one or more keyword value pairs may be appended
      keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *nreset* or *vmax* or *dilate* or *scaleyz* or *scalexz* or *scalexy* or *fixedpoint*
        *iso* or *aniso* or *tri* value = Ptarget = desired pressure (pressure units)
@@ -30,13 +29,10 @@ Syntax
        *fixedpoint* values = x y z
          x,y,z = perform relaxation dilation/contraction around this point (distance units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all box/relax iso 0.0 vmax 0.001
    fix 2 water box/relax aniso 0.0 dilate partial
@@ -54,9 +50,7 @@ close to the specified external tensor.  Conceptually, specifying a
 positive pressure is like squeezing on the simulation box; a negative
 pressure typically allows the box to expand.
 
-
 ----------
-
 
 The external pressure tensor is specified using one or more of the
 *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple*
@@ -138,9 +132,7 @@ displaced by the same amount, different on each iteration.
    new objective function valid for the new box size/shape.  Repeat as
    necessary until the box size/shape has reached its new equilibrium.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -155,9 +147,7 @@ dilated or contracted by the same percentage every timestep.  The
 *Couple xyz* can be used for a 2d simulation; the *z* dimension is
 simply ignored.
 
-
 ----------
-
 
 The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -166,7 +156,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Ptarget" is the same as specifying
 these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -181,7 +170,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Ptarget" is the same as specifying these 4
 keywords:
 
-
 .. parsed-literal::
 
    x Ptarget
@@ -195,7 +183,6 @@ as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Ptarget" is the same as specifying
 these 7 keywords:
 
-
 .. parsed-literal::
 
    x Ptarget
@@ -206,9 +193,7 @@ these 7 keywords:
    xz 0.0
    couple none
 
-
 ----------
-
 
 The *vmax* keyword can be used to limit the fractional change in the
 volume of the simulation box that can occur in one iteration of the
@@ -220,9 +205,7 @@ percent in one iteration when *couple xyz* has been specified.  For
 any other case it means no linear dimension of the simulation box can
 change by more than 1/10 of a percent.
 
-
 ----------
-
 
 With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
@@ -231,7 +214,6 @@ function then is:
 .. math::
 
    E = U + P_t \left(V-V_0 \right) + E_{strain}
-
 
 where *U* is the system potential energy, :math:`P_t` is the desired
 hydrostatic pressure, :math:`V` and :math:`V_0` are the system and reference
@@ -244,7 +226,6 @@ global system stress tensor **P** will satisfy the relation:
 .. math::
 
    \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
-
 
 where **I** is the identity matrix, :math:`\mathbf{h_0}` is the box
 dimension tensor of the reference cell, and ::math:`\mathbf{h_{0d}}`
@@ -288,7 +269,7 @@ from a restart file.
    Because pressure is often a very sensitive function of volume,
    it can be difficult for the minimizer to equilibrate the system the
    desired pressure with high precision, particularly for solids.  Some
-   techniques that seem to help are (a) use the "min\_modify line
+   techniques that seem to help are (a) use the "min_modify line
    quadratic" option when minimizing with box relaxations, (b) minimize
    several times in succession if need be, to drive the pressure closer
    to the target pressure, (c) relax the atom positions before relaxing
@@ -297,9 +278,7 @@ from a restart file.
    systems (e.g. liquids) will not sustain a non-hydrostatic applied
    pressure, which means the minimizer will not converge.
 
-
 ----------
-
 
 This fix computes a temperature and pressure each timestep.  The
 temperature is used to compute the kinetic contribution to the
@@ -307,32 +286,29 @@ pressure, even though this is subsequently ignored by default.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp virial
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix\_ID
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
 + underscore + "press", and the group for the new computes is the same
 as the fix group.  Also note that the pressure compute does not
 include a kinetic component.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of this
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of this
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* or
-*thermo\_press* will have no effect on this fix.
-
+It also means that changing attributes of *thermo_temp* or
+*thermo_press* will have no effect on this fix.
 
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -347,7 +323,7 @@ minimization, most likely in an undesirable way.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by fix box/relax), but only if the
@@ -367,8 +343,7 @@ result in double-counting of the fix energy in the minimization
 energy. Instead, the fix energy can be explicitly added to the
 potential energy using one of these two variants:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable emin equal pe+f_1
 
@@ -384,7 +359,6 @@ described above.
 
 Restrictions
 """"""""""""
-
 
 Only dimensions that are available can be adjusted by this fix.
 Non-periodic dimensions are not available.  *z*\ , *xz*\ , and *yz*\ , are
@@ -411,12 +385,8 @@ Default
 
 The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
 
-
 ----------
 
-
 .. _Parrinello1981:
-
-
 
 **(Parrinello1981)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).

@@ -1,13 +1,12 @@
-.. index:: pair\_write
+.. index:: pair_write
 
-pair\_write command
-===================
+pair_write command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_write itype jtype N style inner outer file keyword Qi Qj
 
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_write 1 3 500 r 1.0 10.0 table.txt LJ
    pair_write 1 1 1000 rsq 2.0 8.0 table.txt Yukawa_1_1 -0.5 0.5
@@ -67,14 +65,13 @@ and a force (in force units).
 Restrictions
 """"""""""""
 
-
 All force field coefficients for pair and other kinds of interactions
 must be set before this command can be invoked.
 
 Due to how the pairwise force is computed, an inner value > 0.0 must
 be specified even if the potential has a finite value at r = 0.0.
 
-For EAM potentials, the pair\_write command only tabulates the
+For EAM potentials, the pair_write command only tabulates the
 pairwise portion of the potential, not the embedding portion.
 
 Related commands

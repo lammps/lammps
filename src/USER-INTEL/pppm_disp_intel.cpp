@@ -62,6 +62,7 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
 PPPMDispIntel::PPPMDispIntel(LAMMPS *lmp) : PPPMDisp(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  triclinic_support = 0;
 
   order = 7;
   order_6 = 7; //sets default stencil sizes to 7
@@ -348,7 +349,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
   }
 
   if (function[1]) {
-    //perfrom calculations for geometric mixing
+    //perform calculations for geometric mixing
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
       particle_map<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,

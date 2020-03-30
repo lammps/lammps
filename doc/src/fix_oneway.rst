@@ -6,7 +6,6 @@ fix oneway command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID oneway N region-ID direction
@@ -17,12 +16,10 @@ Syntax
 * region-ID = ID of region where fix is active
 * direction = *x* or *-x* or *y* or *-y* or *z* or *-z* = coordinate and direction of the oneway constraint
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ions oneway 10 semi -x
    fix all oneway 1 left -z
@@ -40,11 +37,9 @@ only.
 This can be used, for example, as a simple model of a semi-permeable
 membrane, or as an implementation of Maxwell's demon.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

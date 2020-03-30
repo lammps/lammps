@@ -6,7 +6,6 @@ fix precession/spin command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    fix ID group precession/spin style args
@@ -14,9 +13,9 @@ Syntax
 * ID, group are documented in :doc:`fix <fix>` command
 * precession/spin = style name of this fix command
 * style = *zeeman* or *anisotropy* or *cubic*
-  
+
   .. parsed-literal::
-  
+
        *zeeman* args = H x y z
          H = intensity of the magnetic field (in Tesla)
          x y z = vector direction of the field
@@ -24,18 +23,14 @@ Syntax
          K = intensity of the magnetic anisotropy (in eV)
          x y z = vector direction of the anisotropy
 
-  
   .. parsed-literal::
-  
+
        *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -65,7 +60,6 @@ with:
 * :math:`\mu_i` the atomic moment of spin :math:`i` given as a multiple of the
   Bohr magneton :math:`\mu_B` (for example, :math:`\mu_i \approx 2.2` in bulk iron).
 
-
 The field value in Tesla is multiplied by the gyromagnetic
 ratio, :math:`g \cdot \mu_B/\hbar`, converting it into a precession frequency in
 rad.THz (in metal units and with :math:`\mu_B = 5.788 eV/T`).
@@ -73,11 +67,11 @@ rad.THz (in metal units and with :math:`\mu_B = 5.788 eV/T`).
 As a comparison, the figure below displays the simulation of a
 single spin (of norm :math:`\mu_i = 1.0`) submitted to an external
 magnetic field of :math:`\vert B_{ext}\vert = 10.0\; \mathrm{Tesla}` (and oriented along the z
-axis). 
+axis).
 The upper plot shows the average magnetization along the
 external magnetic field axis and the lower plot the Zeeman
 energy, both as a function of temperature.
-The reference result is provided by the plot of the Langevin 
+The reference result is provided by the plot of the Langevin
 function for the same parameters.
 
 .. image:: JPG/zeeman_langevin.jpg
@@ -86,7 +80,7 @@ function for the same parameters.
 
 The temperature effects are accounted for by connecting the spin
 :math:`i` to a thermal bath using a Langevin thermostat (see
-:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of 
+:doc:`fix langevin/spin <fix_langevin_spin>` for the definition of
 this thermostat).
 
 Style *anisotropy* is used to simulate an easy axis or an easy plane
@@ -135,17 +129,14 @@ normalized).
 
 Those styles can be combined within one single command line.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 By default, the energy associated to this fix is not added to the potential
 energy of the system.
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix
 to add this magnetic potential energy to the potential energy of the system,
-
 
 .. code-block:: LAMMPS
 
@@ -162,7 +153,7 @@ Restrictions
 
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
-atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The *precession/spin* style can only be declared once. If more
 than one precession type (for example combining an anisotropy and a Zeeman interactions)
@@ -178,13 +169,9 @@ Related commands
 
 none
 
-
 ----------
 
-
 .. _Skomski1:
-
-
 
 **(Skomski)** Skomski, R. (2008). Simple models of magnetism.
 Oxford University Press.

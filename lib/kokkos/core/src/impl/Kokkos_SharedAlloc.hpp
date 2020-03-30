@@ -267,7 +267,7 @@ public:
 
   // Use macros instead of inline functions to reduce
   // pressure on compiler optimization by reducing
-  // number of symbols and inline functons.
+  // number of symbols and inline functions.
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 

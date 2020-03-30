@@ -263,7 +263,7 @@ const double kMinScale_ = 10000.;
       volumes_(i) += volumes_(i-1);
     } 
 
-    // record orginal energetic properties
+    // record original energetic properties
     int ntypes = lammpsInterface_->ntypes();
     epsilon0_.reset(ntypes);
     p_ = lammpsInterface_->potential();

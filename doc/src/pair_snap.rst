@@ -1,27 +1,25 @@
-.. index:: pair\_style snap
+.. index:: pair_style snap
 
-pair\_style snap command
-========================
+pair_style snap command
+=======================
 
-pair\_style snap/kk command
-===========================
+pair_style snap/kk command
+==========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style snap
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style snap
-   pair_coeff \* \* InP.snapcoeff InP.snapparam In In P P
+   pair_coeff * * InP.snapcoeff InP.snapparam In In P P
 
 Description
 """""""""""
@@ -38,12 +36,13 @@ In SNAP, the total energy is decomposed into a sum over
 atom energies. The energy of atom *i* is
 expressed as a weighted sum over bispectrum components.
 
-.. image:: Eqs/pair_snap.jpg
-   :align: center
+.. math::
 
-where *B\_k\^i* is the *k*\ -th bispectrum component of atom *i*\ ,
-and *beta\_k\^alpha\_i* is the corresponding linear coefficient
-that depends on *alpha\_i*, the SNAP element of atom *i*\ . The
+   E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i
+
+where :math:`B_k^i` is the *k*\ -th bispectrum component of atom *i*\ ,
+and :math:`\beta_k^{\alpha_i}` is the corresponding linear coefficient
+that depends on :math:\alpha_i`, the SNAP element of atom *i*\ . The
 number of bispectrum components used and their definitions
 depend on the value of *twojmax*
 defined in the SNAP parameter file described below.
@@ -51,10 +50,10 @@ The bispectrum calculation is described in more detail
 in :doc:`compute sna/atom <compute_sna_atom>`.
 
 Note that unlike for other potentials, cutoffs for SNAP potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the SNAP potential files themselves.
 
-Only a single pair\_coeff command is used with the *snap* style which
+Only a single pair_coeff command is used with the *snap* style which
 specifies a SNAP coefficient file followed by a SNAP parameter file
 and then N additional arguments specifying the mapping of SNAP
 elements to LAMMPS atom types, where N is the number of
@@ -66,12 +65,11 @@ LAMMPS atom types:
 
 As an example, if a LAMMPS indium phosphide simulation has 4 atoms
 types, with the first two being indium and the 3rd and 4th being
-phophorous, the pair\_coeff command would look like this:
+phophorous, the pair_coeff command would look like this:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* snap InP.snapcoeff InP.snapparam In In P P
+   pair_coeff * * snap InP.snapcoeff InP.snapparam In In P P
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The two filenames are for the coefficient and parameter files, respectively.
@@ -103,17 +101,16 @@ tantalum potential provided in the LAMMPS potentials directory
 combines the *snap* and *zbl* pair styles. It is invoked
 by the following commands:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-           variable zblcutinner equal 4
-           variable zblcutouter equal 4.8
-           variable zblz equal 73
-           pair_style hybrid/overlay &
-           zbl ${zblcutinner} ${zblcutouter} snap
-           pair_coeff \* \* zbl 0.0
-           pair_coeff 1 1 zbl ${zblz}
-           pair_coeff \* \* snap Ta06A.snapcoeff Ta06A.snapparam Ta
+   variable zblcutinner equal 4
+   variable zblcutouter equal 4.8
+   variable zblz equal 73
+   pair_style hybrid/overlay &
+   zbl ${zblcutinner} ${zblcutouter} snap
+   pair_coeff * * zbl 0.0
+   pair_coeff 1 1 zbl ${zblz}
+   pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the :doc:`include <include>`
@@ -139,7 +136,7 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*\ , *rmin0*\ ,
-*switchflag*\ , and *bzeroflag*\ .
+*switchflag*\ , *bzeroflag*\, and *chunksize*\.
 
 The default values for these keywords are
 
@@ -148,10 +145,21 @@ The default values for these keywords are
 * *switchflag* = 0
 * *bzeroflag* = 1
 * *quadraticflag* = 1
+* *chunksize* = 2000
 
-Detailed definitions for all the keywords are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
-If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term,
-0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
+The keyword *chunksize* is only applicable when using the
+pair style *snap* with the KOKKOS package and is ignored otherwise.
+This keyword controls
+the number of atoms in each pass used to compute the bispectrum
+components and is used to avoid running out of memory. For example
+if there are 4000 atoms in the simulation and the *chunksize*
+is set to 2000, the bispectrum calculation will be broken up
+into two passes.
+
+Detailed definitions for all the other keywords
+are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
+
+If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term, 0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
 The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
 for each element, the upper-triangular elements of alpha.
 
@@ -160,31 +168,27 @@ for each element, the upper-triangular elements of alpha.
    The previously used *diagonalstyle* keyword was removed in 2019,
    since all known SNAP potentials use the default value of 3.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
-specify a pair\_coeff command with I != J arguments for this style.
+specify a pair_coeff command with I != J arguments for this style.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -204,13 +208,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the SNAP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -224,24 +225,16 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Thompson20142:
-
-
 
 **(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
 
 .. _Bartok20102:
 
-
-
 **(Bartok2010)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 .. _Bartok2013:
-
-
 
 **(Bartok2013)** Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).

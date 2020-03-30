@@ -55,7 +55,7 @@ rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
   c_z = & |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2}
 
 where A = \| **A** \| indicates the scalar length of **A**\ . The hat symbol (\^)
-indicates the corresponding unit vector. *beta* and *gamma* are angles
+indicates the corresponding unit vector. :math:`\beta` and :math:`\gamma` are angles
 between the vectors described below. Note that by construction,
 **a**\ , **b**\ , and **c** have strictly positive x, y, and z components, respectively.
 If it should happen that
@@ -78,7 +78,7 @@ The transformation is given by the following equation:
     \begin{pmatrix}
       \mathbf{B \times C}  \\
       \mathbf{C \times A}  \\
-      \mathbf{A \times B} 
+      \mathbf{A \times B}
     \end{pmatrix} \cdot \mathbf{X}
 
 where *V* is the volume of the box, **X** is the original vector quantity and
@@ -200,7 +200,6 @@ an orthogonal bounding box which encloses the triclinic simulation box
 is output, along with the 3 tilt factors (xy, xz, yz) of the triclinic
 box, formatted as follows:
 
-
 .. parsed-literal::
 
    ITEM: BOX BOUNDS xy xz yz
@@ -212,7 +211,6 @@ This bounding box is convenient for many visualization programs and is
 calculated from the 9 triclinic box parameters
 (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:
 
-
 .. parsed-literal::
 
    xlo_bound = xlo + MIN(0.0,xy,xz,xy+xz)
@@ -223,7 +221,7 @@ calculated from the 9 triclinic box parameters
    zhi_bound = zhi
 
 These formulas can be inverted if you need to convert the bounding box
-back into the triclinic box parameters, e.g. xlo = xlo\_bound -
+back into the triclinic box parameters, e.g. xlo = xlo_bound -
 MIN(0.0,xy,xz,xy+xz).
 
 One use of triclinic simulation boxes is to model solid-state crystals

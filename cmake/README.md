@@ -217,7 +217,7 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
 </tr>
 <tr>
   <td><code>CMAKE_VERBOSE_MAKEFILE</code></td>
-  <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
+  <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achieved by adding `VERBOSE=1` to the `make` call.</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -576,7 +576,7 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   Several fixes and a pair style that have Monte Carlo (MC) or MC-like
   attributes. These include fixes for creating, breaking, and swapping bonds,
   for performing atomic swaps, and performing grand-canonical MC (GCMC) in
-  conjuction with dynamics.
+  conjunction with dynamics.
   </td>
   <td>
   <dl>
@@ -1383,8 +1383,8 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   Some potentials that are also implemented in the Yet Another Force Field (YAFF) code.
   The expressions and their use are discussed in the following papers:
   <ul>
-    <li><a href="http://dx.doi.org/10.1002/jcc.23877" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015)</a></li>
-    <li><a href="http://dx.doi.org/10.1002/jcc.25173" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018)</a></li>
+    <li><a href="https://doi.org/10.1002/jcc.23877" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015)</a></li>
+    <li><a href="https://doi.org/10.1002/jcc.25173" target="_blank">Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018)</a></li>
   </ul>
   </td>
   <td>

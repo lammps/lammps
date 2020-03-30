@@ -66,7 +66,7 @@ section below for examples where this has been done.
   acceleration and instead run it - concurrently with a GPU accelerated
   pair style - on the CPU. This can often be easily achieved with placing
   a *suffix off* command before and a *suffix on* command after the
-  *kspace\_style pppm* command.
+  *kspace_style pppm* command.
 * The KOKKOS/OpenMP and USER-OMP package have different thread management
   strategies, which should result in USER-OMP being more efficient for a
   small number of threads with increasing overhead as the number of threads
@@ -76,7 +76,6 @@ section below for examples where this has been done.
   additional performance on Intel hardware (CPU and accelerator cards), but
   to unlock this potential, an Intel compiler is required. The package code
   will compile with GNU gcc, but it will not be as efficient.
-
 
 **Differences between the GPU and KOKKOS packages:**
 

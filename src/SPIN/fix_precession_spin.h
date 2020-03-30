@@ -57,8 +57,9 @@ class FixPrecessionSpin : public Fix {
   void compute_cubic(double *, double *);
   double compute_cubic_energy(double *);
 
-  // test emag list storing mag energies
-  int nlocal_max;               // max value of nlocal (for size of lists)
+  // storing magnetic energies
+  
+  int nlocal_max;               // max nlocal (for list size)
   double *emag;                 // energy list
 
  protected:

@@ -20,7 +20,7 @@ do
 done
 
 # compute Langevin
-python3 -m langevin.py > res_langevin.dat
+python3 langevin.py > res_langevin.dat
 
 # plot results
-python3 -m plot_precession.py res_lammps.dat res_langevin.dat
+python3 plot_precession.py res_lammps.dat res_langevin.dat

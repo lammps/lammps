@@ -53,8 +53,6 @@ PairSpinDmi::~PairSpinDmi()
     memory->destroy(vmech_dmy);
     memory->destroy(vmech_dmz);
     memory->destroy(cutsq);
-  
-    // test emag list storing mag energies
     memory->destroy(emag);
   }
 }
@@ -194,8 +192,8 @@ void PairSpinDmi::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // test emag list storing mag energies
   // checking size of emag
+  
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
@@ -216,8 +214,6 @@ void PairSpinDmi::compute(int eflag, int vflag)
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
-  
-    // test emag list storing mag energies
     emag[i] = 0.0;
 
     // loop on neighbors
@@ -271,7 +267,8 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= 0.5*hbar;
+        // evdwl *= 0.5*hbar;
+        evdwl *= hbar;
         emag[i] += evdwl;
       } else evdwl = 0.0;
 

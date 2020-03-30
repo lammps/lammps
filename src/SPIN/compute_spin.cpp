@@ -48,7 +48,6 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 6;
   extvector = 0;
-  // npairs = npairspin = 0;
   
   // initialize the magnetic interaction flags
 
@@ -180,15 +179,11 @@ void ComputeSpin::compute_vector()
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
-        // magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
         
         // update magnetic precession energies
         
         if (precession_spin_flag) {
           magenergy += lockprecessionspin->emag[i];
-          // magenergy -= lockprecessionspin->compute_zeeman_energy(sp[i]);
-          // magenergy -= lockprecessionspin->compute_anisotropy_energy(sp[i]);
-          // magenergy -= lockprecessionspin->compute_cubic_energy(sp[i]);
         }
         
         // update magnetic pair interactions
@@ -222,13 +217,13 @@ void ComputeSpin::compute_vector()
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
   spintemperature = hbar*tempnumtot;
-  spintemperature /= (2.0*kb*tempdenomtot);
+  // spintemperature /= (2.0*kb*tempdenomtot);
+  spintemperature /= (kb*tempdenomtot);
 
   vector[0] = magtot[0];
   vector[1] = magtot[1];
   vector[2] = magtot[2];
   vector[3] = magtot[3];
-  // vector[4] = magenergytot*hbar;
   vector[4] = magenergytot;
   vector[5] = spintemperature;
 

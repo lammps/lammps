@@ -3,7 +3,7 @@
 units           metal
 atom_style      spin
 atom_modify     map array
-boundary        p p p
+boundary        f f f
 
 # read_data     singlespin.data
 

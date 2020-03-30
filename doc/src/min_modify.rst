@@ -91,7 +91,7 @@ The choice of a norm can be modified for the min styles *cg*\ , *sd*\
 the 2-norm (Euclidean length) of the global force vector:
 
 .. math::
-    || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
+    || \vec{F} ||_{2} = \sqrt{\vec{F}_1^2+ \cdots + \vec{F}_N^2}
 
 The *max* norm computes the length of the 3-vector force 
 for each atom  (2-norm), and takes the maximum value of those across 

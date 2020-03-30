@@ -99,7 +99,6 @@ void PairSpin::init_style()
   if (ifix >=0)
     lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
 
-  // test emag list storing mag energies
   // init. size of energy stacking lists
 
   nlocal_max = atom->nlocal;

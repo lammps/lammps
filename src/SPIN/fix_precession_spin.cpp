@@ -155,8 +155,6 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 FixPrecessionSpin::~FixPrecessionSpin()
 {
   delete [] magstr;
-  
-  // test emag list storing mag energies
   memory->destroy(emag);
 }
 
@@ -217,7 +215,6 @@ void FixPrecessionSpin::init()
 
   if (varflag == CONSTANT) set_magneticprecession();
 
-  // test emag list storing mag energies
   // init. size of energy stacking lists
 
   nlocal_max = atom->nlocal;
@@ -263,8 +260,8 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   const int nlocal = atom->nlocal;
   double spi[4], fmi[3], epreci;
 
-  // test emag list storing mag energies
   // checking size of emag
+  
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
@@ -273,10 +270,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    
-    // test emag list storing mag energies
     emag[i] = 0.0;
-    
     if (mask[i] & groupbit) {
       epreci = 0.0;
       spi[0] = sp[i][0];

@@ -700,60 +700,67 @@ foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   endif()
 endforeach()
 
-get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
-   Build type       ${CMAKE_BUILD_TYPE}
-   Install path     ${CMAKE_INSTALL_PREFIX}
-   Generator        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
-   Compilers and Flags:
-   C++ Compiler     ${CMAKE_CXX_COMPILER}
-       Type         ${CMAKE_CXX_COMPILER_ID}
-       Version      ${CMAKE_CXX_COMPILER_VERSION}
-   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
-   Defines          ${CPPFLAGS}")
+   Build type:       ${CMAKE_BUILD_TYPE}
+   Install path:     ${CMAKE_INSTALL_PREFIX}
+   Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
+-- <<< Compilers and Flags: >>>
+-- C++ Compiler:     ${CMAKE_CXX_COMPILER}
+      Type:          ${CMAKE_CXX_COMPILER_ID}
+      Version:       ${CMAKE_CXX_COMPILER_VERSION}
+      C++ Flags:    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
+      Defines:       ${DEFINES}")
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)
-  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER}
-           Type     ${CMAKE_Fortran_COMPILER_ID}
-           Version  ${CMAKE_Fortran_COMPILER_VERSION}
-   Fortran Flags    ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
+  message(STATUS "Fortran Compiler: ${CMAKE_Fortran_COMPILER}
+      Type:          ${CMAKE_Fortran_COMPILER_ID}
+      Version:       ${CMAKE_Fortran_COMPILER_VERSION}
+      Fortran Flags:${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
 list (FIND LANGUAGES "C" _index)
 if (${_index} GREATER -1)
-  message(STATUS "C compiler ${CMAKE_C_COMPILER}
-     Type     ${CMAKE_C_COMPILER_ID}
-     Version  ${CMAKE_C_COMPILER_VERSION}
-     C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
+  message(STATUS "C compiler:       ${CMAKE_C_COMPILER}
+      Type:          ${CMAKE_C_COMPILER_ID}
+      Version:       ${CMAKE_C_COMPILER_VERSION}
+      C Flags:      ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
+endif()
+message(STATUS "<<< Linker flags: >>>")
+if(BUILD_EXE)
+  message(STATUS "Executable name:  ${LAMMPS_BINARY}")
 endif()
 if(CMAKE_EXE_LINKER_FLAGS)
-  message(STATUS "Linker flags:
-   Executable      ${CMAKE_EXE_LINKER_FLAGS}")
+  message(STATUS "Executable linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared library flags:  ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared library flags:    ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static library flags:  ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static library flags:    ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 if(BUILD_MPI)
-  message(STATUS "Using MPI with headers in ${MPI_CXX_INCLUDE_PATH} and these libraries: ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
+  message(STATUS "<<< MPI flags >>>
+-- MPI includes:     ${MPI_CXX_INCLUDE_PATH}
+-- MPI libraries:    ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
 endif()
 if(PKG_GPU)
-  message(STATUS "GPU API: ${GPU_API}")
+  message(STATUS "<<< GPU package settings >>>
+-- GPU API:          ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
     message(STATUS "GPU architecture: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OpenCL parameter tuning: ${OCL_TUNE}")
+    message(STATUS "OpenCL tuning:    ${OCL_TUNE}")
   endif()
-  message(STATUS "GPU precision: ${GPU_PREC}")
+  message(STATUS "GPU precision:    ${GPU_PREC}")
 endif()
 if(PKG_KOKKOS)
   message(STATUS "Kokkos Arch: ${KOKKOS_ARCH}")
 endif()
 if(PKG_KSPACE)
-  message(STATUS "Using ${FFT} as primary FFT library")
+  message(STATUS "<<< FFT settings >>>
+-- Primary FFT lib:  ${FFT}")
   if(FFT_SINGLE)
     message(STATUS "Using single precision FFTs")
   else()

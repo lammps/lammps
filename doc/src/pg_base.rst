@@ -1,7 +1,7 @@
 LAMMPS C++ base classes
 ***********************
 
-LAMMPS was designed to be used as a C++ class library
+LAMMPS is designed to be used as a C++ class library
 where one can set up and drive a simulation through
 creating a class instance and then calling some abstract
 operations or commands on that class or its member class
@@ -30,4 +30,5 @@ specific models.
 
    pg_lammps
    pg_pointers
+   pg_command
    pg_region

@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(run,Run)
+CommandStyle(run,Run);
 
 #else
 
@@ -24,6 +24,12 @@ CommandStyle(run,Run)
 
 namespace LAMMPS_NS {
 
+/** \class LAMMPS_NS::Run
+ *
+\verbatim embed:rst
+The Run class implements the :doc:`run <run>` command in LAMMPS inputs.
+\endverbatim
+ */
 class Run : protected Pointers {
  public:
   Run(class LAMMPS *);

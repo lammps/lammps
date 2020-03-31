@@ -37,18 +37,32 @@ using namespace LAMMPS_NS;
 
 enum{II,IJ};
 
-/* ---------------------------------------------------------------------- */
+/** \class LAMMPS_NS::WriteData
+ *
+\verbatim embed:rst
+The WriteData class implements the :doc:`write_data <write_data>`
+command in LAMMPS inputs.
+\endverbatim
+ */
 
+/** \brief Initialize the write_data command
+ * \param lmp pointer to the current LAMMPS instance
+ */
 WriteData::WriteData(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 }
 
-/* ----------------------------------------------------------------------
-   called as write_data command in input script
-------------------------------------------------------------------------- */
-
+/** \brief execute the write_data command
+ *
+ * This function does all the necessary argument parsing,
+ * preparation and setup before it calls the WriteData::write()
+ * function to do the actual write operation.
+ *
+ * \param narg number of arguments
+ * \param arg array of arguments
+ */
 void WriteData::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
@@ -129,11 +143,17 @@ void WriteData::command(int narg, char **arg)
   delete [] file;
 }
 
-/* ----------------------------------------------------------------------
-   called from command()
-   might later let it be directly called within run/minimize loop
-------------------------------------------------------------------------- */
-
+/* might later be directly called within run/minimize loop */
+/** \brief write a data file
+ *
+ * This function is called from WriteData::command() and orchestrates
+ * the actual writing of the data file, which is performed in multiple steps
+ * many of which are delegated to additional methods which collect and
+ * output the data or request appending data to the output file from
+ * various classes.
+ *
+ * \param file name of the data file to write
+ */
 void WriteData::write(char *file)
 {
   // special case where reneighboring is not done in integrator

@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(write_data,WriteData)
+CommandStyle(write_data,WriteData);
 
 #else
 

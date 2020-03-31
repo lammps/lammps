@@ -28,12 +28,21 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 2048
 
-/* ---------------------------------------------------------------------- */
-
+/** \brief Initialize the run command
+ *
+ * \param lmp pointer to the current LAMMPS instance
+ */
 Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
 
-/* ---------------------------------------------------------------------- */
-
+/** \brief Execute the run command
+ *
+ * This function does all the necessary argument parsing,
+ * preparation, and setup to execute an MD simulation with
+ * the selected Integrator class.
+ *
+ * \param narg number of arguments
+ * \param arg array of arguments
+ */
 void Run::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal run command");

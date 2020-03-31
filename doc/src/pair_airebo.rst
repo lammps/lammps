@@ -30,20 +30,18 @@ pair_style rebo/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style cutoff LJ_flag TORSION_flag cutoff_min
 
 * style = *airebo* or *airebo/morse* or *rebo*
 * cutoff = LJ or Morse cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only)
-* LJ\_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
-* TORSION\_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
-* cutoff\_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only, optional)
+* LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
+* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
+* cutoff_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only, optional)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -84,12 +82,12 @@ The AIREBO potential consists of three terms:
 
 .. math::
 
-   E & = \frac{1}{2} \sum_i \sum_{j \neq i} 
-   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} + 
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i}
+   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij} +
     \sum_{k \neq i,j} \sum_{l \neq i,j,k} E^{\text{TORSION}}_{kijl} \right] \\
 
 By default, all three terms are included.  For the *airebo* style, if
-the first two optional flag arguments to the pair\_style command are
+the first two optional flag arguments to the pair_style command are
 included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
@@ -127,17 +125,15 @@ factor of 3.0 (the argument in pair_style), the resulting :math:`E^{\text{LJ}}` 
 would be 10.2 Angstroms.
 
 By default, the longer-ranged interaction is smoothly switched off
-between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff\_min* in addition
+between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff_min* in addition
 to *cutoff*\ , the switching can be configured to take place between
-*cutoff\_min* and *cutoff*\ . *cutoff\_min* can only be specified if all
+*cutoff_min* and *cutoff*\ . *cutoff_min* can only be specified if all
 optional arguments are given.
 
 The :math:`E^{\text{TORSION}}` term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.
 
-
 ----------
-
 
 Only a single pair_coeff command is used with the *airebo*\ , *airebo*
 or *rebo* style which specifies an AIREBO, REBO, or AIREBO-M potential
@@ -156,7 +152,6 @@ to specify the path for the potential file.
 As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C, and the 4th to be H, you would use the following
 pair_coeff command:
-
 
 .. code-block:: LAMMPS
 
@@ -194,7 +189,6 @@ The 3 values correspond to the following sub-categories:
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
 .. code-block:: LAMMPS
 
    compute 0 all pair airebo
@@ -203,9 +197,7 @@ headings) the following commands could be included in an input script:
    variable TORSION  equal c_0[3]
    thermo_style custom step temp epair v_REBO v_LJ v_TORSION
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -225,9 +217,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -245,7 +235,6 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -257,7 +246,7 @@ The CH.airebo and CH.airebo-m potential files provided with LAMMPS
 You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
 but you would need to create your own AIREBO or AIREBO-M potential file
 with coefficients listed in the appropriate units, if your simulation
-doesn't use "metal" units.
+does not use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -266,26 +255,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Stuart:
-
-
 
 **(Stuart)** Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486
 (2000).
 
 .. _Brenner:
 
-
-
 **(Brenner)** Brenner, Shenderova, Harrison, Stuart, Ni, Sinnott, J
 Physics: Condensed Matter, 14, 783-802 (2002).
 
 .. _OConnor:
-
-
 
 **(O'Connor)** O'Connor et al., J. Chem. Phys. 142, 024903 (2015).

@@ -18,7 +18,7 @@ LAMMPS is an open-source code, distributed freely under the terms of
 the GNU Public License (GPL).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the code.
-It includes links to an on-line version of this manual, a `mailing list <http://lammps.sandia.gov/mail.html>`_ where users can post
+It includes links to an on-line version of this manual, a `mailing list <https://lammps.sandia.gov/mail.html>`_ where users can post
 questions, and a `GitHub site <https://github.com/lammps/lammps>`_ where
 all LAMMPS development is coordinated.
 
@@ -35,7 +35,7 @@ a brief description of the basic code structure of LAMMPS.
 Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands>` since it gives quick access to a doc page for
 every LAMMPS command.
 
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov
 
 .. toctree::
    :maxdepth: 2
@@ -72,6 +72,7 @@ every LAMMPS command.
    angles
    dihedrals
    impropers
+   fix_modify_atc_commands
 
 Indices and tables
 ==================

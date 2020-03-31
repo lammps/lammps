@@ -54,14 +54,12 @@ pair_style buck/coul/msm/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *buck* or *buck/coul/cut* or *buck/coul/long* or *buck/coul/msm*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -79,7 +77,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -112,7 +109,6 @@ Lennard-Jones 12/6) given by
 .. math::
 
    E = A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c
-
 
 where :math:`\rho` is an ionic-pair dependent length parameter, and
 :math:`r_c` is the cutoff on both terms.
@@ -168,11 +164,9 @@ the A,C and Coulombic cutoffs for this type pair.  You cannot specify
 For *buck/coul/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
+pair_style command.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -192,9 +186,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -208,11 +200,11 @@ The *buck/coul/long* pair style supports the
 :doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
-These styles support the pair\_modify tail option for adding long-range
+These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure for the A,C terms in the
 pair interaction.
 
-These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
@@ -220,7 +212,6 @@ These styles can only be used via the *pair* keyword of the :doc:`run_style resp
 
 Restrictions
 """"""""""""
-
 
 The *buck/coul/long* style is part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -233,7 +224,5 @@ Related commands
 **Default:** none
 
 .. _Khrapak:
-
-
 
 **(Khrapak)** Khrapak, Chaudhuri, and Morfill, J Chem Phys, 134, 054120 (2011).

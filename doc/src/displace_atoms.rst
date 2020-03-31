@@ -6,16 +6,15 @@ displace_atoms command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    displace_atoms group-ID style args keyword value ...
 
 * group-ID = ID of group of atoms to displace
 * style = *move* or *ramp* or *random* or *rotate*
-  
+
   .. parsed-literal::
-  
+
        *move* args = delx dely delz
          delx,dely,delz = distance to displace in each dimension (distance units)
          any of delx,dely,delz can be a variable (see below)
@@ -33,17 +32,14 @@ Syntax
          theta = angle of rotation (degrees)
 
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *units*
          value = *box* or *lattice*
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -63,7 +59,7 @@ The *move* style displaces the group of atoms by the specified 3d
 displacement vector.  Any of the 3 quantities defining the vector
 components can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  If the value is a variable, it should be
-specified as v\_name, where name is the variable name.  In this case,
+specified as v_name, where name is the variable name.  In this case,
 the variable will be evaluated, and its value(s) used for the
 displacement(s).  The scale factor implied by the *units* keyword will
 also be applied to the variable result.
@@ -113,9 +109,7 @@ style are determined by the setting of *box* or *lattice* for the
 :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacing.
 
-
 ----------
-
 
 .. note::
 
@@ -139,13 +133,10 @@ define the lattice spacing.
    the simulation box may not end up as optimal as the initial mapping
    attempted to be.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For a 2d simulation, only rotations around the a vector parallel to
 the z-axis are allowed.

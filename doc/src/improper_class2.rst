@@ -12,14 +12,12 @@ improper_style class2/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style class2
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -39,7 +37,6 @@ The *class2* improper style uses the potential
    E_{aa} = & M_1 (\theta_{ijk} - \theta_1) (\theta_{kjl} - \theta_3) + \\
             & M_2 (\theta_{ijk} - \theta_1) (\theta_{ijl} - \theta_2) + \\
             & M_3 (\theta_{ijl} - \theta_2) (\theta_{kjl} - \theta_3)
-
 
 where :math:`E_i` is the improper term and :math:`E_{aa}` is an
 angle-angle term.  The 3 :math:`\chi` terms in :math:`E_i` are an
@@ -101,9 +98,7 @@ listed under a *AngleAngle Coeffs* heading and you must leave out the
 The theta values are specified in degrees, but LAMMPS converts them to
 radians internally; hence the units of M are in energy/radian\^2.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -123,13 +118,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 CLASS2 package.  See the :doc:`Build package <Build_package>` doc
@@ -142,12 +134,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _improper-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

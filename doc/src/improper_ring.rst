@@ -9,14 +9,12 @@ improper_style ring/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style ring
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -35,16 +33,15 @@ The *ring* improper style uses the potential
    \Delta_{ijk} = & \cos{\theta_{ijk} - \cos{\theta_0}} \\
    \Delta_{kjl} = & \cos{\theta_{kjl} - \cos{\theta_0}}
 
-
 where :math:`K` is a prefactor, :math:`\theta` is the angle formed by
 the atoms specified by (i,j,k,l) indices and :math:`\theta_0` its
 equilibrium value.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command) are ordered i,j,k,l then
-theta\_\ *ijl* is the angle between atoms i,j and l, theta\_\ *ijk* is the
-angle between atoms i,j and k, theta\_\ *kjl* is the angle between atoms
-j,k, and l.
+:math:`\theta_{ijl}` is the angle between atoms i,j and l,
+:math:`\theta_{ijk}` is the angle between atoms i,j and k,
+:math:`\theta_{kjl}` is the angle between atoms j,k, and l.
 
 The "ring" improper style implements the improper potential introduced
 by Destree et al., in Equation (9) of :ref:`(Destree) <Destree>`.  This
@@ -65,9 +62,7 @@ commands:
 * :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -87,13 +82,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -105,8 +97,6 @@ Related commands
 :doc:`improper_coeff <improper_coeff>`
 
 .. _Destree:
-
-
 
 **(Destree)** M. Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert,
 J Chem Phys, 112, 9632 (2000).

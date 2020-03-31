@@ -36,25 +36,6 @@ namespace LAMMPS_NS {
      */
     bool strmatch(std::string text, std::string pattern);
 
-    /** Categories of special arguments for cfvarg() function
-     *
-     * Enum starts from 100 to avoid conflicts with other local define flags
-     */
-    enum {NONE=100,              /// does not match any category
-          COMPUTE,               /// processed a compute
-          FIX,                   /// processed a fix
-          VARIABLE               /// processed a variable
-    };
-
-    /** \brief Convenience function to process 'c_', 'f_', and 'v_' arguments
-     *
-     *  \param mode types to search for. 1-3 char string from 'c', 'f', or 'v'
-     *  \param arg  argument string to test against the prefixes
-     *  \param cfv_id name or ID of the compute, fix, or variable
-     *  \return utils::COMPUTE, utils::FIX, utils::VARIABLE or utils::NONE
-     */
-    int cfvarg(std::string mode, const char *arg, char *&cfv_id);
-
     /** \brief safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
      *

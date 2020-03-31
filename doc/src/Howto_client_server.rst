@@ -62,7 +62,7 @@ below.  The MESSAGE package also wraps a client/server library called
 CSlib which enables two codes to exchange messages in different ways,
 either via files, sockets, or MPI.  The CSlib is provided with LAMMPS
 in the lib/message dir.  The CSlib has its own
-`website <http://cslib.sandia.gov>`_ with documentation and test
+`website <https://cslib.sandia.gov>`_ with documentation and test
 programs.
 
 .. note::
@@ -93,22 +93,22 @@ client or server code:
 
 * examples/message
 * examples/COUPLE/README
-* examples/COUPLE/lammps\_mc
-* examples/COUPLE/lammps\_nwchem
-* examples/COUPLE/lammps\_vasp
+* examples/COUPLE/lammps_mc
+* examples/COUPLE/lammps_nwchem
+* examples/COUPLE/lammps_vasp
 
 The examples/message directory couples a client instance of LAMMPS to a
 server instance of LAMMPS.
 
-The files in the *lammps\_mc* folder show how to couple LAMMPS as
+The files in the *lammps_mc* folder show how to couple LAMMPS as
 a server to a simple Monte Carlo client code as the driver.
 
-The files in the *lammps\_nwchem* folder show how to couple LAMMPS
+The files in the *lammps_nwchem* folder show how to couple LAMMPS
 as a client code running MD timestepping to NWChem acting as a
 server providing quantum DFT forces, through a Python wrapper script
 on NWChem.
 
-The files in the *lammps\_vasp* folder show how to couple LAMMPS as
+The files in the *lammps_vasp* folder show how to couple LAMMPS as
 a client code running MD timestepping to VASP acting as a server
 providing quantum DFT forces, through a Python wrapper script on VASP.
 
@@ -134,7 +134,6 @@ together to exchange MPI messages between them.
 
 For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 
-
 .. code-block:: bash
 
    % mpirun -np 1 lmp_mpi -log log.client < in.client &
@@ -149,7 +148,6 @@ For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
 For message exchange in *mpi/one* mode:
 
 Launch both codes in a single mpirun command:
-
 
 .. code-block:: bash
 

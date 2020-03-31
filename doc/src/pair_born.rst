@@ -39,14 +39,12 @@ pair_style born/coul/dsf command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *born* or *born/coul/long* or *born/coul/msm* or *born/coul/wolf*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -69,7 +67,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -104,9 +101,8 @@ potential described in :ref:`(Fumi and Tosi) <FumiTosi>`, given by
 
 .. math::
 
-   E = A \exp \left(\frac{\sigma - r}{\rho} \right) - 
+   E = A \exp \left(\frac{\sigma - r}{\rho} \right) -
    \frac{C}{r^6} + \frac{D}{r^8} \qquad r < r_c
-
 
 where :math:`\sigma` is an interaction-dependent length parameter,
 :math:`\rho` is an ionic-pair dependent length parameter, and
@@ -151,16 +147,14 @@ commands, or by mixing as described below:
 The second coefficient, rho, must be greater than zero.
 
 The last coefficient is optional.  If not specified, the global A,C,D
-cutoff specified in the pair\_style command is used.
+cutoff specified in the pair_style command is used.
 
 For *born/coul/long*\ , *born/coul/wolf* and *born/coul/dsf* no
 Coulombic cutoff can be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
+pair_style command.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -180,9 +174,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -197,23 +189,20 @@ The *born/coul/long* pair style supports the
 :doc:`pair_modify <pair_modify>` table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
-These styles support the pair\_modify tail option for adding long-range
+These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure.
 
 Thess styles writes thei information to binary :doc:`restart <restart>`
-files, so pair\_style and pair\_coeff commands do not need to be
+files, so pair_style and pair_coeff commands do not need to be
 specified in an input script that reads a restart file.
 
 These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *born/coul/long* style is part of the KSPACE package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -225,13 +214,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _FumiTosi:
-
-
 
 Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
 Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).

@@ -6,27 +6,23 @@ boundary command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    boundary x y z
 
 * x,y,z = *p* or *s* or *f* or *m*\ , one or two letters
-  
+
   .. parsed-literal::
-  
+
        *p* is periodic
        *f* is non-periodic and fixed
        *s* is non-periodic and shrink-wrapped
        *m* is non-periodic and shrink-wrapped with a minimum value
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p f
    boundary p fs p
@@ -97,7 +93,6 @@ triclinic representations.
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
 :doc:`read_restart <read_restart>` command.  See the
@@ -115,7 +110,6 @@ of lost atoms.
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p p

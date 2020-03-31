@@ -6,16 +6,15 @@ special_bonds command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    special_bonds keyword values ...
 
 * one or more keyword/value pairs may be appended
 * keyword = *amber* or *charmm* or *dreiding* or *fene* or *lj/coul* or *lj* or *coul* or *angle* or *dihedral*
-  
+
   .. parsed-literal::
-  
+
        *amber* values = none
        *charmm* values = none
        *dreiding* values = none
@@ -29,10 +28,7 @@ Syntax
        *angle* value = *yes* or *no*
        *dihedral* value = *yes* or *no*
 
-
-
 Examples:
-
 
 .. code-block:: LAMMPS
 
@@ -69,7 +65,7 @@ atoms should be excluded (or reduced by a weighting factor).
    sense to define permanent bonds between atoms that interact via these
    potentials, though such bonds may exist elsewhere in your system,
    e.g. when using the :doc:`pair_style hybrid <pair_hybrid>` command.
-   Thus LAMMPS ignores special\_bonds settings when many-body potentials
+   Thus LAMMPS ignores special_bonds settings when many-body potentials
    are calculated.  Please note, that the existence of explicit bonds
    for atoms that are described by a many-body potential will alter the
    neighbor list and thus can render the computation of those interactions
@@ -187,9 +183,7 @@ interaction between atoms 2 and 5 will be unaffected (full weighting
 of 1.0).  If the *dihedral* keyword is specified as *no* which is the
 default, then the 2,5 interaction will also be weighted by 0.5.
 
-
 ----------
-
 
 .. note::
 
@@ -205,16 +199,13 @@ default, then the 2,5 interaction will also be weighted by 0.5.
    neighbors to be added.  If you do not do this, you may get an error
    when bonds (or molecules) are added.
 
-
 ----------
-
 
 .. note::
 
    If you reuse this command in an input script, you should set all
    the options you need each time.  This command cannot be used a 2nd
    time incrementally.  E.g. these two commands:
-
 
 .. code-block:: LAMMPS
 
@@ -223,13 +214,11 @@ default, then the 2,5 interaction will also be weighted by 0.5.
 
 are not the same as
 
-
 .. code-block:: LAMMPS
 
    special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
 
 In the first case you end up with (after the 2nd command):
-
 
 .. parsed-literal::
 
@@ -238,7 +227,6 @@ In the first case you end up with (after the 2nd command):
 
 while only in the second case, you get the desired settings of:
 
-
 .. parsed-literal::
 
    LJ: 0.0 1.0 1.0
@@ -246,7 +234,7 @@ while only in the second case, you get the desired settings of:
 
 This happens because the LJ (and Coul) settings are reset to
 their default values before modifying them, each time the
-*special\_bonds* command is issued.
+*special_bonds* command is issued.
 
 Restrictions
 """"""""""""
@@ -263,33 +251,23 @@ Default
 All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
 angle = no, dihedral = no.
 
-
 ----------
 
-
 .. _Cornell:
-
-
 
 **(Cornell)** Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 .. _Kremer:
 
-
-
 **(Kremer)** Kremer, Grest, J Chem Phys, 92, 5057 (1990).
 
 .. _MacKerell:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _Mayo:
-
-
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).

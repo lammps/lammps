@@ -31,13 +31,12 @@ If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
 this to your ~/.cshrc file, one line for each of the two files:
 
-
-.. parsed-literal::
+.. code-block:: csh
 
    setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
    setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
 
-On MacOSX you may also need to set DYLD\_LIBRARY\_PATH accordingly.
+On MacOSX you may also need to set DYLD_LIBRARY_PATH accordingly.
 For Bourne/Korn shells accordingly into the corresponding files using
 the "export" shell builtin.
 
@@ -49,7 +48,6 @@ files are updated with the new version.
 If the default settings of "make install-python" are not what you want,
 you can invoke install.py from the python directory manually as
 
-
 .. parsed-literal::
 
    % python install.py -m \<python module\> -l <shared library> -v <version.h file> [-d \<pydir\>]
@@ -60,11 +58,11 @@ you can invoke install.py from the python directory manually as
 * and the optional -d flag to a custom (legacy) installation folder
 
 If you use a legacy installation folder, you will need to set your
-PYTHONPATH and LD\_LIBRARY\_PATH (and/or DYLD\_LIBRARY\_PATH) environment
+PYTHONPATH and LD_LIBRARY_PATH (and/or DYLD_LIBRARY_PATH) environment
 variables accordingly, as described above.
 
 Note that if you want Python to be able to load different versions of
 the LAMMPS shared library (see :doc:`this section <Python_shlib>`), you will
-need to manually copy files like liblammps\_g++.so into the appropriate
-system directory.  This is not needed if you set the LD\_LIBRARY\_PATH
+need to manually copy files like liblammps_g++.so into the appropriate
+system directory.  This is not needed if you set the LD_LIBRARY_PATH
 environment variable as described above.

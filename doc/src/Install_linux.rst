@@ -38,7 +38,7 @@ To install LAMMPS do the following once:
 
    $ sudo apt-get install lammps-daily
 
-This downloads an executable named "lmp\_daily" to your box, which
+This downloads an executable named "lmp_daily" to your box, which
 can then be used in the usual way to run input scripts:
 
 .. code-block:: bash
@@ -103,10 +103,10 @@ linking to the C library interface (lammps-devel, lammps-mpich-devel,
 lammps-openmpi-devel), the header for compiling programs using
 the C library interface (lammps-headers), and the LAMMPS python
 module for Python 3. All packages can be installed at the same
-time and the name of the LAMMPS executable is *lmp* and *lmp\_openmpi*
-or *lmp\_mpich* respectively.  By default, *lmp* will refer to the
+time and the name of the LAMMPS executable is *lmp* and *lmp_openmpi*
+or *lmp_mpich* respectively.  By default, *lmp* will refer to the
 serial executable, unless one of the MPI environment modules is loaded
-("module load mpi/mpich-x86\_64" or "module load mpi/openmpi-x86\_64").
+("module load mpi/mpich-x86_64" or "module load mpi/openmpi-x86_64").
 Then the corresponding parallel LAMMPS executable can be used.
 The same mechanism applies when loading the LAMMPS python module.
 
@@ -206,7 +206,6 @@ Gentoo Linux executable
 LAMMPS is part of Gentoo's main package tree and can be installed by
 typing:
 
-
 .. code-block:: bash
 
    % emerge --ask lammps
@@ -215,7 +214,6 @@ Note that in Gentoo the LAMMPS source is downloaded and the package is
 built on the your machine.
 
 Certain LAMMPS packages can be enable via USE flags, type
-
 
 .. code-block:: bash
 

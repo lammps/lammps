@@ -2,7 +2,7 @@
 #
 # Description: nonequilibrium thermodynamic integration. Further details in:
 # R. Freitas, M. Asta, and M. de Koning, Computational Materials Science, (2016)
-# http://dx.doi.org/10.1016/j.commatsci.2015.10.050
+# https://doi.org/10.1016/j.commatsci.2015.10.050
 
 
 #--------------------------- System setup -------------------------------------#

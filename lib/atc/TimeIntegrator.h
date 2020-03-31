@@ -362,7 +362,7 @@ namespace ATC {
   inline void explicit_1(MATRIX & f,
                          const MATRIX & dot_f,
                          double dt)
-  // 1rst order explict ODE update
+  // 1rst order explicit ODE update
   {
     f = f + dt*dot_f;
   };
@@ -371,7 +371,7 @@ namespace ATC {
                          const MATRIX & dot_f,
                          const MATRIX & ddot_f,
                          double dt)
-  // 2nd order explict ODE update
+  // 2nd order explicit ODE update
   {
     f = f + dt*dot_f + .5*dt*dt*ddot_f;
   };

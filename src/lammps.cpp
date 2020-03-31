@@ -785,7 +785,7 @@ void LAMMPS::create()
 
 /* ----------------------------------------------------------------------
    check suffix consistency with installed packages
-   invoke package-specific deafult package commands
+   invoke package-specific default package commands
      only invoke if suffix is set and enabled
      also check if suffix2 is set
    called from LAMMPS constructor and after clear() command

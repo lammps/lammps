@@ -1,6 +1,6 @@
 if(PKG_USER-NETCDF)
   # USER-NETCDF can use NetCDF, Parallel NetCDF (PNetCDF), or both. At least one necessary.
-  # NetCDF library enables dump sytle "netcdf", while PNetCDF enables dump style "netcdf/mpiio"
+  # NetCDF library enables dump style "netcdf", while PNetCDF enables dump style "netcdf/mpiio"
   find_package(NetCDF)
   if(NETCDF_FOUND)
     find_package(PNetCDF)

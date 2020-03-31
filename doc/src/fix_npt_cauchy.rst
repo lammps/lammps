@@ -6,13 +6,12 @@ fix npt/cauchy command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *npt/cauchy*
+* style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
 
@@ -52,12 +51,12 @@ Syntax
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
 
-
-
 Examples
 """"""""
 
-fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+.. code-block:: LAMMPS
+
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
 
 Description
 """""""""""
@@ -91,9 +90,7 @@ energy proposed by Parrinello and Rahman in
 follow the time-reversible measure-preserving Verlet and rRESPA
 integrators derived by Tuckerman et al in :ref:`(Tuckerman) <nc-Tuckerman>`.
 
-
 ----------
-
 
 The thermostat parameters are specified using the *temp* keyword.
 Other thermostat-related keywords are *tchain*\ , *tloop* and *drag*\ ,
@@ -120,9 +117,7 @@ by the velocity/position update portion of the integration.
    100 timesteps.  Note that this is NOT the same as 100 time units for
    most :doc:`units <units>` settings.
 
-
 ----------
-
 
 The barostat parameters are specified using one or more of the *iso*\ ,
 *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple* keywords.
@@ -188,9 +183,7 @@ group, a separate time integration fix like :doc:`fix nve <fix_nve>` or
 :doc:`fix nvt <fix_nh>` can be used on them, independent of whether they
 are dilated or not.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -205,9 +198,7 @@ dilated or contracted by the same percentage every timestep.  The
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
-
 ----------
-
 
 The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -216,7 +207,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
 specifying these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -231,7 +221,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -245,7 +234,6 @@ as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Pstart Pstop Pdamp" is the same as
 specifying these 7 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -256,9 +244,7 @@ specifying these 7 keywords:
    xz 0.0 0.0 Pdamp
    couple none
 
-
 ----------
-
 
 In some cases (e.g. for solids) the pressure (volume) and/or
 temperature of the system can oscillate undesirably when a Nose/Hoover
@@ -340,9 +326,7 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
 
-
 ----------
-
 
 .. note::
 
@@ -391,16 +375,13 @@ See the :doc:`Howto thermostat <Howto_thermostat>` and :doc:`Howto barostat <How
 ways to compute temperature and perform thermostatting and
 barostatting.
 
-
 ----------
-
 
 This fix compute a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if one of these sets of commands had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp all temp
    compute fix-ID_press all pressure fix-ID_temp
@@ -408,17 +389,17 @@ as if one of these sets of commands had been issued:
 The group for both the new temperature and pressure compute is "all"
 since pressure is computed for the entire system.  See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>`
 commands for details.  Note that the IDs of the new computes are the
-fix-ID + underscore + "temp" or fix\_ID + underscore + "press".
+fix-ID + underscore + "temp" or fix_ID + underscore + "press".
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of these
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of these
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command.  Or you can print this
 temperature or pressure during thermodynamic output via the
 :doc:`thermo_style custom <thermo_style>` command using the appropriate
-compute-ID.  It also means that changing attributes of *thermo\_temp*
-or *thermo\_press* will have no effect on this fix.
+compute-ID.  It also means that changing attributes of *thermo_temp*
+or *thermo_press* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, fix npt/cauchy can
 be used with :doc:`compute commands <compute>` that calculate a
@@ -434,9 +415,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 This fix can be used with either the *verlet* or *respa*
 :doc:`integrators <run_style>`. When using this fix
@@ -451,7 +430,7 @@ according to the following factorization of the Liouville propagator
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
-   &\times \left[ 
+   &\times \left[
    \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
    \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
@@ -460,8 +439,8 @@ according to the following factorization of the Liouville propagator
    \right]^n \\
    &\times
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right) 
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right) 
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
    &+ \mathcal{O} \left(\Delta t^3 \right)
 
@@ -486,11 +465,9 @@ of the underlying non-Hamiltonian equations of motion.
    resetting the momentum at infrequent intervals using the
    :doc:`fix momentum <fix_momentum>` command.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -510,7 +487,7 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by fix npt), but only if the
@@ -545,21 +522,21 @@ simulation, otherwise its value is 3.
 
 The order of values in the global vector and their meaning is as
 follows.  The notation means there are tchain values for eta, followed
-by tchain for eta\_dot, followed by ndof for omega, etc:
+by tchain for eta_dot, followed by ndof for omega, etc:
 
 * eta[tchain] = particle thermostat displacements (unitless)
-* eta\_dot[tchain] = particle thermostat velocities (1/time units)
+* eta_dot[tchain] = particle thermostat velocities (1/time units)
 * omega[ndof] = barostat displacements (unitless)
-* omega\_dot[ndof] = barostat velocities (1/time units)
+* omega_dot[ndof] = barostat velocities (1/time units)
 * etap[pchain] = barostat thermostat displacements (unitless)
-* etap\_dot[pchain] = barostat thermostat velocities (1/time units)
-* PE\_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
-* KE\_eta\_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
-* PE\_omega[ndof] = potential energy of each barostat displacement (energy units)
-* KE\_omega\_dot[ndof] = kinetic energy of each barostat velocity (energy units)
-* PE\_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
-* KE\_etap\_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
-* PE\_strain[1] = scalar strain energy (energy units)
+* etap_dot[pchain] = barostat thermostat velocities (1/time units)
+* PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+* KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+* PE_omega[ndof] = potential energy of each barostat displacement (energy units)
+* KE_omega_dot[ndof] = kinetic energy of each barostat velocity (energy units)
+* PE_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
+* KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
+* PE_strain[1] = scalar strain energy (energy units)
 
 This fix can ramp its external temperature and pressure over
 multiple runs, using the *start* and *stop* keywords of the
@@ -568,13 +545,10 @@ how to do this.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -607,7 +581,7 @@ the set values and the final true (Cauchy) stresses can be
 considerable.
 
 The *cauchystat* keyword modifies the barostat as per Miller et
-al. (Miller)\_"#nc-Miller" so that the Cauchy stress is controlled.
+al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggressively the algorithm drives the system
 towards the set Cauchy stresses.  Larger values of *alpha* will modify
@@ -655,38 +629,26 @@ cauchystat = no,
 scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
-
 ----------
 
-
 .. _nc-Martyna:
-
-
 
 **(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 .. _nc-Parrinello:
 
-
-
 **(Parrinello)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
 .. _nc-Tuckerman:
-
-
 
 **(Tuckerman)** Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 .. _nc-Shinoda:
 
-
-
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 .. _nc-Miller:
-
-
 
 **(Miller)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).

@@ -9,7 +9,6 @@ pair_style lj/smooth/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj/smooth Rin Rc
@@ -19,7 +18,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -35,12 +33,11 @@ applied between the inner and outer cutoff.
 
 .. math::
 
-   E & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                          \left(\frac{\sigma}{r}\right)^6 \right]
                          \qquad r < r_{in} \\
-   F & =  C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
+   F & =  C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3
                        \qquad r_{in} < r < r_c
-
 
 The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
 cause the force to vary smoothly from the inner cutoff :math:`r_{in}` to the
@@ -72,9 +69,7 @@ commands, or by mixing as described below:
 The last 2 coefficients are optional inner and outer cutoffs.  If not
 specified, the global values for :math:`r_{in}` and :math:`r_c` are used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -94,17 +89,15 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon, sigma, Rin
 coefficients and the cutoff distance for this pair style can be mixed.
 Rin is a cutoff value and is mixed like the cutoff.  The other
-coefficients are mixed according to the pair\_modify mix option.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+coefficients are mixed according to the pair_modify mix option.  The
+default mix value is *geometric*\ .  See the "pair_modify" command for
 details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
@@ -118,16 +111,14 @@ tail option for adding long-range tail corrections to energy and
 pressure, since the energy of the pair interaction is smoothed to 0.0
 at the cutoff.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

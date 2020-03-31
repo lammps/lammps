@@ -523,7 +523,7 @@ namespace ATC {
   {
      compute_distances();
      int nlayers = find_layers();
-     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specfied " + to_string(gamma_.size()));
+     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specified " + to_string(gamma_.size()));
   }
 
   //--------------------------------------------------------

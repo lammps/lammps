@@ -43,13 +43,9 @@ NEMD simulations can also be used to measure transport properties of a fluid
 through a pore or channel. Simulations of steady-state flow can be performed
 using the :doc:`fix flow/gauss <fix_flow_gauss>` command.
 
-
 ----------
 
-
 .. _Daivis-nemd:
-
-
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

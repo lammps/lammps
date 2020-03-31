@@ -99,7 +99,7 @@ using namespace LAMMPS_NS;
  *
  * \param narg number of arguments
  * \param arg list of arguments
- * \param comm MPI communicator used by this LAMMPS instance
+ * \param communicator MPI communicator used by this LAMMPS instance
  */
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),

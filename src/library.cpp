@@ -126,7 +126,7 @@ void concatenate_lines(char *ptr)
  *
  * \param argc number of command line arguments
  * \param argv list of command line argument strings
- * \param comm MPI communicator for this LAMMPS instance.
+ * \param communicator MPI communicator for this LAMMPS instance.
  * \param ptr pointer to a location where a reference to the
  *            created LAMMPS instance is stored. Will be pointing
  *            to a NULL pointer if the function failed.
@@ -279,7 +279,7 @@ by ``filename`` line by line like a file processed with the
 the end of the file is reached.
 \endverbatim
   */
-void lammps_file(void *ptr, char *str)
+void lammps_file(void *ptr, char *filename)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -288,7 +288,7 @@ void lammps_file(void *ptr, char *str)
     if (lmp->update->whichflag != 0)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     else
-      lmp->input->file(str);
+      lmp->input->file(filename);
   }
   END_CAPTURE
 }

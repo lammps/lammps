@@ -81,14 +81,26 @@ struct LAMMPS_NS::package_styles_lists {
 
 using namespace LAMMPS_NS;
 
-/* ----------------------------------------------------------------------
-   start up LAMMPS
-   allocate fundamental classes (memory, error, universe, input)
-   parse input switches
-   initialize communicators, screen & logfile output
-   input is allocated at end after MPI info is setup
-------------------------------------------------------------------------- */
+/** \class LAMMPS_NS::LAMMPS
+ * \brief Composite class of a LAMMPS simulation instance
+ *
+ * The LAMMPS class contains pointers of all constituent
+ * class instances and global variables that are used by
+ * a LAMMPS simulation instance and thus represent the
+ * state of the simulation.
+ */
 
+/** \brief LAMMPS constructor
+ *
+ * The LAMMPS constructor starts up a simulation by allocating all
+ * fundamental classes in the necessary order, parses input switches
+ * and their arguments, initializes communicators, screen and logfile
+ * output FILE pointers.
+ *
+ * \param narg number of arguments
+ * \param arg list of arguments
+ * \param comm MPI communicator used by this LAMMPS instance
+ */
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),
   update(NULL), neighbor(NULL), comm(NULL), domain(NULL), force(NULL),

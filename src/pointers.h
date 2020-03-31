@@ -11,12 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Pointers class contains ptrs to master copy of
-//   fundamental LAMMPS class ptrs stored in lammps.h
-// every LAMMPS class inherits from Pointers to access lammps.h ptrs
-// these variables are auto-initialized by Pointer class constructor
-// *& variables are really pointers to the pointers in lammps.h
-// & enables them to be accessed directly in any class, e.g. atom->x
+/** \class LAMMPS_NS::Pointers
+ * \brief Base class for most fundamental LAMMPS classes
+ *
+ * The Pointers class contains references to the pointers of
+ * the constituent class instances in the LAMMPS class.
+ * Since most classes in LAMMPS are either directly or indirectly
+ * derived from the Pointers class, they have access to
+ * all pointers in the LAMMPS class.  These references
+ * are initialized by the Pointers constructor and thus
+ * all operations and data that are exported as public in those
+ * base classes can be accessed and executed by all derived classes.
+ */
 
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H

@@ -11,7 +11,8 @@ codes, or driven through a :doc:`Python interface <Python_head>`.
 Several of these approaches are based on a C language wrapper functions
 in the files ``src/library.h`` and ``src/library.cpp``, which are
 documented below.  Behind the scenes this will create, delete, or
-modify and instance of the ``LAMMPS`` class.  Thus all functions require
+modify and instance of the :ref:`LAMMPS class <lammps_ns_lammps>`.
+Thus all functions require
 an argument containing a ``handle`` in the form of a ``void`` pointer,
 which contains or will be assigned to a reference of this class instance.
 
@@ -25,11 +26,11 @@ Creating or deleting a LAMMPS object
 
 The :ref:`lammps_open() <lammps_open>` and :ref:`lammps_open_no_mpi()
 <lammps_open_no_mpi>` functions are used to create and initialize a
-LAMMPS instance.  The calling program has to provide a handle where
-a reference to this instance can be stored and which has to be used
-in all subsequent function calls until that instance is destroyed
-by calling :ref:`lammps_close() <lammps_close>`.  Here is a simple example
-demonstrating its use:
+:ref:`LAMMPS instance <lammps_ns_lammps>`.  The calling program has to
+provide a handle where a reference to this instance can be stored and
+which has to be used in all subsequent function calls until that
+instance is destroyed by calling :ref:`lammps_close() <lammps_close>`.
+Here is a simple example demonstrating its use:
 
 .. code-block:: C
 
@@ -74,15 +75,16 @@ codes concurrently before syncing them up periodically.  Or it might
 instantiate multiple instances of LAMMPS to perform different
 calculations and either alternate between them or run them one after the
 other.  The :ref:`lammps_open() <lammps_open>` function may be called
-multiple times, to create multiple instances of LAMMPS.
+multiple times for this purpose.
 
 The :ref:`lammps_close() <lammps_close>` function is used to shut down
-an instance of LAMMPS and free all its memory. This has to be called for
+the :ref:`LAMMPS instance <lammps_ns_lammps>` pointed to by the handle
+passed as an argument and free all its memory. This has to be called for
 every instance created with any of the :ref:`lammps_open()
-<lammps_open>` functions. It will **not** call ``MPI_Finalize()``, since
-that may only be called once. See
-:ref:`lammps_finalize() <lammps_finalize>` for how to call this
-without explicit MPI support in the calling program.
+<lammps_open>` functions.  It will **not** call ``MPI_Finalize()``,
+since that may only be called once. See :ref:`lammps_finalize()
+<lammps_finalize>` for an alternative to calling ``MPI_Finalize()``
+explicitly in the calling program.
 
 -----------------------
 

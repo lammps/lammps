@@ -85,8 +85,10 @@ class LAMMPS {
   struct package_styles_lists *pkg_lists;
   void init_pkg_lists();
   void help();
-  LAMMPS() {};                   // prohibit using the default constructor
-  LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
+  /// Default constructor; declared private to prohibit its use
+  LAMMPS() {};
+  /// Copy constructor; declared private to prohibit its use
+  LAMMPS(const LAMMPS &) {};
 };
 
 }

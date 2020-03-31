@@ -19,13 +19,13 @@
 namespace LAMMPS_NS {
 
 /**
- * \class Region
+ * \class LAMMPS_NS::Region
  *
  * \brief Define a region of a given geometry with a given ID
  *
  \verbatim embed:rst
  This class is the base class for creating different region styles
- through the :doc:`region commmand <region>`. 
+ through the :doc:`region commmand <region>`.
  \endverbatim
  *
  */

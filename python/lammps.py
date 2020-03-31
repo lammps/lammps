@@ -611,6 +611,14 @@ class lammps(object):
   # return total number of atoms in system
 
   def get_natoms(self):
+    """Get the total number of atoms in the LAMMPS instance.
+
+    Limited to 32-bit integer due to the limitation of the
+    underlying :ref:`lammps_get_natoms() <lammps_get_natoms>` function.
+
+    :rvalue: number of atoms
+    :rtype: int
+    """
     return self.lib.lammps_get_natoms(self.lmp)
 
   # set variable value

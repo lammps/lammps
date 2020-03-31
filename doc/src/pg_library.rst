@@ -137,6 +137,22 @@ single commands or lists of commands with the following functions.
    :project: progguide
    :no-link:
 
+-----------------------
+
+Retrieving or setting system properties
+=======================================
+
+The library interface allows to extract all kinds of information
+about the active simulation instance and also modify it.  This
+allows to combine MD simulation steps with other processing and
+simulation methods computed in the calling code or another code
+that is coupled to LAMMPS via the library interface.
+
+.. _lammps_get_natoms:
+.. doxygenfunction:: lammps_get_natoms
+   :project: progguide
+   :no-link:
+
 -------------------
 
 TODO: this part still needs to be edited/adapted

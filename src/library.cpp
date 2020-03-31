@@ -784,11 +784,23 @@ double lammps_get_thermo(void *ptr, char *name)
   return dval;
 }
 
-/* ----------------------------------------------------------------------
-   return the total number of atoms in the system
-   useful before call to lammps_get_atoms() so can pre-allocate vector
-------------------------------------------------------------------------- */
+/** \brief Return the total number of atoms in the system
+ *
+\verbatim embed:rst
+This is particularly useful before makeing calls to
+:ref:`lammps_get_natoms() <lammps_get_natoms>` so one can
+pre-allocate the correct amount of storage for the result vector.
 
+.. warning::
+
+   This function returns a 32-bit signed integer and thus will
+   not work for systems with more than about 2 billion atoms.
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance
+ * \return total number of atoms in the system or 0 if value too large.
+ */
 int lammps_get_natoms(void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

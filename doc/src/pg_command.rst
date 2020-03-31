@@ -16,7 +16,6 @@ command.
    :project: progguide
    :members:
    :protected-members:
-   :no-link:
 
 ----------
 
@@ -25,5 +24,4 @@ command.
    :project: progguide
    :members:
    :protected-members:
-   :no-link:
 

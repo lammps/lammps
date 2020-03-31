@@ -61,10 +61,10 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax LAMMPS.mobi LAMMPS.epub Manual.pdf Developer.pdf
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/mathjax LAMMPS.mobi LAMMPS.epub Manual.pdf Developer.pdf
 
 clean: clean-spelling
-	rm -rf html epub latex doxygen/xml doxygen-warn.log
+	rm -rf html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log
 
 clean-spelling:
 	rm -rf spelling

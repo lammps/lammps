@@ -32,6 +32,7 @@
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
+#define ERRFMT(errfn,format,...) do { char _strbuf[128]; snprintf(_strbuf,sizeof(_strbuf),format,__VA_ARGS__); errfn(FLERR,_strbuf); } while (0)
 
 static const int nkeywords = 22;
 static const char *keywords[] = {
@@ -147,9 +148,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag) {
-    char str[128];
-    sprintf(str,"MEAM library error %d",errorflag);
-    error->one(FLERR,str);
+    ERRFMT(error->one,"MEAM library error %d",errorflag);
   }
 
   comm->forward_comm_pair(this);
@@ -228,8 +227,8 @@ void PairMEAMC::coeff(int narg, char **arg)
   nelements = narg - 4 - atom->ntypes;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   if (nelements > maxelt)
-    error->all(FLERR,"Too many elements extracted from MEAM library. "
-                      "Increase 'maxelt' in meam.h and recompile.");
+    ERRFMT(error->all, "Too many elements extracted from MEAM library (current limit: %d)."
+                       " Increase 'maxelt' in meam.h and recompile.", maxelt);
   elements = new char*[nelements];
   mass = new double[nelements];
 
@@ -334,11 +333,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
   FILE *fp;
   if (comm->me == 0) {
     fp = force->open_potential(globalfile);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open MEAM potential file %s",globalfile);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      ERRFMT(error->one, "Cannot open MEAM potential file %s", globalfile);
   }
 
   // allocate parameter arrays
@@ -372,110 +368,128 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
   // store params if element name is in element list
   // if element name appears multiple times, only store 1st entry
 
-  int i,n,nwords;
-  char **words = new char*[params_per_line+1];
-  char line[MAXLINE],*ptr;
-  int eof = 0;
-
-  int nset = 0;
-  while (1) {
-    if (comm->me == 0) {
+  if (comm->me == 0) {
+    int nset = 0;
+    char **words = new char*[params_per_line+1];
+    char line[MAXLINE];
+    while (1) {
+      char *ptr;
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-        eof = 1;
         fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        break;
+      }
 
-    // strip comment, skip line if blank
+      // strip comment, skip line if blank
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
+      int nwords = atom->count_words(line);
+      if (nwords == 0) continue;
 
-    // concatenate additional lines until have params_per_line words
+      // concatenate additional lines until have params_per_line words
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
+      while (nwords < params_per_line) {
+        int n = strlen(line);
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-          eof = 1;
           fclose(fp);
-        } else n = strlen(line) + 1;
+          break;
+        }
+        if ((ptr = strchr(line,'#'))) *ptr = '\0';
+        nwords = atom->count_words(line);
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      if (nwords != params_per_line)
+        error->one(FLERR,"Incorrect format in MEAM library file");
+
+      // words = ptrs to all words in line
+      // strip single and double quotes from words
+
+      nwords = 0;
+      words[nwords++] = strtok(line,"' \t\n\r\f");
+      while ((words[nwords++] = strtok(NULL,"' \t\n\r\f"))) continue;
+
+      // skip if element name isn't in element list
+
+      int index;
+      for (index = 0; index < nelements; index++)
+        if (strcmp(words[0],elements[index]) == 0) break;
+      if (index == nelements) continue;
+
+      // skip if element already appeared (technically error in library file, but always ignored)
+
+      if (found[index] == true) continue;
+      found[index] = true;
+
+      // map lat string to an integer
+
+      if (!MEAM::str_to_lat(words[1], true, lat[index]))
+        ERRFMT(error->one, "Unrecognized lattice type in MEAM library file: %s", words[1]);
+
+      // store parameters
+
+      z[index] = atof(words[2]);
+      ielement[index] = atoi(words[3]);
+      atwt[index] = atof(words[4]);
+      alpha[index] = atof(words[5]);
+      b0[index] = atof(words[6]);
+      b1[index] = atof(words[7]);
+      b2[index] = atof(words[8]);
+      b3[index] = atof(words[9]);
+      alat[index] = atof(words[10]);
+      esub[index] = atof(words[11]);
+      asub[index] = atof(words[12]);
+      t0[index] = atof(words[13]);
+      t1[index] = atof(words[14]);
+      t2[index] = atof(words[15]);
+      t3[index] = atof(words[16]);
+      rozero[index] = atof(words[17]);
+      ibar[index] = atoi(words[18]);
+
+      if (!isone(t0[index]))
+        error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");
+
+      // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
+      if (z[index] != MEAM::get_Zij(lat[index]))
+        error->one(FLERR,"Mismatched parameter in MEAM library file: z!=lat");
+
+      nset++;
+    }
+      
+    // error if didn't find all elements in file
+
+    if (nset != nelements) {
+      char str[128] = "Did not find all elements in MEAM library file, missing:";
+      for (int i = 0; i < nelements; i++)
+        if (!found[i]) {
+          strcat(str," ");
+          strcat(str,elements[i]);
+        }
+      error->one(FLERR,str);
     }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in MEAM potential file");
-
-    // words = ptrs to all words in line
-    // strip single and double quotes from words
-
-    nwords = 0;
-    words[nwords++] = strtok(line,"' \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL,"' \t\n\r\f"))) continue;
-
-    // skip if element name isn't in element list
-
-    for (i = 0; i < nelements; i++)
-      if (strcmp(words[0],elements[i]) == 0) break;
-    if (i >= nelements) continue;
-
-    // skip if element already appeared
-
-    if (found[i] == true) continue;
-    found[i] = true;
-
-    // map lat string to an integer
-
-    if (!MEAM::str_to_lat(words[1], true, lat[i]))
-      error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
-
-    // store parameters
-
-    z[i] = atof(words[2]);
-    ielement[i] = atoi(words[3]);
-    atwt[i] = atof(words[4]);
-    alpha[i] = atof(words[5]);
-    b0[i] = atof(words[6]);
-    b1[i] = atof(words[7]);
-    b2[i] = atof(words[8]);
-    b3[i] = atof(words[9]);
-    alat[i] = atof(words[10]);
-    esub[i] = atof(words[11]);
-    asub[i] = atof(words[12]);
-    t0[i] = atof(words[13]);
-    t1[i] = atof(words[14]);
-    t2[i] = atof(words[15]);
-    t3[i] = atof(words[16]);
-    rozero[i] = atof(words[17]);
-    ibar[i] = atoi(words[18]);
-
-    if (!isone(t0[i]))
-      error->all(FLERR,"Unsupported parameter in MEAM potential file: t0!=1");
-
-    // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
-    if (z[i] != MEAM::get_Zij(lat[i]))
-      error->all(FLERR,"Mismatched parameter in MEAM potential file: z!=lat");
-
-    nset++;
+    delete [] words;
   }
 
-  // error if didn't find all elements in file
-
-  if (nset != nelements)
-    error->all(FLERR,"Did not find all elements in MEAM library file");
+  // distribute complete parameter sets
+  MPI_Bcast(lat, nelements, MPI_INT, 0, world);
+  MPI_Bcast(ielement, nelements, MPI_INT, 0, world);
+  MPI_Bcast(ibar, nelements, MPI_INT, 0, world);
+  MPI_Bcast(z, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(atwt, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(alpha, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b0, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b1, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b2, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b3, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(alat, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(esub, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(asub, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t0, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t1, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t2, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t3, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(rozero, nelements, MPI_DOUBLE, 0, world);
 
   // pass element parameters to MEAM package
 
@@ -484,11 +498,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // set element masses
 
-  for (i = 0; i < nelements; i++) mass[i] = atwt[i];
+  for (int i = 0; i < nelements; i++) mass[i] = atwt[i];
 
   // clean-up memory
-
-  delete [] words;
 
   delete [] lat;
   delete [] ielement;
@@ -518,48 +530,42 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   if (comm->me == 0) {
     fp = force->open_potential(userfile);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open MEAM potential file %s",userfile);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      ERRFMT(error->one, "Cannot open MEAM potential file %s", userfile);
   }
 
   // read settings
   // pass them one at a time to MEAM package
   // match strings to list of corresponding ints
-
-  int which;
-  double value;
-  lattice_t latt;
-  int nindex,index[3];
+  
   int maxparams = 6;
   char **params = new char*[maxparams];
-  int nparams;
-
-  eof = 0;
   while (1) {
+    int which;
+    int nindex, index[3];
+    double value;
+    char line[MAXLINE];
+    int nline;
+    char *ptr;
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-        eof = 1;
         fclose(fp);
-      } else n = strlen(line) + 1;
+        nline = -1;
+      } else nline = strlen(line) + 1;
     }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    MPI_Bcast(&nline,1,MPI_INT,0,world);
+    if (nline<0) break;
+    MPI_Bcast(line,nline,MPI_CHAR,0,world);
 
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nparams = atom->count_words(line);
-    if (nparams == 0) continue;
+    if (atom->count_words(line) == 0) continue;
 
-    // words = ptrs to all words in line
-
-    nparams = 0;
+    // params = ptrs to all fields in line
+    
+    int nparams = 0;
     params[nparams++] = strtok(line,"=(), '\t\n\r\f");
     while (nparams < maxparams &&
            (params[nparams++] = strtok(NULL,"=(), '\t\n\r\f")))
@@ -568,20 +574,18 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     for (which = 0; which < nkeywords; which++)
       if (strcmp(params[0],keywords[which]) == 0) break;
-    if (which == nkeywords) {
-      char str[128];
-      snprintf(str,128,"Keyword %s in MEAM parameter file not recognized",
-               params[0]);
-      error->all(FLERR,str);
-    }
+    if (which == nkeywords)
+      ERRFMT(error->all, "Keyword %s in MEAM parameter file not recognized", params[0]);
+    
     nindex = nparams - 2;
-    for (i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
+    for (int i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
 
     // map lattce_meam value to an integer
 
     if (which == 4) {
+      lattice_t latt;
       if (!MEAM::str_to_lat(params[nparams-1], false, latt))
-        error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
+        ERRFMT(error->all, "Unrecognized lattice type in MEAM parameter file: %s", params[nparams-1]);
       value = latt;
     }
     else value = atof(params[nparams-1]);
@@ -592,11 +596,16 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     meam_inst->meam_setup_param(which,value,nindex,index,&errorflag);
     if (errorflag) {
       char str[128];
-      sprintf(str,"MEAM library error %d",errorflag);
+      snprintf(str,80,"Error in MEAM parameter file: keyword %s",params[0]);
+      switch(errorflag) {
+        case 1: strcat(str, " is out of range (please report a bug)"); break;
+        case 2: strcat(str, " expected more indices"); break;
+        case 3: strcat(str, " has out of range element index"); break;
+      }
       error->all(FLERR,str);
     }
+    
   }
-
   delete [] params;
 }
 

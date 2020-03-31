@@ -93,12 +93,13 @@ and the 4th to be C, you would use the following pair_coeff command:
    pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
-The two filenames are for the library and parameter file respectively.
-The Si and C arguments (between the file names) are the two elements
-for which info will be extracted from the library file.  The first
-three trailing Si arguments map LAMMPS atom types 1,2,3 to the MEAM Si
-element.  The final C argument maps LAMMPS atom type 4 to the MEAM C
-element.
+The first filename is the element library file. The list of elements following
+it extracts lines from the library file and assigns numeric indices to these
+elements. The second filename is the alloy parameter file, which refers to
+elements using the numeric indices assigned before.
+The arguments after the parameter file map LAMMPS atom types to elements, i.e.
+LAMMPS atom types 1,2,3 to the MEAM Si element.  The final C argument maps
+LAMMPS atom type 4 to the MEAM C element.
 
 If the 2nd filename is specified as NULL, no parameter file is read,
 which simply means the generic parameters in the library file are
@@ -140,7 +141,7 @@ not required.  The other numeric parameters match values in the
 formulas above.  The value of the "elt" string is what is used in the
 pair_coeff command to identify which settings from the library file
 you wish to read in.  There can be multiple entries in the library
-file with the same "elt" value; LAMMPS reads the 1st matching entry it
+file with the same "elt" value; LAMMPS reads the first matching entry it
 finds and ignores the rest.
 
 Other parameters in the MEAM library file correspond to single-element
@@ -192,7 +193,7 @@ trailing comment (starting with #) which is ignored.
 
 The indices I, J, K correspond to the elements selected from the
 MEAM library file numbered in the order of how those elements were
-selected starting from 1. Thus for the example given below
+selected starting from 1. Thus for the example given before
 
 .. code-block:: LAMMPS
 
@@ -201,11 +202,6 @@ selected starting from 1. Thus for the example given below
 an index of 1 would refer to Si and an index of 2 to C.
 
 The recognized keywords for the parameter file are as follows:
-
-Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
-augt1, gsmooth_factor, re
-
-where
 
 .. parsed-literal::
 

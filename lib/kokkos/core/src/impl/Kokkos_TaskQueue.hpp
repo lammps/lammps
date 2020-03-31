@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -47,8 +48,7 @@
 #define KOKKOS_IMPL_TASKQUEUE_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_TASKDAG )
-
+#if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
 #include <Kokkos_Core_fwd.hpp>
@@ -67,23 +67,20 @@
 #include <typeinfo>
 #include <stdexcept>
 
-
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Impl {
 
-
 /** \brief  Manage task allocation, deallocation, and scheduling.
  *
  *  Task execution is deferred to the TaskQueueSpecialization.
  *  All other aspects of task management have shared implementation.
  */
-template< typename ExecSpace, typename MemorySpace >
+template <typename ExecSpace, typename MemorySpace>
 class TaskQueue : public TaskQueueBase {
-protected:
-
+ protected:
   template <class>
   friend struct TaskQueueSpecialization;
   template <class, class>
@@ -92,14 +89,14 @@ protected:
   friend class Kokkos::BasicTaskScheduler;
 
   using execution_space = ExecSpace;
-  using memory_space = MemorySpace;
-  using device_type = Kokkos::Device< execution_space , memory_space > ;
-  using memory_pool = Kokkos::MemoryPool< device_type > ;
-  using task_root_type = Kokkos::Impl::TaskBase;
+  using memory_space    = MemorySpace;
+  using device_type     = Kokkos::Device<execution_space, memory_space>;
+  using memory_pool     = Kokkos::MemoryPool<device_type>;
+  using task_root_type  = Kokkos::Impl::TaskBase;
   using team_queue_type = TaskQueue;
 
   struct Destroy {
-    TaskQueue * m_queue ;
+    TaskQueue* m_queue;
     void destroy_shared_allocation();
   };
 
@@ -109,23 +106,24 @@ protected:
 
   // Queue is organized as [ priority ][ type ]
 
-  memory_pool               m_memory ;
-  task_root_type * volatile m_ready[ NumQueue ][ 2 ];
-  //long                      m_accum_alloc ; // Accumulated number of allocations
-  int                       m_count_alloc = 0 ; // Current number of allocations
-  int                       m_max_alloc ;   // Maximum number of allocations
-  int                       m_ready_count ; // Number of ready or executing
+  memory_pool m_memory;
+  task_root_type* volatile m_ready[NumQueue][2];
+  // long                      m_accum_alloc ; // Accumulated number of
+  // allocations
+  int m_count_alloc = 0;  // Current number of allocations
+  int m_max_alloc;        // Maximum number of allocations
+  int m_ready_count;      // Number of ready or executing
 
   //----------------------------------------
 
   ~TaskQueue();
-  TaskQueue() = delete ;
-  TaskQueue( TaskQueue && ) = delete ;
-  TaskQueue( TaskQueue const & ) = delete ;
-  TaskQueue & operator = ( TaskQueue && ) = delete ;
-  TaskQueue & operator = ( TaskQueue const & ) = delete ;
+  TaskQueue()                 = delete;
+  TaskQueue(TaskQueue&&)      = delete;
+  TaskQueue(TaskQueue const&) = delete;
+  TaskQueue& operator=(TaskQueue&&) = delete;
+  TaskQueue& operator=(TaskQueue const&) = delete;
 
-  TaskQueue( const memory_pool & arg_memory_pool );
+  TaskQueue(const memory_pool& arg_memory_pool);
 
   // Schedule a task
   //   Precondition:
@@ -144,7 +142,7 @@ protected:
   //     task is in Executing-Respawn state
   //     task->m_next == 0 (no dependence)
   KOKKOS_FUNCTION
-  void reschedule( task_root_type * );
+  void reschedule(task_root_type*);
 
   // Complete a task
   //   Precondition:
@@ -155,27 +153,22 @@ protected:
   //     task->m_wait == LockTag  =>  task is complete
   //     task->m_wait != LockTag  =>  task is waiting
   KOKKOS_FUNCTION
-  void complete( task_root_type * );
+  void complete(task_root_type*);
 
   KOKKOS_FUNCTION
-  static bool push_task( task_root_type * volatile * const
-                       , task_root_type * const );
+  static bool push_task(task_root_type* volatile* const, task_root_type* const);
 
   KOKKOS_FUNCTION
-  static task_root_type * pop_ready_task( task_root_type * volatile * const );
+  static task_root_type* pop_ready_task(task_root_type* volatile* const);
 
-  KOKKOS_FUNCTION static
-  void decrement( task_root_type * task );
+  KOKKOS_FUNCTION static void decrement(task_root_type* task);
 
-
-public:
-
+ public:
   KOKKOS_INLINE_FUNCTION
   int allocation_count() const noexcept { return m_count_alloc; }
 
-
   KOKKOS_INLINE_FUNCTION
-  void initialize_team_queues(int pool_size) const noexcept { }
+  void initialize_team_queues(int pool_size) const noexcept {}
 
   KOKKOS_INLINE_FUNCTION
   task_root_type* attempt_to_steal_task() const noexcept { return nullptr; }
@@ -183,21 +176,18 @@ public:
   KOKKOS_INLINE_FUNCTION
   team_queue_type& get_team_queue(int team_rank) { return *this; }
 
-  //void execute() { specialization::execute( this ); }
+  // void execute() { specialization::execute( this ); }
 
-  template< typename FunctorType >
-  void proc_set_apply( typename task_root_type::function_type * ptr )
-    {
-      using specialization =
+  template <typename FunctorType>
+  void proc_set_apply(typename task_root_type::function_type* ptr) {
+    using specialization =
         TaskQueueSpecialization<BasicTaskScheduler<ExecSpace, TaskQueue>>;
-      specialization::template proc_set_apply< FunctorType >( ptr );
-    }
+    specialization::template proc_set_apply<FunctorType>(ptr);
+  }
 
   // Assign task pointer with reference counting of assigned tasks
-  KOKKOS_FUNCTION static
-  void assign( task_root_type ** const lhs
-             , task_root_type *  const rhs )
-    {
+  KOKKOS_FUNCTION static void assign(task_root_type** const lhs,
+                                     task_root_type* const rhs) {
 #if 0
   {
     printf( "assign( 0x%lx { 0x%lx %d %d } , 0x%lx { 0x%lx %d %d } )\n"
@@ -214,54 +204,54 @@ public:
   }
 #endif
 
-      if ( *lhs ) decrement( *lhs );
-      if ( rhs ) { Kokkos::atomic_increment( &(rhs->m_ref_count) ); }
-
-      // Force write of *lhs
-
-      *static_cast< task_root_type * volatile * >(lhs) = rhs ;
-
-      Kokkos::memory_fence();
+    if (*lhs) decrement(*lhs);
+    if (rhs) {
+      Kokkos::atomic_increment(&(rhs->m_ref_count));
     }
 
-  KOKKOS_FUNCTION
-  size_t allocate_block_size( size_t n ); ///< Actual block size allocated
+    // Force write of *lhs
+
+    *static_cast<task_root_type* volatile*>(lhs) = rhs;
+
+    Kokkos::memory_fence();
+  }
 
   KOKKOS_FUNCTION
-  void * allocate( size_t n ); ///< Allocate from the memory pool
+  size_t allocate_block_size(size_t n);  ///< Actual block size allocated
 
   KOKKOS_FUNCTION
-  void deallocate( void * p , size_t n ); ///< Deallocate to the memory pool
+  void* allocate(size_t n);  ///< Allocate from the memory pool
 
+  KOKKOS_FUNCTION
+  void deallocate(void* p, size_t n);  ///< Deallocate to the memory pool
 
   //----------------------------------------
   /**\brief  Allocation size for a spawned task */
 
-  template< typename FunctorType >
-  KOKKOS_FUNCTION
-  size_t spawn_allocation_size() const
-    {
-      using value_type = typename FunctorType::value_type ;
+  template <typename FunctorType>
+  KOKKOS_FUNCTION size_t spawn_allocation_size() const {
+    using value_type = typename FunctorType::value_type;
 
-      using task_type = Impl::Task<execution_space, value_type, FunctorType> ;
+    using task_type = Impl::Task<execution_space, value_type, FunctorType>;
 
-      enum : size_t { align = ( 1 << 4 ) , align_mask = align - 1 };
-      enum : size_t { task_size   = sizeof(task_type) };
-      enum : size_t { result_size = Impl::TaskResult< value_type >::size };
-      enum : size_t { alloc_size =
-        ( ( task_size   + align_mask ) & ~align_mask ) +
-        ( ( result_size + align_mask ) & ~align_mask ) };
+    enum : size_t { align = (1 << 4), align_mask = align - 1 };
+    enum : size_t { task_size = sizeof(task_type) };
+    enum : size_t { result_size = Impl::TaskResult<value_type>::size };
+    enum : size_t {
+      alloc_size = ((task_size + align_mask) & ~align_mask) +
+                   ((result_size + align_mask) & ~align_mask)
+    };
 
-      return m_memory.allocate_block_size( task_size );
-    }
+    return m_memory.allocate_block_size(task_size);
+  }
 
   /**\brief  Allocation size for a when_all aggregate */
 
   KOKKOS_FUNCTION
-  size_t when_all_allocation_size( int narg ) const
-    {
-      return m_memory.allocate_block_size( sizeof(task_root_type) + narg * sizeof(task_root_type*) );
-    }
+  size_t when_all_allocation_size(int narg) const {
+    return m_memory.allocate_block_size(sizeof(task_root_type) +
+                                        narg * sizeof(task_root_type*));
+  }
 };
 
 } /* namespace Impl */
@@ -272,4 +262,3 @@ public:
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_TASKQUEUE_HPP */
-

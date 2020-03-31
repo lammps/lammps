@@ -174,7 +174,7 @@ public:
     }
 
   //----------------------------------------
-  /*  Inheritance Requirements on task types:
+  /*  Inheritence Requirements on task types:
    *    typedef  FunctorType::value_type  value_type ;
    *    class DerivedTaskType
    *      : public TaskMember< Qthreads , value_type , FunctorType >

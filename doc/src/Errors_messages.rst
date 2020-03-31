@@ -2783,7 +2783,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    if this helps.
 
 *Did not find all elements in MEAM library file*
-   The requested elements were not found in the MEAM file.
+   Some requested elements were not found in the MEAM file. Check spelling etc.
 
 *Did not find fix shake partner info*
    Could not find bond partners implied by fix shake command.  This error
@@ -3134,6 +3134,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Epsilon or sigma reference not set by pair style in ewald/n*
    The pair style is not providing the needed epsilon or sigma values.
+
+*Error in MEAM parameter file: keyword %s (further information)*
+   Self-explanatory. Check the parameter file.
 
 *Error in vdw spline: inner radius > outer radius*
    A pre-tabulated spline is invalid.  Likely a problem with the
@@ -4611,7 +4614,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Incorrect format in COMB3 potential file*
    Incorrect number of words per line in the potential file.
 
-*Incorrect format in MEAM potential file*
+*Incorrect format in MEAM library file*
    Incorrect number of words per line in the potential file.
 
 *Incorrect format in SNAP coefficient file*
@@ -5668,6 +5671,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Mismatched fix in variable formula*
    A fix is referenced incorrectly or a fix that produces per-atom
    values is used in an equal-style variable formula.
+
+*Mismatched parameter in MEAM library file: z!=lat*
+   The coordination number and lattice do not match, check that consistent values are given.
 
 *Mismatched variable in variable formula*
    A variable is referenced incorrectly or an atom-style variable that
@@ -7764,6 +7770,9 @@ keyword to allow for additional bonds to be formed
 *Too many atoms to dump sort*
    Cannot sort when running with more than 2\^31 atoms.
 
+*Too many elements extracted from MEAM library.*
+   Increase 'maxelt' in meam.h and recompile.
+
 *Too many exponent bits for lookup table*
    Table size specified via pair_modify command does not work with your
    machine's floating point representation.
@@ -7997,11 +8006,11 @@ keyword to allow for additional bonds to be formed
 *Unknown unit_style*
    Self-explanatory. Check the input script or data file.
 
-*Unrecognized lattice type in MEAM file 1*
+*Unrecognized lattice type in MEAM library file*
    The lattice type in an entry of the MEAM library file is not
    valid.
 
-*Unrecognized lattice type in MEAM file 2*
+*Unrecognized lattice type in MEAM parameter file*
    The lattice type in an entry of the MEAM parameter file is not
    valid.
 
@@ -8016,6 +8025,9 @@ keyword to allow for additional bonds to be formed
 
 *Unsupported order in kspace_style pppm/disp, pair_style %s*
    Only pair styles with 1/r and 1/r\^6 dependence are currently supported.
+
+*Unsupported parameter in MEAM library file*
+   Self-explanatory.
 
 *Use cutoff keyword to set cutoff in single mode*
    Mode is single so cutoff/multi keyword cannot be used.

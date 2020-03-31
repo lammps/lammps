@@ -28,6 +28,7 @@ public:
   virtual char * long_string(int ifunc) = 0;
   virtual int execute_string(char *) = 0;
   virtual int execute_file(char *) = 0;
+  virtual bool has_minimum_version(int major, int minor) = 0;
 };
 
 class Python : protected Pointers {
@@ -42,6 +43,7 @@ public:
   char * long_string(int ifunc);
   int execute_string(char *);
   int execute_file(char *);
+  bool has_minimum_version(int major, int minor);
 
   bool is_enabled() const;
   void init();

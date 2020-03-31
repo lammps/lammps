@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,52 +42,44 @@
 //@HEADER
 */
 
-template<class Scalar, int UNROLL>
+template <class Scalar, int UNROLL>
 struct RunGather {
   static void run(int N, int K, int D, int R, int F);
 };
 
 #define UNROLL 1
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 2
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 3
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 4
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 5
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 6
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 7
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 #define UNROLL 8
-#include<gather_unroll.hpp>
+#include <gather_unroll.hpp>
 #undef UNROLL
 
-template<class Scalar>
+template <class Scalar>
 void run_gather_test(int N, int K, int D, int R, int U, int F) {
- if(U == 1)
-   RunGather<Scalar,1>::run(N,K,D,R,F);
- if(U == 2)
-   RunGather<Scalar,2>::run(N,K,D,R,F);
- if(U == 3)
-   RunGather<Scalar,3>::run(N,K,D,R,F);
- if(U == 4)
-   RunGather<Scalar,4>::run(N,K,D,R,F);
- if(U == 5)
-   RunGather<Scalar,5>::run(N,K,D,R,F);
- if(U == 6)
-   RunGather<Scalar,6>::run(N,K,D,R,F);
- if(U == 7)
-   RunGather<Scalar,7>::run(N,K,D,R,F);
- if(U == 8)
-   RunGather<Scalar,8>::run(N,K,D,R,F);
+  if (U == 1) RunGather<Scalar, 1>::run(N, K, D, R, F);
+  if (U == 2) RunGather<Scalar, 2>::run(N, K, D, R, F);
+  if (U == 3) RunGather<Scalar, 3>::run(N, K, D, R, F);
+  if (U == 4) RunGather<Scalar, 4>::run(N, K, D, R, F);
+  if (U == 5) RunGather<Scalar, 5>::run(N, K, D, R, F);
+  if (U == 6) RunGather<Scalar, 6>::run(N, K, D, R, F);
+  if (U == 7) RunGather<Scalar, 7>::run(N, K, D, R, F);
+  if (U == 8) RunGather<Scalar, 8>::run(N, K, D, R, F);
 }

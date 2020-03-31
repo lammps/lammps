@@ -186,6 +186,7 @@ if(BUILD_MPI)
   # We use a non-standard procedure to compile with MPI on windows
   if (CMAKE_SYSTEM_NAME STREQUAL Windows)
     include(MPI4WIN)
+    target_link_libraries(lammps PUBLIC LAMMPS::MPI)
   else()
     find_package(MPI REQUIRED)
     target_compile_definitions(lammps PRIVATE -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1)
@@ -515,9 +516,6 @@ include(Packages/GPU)
 # and after everything else that is compiled locally
 ######################################################################
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  if(LAMMPS_USE_MPI4WIN)
-    target_link_libraries(lammps PRIVATE ${MPI4WIN_LIBRARIES})
-  endif()
   target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
 endif()
 

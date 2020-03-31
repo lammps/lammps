@@ -16,8 +16,11 @@ else()
 endif()
 
 ExternalProject_get_property(mpi4win_build SOURCE_DIR)
-target_compile_definitions(lammps PRIVATE -DMPICH_SKIP_MPICXX)
-target_include_directories(lammps PRIVATE "${SOURCE_DIR}/include")
-set(MPI4WIN_LIBRARIES "${SOURCE_DIR}/lib/libmpi.a")
+file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
+add_library(LAMMPS::MPI UNKNOWN IMPORTED)
+set_target_properties(LAMMPS::MPI PROPERTIES
+  IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmpi.a"
+  INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
+  INTERFACE_COMPILE_DEFINITIONS "-DMPICH_SKIP_MPICXX")
 add_dependencies(lammps mpi4win_build)
 set(LAMMPS_USE_MPI4WIN ON)

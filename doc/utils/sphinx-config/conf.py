@@ -340,6 +340,11 @@ sys.path.append(os.path.join(conf_script_dir, '..', '..', '..', 'python'))
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'
 
+# autodoc configuration
+
+autodoc_member_order = 'bysource'
+#autoclass_content = 'both'
+
 # breathe configuration
 
 breathe_projects = { "progguide" : os.path.join(conf_script_dir, '..', '..', 'doxygen', 'xml') }

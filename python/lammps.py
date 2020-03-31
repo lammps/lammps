@@ -119,11 +119,10 @@ class lammps(object):
   :type  name: string
   :param idx: list of command line arguments to be passed to the :ref:`lammps_open() <lammps_open>` function.
   :type  idx: list
-  :param ptr: pointer to a LAMMPS C++ class when called from an embedded Python interpreter. None means load symbols from shared library
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter. None means load symbols from shared library.
   :type  ptr: pointer
-  :param comm: MPI communicator
+  :param comm: MPI communicator (as provided by `mpi4py <https://mpi4py.readthedocs.io/>`_). None means use MPI_COMM_WORLD implicitly.
   :type  comm: MPI_Comm
-
   """
 
   # detect if Python is using version of mpi4py that can pass a communicator

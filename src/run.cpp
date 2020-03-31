@@ -28,6 +28,13 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 2048
 
+/** \class LAMMPS_NS::Run
+ *
+\verbatim embed:rst
+The Run class implements the :doc:`run <run>` command in LAMMPS inputs.
+\endverbatim
+ */
+
 /** \brief Initialize the run command
  *
  * \param lmp pointer to the current LAMMPS instance

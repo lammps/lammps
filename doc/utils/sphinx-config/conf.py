@@ -344,3 +344,4 @@ highlight_language = 'none'
 
 breathe_projects = { "progguide" : os.path.join(conf_script_dir, '..', '..', 'doxygen', 'xml') }
 breathe_default_project = "progguide"
+breathe_show_define_initializer = True

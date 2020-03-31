@@ -15,6 +15,8 @@ command.
 .. doxygenclass:: LAMMPS_NS::Run
    :project: progguide
    :members:
+   :protected-members:
+   :no-link:
 
 ----------
 
@@ -22,4 +24,6 @@ command.
 .. doxygenclass:: LAMMPS_NS::WriteData
    :project: progguide
    :members:
+   :protected-members:
+   :no-link:
 

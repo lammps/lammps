@@ -601,6 +601,7 @@ endif()
 
 if(BUILD_TOOLS)
   add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
+  target_compile_definitions(binary2txt PRIVATE -DLAMMPS_${LAMMPS_SIZES})
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   include(CheckGeneratorSupport)

@@ -277,8 +277,6 @@ void SNA::build_indexlist()
             idxz[idxz_count].mb1min = MAX(0, (2 * mb - j - j2 + j1) / 2);
             idxz[idxz_count].mb2max = (2 * mb - j - (2 * idxz[idxz_count].mb1min - j1) + j2) / 2;
             idxz[idxz_count].nb = MIN(j1, (2 * mb - j + j2 + j1) / 2) - idxz[idxz_count].mb1min + 1;
-            idxz[idxz_count].ma = ma;
-            idxz[idxz_count].mb = mb;
             // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
 
             const int jju = idxu_block[j] + (j+1)*mb + ma;
@@ -336,7 +334,6 @@ void SNA::compute_ui(int jnum, int ielem)
   //   utot(j,ma,mb) += u(r0;j,ma,mb) for all j,ma,mb
 
   zero_uarraytot(ielem);
-  addself_uarraytot(wself, ielem);
 
   for(int j = 0; j < jnum; j++) {
     x = rij[j][0];
@@ -438,8 +435,6 @@ void SNA::compute_yi(const double* beta)
   int jju;
   double betaj;
   int itriple;
-  int jelem;
-  double temp;
 
   for(int ielem1 = 0; ielem1 < nelements; ielem1++)
     for(int j = 0; j <= twojmax; j++) {
@@ -464,8 +459,6 @@ void SNA::compute_yi(const double* beta)
           const int mb1min = idxz[jjz].mb1min;
           const int mb2max = idxz[jjz].mb2max;
           const int nb = idxz[jjz].nb;
-          const int ma = idxz[jjz].ma;
-          const int mb = idxz[jjz].mb;
 
           const double *cgblock = cglist + idxcg_block[j1][j2][j];
 
@@ -515,58 +508,25 @@ void SNA::compute_yi(const double* beta)
           // multiply and divide by j+1 factors
           // account for multiplicity of 1, 2, or 3
 
-          jju = idxz[jjz].jju;
-          for(int elem3 = 0; elem3 < nelements; elem3++) {
-          // pick out right beta value
-          if (alloy_flag) {
-            if (j >= j1) {
-              const int jjb = idxb_block[j1][j2][j];
-              itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
-              if (j1 ==j && j2 == j && elem1 == elem2 && elem1 == elem3) betaj = 3 * beta[itriple];
-              else if (j1 == j && j2 == j && elem2 == elem3 && elem1!=elem3)
-                  betaj =
-                      2 * (beta[itriple] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb]);
-              else if (j1 == j && j2 == j && elem1 == elem2 && elem1 != elem3)
-                betaj = beta[itriple] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb] +
-                        beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
-              else if (j1 ==j && (elem1 == elem3 || elem2 == elem3)) // this line covers quite a few cases
-                betaj = 2 * beta[itriple];
-              else if (j1 == j && j2 != j && elem2 == elem1 && elem1 != elem3)
-                betaj = beta[itriple] + beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
-              else
-                betaj = beta[((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb];
-            } else if (j >= j2) {
-              const int jjb = idxb_block[j][j2][j1];
-              itriple = ((elem3 * nelements + elem2) * nelements + elem1)*idxb_max + jjb;
-              if (j2 == j) {
-                if (elem3 == elem2)
-                  betaj = 2 * beta[itriple];
-                else if (elem1 == elem2)
-                  betaj = beta[itriple] + beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
-                else if (elem1 == elem3)
-                  betaj = beta[itriple] + beta[((elem2 * nelements + elem1) * nelements + elem3) * idxb_max + jjb];
-              } else
-                betaj = beta[itriple];
-            } else {
-              const int jjb = idxb_block[j2][j][j1];
-              itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
-              betaj = beta[itriple];
-            }
+        jju = idxz[jjz].jju;
+        for(int elem3 = 0; elem3 < nelements; elem3++) {
+        // pick out right beta value
+          if (j >= j1) {
+            const int jjb = idxb_block[j1][j2][j];
+            itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+            if (j1 == j) {
+              if (j2 == j) betaj = 3*beta[itriple];
+              else betaj = 2*beta[itriple];
+            } else betaj = beta[itriple];
+          } else if (j >= j2) {
+            const int jjb = idxb_block[j][j2][j1];
+            itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+            if (j2 == j) betaj = 2*beta[itriple];
+            else betaj = beta[itriple];
           } else {
-            if (j >= j1) {
-              const int jjb = idxb_block[j1][j2][j];
-              if (j1 == j) {
-                if (j2 == j) betaj = 3*beta[jjb];
-                else betaj = 2*beta[jjb];
-              } else betaj = beta[jjb];
-            } else if (j >= j2) {
-              const int jjb = idxb_block[j][j2][j1];
-              if (j2 == j) betaj = 2*beta[jjb];
-              else betaj = beta[jjb];
-            } else {
-              const int jjb = idxb_block[j2][j][j1];
-              betaj = beta[jjb];
-            }
+            const int jjb = idxb_block[j2][j][j1];
+            itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+            betaj = beta[itriple];
           }
 
           if (!bnorm_flag && j1 > j)
@@ -574,9 +534,6 @@ void SNA::compute_yi(const double* beta)
 
           ylist_r[elem3 * idxu_max + jju] += betaj * ztmp_r;
           ylist_i[elem3 * idxu_max + jju] += betaj * ztmp_i;
-          //if (elem3==0 && j ==4 &&  ma==2 &&  mb==0)
-          //  fprintf(screen, "%i %i %i %i %i %i %f %f %f\n", elem1, elem2, elem3, j, j1, j2, betaj, ztmp_r, ylist_r[elem3 * idxu_max + jju]);
-
         }
       } // end loop over jjz
     }
@@ -1021,20 +978,6 @@ void SNA::zero_uarraytot(int ielem)
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void SNA::addself_uarraytot(double wself_in, int ielem)
-{
-  // for (int j = 0; j <= twojmax; j++) {
-  //   int jju = idxu_block[j];
-  //   for (int ma = 0; ma <= j; ma++) {
-  //     ulisttot_r[ielem*idxu_max+jju] = wself_in;
-  //     ulisttot_i[ielem*idxu_max+jju] = 0.0;
-  //     jju += j+2;
-  //   }
-  // }
 }
 
 /* ----------------------------------------------------------------------

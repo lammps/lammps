@@ -22,5 +22,4 @@ set_target_properties(LAMMPS::MPI PROPERTIES
   IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmpi.a"
   INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
   INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-add_dependencies(lammps mpi4win_build)
-set(LAMMPS_USE_MPI4WIN ON)
+add_dependencies(LAMMPS::MPI mpi4win_build)

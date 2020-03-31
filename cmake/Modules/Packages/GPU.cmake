@@ -108,9 +108,6 @@ if(PKG_GPU)
       endif()
 
       target_link_libraries(lammps PRIVATE gpu)
-      if(LAMMPS_USE_MPI4WIN)
-        add_dependencies(gpu mpi4win_build)
-      endif()
 
       add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
       target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
@@ -172,9 +169,6 @@ if(PKG_GPU)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
       target_link_libraries(lammps PRIVATE gpu)
-      if(LAMMPS_USE_MPI4WIN)
-        add_dependencies(gpu mpi4win_build)
-      endif()
 
       add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
       target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)

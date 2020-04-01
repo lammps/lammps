@@ -205,3 +205,12 @@ double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
   if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
   return d0[type]*(1-ralpha)*(1-ralpha);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *BondMorse::extract(char *str, int &dim )
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
+}

@@ -1745,6 +1745,31 @@ int lammps_config_package_name(int index, char * buffer, int max_size) {
   return false;
 }
 
+int lammps_has_style(void * ptr, char * category, char * name) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  return info.has_style(category, name);
+}
+
+int lammps_style_count(void * ptr, char * category) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  return info.get_available_styles(category).size();
+}
+
+int lammps_style_name(void* ptr, char * category, int index, char * buffer, int max_size) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  auto styles = info.get_available_styles(category);
+
+  if (index < styles.size()) {
+    strncpy(buffer, styles[index].c_str(), max_size);
+    return true;
+  }
+
+  return false;
+}
+
 int lammps_config_has_gzip_support() {
   return Info::has_gzip_support();
 }

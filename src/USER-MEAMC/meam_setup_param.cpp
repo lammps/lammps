@@ -49,6 +49,12 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
 //     20 = bkgd_dyn
 //     21 = theta
 
+//     The returned errorflag has the following meanings:
+
+//     0 = no error
+//     1 = "which" out of range / invalid keyword
+//     2 = not enough indices given
+//     3 = an element index is out of range
 
 void
 MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag)

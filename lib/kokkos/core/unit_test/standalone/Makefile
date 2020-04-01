@@ -1,4 +1,4 @@
-KOKKOS_DEVICES=Cuda
+KOKKOS_DEVICES=OpenMP
 KOKKOS_CUDA_OPTIONS=enable_lambda
 KOKKOS_ARCH = "SNB,Kepler35"
 
@@ -9,6 +9,7 @@ ifndef KOKKOS_PATH
 endif
 
 SRC = $(wildcard $(MAKEFILE_PATH)*.cpp)
+SRC += $(MAKEFILE_PATH)/../TestStackTrace.cpp
 HEADERS = $(wildcard $(MAKEFILE_PATH)*.hpp)
 HEADERS = $(wildcard $(MAKEFILE_PATH)/../*.hpp)
 
@@ -25,13 +26,13 @@ CXX = g++
 EXE = test.host
 endif
 
-CXXFLAGS ?= -O3 -g
+CXXFLAGS ?= -O0 -g -rdynamic
 override CXXFLAGS += -I$(MAKEFILE_PATH) -I$(KOKKOS_PATH)/core/unit_test -I$(KOKKOS_PATH)/tpls/gtest -DTESTFILE=$(TESTFILE)
 #SRC += $(KOKKOS_PATH)/tpls/gtest/gtest/gtest-all.cc
 
 DEPFLAGS = -M
 LINK = ${CXX}
-LINKFLAGS =
+LINKFLAGS = -rdynamic
 
 OBJ = $(notdir $(SRC:.cpp=.o))
 LIB =

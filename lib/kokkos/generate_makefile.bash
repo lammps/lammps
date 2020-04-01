@@ -2,8 +2,6 @@
 
 KOKKOS_DEVICES=""
 
-KOKKOS_DO_EXAMPLES="1"
-
 while [[ $# > 0 ]]
 do
   key="$1"
@@ -11,9 +9,6 @@ do
   case $key in
     --kokkos-path*)
       KOKKOS_PATH="${key#*=}"
-      ;;
-    --qthreads-path*)
-      QTHREADS_PATH="${key#*=}"
       ;;
     --hpx-path*)
       HPX_PATH="${key#*=}"
@@ -34,9 +29,6 @@ do
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Cuda"
       CUDA_PATH="${key#*=}"
       ;;
-    --with-rocm)
-      KOKKOS_DEVICES="${KOKKOS_DEVICES},ROCm"
-      ;;
     --with-openmp)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},OpenMP"
       ;;
@@ -45,12 +37,6 @@ do
       ;;
     --with-serial)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Serial"
-      ;;
-    --with-qthreads*)
-      KOKKOS_DEVICES="${KOKKOS_DEVICES},Qthreads"
-      if [ -z "$QTHREADS_PATH" ]; then
-        QTHREADS_PATH="${key#*=}"
-      fi
       ;;
     --with-hpx-options*)
       KOKKOS_HPX_OPT="${key#*=}"
@@ -93,9 +79,6 @@ do
       echo "Warning: ${key} is deprecated"
       echo "Call make with appropriate -j flag"
       ;;
-    --no-examples)
-      KOKKOS_DO_EXAMPLES="0"
-      ;;
     --compiler*)
       COMPILER="${key#*=}"
       CNUM=$(command -v ${COMPILER} 2>&1 >/dev/null | grep "no ${COMPILER}" | wc -l)
@@ -128,15 +111,12 @@ do
       echo "Kokkos configure options:"
       echo ""
       echo "--kokkos-path=/Path/To/Kokkos:        Path to the Kokkos root directory."
-      echo "--qthreads-path=/Path/To/Qthreads:    Path to Qthreads install directory."
-      echo "                                        Overrides path given by --with-qthreads."
       echo "--prefix=/Install/Path:               Path to install the Kokkos library."
       echo ""
       echo "--with-cuda[=/Path/To/Cuda]:          Enable Cuda and set path to Cuda Toolkit."
       echo "--with-openmp:                        Enable OpenMP backend."
       echo "--with-pthread:                       Enable Pthreads backend."
       echo "--with-serial:                        Enable Serial backend."
-      echo "--with-qthreads[=/Path/To/Qthreads]:  Enable Qthreads backend."
       echo "--with-devices:                       Explicitly add a set of backends."
       echo ""
       echo "--arch=[OPT]:  Set target architectures. Options are:"
@@ -197,7 +177,7 @@ do
       echo "                                disable_profiling = do not compile with profiling hooks"
       echo "                                "
       echo "--with-cuda-options=[OPT]:    Additional options to CUDA:"
-      echo "                                force_uvm, use_ldg, enable_lambda, rdc"
+      echo "                                force_uvm, use_ldg, enable_lambda, rdc, enable_constexpr"
       echo "--with-hpx-options=[OPT]:     Additional options to HPX:"
       echo "                                enable_async_dispatch"
       echo "--gcc-toolchain=/Path/To/GccRoot:  Set the gcc toolchain to use with clang (e.g. /usr)" 
@@ -232,7 +212,6 @@ fi
 KOKKOS_SRC_PATH=${KOKKOS_PATH}
 
 KOKKOS_SETTINGS="KOKKOS_SRC_PATH=${KOKKOS_SRC_PATH}"
-#KOKKOS_SETTINGS="KOKKOS_PATH=${KOKKOS_PATH}"
 
 # The double [[  ]] in the elif branch is not a typo
 if [ ${#COMPILER} -gt 0 ]; then
@@ -292,10 +271,6 @@ if [ ${#KOKKOS_USE_TPLS} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_USE_TPLS=${KOKKOS_USE_TPLS}"
 fi
 
-if [ ${#QTHREADS_PATH} -gt 0 ]; then
-  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} QTHREADS_PATH=${QTHREADS_PATH}"
-fi
-
 if [ ${#HPX_PATH} -gt 0 ]; then
     KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HPX_PATH=${HPX_PATH}"
 fi
@@ -318,18 +293,8 @@ fi
 
 KOKKOS_SETTINGS_NO_KOKKOS_PATH="${KOKKOS_SETTINGS}"
 
-KOKKOS_TEST_INSTALL_PATH="${PWD}/install"
-if [ ${#PREFIX} -gt 0 ]; then
-  KOKKOS_INSTALL_PATH="${PREFIX}"
-else
-  KOKKOS_INSTALL_PATH=${KOKKOS_TEST_INSTALL_PATH}
-fi
 
-mkdir -p install
 gen_makefile=Makefile.kokkos
-echo "#Makefile to satisfy existence of target kokkos-clean before installing the library" > install/${gen_makefile}
-echo "kokkos-clean:" >> install/${gen_makefile}
-echo "" >> install/${gen_makefile}
 mkdir -p core
 mkdir -p core/unit_test
 mkdir -p core/perf_test
@@ -345,10 +310,6 @@ mkdir -p example/feint
 mkdir -p example/fenl
 mkdir -p example/make_buildlink
 mkdir -p example/tutorial
-
-if [ ${#KOKKOS_ENABLE_EXAMPLE_ICHOL} -gt 0 ]; then
-  mkdir -p example/ichol
-fi
 
 KOKKOS_SETTINGS="${KOKKOS_SETTINGS_NO_KOKKOS_PATH} KOKKOS_PATH=${KOKKOS_PATH}"
 
@@ -408,8 +369,6 @@ echo "" >> algorithms/unit_tests/Makefile
 echo "clean:" >> algorithms/unit_tests/Makefile
 echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/algorithms/unit_tests/Makefile ${KOKKOS_SETTINGS} clean" >> algorithms/unit_tests/Makefile
 
-KOKKOS_SETTINGS="${KOKKOS_SETTINGS_NO_KOKKOS_PATH} KOKKOS_PATH=${KOKKOS_TEST_INSTALL_PATH}"
-
 echo "KOKKOS_SETTINGS=${KOKKOS_SETTINGS}" > example/fixture/Makefile
 echo "" >> example/fixture/Makefile
 echo "all:" >> example/fixture/Makefile
@@ -465,55 +424,16 @@ echo "" >> example/tutorial/Makefile
 echo "clean:" >> example/tutorial/Makefile
 echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/example/tutorial/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}' KOKKOS_PATH=${KOKKOS_PATH} clean" >> example/tutorial/Makefile
 
-if [ ${#KOKKOS_ENABLE_EXAMPLE_ICHOL} -gt 0 ]; then
-echo "KOKKOS_SETTINGS=${KOKKOS_SETTINGS}" > example/ichol/Makefile
-echo "" >> example/ichol/Makefile
-echo "all:" >> example/ichol/Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/example/ichol/Makefile ${KOKKOS_SETTINGS}" >> example/ichol/Makefile
-echo "" >> example/ichol/Makefile
-echo "test: all" >> example/ichol/Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/example/ichol/Makefile ${KOKKOS_SETTINGS} test" >> example/ichol/Makefile
-echo "" >> example/ichol/Makefile
-echo "clean:" >> example/ichol/Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/example/ichol/Makefile ${KOKKOS_SETTINGS} clean" >> example/ichol/Makefile
-fi
-
-KOKKOS_SETTINGS="${KOKKOS_SETTINGS_NO_KOKKOS_PATH} KOKKOS_PATH=${KOKKOS_PATH}"
-
 # Generate top level directory makefile.
 echo "Generating Makefiles with options " ${KOKKOS_SETTINGS}
 echo "KOKKOS_SETTINGS=${KOKKOS_SETTINGS}" > Makefile
 echo "" >> Makefile
-echo "kokkoslib:" >> Makefile
-echo -e "\tcd core; \\" >> Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/core/src/Makefile ${KOKKOS_SETTINGS} PREFIX=${KOKKOS_INSTALL_PATH} build-lib" >> Makefile
-echo "" >> Makefile
-echo "install: kokkoslib" >> Makefile
-echo -e "\tcd core; \\" >> Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/core/src/Makefile ${KOKKOS_SETTINGS} PREFIX=${KOKKOS_INSTALL_PATH} install" >> Makefile
-echo "" >> Makefile
-echo "kokkoslib-test:" >> Makefile
-echo -e "\tcd core; \\" >> Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/core/src/Makefile ${KOKKOS_SETTINGS} PREFIX=${KOKKOS_TEST_INSTALL_PATH} build-lib" >> Makefile
-echo "" >> Makefile
-echo "install-test: kokkoslib-test" >> Makefile
-echo -e "\tcd core; \\" >> Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/core/src/Makefile ${KOKKOS_SETTINGS} PREFIX=${KOKKOS_TEST_INSTALL_PATH} install" >> Makefile
-echo "" >> Makefile
-echo "build-test: install-test" >> Makefile
+echo "build-test:" >> Makefile
 echo -e "\t\$(MAKE) -C core/unit_test" >> Makefile
 echo -e "\t\$(MAKE) -C core/perf_test" >> Makefile
 echo -e "\t\$(MAKE) -C containers/unit_tests" >> Makefile
 echo -e "\t\$(MAKE) -C containers/performance_tests" >> Makefile
 echo -e "\t\$(MAKE) -C algorithms/unit_tests" >> Makefile
-if [ ${KOKKOS_DO_EXAMPLES} -gt 0 ]; then
-$()
-echo -e "\t\$(MAKE) -C example/fixture" >> Makefile
-echo -e "\t\$(MAKE) -C example/feint" >> Makefile
-echo -e "\t\$(MAKE) -C example/fenl" >> Makefile
-echo -e "\t\$(MAKE) -C example/make_buildlink build" >> Makefile
-echo -e "\t\$(MAKE) -C example/tutorial build" >> Makefile
-fi
 echo "" >> Makefile
 echo "test: build-test" >> Makefile
 echo -e "\t\$(MAKE) -C core/unit_test test" >> Makefile
@@ -521,13 +441,6 @@ echo -e "\t\$(MAKE) -C core/perf_test test" >> Makefile
 echo -e "\t\$(MAKE) -C containers/unit_tests test" >> Makefile
 echo -e "\t\$(MAKE) -C containers/performance_tests test" >> Makefile
 echo -e "\t\$(MAKE) -C algorithms/unit_tests test" >> Makefile
-if [ ${KOKKOS_DO_EXAMPLES} -gt 0 ]; then
-echo -e "\t\$(MAKE) -C example/fixture test" >> Makefile
-echo -e "\t\$(MAKE) -C example/feint test" >> Makefile
-echo -e "\t\$(MAKE) -C example/fenl test" >> Makefile
-echo -e "\t\$(MAKE) -C example/make_buildlink test" >> Makefile
-echo -e "\t\$(MAKE) -C example/tutorial test" >> Makefile
-fi
 echo "" >> Makefile
 echo "unit-tests-only:" >> Makefile
 echo -e "\t\$(MAKE) -C core/unit_test test" >> Makefile
@@ -541,13 +454,4 @@ echo -e "\t\$(MAKE) -C core/perf_test clean" >> Makefile
 echo -e "\t\$(MAKE) -C containers/unit_tests clean" >> Makefile
 echo -e "\t\$(MAKE) -C containers/performance_tests clean" >> Makefile
 echo -e "\t\$(MAKE) -C algorithms/unit_tests clean" >> Makefile
-if [ ${KOKKOS_DO_EXAMPLES} -gt 0 ]; then
-echo -e "\t\$(MAKE) -C example/fixture clean" >> Makefile
-echo -e "\t\$(MAKE) -C example/feint clean" >> Makefile
-echo -e "\t\$(MAKE) -C example/fenl clean" >> Makefile
-echo -e "\t\$(MAKE) -C example/make_buildlink clean" >> Makefile
-echo -e "\t\$(MAKE) -C example/tutorial clean" >> Makefile
-fi
-echo -e "\tcd core; \\" >> Makefile
-echo -e "\t\$(MAKE) -f ${KOKKOS_PATH}/core/src/Makefile ${KOKKOS_SETTINGS} clean" >> Makefile
 

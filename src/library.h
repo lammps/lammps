@@ -38,11 +38,12 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
+/* ifdefs allow this file to be included in a C program */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* create or delete a LAMMPS instance and related functions */
   void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
   void lammps_open_no_mpi(int argc, char **argv, void **ptr);
   void lammps_close(void *ptr);
@@ -96,6 +97,10 @@ extern "C" {
   int lammps_config_has_jpeg_support();
   int lammps_config_has_ffmpeg_support();
   int lammps_config_has_exceptions();
+
+  int lammps_has_style(void* ptr, char * category, char * name);
+  int lammps_style_count(void* ptr, char * category);
+  int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
 
   int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
   int lammps_find_fix_neighlist(void* ptr, char * id, int request);

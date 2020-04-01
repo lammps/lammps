@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,7 +42,6 @@
 //@HEADER
 */
 
-
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_HPX
 
@@ -55,42 +55,33 @@
 
 namespace Test {
 
-class hpx : public ::testing::Test {
-protected:
-  static void SetUpTestCase()
-  {
-    std::cout << std::setprecision(5) << std::scientific;
+#define HPX_RANDOM_XORSHIFT64(num_draws)                             \
+  TEST(hpx, Random_XorShift64) {                                     \
+    Impl::test_random<                                               \
+        Kokkos::Random_XorShift64_Pool<Kokkos::Experimental::HPX> >( \
+        num_draws);                                                  \
   }
 
-  static void TearDownTestCase()
-  {
-  }
-};
-
-#define HPX_RANDOM_XORSHIFT64( num_draws )                                \
-  TEST_F( hpx, Random_XorShift64 ) {   \
-      Impl::test_random<Kokkos::Random_XorShift64_Pool<Kokkos::Experimental::HPX> >(num_draws); \
+#define HPX_RANDOM_XORSHIFT1024(num_draws)                             \
+  TEST(hpx, Random_XorShift1024) {                                     \
+    Impl::test_random<                                                 \
+        Kokkos::Random_XorShift1024_Pool<Kokkos::Experimental::HPX> >( \
+        num_draws);                                                    \
   }
 
-#define HPX_RANDOM_XORSHIFT1024( num_draws )                                \
-  TEST_F( hpx, Random_XorShift1024 ) {   \
-      Impl::test_random<Kokkos::Random_XorShift1024_Pool<Kokkos::Experimental::HPX> >(num_draws); \
+#define HPX_SORT_UNSIGNED(size)                                 \
+  TEST(hpx, SortUnsigned) {                                     \
+    Impl::test_sort<Kokkos::Experimental::HPX, unsigned>(size); \
   }
 
-#define HPX_SORT_UNSIGNED( size )                                \
-  TEST_F( hpx, SortUnsigned ) {   \
-      Impl::test_sort< Kokkos::Experimental::HPX, unsigned >(size); \
-  }
-
-HPX_RANDOM_XORSHIFT64( 10240000 )
-HPX_RANDOM_XORSHIFT1024( 10130144 )
+HPX_RANDOM_XORSHIFT64(10240000)
+HPX_RANDOM_XORSHIFT1024(10130144)
 HPX_SORT_UNSIGNED(171)
 
 #undef HPX_RANDOM_XORSHIFT64
 #undef HPX_RANDOM_XORSHIFT1024
 #undef HPX_SORT_UNSIGNED
-} // namespace test
+}  // namespace Test
 #else
 void KOKKOS_ALGORITHMS_UNITTESTS_TESTHPX_PREVENT_LINK_ERROR() {}
 #endif
-

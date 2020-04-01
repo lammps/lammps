@@ -9,9 +9,6 @@ if(PKG_MSCG)
   option(DOWNLOAD_MSCG "Download MSCG library instead of using an already installed one)" ${DOWNLOAD_MSCG_DEFAULT})
   if(DOWNLOAD_MSCG)
     include(ExternalProject)
-    if(NOT LAPACK_FOUND)
-      set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
-    endif()
     ExternalProject_Add(mscg_build
       URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
       URL_MD5 8c45e269ee13f60b303edd7823866a91
@@ -20,6 +17,7 @@ if(PKG_MSCG)
                  -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                  -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                 -DBLAS_LIBRARIES=${BLAS_LIBRARIES} -DLAPACK_LIBRARIES=${LAPACK_LIBRARIES}
                  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
@@ -30,14 +28,14 @@ if(PKG_MSCG)
       )
     ExternalProject_get_property(mscg_build BINARY_DIR)
     ExternalProject_get_property(mscg_build SOURCE_DIR)
-    set(MSCG_INCLUDE_DIRS ${SOURCE_DIR}/src)
-    target_include_directories(lammps PRIVATE ${MSCG_INCLUDE_DIRS})
-    target_link_libraries(lammps PRIVATE "${BINARY_DIR}/libmscg.a")
-    add_dependencies(lammps mscg_build)
-    if(NOT LAPACK_FOUND)
-      file(MAKE_DIRECTORY ${MSCG_INCLUDE_DIRS})
-      add_dependencies(mscg_build linalg)
-    endif()
+    file(MAKE_DIRECTORY ${SOURCE_DIR}/src)
+    add_library(LAMMPS::MSCG UNKNOWN IMPORTED)
+    set_target_properties(LAMMPS::MSCG PROPERTIES
+      IMPORTED_LOCATION "${BINARY_DIR}/libmscg.a"
+      INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/src"
+      INTERFACE_LINK_LIBRARIES "${LAPACK_LIBRARIES}")
+    target_link_libraries(lammps PRIVATE LAMMPS::MSCG)
+    add_dependencies(LAMMPS::MSCG mscg_build)
   else()
     find_package(MSCG)
     if(NOT MSCG_FOUND)

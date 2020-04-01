@@ -12,9 +12,9 @@ LAMMPS source files
 
 The source files of the LAMMPS code are distributed across two
 directories of the distribution.  The core of the code is located in the
-``src`` folder and its subdirectories. Almost all of those are C++ files
-(implementation files have a ``.cpp`` extention and and headers a
-``.h``).  A sizeable number of these files are in the ``src`` directory
+``src`` folder and its sub-directories. Almost all of those are C++ files
+(implementation files have a ``.cpp`` extension and and headers a
+``.h``).  A sizable number of these files are in the ``src`` directory
 itself, but there are plenty of :doc:`packages <Packages>`, which can be
 included or excluded when LAMMPS is built.  See the :doc:`Include
 packages in build <Build_package>` section of the manual for more

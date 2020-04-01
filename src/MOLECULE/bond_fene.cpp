@@ -14,6 +14,7 @@
 #include "bond_fene.h"
 #include <mpi.h>
 #include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"

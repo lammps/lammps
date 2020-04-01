@@ -15,6 +15,7 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include "bond_class2.h"
 #include <mpi.h>
 #include <cmath>

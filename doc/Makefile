@@ -71,7 +71,7 @@ clean-spelling:
 
 html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@(\
-		. $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
@@ -97,7 +97,7 @@ spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
-		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
@@ -109,7 +109,7 @@ epub: xmlgen $(VENV)
 	@cp src/JPG/lammps-logo.png epub/
 	@cp src/JPG/*.* epub/JPG
 	@(\
-		. $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
@@ -131,7 +131,7 @@ pdf: xmlgen $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-		. $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\

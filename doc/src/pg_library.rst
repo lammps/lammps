@@ -137,6 +137,11 @@ single commands or lists of commands with the following functions.
    :project: progguide
    :no-link:
 
+.. _lammps_command:
+.. doxygenfunction:: lammps_command
+   :project: progguide
+   :no-link:
+
 -----------------------
 
 Retrieving or setting system properties

@@ -293,12 +293,27 @@ void lammps_file(void *ptr, char *filename)
   END_CAPTURE
 }
 
-/* ----------------------------------------------------------------------
-   process a single input command in str
-   does not matter if str ends in newline
-   return command name to caller
-------------------------------------------------------------------------- */
+/** \brief Process a single LAMMPS input command from a string
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param str string with the LAMMPS command
+ * \return string with command name
+ *
+\verbatim embed:rst
+This function will process a single command in the string str.
+The string is subject to the same processing as input files, and
+may therefore contain :doc:`variable <variable>` expansions like
+``${name}`` or ``$(expression)``.  The string need not end in
+a newline character. The function will return the name of the
+command on success or otherwise abort with an error.
 
+.. note::
+
+   No checks are made on the arguments, thus both str and ptr must
+   be non-NULL and point to valid data.
+
+\endverbatim
+ */
 char *lammps_command(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

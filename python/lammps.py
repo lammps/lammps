@@ -180,6 +180,12 @@ class lammps(object):
     # define ctypes API for each library method
     # NOTE: should add one of these for each lib function
 
+    self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_file.restype = None
+
+    self.lib.lammps_command.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_command.restype = c_char_p
+
     self.lib.lammps_extract_box.argtypes = \
       [c_void_p,POINTER(c_double),POINTER(c_double),
        POINTER(c_double),POINTER(c_double),POINTER(c_double),
@@ -369,6 +375,13 @@ class lammps(object):
   # send a single command
 
   def command(self,cmd):
+    """Process a single LAMMPS input command from a string
+
+    This is a wrapper around the :ref:`lammps_command() <lammps_command>` function of the C-library interface.
+
+    :param cmd: a single lammps command
+    :type cmd:  string
+    """
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 

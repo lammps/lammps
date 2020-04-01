@@ -29,9 +29,13 @@ if(PKG_VORONOI)
       BUILD_BYPRODUCTS <SOURCE_DIR>/src/libvoro++.a
       )
     ExternalProject_get_property(voro_build SOURCE_DIR)
-    target_link_libraries(lammps PRIVATE ${SOURCE_DIR}/src/libvoro++.a)
-    target_include_directories(lammps PRIVATE ${SOURCE_DIR}/src)
-    add_dependencies(lammps voro_build)
+    file(MAKE_DIRECTORY ${SOURCE_DIR}/src)
+    add_library(LAMMPS::VORO UNKNOWN IMPORTED)
+    set_target_properties(LAMMPS::VORO PROPERTIES
+      IMPORTED_LOCATION "${SOURCE_DIR}/src/libvoro++.a"
+      INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/src")
+    target_link_libraries(lammps PRIVATE LAMMPS::VORO)
+    add_dependencies(LAMMPS::VORO voro_build)
   else()
     find_package(VORO)
     if(NOT VORO_FOUND)

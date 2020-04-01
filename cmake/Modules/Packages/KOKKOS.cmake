@@ -6,9 +6,6 @@ if(PKG_KOKKOS)
       message(FATAL_ERROR "Downloading kokkos currently only works with cmake-3.11 and higher")
     endif()
     message(STATUS "KOKKOS download requested - we will build our own")
-    # Workaround for cross compilation with MinGW where ${CMAKE_INSTALL_LIBDIR}
-    # is a full path, so we need to remove the prefix
-    string(REPLACE ${CMAKE_INSTALL_PREFIX} "" _KOKKOS_LIBDIR ${CMAKE_INSTALL_LIBDIR})
     file(DOWNLOAD https://github.com/kokkos/kokkos/compare/3.0.00...stanmoore1:lammps.diff ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch)
     include(ExternalProject)
     ExternalProject_Add(kokkos_build
@@ -16,14 +13,19 @@ if(PKG_KOKKOS)
       URL_MD5 281c7093aa3a603276e93abdf4be23b9
       PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_LIBDIR=lib
       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-      BUILD_BYPRODUCTS <INSTALL_DIR>/${_KOKKOS_LIBDIR}/libkokkoscore.a
+      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
     )
-    list(APPEND LAMMPS_DEPS kokkos_build)
     ExternalProject_get_property(kokkos_build INSTALL_DIR)
-    target_include_directories(lammps PRIVATE ${INSTALL_DIR}/include)
-    target_link_libraries(lammps PRIVATE ${INSTALL_DIR}/${_KOKKOS_LIBDIR}/libkokkoscore.a ${CMAKE_DL_LIBS})
+    file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
+    add_library(LAMMPS::KOKKOS UNKNOWN IMPORTED)
+    set_target_properties(LAMMPS::KOKKOS PROPERTIES
+      IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoscore.a"
+      INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
+      INTERFACE_LINK_LIBRARIES ${CMAKE_DL_LIBS})
+    target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
+    add_dependencies(LAMMPS::KOKKOS kokkos_build)
   elseif(EXTERNAL_KOKKOS)
     find_package(Kokkos 3)
     if(NOT Kokkos_FOUND)

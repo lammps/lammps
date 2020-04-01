@@ -1,0 +1,64 @@
+BootStrap: docker
+From: nvidia/cuda:10.2-devel-ubuntu18.04
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y software-properties-common
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        clinfo \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libopenblas-dev \
+        libpng-dev \
+        libproj-dev \
+        libvtk6-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        ocl-icd-libopencl1 \
+        ocl-icd-opencl-dev \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        rsync \
+        ssh \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd
+
+    mkdir -p /etc/OpenCL/vendors
+    echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+%labels
+    Author rbberger

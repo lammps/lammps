@@ -202,3 +202,13 @@ double BondNonlinear::single(int type, double rsq, int /*i*/, int /*j*/,
   fforce = -epsilon[type]/r * 2.0*dr*lamdasq/denomsq;
   return epsilon[type] * drsq / denom;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *BondNonlinear::extract( char *str, int &dim )
+{
+  dim = 1;
+  if (strcmp(str,"epsilon")==0) return (void*) epsilon;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
+}

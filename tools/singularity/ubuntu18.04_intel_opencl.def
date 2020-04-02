@@ -61,5 +61,9 @@ From: ubuntu:18.04
     apt-get update
     apt-get install -y intel-opencl-icd
 
+%environment
+        LC_ALL=C
+        export LC_ALL
+
 %labels
     Author rbberger

@@ -120,7 +120,11 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
   bnorm_flag = alloy_flag_in;
   alloy_flag = alloy_flag_in;
   wselfall_flag = wselfall_flag_in;
-  nelements = nelements_in;
+
+  if (alloy_flag)
+    nelements = nelements_in;
+  else
+    nelements = 1;
 
   twojmax = twojmax_in;
 
@@ -347,7 +351,10 @@ void SNA::compute_ui(int jnum, int ielem)
     z0 = r / tan(theta0);
 
     compute_uarray(x, y, z, z0, r, j);
-    add_uarraytot(r, wj[j], rcutij[j], j, element[j]);
+    if (alloy_flag)
+      add_uarraytot(r, wj[j], rcutij[j], j, element[j]);
+    else
+      add_uarraytot(r, wj[j], rcutij[j], j, 0);
   }
 
 }

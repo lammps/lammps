@@ -162,7 +162,10 @@ void PairSNAP::compute(int eflag, int vflag)
 
     // compute Ui, Yi for atom I
 
-    snaptr->compute_ui(ninside, ielem);
+    if (alloyflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
 
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi
@@ -175,8 +178,12 @@ void PairSNAP::compute(int eflag, int vflag)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                             snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      if(alloyflag)
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      else
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_deidrj(fij);
 
@@ -329,9 +336,15 @@ void PairSNAP::compute_bispectrum()
       }
     }
 
-    snaptr->compute_ui(ninside, ielem);
+    if (alloyflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
-    snaptr->compute_bi(ielem);
+    if (alloyflag)
+      snaptr->compute_bi(ielem);
+    else
+      snaptr->compute_bi(0);
 
     for (int icoeff = 0; icoeff < ncoeff; icoeff++){
       bispectrum[ii][icoeff] = snaptr->blist[icoeff];

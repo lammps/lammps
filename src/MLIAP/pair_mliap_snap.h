@@ -39,8 +39,6 @@ public:
   int ncoeff;                    //  compiler bug, manifest in KOKKOS package
 
 protected:
-  int ncoeffq, ncoeffall;
-  class SNA* snaptr;
   virtual void allocate();
   void read_files(char *, char *);
   inline int equal(double* x,double* y);
@@ -48,21 +46,9 @@ protected:
 
   void compute_bispectrum();
 
-  double rcutmax;               // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  double *radelem;              // element radii
-  double *wjelem;               // elements weights
-  double **coeffelem;           // element bispectrum coefficients
-  double* atomenergy;               // energies for all atoms in list
+  double* atomenergy;           // energies for all atoms in list
   double** beta;                // betas for all atoms in list
   double** bispectrum;          // bispectrum components for all atoms in list
-  int *map;                     // mapping from atom types to elements
-  int twojmax, switchflag, bzeroflag, bnormflag;
-  int alloyflag, wselfallflag;
-  int chunksize;
-  double rfac0, rmin0, wj1, wj2;
-  int rcutfacflag, twojmaxflag; // flags for required parameters
   int beta_max;                 // length of beta
   class MLIAPModelSNAP* model;
   class MLIAPDescriptorSNAP* descriptor;
@@ -73,62 +59,3 @@ protected:
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Communication cutoff too small for SNAP micro load balancing
-
-This can happen if you change the neighbor skin after your pair_style
-command or if your box dimensions grow during a run. You can set the
-cutoff explicitly via the comm_modify cutoff command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Incorrect SNAP coeff file
-
-UNDOCUMENTED
-
-E: Incorrect SNAP parameter file
-
-The file cannot be parsed correctly, check its internal syntax.
-
-E: Pair style SNAP requires newton pair on
-
-See the newton command.  This is a restriction to use the SNAP
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open SNAP coefficient file %s
-
-The specified SNAP coefficient file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect format in SNAP coefficient file
-
-Incorrect number of words per line in the coefficient file.
-
-E: Cannot open SNAP parameter file %s
-
-The specified SNAP parameter file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect format in SNAP parameter file
-
-Incorrect number of words per line in the parameter file.
-
-E: Did not find all elements in SNAP coefficient file.
-
-One or more elements listed in the pair_coeff command were not found in the coefficient file.
-
-*/

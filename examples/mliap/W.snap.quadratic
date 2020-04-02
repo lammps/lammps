@@ -1,0 +1,15 @@
+# 
+#
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay &
+zbl ${zblcutinner} ${zblcutouter} &
+snap
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff * * snap W.quadratic.snapcoeff W.quadratic.snapparam W
+

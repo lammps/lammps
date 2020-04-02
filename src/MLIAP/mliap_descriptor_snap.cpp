@@ -33,23 +33,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-//MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp): Pointers(lmp)
-MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp): Pair(lmp)
+MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp): Pointers(lmp)
 {
-  single_enable = 0;
-  restartinfo = 0;
-  one_coeff = 1;
-  manybody_flag = 1;
-
   nelements = 0;
   elements = NULL;
   radelem = NULL;
   wjelem = NULL;
-  coeffelem = NULL;
 
-  beta_max = 0;
-  beta = NULL;
-  bispectrum = NULL;
+  cutsq = NULL;
+  map = NULL;
+
   snaptr = NULL;
 }
 
@@ -57,7 +50,6 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp): Pair(lmp)
 
 MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 {
-  if (copymode) return;
 
   if (nelements) {
     for (int i = 0; i < nelements; i++)
@@ -65,16 +57,11 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
     delete[] elements;
     memory->destroy(radelem);
     memory->destroy(wjelem);
-    memory->destroy(coeffelem);
   }
-
-  memory->destroy(beta);
-  memory->destroy(bispectrum);
 
   delete snaptr;
 
   if (allocated) {
-    memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(map);
   }
@@ -82,35 +69,95 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 }
 
 /* ----------------------------------------------------------------------
-   This version is a straightforward implementation
+   compute bispectrum components
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute(int eflag, int vflag)
+void MLIAPDescriptorSNAP::forward(NeighList* list, double **bispectrum)
+{
+  int i,j,jnum,ninside;
+  double delx,dely,delz,rsq;
+  int *jlist;
+
+  double **x = atom->x;
+  int *type = atom->type;
+
+  for (int ii = 0; ii < list->inum; ii++) {
+    i = list->ilist[ii];
+
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
+    const int itype = type[i];
+    const int ielem = map[itype];
+    const double radi = radelem[ielem];
+
+    jlist = list->firstneigh[i];
+    jnum = list->numneigh[i];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    snaptr->grow_rij(jnum);
+
+    // rij[][3] = displacements between atom I and those neighbors
+    // inside = indices of neighbors of I within cutoff
+    // wj = weights for neighbors of I within cutoff
+    // rcutij = cutoffs for neighbors of I within cutoff
+    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
+
+    ninside = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
+      rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      int jelem = map[jtype];
+
+      //      printf("i = %d j = %d itype = %d jtype = %d cutsq[i][j] = %g rsq = %g\n",i,j,itype,jtype,cutsq[itype][jtype],rsq);
+
+      if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+        snaptr->rij[ninside][0] = delx;
+        snaptr->rij[ninside][1] = dely;
+        snaptr->rij[ninside][2] = delz;
+        snaptr->inside[ninside] = j;
+        snaptr->wj[ninside] = wjelem[jelem];
+        snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        snaptr->element[ninside] = jelem; // element index for alloy snap
+        ninside++;
+      }
+    }
+
+    snaptr->compute_ui(ninside, ielem);
+    snaptr->compute_zi();
+    snaptr->compute_bi(ielem);
+
+    //    printf("ninside = %d jnum = %d radi = %g cutsq[i][1] = %g rsq = %g\n",ninside,jnum,radi,cutsq[itype][1]);
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+      bispectrum[ii][icoeff] = snaptr->blist[icoeff];
+      //      printf("icoeff = %d B = %g\n",icoeff,bispectrum[ii][icoeff]);
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   compute bispectrum components
+   ---------------------------------------------------------------------- */
+
+void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
   double fij[3];
   int *jlist,*numneigh,**firstneigh;
 
-  ev_init(eflag,vflag);
-
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-
-  if (beta_max < list->inum) {
-    memory->grow(beta,list->inum,ncoeff,"MLIAPDescriptorSNAP:beta");
-    memory->grow(bispectrum,list->inum,ncoeff,"MLIAPDescriptorSNAP:bispectrum");
-    beta_max = list->inum;
-  }
-
-  // compute dE_i/dB_i = beta_i for all i in list
-
-  if (quadraticflag || eflag)
-    compute_bispectrum();
-  compute_beta();
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -188,154 +235,6 @@ void MLIAPDescriptorSNAP::compute(int eflag, int vflag)
       f[j][1] -= fij[1];
       f[j][2] -= fij[2];
 
-      // tally per-atom virial contribution
-
-      if (vflag)
-        ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
-                     fij[0],fij[1],fij[2],
-                     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
-                     -snaptr->rij[jj][2]);
-    }
-    //fprintf(screen, "%f %f %f\n",f[i][0],f[i][1],f[i][2]);
-
-    // tally energy contribution
-
-    if (eflag) {
-
-      // evdwl = energy of atom I, sum over coeffs_k * Bi_k
-
-      double* coeffi = coeffelem[ielem];
-      evdwl = coeffi[0];
-      // snaptr->copy_bi2bvec();
-
-      // E = beta.B + 0.5*B^t.alpha.B
-
-      // linear contributions
-
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        evdwl += coeffi[icoeff+1]*bispectrum[ii][icoeff];
-
-      // quadratic contributions
-
-      if (quadraticflag) {
-        int k = ncoeff+1;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bveci = bispectrum[ii][icoeff];
-          evdwl += 0.5*coeffi[k++]*bveci*bveci;
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-            double bvecj = bispectrum[ii][jcoeff];
-            evdwl += coeffi[k++]*bveci*bvecj;
-          }
-        }
-      }
-      ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-    }
-
-  }
-
-  if (vflag_fdotr) virial_fdotr_compute();
-}
-
-/* ----------------------------------------------------------------------
-   compute beta
-------------------------------------------------------------------------- */
-
-void MLIAPDescriptorSNAP::compute_beta()
-{
-  int i;
-  int *type = atom->type;
-
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    double* coeffi = coeffelem[ielem];
-
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      beta[ii][icoeff] = coeffi[icoeff+1];
-
-    if (quadraticflag) {
-      int k = ncoeff+1;
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-        double bveci = bispectrum[ii][icoeff];
-        beta[ii][icoeff] += coeffi[k]*bveci;
-        k++;
-        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-          double bvecj = bispectrum[ii][jcoeff];
-          beta[ii][icoeff] += coeffi[k]*bvecj;
-          beta[ii][jcoeff] += coeffi[k]*bveci;
-          k++;
-        }
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   compute bispectrum
-------------------------------------------------------------------------- */
-
-void MLIAPDescriptorSNAP::compute_bispectrum()
-{
-  int i,j,jnum,ninside;
-  double delx,dely,delz,rsq;
-  int *jlist;
-
-  double **x = atom->x;
-  int *type = atom->type;
-
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    const double radi = radelem[ielem];
-
-    jlist = list->firstneigh[i];
-    jnum = list->numneigh[i];
-
-    // insure rij, inside, wj, and rcutij are of size jnum
-
-    snaptr->grow_rij(jnum);
-
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // wj = weights for neighbors of I within cutoff
-    // rcutij = cutoffs for neighbors of I within cutoff
-    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-    ninside = 0;
-    for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      int jelem = map[jtype];
-
-      if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-        snaptr->wj[ninside] = wjelem[jelem];
-        snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem; // element index for alloy snap
-        ninside++;
-      }
-    }
-
-    snaptr->compute_ui(ninside, ielem);
-    snaptr->compute_zi();
-    snaptr->compute_bi(ielem);
-
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-      bispectrum[ii][icoeff] = snaptr->blist[icoeff];
     }
   }
 
@@ -350,26 +249,15 @@ void MLIAPDescriptorSNAP::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  memory->create(setflag,n+1,n+1,"mliap_descriptor_snap:setflag");
   memory->create(cutsq,n+1,n+1,"mliap_descriptor_snap:cutsq");
   memory->create(map,n+1,"mliap_descriptor_snap:map");
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void MLIAPDescriptorSNAP::settings(int narg, char ** /* arg */)
-{
-  if (narg > 0)
-    error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::coeff(int narg, char **arg)
+void MLIAPDescriptorSNAP::init(int narg, char **arg)
 {
   if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -380,7 +268,6 @@ void MLIAPDescriptorSNAP::coeff(int narg, char **arg)
     delete[] elements;
     memory->destroy(radelem);
     memory->destroy(wjelem);
-    memory->destroy(coeffelem);
   }
 
   char* type1 = arg[0];
@@ -397,22 +284,6 @@ void MLIAPDescriptorSNAP::coeff(int narg, char **arg)
   // read snapcoeff and snapparam files
 
   read_files(coefffilename,paramfilename);
-
-  if (!quadraticflag)
-    ncoeff = ncoeffall - 1;
-  else {
-
-    // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
-    // so, ncoeff = floor(sqrt(2*ncoeffall))-1
-
-    ncoeff = sqrt(2*ncoeffall)-1;
-    ncoeffq = (ncoeff*(ncoeff+1))/2;
-    int ntmp = 1+ncoeff+ncoeffq;
-    if (ntmp != ncoeffall) {
-      printf("ncoeffall = %d ntmp = %d ncoeff = %d \n",ncoeffall,ntmp,ncoeff);
-      error->all(FLERR,"Incorrect SNAP coeff file");
-    }
-  }
 
   // read args that map atom types to SNAP elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -431,34 +302,13 @@ void MLIAPDescriptorSNAP::coeff(int narg, char **arg)
     else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
-  // clear setflag since coeff() called once with I,J = * *
-
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
-
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    alloyflag, wselfallflag, nelements);
 
-  if (ncoeff != snaptr->ncoeff) {
-    if (comm->me == 0)
-      printf("ncoeff = %d snancoeff = %d \n",ncoeff,snaptr->ncoeff);
-    error->all(FLERR,"Incorrect SNAP parameter file");
-  }
+  snaptr->init();
+
+  ncoeff = snaptr->ncoeff;
 
   // Calculate maximum cutoff for all elements
 
@@ -466,36 +316,13 @@ void MLIAPDescriptorSNAP::coeff(int narg, char **arg)
   for (int ielem = 0; ielem < nelements; ielem++)
     rcutmax = MAX(2.0*radelem[ielem]*rcutfac,rcutmax);
 
-}
+  // set cutoff distances
 
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void MLIAPDescriptorSNAP::init_style()
-{
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style SNAP requires newton pair on");
-
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  snaptr->init();
-
-}
-
-/* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double MLIAPDescriptorSNAP::init_one(int i, int j)
-{
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return (radelem[map[i]] +
-          radelem[map[j]])*rcutfac;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
+      double rtmp = (radelem[map[i]] + radelem[map[j]])*rcutfac;
+      cutsq[i][j] = rtmp*rtmp;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -551,14 +378,13 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
   words[iword] = strtok(NULL,"' \t\n\r\f");
 
   nelements = atoi(words[0]);
-  ncoeffall = atoi(words[1]);
+  int ncoeffall = atoi(words[1]);
 
   // set up element lists
 
   elements = new char*[nelements];
   memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
   memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
-  memory->create(coeffelem,nelements,ncoeffall,"mliap_snap_descriptor:coeffelem");
 
   // Loop over nelements blocks in the SNAP coefficient file
 
@@ -596,7 +422,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
     radelem[ielem] = atof(words[1]);
     wjelem[ielem] = atof(words[2]);
 
-
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
                           elements[ielem], radelem[ielem], wjelem[ielem]);
@@ -616,18 +441,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-      nwords = atom->count_words(line);
-      if (nwords != 1)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
-
-      iword = 0;
-      words[iword] = strtok(line,"' \t\n\r\f");
-
-      coeffelem[ielem][icoeff] = atof(words[0]);
-
     }
   }
 
@@ -645,7 +458,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
   switchflag = 1;
   bzeroflag = 1;
   bnormflag = 0;
-  quadraticflag = 0;
   alloyflag = 0;
   wselfallflag = 0;
   chunksize = 2000;
@@ -710,14 +522,14 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
       switchflag = atoi(keyval);
     else if (strcmp(keywd,"bzeroflag") == 0)
       bzeroflag = atoi(keyval);
-    else if (strcmp(keywd,"quadraticflag") == 0)
-      quadraticflag = atoi(keyval);
     else if (strcmp(keywd,"alloyflag") == 0)
       alloyflag = atoi(keyval);
     else if (strcmp(keywd,"wselfallflag") == 0)
       wselfallflag = atoi(keyval);
     else if (strcmp(keywd,"chunksize") == 0)
       chunksize = atoi(keyval);
+    else if (strcmp(keywd,"quadraticflag") == 0)
+      continue;
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }
@@ -738,11 +550,8 @@ double MLIAPDescriptorSNAP::memory_usage()
   double bytes = 0;
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);      // setflag
   bytes += n*n*sizeof(double);   // cutsq
   bytes += n*sizeof(int);        // map
-  bytes += beta_max*ncoeff*sizeof(double); // bispectrum
-  bytes += beta_max*ncoeff*sizeof(double); // beta
 
   bytes += snaptr->memory_usage(); // SNA object
 

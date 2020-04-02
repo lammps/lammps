@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MLIAP_DESCRIPTOR_SNAP_H
-#define LMP_MLIAP_DESCRIPTOR_SNAP_H
+#ifndef LMP_MLIAP_MODEL_SNAP_H
+#define LMP_MLIAP_MODEL_SNAP_H
 
 #include "pointers.h"
 

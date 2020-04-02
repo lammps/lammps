@@ -32,11 +32,9 @@ MLIAPModelSNAP::MLIAPModelSNAP(LAMMPS* lmp) : Pointers(lmp)
   nelements = 0;
   elements = NULL;
   coeffelem = NULL;
+  map = NULL;
 
   beta_max = 0;
-  beta = NULL;
-  bispectrum = NULL;
-
   allocated = 0;
 }
 
@@ -50,9 +48,6 @@ MLIAPModelSNAP::~MLIAPModelSNAP()
     delete[] elements;
     memory->destroy(coeffelem);
   }
-
-  memory->destroy(beta);
-  memory->destroy(bispectrum);
 
   if (allocated)
     memory->destroy(map);
@@ -389,8 +384,8 @@ void MLIAPModelSNAP::read_files(char *coefffilename, char *paramfilename)
       quadraticflag = atoi(keyval);
     else if (strcmp(keywd,"alloyflag") == 0)
       alloyflag = atoi(keyval);
-    else if (strcmp(keywd,"chunksize") == 0)
-      chunksize = atoi(keyval);
+    else if (strcmp(keywd,"wselfallflag") == 0)
+      wselfallflag = atoi(keyval);
     else if (strcmp(keywd,"chunksize") == 0)
       chunksize = atoi(keyval);
     else if (strcmp(keywd,"rcutfac") == 0 || 
@@ -418,8 +413,6 @@ double MLIAPModelSNAP::memory_usage()
 
   int n = atom->ntypes+1;
   bytes += n*sizeof(int);        // map
-  bytes += beta_max*ncoeff*sizeof(double); // bispectrum
-  bytes += beta_max*ncoeff*sizeof(double); // beta
 
   return bytes;
 }

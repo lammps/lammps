@@ -11,37 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MLIAP_DESCRIPTOR_SNAP_H
-#define MLIAP_DESCRIPTOR_SNAP_H
+#ifndef LMP_MLIAP_DESCRIPTOR_SNAP_H
+#define LMP_MLIAP_DESCRIPTOR_SNAP_H
 
-#include "pair.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-  //class MLIAPDescriptorSNAP : protected Pointers  {
-class MLIAPDescriptorSNAP : public Pair  {
+class MLIAPDescriptorSNAP : protected Pointers  {
 public:
-  MLIAPDescriptorSNAP(class LAMMPS *);
+  MLIAPDescriptorSNAP(LAMMPS *);
   ~MLIAPDescriptorSNAP();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
+  virtual void forward(class NeighList*, double**);
+  virtual void backward(class NeighList*, double**);
+  virtual void init(int, char **);
   virtual double memory_usage();
 
-  double rcutfac, quadraticflag; // declared public to workaround gcc 4.9
+  double rcutfac;                // declared public to workaround gcc 4.9
   int ncoeff;                    //  compiler bug, manifest in KOKKOS package
+  int *map;                     // mapping from atom types to elements
+  double **cutsq;                // cutoff sq for each atom pair
 
 protected:
-  int ncoeffq, ncoeffall;
+  int allocated;
   class SNA* snaptr;
   virtual void allocate();
   void read_files(char *, char *);
   inline int equal(double* x,double* y);
   inline double dist2(double* x,double* y);
 
-  void compute_beta();
   void compute_bispectrum();
 
   double rcutmax;               // max cutoff for all elements
@@ -49,16 +47,11 @@ protected:
   char **elements;              // names of unique elements
   double *radelem;              // element radii
   double *wjelem;               // elements weights
-  double **coeffelem;           // element bispectrum coefficients
-  double** beta;                // betas for all atoms in list
-  double** bispectrum;          // bispectrum components for all atoms in list
-  int *map;                     // mapping from atom types to elements
   int twojmax, switchflag, bzeroflag, bnormflag;
   int alloyflag, wselfallflag;
   int chunksize;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters
-  int beta_max;                 // length of beta
 };
 
 }

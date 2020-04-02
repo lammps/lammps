@@ -55,7 +55,7 @@ endif
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc message misc \
-	  molecule mpiio mscg opt peri poems \
+	  mliap molecule mpiio mscg opt peri poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \

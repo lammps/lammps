@@ -55,7 +55,8 @@ namespace LAMMPS_NS {
         char **elements;              // names of unique elements
 
         int *map;                     // mapping from atom types to elements
-
+        int *jlist_local;
+        int *type_local;
     };
 
 }

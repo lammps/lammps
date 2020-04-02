@@ -59,6 +59,8 @@ public:
     virtual void save(const string &filename) = 0;
 
     virtual void load(string filename) = 0;
+
+    SPECIES_TYPE get_species_index_by_name(const string &elemname);
 };
 
 class ACEFlattenBasisSet : public ACEAbstractBasisSet {
@@ -161,7 +163,6 @@ public:
 
     //TODO: implement write basis to file
     void save(const string &filename) override;
-
     void load(string filename) override;
 };
 

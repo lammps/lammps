@@ -157,9 +157,13 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
     const DOUBLE_TYPE ztmp = x[i][2];
     DOUBLE_TYPE f_ji[3];
 
-    const int itype = type[i];
+    bool is_element_mapping = element_type_mapping.get_size() > 0;
+    SPECIES_TYPE mu;
+    if (is_element_mapping)
+        mu = element_type_mapping(type[i]);
+    else
+        mu = type[i];
 
-    const SPECIES_TYPE mu = map_lammps_at_type_to_element[itype];
     const SHORT_INT_TYPE total_basis_size_rank1 = basis_set->total_basis_size_rank1[mu];
     const SHORT_INT_TYPE total_basis_size = basis_set->total_basis_size[mu];
 
@@ -217,8 +221,10 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
         rhats[jj][2] = zn / r_xyz;
 
         r_norms[jj] = r_xyz;
-
-        elements[jj] = map_lammps_at_type_to_element[type[j]];
+        if (is_element_mapping)
+            elements[jj] = element_type_mapping(type[j]);
+        else
+            elements[jj] = type[j];
     }
 
 

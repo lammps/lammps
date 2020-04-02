@@ -87,8 +87,7 @@ PairPACE::~PairPACE() {
 /* ---------------------------------------------------------------------- */
 
 void PairPACE::compute(int eflag, int vflag) {
-    //printf("--> PairPACE::compute\n");
-    int i, j, ii, jj, inum, jnum, k;
+    int i, j, ii, jj, inum, jnum;
     double delx, dely, delz, evdwl, rsq;
     double fij[3];
     int *ilist, *jlist, *numneigh, **firstneigh;
@@ -102,23 +101,24 @@ void PairPACE::compute(int eflag, int vflag) {
     double **f = atom->f;
     tagint *tag = atom->tag;
     int *type = atom->type;
+
     // number of atoms in cell
     int nlocal = atom->nlocal;
-    //printf("nlocal=%d\n",nlocal);
+
     int newton_pair = force->newton_pair;
-    //printf("newton_pair=%d\n",newton_pair);
 
     // number of atoms including ghost atoms
     int nall = nlocal + atom->nghost;
-    //printf("nall=%d\n",nall);
 
     // inum: length of the neighborlists list
     inum = list->inum;
-    //printf("inum=%d\n",inum);
+
     // ilist: list of "i" atoms for which neighbor lists exist
     ilist = list->ilist;
+
     //numneigh: the length of each these neigbor list
     numneigh = list->numneigh;
+
     // the pointer to the list of neighbors of "i"
     firstneigh = list->firstneigh;
 
@@ -136,15 +136,6 @@ void PairPACE::compute(int eflag, int vflag) {
     //       skin atoms can be removed by setting skin to zero but here
     //       they are disregarded anyway
 
-    // TODO: need to get elements properly from LAMMPS
-    // bad: need proper string assignment
-    // - make memory allocation more efficient and avoid regular malloc/free operations
-    // - allocate, populate and distribute three vectors
-
-    // loop all atoms and neighbors
-
-    //from ACE.compute
-    ace->e_atom = 0;
 
     //determine the maximum numer of neighbours
     int max_jnum = -1;
@@ -152,50 +143,61 @@ void PairPACE::compute(int eflag, int vflag) {
     // printf("list->inum=%d\n",list->inum);
     for (ii = 0; ii < list->inum; ii++) {
         i = ilist[ii];
-        //   printf("ilist[%d]=%d\n",ii,i);
         jnum = numneigh[i];
-        // printf("numneigh[%d]=%d\n",i,jnum);
         nei = nei + jnum;
-        //printf("firstneigh[%d]/jlist=\n",i);
-        jlist = firstneigh[i];
-        // loop all neighbors of atom i
-//        for (jj = 0; jj < jnum; jj++) {
-//                printf("%d ", jlist[jj]);
-//        }
-//        printf("\n");
-
+        //jlist = firstneigh[i];
         if (jnum > max_jnum)
             max_jnum = jnum;
     }
 
-    //printf("Max num of neighbours = %d\n", max_jnum);
 
     ace->resize_neighbours_cache(max_jnum);
-    //printf("Caches resized to %d\n", max_jnum);
+
 
     //loop over atoms
     for (ii = 0; ii < list->inum; ii++) {
         i = list->ilist[ii];
-        k = map[type[i]];
+        const int itype = type[i];
+        const int mu_i = map[itype];
 
-        // this to be removed once fully integrated in LAMMPS
-//        if (k != 0) {
-//            printf("Error: Cannot handle multiple species.\n");
-//            printf("Stopping.\n");
-//            exit(0);
-//        }
+//         this to be removed once fully integrated in LAMMPS
+        if (mu_i != 0) {
+            printf("Error: Cannot handle multiple species.\n");
+            printf("Stopping.\n");
+            exit(0);
+        }
 
         const double xtmp = x[i][0];
         const double ytmp = x[i][1];
         const double ztmp = x[i][2];
 
-        const int itype = type[i];
-        const int ielem = map[itype];
 
-
-        //	printf("Position of at.%d=(%f,%f,%f)\n",i,x[i][0],x[i][1],x[i][2]);
         jlist = firstneigh[i];
         jnum = numneigh[i];
+
+//        int ninside = 0;
+//        for (jj = 0; jj < jnum; jj++) {
+//            j = jlist[jj];
+//            j &= NEIGHMASK;
+//            delx = x[j][0] - xtmp;
+//            dely = x[j][1] - ytmp;
+//            delz = x[j][2] - ztmp;
+//            rsq = delx*delx + dely*dely + delz*delz;
+//            int jtype = type[j];
+//            int jelem = map[jtype];
+//
+//            if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+//                snaptr->rij[ninside][0] = delx;
+//                snaptr->rij[ninside][1] = dely;
+//                snaptr->rij[ninside][2] = delz;
+//
+//                ninside++;
+//            }
+//        }
+
+        //jnum <- ninside
+        // jlist <- update
+
 
         ace->compute_atom(i, x, type, jnum, jlist);
 
@@ -308,7 +310,8 @@ void PairPACE::coeff(int narg, char **arg) {
     if (strcmp(type1, "*") != 0 || strcmp(type2, "*") != 0)
         error->all(FLERR, "Incorrect args for pair coefficients");
 
-    printf("Create basis set \n");
+    //load potential file
+    printf("Create C-tilde basis set \n");
     basis_set = new ACECTildeBasisSet();
     printf("Loading %s\n", potential_file_name);
     basis_set->load(potential_file_name);
@@ -318,13 +321,23 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[i] = which element the Ith atom type is, -1 if not mapped
     // map[0] is not used
 
-    for (int i = 0; i < atom->ntypes; i++) {
-        char *elemname = elemtypes[i];
-        if (AtomicNumberByName(elemname) == -1) {
+    printf("Create ACE\n");
+    ace = new ACECTildeEvaluator();
+
+    ace->element_type_mapping.init(atom->ntypes);
+
+    for (int i = 1; i <= atom->ntypes; i++) {
+        char *elemname = elemtypes[i - 1];
+        printf("elemname[%d]=%s\n", i, elemname);
+        int atomic_number = AtomicNumberByName(elemname);
+        if (atomic_number == -1) {
             printf("String '%s' is not a valid element\n", elemname);
             error->all(FLERR, "Incorrect args for pair coefficients");
         }
-        map[i] = i;
+        SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
+        printf("Mapping %s -> %d\n", elemname, mu);
+        map[i] = mu; // potential->elemname_to_mu
+        ace->element_type_mapping(i) = mu;
     }
 
     // clear setflag since coeff() called once with I,J = * *
@@ -349,8 +362,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
     if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
-    printf("Create ACE\n");
-    ace = new ACECTildeEvaluator();
+
     printf("ACE.set basis\n");
     ace->set_basis(*basis_set);
 
@@ -395,10 +407,10 @@ void PairPACE::init_style() {
 
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-    printf("init_ine i=%d, j=%d: ", i, j);
+    printf("init_ine i=%d (map: %d), j=%d (map: %d): ", i, map[i], j, map[j]);
     //TODO: adapt
-    printf("%f\n", basis_set->radial_functions.cut(i - 1, j - 1));
-    return basis_set->radial_functions.cut(i - 1, j - 1);
+    printf("%f\n", basis_set->radial_functions.cut(map[i], map[j]));
+    return basis_set->radial_functions.cut(map[i], map[j]);
     //return basis_set->cutoffmax;
 }
 

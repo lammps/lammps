@@ -46,8 +46,8 @@ public:
     void init_timers();
 
     //TODO: integrate with lammps atoms mapping
-    int map_lammps_at_type_to_element[6] = {0, 0, 1, 2, 3, 4}; // mapping from atom types to elements
-
+    //int *element_type_mapping = nullptr; // mapping from atom types to elements
+    Array1D<int> element_type_mapping = Array1D<int>("element_type_mapping");
 
     DOUBLE_TYPE e_atom = 0;
     //temporary array for the pair forces between current atom_i and its neighbours atom_k

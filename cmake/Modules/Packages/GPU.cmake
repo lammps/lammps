@@ -5,7 +5,7 @@ if(PKG_GPU)
                     ${GPU_SOURCES_DIR}/fix_gpu.cpp)
 
     set(GPU_API "opencl" CACHE STRING "API used by GPU package")
-    set(GPU_API_VALUES opencl cuda)
+    set(GPU_API_VALUES opencl cuda hip)
     set_property(CACHE GPU_API PROPERTY STRINGS ${GPU_API_VALUES})
     validate_option(GPU_API GPU_API_VALUES)
     string(TOUPPER ${GPU_API} GPU_API)
@@ -180,6 +180,57 @@ if(PKG_GPU)
       target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
       target_link_libraries(ocl_get_devices PRIVATE ${OpenCL_LIBRARIES})
       target_include_directories(ocl_get_devices PRIVATE ${OpenCL_INCLUDE_DIRS})
+    elseif(GPU_API STREQUAL "HIP")
+      if(NOT DEFINED HIP_PATH)
+          if(NOT DEFINED ENV{HIP_PATH})
+              set(HIP_PATH "/opt/rocm/hip" CACHE PATH "Path to which HIP has been installed")
+          else()
+              set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
+          endif()
+      endif()
+      set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
+      find_package(HIP REQUIRED)
+
+      set(HIP_ARCH "gfx906")
+
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
+      list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
+
+      set(GPU_LIB_CU_HIP "")
+      foreach(CU_FILE ${GPU_LIB_CU})
+        get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+        string(REGEX REPLACE "^.*lal_" "" CU_NAME "${CU_NAME}")
+
+        set(CU_CPP_FILE  "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cu.cpp")
+        set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
+        set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+
+        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          DEPENDS ${CU_CPP_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
+
+        add_custom_command(OUTPUT ${CUBIN_H_FILE}
+          COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILES=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+          DEPENDS ${CUBIN_FILE}
+          COMMENT "Generating ${CU_NAME}_cubin.h")
+
+        list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
+      endforeach()
+
+      set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
+
+      hip_add_library(gpu STATIC ${GPU_LIB_SOURCES})
+      target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -DUSE_HIP)
+
+      hip_add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+      target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
+
+      list(APPEND LAMMPS_LINK_LIBS gpu)
     endif()
 
     # GPU package

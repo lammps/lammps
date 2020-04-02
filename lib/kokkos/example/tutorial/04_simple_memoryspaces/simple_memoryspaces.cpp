@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -46,7 +47,7 @@
 
 // The type of a two-dimensional N x 3 array of double.
 // It lives in Kokkos' default memory space.
-typedef Kokkos::View<double*[3]> view_type;
+typedef Kokkos::View<double * [3]> view_type;
 
 // The "HostMirror" type corresponding to view_type above is also a
 // two-dimensional N x 3 array of double.  However, it lives in the
@@ -64,12 +65,12 @@ typedef view_type::HostMirror host_view_type;
 
 struct ReduceFunctor {
   view_type a;
-  ReduceFunctor (view_type a_) : a (a_) {}
-  typedef int value_type; //Specify type for reduction value, lsum
+  ReduceFunctor(view_type a_) : a(a_) {}
+  typedef int value_type;  // Specify type for reduction value, lsum
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (int i, int &lsum) const {
-    lsum += a(i,0)-a(i,1)+a(i,2);
+  void operator()(int i, int &lsum) const {
+    lsum += a(i, 0) - a(i, 1) + a(i, 2);
   }
 };
 
@@ -77,27 +78,26 @@ int main() {
   Kokkos::initialize();
 
   {
-    view_type a ("A", 10);
+    view_type a("A", 10);
     // If view_type and host_mirror_type live in the same memory space,
     // a "mirror view" is just an alias, and deep_copy does nothing.
     // Otherwise, a mirror view of a device View lives in host memory,
     // and deep_copy does a deep copy.
-    host_view_type h_a = Kokkos::create_mirror_view (a);
+    host_view_type h_a = Kokkos::create_mirror_view(a);
 
     // The View h_a lives in host (CPU) memory, so it's legal to fill
     // the view sequentially using ordinary code, like this.
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 3; j++) {
-        h_a(i,j) = i*10 + j;
+        h_a(i, j) = i * 10 + j;
       }
     }
-    Kokkos::deep_copy (a, h_a); // Copy from host to device.
+    Kokkos::deep_copy(a, h_a);  // Copy from host to device.
 
     int sum = 0;
-    Kokkos::parallel_reduce (10, ReduceFunctor (a), sum);
-    printf ("Result is %i\n",sum);
+    Kokkos::parallel_reduce(10, ReduceFunctor(a), sum);
+    printf("Result is %i\n", sum);
   }
 
-  Kokkos::finalize ();
+  Kokkos::finalize();
 }
-

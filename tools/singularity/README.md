@@ -51,6 +51,6 @@ make
 | fedora30_mingw.def             | Fedora 30 with MinGW cross-compiler toolchain  |
 | ubuntu16.04.def                | Ubuntu 16.04LTS with default MPI == OpenMPI    |
 | ubuntu18.04.def                | Ubuntu 18.04LTS with default MPI == OpenMPI    |
-| ubuntu18.04_amd_nvidia.def     | Ubuntu 18.04LTS with Nvidia CUDA 10.2 toolkit  |
 | ubuntu18.04_amd_rocm.def       | Ubuntu 18.04LTS with AMD ROCm toolkit          |
+| ubuntu18.04_nvidia.def         | Ubuntu 18.04LTS with Nvidia CUDA 10.2 toolkit  |
 | ubuntu18.04_intel_opencl.def   | Ubuntu 18.04LTS with Intel OpenCL runtime      |

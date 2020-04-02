@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
    Contributing authors: Yuya Kurebayashi (Tohoku University, Lanczos algorithm)
-                         Andrew Jewett (Scripps Research, Jacobi algorith)
+                         Andrew Jewett (Scripps Research, Jacobi algorithm)
 ------------------------------------------------------------------------- */
 
 #ifndef _MATH_EIGEN_H

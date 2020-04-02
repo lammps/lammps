@@ -2,110 +2,6 @@
 
 using namespace std;
 
-ACEBasisSet::ACEBasisSet(const ACEBasisSet &other) {
-    _copy_scalar_memory(other);
-    _copy_dynamic_memory(other);
-    pack_flatten_basis();
-}
-
-void ACEBasisSet::_clean() {
-    delete[] full_ns;
-    delete[] full_ls;
-    delete[] full_Xs;
-    delete[] full_ms;
-    delete[] full_c_tildes;
-
-    delete[] full_ns_rank1;
-    delete[] full_ls_rank1;
-    delete[] full_Xs_rank1;
-    delete[] full_ms_rank1;
-    delete[] full_c_tildes_rank1;
-
-    if (basis_rank1 != nullptr)
-        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
-            delete[] basis_rank1[mu];
-        }
-
-    if (basis != nullptr)
-        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
-            delete[] basis[mu];
-        }
-    delete[] basis;
-    delete[] basis_rank1;
-
-    delete[] total_basis_size;
-    delete[] total_basis_size_rank1;
-
-    delete[] elements_name;
-}
-
-ACEBasisSet::~ACEBasisSet() {
-    _clean();
-}
-
-ACEBasisSet &ACEBasisSet::operator=(const ACEBasisSet &other) {
-    if (this != &other) {
-        // deallocate old memory
-        _clean();
-        //copy scalar values
-        _copy_scalar_memory(other);
-        //copy dynamic memory
-        _copy_dynamic_memory(other);
-
-        //pack basis functions
-        pack_flatten_basis();
-    }
-    return *this;
-}
-
-void ACEBasisSet::_copy_scalar_memory(const ACEBasisSet &other) {
-    radial_functions = other.radial_functions;
-    spherical_harmonics = other.spherical_harmonics;
-    lmax = other.lmax;
-    nradbase = other.nradbase;
-    nradmax = other.nradmax;
-    nelements = other.nelements;
-    rankmax = other.rankmax;
-    ndensitymax = other.ndensitymax;
-    num_ctilde_max = other.num_ctilde_max;
-    num_ms_combinations_max = other.num_ms_combinations_max;
-    ntot = other.ntot;
-    rank_array_total_size = other.rank_array_total_size;
-    ms_array_total_size = other.ms_array_total_size;
-    coeff_array_total_size = other.coeff_array_total_size;
-
-    rank_array_total_size_rank1 = other.rank_array_total_size_rank1;
-    coeff_array_total_size_rank1 = other.coeff_array_total_size_rank1;
-}
-
-void ACEBasisSet::_copy_dynamic_memory(const ACEBasisSet &other) {//allocate new memory
-    basis = new ACECTildeBasisFunction *[nelements];
-    basis_rank1 = new ACECTildeBasisFunction *[nelements];
-
-    total_basis_size = new SHORT_INT_TYPE[nelements];
-    total_basis_size_rank1 = new SHORT_INT_TYPE[nelements];
-
-    elements_name = new string[nelements];
-
-    //copy
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
-        total_basis_size_rank1[mu] = other.total_basis_size_rank1[mu];
-        basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
-
-        for (size_t i = 0; i < total_basis_size_rank1[mu]; i++) {
-            basis_rank1[mu][i] = other.basis_rank1[mu][i];
-        }
-
-        total_basis_size[mu] = other.total_basis_size[mu];
-        basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
-        for (size_t i = 0; i < total_basis_size[mu]; i++) {
-            basis[mu][i] = other.basis[mu][i];
-        }
-
-        elements_name[mu] = other.elements_name[mu];
-    }
-}
-
 //embedding function
 //case nemb = 1 only implementation
 //F = sign(x)*(  ( ( 1 - exp(-w*x**2) )*abs(x) )^m +  m*exp(-w*x**2)*abs(x) )
@@ -143,19 +39,8 @@ void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
     }
 }
 
-void ACEBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value,
-                                            Array1D<DOUBLE_TYPE> &derivatives, DENSITY_TYPE ndensity) {
-    DOUBLE_TYPE F, DF = 0;
-    for (int p = 0; p < ndensity; p++) {
-        Fexp(rhos(p), parameters.at(p * ndensity + 1), F, DF);
-        value += F * parameters.at(p * ndensity + 0); // * weight
-        derivatives(p) = DF * parameters.at(p * ndensity + 0);// * weight
-    }
-}
-
-
-void ACEBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut,
-                               DOUBLE_TYPE &fcut, DOUBLE_TYPE &dfcut) {
+void ACEAbstractBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut,
+                                       DOUBLE_TYPE &fcut, DOUBLE_TYPE &dfcut) {
 
     DOUBLE_TYPE rho_low = rho_cut - drho_cut;
     if (rho_core >= rho_cut) {
@@ -170,8 +55,315 @@ void ACEBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE
     }
 }
 
-//re-pack the constinuent dynamic arrays of all basis functions in contiguous arrays
-void ACEBasisSet::pack_flatten_basis() {
+void ACEAbstractBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value,
+                                                    Array1D<DOUBLE_TYPE> &derivatives, DENSITY_TYPE ndensity) {
+    DOUBLE_TYPE F, DF = 0;
+    for (int p = 0; p < ndensity; p++) {
+        Fexp(rhos(p), FS_parameters.at(p * ndensity + 1), F, DF);
+        value += F * FS_parameters.at(p * ndensity + 0); // * weight
+        derivatives(p) = DF * FS_parameters.at(p * ndensity + 0);// * weight
+    }
+}
+
+void ACEAbstractBasisSet::_clean() {
+    if (elements_name != nullptr) {
+        delete[] elements_name;
+        elements_name = nullptr;
+    }
+}
+
+ACEAbstractBasisSet::ACEAbstractBasisSet(const ACEAbstractBasisSet &other) {
+    ACEAbstractBasisSet::_copy_scalar_memory(other);
+    ACEAbstractBasisSet::_copy_dynamic_memory(other);
+}
+
+ACEAbstractBasisSet &ACEAbstractBasisSet::operator=(const ACEAbstractBasisSet &other) {
+    if (this != &other) {
+        // deallocate old memory
+        ACEAbstractBasisSet::_clean();
+        //copy scalar values
+        ACEAbstractBasisSet::_copy_scalar_memory(other);
+        //copy dynamic memory
+        ACEAbstractBasisSet::_copy_dynamic_memory(other);
+    }
+    return *this;
+}
+
+ACEAbstractBasisSet::~ACEAbstractBasisSet() {
+    ACEAbstractBasisSet::_clean();
+}
+
+void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &other) {
+    ntot = other.ntot;
+    FS_parameters = other.FS_parameters;
+
+    nelements = other.nelements;
+    rankmax = other.rankmax;
+    ndensitymax = other.ndensitymax;
+    nradbase = other.nradbase;
+    lmax = other.lmax;
+    nradmax = other.nradmax;
+    cutoffmax = other.cutoffmax;
+
+    radial_functions = other.radial_functions;
+    spherical_harmonics = other.spherical_harmonics;
+
+    rho_core_cutoffs = other.rho_core_cutoffs;
+    drho_core_cutoffs = other.drho_core_cutoffs;
+
+
+}
+
+void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &other) {//allocate new memory
+
+    elements_name = new string[nelements];
+    //copy
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+        elements_name[mu] = other.elements_name[mu];
+    }
+}
+
+
+//---------------------------------------------
+
+ACEFlattenBasisSet::~ACEFlattenBasisSet() {
+    ACEFlattenBasisSet::_clean();
+}
+
+
+void ACEFlattenBasisSet::_clean() {
+    //chained call of base class method
+    ACEAbstractBasisSet::_clean();
+
+    if (full_ns != nullptr) {
+        delete[] full_ns;
+        full_ns = nullptr;
+    }
+    if (full_ls != nullptr) {
+        delete[] full_ls;
+        full_ls = nullptr;
+    }
+    if (full_Xs != nullptr) {
+        delete[] full_Xs;
+        full_Xs = nullptr;
+    }
+    if (full_ms != nullptr) {
+        delete[] full_ms;
+        full_ms = nullptr;
+    }
+
+    if (full_ns_rank1 != nullptr) {
+        delete[] full_ns_rank1;
+        full_ns_rank1 = nullptr;
+    }
+
+    if (full_ls_rank1 != nullptr) {
+        delete[] full_ls_rank1;
+        full_ls_rank1 = nullptr;
+    }
+
+    if (full_Xs_rank1 != nullptr) {
+        delete[] full_Xs_rank1;
+        full_Xs_rank1 = nullptr;
+    }
+
+    if (full_ms_rank1 != nullptr) {
+        delete[] full_ms_rank1;
+        full_ms_rank1 = nullptr;
+    }
+
+    if (total_basis_size != nullptr) {
+        delete[] total_basis_size;
+        total_basis_size = nullptr;
+    }
+
+    if (total_basis_size_rank1 != nullptr) {
+        delete[] total_basis_size_rank1;
+        total_basis_size_rank1 = nullptr;
+    }
+
+
+}
+
+void ACEFlattenBasisSet::_copy_scalar_memory(const ACEFlattenBasisSet &other) {
+    ACEAbstractBasisSet::_copy_scalar_memory(other);
+
+    rank_array_total_size_rank1 = other.rank_array_total_size_rank1;
+    coeff_array_total_size_rank1 = other.coeff_array_total_size_rank1;
+    rank_array_total_size = other.rank_array_total_size;
+    ms_array_total_size = other.ms_array_total_size;
+    coeff_array_total_size = other.coeff_array_total_size;
+
+    max_B_array_size = other.max_B_array_size;
+    max_dB_array_size = other.max_dB_array_size;
+    num_ms_combinations_max = other.num_ms_combinations_max;
+}
+
+void ACEFlattenBasisSet::_copy_dynamic_memory(const ACEFlattenBasisSet &other) {//allocate new memory
+    ACEAbstractBasisSet::_copy_dynamic_memory(other);
+
+    __copy_packed_arrays(other);
+
+    total_basis_size = new SHORT_INT_TYPE[nelements];
+    total_basis_size_rank1 = new SHORT_INT_TYPE[nelements];
+
+    //copy
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+        total_basis_size_rank1[mu] = other.total_basis_size_rank1[mu];
+        total_basis_size[mu] = other.total_basis_size[mu];
+    }
+}
+
+void ACEFlattenBasisSet::__copy_packed_arrays(const ACEFlattenBasisSet &other) {
+    full_ns_rank1 = new NS_TYPE[other.rank_array_total_size_rank1];
+    full_ls_rank1 = new LS_TYPE[other.rank_array_total_size_rank1];
+    full_Xs_rank1 = new SPECIES_TYPE[other.rank_array_total_size_rank1];
+
+    full_ms_rank1 = new MS_TYPE[other.rank_array_total_size_rank1];
+
+    for (size_t i = 0; i < other.rank_array_total_size_rank1; ++i) {
+        full_ns_rank1[i] = other.full_ns_rank1[i];
+        full_Xs_rank1[i] = other.full_Xs_rank1[i];
+        full_ls_rank1[i] = other.full_ls_rank1[i];
+        full_ms_rank1[i] = other.full_ms_rank1[i];
+    }
+
+    //arrays and its sizes for rank > 1 basis functions for packed basis
+
+    full_ns = new NS_TYPE[other.rank_array_total_size];
+    full_ls = new LS_TYPE[other.rank_array_total_size];
+    full_Xs = new SPECIES_TYPE[other.rank_array_total_size];
+
+    for (size_t i = 0; i < other.rank_array_total_size; ++i) {
+        full_ns[i] = other.full_ns[i];
+        full_ls[i] = other.full_ls[i];
+        full_Xs[i] = other.full_Xs[i];
+    }
+
+    full_ms = new MS_TYPE[other.ms_array_total_size];
+
+    for (size_t i = 0; i < other.ms_array_total_size; ++i) {
+        full_ms[i] = other.full_ms[i];
+    }
+
+}
+
+ACEFlattenBasisSet::ACEFlattenBasisSet(const ACEFlattenBasisSet &other) {
+    ACEFlattenBasisSet::_copy_scalar_memory(other);
+    ACEFlattenBasisSet::_copy_dynamic_memory(other);
+}
+
+ACEFlattenBasisSet &ACEFlattenBasisSet::operator=(const ACEFlattenBasisSet &other) {
+    if (this != &other) {
+        ACEFlattenBasisSet::_clean();
+        ACEFlattenBasisSet::_copy_scalar_memory(other);
+        ACEFlattenBasisSet::_copy_dynamic_memory(other);
+    }
+    return *this;
+}
+
+//------------------------------------------------------------------------
+
+ACECTildeBasisSet::ACECTildeBasisSet(const ACECTildeBasisSet &other) {
+    ACECTildeBasisSet::_copy_scalar_memory(other);
+    ACECTildeBasisSet::_copy_dynamic_memory(other);
+}
+
+void ACECTildeBasisSet::_clean() {
+    // call parent method
+    ACEFlattenBasisSet::_clean();
+
+    if (full_c_tildes_rank1 != nullptr) {
+        delete[] full_c_tildes_rank1;
+        full_c_tildes_rank1 = nullptr;
+    }
+
+    if (full_c_tildes != nullptr) {
+        delete[] full_c_tildes;
+        full_c_tildes = nullptr;
+    }
+
+
+    if (basis_rank1 != nullptr) {
+        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
+            delete[] basis_rank1[mu];
+            basis_rank1[mu] = nullptr;
+        }
+
+        delete[] basis_rank1;
+        basis_rank1 = nullptr;
+    }
+
+    if (basis != nullptr) {
+        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
+            delete[] basis[mu];
+            basis[mu] = nullptr;
+        }
+        delete[] basis;
+        basis = nullptr;
+    }
+
+
+}
+
+ACECTildeBasisSet::~ACECTildeBasisSet() {
+    ACECTildeBasisSet::_clean();
+}
+
+ACECTildeBasisSet &ACECTildeBasisSet::operator=(const ACECTildeBasisSet &other) {
+    if (this != &other) {
+        ACECTildeBasisSet::_clean();
+        ACECTildeBasisSet::_copy_scalar_memory(other);
+        ACECTildeBasisSet::_copy_dynamic_memory(other);
+    }
+    return *this;
+}
+
+
+void ACECTildeBasisSet::_copy_scalar_memory(const ACECTildeBasisSet &other) {
+    ACEFlattenBasisSet::_copy_scalar_memory(other);
+
+    num_ctilde_max = other.num_ctilde_max;
+
+}
+
+void ACECTildeBasisSet::_copy_dynamic_memory(const ACECTildeBasisSet &other) {//allocate new memory
+    ACEFlattenBasisSet::_copy_dynamic_memory(other);
+
+    basis = new ACECTildeBasisFunction *[nelements];
+    basis_rank1 = new ACECTildeBasisFunction *[nelements];
+
+    //copy
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+
+        basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
+
+        for (size_t i = 0; i < total_basis_size_rank1[mu]; i++) {
+            basis_rank1[mu][i] = other.basis_rank1[mu][i];
+        }
+
+
+        basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
+        for (size_t i = 0; i < total_basis_size[mu]; i++) {
+            basis[mu][i] = other.basis[mu][i];
+        }
+    }
+
+    full_c_tildes_rank1 = new DOUBLE_TYPE[coeff_array_total_size_rank1];
+    for (size_t i = 0; i < coeff_array_total_size_rank1; i++) {
+        full_c_tildes_rank1[i] = other.full_c_tildes_rank1[i];
+    }
+
+    full_c_tildes = new DOUBLE_TYPE[coeff_array_total_size];
+    for (size_t i = 0; i < coeff_array_total_size; i++) {
+        full_c_tildes[i] = other.full_c_tildes[i];
+    }
+
+}
+
+
+//re-pack the constituent dynamic arrays of all basis functions in contiguous arrays
+void ACECTildeBasisSet::pack_flatten_basis() {
 
     //1. compute arrays sizes
     rank_array_total_size_rank1 = 0;
@@ -372,7 +564,7 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 
 }
 
-void ACEBasisSet::save(const string &filename) {
+void ACECTildeBasisSet::save(const string &filename) {
     FILE *fptr;
     fptr = fopen(filename.c_str(), "w");
     fprintf(fptr, "lmax=%d\n", lmax);
@@ -385,11 +577,9 @@ void ACEBasisSet::save(const string &filename) {
 
     fprintf(fptr, "ntot=%d\n", ntot);
 
-    fprintf(fptr, "cutoff=%f\n", cutoff);
-
-    fprintf(fptr, "%ld parameters: ", parameters.size());
-    for (int i = 0; i < parameters.size(); ++i) {
-        fprintf(fptr, " %f", parameters.at(i));
+    fprintf(fptr, "%ld parameters: ", FS_parameters.size());
+    for (int i = 0; i < FS_parameters.size(); ++i) {
+        fprintf(fptr, " %f", FS_parameters.at(i));
     }
     fprintf(fptr, "\n");
 
@@ -562,7 +752,7 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     }
 }
 
-void ACEBasisSet::load(string filename) {
+void ACECTildeBasisSet::load(string filename) {
     int res;
     FILE *fptr;
     char buffer[1024], buffer2[1024];
@@ -636,15 +826,7 @@ void ACEBasisSet::load(string filename) {
     }
     ntot = stoi(buffer);
 
-    res = fscanf(fptr, " cutoff=");
-    res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
-    //cutoff = stod(buffer);
-    //TODO: write-read it properly
-    cutoff = cutoffmax;
+
 
     int parameters_size;
     res = fscanf(fptr, "%s parameters:", buffer);
@@ -653,24 +835,24 @@ void ACEBasisSet::load(string filename) {
         exit(EXIT_FAILURE);
     }
     parameters_size = stoi(buffer);
-    parameters.resize(parameters_size);
+    FS_parameters.resize(parameters_size);
 
     spherical_harmonics.init(lmax);
     radial_functions.init(nradbase, lmax, nradmax,
                           ntot,
                           nelements,
-                          cutoff);
+                          cutoffmax);
     rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
     drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
 
-    for (int i = 0; i < parameters.size(); ++i) {
+    for (int i = 0; i < FS_parameters.size(); ++i) {
         res = fscanf(fptr, "%s", buffer);
         if (res != 1) {
             printf("Error while reading file");
             exit(EXIT_FAILURE);
         }
         if (!res) exit(EXIT_FAILURE);
-        parameters[i] = stof(buffer);
+        FS_parameters[i] = stof(buffer);
     }
 
     //hard-core repulsion

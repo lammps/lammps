@@ -144,12 +144,7 @@ void PairPACE::compute(int eflag, int vflag) {
     // loop all atoms and neighbors
 
     //from ACE.compute
-    ace->energy = 0;
-    ace->energies.resize(list->inum);
-    ace->energies.fill(0);
-    ace->forces.resize(list->inum, 3);// per-atom forces
-    ace->forces.fill(0);
-
+    ace->e_atom = 0;
 
     //determine the maximum numer of neighbours
     int max_jnum = -1;
@@ -237,7 +232,7 @@ void PairPACE::compute(int eflag, int vflag) {
 
             // evdwl = energy of atom I
 
-            evdwl = ace->energies(i);
+            evdwl = ace->e_atom;
 
             ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
@@ -314,7 +309,7 @@ void PairPACE::coeff(int narg, char **arg) {
         error->all(FLERR, "Incorrect args for pair coefficients");
 
     printf("Create basis set \n");
-    basis_set = new ACEBasisSet();
+    basis_set = new ACECTildeBasisSet();
     printf("Loading %s\n", potential_file_name);
     basis_set->load(potential_file_name);
     printf("Loaded \n");
@@ -355,7 +350,7 @@ void PairPACE::coeff(int narg, char **arg) {
     if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
     printf("Create ACE\n");
-    ace = new ACE();
+    ace = new ACECTildeEvaluator();
     printf("ACE.set basis\n");
     ace->set_basis(*basis_set);
 

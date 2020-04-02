@@ -17,6 +17,9 @@
     memcpy(array, other.array, (size) * sizeof(type));\
 }
 
+struct ACECTildeBasisFunction;
+
+void print_C_tilde_B_basis_function(const ACECTildeBasisFunction &func);
 
 struct ACECTildeBasisFunction {
 
@@ -131,8 +134,10 @@ struct ACECTildeBasisFunction {
         ctildes = nullptr;
     }
 
+    void print() const {
+        print_C_tilde_B_basis_function(*this);
+    }
 };
 
-void print_C_tilde_B_basis_function(const ACECTildeBasisFunction &func);
 
 #endif //ACE_C_BASISFUNCTION_H

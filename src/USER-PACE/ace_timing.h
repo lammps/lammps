@@ -8,8 +8,6 @@
 #define __start_moment __start_moment
 #define __duration __duration
 
-//////////////////////////////////////////
-#ifdef FINE_TIMING
 
 #include <chrono>
 
@@ -18,40 +16,46 @@ using Clock = std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 using Duration = Clock::duration;
 
+//////////////////////////////////////////
+#ifdef FINE_TIMING
 
-//timer definition macros
-#define ACE_DEFINE_TIMER(timer_name) TimePoint timer_name ## __start_moment;\
-Duration timer_name ## __duration;
+struct ACETimer {
+    Duration duration;
+    TimePoint start_moment;
 
-//timer init macros
-#define ACE_TIMER_INIT(timer_name) timer_name ## __duration  = std::chrono::nanoseconds(0);
+    ACETimer() { init(); };
 
-//timer start macros
-#define ACE_TIMER_START(timer_name) timer_name ## __start_moment = Clock::now();
+    void init() { duration = std::chrono::nanoseconds(0); }
 
-//timer stop macros
-#define ACE_TIMER_STOP(timer_name) timer_name##__duration += Clock::now() - timer_name##__start_moment;
+    void start() { start_moment = Clock::now(); }
 
-#define ACE_TIMER_MICROSECONDS(timer_name)  (std::chrono::duration_cast<std::chrono::microseconds>(timer_name##__duration).count())
-#define ACE_TIMER_NANOSECONDS(timer_name)  (std::chrono::duration_cast<std::chrono::nanoseconds>(timer_name##__duration).count())
+    void stop() { duration += Clock::now() - start_moment; }
 
-#define TIMER_MICROSECONDS_FROM(timer_name, obj)  (std::chrono::duration_cast<std::chrono::microseconds>(obj.timer_name##__duration).count())
-#define TIMER_NANOSECONDS_FROM(timer_name, obj)  (std::chrono::duration_cast<std::chrono::nanoseconds>(obj.timer_name##__duration).count())
+    long as_microseconds() { return std::chrono::duration_cast<std::chrono::microseconds>(duration).count(); }
+
+    long as_nanoseconds() { return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count(); }
+
+};
 
 #else  /// EMPTY Definitions
-//timer definition macros
-#define ACE_DEFINE_TIMER(timer_name)
-//timer init macros
-#define ACE_TIMER_INIT(timer_name)
 
-//timer start macros
-#define ACE_TIMER_START(timer_name)
+struct ACETimer {
+    Duration duration;
+    TimePoint start_moment;
 
-//timer stop macros
-#define ACE_TIMER_STOP(timer_name)
+    ACETimer() {};
 
-#define ACE_TIMER_MICROSECONDS(timer_name)
-#define ACE_TIMER_NANOSECONDS(timer_name)
+    void init() {}
+
+    void start() {}
+
+    void stop() {}
+
+    long as_microseconds() { return 0; }
+
+    long as_nanoseconds() { return 0; }
+
+};
 
 #endif
 //////////////////////////////////////////

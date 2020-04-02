@@ -16,12 +16,15 @@ class Array1D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[1];
+    size_t dim[1] = {0};
 
     // strides
-    size_t s[1];
+    size_t s[1] = {0};
+
+    int ndim = 1;
 
 public:
+
     // default empty constructor
     Array1D() = default;
 
@@ -89,6 +92,15 @@ public:
         return data[i0];
 
     }
+
+    bool operator==(const Array1D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -98,12 +110,15 @@ class Array2D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[2];
+    size_t dim[2] = {0};
 
     // strides
-    size_t s[2];
+    size_t s[2] = {0};
+
+    int ndim = 2;
 
 public:
+
     // default empty constructor
     Array2D() = default;
 
@@ -178,6 +193,15 @@ public:
         return data[i0 * s[0] + i1];
 
     }
+
+    bool operator==(const Array2D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -187,12 +211,15 @@ class Array3D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[3];
+    size_t dim[3] = {0};
 
     // strides
-    size_t s[3];
+    size_t s[3] = {0};
+
+    int ndim = 3;
 
 public:
+
     // default empty constructor
     Array3D() = default;
 
@@ -274,6 +301,15 @@ public:
         return data[i0 * s[0] + i1 * s[1] + i2];
 
     }
+
+    bool operator==(const Array3D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -283,12 +319,15 @@ class Array4D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[4];
+    size_t dim[4] = {0};
 
     // strides
-    size_t s[4];
+    size_t s[4] = {0};
+
+    int ndim = 4;
 
 public:
+
     // default empty constructor
     Array4D() = default;
 
@@ -377,6 +416,15 @@ public:
         return data[i0 * s[0] + i1 * s[1] + i2 * s[2] + i3];
 
     }
+
+    bool operator==(const Array4D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -386,12 +434,15 @@ class Array5D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[5];
+    size_t dim[5] = {0};
 
     // strides
-    size_t s[5];
+    size_t s[5] = {0};
+
+    int ndim = 5;
 
 public:
+
     // default empty constructor
     Array5D() = default;
 
@@ -487,6 +538,15 @@ public:
         return data[i0 * s[0] + i1 * s[1] + i2 * s[2] + i3 * s[3] + i4];
 
     }
+
+    bool operator==(const Array5D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -496,12 +556,15 @@ class Array6D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::size;
 
     // dimensions 
-    size_t dim[6];
+    size_t dim[6] = {0};
 
     // strides
-    size_t s[6];
+    size_t s[6] = {0};
+
+    int ndim = 6;
 
 public:
+
     // default empty constructor
     Array6D() = default;
 
@@ -604,6 +667,15 @@ public:
         return data[i0 * s[0] + i1 * s[1] + i2 * s[2] + i3 * s[3] + i4 * s[4] + i5];
 
     }
+
+    bool operator==(const Array6D &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -616,10 +688,12 @@ class Array1DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop;
 
     // dimensions 
-    size_t dim[1];
+    size_t dim[1] = {0};
 
     // strides
-    size_t s[1];
+    size_t s[1] = {0};
+
+    int ndim = 1;
 
 public:
     // default empty constructor
@@ -689,6 +763,15 @@ public:
 #endif
         return data[(i0 - i0_start)];
     }
+
+    bool operator==(const Array1DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -701,10 +784,12 @@ class Array2DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop, i1_start, i1_stop;
 
     // dimensions 
-    size_t dim[2];
+    size_t dim[2] = {0};
 
     // strides
-    size_t s[2];
+    size_t s[2] = {0};
+
+    int ndim = 2;
 
 public:
     // default empty constructor
@@ -783,6 +868,15 @@ public:
 #endif
         return data[(i0 - i0_start) * s[0] + (i1 - i1_start)];
     }
+
+    bool operator==(const Array2DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -795,10 +889,12 @@ class Array3DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop, i1_start, i1_stop, i2_start, i2_stop;
 
     // dimensions 
-    size_t dim[3];
+    size_t dim[3] = {0};
 
     // strides
-    size_t s[3];
+    size_t s[3] = {0};
+
+    int ndim = 3;
 
 public:
     // default empty constructor
@@ -888,6 +984,15 @@ public:
 #endif
         return data[(i0 - i0_start) * s[0] + (i1 - i1_start) * s[1] + (i2 - i2_start)];
     }
+
+    bool operator==(const Array3DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -900,10 +1005,12 @@ class Array4DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop, i1_start, i1_stop, i2_start, i2_stop, i3_start, i3_stop;
 
     // dimensions 
-    size_t dim[4];
+    size_t dim[4] = {0};
 
     // strides
-    size_t s[4];
+    size_t s[4] = {0};
+
+    int ndim = 4;
 
 public:
     // default empty constructor
@@ -1004,6 +1111,15 @@ public:
 #endif
         return data[(i0 - i0_start) * s[0] + (i1 - i1_start) * s[1] + (i2 - i2_start) * s[2] + (i3 - i3_start)];
     }
+
+    bool operator==(const Array4DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -1016,10 +1132,12 @@ class Array5DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop, i1_start, i1_stop, i2_start, i2_stop, i3_start, i3_stop, i4_start, i4_stop;
 
     // dimensions 
-    size_t dim[5];
+    size_t dim[5] = {0};
 
     // strides
-    size_t s[5];
+    size_t s[5] = {0};
+
+    int ndim = 5;
 
 public:
     // default empty constructor
@@ -1133,6 +1251,15 @@ public:
         return data[(i0 - i0_start) * s[0] + (i1 - i1_start) * s[1] + (i2 - i2_start) * s[2] + (i3 - i3_start) * s[3] +
                     (i4 - i4_start)];
     }
+
+    bool operator==(const Array5DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
+    }
 };
 
 template<class T>
@@ -1145,10 +1272,12 @@ class Array6DGeneral : public ContiguousArrayND<T> {
     int i0_start, i0_stop, i1_start, i1_stop, i2_start, i2_stop, i3_start, i3_stop, i4_start, i4_stop, i5_start, i5_stop;
 
     // dimensions 
-    size_t dim[6];
+    size_t dim[6] = {0};
 
     // strides
-    size_t s[6];
+    size_t s[6] = {0};
+
+    int ndim = 6;
 
 public:
     // default empty constructor
@@ -1272,6 +1401,15 @@ public:
 #endif
         return data[(i0 - i0_start) * s[0] + (i1 - i1_start) * s[1] + (i2 - i2_start) * s[2] + (i3 - i3_start) * s[3] +
                     (i4 - i4_start) * s[4] + (i5 - i5_start)];
+    }
+
+    bool operator==(const Array6DGeneral &other) const {
+        //compare dimensions
+        for (int d = 0; d < ndim; d++) {
+            if (this->dim[d] != other.dim[d])
+                return false;
+        }
+        return ContiguousArrayND<T>::operator==(other);
     }
 };
 

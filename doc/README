@@ -99,6 +99,12 @@ to be installed (e.g. from texlive):
 - hyperref
 - hypcap
 - times
+- tabulary
+- framed
+- wrapfig
+- upquote
+- capt-of
+- needspace
 ----------------
 
 Installing prerequisites for epub build

@@ -12,6 +12,7 @@ PYTHON        = $(shell which python3)
 VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
+HAS_PDFLATEX   = NO
 
 ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3 = YES
@@ -26,6 +27,11 @@ ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
 VIRTUALENV     = virtualenv
 HAS_VIRTUALENV = YES
 endif
+
+ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
+HAS_PDFLATEX = YES
+endif
+
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
@@ -113,6 +119,7 @@ mobi: epub
 	@echo "Conversion finished. The MOBI manual file is created."
 
 pdf: $(ANCHORCHECK)
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -187,6 +194,7 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
+		pip install --upgrade pip; \
 		pip install Sphinx; \
 		deactivate;\
 	)

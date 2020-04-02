@@ -5,11 +5,13 @@ From: ubuntu:18.04
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y software-properties-common
     apt-get install --no-install-recommends -y \
         bc \
         build-essential \
         ccache \
         clang \
+        clinfo \
         cmake \
         cmake-curses-gui \
         curl \
@@ -36,6 +38,8 @@ From: ubuntu:18.04
         mpi-default-bin \
         mpi-default-dev \
         ninja-build \
+        ocl-icd-libopencl1 \
+        ocl-icd-opencl-dev \
         python-dev \
         python-pip \
         python-pygments \
@@ -53,5 +57,9 @@ From: ubuntu:18.04
         wget \
         xxd
 
+    add-apt-repository ppa:intel-opencl/intel-opencl
+    apt-get update
+    apt-get install -y intel-opencl-icd
+
 %labels
-    Author akohlmey, rbberger
+    Author rbberger

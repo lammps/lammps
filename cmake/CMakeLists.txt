@@ -713,6 +713,10 @@ message(STATUS "<<< Build configuration >>>
       Version:       ${CMAKE_CXX_COMPILER_VERSION}
       C++ Flags:    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
       Defines:       ${DEFINES}")
+get_target_property(OPTIONS lammps COMPILE_OPTIONS)
+if(OPTIONS)
+  message("      Options:       ${OPTIONS}")
+endif()
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)

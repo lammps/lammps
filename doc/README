@@ -93,18 +93,18 @@ support for PDFLaTeX. Also the following LaTeX packages need
 to be installed (e.g. from texlive):
 - amsmath
 - babel
+- capt-of
 - cmap
 - fncychap
+- framed
 - geometry
 - hyperref
 - hypcap
+- needspace
 - times
 - tabulary
-- framed
-- wrapfig
 - upquote
-- capt-of
-- needspace
+- wrapfig
 ----------------
 
 Installing prerequisites for epub build

@@ -81,8 +81,6 @@ if(PKG_USER-INTEL)
 	  target_compile_options(lammps PRIVATE ${_FLAG})
         endif()
       endforeach()
-    else()
-      target_compile_options(lammps PRIVATE -O3 -ffast-math)
     endif()
   endif()
 

@@ -176,11 +176,15 @@ if(PKG_USER-ADIOS)
   target_link_libraries(lammps PRIVATE adios2::adios2)
 endif()
 
-# do MPI detection after language activation,
-# in case MPI for these languages is required
-set(MPI_CXX_SKIP_MPICXX TRUE)
-find_package(MPI QUIET)
-option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+  option(BUILD_MPI "Build MPI version" OFF)
+else()
+  # do MPI detection after language activation,
+  # in case MPI for these languages is required
+  set(MPI_CXX_SKIP_MPICXX TRUE)
+  find_package(MPI QUIET)
+  option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+endif()
 
 if(BUILD_MPI)
   # We use a non-standard procedure to compile with MPI on windows

@@ -17,9 +17,9 @@ endif()
 
 ExternalProject_get_property(mpi4win_build SOURCE_DIR)
 file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
-add_library(LAMMPS::MPI UNKNOWN IMPORTED)
-set_target_properties(LAMMPS::MPI PROPERTIES
+add_library(MPI::MPI_CXX UNKNOWN IMPORTED)
+set_target_properties(MPI::MPI_CXX PROPERTIES
   IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmpi.a"
   INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
   INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-add_dependencies(LAMMPS::MPI mpi4win_build)
+add_dependencies(MPI::MPI_CXX mpi4win_build)

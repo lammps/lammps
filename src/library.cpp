@@ -100,19 +100,20 @@ using namespace LAMMPS_NS;
  * \param argc number of command line arguments
  * \param argv list of command line argument strings
  * \param communicator MPI communicator for this LAMMPS instance.
- * \param ptr pointer to a location where a reference to the
- *            created LAMMPS instance is stored. Will be pointing
- *            to a NULL pointer if the function failed.
+ * \param ptr pointer to a void pointer variable which serves as a handle
 
 \verbatim embed:rst
 The :ref:`lammps_open() <lammps_open>` function will create a new
 LAMMPS instance while passing in a list of strings as if they were
 :doc:`command-line arguments <Run_options>` when LAMMPS is run in
 stand-alone mode from the command line, and an MPI communicator for
-LAMMPS to run under.
+LAMMPS to run under.  Since the list of arguments is **exactly** as
+when called from the command line, the first argument would be the
+name of the executable and thus is ignored.  However ``argc`` may
+be set to 0 and then ``argv`` may be a NULL pointer.
 
-If for some reason the initialization of the LAMMPS instance failed
-the ptr handle will be set to a NULL pointer.
+If for some reason the initialization of the LAMMPS instance fails
+the ``ptr`` handle will be set to a NULL pointer.
 \endverbatim 
  */
 void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
@@ -133,8 +134,10 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 #endif
 }
 
-/** \brief Variant of lammps_open() that will implicitly use MPI_COMM_WORLD.
- *  Will run MPI_Init() if it has not been called before.
+/** \brief Variant of lammps_open() that implicitly uses MPI_COMM_WORLD.
+ *
+ *  This function run MPI_Init() if it has not been called before
+ *  and the MPI environment is not yet initialized.
  *
  * \param argc number of command line arguments
  * \param argv list of command line argument strings
@@ -262,9 +265,11 @@ void lammps_free(void *ptr)
 
 \verbatim embed:rst
 This function will process the commands in the file pointed to
-by ``filename`` line by line like a file processed with the
-:doc:`include <include>` command.  The function returns when
-the end of the file is reached.
+by ``filename`` line by line and thus functions very much like
+the :doc:`include <include>` command.  The function returns when
+the end of the file is reached.  This may take considerable
+amounts of time, if the input file contains :doc:`run <run>` or
+:doc:`minimize <minimize>` commands.
 \endverbatim
   */
 void lammps_file(void *ptr, char *filename)
@@ -284,18 +289,12 @@ void lammps_file(void *ptr, char *filename)
 /** \brief Process a single LAMMPS input command from a string
  *
 \verbatim embed:rst
-This function will process a single command in the string str.
+This function will process a single command in the string ``str``.
 The string is subject to the same processing as input files, and
 may therefore contain :doc:`variable <variable>` expansions like
 ``${name}`` or ``$(expression)``.  The string need not end in
-a newline character. The function will return the name of the
-command on success or otherwise abort with an error.
-
-.. note::
-
-   No checks are made on the arguments, thus both str and ptr must
-   be non-NULL and point to valid data.
-
+a newline character.  The function returns the name of the
+command on success or will cause an abort with an error message.
 \endverbatim
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to void *.
@@ -327,11 +326,6 @@ into a single string while inserting newline characters if needed.
 The combined string would be equivalent to a multi-line chunk of an
 input file and is then passed to
 `lammps_commands_string() <lammps_commands_string>` for processing.
-
-.. note::
-
-   No checks are made on the arguments, thus both str and ptr must
-   be non-NULL and point to valid data.
 
 \endverbatim
  *

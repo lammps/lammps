@@ -10,13 +10,26 @@ another code, used in a :doc:`coupled manner <Howto_couple>` with other
 codes, or driven through a :doc:`Python interface <Python_head>`.
 Several of these approaches are based on a C language wrapper functions
 in the files ``src/library.h`` and ``src/library.cpp``, which are
-documented below.  Behind the scenes this will create, delete, or
-modify and instance of the :ref:`LAMMPS class <lammps_ns_lammps>`.
-Thus all functions require
-an argument containing a ``handle`` in the form of a ``void`` pointer,
-which contains or will be assigned to a reference of this class instance.
+documented below.
+
+Behind the scenes this will create, delete, or modify an instance of the
+:ref:`LAMMPS class <lammps_ns_lammps>`.  Thus almost all functions
+require an argument containing a ``handle`` in the form of a ``void``
+pointer, which points to the location this LAMMPS class instance.
+
 
 .. note::
+
+   The ``library.h`` header file includes the ``mpi.h`` header for an
+   MPI library, so it must be present when compiling code using the
+   library interface.  This usually must be the header from the same MPI
+   library as the LAMMPS library was compiled with.  The exception is
+   when LAMMPS was compiled in serial mode using the ``STUBS`` MPI
+   library.  In that case the calling code may be compiled with a
+   different MPI library for as long as :ref:`lammps_open_no_mpi()
+   <lammps_open_no_mpi>` is called to create a LAMMPS instance.
+
+.. seealso::
 
    Please see the :ref:`note about thread-safety <thread-safety>`
    in the library Howto doc page.
@@ -24,8 +37,8 @@ which contains or will be assigned to a reference of this class instance.
 .. warning::
 
    No checks are made on the arguments of the function calls of the C
-   library interface.  All arguments must be non-NULL (unless explicitly
-   allowed) and point to consistent and valid data.  Buffers for storing
+   library interface.  All arguments must be non-NULL unless explicitly
+   allowed and point to consistent and valid data.  Buffers for storing
    returned data must be allocated to a suitable size.  Passing invalid
    or unsuitable information will likely cause crashes or corrupt data.
 
@@ -76,24 +89,25 @@ and will either run on all processors in the ``MPI_COMM_WORLD``
 communicator or on the set of processors in the communicator given in
 the ``comm`` argument of :ref:`lammps_open() <lammps_open>`.  This means
 the calling code can run LAMMPS on all or a subset of processors.  For
-example, a wrapper script might decide to alternate between LAMMPS and
+example, a wrapper code might decide to alternate between LAMMPS and
 another code, allowing them both to run on all the processors.  Or it
-might allocate half the processors to LAMMPS and half to the other code
-by creating a custom communicator with ``MPI_Comm_split()`` and run both
-codes concurrently before syncing them up periodically.  Or it might
-instantiate multiple instances of LAMMPS to perform different
-calculations and either alternate between them or run them one after the
-other.  The :ref:`lammps_open() <lammps_open>` function may be called
-multiple times for this purpose.
+might allocate part of the processors to LAMMPS and the rest to the
+other code by creating a custom communicator with ``MPI_Comm_split()``
+and runing both codes concurrently before syncing them up periodically.
+Or it might instantiate multiple instances of LAMMPS to perform
+different calculations and either alternate between them, run them
+concurrently on split communicators, or run them one after the other.
+The :ref:`lammps_open() <lammps_open>` function may be called multiple
+times for this latter purpose.
 
 The :ref:`lammps_close() <lammps_close>` function is used to shut down
 the :ref:`LAMMPS instance <lammps_ns_lammps>` pointed to by the handle
 passed as an argument and free all its memory. This has to be called for
 every instance created with any of the :ref:`lammps_open()
-<lammps_open>` functions.  It will **not** call ``MPI_Finalize()``,
-since that may only be called once. See :ref:`lammps_finalize()
-<lammps_finalize>` for an alternative to calling ``MPI_Finalize()``
-explicitly in the calling program.
+<lammps_open>` functions.  It will, however, **not** call
+``MPI_Finalize()``, since that may only be called once.  See
+:ref:`lammps_finalize() <lammps_finalize>` for an alternative to calling
+``MPI_Finalize()`` explicitly in the calling program.
 
 The :ref:`lammps_free() <lammps_free>` function is a clean-up
 function to free memory that the library allocated previously
@@ -147,19 +161,20 @@ of the individual commands where such memory buffers were allocated.
 Executing LAMMPS commands
 =========================
 
-Once a LAMMPS instance is created, there are multiple ways
-to "drive" a simulation.  In most cases it is easiest to
-process single or multiple LAMMPS commands like in an input
-file.  This can be done through reading a file or passing
-single commands or lists of commands or blocks of commands
-with the following functions.
+Once a LAMMPS instance is created, there are multiple ways to "drive" a
+simulation.  In most cases it is easiest to process single or multiple
+LAMMPS commands like in an input file.  This can be done through reading
+a file or passing single commands or lists of commands or blocks of
+commands with the following functions.
 
-Via these functions, the calling code can read or generate a series of
-LAMMPS commands one or multiple at a time and pass it through the library
-interface to setup a problem and then run it in stages.  The caller
-can interleave the command function calls with operations it performs,
-calls to extract information from or set information within LAMMPS, or
-calls to another code's library.
+Via these functions, the calling code can have the LAMMPS instance act
+on a series of :doc:`input file commands <Commands_all>` that are either
+read from a file or passed as strings.  This for, for example, allow
+interface to setup a problem from a template file and then run it in
+stages while performing other operations in between or concurrently.
+The caller can interleave the command function calls with operations it
+performs, calls to extract information from or set information within
+LAMMPS, or calls to another code's library.
 
 The :ref:`lammps_file() <lammps_file>` function passes the filename of
 an input script. The :ref:`lammps_command() <lammps_command>` function

@@ -395,6 +395,7 @@ cmap
 Cmax
 cmd
 cmdlist
+cmds
 Cmin
 cmm
 CMM
@@ -2799,6 +2800,7 @@ strstr
 Stukowski
 Su
 subbox
+Subclassed
 subcutoff
 subcycle
 subcycling

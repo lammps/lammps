@@ -295,10 +295,6 @@ void lammps_file(void *ptr, char *filename)
 
 /** \brief Process a single LAMMPS input command from a string
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
- * \param str string with the LAMMPS command
- * \return string with command name
- *
 \verbatim embed:rst
 This function will process a single command in the string str.
 The string is subject to the same processing as input files, and
@@ -313,6 +309,10 @@ command on success or otherwise abort with an error.
    be non-NULL and point to valid data.
 
 \endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param str string with the LAMMPS command
+ * \return string with command name
  */
 char *lammps_command(void *ptr, char *str)
 {
@@ -331,13 +331,26 @@ char *lammps_command(void *ptr, char *str)
   return result;
 }
 
-/* ----------------------------------------------------------------------
-   process multiple input commands in cmds = list of strings
-   does not matter if each string ends in newline
-   create long contatentated string for processing by commands_string()
-   insert newlines in concatenated string as needed
-------------------------------------------------------------------------- */
+/** \brief Process multiple LAMMPS input commands from list of strings
+ *
+\verbatim embed:rst
+This function will first concatenate the individual strings in ``cmds``
+into a single string while inserting newline characters if needed.
+The combined string would be equivalent to a multi-line chunk of an
+input file and is then passed to
+`lammps_commands_string() <lammps_commands_string>` for processing.
 
+.. note::
+
+   No checks are made on the arguments, thus both str and ptr must
+   be non-NULL and point to valid data.
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ncmd number of strings in the list
+ * \param cmds list of strings with the LAMMPS commands
+ */
 void lammps_commands_list(void *ptr, int ncmd, char **cmds)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
@@ -363,12 +376,25 @@ void lammps_commands_list(void *ptr, int ncmd, char **cmds)
   lmp->memory->sfree(str);
 }
 
-/* ----------------------------------------------------------------------
-   process multiple input commands in single long str, separated by newlines
-   single command can span multiple lines via continuation characters
-   multi-line commands enabled by triple quotes will not work
-------------------------------------------------------------------------- */
+/** \brief Process a block of LAMMPS input commands from a single string
+ *
+\verbatim embed:rst
+This function will process a string similar to a block of an input file.
+The string may have multiple lines (separated by newline characters)
+and also single commands distributed over multiple lines with continuation
+characters ('&').  Those lines are combined by removing the '&' and the
+following newline character.
 
+.. note::
+
+   Multi-line commands enabled by triple quotes will NOT work with
+   this function.
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param str string with block of LAMMPS input
+ */
 void lammps_commands_string(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

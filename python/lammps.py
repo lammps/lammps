@@ -115,7 +115,7 @@ class lammps(object):
   turn will create an instance of the :ref:`LAMMPS class
   <lammps_ns_lammps>`.
 
-  :param name: "machine" name of the shared LAMMPS libary ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
+  :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
   :type  name: string
   :param idx: list of command line arguments to be passed to the :ref:`lammps_open() <lammps_open>` function.
   :type  idx: list
@@ -397,6 +397,15 @@ class lammps(object):
   # send a list of commands
 
   def commands_list(self,cmdlist):
+    """Process multiple LAMMPS input commands from a list of strings
+
+    This is a wrapper around the
+    :ref:`lammps_commands_list() <lammps_commands_list>` function of
+    the C-library interface.
+
+    :param cmdlist: a single lammps command
+    :type cmdlist:  list of strings
+    """
     cmds = [x.encode() for x in cmdlist if type(x) is str]
     args = (c_char_p * len(cmdlist))(*cmds)
     self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
@@ -404,6 +413,15 @@ class lammps(object):
   # send a string of commands
 
   def commands_string(self,multicmd):
+    """Process a block of LAMMPS input commands from a string
+
+    This is a wrapper around the
+    :ref:`lammps_commands_string() <lammps_commands_string>`
+    function of the C-library interface.
+
+    :param multicmd: text block of lammps commands
+    :type multicmd:  string
+    """
     if type(multicmd) is str: multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
 

@@ -40,7 +40,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
 
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag, bnormflag;
+  int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -54,7 +54,6 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
-  bnormflag = 0;
   quadraticflag = 0;
   alloyflag = 0;
   wselfallflag = 0;
@@ -113,10 +112,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alloyflag") == 0) {
-      if (iarg+2+ntypes > narg)
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
       alloyflag = 1;
-      bnormflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
@@ -168,6 +166,8 @@ ComputeSnap::~ComputeSnap()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (alloyflag) memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -541,6 +541,8 @@ double ComputeSnap::memory_usage()
     sizeof(double);                                     // snapall
   bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object
+  int n = atom->ntypes+1;
+  bytes += n*sizeof(int);        // map
 
   return bytes;
 }

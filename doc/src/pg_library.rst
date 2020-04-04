@@ -172,6 +172,34 @@ appeared in an input script.
 Also equivalent to input scripts is the expansion of variables in
 ``${name}`` or ``$(expression)`` syntax.
 
+Below is a short example using some of these functions.
+
+.. code-block:: C
+
+   #include <library.h>
+   #include <mpi.h>
+   #include <stdio.h>
+
+   int main(int argc, char **argv)
+   {
+     void *handle;
+     int i;
+
+     MPI_Init(&argc, &argv);
+     lammps_open(0, NULL, MPI_COMM_WORLD, &handle);
+     lammps_file(handle,"in.sysinit");
+     lammps_command(handle,"run 1000 post no");
+
+     for (i=0; i < 100; ++i) {
+       lammps_commands_string(handle,"run 100 pre no post no\n"
+                                     "print 'PE = $(pe)'\n"
+                                     "print 'KE = $(ke)'\n")
+     }
+     lammps_close(handle);
+     MPI_Finalize();
+     return 0;
+   }
+
 -----------------------
 
 .. _lammps_file:

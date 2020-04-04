@@ -91,33 +91,6 @@ using namespace LAMMPS_NS;
 #endif
 
 // ----------------------------------------------------------------------
-// helper functions, not in library API
-// ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   concatenate one or more LAMMPS input lines starting at ptr
-   removes NULL terminator when last printable char of line = '&'
-     by replacing both NULL and '&' with space character
-   repeat as many times as needed
-   on return, ptr now points to longer line
-------------------------------------------------------------------------- */
-
-void concatenate_lines(char *ptr)
-{
-  int nend = strlen(ptr);
-  int n = nend-1;
-  while (n && isspace(ptr[n])) n--;
-  while (ptr[n] == '&') {
-    ptr[nend] = ' ';
-    ptr[n] = ' ';
-    strtok(ptr,"\n");
-    nend = strlen(ptr);
-    n = nend-1;
-    while (n && isspace(ptr[n])) n--;
-  }
-}
-
-// ----------------------------------------------------------------------
 // library API functions to create/destroy an instance of LAMMPS
 //   and communicate commands to it
 // ----------------------------------------------------------------------

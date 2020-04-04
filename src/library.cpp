@@ -263,6 +263,21 @@ void lammps_finalize()
   MPI_Finalize();
 }
 
+/** \brief free memory buffer allocated by LAMMPS
+
+\verbatim embed:rst
+Some of the library interface functions return data as pointer to a
+buffer that has been allocated by LAMMPS or the library interface.
+This function can be used to delete those in order to avoid memory leaks.
+\endverbatim
+ *
+ * \param ptr pointer to data allocated by LAMMPS
+*/
+void lammps_free(void *ptr)
+{
+  free(ptr);
+}
+
 // ----------------------------------------------------------------------
 // library API functions to process commands 
 // ----------------------------------------------------------------------
@@ -431,15 +446,6 @@ void lammps_commands_string(void *ptr, char *str)
   END_CAPTURE
 
   delete [] copy;
-}
-
-/* ----------------------------------------------------------------------
-   clean-up function to free memory allocated by lib and returned to caller
-------------------------------------------------------------------------- */
-
-void lammps_free(void *ptr)
-{
-  free(ptr);
 }
 
 // ----------------------------------------------------------------------

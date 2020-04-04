@@ -86,6 +86,11 @@ since that may only be called once. See :ref:`lammps_finalize()
 <lammps_finalize>` for an alternative to calling ``MPI_Finalize()``
 explicitly in the calling program.
 
+The :ref:`lammps_free() <lammps_free>` function is a clean-up
+function to free memory that the library allocated previously
+via other function calls.  See below for notes in the descriptions
+of the individual commands where such memory buffers were allocated.
+
 -----------------------
 
 .. _lammps_open:
@@ -116,6 +121,13 @@ explicitly in the calling program.
 
 -----------------------
 
+.. _lammps_free:
+.. doxygenfunction:: lammps_free
+   :project: progguide
+   :no-link:
+
+-----------------------
+
 .. _lammps_version:
 .. doxygenfunction:: lammps_version
    :project: progguide
@@ -130,22 +142,58 @@ Once a LAMMPS instance is created, there are multiple ways
 to "drive" a simulation.  In most cases it is easiest to
 process single or multiple LAMMPS commands like in an input
 file.  This can be done through reading a file or passing
-single commands or lists of commands with the following functions.
+single commands or lists of commands or blocks of commands
+with the following functions.
+
+Via these functions, the calling code can read or generate a series of
+LAMMPS commands one or multiple at a time and pass it through the library
+interface to setup a problem and then run it in stages.  The caller
+can interleave the command function calls with operations it performs,
+calls to extract information from or set information within LAMMPS, or
+calls to another code's library.
+
+The :ref:`lammps_file() <lammps_file>` function passes the filename of
+an input script. The :ref:`lammps_command() <lammps_command>` function
+passes a single command as a string. The
+:ref:`lammps_commands_list() <lammps_commands_list>` function passes
+multiple commands in a ``char **`` type list.  In both
+:ref:`lammps_command() <lammps_command>` and
+:ref:`lammps_commands_list() <lammps_commands_list>`,
+individual commands may or may not have a trailing newline.  The
+:ref:`lammps_commands_string() <lammps_commands_string>` function
+passes multiple commands concatenated into one long string,
+separated by newline characters.
+In both :ref:`lammps_commands_list() <lammps_commands_list>` and
+:ref:`lammps_commands_string() <lammps_commands_string>`, a single
+command can be spread across multiple lines, if the last printable
+character of all but the last line is "&", same as if the lines
+appeared in an input script.
+
+Also equivalent to input scripts is the expansion of variables in
+``${name}`` or ``$(expression)`` syntax.
+
+-----------------------
 
 .. _lammps_file:
 .. doxygenfunction:: lammps_file
    :project: progguide
    :no-link:
 
+-----------------------
+
 .. _lammps_command:
 .. doxygenfunction:: lammps_command
    :project: progguide
    :no-link:
 
+-----------------------
+
 .. _lammps_commands_list:
 .. doxygenfunction:: lammps_commands_list
    :project: progguide
    :no-link:
+
+-----------------------
 
 .. _lammps_commands_string:
 .. doxygenfunction:: lammps_commands_string
@@ -180,42 +228,6 @@ TODO: this part still needs to be edited/adapted
    The added functions can access or change any internal LAMMPS data you
    wish.
 
-.. code-block:: c
-
-   void lammps_file(void *, char *)
-   char *lammps_command(void *, char *)
-   void lammps_commands_list(void *, int, char **)
-   void lammps_commands_string(void *, char *)
-   void lammps_free(void *)
-
-The lammps_file(), lammps_command(), lammps_commands_list(), and
-lammps_commands_string() functions are used to pass one or more
-commands to LAMMPS to execute, the same as if they were coming from an
-input script.
-
-Via these functions, the calling code can read or generate a series of
-LAMMPS commands one or multiple at a time and pass it through the library
-interface to setup a problem and then run it in stages.  The caller
-can interleave the command function calls with operations it performs,
-calls to extract information from or set information within LAMMPS, or
-calls to another code's library.
-
-The lammps_file() function passes the filename of an input script.
-The lammps_command() function passes a single command as a string.
-The lammps_commands_list() function passes multiple commands in a
-char\*\* list.  In both lammps_command() and lammps_commands_list(),
-individual commands may or may not have a trailing newline.  The
-lammps_commands_string() function passes multiple commands
-concatenated into one long string, separated by newline characters.
-In both lammps_commands_list() and lammps_commands_string(), a single
-command can be spread across multiple lines, if the last printable
-character of all but the last line is "&", the same as if the lines
-appeared in an input script.
-
-The lammps_free() function is a clean-up function to free memory that
-the library allocated previously via other function calls.  See
-comments in src/library.cpp file for which other functions need this
-clean-up.
 
 The file src/library.cpp also contains these functions for extracting
 information from LAMMPS and setting value within LAMMPS.  Again, see

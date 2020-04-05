@@ -374,14 +374,6 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-# RB: disabled this check because it breaks with KOKKOS CUDA enabled
-#foreach(FUNC sin cos)
-#  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-#  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-#    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-#  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-#endforeach(FUNC)
 target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
 
 ######################################

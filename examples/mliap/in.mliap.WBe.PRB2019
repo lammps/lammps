@@ -1,10 +1,10 @@
-# Demonstrate SNAP Ta potential
+# Demonstrate SNAP W-Be potential
 
 # Initialize simulation
 
 variable nsteps index 100
 variable nrep equal 4
-variable a equal 3.316
+variable a equal 3.1803
 units           metal
 
 # generate the box and atom positions using a BCC lattice
@@ -17,17 +17,28 @@ boundary        p p p
 
 lattice         bcc $a
 region          box block 0 ${nx} 0 ${ny} 0 ${nz}
-create_box      1 box
+create_box      2 box
 create_atoms    1 box
+mass 1 183.84
+mass 2 9.012182
 
-mass 1 180.88
-
+set     group all type/fraction 2 0.05 3590153 # Change 5% of W to He
+group   tungsten         type 1
+group   beryllium        type 2
 # choose potential
 
-include Ta06A.snap
+include WBe_Wood_PRB2019.mliap
 
 # Setup output
 
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
 thermo          10
 thermo_modify norm yes
 

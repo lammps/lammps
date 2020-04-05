@@ -25,26 +25,20 @@ mass 1 183.84
 
 # choose potential
 
-# Definition of SNAP+ZBL potential.
-variable zblcutinner equal 4
-variable zblcutouter equal 4.8
-variable zblz equal 74
-
-# Specify hybrid with SNAP and ZBL
-
-pair_style hybrid/overlay &
-zbl ${zblcutinner} ${zblcutouter} &
-mliap/snap
-pair_coeff 1 1 zbl ${zblz} ${zblz}
-pair_coeff * * mliap/snap W.quadratic.snapcoeff W.quadratic.snapparam W
+include W.quadratic.mliap
 
 # Setup output
 
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
 thermo		10
 thermo_modify norm yes
-compute eatom all pe/atom
-
-dump 1 all custom 100 dump.quadratic.* id type fx fy fz c_eatom
 
 # Set up NVE run
 

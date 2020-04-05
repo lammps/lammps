@@ -31,7 +31,7 @@ Created orthogonal box = (0 0 0) to (3.1803 3.1803 3.1803)
   1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 2 atoms
-  create_atoms CPU = 0.000348 secs
+  create_atoms CPU = 0.000215 secs
 displace_atoms  all random 0.01 0.01 0.01 12345
 
 mass 1 183.84
@@ -66,9 +66,16 @@ SNAP keyword quadraticflag 1
 
 # Setup output
 
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
 thermo		10
 thermo_modify norm yes
-compute eatom all pe/atom
 
 dump 1 all custom 100 dump.quadratic.* id type fx fy fz c_eatom
 
@@ -101,33 +108,33 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 5.04 | 5.04 | 5.04 Mbytes
-Step Temp E_pair E_mol TotEng Press 
-       0          300   -1.1575362            0   -1.1381472       600966 
-      10    349.32287   -1.1607243            0   -1.1381475    599985.48 
-      20    384.27065   -1.1629832            0   -1.1381478    599287.89 
-      30    399.34846   -1.1639578            0   -1.1381478    598986.42 
-      40    392.19413   -1.1634953            0   -1.1381478    599130.05 
-      50    363.93932    -1.161669            0   -1.1381476    599694.93 
-      60    319.03014   -1.1587663            0   -1.1381473    600588.89 
-      70    264.53512   -1.1552439            0    -1.138147    601667.76 
-      80    209.04294   -1.1516571            0   -1.1381466    602760.01 
-      90     161.3157   -1.1485722            0   -1.1381463    603694.49 
-     100     128.9054   -1.1464773            0   -1.1381461     604326.7 
-Loop time of 0.032082 on 1 procs for 100 steps with 2 atoms
+Per MPI rank memory allocation (min/avg/max) = 7.284 | 7.284 | 7.284 Mbytes
+Step Temp E_pair c_energy TotEng Press v_press 
+       0          300   -1.1575362   -1.1575362   -1.1381472       600966      -600966 
+      10    349.32287   -1.1607243   -1.1607243   -1.1381475    599985.48   -599985.48 
+      20    384.27065   -1.1629832   -1.1629832   -1.1381478    599287.89   -599287.89 
+      30    399.34846   -1.1639578   -1.1639578   -1.1381478    598986.42   -598986.42 
+      40    392.19413   -1.1634953   -1.1634953   -1.1381478    599130.05   -599130.05 
+      50    363.93932    -1.161669    -1.161669   -1.1381476    599694.93   -599694.93 
+      60    319.03014   -1.1587663   -1.1587663   -1.1381473    600588.89   -600588.89 
+      70    264.53512   -1.1552439   -1.1552439    -1.138147    601667.76   -601667.76 
+      80    209.04294   -1.1516571   -1.1516571   -1.1381466    602760.01   -602760.01 
+      90     161.3157   -1.1485722   -1.1485722   -1.1381463    603694.49   -603694.49 
+     100     128.9054   -1.1464773   -1.1464773   -1.1381461     604326.7    -604326.7 
+Loop time of 0.030198 on 1 procs for 100 steps with 2 atoms
 
-Performance: 134.655 ns/day, 0.178 hours/ns, 3117.013 timesteps/s
-98.3% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 143.056 ns/day, 0.168 hours/ns, 3311.478 timesteps/s
+98.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.030667   | 0.030667   | 0.030667   |   0.0 | 95.59
-Neigh   | 0.000584   | 0.000584   | 0.000584   |   0.0 |  1.82
-Comm    | 0.000307   | 0.000307   | 0.000307   |   0.0 |  0.96
-Output  | 0.000447   | 0.000447   | 0.000447   |   0.0 |  1.39
-Modify  | 2.8e-05    | 2.8e-05    | 2.8e-05    |   0.0 |  0.09
-Other   |            | 4.9e-05    |            |       |  0.15
+Pair    | 0.028723   | 0.028723   | 0.028723   |   0.0 | 95.12
+Neigh   | 0.000515   | 0.000515   | 0.000515   |   0.0 |  1.71
+Comm    | 0.000263   | 0.000263   | 0.000263   |   0.0 |  0.87
+Output  | 0.000618   | 0.000618   | 0.000618   |   0.0 |  2.05
+Modify  | 2.7e-05    | 2.7e-05    | 2.7e-05    |   0.0 |  0.09
+Other   |            | 5.2e-05    |            |       |  0.17
 
 Nlocal:    2 ave 2 max 2 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

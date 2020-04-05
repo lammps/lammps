@@ -1,4 +1,4 @@
-# DATE: 2014-09-05 CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
+# DATE: 2020-04-04 CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
 
 # Definition of SNAP potential Ta_Cand06A
 # Assumes 1 LAMMPS atom type
@@ -11,7 +11,7 @@ variable zblz equal 73
 
 pair_style hybrid/overlay &
 zbl ${zblcutinner} ${zblcutouter} &
-snap
+mliap model linear Ta06A.mliap.model descriptor sna Ta06A.mliap.descriptor
 pair_coeff 1 1 zbl ${zblz} ${zblz}
-pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta
+pair_coeff * * mliap Ta
 

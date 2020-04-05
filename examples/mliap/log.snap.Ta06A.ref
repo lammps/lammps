@@ -1,5 +1,4 @@
-LAMMPS (27 Nov 2018)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (19 Mar 2020)
 # Demonstrate SNAP Ta potential
 
 # Initialize simulation
@@ -7,7 +6,7 @@ LAMMPS (27 Nov 2018)
 variable nsteps index 100
 variable nrep equal 4
 variable a equal 3.316
-units		metal
+units           metal
 
 # generate the box and atom positions using a BCC lattice
 
@@ -18,21 +17,21 @@ variable ny equal 4
 variable nz equal ${nrep}
 variable nz equal 4
 
-boundary	p p p
+boundary        p p p
 
 lattice         bcc $a
 lattice         bcc 3.316
 Lattice spacing in x,y,z = 3.316 3.316 3.316
-region		box block 0 ${nx} 0 ${ny} 0 ${nz}
-region		box block 0 4 0 ${ny} 0 ${nz}
-region		box block 0 4 0 4 0 ${nz}
-region		box block 0 4 0 4 0 4
-create_box	1 box
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
 Created orthogonal box = (0 0 0) to (13.264 13.264 13.264)
   1 by 1 by 1 MPI processor grid
-create_atoms	1 box
+create_atoms    1 box
 Created 128 atoms
-  Time spent = 0.000350714 secs
+  create_atoms CPU = 0.000254 secs
 
 mass 1 180.88
 
@@ -56,7 +55,7 @@ pair_style hybrid/overlay zbl 4 4.8 snap
 pair_coeff 1 1 zbl ${zblz} ${zblz}
 pair_coeff 1 1 zbl 73 ${zblz}
 pair_coeff 1 1 zbl 73 73
-pair_coeff * * snap Ta06A.snapcoeff Ta Ta06A.snapparam Ta
+pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta
 Reading potential file Ta06A.snapcoeff with DATE: 2014-09-05
 SNAP Element = Ta, Radius 0.5, Weight 1 
 Reading potential file Ta06A.snapparam with DATE: 2014-09-05
@@ -64,14 +63,21 @@ SNAP keyword rcutfac 4.67637
 SNAP keyword twojmax 6 
 SNAP keyword rfac0 0.99363 
 SNAP keyword rmin0 0 
-SNAP keyword diagonalstyle 3 
 SNAP keyword bzeroflag 0 
 SNAP keyword quadraticflag 0 
 
 
 # Setup output
 
-thermo		10
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
+thermo          10
 thermo_modify norm yes
 
 # Set up NVE run
@@ -103,33 +109,33 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 4.138 | 4.138 | 4.138 Mbytes
-Step Temp E_pair E_mol TotEng Press 
-       0          300    -11.85157            0   -11.813095    2717.1661 
-      10    295.96579   -11.851053            0   -11.813095    2696.1559 
-      20    284.32535    -11.84956            0   -11.813095    2301.3713 
-      30    266.04602   -11.847215            0   -11.813095    1832.1745 
-      40     242.2862   -11.844168            0   -11.813095    1492.6765 
-      50    214.48968   -11.840603            0   -11.813094    1312.8908 
-      60    184.32523   -11.836734            0   -11.813094     1284.582 
-      70    153.58055   -11.832791            0   -11.813094    1374.4457 
-      80    124.04276   -11.829003            0   -11.813094     1537.703 
-      90     97.37622   -11.825582            0   -11.813094    1734.9662 
-     100    75.007873   -11.822714            0   -11.813094    1930.8005 
-Loop time of 5.03244 on 1 procs for 100 steps with 128 atoms
+Per MPI rank memory allocation (min/avg/max) = 6.591 | 6.591 | 6.591 Mbytes
+Step Temp E_pair c_energy TotEng Press v_press 
+       0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
+      10    295.96579   -11.851053   -11.851053   -11.813095    2696.1559   -2696.1559 
+      20    284.32535    -11.84956    -11.84956   -11.813095    2301.3713   -2301.3713 
+      30    266.04602   -11.847215   -11.847215   -11.813095    1832.1745   -1832.1745 
+      40     242.2862   -11.844168   -11.844168   -11.813095    1492.6765   -1492.6765 
+      50    214.48968   -11.840603   -11.840603   -11.813094    1312.8908   -1312.8908 
+      60    184.32523   -11.836734   -11.836734   -11.813094     1284.582    -1284.582 
+      70    153.58055   -11.832791   -11.832791   -11.813094    1374.4457   -1374.4457 
+      80    124.04276   -11.829003   -11.829003   -11.813094     1537.703    -1537.703 
+      90     97.37622   -11.825582   -11.825582   -11.813094    1734.9662   -1734.9662 
+     100    75.007873   -11.822714   -11.822714   -11.813094    1930.8005   -1930.8005 
+Loop time of 0.995328 on 1 procs for 100 steps with 128 atoms
 
-Performance: 0.858 ns/day, 27.958 hours/ns, 19.871 timesteps/s
-98.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 4.340 ns/day, 5.530 hours/ns, 100.469 timesteps/s
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.0308     | 5.0308     | 5.0308     |   0.0 | 99.97
+Pair    | 0.99426    | 0.99426    | 0.99426    |   0.0 | 99.89
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00070858 | 0.00070858 | 0.00070858 |   0.0 |  0.01
-Output  | 0.00024676 | 0.00024676 | 0.00024676 |   0.0 |  0.00
-Modify  | 0.0002749  | 0.0002749  | 0.0002749  |   0.0 |  0.01
-Other   |            | 0.0004299  |            |       |  0.01
+Comm    | 0.000305   | 0.000305   | 0.000305   |   0.0 |  0.03
+Output  | 0.000413   | 0.000413   | 0.000413   |   0.0 |  0.04
+Modify  | 0.000159   | 0.000159   | 0.000159   |   0.0 |  0.02
+Other   |            | 0.000191   |            |       |  0.02
 
 Nlocal:    128 ave 128 max 128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -145,4 +151,4 @@ Ave neighs/atom = 58
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:05
+Total wall time: 0:00:01

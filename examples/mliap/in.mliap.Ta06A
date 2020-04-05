@@ -24,22 +24,18 @@ mass 1 180.88
 
 # choose potential
 
-# Assumes 1 LAMMPS atom type
- 
-variable zblcutinner equal 4
-variable zblcutouter equal 4.8
-variable zblz equal 73
-
-# Specify hybrid with SNAP, ZBL
-
-pair_style hybrid/overlay &
-zbl ${zblcutinner} ${zblcutouter} &
-mliap/snap
-pair_coeff 1 1 zbl ${zblz} ${zblz}
-pair_coeff * * mliap/snap Ta06A.snapcoeff Ta06A.snapparam Ta
+include Ta06A.mliap
 
 # Setup output
 
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
 thermo          10
 thermo_modify norm yes
 

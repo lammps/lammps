@@ -1,7 +1,7 @@
 # LAMMPS SNAP coefficients for Quadratic W
 
+# nelements ncoeff
 1 496
-W 0.5 1
   0.000000000000
  -0.000019342340
   0.000039964908

@@ -2,8 +2,8 @@
 
 # LAMMPS SNAP coefficients for Ta_Cand06A
 
+# nelements ncoeff
 1 31
-Ta 0.5 1
 -2.92477
 -0.01137
 -0.00775

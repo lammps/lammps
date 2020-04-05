@@ -124,12 +124,13 @@
       file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
               EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
       execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+      add_library(OpenCL::OpenCL UNKNOWN IMPORTED)
       if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
-        set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
+	set_target_properties(OpenCL::OpenCL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
       elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-        set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
+	set_target_properties(OpenCL::OpenCL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
       endif()
-      set(OpenCL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
+      set_target_properties(OpenCL::OpenCL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
     else()
       find_package(OpenCL REQUIRED)
     endif()
@@ -179,8 +180,8 @@
     )
 
     add_library(gpu STATIC ${GPU_LIB_SOURCES})
-    target_link_libraries(gpu PRIVATE ${OpenCL_LIBRARIES})
-    target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
+    target_link_libraries(gpu PRIVATE OpenCL::OpenCL)
+    target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu)
     target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
     target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
@@ -188,8 +189,7 @@
 
     add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
     target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
-    target_link_libraries(ocl_get_devices PRIVATE ${OpenCL_LIBRARIES})
-    target_include_directories(ocl_get_devices PRIVATE ${OpenCL_INCLUDE_DIRS})
+    target_link_libraries(ocl_get_devices PRIVATE OpenCL::OpenCL)
   endif()
 
   # GPU package

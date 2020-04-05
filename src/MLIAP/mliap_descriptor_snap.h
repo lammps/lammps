@@ -14,44 +14,33 @@
 #ifndef LMP_MLIAP_DESCRIPTOR_SNAP_H
 #define LMP_MLIAP_DESCRIPTOR_SNAP_H
 
-#include "pointers.h"
+#include "mliap_descriptor.h"
 
 namespace LAMMPS_NS {
 
-class MLIAPDescriptorSNAP : protected Pointers  {
+class MLIAPDescriptorSNAP : public MLIAPDescriptor  {
 public:
-  MLIAPDescriptorSNAP(LAMMPS *);
+  MLIAPDescriptorSNAP(LAMMPS*, char*, class PairMLIAP*);
   ~MLIAPDescriptorSNAP();
   virtual void forward(class NeighList*, double**);
-  virtual void backward(class NeighList*, double**);
-  virtual void init(int, char **);
+  virtual void backward(class NeighList*, double**, int);
+  virtual void init();
+  virtual double get_cutoff(int, int);
   virtual double memory_usage();
 
   double rcutfac;                // declared public to workaround gcc 4.9
-  int ncoeff;                    //  compiler bug, manifest in KOKKOS package
-  int *map;                     // mapping from atom types to elements
-  double **cutsq;                // cutoff sq for each atom pair
-
+                                 // compiler bug, manifest in KOKKOS package
 protected:
-  int allocated;
   class SNA* snaptr;
-  virtual void allocate();
-  void read_files(char *, char *);
+  void read_paramfile(char *);
   inline int equal(double* x,double* y);
   inline double dist2(double* x,double* y);
 
-  void compute_bispectrum();
-
-  double rcutmax;               // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
   double *radelem;              // element radii
   double *wjelem;               // elements weights
   int twojmax, switchflag, bzeroflag, bnormflag;
   int alloyflag, wselfallflag;
-  int chunksize;
-  double rfac0, rmin0, wj1, wj2;
-  int rcutfacflag, twojmaxflag; // flags for required parameters
+  double rfac0, rmin0;
 };
 
 }

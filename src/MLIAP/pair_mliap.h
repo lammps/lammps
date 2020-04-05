@@ -13,45 +13,39 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(mliap/snap,PairMLIAPSNAP)
+PairStyle(mliap,PairMLIAP)
 
 #else
 
-#ifndef LMP_PAIR_MLIAP_SNAP_H
-#define LMP_PAIR_MLIAP_SNAP_H
+#ifndef LMP_PAIR_MLIAP_H
+#define LMP_PAIR_MLIAP_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairMLIAPSNAP : public Pair {
+class PairMLIAP : public Pair {
 public:
-  PairMLIAPSNAP(class LAMMPS *);
-  ~PairMLIAPSNAP();
+  PairMLIAP(class LAMMPS *);
+  ~PairMLIAP();
   virtual void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();
-
-  double rcutfac, quadraticflag; // declared public to workaround gcc 4.9
-  int ncoeff;                    //  compiler bug, manifest in KOKKOS package
+  int *map;                     // mapping from atom types to elements
 
 protected:
   virtual void allocate();
-  void read_files(char *, char *);
-  inline int equal(double* x,double* y);
-  inline double dist2(double* x,double* y);
 
-  void compute_bispectrum();
-
-  double* atomenergy;           // energies for all atoms in list
   double** beta;                // betas for all atoms in list
-  double** bispectrum;          // bispectrum components for all atoms in list
-  int beta_max;                 // length of beta
-  class MLIAPModelSNAP* model;
-  class MLIAPDescriptorSNAP* descriptor;
+  double** descriptors;         // descriptors for all atoms in list
+  int ndescriptors;             // number of descriptors 
+  int beta_max;                 // number of atoms allocated for beta, descriptors
+
+  class MLIAPModel* model;
+  class MLIAPDescriptor* descriptor;
 };
 
 }

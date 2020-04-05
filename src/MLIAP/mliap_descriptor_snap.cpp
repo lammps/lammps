@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_snap.h"
+#include "pair_mliap.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
@@ -33,17 +34,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp): Pointers(lmp)
+MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename, 
+                                         PairMLIAP* pairmliap_in): 
+  MLIAPDescriptor(lmp, pairmliap_in)
 {
   nelements = 0;
   elements = NULL;
   radelem = NULL;
   wjelem = NULL;
-
-  cutsq = NULL;
-  map = NULL;
-
   snaptr = NULL;
+  read_paramfile(paramfilename);
+  pairmliap = pairmliap_in;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,18 +62,13 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 
   delete snaptr;
 
-  if (allocated) {
-    memory->destroy(cutsq);
-    memory->destroy(map);
-  }
-
 }
 
 /* ----------------------------------------------------------------------
-   compute bispectrum components
+   compute descriptors for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::forward(NeighList* list, double **bispectrum)
+void MLIAPDescriptorSNAP::forward(NeighList* list, double **descriptors)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
@@ -88,7 +84,7 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **bispectrum)
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    const int ielem = map[itype];
+    const int ielem = pairmliap->map[itype];
     const double radi = radelem[ielem];
 
     jlist = list->firstneigh[i];
@@ -113,11 +109,11 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **bispectrum)
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = map[jtype];
+      int jelem = pairmliap->map[jtype];
 
       //      printf("i = %d j = %d itype = %d jtype = %d cutsq[i][j] = %g rsq = %g\n",i,j,itype,jtype,cutsq[itype][jtype],rsq);
 
-      if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+      if (rsq < pairmliap->cutsq[itype][jtype]&&rsq>1e-20) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
@@ -129,24 +125,27 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **bispectrum)
       }
     }
 
-    snaptr->compute_ui(ninside, ielem);
+    if (alloyflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
-    snaptr->compute_bi(ielem);
+    if (alloyflag)
+      snaptr->compute_bi(ielem);
+    else
+      snaptr->compute_bi(0);
 
-    //    printf("ninside = %d jnum = %d radi = %g cutsq[i][1] = %g rsq = %g\n",ninside,jnum,radi,cutsq[itype][1]);
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-      bispectrum[ii][icoeff] = snaptr->blist[icoeff];
-      //      printf("icoeff = %d B = %g\n",icoeff,bispectrum[ii][icoeff]);
-    }
+    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
+      descriptors[ii][icoeff] = snaptr->blist[icoeff];
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   compute bispectrum components
+   compute forces for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
+void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta, int vflag)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
@@ -169,7 +168,7 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    const int ielem = map[itype];
+    const int ielem = pairmliap->map[itype];
     const double radi = radelem[ielem];
 
     jlist = firstneigh[i];
@@ -194,9 +193,9 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = map[jtype];
+      int jelem = pairmliap->map[jtype];
 
-      if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+      if (rsq < pairmliap->cutsq[itype][jtype]&&rsq>1e-20) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
@@ -210,7 +209,10 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
 
     // compute Ui, Yi for atom I
 
-    snaptr->compute_ui(ninside, ielem);
+    if (alloyflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
 
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi
@@ -223,8 +225,12 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                             snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      if(alloyflag)
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      else
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_deidrj(fij);
 
@@ -235,72 +241,25 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta)
       f[j][1] -= fij[1];
       f[j][2] -= fij[2];
 
+      // tally per-atom virial contribution
+      
+      if (vflag)
+        pairmliap->ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+                     fij[0],fij[1],fij[2],
+                     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
+                     -snaptr->rij[jj][2]);
+      
     }
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays
-------------------------------------------------------------------------- */
-
-void MLIAPDescriptorSNAP::allocate()
-{
-  allocated = 1;
-  int n = atom->ntypes;
-
-  memory->create(cutsq,n+1,n+1,"mliap_descriptor_snap:cutsq");
-  memory->create(map,n+1,"mliap_descriptor_snap:map");
-}
-
-/* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::init(int narg, char **arg)
+void MLIAPDescriptorSNAP::init()
 {
-  if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
-  if (!allocated) allocate();
-
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-  }
-
-  char* type1 = arg[0];
-  char* type2 = arg[1];
-  char* coefffilename = arg[2];
-  char* paramfilename = arg[3];
-  char** elemtypes = &arg[4];
-
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read snapcoeff and snapparam files
-
-  read_files(coefffilename,paramfilename);
-
-  // read args that map atom types to SNAP elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    char* elemname = elemtypes[i-1];
-    int jelem;
-    for (jelem = 0; jelem < nelements; jelem++)
-      if (strcmp(elemname,elements[jelem]) == 0)
-        break;
-
-    if (jelem < nelements)
-      map[i] = jelem;
-    else if (strcmp(elemname,"NULL") == 0) map[i] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
@@ -308,148 +267,23 @@ void MLIAPDescriptorSNAP::init(int narg, char **arg)
 
   snaptr->init();
 
-  ncoeff = snaptr->ncoeff;
+  ndescriptors = snaptr->ncoeff;
 
-  // Calculate maximum cutoff for all elements
-
-  rcutmax = 0.0;
-  for (int ielem = 0; ielem < nelements; ielem++)
-    rcutmax = MAX(2.0*radelem[ielem]*rcutfac,rcutmax);
-
-  // set cutoff distances
-
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++) {
-      double rtmp = (radelem[map[i]] + radelem[map[j]])*rcutfac;
-      cutsq[i][j] = rtmp*rtmp;
-    }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
+void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 {
-
-  // open SNAP coefficient file on proc 0
-
-  FILE *fpcoeff;
-  if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
-    if (fpcoeff == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
-      error->one(FLERR,str);
-    }
-  }
-
-  char line[MAXLINE],*ptr;
-  int eof = 0;
-
-  int n;
-  int nwords = 0;
-  while (nwords == 0) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fpcoeff);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fpcoeff);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-  }
-  if (nwords != 2)
-    error->all(FLERR,"Incorrect format in SNAP coefficient file");
-
-  // words = ptrs to all words in line
-  // strip single and double quotes from words
-
-  char* words[MAXWORD];
-  int iword = 0;
-  words[iword] = strtok(line,"' \t\n\r\f");
-  iword = 1;
-  words[iword] = strtok(NULL,"' \t\n\r\f");
-
-  nelements = atoi(words[0]);
-  int ncoeffall = atoi(words[1]);
-
-  // set up element lists
-
-  elements = new char*[nelements];
-  memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
-  memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
-
-  // Loop over nelements blocks in the SNAP coefficient file
-
-  for (int ielem = 0; ielem < nelements; ielem++) {
-
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fpcoeff);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fpcoeff);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof)
-      error->all(FLERR,"Incorrect format in SNAP coefficient file");
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    nwords = atom->count_words(line);
-    if (nwords != 3)
-      error->all(FLERR,"Incorrect format in SNAP coefficient file");
-
-    iword = 0;
-    words[iword] = strtok(line,"' \t\n\r\f");
-    iword = 1;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
-    iword = 2;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
-
-    char* elemtmp = words[0];
-    int n = strlen(elemtmp) + 1;
-    elements[ielem] = new char[n];
-    strcpy(elements[ielem],elemtmp);
-
-    radelem[ielem] = atof(words[1]);
-    wjelem[ielem] = atof(words[2]);
-
-    if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
-      if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
-    }
-
-    for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
-      if (comm->me == 0) {
-        ptr = fgets(line,MAXLINE,fpcoeff);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fpcoeff);
-        } else n = strlen(line) + 1;
-      }
-
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
-    }
-  }
-
-  if (comm->me == 0) fclose(fpcoeff);
 
   // set flags for required keywords
 
-  rcutfacflag = 0;
-  twojmaxflag = 0;
+  int rcutfacflag = 0;
+  int twojmaxflag = 0;
+  int nelementsflag = 0;
+  int elementsflag = 0;
+  int radelemflag = 0;
+  int wjelemflag = 0;
 
   // Set defaults for optional keywords
 
@@ -460,7 +294,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
   bnormflag = 0;
   alloyflag = 0;
   wselfallflag = 0;
-  chunksize = 2000;
 
   // open SNAP parameter file on proc 0
 
@@ -474,7 +307,10 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
     }
   }
 
-  eof = 0;
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int n,nwords;
+
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpparam);
@@ -494,9 +330,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    if (nwords != 2)
-      error->all(FLERR,"Incorrect format in SNAP parameter file");
-
     // words = ptrs to all words in line
     // strip single and double quotes from words
 
@@ -508,37 +341,90 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
       if (logfile) fprintf(logfile,"SNAP keyword %s %s \n",keywd,keyval);
     }
 
-    if (strcmp(keywd,"rcutfac") == 0) {
-      rcutfac = atof(keyval);
-      rcutfacflag = 1;
-    } else if (strcmp(keywd,"twojmax") == 0) {
-      twojmax = atoi(keyval);
-      twojmaxflag = 1;
-    } else if (strcmp(keywd,"rfac0") == 0)
-      rfac0 = atof(keyval);
-    else if (strcmp(keywd,"rmin0") == 0)
-      rmin0 = atof(keyval);
-    else if (strcmp(keywd,"switchflag") == 0)
-      switchflag = atoi(keyval);
-    else if (strcmp(keywd,"bzeroflag") == 0)
-      bzeroflag = atoi(keyval);
-    else if (strcmp(keywd,"alloyflag") == 0)
-      alloyflag = atoi(keyval);
-    else if (strcmp(keywd,"wselfallflag") == 0)
-      wselfallflag = atoi(keyval);
-    else if (strcmp(keywd,"chunksize") == 0)
-      chunksize = atoi(keyval);
-    else if (strcmp(keywd,"quadraticflag") == 0)
-      continue;
-    else
-      error->all(FLERR,"Incorrect SNAP parameter file");
-  }
+    // check for keywords with one value per element 
+    
+    if (strcmp(keywd,"elems") == 0 ||
+        strcmp(keywd,"radelems") == 0 ||
+        strcmp(keywd,"welems") == 0) {
 
+      if (nelementsflag == 0 || nwords != nelements+1)
+        error->all(FLERR,"Incorrect SNAP parameter file");
+
+      if (strcmp(keywd,"elems") == 0) {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          char* elemtmp = keyval;
+          int n = strlen(elemtmp) + 1;
+          elements[ielem] = new char[n];
+          strcpy(elements[ielem],elemtmp);
+          keyval = strtok(NULL,"' \t\n\r\f");
+        }
+        elementsflag = 1;
+      } else if (strcmp(keywd,"radelems") == 0) {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          radelem[ielem] = atof(keyval);
+          keyval = strtok(NULL,"' \t\n\r\f");
+        }
+        radelemflag = 1;
+      } else if (strcmp(keywd,"welems") == 0) {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          wjelem[ielem] = atof(keyval);
+          keyval = strtok(NULL,"' \t\n\r\f");
+        }
+        wjelemflag = 1;
+      }
+
+    } else {
+
+    // all other keywords take one value 
+
+      if (nwords != 2) 
+        error->all(FLERR,"Incorrect SNAP parameter file");
+
+      if (strcmp(keywd,"nelems") == 0) {
+        nelements = atoi(keyval);
+        elements = new char*[nelements];
+        memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
+        memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
+        nelementsflag = 1;
+      } else if (strcmp(keywd,"rcutfac") == 0) {
+        rcutfac = atof(keyval);
+        rcutfacflag = 1;
+      } else if (strcmp(keywd,"twojmax") == 0) {
+        twojmax = atoi(keyval);
+        twojmaxflag = 1;
+      } else if (strcmp(keywd,"rfac0") == 0)
+        rfac0 = atof(keyval);
+      else if (strcmp(keywd,"rmin0") == 0)
+        rmin0 = atof(keyval);
+      else if (strcmp(keywd,"switchflag") == 0)
+        switchflag = atoi(keyval);
+      else if (strcmp(keywd,"bzeroflag") == 0)
+        bzeroflag = atoi(keyval);
+      else if (strcmp(keywd,"alloyflag") == 0)
+        alloyflag = atoi(keyval);
+      else if (strcmp(keywd,"wselfallflag") == 0)
+        wselfallflag = atoi(keyval);
+      else
+        error->all(FLERR,"Incorrect SNAP parameter file");
+
+    }
+  }
+  
   bnormflag = alloyflag;
 
-  if (rcutfacflag == 0 || twojmaxflag == 0)
+  if (!rcutfacflag || !twojmaxflag || !nelementsflag || 
+      !elementsflag || !radelemflag || !wjelemflag)
     error->all(FLERR,"Incorrect SNAP parameter file");
 
+}
+
+/* ----------------------------------------------------------------------
+   provide cutoff distance for two elements
+------------------------------------------------------------------------- */
+
+double MLIAPDescriptorSNAP::get_cutoff(int ielem, int jelem)
+{
+  return (radelem[ielem] + radelem[jelem])*rcutfac;
 }
 
 /* ----------------------------------------------------------------------
@@ -548,10 +434,6 @@ void MLIAPDescriptorSNAP::read_files(char *coefffilename, char *paramfilename)
 double MLIAPDescriptorSNAP::memory_usage()
 {
   double bytes = 0;
-
-  int n = atom->ntypes+1;
-  bytes += n*n*sizeof(double);   // cutsq
-  bytes += n*sizeof(int);        // map
 
   bytes += snaptr->memory_usage(); // SNA object
 

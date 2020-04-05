@@ -658,8 +658,12 @@ install(
 # This is primarily for people that only want to use the Python wrapper.
 ###############################################################################
 if(BUILD_LIB AND BUILD_SHARED_LIBS)
-  find_package(PythonInterp)
-  if (PYTHONINTERP_FOUND)
+  if(CMAKE_VERSION VERSION_LESS 3.12)
+    find_package(PythonInterp) # Deprecated since version 3.12
+  else()
+    find_package(Python COMPONENTS Interpreter)
+  endif()
+  if (PYTHON_EXECUTABLE)
     add_custom_target(
       install-python
       ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
@@ -684,8 +688,12 @@ endif()
 # This requires either a shared library or that the PYTHON package is included.
 ###############################################################################
 if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
-  find_package(PythonInterp)
-  if (PYTHONINTERP_FOUND)
+  if(CMAKE_VERSION VERSION_LESS 3.12)
+    find_package(PythonInterp) # Deprecated since version 3.12
+  else()
+    find_package(Python COMPONENTS Interpreter)
+  endif()
+  if (PYTHON_EXECUTABLE)
     execute_process(COMMAND ${PYTHON_EXECUTABLE}
       -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
       OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)

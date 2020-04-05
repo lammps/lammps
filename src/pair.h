@@ -129,7 +129,7 @@ class Pair : protected Pointers {
   virtual void modify_params(int, char **);
   void compute_dummy(int, int);
 
-  // need to be public, so can be called by pair_style reaxc
+  // need to be public, so can be called by pair_style reaxc, mliap
 
   void v_tally(int, double *, double *);
   void ev_tally(int, int, int, int, double, double, double,
@@ -141,6 +141,7 @@ class Pair : protected Pointers {
                 double *, double *, double *);
   void ev_tally_xyz(int, int, int, int, double, double,
                     double, double, double, double, double, double);
+  void ev_tally_full(int, double, double, double, double, double, double);
 
   // general child-class methods
 
@@ -247,7 +248,6 @@ class Pair : protected Pointers {
   }
   virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
-  void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
                          double, double, double, double, double, double);
   void ev_tally4(int, int, int, int, double,

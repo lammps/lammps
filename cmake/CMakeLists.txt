@@ -347,7 +347,7 @@ endif()
 foreach(PKG_WITH_INCL KSPACE PYTHON VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
         USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS)
   if(PKG_${PKG_WITH_INCL})
-    include(Packages/${_PKG_INCL})
+    include(Packages/${PKG_WITH_INCL})
   endif()
 endforeach()
 
@@ -474,7 +474,7 @@ endif()
 ######################################################################
 foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
-    include(Packages/${_PKG_INCL})
+    include(Packages/${PKG_WITH_INCL})
   endif()
 endforeach()
 

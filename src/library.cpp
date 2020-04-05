@@ -473,6 +473,8 @@ Currently the following query types are supported:
 ------------------------------------------------------------------------- */
 int lammps_extract_setting(void * ptr, char *name)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
   if (strcmp(name,"imageint") == 0) return sizeof(imageint);

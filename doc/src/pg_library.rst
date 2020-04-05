@@ -93,7 +93,7 @@ example, a wrapper code might decide to alternate between LAMMPS and
 another code, allowing them both to run on all the processors.  Or it
 might allocate part of the processors to LAMMPS and the rest to the
 other code by creating a custom communicator with ``MPI_Comm_split()``
-and runing both codes concurrently before syncing them up periodically.
+and running both codes concurrently before syncing them up periodically.
 Or it might instantiate multiple instances of LAMMPS to perform
 different calculations and either alternate between them, run them
 concurrently on split communicators, or run them one after the other.
@@ -169,34 +169,17 @@ commands with the following functions.
 
 Via these functions, the calling code can have the LAMMPS instance act
 on a series of :doc:`input file commands <Commands_all>` that are either
-read from a file or passed as strings.  This for, for example, allow
-interface to setup a problem from a template file and then run it in
-stages while performing other operations in between or concurrently.
-The caller can interleave the command function calls with operations it
-performs, calls to extract information from or set information within
-LAMMPS, or calls to another code's library.
+read from a file or passed as strings.  This for, for example, allows to
+setup a problem from a template file and then run it in stages while
+performing other operations in between or concurrently.  The caller can
+interleave the LAMMPS function calls with operations it performs, calls
+to extract information from or set information within LAMMPS, or calls
+to another code's library.
 
-The :ref:`lammps_file() <lammps_file>` function passes the filename of
-an input script. The :ref:`lammps_command() <lammps_command>` function
-passes a single command as a string. The
-:ref:`lammps_commands_list() <lammps_commands_list>` function passes
-multiple commands in a ``char **`` type list.  In both
-:ref:`lammps_command() <lammps_command>` and
-:ref:`lammps_commands_list() <lammps_commands_list>`,
-individual commands may or may not have a trailing newline.  The
-:ref:`lammps_commands_string() <lammps_commands_string>` function
-passes multiple commands concatenated into one long string,
-separated by newline characters.
-In both :ref:`lammps_commands_list() <lammps_commands_list>` and
-:ref:`lammps_commands_string() <lammps_commands_string>`, a single
-command can be spread across multiple lines, if the last printable
-character of all but the last line is "&", same as if the lines
-appeared in an input script.
-
-Also equivalent to input scripts is the expansion of variables in
-``${name}`` or ``$(expression)`` syntax.
-
-Below is a short example using some of these functions.
+Also equivalent to :doc:`input script parsing <Commands_parse>` is the
+handling of comments and expansion of variables with ``${name}`` or
+``$(expression)`` syntax before the commands are parsed and
+executed. Below is a short example using some of these functions.
 
 .. code-block:: C
 

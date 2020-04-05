@@ -490,7 +490,9 @@ if(PKG_USER-ATC)
   target_compile_definitions(atc PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 endif()
 
-include(Packages/USER-H5MD)
+if(PKG_USER-H5MD)
+  include(Packages/USER-H5MD)
+endif()
 
 ######################################################################
 # packages which selectively include variants based on enabled styles

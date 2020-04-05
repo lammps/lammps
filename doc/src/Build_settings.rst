@@ -420,8 +420,8 @@ Exception handling when using LAMMPS as a library
 This setting is useful when external codes drive LAMMPS as a library.
 With this option enabled, LAMMPS errors do not kill the calling code.
 Instead, the call stack is unwound and control returns to the caller,
-e.g. to Python. Of course the calling code has to be set up to
-*catch* exceptions from within LAMMPS.
+e.g. to Python. Of course, the calling code has to be set up to
+*catch* exceptions thrown from within LAMMPS.
 
 **CMake variable**\ :
 
@@ -434,3 +434,10 @@ e.g. to Python. Of course the calling code has to be set up to
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_EXCEPTIONS
+
+.. note::
+
+   When LAMMPS is running in parallel, it is not always possible to
+   cleanly recover from an exception since not all parallel ranks may
+   throw an exception and thus other MPI ranks may get stuck waiting for
+   messages from the ones with errors.

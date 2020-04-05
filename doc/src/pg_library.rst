@@ -42,6 +42,12 @@ pointer, which points to the location this LAMMPS class instance.
    returned data must be allocated to a suitable size.  Passing invalid
    or unsuitable information will likely cause crashes or corrupt data.
 
+.. seealso::
+
+   If any of the function calls in the LAMMPS library API will trigger
+   an error inside LAMMPS, this will result in an abort of the entire
+   program.  This is not always desirable.  Instead, LAMMPS can be
+   compiled to instead :ref:`throw a C++ exception <exceptions>`. 
 
 Creating or deleting a LAMMPS object
 ====================================

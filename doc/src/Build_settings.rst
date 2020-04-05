@@ -169,12 +169,12 @@ ARRAY mode.
 
 .. _size:
 
-Size of LAMMPS data types
+Size of LAMMPS integer types
 ------------------------------------
 
-LAMMPS has a few integer data types which can be defined as 4-byte or
-8-byte integers.  The default setting of "smallbig" is almost always
-adequate.
+LAMMPS has a few integer data types which can be defined as either
+4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
+The default setting of "smallbig" is almost always adequate.
 
 **CMake variable**\ :
 

@@ -62,15 +62,15 @@ Here is a simple example demonstrating its use:
 
 .. code-block:: C
 
-   #include <library.h>
+   #include "library.h"
    #include <stdio.h>
 
    int main(int argc, char **argv)
    {
      void *handle;
      int version;
-     const char *lmpargv[] { "lammps", "-log", "none"};
-     int lmpargc = 3;
+     const char *lmpargv[] { "liblammps", "-log", "none"};
+     int lmpargc = sizeof(lmpargv)/sizeof(const char *);
 
      /* create LAMMPS instance */
      lammps_open_no_mpi(lmpargc, lmpargv, &handle);
@@ -182,9 +182,9 @@ interleave the LAMMPS function calls with operations it performs, calls
 to extract information from or set information within LAMMPS, or calls
 to another code's library.
 
-Also equivalent to :doc:`input script parsing <Commands_parse>` is the
-handling of comments and expansion of variables with ``${name}`` or
-``$(expression)`` syntax before the commands are parsed and
+Also equivalent to regular :doc:`input script parsing <Commands_parse>`
+is the handling of comments and expansion of variables with ``${name}``
+or ``$(expression)`` syntax before the commands are parsed and
 executed. Below is a short example using some of these functions.
 
 .. code-block:: C
@@ -251,6 +251,11 @@ about the active simulation instance and also modify it.  This
 allows to combine MD simulation steps with other processing and
 simulation methods computed in the calling code or another code
 that is coupled to LAMMPS via the library interface.
+
+.. _lammps_extract_setting:
+.. doxygenfunction:: lammps_extract_setting
+   :project: progguide
+   :no-link:
 
 .. _lammps_get_natoms:
 .. doxygenfunction:: lammps_get_natoms

@@ -428,6 +428,16 @@ class lammps(object):
   # extract lammps type byte sizes
 
   def extract_setting(self, name):
+    """Query LAMMPS about immutable settings that can be expressed as an integer
+    This is a wrapper around the
+    :ref:`lammps_extract_setting() <lammps_extract_setting>`
+    function of the C-library interface.
+
+    :param name: name of the setting
+    :type name:  string
+    :return: value of the setting
+    :rtype: int
+    """
     if name: name = name.encode()
     self.lib.lammps_extract_setting.restype = c_int
     return int(self.lib.lammps_extract_setting(self.lmp,name))

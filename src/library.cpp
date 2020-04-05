@@ -306,8 +306,8 @@ part of the command and will not start a second command.  You may
 use the function :ref:`lammps_commands_string() <lammps_commands_string>`
 to process a string with multiple command lines.
 
-The function returns the name of the command on success, ``NULL`` on a
-string without a command,  or will abort with an error message.
+The function returns the name of the command on success or ``NULL``
+when passing a string without a command.
 \endverbatim
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -340,7 +340,6 @@ into a single string,  while inserting newline characters, if needed.
 The combined string would be equivalent to a multi-line chunk of an
 input file and is then internally passed to
 :ref:`lammps_commands_string() <lammps_commands_string>` for processing.
-
 \endverbatim
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -375,11 +374,12 @@ void lammps_commands_list(void *ptr, int ncmd, char **cmds)
 /** \brief Process a block of LAMMPS input commands from a single string
  *
 \verbatim embed:rst
-This function will process a string similar to a block of an input file.
-The string may have multiple lines (separated by newline characters)
-and also single commands distributed over multiple lines with continuation
-characters ('&').  Those lines are combined by removing the '&' and the
-following newline character.
+This function will process a string similar to a block of commands from
+an input file.  The string may have multiple lines (separated by newline
+characters) and also single commands may be distributed over multiple
+lines with continuation characters ('&').  Those lines are combined by
+removing the '&' and the following newline character.  After this processing
+the string is handed to LAMMPS for parsing and executing.
 
 .. note::
 
@@ -433,18 +433,32 @@ void lammps_commands_string(void *ptr, char *str)
 // library API functions to extract info from LAMMPS or set info in LAMMPS
 // ----------------------------------------------------------------------
 
-/* ----------------------------------------------------------------------
-   add LAMMPS-specific library functions
-   all must receive LAMMPS pointer as argument
-   customize by adding a function here and in library.h header file
-------------------------------------------------------------------------- */
+/** \brief Query LAMMPS about immutable settings that can be expressed as an integer
+ *
+\verbatim embed:rst
+Currently the following query types are supported:
+
+1. LAMMPS has a few integer data types which can be defined as either 4-byte
+   (= 32-bit) or 8-byte (= 64-bit) integers.  These sizes are selected at
+   :ref:`compile time <size>`.  This function allows to query how the
+   LAMMPS library was compiled.
+
+   Supported integer types are ``bigint`` (used for total number of atoms
+   and timestep number), ``tagint`` (used for atom IDs), and ``imageint``
+   used for image flags.  The return value will be the number of bytes,
+   either 4 or 8, or -1 in case an unknown name was passed to the function.
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param name string with name of the setting
+ * \return the value of the queried setting as a signed integer or -1 if unknown
+ */
 
 /* ----------------------------------------------------------------------
-   extract a LAMMPS setting as an integer
-   only use for settings that require return of an int
-   customize by adding names
+   only use for read-only settings that require return of an int.
+   customize by adding names.
 ------------------------------------------------------------------------- */
-
 int lammps_extract_setting(void * /*ptr*/, char *name)
 {
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);

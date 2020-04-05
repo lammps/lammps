@@ -98,7 +98,7 @@ using namespace LAMMPS_NS;
 /** \brief Create an instance of the LAMMPS class and store reference in ptr
  *
 \verbatim embed:rst
-The :ref:`lammps_open() <lammps_open>` function will create a new
+The :cpp:func:`lammps_open` function will create a new
 LAMMPS instance while passing in a list of strings as if they were
 :doc:`command-line arguments <Run_options>` when LAMMPS is run in
 stand-alone mode from the command line, and an MPI communicator for
@@ -137,7 +137,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 /** \brief Variant of lammps_open() that implicitly uses ``MPI_COMM_WORLD``
  *
 \verbatim embed:rst
-This function works like :ref:`lammps_open() <lammps_open>`, but
+This function works like :cpp:func:`lammps_open`, but
 does not require to pass an MPI communicator.  Instead it will use
 ``MPI_COMM_WORLD`` when creating a LAMMPS instance.  It first calls
 ``MPI_Init()`` if the MPI environment is not yet initialized.
@@ -187,12 +187,11 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
  *
 \verbatim embed:rst
 This function deletes a LAMMPS class instance pointed to by ``ptr``.
-It does **not** call ``MPI_Finalize()`` to allow creating
-and deleting multiple LAMMPS instances.  See :ref:`lammps_finalize()
-<lammps_finalize>` for a function to call at the end of the program
-in order to close down the MPI infrastructure in case the calling
-program is not using MPI and was creating the LAMMPS instance
-through :ref:`lammps_open_no_mpi() <lammps_open_no_mpi>`.
+It does **not** call ``MPI_Finalize()`` to allow creating and deleting
+multiple LAMMPS instances.  See :cpp:func:`lammps_finalize` for a
+function to call at the end of the program in order to close down the
+MPI infrastructure in case the calling program is not using MPI and was
+creating the LAMMPS instance through :c:func:`lammps_open_no_mpi`.
 \endverbatim
 */
 void lammps_close(void *ptr)
@@ -208,7 +207,7 @@ void lammps_close(void *ptr)
 
 \verbatim embed:rst
 
-The :ref:`lammps_version() <lammps_version>` function can be used to
+The :cpp:func:`lammps_version` function can be used to
 determine the specific version of the underlying LAMMPS code. This is
 particularly useful when loading LAMMPS as a shared library via dlopen()
 so that the calling code can handle changes in the C API, or differences
@@ -235,7 +234,7 @@ int lammps_version(void *ptr)
 The MPI standard requires that any MPI application calls
 ``MPI_Finalize()`` before exiting.  If a calling program does
 not do any MPI calls and creates the LAMMPS instance through
-:ref:`lammps_open_no_mpi() <lammps_open_no_mpi>`,
+:cpp:func:`lammps_open_no_mpi`,
 MPI is initialized implicitly using the ``MPI_COMM_WORLD``
 communicator, then this function should then be called
 before exiting the program to wait until all parallel
@@ -303,7 +302,7 @@ This function will process a single command in the string ``str``.
 The string may but need not have a final newline character.
 Newline characters in the body of the string will be treated as
 part of the command and will not start a second command.  You may
-use the function :ref:`lammps_commands_string() <lammps_commands_string>`
+use the function :cpp:func:`lammps_commands_string`
 to process a string with multiple command lines.
 
 The function returns the name of the command on success or ``NULL``
@@ -339,7 +338,7 @@ It does so by first concatenating the individual strings in ``cmds``
 into a single string,  while inserting newline characters, if needed.
 The combined string would be equivalent to a multi-line chunk of an
 input file and is then internally passed to
-:ref:`lammps_commands_string() <lammps_commands_string>` for processing.
+:cpp:func:`lammps_commands_string` for processing.
 \endverbatim
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -830,7 +829,7 @@ double lammps_get_thermo(void *ptr, char *name)
 
 \verbatim embed:rst
 This is particularly useful before making calls to
-:ref:`lammps_get_natoms() <lammps_get_natoms>` so one can
+:cpp:func:`lammps_get_natoms` so one can
 pre-allocate the correct amount of storage for the result vector.
 
 .. note::

@@ -110,14 +110,12 @@ class lammps(object):
   as shared library which is then dynamically loaded via the ctypes
   Python module or that this module called from a Python function that
   is called from a Python interpreter embedded into a LAMMPS executable.
-  When the class is instantiated it calls the :ref:`lammps_open()
-  <lammps_open>` function of the LAMMPS C-library interface, which in
-  turn will create an instance of the :ref:`LAMMPS class
-  <lammps_ns_lammps>`.
+  When the class is instantiated it calls the :cpp:func:`lammps_open` function of the LAMMPS C-library interface, which in
+  turn will create an instance of the :cpp:class:`LAMMPS` class.
 
   :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
   :type  name: string
-  :param idx: list of command line arguments to be passed to the :ref:`lammps_open() <lammps_open>` function.
+  :param idx: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.
   :type  idx: list
   :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter. None means load symbols from shared library.
   :type  ptr: pointer
@@ -335,14 +333,14 @@ class lammps(object):
   def close(self):
     """Explicitly delete a LAMMPS instance through the C-library interface
 
-    This is a wrapper around the :ref:`lammps_close() <lammps_close>` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
     """
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
     self.opened = 0
 
   def finalize(self):
-    """Shut down the MPI communication through the library interface by calling :ref:`lammps_finalize() <lammps_finalize>`.
+    """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
     """
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
@@ -352,7 +350,7 @@ class lammps(object):
   def version(self):
     """Return a numerical representation of the LAMMPS version in use.
 
-    This is a wrapper around the :ref:`lammps_close() <lammps_close>` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
 
     :return: version number
     :rtype:  int
@@ -362,7 +360,7 @@ class lammps(object):
   def file(self,file):
     """Read LAMMPS commands from a file
 
-    This is a wrapper around the :ref:`lammps_file() <lammps_file>` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_file` function of the C-library interface.
     It will open the file with the name/path `file` and process the LAMMPS commands line by line until
     the end. The function will return when the end of the file is reached.
     
@@ -377,7 +375,7 @@ class lammps(object):
   def command(self,cmd):
     """Process a single LAMMPS input command from a string
 
-    This is a wrapper around the :ref:`lammps_command() <lammps_command>` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_command` function of the C-library interface.
 
     :param cmd: a single lammps command
     :type cmd:  string
@@ -400,7 +398,7 @@ class lammps(object):
     """Process multiple LAMMPS input commands from a list of strings
 
     This is a wrapper around the
-    :ref:`lammps_commands_list() <lammps_commands_list>` function of
+    :cpp:func:`lammps_commands_list` function of
     the C-library interface.
 
     :param cmdlist: a single lammps command
@@ -416,7 +414,7 @@ class lammps(object):
     """Process a block of LAMMPS input commands from a string
 
     This is a wrapper around the
-    :ref:`lammps_commands_string() <lammps_commands_string>`
+    :cpp:func:`lammps_commands_string`
     function of the C-library interface.
 
     :param multicmd: text block of lammps commands
@@ -430,7 +428,7 @@ class lammps(object):
   def extract_setting(self, name):
     """Query LAMMPS about immutable settings that can be expressed as an integer
     This is a wrapper around the
-    :ref:`lammps_extract_setting() <lammps_extract_setting>`
+    :cpp:func:`lammps_extract_setting`
     function of the C-library interface.
 
     :param name: name of the setting
@@ -656,7 +654,7 @@ class lammps(object):
     """Get the total number of atoms in the LAMMPS instance.
 
     Limited to 32-bit integer due to the limitation of the
-    underlying :ref:`lammps_get_natoms() <lammps_get_natoms>` function.
+    underlying :cpp:func:`lammps_get_natoms` function.
 
     :rvalue: number of atoms
     :rtype: int

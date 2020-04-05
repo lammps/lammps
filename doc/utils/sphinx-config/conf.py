@@ -350,3 +350,7 @@ autodoc_member_order = 'bysource'
 breathe_projects = { "progguide" : os.path.join(conf_script_dir, '..', '..', 'doxygen', 'xml') }
 breathe_default_project = "progguide"
 breathe_show_define_initializer = True
+breathe_domain_by_extension = { "h"   : "cpp",
+                                "cpp" : "cpp",
+                                "c"   : "c",
+                                }

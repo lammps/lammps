@@ -2,7 +2,7 @@ LAMMPS Command Classes
 **********************
 
 In LAMMPS most commands are implemented as classes
-derived from the :ref:`Pointers <lammps_ns_pointers>`
+derived from the :cpp:class:`LAMMPS_NS::Pointers`
 class which have to contain a ``command()`` method.
 Creating the class instance corresponds to an
 input file command and its arguments are passed
@@ -11,7 +11,6 @@ command.
 
 ----------
 
-.. _lammps_ns_run:
 .. doxygenclass:: LAMMPS_NS::Run
    :project: progguide
    :members:
@@ -19,7 +18,6 @@ command.
 
 ----------
 
-.. _lammps_ns_write_data:
 .. doxygenclass:: LAMMPS_NS::WriteData
    :project: progguide
    :members:

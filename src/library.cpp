@@ -203,7 +203,7 @@ void lammps_close(void *ptr)
 
 /** \brief Get the numerical representation of the current LAMMPS version.
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \return an integer representing the version data in the format YYYYMMDD
 
 \verbatim embed:rst
@@ -214,10 +214,12 @@ particularly useful when loading LAMMPS as a shared library via dlopen()
 so that the calling code can handle changes in the C API, or differences
 in behavior, or available features (exported functions).
 
-The returned LAMMPS version code is an integer (e.g. a LAMMPS version
-string of 2 Sep 2015 results in 20150902) that will grows with every
-new LAMMPS release and thus is suitable for simple numerical comparisons.
-
+The returned LAMMPS version code is an integer in the format YYYYMMDD
+(e.g. a LAMMPS version string of 2 Sep 2015 results in 20150902) that
+will grow with every new LAMMPS release and thus is suitable for simple
+numerical comparisons, e. g. when a program calling the library interface
+is meant to be compatible with multiple LAMMPS versions with changes
+in the command syntax.
 \endverbatim
  */
 
@@ -267,14 +269,14 @@ void lammps_free(void *ptr)
 
 /** \brief Process LAMMPS input from a file
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param filename name of a file with LAMMPS input
 
 \verbatim embed:rst
 This function will process the commands in the file pointed to
 by ``filename`` line by line and thus functions very much like
 the :doc:`include <include>` command.  The function returns when
-the end of the file is reached and commands have complete.
+the end of the file is reached and the commands have completed.
 This may take considerable amounts of time, if the input file
 contains :doc:`run <run>` or :doc:`minimize <minimize>` commands.
 \endverbatim
@@ -298,19 +300,17 @@ void lammps_file(void *ptr, char *filename)
 \verbatim embed:rst
 This function will process a single command in the string ``str``.
 
-If the string can but need not have to have a newline character
-at the end.  If it contains a newline character in the middle it
-will be treated as part of the command and will not start a
-second command, but more likely result in a parsing error and an
-abort.  You may use the function
-:ref:`lammps_commands_string() <lammps_commands_string>` to process
-strings with multiple command lines.
+The string may but need not have a final newline character.
+Newline characters in the body of the string will be treated as
+part of the command and will not start a second command.  You may
+use the function :ref:`lammps_commands_string() <lammps_commands_string>`
+to process a string with multiple command lines.
 
 The function returns the name of the command on success, ``NULL`` on a
 string without a command,  or will abort with an error message.
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param str string with the LAMMPS command
  * \return string with command name or ``NULL``
  */
@@ -343,7 +343,7 @@ input file and is then internally passed to
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param ncmd number of strings in the list
  * \param cmds list of strings with the LAMMPS commands
  */
@@ -388,7 +388,7 @@ following newline character.
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to void *.
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param str string with block of LAMMPS input
  */
 void lammps_commands_string(void *ptr, char *str)

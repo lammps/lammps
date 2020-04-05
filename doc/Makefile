@@ -93,7 +93,7 @@ html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: $(VENV) utils/sphinx-config/false_positives.txt
+spelling: xmlgen $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\

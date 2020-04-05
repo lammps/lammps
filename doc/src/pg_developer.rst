@@ -40,7 +40,7 @@ corresponding package is installed.
 
 LAMMPS C++ source files almost always come in pairs, such as
 ``src/run.cpp`` and ``src/run.h``.  The pair of files defines a C++
-class, for example the :ref:`Run <lammps_ns_run>` class which contains
+class, for example the :cpp:class:`LAMMPS_NS::Run` class which contains
 the code invoked by the :doc:`run <run>` command in a LAMMPS input script.
 As this example illustrates, source file and class names often have a
 one-to-one correspondence with a command used in a LAMMPS input script.

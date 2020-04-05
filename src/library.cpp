@@ -432,40 +432,124 @@ void lammps_commands_string(void *ptr, char *str)
 // library API functions to extract info from LAMMPS or set info in LAMMPS
 // ----------------------------------------------------------------------
 
-/** \brief Query LAMMPS about immutable settings that can be expressed as an integer
+/** \brief Query LAMMPS about global settings that can be expressed as an integer
  *
 \verbatim embed:rst
 Currently the following query types are supported:
 
-1. LAMMPS has a few integer data types which can be defined as either 4-byte
-   (= 32-bit) or 8-byte (= 64-bit) integers.  These sizes are selected at
-   :ref:`compile time <size>`.  This function allows to query how the
-   LAMMPS library was compiled.
+.. list-table::
+   :header-rows: 1
+   :widths: auto
 
-   Supported integer types are ``bigint`` (used for total number of atoms
-   and timestep number), ``tagint`` (used for atom IDs), and ``imageint``
-   used for image flags.  The return value will be the number of bytes,
-   either 4 or 8, or -1 in case an unknown name was passed to the function.
+   * - Keyword
+     - Description
+   * - bigint
+     - size of the ``bigint`` integer type, 4 or 8 bytes.
+       Set at :ref:`compile time <size>`.
+   * - tagint
+     - size of the ``tagint`` integer type, 4 or 8 bytes.
+       Set at :ref:`compile time <size>`.
+   * - imageint
+     - size of the ``imageint`` integer type, 4 or 8 bytes.
+       Set at :ref:`compile time <size>`.
+   * - dimension
+     - Number of dimensions: 2 or 3. See :doc:`dimension`.
+   * - box_exist
+     - 1 if the simulation box is defined, 0 if not. See :doc:`create_box`.
+   * - triclinic
+     - if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
 
 \endverbatim
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name string with name of the setting
+ * \param name string with keyword of the setting
  * \return the value of the queried setting as a signed integer or -1 if unknown
  */
 
 /* ----------------------------------------------------------------------
-   only use for read-only settings that require return of an int.
-   customize by adding names.
+   NOTE: only use this for read-only settings that require return
+   of an int.  This can be customized by adding names and documenting
+   them in the section above.
 ------------------------------------------------------------------------- */
-int lammps_extract_setting(void * /*ptr*/, char *name)
+int lammps_extract_setting(void * ptr, char *name)
 {
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
   if (strcmp(name,"imageint") == 0) return sizeof(imageint);
+  if (strcmp(name,"dimension") == 0) return lmp->domain->dimension;
+  if (strcmp(name,"box_exist") == 0) return lmp->domain->box_exist;
+  if (strcmp(name,"triclinic") == 0) return lmp->domain->triclinic;
 
   return -1;
 }
+
+/** \brief Get pointer to an internal global LAMMPS variable.
+ *
+\verbatim embed:rst
+This function returns a pointer to the location of some global
+property stored in one of the constituent classes of a LAMMPS instance.
+The returned pointer is cast to ``void *`` and needs to be cast to a
+pointer of type that the entity represents.  The pointers are generally
+persistent unless a :doc:`clear` command is issued.
+
+The table below lists supported names, their data types, length,
+and a short description.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - dt
+     - double
+     - 1
+     - length of the time step. See :doc:`timestep`
+   * - boxlo
+     - double
+     - 3
+     - lower box boundaries. See :doc:`create_box`
+   * - boxhi
+     - double
+     - 3
+     - upper box boundaries. See :doc:`create_box`
+   * - boxxlo
+     - double
+     - 1
+     - lower box boundary in x-direction. See :doc:`create_box`
+   * - boxxhi
+     - double
+     - 1
+     - upper box boundary in x-direction. See :doc:`create_box`
+   * - boxylo
+     - double
+     - 1
+     - lower box boundary in y-direction. See :doc:`create_box`
+   * - boxyhi
+     - double
+     - 1
+     - upper box boundary in y-direction. See :doc:`create_box`
+   * - boxzlo
+     - double
+     - 1
+     - lower box boundary in z-direction. See :doc:`create_box`
+   * - boxzhi
+     - double
+     - 1
+     - upper box boundary in z-direction. See :doc:`create_box`
+   * - periodicity
+     - int
+     - 3
+     - 0 if non-periodic, 1 if periodic for x, y, and z. See :doc:`boundary`
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param name string with name of the entity
+ * \return pointer to the location of the requested variable or NULL if not found
+ */
 
 /* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS global entity
@@ -482,6 +566,7 @@ void *lammps_extract_global(void *ptr, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
+  if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
@@ -492,7 +577,7 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"boxzlo") == 0) return (void *) &lmp->domain->boxlo[2];
   if (strcmp(name,"boxzhi") == 0) return (void *) &lmp->domain->boxhi[2];
   if (strcmp(name,"periodicity") == 0) return (void *) lmp->domain->periodicity;
-
+  if (strcmp(name,"triclinic") == 0) return (void *) &lmp->domain->triclinic;
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
@@ -506,9 +591,6 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
-
-  if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
-  if (strcmp(name,"triclinic") == 0) return (void *) &lmp->domain->triclinic;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 

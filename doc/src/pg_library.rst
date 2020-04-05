@@ -230,6 +230,9 @@ that is coupled to LAMMPS via the library interface.
 .. doxygenfunction:: lammps_extract_setting
    :project: progguide
 
+.. doxygenfunction:: lammps_extract_global
+   :project: progguide
+
 .. doxygenfunction:: lammps_get_natoms
    :project: progguide
 

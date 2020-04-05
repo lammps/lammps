@@ -58,7 +58,7 @@ class NeighList:
 
     Internally it uses the lower-level LAMMPS C-library interface.
 
-    :param lmp: reference to instance of :class:`lammps`
+    :param lmp: reference to instance of :py:class:`lammps`
     :type  lmp: lammps
     :param idx: neighbor list index
     :type  idx: int
@@ -111,7 +111,7 @@ class lammps(object):
   Python module or that this module called from a Python function that
   is called from a Python interpreter embedded into a LAMMPS executable.
   When the class is instantiated it calls the :cpp:func:`lammps_open` function of the LAMMPS C-library interface, which in
-  turn will create an instance of the :cpp:class:`LAMMPS` class.
+  turn will create an instance of the :cpp:class:`LAMMPS_NS::LAMMPS` class.
 
   :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
   :type  name: string
@@ -653,7 +653,7 @@ class lammps(object):
   def get_natoms(self):
     """Get the total number of atoms in the LAMMPS instance.
 
-    Limited to 32-bit integer due to the limitation of the
+    Limited to a 32-bit integer due to the limitation of the
     underlying :cpp:func:`lammps_get_natoms` function.
 
     :rvalue: number of atoms

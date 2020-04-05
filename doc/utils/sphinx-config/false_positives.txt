@@ -275,6 +275,14 @@ Botu
 Bouguet
 Bourne
 boxcolor
+boxlo
+boxhi
+boxxlo
+boxxhi
+boxylo
+boxyhi
+boxzlo
+boxzhi
 bp
 bpclermont
 bpls

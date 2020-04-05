@@ -381,10 +381,16 @@ include(Packages/MSCG)
 include(Packages/COMPRESS)
 
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_TUNE_FLAGS}")
-if(CMAKE_Fortran_COMPILER)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CMAKE_TUNE_FLAGS}")
-endif()
+separate_arguments(CMAKE_TUNE_FLAGS)
+include(CheckCXXCompilerFlag)
+foreach(_FLAG ${CMAKE_TUNE_FLAGS})
+  check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAG})
+  if(COMPILER_SUPPORTS${_FLAG})
+    target_compile_options(lammps PRIVATE ${_FLAG})
+  else()
+    message(WARNING "${_FLAG} found in CMAKE_TUNE_FLAGS, but not supported by the compiler, skipping")
+  endif()
+endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

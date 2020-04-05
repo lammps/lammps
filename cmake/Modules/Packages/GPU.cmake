@@ -115,7 +115,21 @@
 
 
   elseif(GPU_API STREQUAL "OPENCL")
-    find_package(OpenCL REQUIRED)
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+      # download and unpack support binaries for compilation of windows binaries.
+      set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
+      file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
+              EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
+      execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+      if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
+        set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
+      elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+        set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
+      endif()
+      set(OpenCL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
+    else()
+      find_package(OpenCL REQUIRED)
+    endif()
     set(OCL_TUNE "generic" CACHE STRING "OpenCL Device Tuning")
     set(OCL_TUNE_VALUES intel fermi kepler cypress generic)
     set_property(CACHE OCL_TUNE PROPERTY STRINGS ${OCL_TUNE_VALUES})

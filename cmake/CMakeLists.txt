@@ -498,14 +498,11 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-include(Packages/CORESHELL)
-include(Packages/QEQ)
-include(Packages/USER-OMP)
-include(Packages/USER-SDPD)
-include(Packages/KOKKOS)
-include(Packages/OPT)
-include(Packages/USER-INTEL)
-include(Packages/GPU)
+foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU)
+  if(PKG_${PKG_WITH_INCL})
+    include(Packages/${_PKG_INCL})
+  endif()
+endforeach()
 
 ######################################################################
 # the windows version of LAMMPS requires a couple extra libraries

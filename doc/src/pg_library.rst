@@ -13,7 +13,7 @@ in the files ``src/library.h`` and ``src/library.cpp``, which are
 documented below.
 
 Behind the scenes this will create, delete, or modify an instance of the
-:cpp:class:`LAMMPS_NS::LAMMPS` class`.  Thus almost all functions
+:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.  Thus almost all functions
 require an argument containing a "handle" in the form of a ``void *``
 type variable, which points to the location this LAMMPS class instance.
 
@@ -103,7 +103,7 @@ The :cpp:func:`lammps_open` function may be called multiple
 times for this latter purpose.
 
 The :cpp:func:`lammps_close` function is used to shut down
-the :cpp:class:`LAMMPS_NS::LAMMPS` pointed to by the handle
+the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` pointed to by the handle
 passed as an argument and free all its memory. This has to be called for
 every instance created with any of the :cpp:func:`lammps_open` functions.  It will, however, **not** call
 ``MPI_Finalize()``, since that may only be called once.  See
@@ -227,11 +227,22 @@ allows to combine MD simulation steps with other processing and
 simulation methods computed in the calling code or another code
 that is coupled to LAMMPS via the library interface.
 
+-----------------------
+
 .. doxygenfunction:: lammps_extract_setting
    :project: progguide
 
+-----------------------
+
 .. doxygenfunction:: lammps_extract_global
    :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_extract_box
+   :project: progguide
+
+-------------------
 
 .. doxygenfunction:: lammps_get_natoms
    :project: progguide

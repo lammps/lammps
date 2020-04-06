@@ -819,11 +819,24 @@ void *lammps_extract_global(void *ptr, char *name)
   return NULL;
 }
 
-/* ----------------------------------------------------------------------
-   extract simulation box parameters
-   see domain.h for definition of these arguments
-   domain->init() call needed to set box_change
-------------------------------------------------------------------------- */
+/** \brief Extract simulation box parameters
+
+\verbatim embed:rst
+This function will (re-)initialize the simulation box and boundary information
+and then assign the designated data to the locations in the pointers passed as
+arguments.
+\endverbatim
+
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``
+ * \param boxlo pointer to 3 doubles where the lower box boundary is stored
+ * \param boxhi pointer to 3 doubles where the upper box boundary is stored
+ * \param xy pointer to a double where the xy tilt factor is stored
+ * \param yz pointer to a double where the yz tilt factor is stored
+ * \param xz pointer to a double where the xz tilt factor is stored
+ * \param periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
+ * \param box_change pointer to an int, which is set to 1 if the box will be
+ *        changed during a simulation by a fix and 0 if not.
+ */
 
 void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
                         double *xy, double *yz, double *xz,
@@ -831,6 +844,8 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
   Domain *domain = lmp->domain;
+
+  // domain->init() is needed to set box_change
   domain->init();
 
   boxlo[0] = domain->boxlo[0];

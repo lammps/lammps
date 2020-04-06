@@ -469,6 +469,14 @@ not recognized, the function returns -1.
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
    * - ntypes
      - number of atom types
+   * - molecule_flag
+     - 1 if the atom style includes molecular topology data. See :doc:`atom_style`.
+   * - q_flag
+     - 1 if the atom style includes point charges. See :doc:`atom_style`.
+   * - mu_flag
+     - 1 if the atom style includes point dipoles. See :doc:`atom_style`.
+   * - rmass_flag
+     - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
 
 \endverbatim
  *
@@ -489,14 +497,21 @@ int lammps_extract_setting(void * ptr, char *name)
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
   if (strcmp(name,"imageint") == 0) return sizeof(imageint);
+
   if (strcmp(name,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(name,"box_exist") == 0) return lmp->domain->box_exist;
   if (strcmp(name,"triclinic") == 0) return lmp->domain->triclinic;
+
   if (strcmp(name,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return lmp->atom->nghost;
   if (strcmp(name,"nall") == 0) return lmp->atom->nlocal+lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return lmp->atom->nmax;
   if (strcmp(name,"ntypes") == 0) return lmp->atom->ntypes;
+
+  if (strcmp(name,"molecule_flag") == 0) return lmp->atom->molecule_flag;
+  if (strcmp(name,"q_flag") == 0) return lmp->atom->q_flag;
+  if (strcmp(name,"mu_flag") == 0) return lmp->atom->mu_flag;
+  if (strcmp(name,"rmass_flag") == 0) return lmp->atom->rmass_flag;
 
   return -1;
 }
@@ -637,6 +652,90 @@ is selected at :ref:`compile time <size>`.
      - int
      - 1
      - number of atom types
+   * - q_flag
+     - int
+     - 1
+     - 1 if the atom style includes point charges. See :doc:`atom_style`.
+   * - atime
+     - double
+     - 1
+     - accumulated simulation time in time units.
+   * - atimestep
+     - bigint
+     - 1
+     - the number of the timestep when "atime" was last updated.
+   * - boltz
+     - double
+     - 1
+     - value of the "boltz" constant. See :doc:`units`.
+   * - hplanck
+     - double
+     - 1
+     - value of the "hplanck" constant. See :doc:`units`.
+   * - mvv2e
+     - double
+     - 1
+     - factor to convert :math:`\frac{1}{2}mv^2` for a particle to the current energy unit. See :doc:`units`.
+   * - ftm2v
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - mv2d
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - nktv2p
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - qqr2e
+     - double
+     - 1
+     - factor to convert :math:`\frac{q_i q_j}{r}` to energy units. See :doc:`units`.
+   * - qe2f
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - vxmu2f
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - xxt2kmu
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - dielectric
+     - double
+     - 1
+     - value of the dielectric constant. See :doc:`dielectric`.
+   * - qqrd2e
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - e_mass
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - hhmrr2e
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - mvh2r
+     - double
+     - 1
+     -  . See :doc:`units`.
+   * - angstrom
+     - double
+     - 1
+     - constant to convert current length unit to angstroms. 1.0 for reduced (aka "lj") units. See :doc:`units`.
+   * - femtosecond
+     - double
+     - 1
+     - constant to convert current time unit to femtoseconds. 1.0 for reduced (aka "lj") units
+   * - qelectron
+     - double
+     - 1
+     -  . See :doc:`units`.
 
 \endverbatim
  *

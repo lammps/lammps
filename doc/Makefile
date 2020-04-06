@@ -92,8 +92,7 @@ html: $(ANCHORCHECK) $(MATHJAX)
 spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
-		pip install sphinxcontrib-spelling ;\
-		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
@@ -195,7 +194,9 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install --upgrade pip; \
-		pip install Sphinx; \
+               pip install Sphinx=2.4.4; \
+		pip install sphinxcontrib-spelling ;\
+		pip install breathe; \
 		deactivate;\
 	)
 

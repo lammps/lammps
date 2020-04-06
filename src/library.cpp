@@ -459,6 +459,16 @@ not recognized, the function returns -1.
      - 1 if the simulation box is defined, 0 if not. See :doc:`create_box`.
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
+   * - nlocal
+     - number of "owned" atoms of the current MPI rank.
+   * - nghost
+     - number of "ghost" atoms of the current MPI rank.
+   * - nall
+     - number of all "owned" and "ghost" atoms of the current MPI rank.
+   * - nmax
+     - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
+   * - ntypes
+     - number of atom types
 
 \endverbatim
  *
@@ -468,8 +478,8 @@ not recognized, the function returns -1.
  */
 
 /* ----------------------------------------------------------------------
-   NOTE: only use this for read-only settings that require return
-   of an int.  This can be customized by adding names and documenting
+   NOTE: only use this for settings that return an int.
+   This can be customized by adding keywords and documenting
    them in the section above.
 ------------------------------------------------------------------------- */
 int lammps_extract_setting(void * ptr, char *name)
@@ -482,6 +492,11 @@ int lammps_extract_setting(void * ptr, char *name)
   if (strcmp(name,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(name,"box_exist") == 0) return lmp->domain->box_exist;
   if (strcmp(name,"triclinic") == 0) return lmp->domain->triclinic;
+  if (strcmp(name,"nlocal") == 0) return lmp->atom->nlocal;
+  if (strcmp(name,"nghost") == 0) return lmp->atom->nghost;
+  if (strcmp(name,"nall") == 0) return lmp->atom->nlocal+lmp->atom->nghost;
+  if (strcmp(name,"nmax") == 0) return lmp->atom->nmax;
+  if (strcmp(name,"ntypes") == 0) return lmp->atom->ntypes;
 
   return -1;
 }
@@ -492,23 +507,26 @@ int lammps_extract_setting(void * ptr, char *name)
 This function returns a pointer to the location of some global
 property stored in one of the constituent classes of a LAMMPS instance.
 The returned pointer is cast to ``void *`` and needs to be cast to a
-pointer of type that the entity represents.  The pointers are generally
-persistent unless a :doc:`clear` command is issued.
+pointer of type that the entity represents.  The pointers returned
+by this function are generally persistent unless, i.e. it is not
+necessary to call the function again, unless a :doc:`clear` command
+is issued and the :cpp:class:`LAMMPS_NS::LAMMPS` class is restarted.
 
 .. warning::
 
    Modifying the data in the location pointed to by the returned
    pointer may lead to inconsistent internal data and thus may
-   cause failures or crashes or bogus simulations.  Better to use
-   a LAMMPS input command that sets or changes these parameters
-   and also takes care of all side effects.  Where possible a
-   reference to such a command or a relevant section of the manual
-   is given.
+   cause failures or crashes or bogus simulations.  In general it
+   is thus usually better to use a LAMMPS input command that sets
+   or changes these parameters.  Those will takes care of all side
+   effects and necessary updates of settings derived from such
+   settings.  Where possible a reference to such a command or a
+   relevant section of the manual is given below.
 
-The table below lists supported names, their data types, length,
-and a short description.  The ``bigint`` type may be defined to
-be either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>`.
+This table lists the supported names, their data types, length
+of the data area, and a short description.  The ``bigint`` type
+may be defined to be either an ``int`` or an ``int64_t``.  This
+is selected at :ref:`compile time <size>`.
 
 
 .. list-table::
@@ -615,6 +633,10 @@ be either an ``int`` or an ``int64_t``.  This is selected at
      - int
      - 1
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
+   * - ntypes
+     - int
+     - 1
+     - number of atom types
 
 \endverbatim
  *

@@ -262,6 +262,7 @@ Boltzman
 BondAngle
 BondBond
 bondchk
+BondingIDs
 bondmax
 bondtype
 Bonet
@@ -366,7 +367,8 @@ chemistries
 Chemnitz
 Cheng
 Chenoweth
-chiral
+ChiralIDs
+chiralIDs
 chirality
 Cho
 chris
@@ -433,6 +435,7 @@ cond
 conda
 Conda
 Condens
+Connor
 conf
 config
 configfile
@@ -564,6 +567,7 @@ defn
 deformable
 del
 delaystep
+DeleteIDs
 deleteIDs
 Dellago
 delocalization
@@ -713,6 +717,7 @@ Ec
 ecoul
 ecp
 Ecut
+EdgeIDs
 edgeIDs
 edihed
 edim
@@ -1050,6 +1055,7 @@ gpu
 gpuID
 gpus
 gradV
+GradVidottan
 graining
 Graining
 Grama
@@ -1157,6 +1163,7 @@ Houlle
 howto
 Howto
 Hoyt
+Hs
 hstyle
 html
 hTST
@@ -1388,6 +1395,7 @@ KDevelop
 ke
 KE
 Keblinski
+Keefe
 keflag
 Keir
 Kelchner
@@ -1410,6 +1418,7 @@ Klapp
 Kloss
 kmax
 Kmax
+KMP
 Knizhnik
 knl
 Kofke
@@ -1578,6 +1587,7 @@ lmpqst
 lmpsdata
 Lmpsdata
 lmptype
+LMT
 ln
 localTemp
 localvectors
@@ -2658,6 +2668,8 @@ Shi
 Shiga
 Shinoda
 shlib
+SHM
+shm
 shockvel
 si
 SiC

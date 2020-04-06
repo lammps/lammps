@@ -36,6 +36,7 @@ LAMMPS_INT    = 0
 LAMMPS_DOUBLE = 1
 LAMMPS_BIGINT = 2
 LAMMPS_TAGINT = 3
+LAMMPS_STRING = 4
 
 def get_ctypes_int(size):
   if size == 4:
@@ -426,9 +427,8 @@ class lammps(object):
   # extract lammps type byte sizes
 
   def extract_setting(self, name):
-    """Query LAMMPS about immutable settings that can be expressed as an integer
-    This is a wrapper around the
-    :cpp:func:`lammps_extract_setting`
+    """Query LAMMPS about global settings that can be expressed as an integer
+    This is a wrapper around the :cpp:func:`lammps_extract_setting`
     function of the C-library interface.
 
     :param name: name of the setting
@@ -442,7 +442,25 @@ class lammps(object):
 
   # extract global info
 
-  def extract_global(self,name,type):
+  def extract_global(self, name, type):
+    """Query LAMMPS about immutable settings that can be expressed as an integer
+    This is a wrapper around the :cpp:func:`lammps_extract_global`
+    function of the C-library interface.  Unlike the C function
+    this method returns the value and not a pointer and thus can
+    only return the first value for keywords representing a list
+    of values.  In addition, you need to provide the data type
+    to which the returned data needs to be converted to.  For that
+    purpose the lammps module contains the constants
+    LAMMPS_INT, LAMMPS_DOUBLE, LAMMPS_BIGINT, LAMMPS_TAGINT, and
+    LAMMPS_STRING.
+
+    :param name: name of the setting
+    :type name:  string
+    :param type: type of the returned data
+    :type name:  int
+    :return: value of the setting
+    :rtype: int
+    """
     if name: name = name.encode()
     if type == LAMMPS_INT:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
@@ -452,6 +470,10 @@ class lammps(object):
       self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
     elif type == LAMMPS_TAGINT:
       self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
+    elif type == LAMMPS_STRING:
+      self.lib.lammps_extract_global.restype = c_char_p
+      ptr = self.lib.lammps_extract_global(self.lmp,name)
+      return str(ptr,'ascii')
     else: return None
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]

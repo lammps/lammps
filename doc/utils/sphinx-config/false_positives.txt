@@ -376,6 +376,7 @@ chemistries
 Chemnitz
 Cheng
 Chenoweth
+chiral
 ChiralIDs
 chiralIDs
 chirality

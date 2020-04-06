@@ -199,7 +199,6 @@ xmlgen : doxygen/xml/index.xml
 
 doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
 	@(cd doxygen; doxygen Doxyfile)
-	@touch src/pg_*.rst
 
 # ------------------------------------------
 

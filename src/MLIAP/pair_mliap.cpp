@@ -217,6 +217,63 @@ void PairMLIAP::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   add energy of atom i to global and per-atom energy
+   this is called by MLIAPModel::gradient()
+------------------------------------------------------------------------- */
+
+void PairMLIAP::e_tally(int i, double evdwl)
+{
+  if (eflag_global) eng_vdwl += evdwl;
+  if (eflag_atom) eatom[i] += evdwl;
+}
+
+/* ----------------------------------------------------------------------
+   add virial contribution into global and per-atom accumulators
+   this is called by MLIAPDescriptor::backward()
+------------------------------------------------------------------------- */
+
+void PairMLIAP::v_tally(int i, int j,
+                        double fx, double fy, double fz,
+                        double delx, double dely, double delz)
+{
+  double v[6];
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+
+    if (vflag_atom) {
+      vatom[i][0] += 0.5*v[0];
+      vatom[i][1] += 0.5*v[1];
+      vatom[i][2] += 0.5*v[2];
+      vatom[i][3] += 0.5*v[3];
+      vatom[i][4] += 0.5*v[4];
+      vatom[i][5] += 0.5*v[5];
+
+      vatom[j][0] += 0.5*v[0];
+      vatom[j][1] += 0.5*v[1];
+      vatom[j][2] += 0.5*v[2];
+      vatom[j][3] += 0.5*v[3];
+      vatom[j][4] += 0.5*v[4];
+      vatom[j][5] += 0.5*v[5];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 

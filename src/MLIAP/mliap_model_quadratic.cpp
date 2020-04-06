@@ -70,6 +70,9 @@ void MLIAPModelQuadratic::gradient(NeighList* list, double **descriptors, double
       }
     }
 
+    // add in contributions to global and per-atom energy
+    // this is optional and has no effect on force calculation
+ 
     if (eflag) {
 
       // energy of atom I
@@ -93,7 +96,7 @@ void MLIAPModelQuadratic::gradient(NeighList* list, double **descriptors, double
           etmp += coeffi[k++]*bveci*bvecj;
         }
       }
-      pairmliap->ev_tally_full(i,2.0*etmp,0.0,0.0,0.0,0.0,0.0);
+      pairmliap->e_tally(i,etmp);
     }
   }
 }

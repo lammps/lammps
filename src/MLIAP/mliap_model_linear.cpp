@@ -57,6 +57,9 @@ void MLIAPModelLinear::gradient(NeighList* list, double **descriptors, double **
     for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
       beta[ii][icoeff] = coeffi[icoeff+1];
 
+    // add in contributions to global and per-atom energy
+    // this is optional and has no effect on force calculation
+
     if (eflag) {
 
       // energy of atom I
@@ -69,7 +72,7 @@ void MLIAPModelLinear::gradient(NeighList* list, double **descriptors, double **
       for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*descriptors[ii][icoeff];
       
-      pairmliap->ev_tally_full(i,2.0*etmp,0.0,0.0,0.0,0.0,0.0);
+      pairmliap->e_tally(i,etmp);
     }
   }
 }

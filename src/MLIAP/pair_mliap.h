@@ -31,6 +31,10 @@ public:
   virtual void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
+  void e_tally(int, double);
+  void v_tally(int, int,
+               double, double, double,
+               double, double, double);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();

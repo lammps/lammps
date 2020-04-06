@@ -241,10 +241,11 @@ void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta, int vflag)
       f[j][1] -= fij[1];
       f[j][2] -= fij[2];
 
-      // tally per-atom virial contribution
+      // add in gloabl and per-atom virial contributions
+      // this is optional and has no effect on force calculation
       
       if (vflag)
-        pairmliap->ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+        pairmliap->v_tally(i,j,
                      fij[0],fij[1],fij[2],
                      -snaptr->rij[jj][0],-snaptr->rij[jj][1],
                      -snaptr->rij[jj][2]);

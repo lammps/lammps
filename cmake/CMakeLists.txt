@@ -128,8 +128,6 @@ endif()
 
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
-set(LAMMPS_API_DEFINES)
-
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
   REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
@@ -206,8 +204,7 @@ set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
 set_property(CACHE LAMMPS_SIZES PROPERTY STRINGS ${LAMMPS_SIZES_VALUES})
 validate_option(LAMMPS_SIZES LAMMPS_SIZES_VALUES)
 string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
-target_compile_definitions(lammps PRIVATE -DLAMMPS_${LAMMPS_SIZES})
-set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_${LAMMPS_SIZES}")
+target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 
 # posix_memalign is not available on Windows
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -222,7 +219,6 @@ endif()
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
   target_compile_definitions(lammps PUBLIC -DLAMMPS_EXCEPTIONS)
-  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
 # "hard" dependencies between packages resulting
@@ -557,6 +553,11 @@ if(BUILD_LIB)
   endforeach()
   target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/includes>)
   add_library(LAMMPS::lammps ALIAS lammps)
+  get_target_property(LAMMPS_DEFINES lammps INTERFACE_COMPILE_DEFINITIONS)
+  set(LAMMPS_API_DEFINES)
+  foreach(_DEF ${LAMMPS_DEFINES})
+    set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -D${_DEF}")
+  endforeach()
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)

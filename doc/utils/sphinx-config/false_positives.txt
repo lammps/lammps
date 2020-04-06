@@ -1606,6 +1606,7 @@ Lookups
 LoopVar
 Lorant
 lorenz
+Los
 lossless
 lossy
 Lozovik

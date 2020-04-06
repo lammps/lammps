@@ -51,8 +51,28 @@ required to download external files and tools.
 
 Building the PDF format manual requires in addition a compatible LaTeX
 installation with support for PDFLaTeX and several add-on LaTeX packages
-installed.
+installed.  This includes:
+- amsmath
+- anysize
+- babel
+- capt-of
+- cmap
+- fncychap
+- framed
+- geometry
+- hyperref
+- hypcap
+- needspace
+- times
+- tabulary
+- upquote
+- wrapfig
 
+Building the EPUB format requires LaTeX installation with the same packages
+as for the PDF format plus the 'dvipng' command to convert the embedded math
+into images. The MOBI format is generated from the EPUB format file by using
+the tool 'ebook-convert' from the 'calibre' e-book management software
+(https://calibre-ebook.com).
 ----------------
 
 More details this can be found in the manual itself. The online

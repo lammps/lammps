@@ -1,10 +1,14 @@
 BootStrap: docker
-From: ubuntu:18.04
+From: rocm/dev-ubuntu-18.04
+
+%environment
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
 
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y software-properties-common
     apt-get install --no-install-recommends -y \
         bc \
         build-essential \
@@ -29,6 +33,7 @@ From: ubuntu:18.04
         libjpeg-dev \
         liblapack-dev \
         libopenblas-dev \
+        libnuma-dev \
         libpng-dev \
         libproj-dev \
         libvtk6-dev \
@@ -45,23 +50,27 @@ From: ubuntu:18.04
         python3-pkg-resources \
         python3-setuptools \
         python3-virtualenv \
+        rocm-libs \
         rsync \
         ssh \
-        texlive \
-        texlive-latex-recommended \
-        texlive-pictures \
-        texlive-publishers \
-        texlive-science \
-        dvipng \
         vim-nox \
         virtualenv \
         voro++-dev \
         wget \
         xxd
 
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    git clone https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    mkdir hipCUB/build
+    cd hipCUB/build
+    CXX=hcc cmake -D BUILD_TEST=off ..
+    make -j4
+    make package
+    make install
+
 %environment
         LC_ALL=C
         export LC_ALL
 
 %labels
-    Author akohlmey, rbberger
+    Author rbberger

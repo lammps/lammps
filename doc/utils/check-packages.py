@@ -45,7 +45,7 @@ usrpkg = []
 # folder, and is not called 'MAKE' is a package 
 
 for d in pkgdirs:
-  pkg = dirs.match(d)[1]
+  pkg = dirs.match(d).group(1)
   if not os.path.isdir(os.path.join(src,pkg)): continue
   files = glob(os.path.join(src,pkg,"*.cpp"))
   if len(files) == 0: continue

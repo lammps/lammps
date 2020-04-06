@@ -288,11 +288,19 @@ Currently *bond* does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The only bonds that currently are
 working with fix_adapt are
 
-+---------------------------------+-------+------------+
-| :doc:`gromos <bond_gromos>`     | k, r0 | type bonds |
-+---------------------------------+-------+------------+
-| :doc:`harmonic <bond_harmonic>` | k,r0  | type bonds |
-+---------------------------------+-------+------------+
++------------------------------------+-------+------------+
+| :doc:`class2 <bond_class2>`        | r0    | type bonds |
++------------------------------------+-------+------------+
+| :doc:`fene <bond_fene>`            | k, r0 | type bonds |
++------------------------------------+-------+------------+
+| :doc:`gromos <bond_gromos>`        | k, r0 | type bonds |
++------------------------------------+-------+------------+
+| :doc:`harmonic <bond_harmonic>`    | k,r0  | type bonds |
++------------------------------------+-------+------------+
+| :doc:`morse <bond_morse>`          | r0    | type bonds |
++------------------------------------+-------+------------+
+| :doc:`nonlinear <bond_nonlinear>`  | r0    | type bonds |
++------------------------------------+-------+------------+
 
 ----------
 

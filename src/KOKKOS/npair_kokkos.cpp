@@ -279,7 +279,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method 
+            } else Kokkos::parallel_for(nall, f); // fall back to flat method
           } else
             Kokkos::parallel_for(nall, f);
 #else

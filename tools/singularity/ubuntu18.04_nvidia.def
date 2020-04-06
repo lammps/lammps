@@ -60,5 +60,9 @@ From: nvidia/cuda:10.2-devel-ubuntu18.04
     mkdir -p /etc/OpenCL/vendors
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
+%environment
+        LC_ALL=C
+        export LC_ALL
+
 %labels
     Author rbberger

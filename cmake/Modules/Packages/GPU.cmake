@@ -116,9 +116,6 @@
 
   elseif(GPU_API STREQUAL "OPENCL")
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-      if(CMAKE_VERSION VERSION_LESS 3.11)
-	message(FATAL_ERROR "Downloading OpenCL currently only works with cmake-3.11 and higher")
-      endif()
       # download and unpack support binaries for compilation of windows binaries.
       set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
       file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"

@@ -435,8 +435,13 @@ void lammps_commands_string(void *ptr, char *str)
 /** \brief Query LAMMPS about global settings that can be expressed as an integer
  *
 \verbatim embed:rst
-The following query keywords are currently supported. If the keyword is
+
+This function will retrieve or compute global properties and return them
+as an integer.
+The following query keywords are currently supported. If a keyword is
 not recognized, the function returns -1.
+
+Please also see :cpp:func:`lammps_extract_global`.
 
 .. list-table::
    :header-rows: 1
@@ -484,16 +489,11 @@ not recognized, the function returns -1.
  * \param name string with keyword of the setting
  * \return the value of the queried setting as a signed integer or -1 if unknown
  */
-
-/* ----------------------------------------------------------------------
-   NOTE: only use this for settings that return an int.
-   This can be customized by adding keywords and documenting
-   them in the section above.
-------------------------------------------------------------------------- */
 int lammps_extract_setting(void * ptr, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
+// This can be customized by adding keywords and documenting them in the section above.
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
   if (strcmp(name,"imageint") == 0) return sizeof(imageint);
@@ -516,7 +516,7 @@ int lammps_extract_setting(void * ptr, char *name)
   return -1;
 }
 
-/** \brief Get pointer to an internal global LAMMPS variable.
+/** \brief Get pointer to internal global LAMMPS variables or arrays.
  *
 \verbatim embed:rst
 This function returns a pointer to the location of some global
@@ -525,7 +525,11 @@ The returned pointer is cast to ``void *`` and needs to be cast to a
 pointer of type that the entity represents.  The pointers returned
 by this function are generally persistent unless, i.e. it is not
 necessary to call the function again, unless a :doc:`clear` command
-is issued and the :cpp:class:`LAMMPS_NS::LAMMPS` class is restarted.
+is issued and the contents of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
+class are wiped out and recreated.
+
+Please also see :cpp:func:`lammps_extract_setting` and
+:cpp:func:`lammps_extract_box`.
 
 .. warning::
 
@@ -741,19 +745,8 @@ is selected at :ref:`compile time <size>`.
  *
  * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param name string with name of the entity
- * \return pointer to the location of the requested variable or NULL if not found
+ * \return pointer cast to ``void *`` to the location of the requested property. NULL if unknown keyword name
  */
-
-/* ----------------------------------------------------------------------
-   extract a pointer to an internal LAMMPS global entity
-   name = desired quantity, e.g. dt or boxyhi or natoms
-   returns a void pointer to the entity
-     which the caller can cast to the proper data type
-   returns a NULL if name not listed below
-   this function need only be invoked once
-     the returned pointer is a permanent valid reference to the quantity
-   customize by adding names
-------------------------------------------------------------------------- */
 
 void *lammps_extract_global(void *ptr, char *name)
 {
@@ -837,7 +830,6 @@ arguments.
  * \param box_change pointer to an int, which is set to 1 if the box will be
  *        changed during a simulation by a fix and 0 if not.
  */
-
 void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
                         double *xy, double *yz, double *xz,
                         int *periodicity, int *box_change)

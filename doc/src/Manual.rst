@@ -37,7 +37,7 @@ every LAMMPS command.
 
 .. _lws: https://lammps.sandia.gov
 
-.. user_documentation::
+.. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
@@ -60,7 +60,7 @@ every LAMMPS command.
    Errors
    Manual_build
 
-.. programmer_documentation::
+.. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3

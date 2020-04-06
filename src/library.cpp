@@ -263,7 +263,7 @@ void lammps_free(void *ptr)
 }
 
 // ----------------------------------------------------------------------
-// library API functions to process commands 
+// library API functions to process commands
 // ----------------------------------------------------------------------
 
 /** \brief Process LAMMPS input from a file
@@ -435,14 +435,15 @@ void lammps_commands_string(void *ptr, char *str)
 /** \brief Query LAMMPS about global settings that can be expressed as an integer
  *
 \verbatim embed:rst
-Currently the following query types are supported:
+The following query keywords are currently supported. If the keyword is
+not recognized, the function returns -1.
 
 .. list-table::
    :header-rows: 1
    :widths: auto
 
    * - Keyword
-     - Description
+     - Description / Return value
    * - bigint
      - size of the ``bigint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
@@ -457,7 +458,7 @@ Currently the following query types are supported:
    * - box_exist
      - 1 if the simulation box is defined, 0 if not. See :doc:`create_box`.
    * - triclinic
-     - if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
+     - 1 if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
 
 \endverbatim
  *
@@ -494,8 +495,21 @@ The returned pointer is cast to ``void *`` and needs to be cast to a
 pointer of type that the entity represents.  The pointers are generally
 persistent unless a :doc:`clear` command is issued.
 
+.. warning::
+
+   Modifying the data in the location pointed to by the returned
+   pointer may lead to inconsistent internal data and thus may
+   cause failures or crashes or bogus simulations.  Better to use
+   a LAMMPS input command that sets or changes these parameters
+   and also takes care of all side effects.  Where possible a
+   reference to such a command or a relevant section of the manual
+   is given.
+
 The table below lists supported names, their data types, length,
-and a short description.
+and a short description.  The ``bigint`` type may be defined to
+be either an ``int`` or an ``int64_t``.  This is selected at
+:ref:`compile time <size>`.
+
 
 .. list-table::
    :header-rows: 1
@@ -505,46 +519,102 @@ and a short description.
      - Type
      - Length
      - Description
+   * - units
+     - char \*
+     - 1
+     - string with the current unit style. See :doc:`units`.
    * - dt
      - double
      - 1
-     - length of the time step. See :doc:`timestep`
+     - length of the time step. See :doc:`timestep`.
+   * - ntimestep
+     - bigint
+     - 1
+     - current time step number. See :doc:`reset_timestep`.
    * - boxlo
      - double
      - 3
-     - lower box boundaries. See :doc:`create_box`
+     - lower box boundaries. See :doc:`create_box`.
    * - boxhi
      - double
      - 3
-     - upper box boundaries. See :doc:`create_box`
+     - upper box boundaries. See :doc:`create_box`.
    * - boxxlo
      - double
      - 1
-     - lower box boundary in x-direction. See :doc:`create_box`
+     - lower box boundary in x-direction. See :doc:`create_box`.
    * - boxxhi
      - double
      - 1
-     - upper box boundary in x-direction. See :doc:`create_box`
+     - upper box boundary in x-direction. See :doc:`create_box`.
    * - boxylo
      - double
      - 1
-     - lower box boundary in y-direction. See :doc:`create_box`
+     - lower box boundary in y-direction. See :doc:`create_box`.
    * - boxyhi
      - double
      - 1
-     - upper box boundary in y-direction. See :doc:`create_box`
+     - upper box boundary in y-direction. See :doc:`create_box`.
    * - boxzlo
      - double
      - 1
-     - lower box boundary in z-direction. See :doc:`create_box`
+     - lower box boundary in z-direction. See :doc:`create_box`.
    * - boxzhi
      - double
      - 1
-     - upper box boundary in z-direction. See :doc:`create_box`
+     - upper box boundary in z-direction. See :doc:`create_box`.
    * - periodicity
      - int
      - 3
-     - 0 if non-periodic, 1 if periodic for x, y, and z. See :doc:`boundary`
+     - 0 if non-periodic, 1 if periodic for x, y, and z. See :doc:`boundary`.
+   * - triclinic
+     - int
+     - 1
+     - 1 if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
+   * - xy
+     - double
+     - 1
+     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - yz
+     - double
+     - 1
+     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - xz
+     - double
+     - 1
+     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - natoms
+     - bigint
+     - 1
+     - total number of atoms in the simulation.
+   * - nbonds
+     - bigint
+     - 1
+     - total number of bonds in the simulation.
+   * - nangles
+     - bigint
+     - 1
+     - total number of angles in the simulation.
+   * - ndihedrals
+     - bigint
+     - 1
+     - total number of dihedrals in the simulation.
+   * - nimpropers
+     - bigint
+     - 1
+     - total number of impropers in the simulation.
+   * - nlocal
+     - int
+     - 1
+     - number of "owned" atoms of the current MPI rank.
+   * - nghost
+     - int
+     - 1
+     - number of "ghost" atoms of the current MPI rank.
+   * - nmax
+     - int
+     - 1
+     - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
 
 \endverbatim
  *
@@ -570,6 +640,7 @@ void *lammps_extract_global(void *ptr, char *name)
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
+  if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
@@ -592,7 +663,6 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
-  if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 

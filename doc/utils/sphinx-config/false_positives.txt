@@ -1292,6 +1292,7 @@ ipp
 Ippolito
 IPv
 IPython
+ipython
 Isele
 isenthalpic
 ish

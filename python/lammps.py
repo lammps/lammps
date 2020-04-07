@@ -1202,7 +1202,7 @@ def get_thermo_data(output):
 
 class PyLammps(object):
   """
-  More Python-like wrapper for LAMMPS (e.g., for iPython)
+  More Python-like wrapper for LAMMPS (e.g., for IPython)
   See examples/ipython for usage
   """
 
@@ -1462,7 +1462,7 @@ class PyLammps(object):
 
 class IPyLammps(PyLammps):
   """
-  iPython wrapper for LAMMPS which adds embedded graphics capabilities
+  IPython wrapper for LAMMPS which adds embedded graphics capabilities
   """
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):

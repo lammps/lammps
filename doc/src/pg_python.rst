@@ -19,7 +19,7 @@ the LAMMPS Python API.
 
    Constants in the :py:mod:`lammps` module to indicate how to
    cast data when the C library function returns a void pointer.
-   Used in :py:func:`lammps.extract_global.
+   Used in :py:func:`lammps.extract_global`.
 
 ----------
 

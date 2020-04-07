@@ -221,7 +221,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
       error->warning(FLERR,str,0);
-      if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
+      rlogarg = 0.1;
     }
 
     fbond = -k[type]*rr0/rlogarg/Deltasq/r;

@@ -858,6 +858,115 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
   *box_change = domain->box_change;
 }
 
+
+/** \brief Get pointer to a LAMMPS per-atom property.
+ *
+\verbatim embed:rst
+This function returns a pointer to the location of per-atom properties.
+This is data that is distributed across subdomains and thus MPI ranks.
+The returned pointer is cast to ``void *`` and needs to be cast to a
+pointer of type that the entity represents.  The pointers returned
+by this function are generally not persistent since per-atom data
+may be redistributed, re-allocated, and reordered at every
+re-neighboring operation.
+
+This table lists the supported names, their data types, length of the
+data area, and a short description.  The ``bigint``, ``tagint`,
+or ``imageint`` types may be defined to be either an ``int`` or an
+``int64_t``.  This is selected at :ref:`compile time <size>`.
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Items per atom
+     - Description
+   * - mass
+     - double
+     - 1
+     - Per-atom mass. Is ``NULL`` unless "rmass_flag" is set. See :cpp:func:`lammps_extract_setting`.
+   * - id
+     - tagint
+     - 1
+     - Atom ID of the particles
+   * - type
+     - int
+     - 1
+     - atom type of the particles
+   * - mask
+     - int
+     - 1
+     - Bitmask for mapping to groups. Individual bits are set to 0 or 1 for each group.
+   * - image
+     - imageint
+     - 1
+     - 3 image flags encoded into a single integer using either 10 or 21 bits per direction.
+   * - x
+     - double
+     - 3
+     - x-, y-, and z-coordinate of the particles
+   * - v
+     - double
+     - 3
+     - x-, y-, and z-component of the velocity of the particles
+   * - f
+     - double
+     - 3
+     - x-, y-, and z-component of the force on the particles
+   * - molecule
+     - int
+     - 1
+     - molecule ID of the particles
+   * - q
+     - double
+     - 1
+     - charge of the particles
+   * - mu
+     - double
+     - 3
+     - dipole moment of the particles
+   * - omega
+     - double
+     - 3
+     - x-, y-, and z-component of rotational velocity of the particles
+   * - angmom
+     - double
+     - 3
+     - x-, y-, and z-component of angular momentum of the particles
+   * - torque
+     - double
+     - 3
+     - x-, y-, and z-component of the torque on the particles
+   * - radius
+     - double
+     - 1
+     - radius of the (extended) particles
+   * - ellipsoid
+     - int
+     - 1
+     - 1 if the particle is an ellipsoidal particle, 0 if not
+   * - line
+     - int
+     - 1
+     - 1 if the particle is a line particle, 0 if not
+   * - tri
+     - int
+     - 1
+     - 1 if the particle is a triangulated particle, 0 if not
+   * - body
+     - int
+     - 1
+     - 1 if the particle is a body particle, 0 if not
+
+\endverbatim
+ *
+ * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param name string with name of the entity
+ * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
+ */
 /* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS atom-based entity
    name = desired quantity, e.g. x or mass

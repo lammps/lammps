@@ -88,6 +88,7 @@ pair_style ilp/graphene/hbn, Wengen Ouyang (Tel Aviv University), w.g.ouyang at 
 pair_style lebedeva/z, Zbigniew Koziol (National Center for Nuclear Research), softquake at gmail dot com, 4 Jan 19
 pair_style lennard/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
+pair_style lj/class2/coul/long/cs, Evangelos Voyiatzis, evoyiatzis at gmail.com, 7 April 2020
 pair_style lj/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style local/density, Tanmoy Sanyal (tanmoy dot 7989 at gmail.com) and M. Scott Shell (UCSB), and David Rosenberger (TU Darmstadt), 9 Sept 19
 pair_style kolmogorov/crespi/full, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18

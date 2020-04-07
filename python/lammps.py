@@ -104,23 +104,33 @@ class NeighList:
             yield self.get(ii)
 
 class lammps(object):
-  """Create an instance of the LAMMPS python class
+  """Create an instance of the LAMMPS Python class
+
+  .. _mpi4py: https://mpi4py.readthedocs.io/
 
   This is a Python wrapper class that exposes the LAMMPS C-library
   interface to Python.  It either requires that LAMMPS has been compiled
   as shared library which is then dynamically loaded via the ctypes
   Python module or that this module called from a Python function that
   is called from a Python interpreter embedded into a LAMMPS executable.
-  When the class is instantiated it calls the :cpp:func:`lammps_open` function of the LAMMPS C-library interface, which in
-  turn will create an instance of the :cpp:class:`LAMMPS_NS::LAMMPS` class.
+  When the class is instantiated it calls the :cpp:func:`lammps_open`
+  function of the LAMMPS C-library interface, which in
+  turn will create an instance of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
+  C++ class.  The handle to this C++ class is stored internally
+  and automatically passed to the calls to the C library interface.
+
+  When used in combination with the `mpi4py <mpi4py_>`_ module, it is even
+  possible to pass an MPI communicator to LAMMPS and thus it is possible
+  to run the Python module like the library interface on a subset of the
+  MPI ranks.
 
   :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
   :type  name: string
-  :param idx: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.
-  :type  idx: list
-  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter. None means load symbols from shared library.
+  :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
+  :type  cmdargs: list
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.
   :type  ptr: pointer
-  :param comm: MPI communicator (as provided by `mpi4py <https://mpi4py.readthedocs.io/>`_). None means use MPI_COMM_WORLD implicitly.
+  :param comm: MPI communicator (as provided by `mpi4py <mpi4py_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
   :type  comm: MPI_Comm
   """
 
@@ -450,9 +460,9 @@ class lammps(object):
     only return the first value for keywords representing a list
     of values.  In addition, you need to provide the data type
     to which the returned data needs to be converted to.  For that
-    purpose the lammps module contains the constants
-    LAMMPS_INT, LAMMPS_DOUBLE, LAMMPS_BIGINT, LAMMPS_TAGINT, and
-    LAMMPS_STRING.
+    purpose the :py:mod:`lammps` module contains the constants
+    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
+    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
 
     :param name: name of the setting
     :type name:  string

@@ -41,16 +41,25 @@ automatically added when calling the C library functions.
 
 ----------
 
+The NeighList class
+===================
+
 .. autoclass:: lammps.NeighList
    :members:
    :no-undoc-members:
 
 ----------
 
+The PyLammps class
+==================
+
 .. autoclass:: lammps.PyLammps
    :members:
 
 ----------
+
+The IPyLammps class
+===================
 
 .. autoclass:: lammps.IPyLammps
    :members:

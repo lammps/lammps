@@ -419,6 +419,8 @@ INPUT                  = ../../src/utils.cpp      \
                          ../../src/pointers.h     \
                          ../../src/run.cpp        \
                          ../../src/run.h          \
+                         ../../src/atom.cpp       \
+                         ../../src/atom.h         \
                          ../../src/write_data.cpp \
                          ../../src/write_data.h   \
                          ../../src/region.cpp     \

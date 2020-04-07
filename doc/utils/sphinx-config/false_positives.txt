@@ -242,6 +242,7 @@ bispectrum
 Bispectrum
 bitbucket
 bitmapped
+bitmask
 bitrate
 bitrates
 Bitzek

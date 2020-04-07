@@ -863,18 +863,23 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
  *
 \verbatim embed:rst
 This function returns a pointer to the location of per-atom properties.
-This is data that is distributed across subdomains and thus MPI ranks.
+This is data that is distributed across sub-domains and thus MPI ranks.
 The returned pointer is cast to ``void *`` and needs to be cast to a
-pointer of type that the entity represents.  The pointers returned
-by this function are generally not persistent since per-atom data
-may be redistributed, re-allocated, and reordered at every
-re-neighboring operation.
+pointer of type that the entity represents.
 
-This table lists the supported names, their data types, length of the
-data area, and a short description.  The ``bigint``, ``tagint`,
-or ``imageint`` types may be defined to be either an ``int`` or an
-``int64_t``.  This is selected at :ref:`compile time <size>`.
+.. note::
 
+   The pointers returned by this function are generally not persistent
+   since per-atom data may be re-distributed, re-allocated, and
+   re-ordered at every re-neighboring operation.
+
+This table lists a large part of the supported names, their data types,
+length of the data area, and a short description.  You can look up
+additional supported keywords and their data types in
+:cpp:func:`LAMMPS_NS::Atom::extract` and the ``src/atom.h`` header file.
+The ``bigint``, ``tagint`, or ``imageint`` types may be defined to be
+either an ``int`` or an ``int64_t``.  This is selected at
+:ref:`compile time <size>`.
 
 .. list-table::
    :header-rows: 1
@@ -887,11 +892,11 @@ or ``imageint`` types may be defined to be either an ``int`` or an
    * - mass
      - double
      - 1
-     - Per-atom mass. Is ``NULL`` unless "rmass_flag" is set. See :cpp:func:`lammps_extract_setting`.
+     - per-atom mass. Is ``NULL`` unless "rmass_flag" is set. See :cpp:func:`lammps_extract_setting`.
    * - id
      - tagint
      - 1
-     - Atom ID of the particles
+     - atom ID of the particles
    * - type
      - int
      - 1
@@ -899,7 +904,7 @@ or ``imageint`` types may be defined to be either an ``int`` or an
    * - mask
      - int
      - 1
-     - Bitmask for mapping to groups. Individual bits are set to 0 or 1 for each group.
+     - bitmask for mapping to groups. Individual bits are set to 0 or 1 for each group.
    * - image
      - imageint
      - 1
@@ -967,22 +972,20 @@ or ``imageint`` types may be defined to be either an ``int`` or an
  * \param name string with name of the entity
  * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
  */
+void *lammps_extract_atom(void *ptr, char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  return lmp->atom->extract(name);
+}
 /* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS atom-based entity
    name = desired quantity, e.g. x or mass
    returns a void pointer to the entity
      which the caller can cast to the proper data type
    returns a NULL if Atom::extract() does not recognize the name
-   the returned pointer is not a permanent valid reference to the
-     per-atom quantity, since LAMMPS may reallocate per-atom data
    customize by adding names to Atom::extract()
 ------------------------------------------------------------------------- */
 
-void *lammps_extract_atom(void *ptr, char *name)
-{
-  LAMMPS *lmp = (LAMMPS *) ptr;
-  return lmp->atom->extract(name);
-}
 
 /* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS compute-based entity

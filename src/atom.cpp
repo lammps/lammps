@@ -49,6 +49,32 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
+/** \class LAMMPS_NS::Atom
+ *  \brief Class to provide access to atom data
+
+\verbatim embed:rst
+The Atom class provides access to per-atom data that is stored with
+atoms and migrates with them from sub-domain to sub-domain as atoms
+move around.  This includes topology data, which is stored with either
+one specific atom or all atoms involved depending on the settings of
+the :doc:`newton command <newton>`.
+
+The actual per-atom data is allocated and managed by one of the
+various classes derived from the AtomVec class as determined by
+the :doc:`atom_style command <atom_style>`.
+\endverbatim
+ */
+
+/** \brief Atom class constructor
+ *
+ * This resets and initialized all kinds of settings,
+ * parameters and pointer variables for per-atom arrays.
+ * This also initializes the factory for creating
+ * instances of classes derived from the AtomVec base
+ * class, which correspond to the selected atom style.
+ *
+ * \param lmp pointer to the base LAMMPS class
+ */
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
   natoms = 0;
@@ -2232,12 +2258,22 @@ void Atom::remove_custom(int flag, int index)
   }
 }
 
-/* ----------------------------------------------------------------------
-   return a pointer to a named internal variable
-   if don't recognize name, return NULL
-   customize by adding names
-------------------------------------------------------------------------- */
-
+/** \brief Provide access to internal data of the Atom class by keyword
+ *
+ * This is a way to access internal per-atom data.  This data is
+ * distributed across MPI ranks and thus only the data for "local"
+ * atoms can be expected to be available.  Whether also data for
+ * "ghost" atoms is stored and up-to-date depends on various
+ * simulation settings.
+ *
+\verbatim embed:rst
+A table with supported keywords is included in the documentation
+of the :cpp:func:`lammps_extract_atom` function.
+\endverbatim
+ *
+ * \param name string with the keyword of the desired property. Typically the same as the internal name of the pointer variable.
+ * \return pointer to the data of interest cast to ``void *`` or NULL
+ */
 void *Atom::extract(char *name)
 {
   if (strcmp(name,"mass") == 0) return (void *) mass;

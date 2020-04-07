@@ -30,5 +30,6 @@ specific models.
 
    pg_lammps
    pg_pointers
+   pg_atom
    pg_command
    pg_region

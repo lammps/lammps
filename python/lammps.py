@@ -112,7 +112,8 @@ class lammps(object):
   interface to Python.  It either requires that LAMMPS has been compiled
   as shared library which is then dynamically loaded via the ctypes
   Python module or that this module called from a Python function that
-  is called from a Python interpreter embedded into a LAMMPS executable.
+  is called from a Python interpreter embedded into a LAMMPS executable,
+  for example through the :doc:`python invoke <python>` command.
   When the class is instantiated it calls the :cpp:func:`lammps_open`
   function of the LAMMPS C-library interface, which in
   turn will create an instance of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`

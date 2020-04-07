@@ -9,7 +9,9 @@
 # Compilation with `make`
 
 `cd src`
+
 `make yes-user-pace`
+
 `make serial -j`
 
 

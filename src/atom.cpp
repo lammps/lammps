@@ -2267,6 +2267,9 @@ void Atom::remove_custom(int flag, int index)
  * simulation settings.
  *
 \verbatim embed:rst
+
+.. _cpp_atom_extract:
+
 A table with supported keywords is included in the documentation
 of the :cpp:func:`lammps_extract_atom` function.
 \endverbatim

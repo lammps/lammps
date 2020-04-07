@@ -53,7 +53,7 @@ class MPIAbortException(Exception):
     return repr(self.message)
 
 class NeighList:
-    """This is a wrapper class that exposes the contents of a neighbor list
+    """This is a wrapper class that exposes the contents of a neighbor list.
 
     It can be used like a regular Python list.
 
@@ -104,7 +104,7 @@ class NeighList:
             yield self.get(ii)
 
 class lammps(object):
-  """Create an instance of the LAMMPS Python class
+  """Create an instance of the LAMMPS Python class.
 
   .. _mpi4py: https://mpi4py.readthedocs.io/
 
@@ -342,7 +342,7 @@ class lammps(object):
       self.opened = 0
 
   def close(self):
-    """Explicitly delete a LAMMPS instance through the C-library interface
+    """Explicitly delete a LAMMPS instance through the C-library interface.
 
     This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
     """
@@ -369,7 +369,7 @@ class lammps(object):
     return self.lib.lammps_version(self.lmp)
 
   def file(self,file):
-    """Read LAMMPS commands from a file
+    """Read LAMMPS commands from a file.
 
     This is a wrapper around the :cpp:func:`lammps_file` function of the C-library interface.
     It will open the file with the name/path `file` and process the LAMMPS commands line by line until
@@ -384,7 +384,7 @@ class lammps(object):
   # send a single command
 
   def command(self,cmd):
-    """Process a single LAMMPS input command from a string
+    """Process a single LAMMPS input command from a string.
 
     This is a wrapper around the :cpp:func:`lammps_command` function of the C-library interface.
 
@@ -406,7 +406,7 @@ class lammps(object):
   # send a list of commands
 
   def commands_list(self,cmdlist):
-    """Process multiple LAMMPS input commands from a list of strings
+    """Process multiple LAMMPS input commands from a list of strings.
 
     This is a wrapper around the
     :cpp:func:`lammps_commands_list` function of
@@ -422,7 +422,7 @@ class lammps(object):
   # send a string of commands
 
   def commands_string(self,multicmd):
-    """Process a block of LAMMPS input commands from a string
+    """Process a block of LAMMPS input commands from a string.
 
     This is a wrapper around the
     :cpp:func:`lammps_commands_string`
@@ -437,9 +437,11 @@ class lammps(object):
   # extract lammps type byte sizes
 
   def extract_setting(self, name):
-    """Query LAMMPS about global settings that can be expressed as an integer
+    """Query LAMMPS about global settings that can be expressed as an integer.
+
     This is a wrapper around the :cpp:func:`lammps_extract_setting`
-    function of the C-library interface.
+    function of the C-library interface.  Its documentation includes
+    a list of the supported keywords.
 
     :param name: name of the setting
     :type name:  string
@@ -453,13 +455,15 @@ class lammps(object):
   # extract global info
 
   def extract_global(self, name, type):
-    """Query LAMMPS about immutable settings that can be expressed as an integer
+    """Query LAMMPS about global settings of different types.
+
     This is a wrapper around the :cpp:func:`lammps_extract_global`
     function of the C-library interface.  Unlike the C function
     this method returns the value and not a pointer and thus can
     only return the first value for keywords representing a list
-    of values.  In addition, you need to provide the data type
-    to which the returned data needs to be converted to.  For that
+    of values.  Its documentation includes a list of the supported
+    keywords and their data types.   Since Python cannot detect
+    the data type, it has to be provided as an argument.  For that
     purpose the :py:mod:`lammps` module contains the constants
     ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
     ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
@@ -469,7 +473,7 @@ class lammps(object):
     :param type: type of the returned data
     :type name:  int
     :return: value of the setting
-    :rtype: int
+    :rtype: integer or double or string
     """
     if name: name = name.encode()
     if type == LAMMPS_INT:
@@ -488,9 +492,18 @@ class lammps(object):
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
 
-  # extract global info
+  # extract box data
 
   def extract_box(self):
+    """Extract simulation box parameters
+
+    This is a wrapper around the :cpp:func:`lammps_extract_box` function
+    of the C-library interface.  Unlike the C function, the result is
+    returned as a list.
+
+    :return: list of the extracted data: boxlo, boxhi, xy, yz, xz, periodicity, box_change
+    :rtype: [ 3*double, 3*double, double, double, 3*int, int]
+    """
     boxlo = (3*c_double)()
     boxhi = (3*c_double)()
     xy = c_double()

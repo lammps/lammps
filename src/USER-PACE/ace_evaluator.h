@@ -65,7 +65,7 @@ public:
     //jnum - number of neighbours of atom_i
     //jlist - list of neighbour indices. Indices are for arrays a and type
     //this will also update the energies(i) and neighbours_forces(jj, alpha) arrays
-    virtual void compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnum, const int *jlist) = 0;
+    virtual void compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) = 0;
 
     virtual void resize_neighbours_cache(int max_jnum) = 0;
 };
@@ -110,7 +110,7 @@ public:
     //jnum - number of neighbours of atom_i
     //jlist - list of neighbour indices. Indices are for arrays a and type
     //this will also update the energies(i) and neighbours_forces(jj, alpha) arrays
-    void compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnum, const int *jlist) override;
+    void compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) override;
 
     void resize_neighbours_cache(int max_jnum) override;
 };

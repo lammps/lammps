@@ -137,15 +137,13 @@ void PairPACE::compute(int eflag, int vflag) {
     //       they are disregarded anyway
 
 
-    //determine the maximum numer of neighbours
+    //determine the maximum number of neighbours
     int max_jnum = -1;
     int nei = 0;
-    // printf("list->inum=%d\n",list->inum);
     for (ii = 0; ii < list->inum; ii++) {
         i = ilist[ii];
         jnum = numneigh[i];
         nei = nei + jnum;
-        //jlist = firstneigh[i];
         if (jnum > max_jnum)
             max_jnum = jnum;
     }
@@ -266,7 +264,6 @@ void PairPACE::allocate() {
 ------------------------------------------------------------------------- */
 
 void PairPACE::settings(int narg, char **arg) {
-    printf("--> PairPACE::settings\n");
     if (narg > 0)
         error->all(FLERR,
                    "Illegal pair_style command. Correct form:\npair_style pace");
@@ -278,10 +275,10 @@ void PairPACE::settings(int narg, char **arg) {
 ------------------------------------------------------------------------- */
 
 void PairPACE::coeff(int narg, char **arg) {
-    //TODO: FOR DEBUG
-    for (int i = 0; i < narg; i++) {
-        printf("PairPACE::coeff: arg[%d] = %s\n", i, arg[i]);
-    }
+//    //TODO: FOR DEBUG
+//    for (int i = 0; i < narg; i++) {
+//        printf("PairPACE::coeff: arg[%d] = %s\n", i, arg[i]);
+//    }
 
     if (narg < 4)
         error->all(FLERR,
@@ -311,33 +308,39 @@ void PairPACE::coeff(int narg, char **arg) {
         error->all(FLERR, "Incorrect args for pair coefficients");
 
     //load potential file
-    printf("Create C-tilde basis set \n");
+    //printf("Create C-tilde basis set \n");
     basis_set = new ACECTildeBasisSet();
     printf("Loading %s\n", potential_file_name);
     basis_set->load(potential_file_name);
-    printf("Loaded \n");
 
     // read args that map atom types to pACE elements
     // map[i] = which element the Ith atom type is, -1 if not mapped
     // map[0] is not used
 
-    printf("Create ACE\n");
+    //printf("Create ACE\n");
     ace = new ACECTildeEvaluator();
 
     ace->element_type_mapping.init(atom->ntypes);
 
     for (int i = 1; i <= atom->ntypes; i++) {
         char *elemname = elemtypes[i - 1];
-        printf("elemname[%d]=%s\n", i, elemname);
+        //printf("elemname[%d]=%s\n", i, elemname);
         int atomic_number = AtomicNumberByName(elemname);
         if (atomic_number == -1) {
-            printf("String '%s' is not a valid element\n", elemname);
+            //printf("String '%s' is not a valid element\n", elemname);
             error->all(FLERR, "Incorrect args for pair coefficients");
         }
         SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
-        printf("Mapping %s -> %d\n", elemname, mu);
-        map[i] = mu; // potential->elemname_to_mu
-        ace->element_type_mapping(i) = mu;
+        if (mu != -1) {
+            printf("Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+            map[i] = mu; // potential->elemname_to_mu
+            ace->element_type_mapping(i) = mu;
+        } else {
+            char error_msg[1024];
+            sprintf(error_msg, "Element %s is not supported by ACE-potential from file %s", elemname,
+                    potential_file_name);
+            error->all(FLERR, error_msg);
+        }
     }
 
     // clear setflag since coeff() called once with I,J = * *
@@ -363,7 +366,7 @@ void PairPACE::coeff(int narg, char **arg) {
     if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
 
-    printf("ACE.set basis\n");
+    //printf("ACE.set basis\n");
     ace->set_basis(*basis_set);
 
     //TODO: adapt
@@ -381,7 +384,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
 
     //TODO: debug
-    printf("PairPACE::coeff done\n");
+    //printf("PairPACE::coeff done\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -395,7 +398,6 @@ void PairPACE::init_style() {
         error->all(FLERR, "Pair style pACE requires newton pair on");
 
     // need a full neighbor list
-
     int irequest = neighbor->request(this, instance_me);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
@@ -407,11 +409,9 @@ void PairPACE::init_style() {
 
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-    printf("init_ine i=%d (map: %d), j=%d (map: %d): ", i, map[i], j, map[j]);
-    //TODO: adapt
-    printf("%f\n", basis_set->radial_functions.cut(map[i], map[j]));
+//    printf("init_ine i=%d (map: %d), j=%d (map: %d): ", i, map[i], j, map[j]);
+//    printf("%f\n", basis_set->radial_functions.cut(map[i], map[j]));
     return basis_set->radial_functions.cut(map[i], map[j]);
-    //return basis_set->cutoffmax;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -106,12 +106,11 @@ void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
 // Usage: j = jlist_of_i[jj];
 // jnum - number of J neighbors for each I atom.  jnum = numneigh[i];
 
-void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, int jnum, const int *jlist) {
+void
+ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) {
     per_atom_calc_timer.start();
 #ifdef PRINT_MAIN_STEPS
-    cout << endl << "ATOM: ind = " << i << " r_norm=(" << x[i][0] << ","
-         << x[i][1] << ","
-         << x[i][2] << ")" << endl;
+    printf("\n ATOM: ind = %d r_norm=(%f, %f, %f)\n",i, x[i][0], x[i][1], x[i][2]);
 #endif
     DOUBLE_TYPE evdwl = 0, evdwl_cut = 0, rho_core = 0;
     DOUBLE_TYPE r_norm;
@@ -119,7 +118,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
     DOUBLE_TYPE R, GR, DGR, R_over_r, DR, DCR;
     DOUBLE_TYPE *r_hat;
 
-    SPECIES_TYPE elej;
+    SPECIES_TYPE mu_j;
     DENSITY_TYPE ndensity; //TODO: extract from basis set, as it is equal to all functions
     RANK_TYPE r, rank, t;
     NS_TYPE n;
@@ -158,17 +157,17 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
     DOUBLE_TYPE f_ji[3];
 
     bool is_element_mapping = element_type_mapping.get_size() > 0;
-    SPECIES_TYPE mu;
+    SPECIES_TYPE mu_i;
     if (is_element_mapping)
-        mu = element_type_mapping(type[i]);
+        mu_i = element_type_mapping(type[i]);
     else
-        mu = type[i];
+        mu_i = type[i];
 
-    const SHORT_INT_TYPE total_basis_size_rank1 = basis_set->total_basis_size_rank1[mu];
-    const SHORT_INT_TYPE total_basis_size = basis_set->total_basis_size[mu];
+    const SHORT_INT_TYPE total_basis_size_rank1 = basis_set->total_basis_size_rank1[mu_i];
+    const SHORT_INT_TYPE total_basis_size = basis_set->total_basis_size[mu_i];
 
-    ACECTildeBasisFunction *basis_rank1 = basis_set->basis_rank1[mu];
-    ACECTildeBasisFunction *basis = basis_set->basis[mu];
+    ACECTildeBasisFunction *basis_rank1 = basis_set->basis_rank1[mu_i];
+    ACECTildeBasisFunction *basis = basis_set->basis[mu_i];
 
     DOUBLE_TYPE rho_cut, drho_cut, fcut, dfcut;
     DOUBLE_TYPE dF_drho_core;
@@ -205,44 +204,54 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
     loop_over_neighbour_timer.start();
 
-    //loop over neighbours
+    int jj_actual = 0;
+    SPECIES_TYPE type_j = 0;
+    int neighbour_index_mapping[jnum] = {0}; // jj_actual -> jj
+    //loop over neighbours, compute distance, consider only atoms within with r<cutoff(mu_i, mu_j)
     for (jj = 0; jj < jnum; ++jj) {
 
         j = jlist[jj];
-
         xn = x[j][0] - xtmp;
         yn = x[j][1] - ytmp;
         zn = x[j][2] - ztmp;
+        type_j = type[j];
+        if (is_element_mapping)
+            mu_j = element_type_mapping(type_j);
+        else
+            mu_j = type_j;
 
+        DOUBLE_TYPE current_cutoff = basis_set->radial_functions.cut(mu_i, mu_j);
         r_xyz = sqrt(xn * xn + yn * yn + zn * zn);
 
-        rhats[jj][0] = xn / r_xyz;
-        rhats[jj][1] = yn / r_xyz;
-        rhats[jj][2] = zn / r_xyz;
+        if (r_xyz >= current_cutoff)
+            continue;
 
-        r_norms[jj] = r_xyz;
-        if (is_element_mapping)
-            elements[jj] = element_type_mapping(type[j]);
-        else
-            elements[jj] = type[j];
+        inv_r_norm = 1 / r_xyz;
+
+        r_norms[jj_actual] = r_xyz;
+        inv_r_norms[jj_actual] = inv_r_norm;
+        rhats[jj_actual][0] = xn * inv_r_norm;
+        rhats[jj_actual][1] = yn * inv_r_norm;
+        rhats[jj_actual][2] = zn * inv_r_norm;
+        elements[jj_actual] = mu_j;
+        neighbour_index_mapping[jj_actual] = jj;
+        jj_actual++;
     }
 
+    int jnum_actual = jj_actual;
 
     //ALGORITHM 1: Atomic base A
-    for (jj = 0; jj < jnum; ++jj) {
+    for (jj = 0; jj < jnum_actual; ++jj) {
         r_norm = r_norms[jj];
-        elej = elements[jj];
+        mu_j = elements[jj];
         r_hat = rhats[jj];
 
-
-        inv_r_norm = 1. / r_norm;
-        inv_r_norms[jj] = inv_r_norm;
         //proxies
         Array2DLM<ACEComplex> &Y_jj = Y_cache(jj);
         Array2DLM<Dycomponent> &DY_jj = DY_cache(jj);
 
 
-        basis_set->radial_functions.lookupRadspline(r_norm, basis_set->nradbase, nradiali, mu, elej);
+        basis_set->radial_functions.lookupRadspline(r_norm, basis_set->nradbase, nradiali, mu_i, mu_j);
         basis_set->spherical_harmonics.compute_ylm(r_hat[0], r_hat[1], r_hat[2], lmaxi);
         //loop for computing A's
         //rank = 1
@@ -254,12 +263,12 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
             printf("dgr(n=%d)(r=%f) = %f\n", n, r_norm, dgr(n));
 #endif
             DG_cache(jj, n) = dgr(n);
-            A_rank1(elej, n) += GR * Y00;
+            A_rank1(mu_j, n) += GR * Y00;
         }
         //loop for computing A's
         // for rank > 1
         for (n = 0; n < nradiali; n++) {
-            auto &A_lm = A(elej, n);
+            auto &A_lm = A(mu_j, n);
             for (l = 0; l <= lmaxi; l++) {
                 R = fr(n, l);
 #ifdef DEBUG_ENERGY_CALCULATIONS
@@ -289,9 +298,9 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
     //complex conjugate A's (for NEGATIVE (-m) terms)
     // for rank > 1
-    for (elej = 0; elej < basis_set->nelements; elej++) {
+    for (mu_j = 0; mu_j < basis_set->nelements; mu_j++) {
         for (n = 0; n < nradiali; n++) {
-            auto &A_lm = A(elej, n);
+            auto &A_lm = A(mu_j, n);
             for (l = 0; l <= lmaxi; l++) {
                 //fill in -m part in the outer loop using the same m <-> -m symmetry as for Ylm
                 for (m = 1; m <= l; m++) {
@@ -313,7 +322,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
         ACECTildeBasisFunction *func = &basis_rank1[f_ind];
         ndensity = func->ndensity;
 #ifdef PRINT_LOOPS_INDICES
-        cout << "Num density = " << (int) ndensity << " r = 0 " << endl;
+        printf("Num density = %d r = 0\n",(int) ndensity );
         print_C_tilde_B_basis_function(*func);
 #endif
         double A_cur = A_rank1(func->mus[0], func->ns[0] - 1);
@@ -336,7 +345,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
         rank = func->rank;
         r = rank - 1;
 #ifdef PRINT_LOOPS_INDICES
-        cout << "Num density = " << (int) ndensity << " r = " << (int) r << endl;
+        printf("Num density = %d r = %d\n",(int) ndensity, (int)r );
         print_C_tilde_B_basis_function(*func);
 #endif
         mus = func->mus;
@@ -386,7 +395,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
                 rhos(p) += B.real_part_product(func->ctildes[ms_ind * ndensity + p]);
 #ifdef PRINT_INTERMEDIATE_VALUES
                 printf("rhos(%d) += %f\n", p, B.real_part_product(func->ctildes[ms_ind * ndensity + p]));
-                cout << "Rho[i = " << i << "][p = " << p << "] = " << rhos(p) << endl;
+                printf("Rho[i = %d][p = %d] = %f\n",  i , p , rhos(p));
 #endif
             }
         }//end of loop over {ms} combinations in sum
@@ -400,8 +409,8 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
 
     // energy cutoff
-    rho_cut = basis_set->rho_core_cutoffs(mu);
-    drho_cut = basis_set->drho_core_cutoffs(mu);
+    rho_cut = basis_set->rho_core_cutoffs(mu_i);
+    drho_cut = basis_set->drho_core_cutoffs(mu_i);
 
     basis_set->inner_cutoff(rho_core, rho_cut, drho_cut, fcut, dfcut);
     basis_set->FS_values_and_derivatives(rhos, evdwl, dF_drho, ndensity);
@@ -475,16 +484,14 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
 // ==================== FORCES ====================
 #ifdef PRINT_MAIN_STEPS
-    cout << endl << "FORCE CALCULATION" <<
-         endl;
-    cout << "loop over neighbours" <<
-         endl;
+    printf("\nFORCE CALCULATION\n");
+    printf("loop over neighbours\n");
 #endif
 
     forces_calc_loop_timer.start();
 // loop over neighbour atoms for force calculations
-    for (jj = 0; jj < jnum; ++jj) {
-        elej = elements[jj];
+    for (jj = 0; jj < jnum_actual; ++jj) {
+        mu_j = elements[jj];
         r_hat = rhats[jj];
         inv_r_norm = inv_r_norms[jj];
 
@@ -492,8 +499,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
         Array2DLM<Dycomponent> &DY_cache_jj = DY_cache(jj);
 
 #ifdef PRINT_LOOPS_INDICES
-        cout << endl << "neighbour atom #" << jj <<
-             endl;
+        printf("\nneighbour atom #%d\n", jj);
         printf("rhat = (%f, %f, %f)\n", r_hat[0], r_hat[1], r_hat[2]);
 #endif
 
@@ -503,11 +509,11 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
 //for rank = 1
         for (n = 0; n < nradbasei; ++n) {
-            if (weights_rank1(elej, n) == 0)
+            if (weights_rank1(mu_j, n) == 0)
                 continue;
             auto &DG = DG_cache(jj, n);
             DGR = DG * Y00;
-            DGR *= weights_rank1(elej, n);
+            DGR *= weights_rank1(mu_j, n);
 #ifdef DEBUG_FORCES_CALCULATIONS
             printf("r=1: (n,l,m)=(%d, 0, 0)\n",n+1);
             printf("\tGR(n=%d, r=%f)=%f\n",n+1,r_norm, gr(n));
@@ -527,7 +533,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
                 // for m>=0
                 for (m = 0; m <= l; m++) {
-                    ACEComplex w = weights(elej, n, l, m);
+                    ACEComplex w = weights(mu_j, n, l, m);
                     if (w == 0)
                         continue;
                     //counting for -m cases if m>0
@@ -562,7 +568,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
 
 
 #ifdef PRINT_INTERMEDIATE_VALUES
-        printf("f_ji(k=%d, i=%d)=(%f, %f, %f)\n", jj, i,
+        printf("f_ji(jj=%d, i=%d)=(%f, %f, %f)\n", jj, i,
                f_ji[0], f_ji[1], f_ji[2]
         );
 #endif
@@ -575,10 +581,17 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
         f_ji[0] += dF_drho_core * DCR * r_hat[0];
         f_ji[1] += dF_drho_core * DCR * r_hat[1];
         f_ji[2] += dF_drho_core * DCR * r_hat[2];
+#ifdef PRINT_INTERMEDIATE_VALUES
+        printf("with core-repulsion\n");
+        printf("f_ji(jj=%d, i=%d)=(%f, %f, %f)\n", jj, i,
+               f_ji[0], f_ji[1], f_ji[2]
+        );
+        printf("neighbour_index_mapping[jj=%d]=%d\n",jj,neighbour_index_mapping[jj]);
+#endif
 
-        neighbours_forces(jj, 0) = f_ji[0];
-        neighbours_forces(jj, 1) = f_ji[1];
-        neighbours_forces(jj, 2) = f_ji[2];
+        neighbours_forces(neighbour_index_mapping[jj], 0) = f_ji[0];
+        neighbours_forces(neighbour_index_mapping[jj], 1) = f_ji[1];
+        neighbours_forces(neighbour_index_mapping[jj], 2) = f_ji[2];
 
         forces_calc_neighbour_timer.stop();
     }// end loop over neighbour atoms for forces
@@ -590,9 +603,7 @@ void ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE
     e_atom = evdwl_cut;
 
 #ifdef PRINT_INTERMEDIATE_VALUES
-    cout << "energies(i) = FS(...rho_p_accum...) = " << evdwl <<
-         endl;
+    printf("energies(i) = FS(...rho_p_accum...) = %f\n", evdwl);
 #endif
-    //ACE_TIMER_STOP(per_atom_calc)
     per_atom_calc_timer.stop();
 }

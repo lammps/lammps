@@ -33,10 +33,12 @@ import re
 import sys
 
 LAMMPS_INT    = 0
-LAMMPS_DOUBLE = 1
-LAMMPS_BIGINT = 2
-LAMMPS_TAGINT = 3
-LAMMPS_STRING = 4
+LAMMPS_INT2D  = 1
+LAMMPS_DOUBLE = 2
+LAMMPS_DBLE2D = 3
+LAMMPS_BIGINT = 4
+LAMMPS_TAGINT = 5
+LAMMPS_STRING = 6
 
 def get_ctypes_int(size):
   if size == 4:
@@ -464,19 +466,22 @@ class lammps(object):
     function of the C-library interface.  Unlike the C function
     this method returns the value and not a pointer and thus can
     only return the first value for keywords representing a list
-    of values.  Its documentation includes a list of the supported
-    keywords and their data types.   Since Python cannot detect
-    the data type, it has to be provided as an argument.  For that
-    purpose the :py:mod:`lammps` module contains the constants
+    of values.  The :cpp:func:`lammps_extract_global` documentation
+    includes a list of the supported keywords and their data types.
+    Since Python needs to know the data type to be able to interpret
+    the result, the type has to be provided as an argument.  For
+    that purpose the :py:mod:`lammps` module contains the constants
     ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
     ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
+    This function returns ``None`` if either the keyword is not
+    recognized, or an invalid data type constant is used.
 
     :param name: name of the setting
     :type name:  string
     :param type: type of the returned data
     :type name:  int
     :return: value of the setting
-    :rtype: integer or double or string
+    :rtype: integer or double or string or None
     """
     if name: name = name.encode()
     if type == LAMMPS_INT:
@@ -493,7 +498,8 @@ class lammps(object):
       return str(ptr,'ascii')
     else: return None
     ptr = self.lib.lammps_extract_global(self.lmp,name)
-    return ptr[0]
+    if ptr: return ptr[0]
+    else: return None
 
   # extract box data
 
@@ -534,18 +540,53 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
 
   def extract_atom(self,name,type):
+    """Retrieve per-atom properties from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords and their data types.
+    Since Python needs to know the data type to be able to interpret
+    the result, the type has to be provided as an argument.  For
+    that purpose the :py:mod:`lammps` module contains the constants
+    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,
+    and ``LAMMPS_DBLE2D``.
+    This function returns ``None`` if either the keyword is not
+    recognized, or an invalid data type constant is used.
+
+    .. note::
+
+       While the returned arrays of per-atom data are dimensioned
+       for the range [0:nmax-1], which is the what the underlying
+       storage in C++ are dimensioned for, the data is usually
+       only valid for the range of [0:nlocal-1], unless the
+       property of interest is also updated for ghost atoms.
+       In some cases, this depends on a LAMMPS setting, see
+       for example :doc:`comm_modify vel yes <comm_modify>`.
+
+    :param name: name of the setting
+    :type name:  string
+    :param type: type of the returned data
+    :type name:  int
+    :return: value of the setting
+    :rtype: pointer to integer or double or None
+    """
+    ntypes = int(self.extract_setting('ntypes'))
+    nmax   = int(self.extract_setting('nmax'))
     if name: name = name.encode()
-    if type == 0:
+    if type == LAMMPS_INT:
       self.lib.lammps_extract_atom.restype = POINTER(c_int)
-    elif type == 1:
+    elif type == LAMMPS_INT2D:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
-    elif type == 2:
+    elif type == LAMMPS_DOUBLE:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)
-    elif type == 3:
+    elif type == LAMMPS_DBLE2D:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
-    return ptr
+    if ptr:
+      if name == 'mass'.encode(): return ptr[0:ntypes+1]
+      else: return ptr[0:nmax-1]
+    else:   return None
 
   @property
   def numpy(self):

@@ -421,7 +421,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
     error->warning(FLERR,str,0);
-    if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
+    rlogarg = 0.1;
   }
 
   double eng = -0.5 * k[type]*log(rlogarg);

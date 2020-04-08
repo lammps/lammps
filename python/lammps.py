@@ -175,6 +175,8 @@ class lammps(object):
 
     if any([f.startswith('liblammps') and f.endswith('.dylib') for f in os.listdir(modpath)]):
       lib_ext = ".dylib"
+    elif any([f.startswith('liblammps') and f.endswith('.dll') for f in os.listdir(modpath)]):
+      lib_ext = ".dll"
     else:
       lib_ext = ".so"
 

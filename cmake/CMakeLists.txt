@@ -628,7 +628,7 @@ endif()
 # LAMMPS for package managers and with different prefix settings.
 # This requires either a shared library or that the PYTHON package is included.
 ###############################################################################
-if(BUILD_SHARED_LIBS) OR (PKG_PYTHON))
+if(BUILD_SHARED_LIBS OR PKG_PYTHON)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     find_package(PythonInterp) # Deprecated since version 3.12
   else()

@@ -416,18 +416,17 @@ void SNA::compute_zi()
             icga += j2;
           } // end loop over ia
 
-          if (bnorm_flag){
-            zptr_r[jjz] += cgblock[icgb] * suma1_r/(j+1);
-            zptr_i[jjz] += cgblock[icgb] * suma1_i/(j+1);
-          }
-          else {
-            zptr_r[jjz] += cgblock[icgb] * suma1_r;
-            zptr_i[jjz] += cgblock[icgb] * suma1_i;
-          }
+          zptr_r[jjz] += cgblock[icgb] * suma1_r;
+          zptr_i[jjz] += cgblock[icgb] * suma1_i;
+
           jju1 += j1 + 1;
           jju2 -= j2 + 1;
           icgb += j2;
         } // end loop over ib
+        if (bnorm_flag) {
+          zptr_r[jjz] /= (j+1);
+          zptr_i[jjz] /= (j+1);
+        }
       } // end loop over jjz
       idouble++;
     }
@@ -497,13 +496,9 @@ void SNA::compute_yi(const double* beta)
               icga += j2;
             } // end loop over ia
 
-            if (bnorm_flag) {
-              ztmp_r += cgblock[icgb] * suma1_r / (j+1);
-              ztmp_i += cgblock[icgb] * suma1_i / (j+1);
-            } else {
-              ztmp_r += cgblock[icgb] * suma1_r;
-              ztmp_i += cgblock[icgb] * suma1_i;
-            }
+
+            ztmp_r += cgblock[icgb] * suma1_r;
+            ztmp_i += cgblock[icgb] * suma1_i;
 
             jju1 += j1 + 1;
             jju2 -= j2 + 1;
@@ -514,6 +509,11 @@ void SNA::compute_yi(const double* beta)
           // find right y_list[jju] and beta[jjb] entries
           // multiply and divide by j+1 factors
           // account for multiplicity of 1, 2, or 3
+
+        if (bnorm_flag) {
+          ztmp_i /= j+1;
+          ztmp_r /= j+1;
+        }
 
         jju = idxz[jjz].jju;
         for(int elem3 = 0; elem3 < nelements; elem3++) {

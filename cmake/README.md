@@ -303,26 +303,6 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   </td>
 </tr>
 <tr>
-  <td><code>BUILD_LIB</code></td>
-  <td>control whether to build LAMMPS as a library</td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>BUILD_EXE</code></td>
-  <td>control whether to build LAMMPS executable</td>
-  <td>
-  <dl>
-    <dt><code>on</code> (default)</dt>
-    <dt><code>off</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
   <td><code>BUILD_SHARED_LIBS</code></td>
   <td>control whether to build LAMMPS as a shared-library</td>
   <td>

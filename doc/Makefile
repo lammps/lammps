@@ -210,7 +210,7 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install --upgrade pip; \
-		pip install Sphinx==2.4.4; \
+		pip install Sphinx; \
 		pip install sphinxcontrib-spelling ;\
 		pip install breathe; \
 		deactivate;\

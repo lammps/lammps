@@ -556,11 +556,10 @@ class lammps(object):
     .. note::
 
        While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax-1], which is the what the underlying
-       storage in C++ are dimensioned for, the data is usually
-       only valid for the range of [0:nlocal-1], unless the
-       property of interest is also updated for ghost atoms.
-       In some cases, this depends on a LAMMPS setting, see
+       for the range [0:nmax] - as is the underlying storage -
+       the data is usually only valid for the range of [0:nlocal],
+       unless the property of interest is also updated for ghost
+       atoms.  In some cases, this depends on a LAMMPS setting, see
        for example :doc:`comm_modify vel yes <comm_modify>`.
 
     :param name: name of the setting
@@ -585,7 +584,7 @@ class lammps(object):
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     if ptr:
       if name == 'mass'.encode(): return ptr[0:ntypes+1]
-      else: return ptr[0:nmax-1]
+      else: return ptr[0:nmax]
     else:   return None
 
   @property

@@ -25,20 +25,12 @@ OBJ = 	$(SRC:.cpp=.o)
 SRCLIB = $(filter-out main.cpp,$(SRC))
 OBJLIB = $(filter-out main.o,$(OBJ))
 
-# Command-line options for mode: exe (default), shexe, lib, shlib
+# Command-line options for mode: static (default), shared, or print
 
-mode = exe
+mode = static
 objdir = $(OBJDIR)
 
-ifeq ($(mode),shexe)
-objdir = $(OBJSHDIR)
-endif
-
-ifeq ($(mode),lib)
-objdir = $(OBJDIR)
-endif
-
-ifeq ($(mode),shlib)
+ifeq ($(mode),shared)
 objdir = $(OBJSHDIR)
 endif
 
@@ -124,12 +116,10 @@ help:
 	@echo 'make lib-package args="..."    download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
-	@echo 'make machine             build LAMMPS for machine'
-	@echo 'make mode=lib machine    build LAMMPS as static lib for machine'
-	@echo 'make mode=shlib machine  build LAMMPS as shared lib for machine'
-	@echo 'make mode=shexe machine  build LAMMPS as shared exe for machine'
-	@echo 'make makelist            create Makefile.list used by old makes'
-	@echo 'make -f Makefile.list machine     build LAMMPS for machine (old)'
+	@echo 'make machine             build LAMMPS for machine with static library'
+	@echo 'make mode=static machine same as above'
+	@echo 'make mode=shared machine build LAMMPS for machine with shared library'
+	@echo 'make mode=print machine  print compiler/linker flags'
 	@echo ''
 	@echo 'machine is one of these from src/MAKE:'
 	@echo ''
@@ -223,34 +213,39 @@ gitversion:
 	@cp Makefile.package Makefile.package.settings $(objdir)
 	@cd $(objdir); rm -f .depend; \
 	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
-ifeq ($(mode),exe)
-	@cd $(objdir); \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
-	  "EXE = ../$(EXE)" ../$(EXE)
-endif
-ifeq ($(mode),shexe)
-	@cd $(objdir); \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
-	  "EXE = ../$(EXE)" ../$(EXE)
-endif
-ifeq ($(mode),lib)
+	@rm -f $(ARLINK) $(SHLINK) $(EXE)
+ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
-	  "EXE = ../$(ARLIB)" lib
-	@rm -f $(ARLINK)
+	  "LMPLIB = $(PWD)/$(ARLIB)" "ARLIB = $(PWD)/$(ARLIB)" "SHLIB = $(PWD)/$(SHLIB)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
-ifeq ($(mode),shlib)
+ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
-	  "EXE = ../$(SHLIB)" shlib
-	@rm -f $(SHLINK)
+	  "LMPLIB = $(PWD)/$(SHLIB)" "ARLIB = $(PWD)/$(ARLIB)" "SHLIB = $(PWD)/$(SHLIB)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
+# backward compatibility
+ifeq ($(mode),exe)
+	$(MAKE) $(MFLAGS) mode=static $@
+endif
+ifeq ($(mode),lib)
+	$(MAKE) $(MFLAGS) mode=static $@
+endif
+ifeq ($(mode),shexe)
+	$(MAKE) $(MFLAGS) mode=shared $@
+endif
+ifeq ($(mode),shlib)
+	$(MAKE) $(MFLAGS) mode=shared $@
+endif
+
 ifeq ($(mode),print)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
-	  "EXE = ../$(SHLIB)" -f ../Makefile.print
+	  "EXE = ../$(ARLIB)" -f ../Makefile.print
 endif
 
 # Remove machine-specific object files
@@ -266,12 +261,6 @@ clean-%:
 	@if [ $@ = "clean-serial" ]; \
 		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
-
-# Create Makefile.list
-
-makelist:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.list
 
 # Make MPI STUBS library
 

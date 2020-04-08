@@ -85,18 +85,18 @@ vpath %.h ..
 
 # Link target
 
-$(EXE):	$(OBJ) $(EXTRA_LINK_DEPENDS)
-	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+$(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
+	$(LINK) $(LINKFLAGS) main.o $(EXTRA_PATH) $(LMPLIB) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library targets
 
-lib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
-	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+$(ARLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	$(ARCHIVE) $(ARFLAGS) $(ARLIB) $(OBJ)
 
-shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
-	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
-        $(OBJ) $(EXTRA_LIB) $(LIB)
+$(SHLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(SHLIB) \
+		$(OBJ) $(EXTRA_LIB) $(LIB)
 
 # Compilation rules
 

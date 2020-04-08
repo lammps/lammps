@@ -863,10 +863,10 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
  *
 \verbatim embed:rst
 This function returns a pointer to the location of per-atom properties
-(and per-atomtype properties as in the case of the 'mass' keyword).
-This is data that is distributed across sub-domains and thus MPI ranks.
+(and per-atom-type properties in the case of the 'mass' keyword).
+Per-atom data is distributed across sub-domains and thus MPI ranks.
 The returned pointer is cast to ``void *`` and needs to be cast to a
-pointer of type that the entity represents.
+pointer of data type that the entity represents.
 
 .. note::
 

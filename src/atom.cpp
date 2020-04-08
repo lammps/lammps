@@ -2279,6 +2279,7 @@ of the :cpp:func:`lammps_extract_atom` function.
  */
 void *Atom::extract(char *name)
 {
+  /* NOTE: this array is only of length ntypes+1 */
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
   if (strcmp(name,"id") == 0) return (void *) tag;

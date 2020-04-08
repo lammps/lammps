@@ -214,6 +214,13 @@ void ComputeMLIAP::compute_array()
   if (model->nonlinearflag)
     descriptor->forward(map, list, descriptors);
 
+  // ***********THIS IS NOT RIGHT**********************
+  // This whole idea is flawed. The gamma matrix is too big to
+  // store. Instead, we should generate the A matrix,
+  // just as ComputeSNAP does, and then pass it to 
+  // the model, which can evaluate gradients of E, F, sigma,
+  // w.r.t. model parameters.
+
   // calculate descriptor contributions to parameter gradients
   // and gamma = double gradient w.r.t. parameters and descriptors
 

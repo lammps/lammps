@@ -20,20 +20,19 @@ namespace LAMMPS_NS {
 
 class MLIAPModel : protected Pointers {
 public:
-  MLIAPModel(LAMMPS*, char*, class PairMLIAP*);
+  MLIAPModel(LAMMPS*, char*);
   ~MLIAPModel();
-  virtual void gradient(class NeighList*, double**, double**, int)=0;
+  virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int)=0;
   virtual void init();
   virtual double memory_usage();
   int nelements;                 // # of unique elements
   int nonlinearflag;             // 1 if gradient() requires escriptors
   int ndescriptors;              // number of descriptors
+  int nparams;                   // number of parameters per element
 
 protected:
-  class PairMLIAP* pairmliap;
   void read_coeffs(char *);
   double **coeffelem;            // element coefficients
-  int ncoeffall;                 // number of coefficients per element
 };
 
 }

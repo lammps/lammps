@@ -20,12 +20,13 @@ namespace LAMMPS_NS {
 
 class MLIAPDescriptor : protected Pointers  {
 public:
-  MLIAPDescriptor(LAMMPS*, class PairMLIAP*);
+  MLIAPDescriptor(LAMMPS*);
   ~MLIAPDescriptor();
-  virtual void forward(class NeighList*, double**)=0;
-  virtual void backward(class NeighList*, double**, int)=0;
+  virtual void forward(int*, class NeighList*, double**)=0;
+  virtual void backward(class PairMLIAP*, class NeighList*, double**, int)=0;
   virtual void init()=0;
   virtual double get_cutoff(int, int)=0;
+  virtual double get_cutmax()=0;
   virtual double memory_usage()=0;
 
   int ndescriptors;              // number of descriptors
@@ -33,7 +34,6 @@ public:
   char **elements;               // names of unique elements
 
 protected:
-  class PairMLIAP* pairmliap;
 
 };
 

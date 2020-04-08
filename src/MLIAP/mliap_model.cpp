@@ -28,13 +28,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename, 
-                       PairMLIAP* pairmliap_in) : Pointers(lmp)
+MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 {
   nelements = 0;
   coeffelem = NULL;
   read_coeffs(coefffilename);
-  pairmliap = pairmliap_in;
   nonlinearflag = 0;
 }
 
@@ -106,16 +104,16 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   words[iword] = strtok(NULL,"' \t\n\r\f");
 
   nelements = atoi(words[0]);
-  ncoeffall = atoi(words[1]);
+  nparams = atoi(words[1]);
 
   // set up coeff lists
 
-  memory->create(coeffelem,nelements,ncoeffall,"mliap_snap_model:coeffelem");
+  memory->create(coeffelem,nelements,nparams,"mliap_snap_model:coeffelem");
 
   // Loop over nelements blocks in the coefficient file
 
   for (int ielem = 0; ielem < nelements; ielem++) {
-    for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+    for (int icoeff = 0; icoeff < nparams; icoeff++) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fpcoeff);
         if (ptr == NULL) {
@@ -155,7 +153,7 @@ double MLIAPModel::memory_usage()
   double bytes = 0;
 
   int n = atom->ntypes+1;
-  bytes += nelements*ncoeffall*sizeof(double);  // coeffelem
+  bytes += nelements*nparams*sizeof(double);  // coeffelem
 
   return bytes;
 }

@@ -20,9 +20,9 @@ namespace LAMMPS_NS {
 
 class MLIAPModelLinear : public MLIAPModel {
 public:
-  MLIAPModelLinear(LAMMPS*, char*, class PairMLIAP*);
+  MLIAPModelLinear(LAMMPS*, char*);
   ~MLIAPModelLinear();
-  virtual void gradient(class NeighList*, double**, double**, int);
+  virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int);
 
 protected:
 };

@@ -28,11 +28,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename, PairMLIAP* pairmliap_in) : 
-  MLIAPModel(lmp, coefffilename, pairmliap_in)
+MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) : 
+  MLIAPModel(lmp, coefffilename)
 {
   nonlinearflag = 0;
-  ndescriptors = ncoeffall - 1;
+  ndescriptors = nparams - 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -43,7 +43,7 @@ MLIAPModelLinear::~MLIAPModelLinear(){}
    Calculate model gradients w.r.t descriptors for each atom dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::gradient(NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
 {
   int i;
   int *type = atom->type;

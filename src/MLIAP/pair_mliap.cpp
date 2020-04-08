@@ -44,6 +44,7 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) : Pair(lmp)
 
   model = NULL;
   descriptor = NULL;
+  map = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,15 +86,15 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)
-    descriptor->forward(list, descriptors);
+    descriptor->forward(map, list, descriptors);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
-  model->gradient(list, descriptors, beta, eflag);
+  model->gradient(this, list, descriptors, beta, eflag);
 
   // calculate force contributions beta_i*dB_i/dR_j
  
-  descriptor->backward(list, beta, vflag);
+  descriptor->backward(this, list, beta, vflag);
 
   // calculate stress 
 
@@ -132,18 +133,18 @@ void PairMLIAP::settings(int narg, char ** arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
       if (strcmp(arg[iarg+1],"linear") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-        model = new MLIAPModelLinear(lmp,arg[iarg+2],this);
+        model = new MLIAPModelLinear(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-        model = new MLIAPModelQuadratic(lmp,arg[iarg+2],this);
+        model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal pair_style mliap command");
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-        descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2],this);
+        descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal pair_style mliap command");
     }

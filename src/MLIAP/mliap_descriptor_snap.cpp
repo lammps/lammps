@@ -34,9 +34,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename, 
-                                         PairMLIAP* pairmliap_in): 
-  MLIAPDescriptor(lmp, pairmliap_in)
+MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename): 
+  MLIAPDescriptor(lmp)
 {
   nelements = 0;
   elements = NULL;
@@ -44,7 +43,6 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename,
   wjelem = NULL;
   snaptr = NULL;
   read_paramfile(paramfilename);
-  pairmliap = pairmliap_in;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,7 +66,7 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
    compute descriptors for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::forward(NeighList* list, double **descriptors)
+void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptors)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
@@ -84,7 +82,7 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **descriptors)
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
+    const int ielem = map[itype];
     const double radi = radelem[ielem];
 
     jlist = list->firstneigh[i];
@@ -109,11 +107,12 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **descriptors)
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = pairmliap->map[jtype];
+      int jelem = map[jtype];
 
       //      printf("i = %d j = %d itype = %d jtype = %d cutsq[i][j] = %g rsq = %g\n",i,j,itype,jtype,cutsq[itype][jtype],rsq);
 
-      if (rsq < pairmliap->cutsq[itype][jtype]&&rsq>1e-20) {
+      double rcutsqtmp = get_cutoff(ielem, jelem);
+      if (rsq < rcutsqtmp*rcutsqtmp) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
@@ -145,7 +144,7 @@ void MLIAPDescriptorSNAP::forward(NeighList* list, double **descriptors)
    compute forces for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::backward(NeighList* list, double **beta, int vflag)
+void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
@@ -426,6 +425,21 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 double MLIAPDescriptorSNAP::get_cutoff(int ielem, int jelem)
 {
   return (radelem[ielem] + radelem[jelem])*rcutfac;
+}
+
+/* ----------------------------------------------------------------------
+   calculate maximum cutoff distance
+------------------------------------------------------------------------- */
+
+double MLIAPDescriptorSNAP::get_cutmax()
+{
+  double cut;
+  double cutmax = 0.0;
+  for(int ielem = 0; ielem <= nelements; ielem++) {
+    cut = 2.0*radelem[ielem]*rcutfac;
+    if (cut > cutmax) cutmax = cut;
+    return cutmax;
+  }
 }
 
 /* ----------------------------------------------------------------------

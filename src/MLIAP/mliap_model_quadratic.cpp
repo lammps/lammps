@@ -28,11 +28,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename, PairMLIAP* pairmliap_in) : 
-  MLIAPModel(lmp, coefffilename, pairmliap_in)
+MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) : 
+  MLIAPModel(lmp, coefffilename)
 {
   nonlinearflag = 1;
-  ndescriptors = sqrt(2*ncoeffall)-1;
+  ndescriptors = sqrt(2*nparams)-1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -43,7 +43,7 @@ MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
    Calculate model gradients w.r.t descriptors for each atom dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelQuadratic::gradient(NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
 {
   int i;
   int *type = atom->type;

@@ -862,7 +862,8 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
 /** \brief Get pointer to a LAMMPS per-atom property.
  *
 \verbatim embed:rst
-This function returns a pointer to the location of per-atom properties.
+This function returns a pointer to the location of per-atom properties
+(and per-atomtype properties as in the case of the 'mass' keyword).
 This is data that is distributed across sub-domains and thus MPI ranks.
 The returned pointer is cast to ``void *`` and needs to be cast to a
 pointer of type that the entity represents.
@@ -892,7 +893,7 @@ either an ``int`` or an ``int64_t``.  This is selected at
    * - mass
      - double
      - 1
-     - per-atom mass. Is ``NULL`` unless "rmass_flag" is set. See :cpp:func:`lammps_extract_setting`.
+     - per-type mass. This array is **NOT** a per-atom array but of length ``ntypes+1``, element 0 is ignored.
    * - id
      - tagint
      - 1
@@ -949,6 +950,10 @@ either an ``int`` or an ``int64_t``.  This is selected at
      - double
      - 1
      - radius of the (extended) particles
+   * - rmass
+     - double
+     - 1
+     - per-atom mass of the particles. ``NULL`` if per-type masses are used. See :cpp:func:`'rmass_flag' setting <lammps_extract_setting>`.
    * - ellipsoid
      - int
      - 1

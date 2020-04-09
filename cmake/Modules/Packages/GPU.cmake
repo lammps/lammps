@@ -198,7 +198,50 @@ elseif(GPU_API STREQUAL "HIP")
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP REQUIRED)
 
-  set(HIP_ARCH "gfx906")
+  if(NOT DEFINED HIP_PLATFORM)
+      if(NOT DEFINED ENV{HIP_PLATFORM})
+          set(HIP_PLATFORM "hcc" CACHE PATH "HIP Platform to be used during compilation")
+      else()
+          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
+      endif()
+  endif()
+
+  set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
+
+  if(HIP_PLATFORM STREQUAL "hcc")
+    set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
+  elseif(HIP_PLATFORM STREQUAL "nvcc")
+    find_package(CUDA REQUIRED)
+    set(HIP_ARCH "sm_30" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
+
+    # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
+    # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
+    set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH} ")
+    # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
+    if((CUDA_VERSION VERSION_GREATER "3.1") AND (CUDA_VERSION VERSION_LESS "9.0"))
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_20,code=[sm_20,compute_20] ")
+    endif()
+    # Kepler (GPU Arch 3.x) is supported by CUDA 5 and later
+    if(CUDA_VERSION VERSION_GREATER "4.9")
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_35,code=[sm_35,compute_35] ")
+    endif()
+    # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
+    if(CUDA_VERSION VERSION_GREATER "5.9")
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] ")
+    endif()
+    # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
+    if(CUDA_VERSION VERSION_GREATER "7.9")
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] ")
+    endif()
+    # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
+    if(CUDA_VERSION VERSION_GREATER "8.9")
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_70,code=[sm_70,compute_70] ")
+    endif()
+    # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
+    if(CUDA_VERSION VERSION_GREATER "9.9")
+      string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_75,code=[sm_75,compute_75] ")
+    endif()
+  endif()
 
   file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
@@ -212,12 +255,19 @@ elseif(GPU_API STREQUAL "HIP")
     set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
     set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-    configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+    if(HIP_PLATFORM STREQUAL "hcc")
+        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
-    add_custom_command(OUTPUT ${CUBIN_FILE}
-      VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
-      DEPENDS ${CU_CPP_FILE}
-      COMMENT "Generating ${CU_NAME}.cubin")
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          DEPENDS ${CU_CPP_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
+    elseif(HIP_PLATFORM STREQUAL "nvcc")
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
+          DEPENDS ${CU_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
+    endif()
 
     add_custom_command(OUTPUT ${CUBIN_H_FILE}
       COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILES=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake

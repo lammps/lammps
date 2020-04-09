@@ -582,9 +582,7 @@ class lammps(object):
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
-    if ptr:
-      if name == 'mass'.encode(): return ptr[0:ntypes+1]
-      else: return ptr[0:nmax]
+    if ptr: return ptr
     else:   return None
 
   @property

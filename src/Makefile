@@ -7,20 +7,21 @@ PYTHON = python
 
 # Definitions
 
-ROOT =	 lmp
-EXE =	 lmp_$@
+ROOT =   lmp
+EXE =    lmp_$@
 ARLIB =  liblammps_$@.a
-SHLIB =	 liblammps_$@.so
+SHLIB =  liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
 TMPNAME= tmp_$@_name
+LMPLINK=$(shell echo $(ARLIB) | sed -e 's,lib\([+0-9a-z_-]\+\)\.a$$,-L. -l\1,')
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
-SRC =	$(wildcard *.cpp)
-INC =	$(filter-out lmpinstalledpkgs.h lmpgitversion.h,$(wildcard *.h))
-OBJ = 	$(SRC:.cpp=.o)
+SRC =   $(wildcard *.cpp)
+INC =   $(filter-out lmpinstalledpkgs.h lmpgitversion.h,$(wildcard *.h))
+OBJ =   $(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
 OBJLIB = $(filter-out main.o,$(OBJ))
@@ -181,11 +182,9 @@ gitversion:
 	        mv ${TMPNAME}.lmpgitversion lmpgitversion.h || rm ${TMPNAME}.lmpgitversion ; \
         else mv ${TMPNAME}.lmpgitversion lmpgitversion.h ; fi
 
-# Build LAMMPS in one of 4 modes
-# exe =   exe with static compile in Obj_machine (default)
-# shexe = exe with shared compile in Obj_shared_machine
-# lib =   static lib in Obj_machine
-# shlib = shared lib in Obj_shared_machine
+# Build LAMMPS in one of 2 modes
+# static = static compile in Obj_machine (default)
+# shared = shared compile in Obj_shared_machine
 
 .DEFAULT:
 	@if [ $@ = "serial" ]; \
@@ -217,15 +216,15 @@ gitversion:
 ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
-	  "LMPLIB = $(PWD)/$(ARLIB)" "ARLIB = $(PWD)/$(ARLIB)" "SHLIB = $(PWD)/$(SHLIB)" \
-	  "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
+	  "LMPLINK = $(LMPLINK)" "EXE = $(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
 ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
-	  "LMPLIB = $(PWD)/$(SHLIB)" "ARLIB = $(PWD)/$(ARLIB)" "SHLIB = $(PWD)/$(SHLIB)" \
-	  "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
+	  "LMPLINK = $(LMPLINK)" "EXE = $(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
 # backward compatibility

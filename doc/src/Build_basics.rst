@@ -57,7 +57,7 @@ The build with traditional makefiles has to be done inside the source folder ``s
 
 Any ``make machine`` command will look up the make settings from a file
 ``Makefile.machine`` in the folder ``src/MAKE`` or one of its
-subdirectories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a folder
+sub-directories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a folder
 ``Obj_machine`` with all objects and generated files and an executable
 called ``lmp_machine``\ .  The standard parallel build with ``make mpi``
 assumes a standard MPI installation with MPI compiler wrappers where all

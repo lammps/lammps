@@ -73,7 +73,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
-    set (CMAK_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   endif()
 endif()
 

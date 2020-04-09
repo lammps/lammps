@@ -294,15 +294,6 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   </td>
 </tr>
 <tr>
-  <td><code>LAMMPS_LIB_SUFFIX</code></td>
-  <td>allows appending a suffix to the generated LAMMPS library</td>
-  <td>
-  <dl>
-    <dt>*none*  (default)</dt>
-  </dl>
-  </td>
-</tr>
-<tr>
   <td><code>BUILD_SHARED_LIBS</code></td>
   <td>control whether to build LAMMPS as a shared-library</td>
   <td>

@@ -206,7 +206,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     int jj_actual = 0;
     SPECIES_TYPE type_j = 0;
-    int neighbour_index_mapping[jnum] = {0}; // jj_actual -> jj
+    int neighbour_index_mapping[jnum]; // jj_actual -> jj
     //loop over neighbours, compute distance, consider only atoms within with r<cutoff(mu_i, mu_j)
     for (jj = 0; jj < jnum; ++jj) {
 

@@ -1,6 +1,8 @@
 Build LAMMPS as a shared library
 ================================
 
+.. TODO this is mostly redundant and should be addressed in the 'progguide' branch if it has not already
+
 Build LAMMPS as a shared library using make
 -------------------------------------------
 

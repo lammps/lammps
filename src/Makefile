@@ -217,14 +217,14 @@ ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
 	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = $(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
 ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
 	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = $(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
 # backward compatibility

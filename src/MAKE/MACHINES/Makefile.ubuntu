@@ -89,7 +89,7 @@ vpath %.h ..
 
 # Link target
 
-../$(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
+$(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
 	$(LINK) $(LINKFLAGS) main.o $(EXTRA_PATH) $(LMPLINK) $(EXTRA_LIB) $(LIB) -o $@
 	$(SIZE) $@
 

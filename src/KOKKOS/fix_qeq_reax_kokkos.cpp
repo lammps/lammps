@@ -91,10 +91,10 @@ void FixQEqReaxKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->fix = 1;
@@ -223,7 +223,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // compute_H
 
-  if (lmp->kokkos->ngpus == 0) { // CPU
+  if (execution_space == Host) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
       Kokkos::parallel_scan(inum,computeH_functor);

@@ -2,8 +2,24 @@ BootStrap: docker
 From: ubuntu:16.04
 
 %post
-	apt-get update -y
-	env DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake cmake-curses-gui ninja-build git ccache gcc g++ gfortran libfftw3-dev libjpeg-dev libpng12-dev libblas-dev liblapack-dev mpi-default-bin mpi-default-dev libeigen3-dev libgsl-dev libopenblas-dev virtualenv python-dev enchant vim-nox
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y \
+        bc build-essential curl doxygen vim-nox wget \
+        make cmake cmake-curses-gui ninja-build git \
+        rsync ssh \
+        ccache gcc g++ gfortran \
+        mpi-default-bin mpi-default-dev \
+        libfftw3-dev libjpeg-dev libpng12-dev libblas-dev liblapack-dev \
+        python-dev libeigen3-dev libgsl-dev libopenblas-dev \
+        virtualenv python3-dev python3-pip python3-pkg-resources \
+        python3-setuptools python3-virtualenv \
+        enchant
+
+%environment
+        LC_ALL=C
+        export LC_ALL
 
 %labels
-	Author akohlmey
+        Author akohlmey

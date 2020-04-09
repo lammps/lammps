@@ -89,7 +89,7 @@ class SNAKokkos {
 public:
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
   typedef Kokkos::View<double*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<double*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<double*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
   typedef Kokkos::View<double**, DeviceType> t_sna_2d;
   typedef Kokkos::View<double**, Kokkos::LayoutLeft, DeviceType> t_sna_2d_ll;
@@ -99,7 +99,7 @@ public:
   typedef Kokkos::View<double*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
-  typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
+  typedef Kokkos::View<SNAcomplex*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
   typedef Kokkos::View<SNAcomplex**, DeviceType> t_sna_2c;
   typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutLeft, DeviceType> t_sna_2c_ll;
   typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;
@@ -135,13 +135,9 @@ inline
   KOKKOS_INLINE_FUNCTION
   void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,const int&); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
+  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
-  KOKKOS_INLINE_FUNCTION
-  void compute_ui_orig(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
-  KOKKOS_INLINE_FUNCTION
-  void compute_uitot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -155,11 +151,9 @@ inline
   // functions for derivatives
 
   KOKKOS_INLINE_FUNCTION
-  void compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); //ForceSNAP
+  void compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int); //ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_duidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); //ForceSNAP
-  KOKKOS_INLINE_FUNCTION
-  void compute_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -252,10 +246,6 @@ inline
   void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, double, double, double); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
-  void compute_uarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
-                      double, double, double,
-                      double, double); // compute_ui
-  KOKKOS_INLINE_FUNCTION
   void compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                       double, double, double,
                       double, double); // compute_ui_cpu
@@ -267,12 +257,8 @@ inline
 inline
   int compute_ncoeff();           // SNAKokkos()
   KOKKOS_INLINE_FUNCTION
-  void compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
-                       double, double, double, // compute_duidrj
-                       double, double, double, double, double);
-  KOKKOS_INLINE_FUNCTION
   void compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
-                       double, double, double, // compute_duidrj
+                       double, double, double, // compute_duidrj_cpu
                        double, double, double, double, double);
 
   // Sets the style for the switching function

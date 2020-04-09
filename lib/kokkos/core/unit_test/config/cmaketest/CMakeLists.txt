@@ -19,7 +19,6 @@ set(KOKKOS_CMAKEFILE kokkos_generated_settings.cmake)
 set(KOKKOS_INTERNAL_CONFIG_TMP KokkosCore_config.tmp)
 set(KOKKOS_CONFIG_HEADER KokkosCore_config.h)
 
-set(KOKKOS_CMAKE_VERBOSE False)
 include(${KOKKOS_SRCDIR}/cmake/kokkos_options.cmake)
 foreach(KOKKOS_DEV ${KOKKOS_DEVICES_LIST})
 # Do some initialization: Want to turn everything off for testing

@@ -38,7 +38,7 @@ compatible with specific hardware.
 .. note::
 
    To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA
-   software version 7.5 or later must be installed on your system. See
+   software version 9.0 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of how
    to check and do this.
 

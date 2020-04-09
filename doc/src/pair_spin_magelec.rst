@@ -18,7 +18,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style spin/magelec 4.5
-   pair_coeff \* \* magelec 4.5 0.00109 1.0 1.0 1.0
+   pair_coeff * * magelec 4.5 0.00109 1.0 1.0 1.0
 
 Description
 """""""""""

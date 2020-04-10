@@ -64,7 +64,7 @@ if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
-  if(KOKKOS_ENABLE_CUDA)
+  if(Kokkos_ENABLE_CUDA)
     if(NOT ${FFT} STREQUAL "KISS")
       target_compile_definitions(lammps PRIVATE -DFFT_CUFFT)
       target_link_libraries(lammps PRIVATE cufft)

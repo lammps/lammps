@@ -31,6 +31,10 @@ elseif(EXTERNAL_KOKKOS)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+  # enforce using nvcc_wrapper as compiler wrapper
+  if(Kokkos_ENABLE_CUDA)
+    set(CMAKE_CXX_COMPILER ${LAMMPS_LIB_KOKKOS_SRC_DIR}/bin/nvcc_wrapper CACHE FILEPATH "Path to nvcc wrapper for Kokkos with CUDA" FORCE)
+  endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
 
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src

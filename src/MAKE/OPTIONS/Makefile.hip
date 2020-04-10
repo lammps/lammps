@@ -7,14 +7,14 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 HIP_PATH ?= $(wildcard /opt/rocm/hip)
 LINK =		$(HIP_PATH)/bin/hipcc
 LINKFLAGS =	-g -O3 $(shell mpicxx --showme:link)
-LIB = 
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar
@@ -41,8 +41,8 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
 # LIB = name of MPI library
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
-MPI_PATH = 
-MPI_LIB =	
+MPI_PATH =
+MPI_LIB =
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manual
@@ -51,9 +51,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
-FFT_PATH = 
-FFT_LIB =	
+FFT_INC =
+FFT_PATH =
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -62,9 +62,9 @@ FFT_LIB =
 # PATH = path(s) for JPEG library and/or PNG library
 # LIB = name(s) of JPEG library and/or PNG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_INC =
+JPG_PATH =
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

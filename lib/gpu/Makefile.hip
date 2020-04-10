@@ -1,4 +1,4 @@
-# /* ----------------------------------------------------------------------   
+# /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for HIP
 #     - export HIP_PLATFORM=hcc (or nvcc) before execution
 #     - change HIP_ARCH for your GPU
@@ -16,13 +16,13 @@ LMP_INC = -DLAMMPS_SMALLBIG
 
 HIP_PRECISION = -D_SINGLE_DOUBLE
 
-HIP_OPTS = -O3 
+HIP_OPTS = -O3
 HIP_HOST_OPTS = -Wno-deprecated-declarations
-HIP_HOST_INCLUDE = 
+HIP_HOST_INCLUDE =
 
-# use device sort 
+# use device sort
 # requires linking with hipcc and hipCUB + (rocPRIM or CUB for AMD or Nvidia respectively)
-HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT 
+HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT
 # path to cub
 HIP_HOST_INCLUDE += -I./
 # path to hipcub
@@ -47,7 +47,7 @@ else ifeq (nvcc,$(HIP_PLATFORM))
 	HIP_ARCH = -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_32,code=[sm_32,compute_32] -gencode arch=compute_35,code=[sm_35,compute_35] \
 		    -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] -gencode arch=compute_53,code=[sm_53,compute_53]\
 			-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] -gencode arch=compute_62,code=[sm_62,compute_62]\
-			-gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_72,code=[sm_72,compute_72] -gencode arch=compute_75,code=[sm_75,compute_75] 
+			-gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_72,code=[sm_72,compute_72] -gencode arch=compute_75,code=[sm_75,compute_75]
 else
 	$(error Specify HIP platform using 'export HIP_PLATFORM=(hcc,nvcc)')
 endif
@@ -59,8 +59,8 @@ AR = ar
 BSH = /bin/sh
 
 
-# /* ----------------------------------------------------------------------   
-#  				don't change section below without need			
+# /* ----------------------------------------------------------------------
+#  				don't change section below without need
 # ------------------------------------------------------------------------- */
 
 HIP_OPTS += -DUSE_HIP $(HIP_PRECISION)
@@ -69,13 +69,13 @@ HIP_GPU_OPTS += $(HIP_OPTS) -I./
 ifeq (hcc,$(HIP_PLATFORM))
 	HIP_HOST_OPTS += -fPIC
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
-	HIP_GPU_OPTS_S = -t="$(HIP_ARCH)" -f=\" 
+	HIP_GPU_OPTS_S = -t="$(HIP_ARCH)" -f=\"
 	HIP_GPU_OPTS_E = \"
 	HIP_KERNEL_SUFFIX = .cpp
 	HIP_LIBS_TARGET = export HCC_AMDGPU_TARGET := $(HIP_ARCH)
 	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
 else ifeq (nvcc,$(HIP_PLATFORM))
-	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --fatbin 
+	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --fatbin
 	HIP_GPU_OPTS += $(HIP_ARCH)
 	HIP_GPU_SORT_ARCH = $(HIP_ARCH)
 	# fix nvcc can't handle -pthread flag
@@ -100,9 +100,9 @@ CUHS := $(addprefix $(OBJ_DIR)/, $(CUHS))
 all: $(OBJ_DIR) $(CUHS) $(LIB_DIR)/libgpu.a $(BIN_DIR)/hip_get_devices
 
 $(OBJ_DIR):
-	mkdir -p $@    
+	mkdir -p $@
 
-# GPU kernels compilation 
+# GPU kernels compilation
 
 $(OBJ_DIR)/pppm_f_cubin.h: lal_pppm.cu  $(ALL_H)
 	@cp $< $(OBJ_DIR)/temp_pppm_f.cu$(HIP_KERNEL_SUFFIX)
@@ -128,7 +128,7 @@ $(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
 # host sources compilation
 
 $(OBJ_DIR)/lal_atom.o: lal_atom.cpp $(CUHS) $(ALL_H)
-	$(HIP_HOST_CC_CMD) -o $@ -c $< -I$(OBJ_DIR) $(HIP_GPU_SORT_ARCH) 
+	$(HIP_HOST_CC_CMD) -o $@ -c $< -I$(OBJ_DIR) $(HIP_GPU_SORT_ARCH)
 
 $(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(ALL_H)
 	$(HIP_HOST_CC_CMD) -o $@ -c $< -I$(OBJ_DIR)

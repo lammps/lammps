@@ -291,37 +291,70 @@ these are really Kokkos variables, not LAMMPS variables.  Hence you
 must use case-sensitive variable names, i.e. ``Kokkos_ARCH_BDW``
 and **NOT** ``KOKKOS_ARCH_BDW`` or ``Kokkos_arch_bdw`` and so on.
 
-* AMDAVX = AMD 64-bit x86 CPUs
-* EPYC   = AMD EPYC Zen class CPUs
-* ARMv80 = ARMv8.0 Compatible CPU
-* ARMv81 = ARMv8.1 Compatible CPU
-* ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU
-* ARMv8-TX2 = ARMv8 Cavium ThunderX2 CPU
-* WSM = Intel Westmere CPUs
-* SNB = Intel Sandy/Ivy Bridge CPUs
-* HSW = Intel Haswell CPUs
-* BDW = Intel Broadwell Xeon E-class CPUs
-* SKX = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
-* KNC = Intel Knights Corner Xeon Phi
-* KNL = Intel Knights Landing Xeon Phi
-* BGQ = IBM Blue Gene/Q CPUs
-* Power7 = IBM POWER8 CPUs
-* Power8 = IBM POWER8 CPUs
-* Power9 = IBM POWER9 CPUs
-* Kepler = NVIDIA Kepler default (generation CC 3.5)
-* Kepler30 = NVIDIA Kepler generation CC 3.0
-* Kepler32 = NVIDIA Kepler generation CC 3.2
-* Kepler35 = NVIDIA Kepler generation CC 3.5
-* Kepler37 = NVIDIA Kepler generation CC 3.7
-* Maxwell = NVIDIA Maxwell default (generation CC 5.0)
-* Maxwell50 = NVIDIA Maxwell generation CC 5.0
-* Maxwell52 = NVIDIA Maxwell generation CC 5.2
-* Maxwell53 = NVIDIA Maxwell generation CC 5.3
-* Pascal60 = NVIDIA Pascal generation CC 6.0
-* Pascal61 = NVIDIA Pascal generation CC 6.1
-* Volta70 = NVIDIA Volta generation CC 7.0
-* Volta72 = NVIDIA Volta generation CC 7.2
-* Turing75 = NVIDIA Turing generation CC 7.5
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   *  - Arch
+      - Description
+   *  - AMDAVX
+      - AMD 64-bit x86 CPUs
+   *  - EPYC
+      - AMD EPYC Zen class CPUs
+   *  - ARMV80
+      - ARMv8.0 Compatible CPU
+   *  - ARMV81
+      - ARMv8.1 Compatible CPU
+   *  - ARMV8_THUNDERX
+      - ARMv8 Cavium ThunderX CPU
+   *  - ARMV8_THUNDERX2
+      - ARMv8 Cavium ThunderX2 CPU
+   *  - WSM
+      - Intel Westmere CPUs
+   *  - SNB
+      - Intel Sandy/Ivy Bridge CPUs
+   *  - HSW
+      - Intel Haswell CPUs
+   *  - BDW
+      - Intel Broadwell Xeon E-class CPUs
+   *  - SKX
+      - Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
+   *  - KNC
+      - Intel Knights Corner Xeon Phi
+   *  - KNL
+      - Intel Knights Landing Xeon Phi
+   *  - BGQ
+      - IBM Blue Gene/Q CPUs
+   *  - POWER7
+      - IBM POWER8 CPUs
+   *  - POWER8
+      - IBM POWER8 CPUs
+   *  - POWER9
+      - IBM POWER9 CPUs
+   *  - KEPLER30
+      - NVIDIA Kepler generation CC 3.0
+   *  - KEPLER32
+      - NVIDIA Kepler generation CC 3.2
+   *  - KEPLER35
+      - NVIDIA Kepler generation CC 3.5
+   *  - KEPLER37
+      - NVIDIA Kepler generation CC 3.7
+   *  - MAXWELL50
+      - NVIDIA Maxwell generation CC 5.0
+   *  - MAXWELL52
+      - NVIDIA Maxwell generation CC 5.2
+   *  - MAXWELL53
+      - NVIDIA Maxwell generation CC 5.3
+   *  - PASCAL60
+      - NVIDIA Pascal generation CC 6.0
+   *  - PASCAL61
+      - NVIDIA Pascal generation CC 6.1
+   *  - VOLTA70
+      - NVIDIA Volta generation CC 7.0
+   *  - VOLTA72
+      - NVIDIA Volta generation CC 7.2
+   *  - TURING75
+      - NVIDIA Turing generation CC 7.5
 
 **CMake build**\ :
 

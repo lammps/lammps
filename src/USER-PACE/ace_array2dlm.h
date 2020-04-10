@@ -1,8 +1,8 @@
 //
 // Created by Yury Lysogorskiy on 11.01.20.
 //
-#ifndef ACE_ACE_ARRAY2DLM_H
-#define ACE_ACE_ARRAY2DLM_H
+#ifndef ACE_ARRAY2DLM_H
+#define ACE_ARRAY2DLM_H
 
 #include <string>
 
@@ -146,7 +146,9 @@ public:
             memset(data, 0, size * sizeof(T));
         }
 
+        _proxy_slices.set_array_name(array_name + "_proxy");
         //arrange proxy-slices
+        _clear_proxies();
         _proxy_slices.resize(dim[0]);
         for (size_t i0 = 0; i0 < dim[0]; ++i0) {
             _proxy_slices(i0) = new Array2DLM<T>(this->lmax, &this->data[i0 * s[0]],
@@ -155,8 +157,9 @@ public:
     }
 
     void _clear_proxies() {
-        for (size_t i0 = 0; i0 < dim[0]; ++i0) {
+        for (size_t i0 = 0; i0 < _proxy_slices.get_dim(0); ++i0) {
             delete _proxy_slices(i0);
+            _proxy_slices(i0) = nullptr;
         }
     }
 
@@ -251,9 +254,11 @@ public:
     }
 
     //initialize array
-    void init(size_t d0, size_t d1, LS_TYPE lmax, string array_name = "Array2DLM") {
+    void init(size_t d0, size_t d1, LS_TYPE lmax, string array_name = "Array4DLM") {
         this->array_name = array_name;
         this->lmax = lmax;
+
+
         dim[1] = d1;
         dim[0] = d0;
         s[1] = lmax * lmax;
@@ -267,6 +272,9 @@ public:
             memset(data, 0, size * sizeof(T));
         }
 
+        _proxy_slices.set_array_name(array_name + "_proxy");
+        //release old memory if there is any
+        _clear_proxies();
         //arrange proxy-slices
         _proxy_slices.resize(dim[0], dim[1]);
         for (size_t i0 = 0; i0 < dim[0]; ++i0)
@@ -277,9 +285,11 @@ public:
     }
 
     void _clear_proxies() {
-        for (size_t i0 = 0; i0 < dim[0]; ++i0)
-            for (size_t i1 = 0; i1 < dim[1]; ++i1) {
+
+        for (size_t i0 = 0; i0 < _proxy_slices.get_dim(0); ++i0)
+            for (size_t i1 = 0; i1 < _proxy_slices.get_dim(1); ++i1) {
                 delete _proxy_slices(i0, i1);
+                _proxy_slices(i0, i1) = nullptr;
             }
     }
 
@@ -352,4 +362,4 @@ public:
     }
 };
 
-#endif //ACE_ACE_ARRAY2DLM_H
+#endif //ACE_ARRAY2DLM_H

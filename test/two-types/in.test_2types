@@ -1,0 +1,52 @@
+# example of ACE potential for Al, 2 LAMMPS types
+
+# command-line variables
+
+variable	rskin index 0.3
+variable	nsteps index 100
+variable	nthermo index 100
+variable	nrep index 3
+ 
+units		metal
+atom_style	atomic
+
+neighbor	${rskin} bin
+neigh_modify	 every 2 delay 10 check yes
+
+variable	a equal 4.05
+lattice		fcc $a 
+region		box block 0 ${nrep} 0 ${nrep} 0 ${nrep}
+create_box	2 box
+create_atoms	1 box basis 2 2 basis 4 2
+
+mass		* 26.98
+
+group		Al1 type 1
+group		Al2 type 2
+
+pair_style 	pace
+pair_coeff  * * Al.pbe.rhocore.ace Al Al
+
+velocity        all create 600.03 8728
+timestep        0.0005
+fix		2 all nve
+
+# check per-atom energy and stress
+
+compute        peatom all pe/atom
+compute        pe all reduce sum c_peatom
+variable       delpe equal c_pe-pe
+
+compute        stressatom all stress/atom NULL
+compute        stress all reduce sum c_stressatom[*]
+variable       delstress_xx equal c_stress[1]/vol+pxx
+variable       delstress_yy equal c_stress[2]/vol+pyy
+variable       delstress_zz equal c_stress[3]/vol+pzz
+variable       delstress_xy equal c_stress[4]/vol+pxy
+variable       delstress_xz equal c_stress[5]/vol+pxz
+variable       delstress_yz equal c_stress[6]/vol+pyz
+
+thermo 		${nthermo}
+thermo_style 	custom step etotal pe ke pxx pyy pzz pxy pxz pyz press temp vol v_delpe v_delstress_xx v_delstress_yy v_delstress_zz v_delstress_xy v_delstress_xz v_delstress_yz
+
+run		${nsteps}

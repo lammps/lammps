@@ -1,0 +1,42 @@
+stages:
+  - compile
+  - test
+
+compile-tests:
+  stage: compile
+  tags:
+    - gcc
+  script:
+    - which gcc
+    - gcc --version
+    - which cmake
+    - cmake --version
+    - mkdir build; cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release ../cmake
+    - cmake --build .
+  artifacts:
+    paths:
+      - build/lmp
+
+
+test-md-energy-conservation:
+  stage: test
+  tags:
+    - gcc
+  script:
+    - cd test/md-run
+    - ../../build/lmp -in in.md.forces
+    - python analyse_energy_convergence.py log.lammps
+
+test-two-atom-types:
+  stage: test
+  tags:
+    - gcc
+  script:
+    - cd test/thermo
+    - ../../build/lmp -in in.test
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.1
+    - cd ../two-types
+    - ../../build/lmp -in in.test_2types
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.2
+    - diff en.2 ../thermo/en.1

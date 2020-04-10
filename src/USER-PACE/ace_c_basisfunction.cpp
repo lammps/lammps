@@ -1,7 +1,8 @@
 //
-// Created by lysogy36 on 26.02.20.
+// Created by Yury Lysogorskiy on 26.02.20.
 //
 #include <cstdio>
+
 #include "ace_c_basisfunction.h"
 
 void print_C_tilde_B_basis_function(const ACECTildeBasisFunction &func) {

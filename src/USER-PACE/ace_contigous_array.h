@@ -1,8 +1,8 @@
 //
 // Created by Yury Lysogorskiy on 11.01.20.
 //
-#ifndef ACE_CONTIGOUSARRAYND_H
-#define ACE_CONTIGOUSARRAYND_H
+#ifndef ACE_CONTIGUOUSARRAYND_H
+#define ACE_CONTIGUOUSARRAYND_H
 
 #include <string>
 #include "ace_types.h"
@@ -13,9 +13,9 @@ using namespace std;
 template<typename T>
 class ContiguousArrayND {
 protected:
-    string array_name = "Array";
     T *data = nullptr;
     size_t size = 0;
+    string array_name = "Array";
 public:
 
     //default empty constructor
@@ -41,17 +41,20 @@ public:
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::operator="<<endl;
 #endif
-        array_name = other.array_name;
-        size = other.size;
-        if (size > 0) {
-            data = new T[size];
-            for (size_t ind = 0; ind < size; ind++)
-                data[ind] = other.data[ind];
+        if (this != &other) {
+            array_name = other.array_name;
+            size = other.size;
+            if (size > 0) {
+                data = new T[size];
+                for (size_t ind = 0; ind < size; ind++)
+                    data[ind] = other.data[ind];
+            }
         }
         return *this;
     }
 
 
+    //TODO: make destructor virtual, check the destructors in inherited classes
     //destructor
     ~ContiguousArrayND() {
 #ifdef MULTIARRAY_LIFE_CYCLE
@@ -59,6 +62,10 @@ public:
 #endif
         if (data != nullptr) delete[] data;
         data = nullptr;
+    }
+
+    void set_array_name(const string &name) {
+        this->array_name = name;
     }
 
     size_t get_size() const {
@@ -90,7 +97,19 @@ public:
         return data[ind];
     }
 
+    bool operator==(const ContiguousArrayND &other) const {
+        if (this->size != other.size)
+            return false;
+
+
+        for (size_t i = 0; i < this->size; ++i) {
+            if (this->data[i] != other.data[i])
+                return false;
+        }
+
+        return true;
+    }
 };
 
 
-#endif //ACE_CONTIGOUSARRAYND_H
+#endif //ACE_CONTIGUOUSARRAYND_H

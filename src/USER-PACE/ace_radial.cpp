@@ -1,7 +1,6 @@
 #include <cmath>
 
 #include "ace_radial.h"
-#include "ace_utils.h"
 
 /**
 Constructor for ACERadialFunctions.
@@ -17,7 +16,6 @@ ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nrad
 
 void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
                               DOUBLE_TYPE cutoff) {
-    int s;
     this->nradbase = nradb;
     this->lmax = lmax;
     this->nradial = nradial;
@@ -34,8 +32,8 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     fr.init(nradbase, lmax + 1, "fr");
     dfr.init(nradbase, lmax + 1, "dfr");
 
-    f1f.init(lmax + 1, nradbase, "f1f");
-    f1fd1.init(lmax + 1, nradbase, "f1fd1");
+    f1f.init(nradbase, lmax + 1, "f1f");
+    f1fd1.init(nradbase, lmax + 1, "f1fd1");
 
 
     cheb.init(nradbase + 1, "cheb");
@@ -43,10 +41,9 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     cheb2.init(nradbase + 1, "cheb2");
 
 
-    lutfrs.init(nelements, nelements, ntot, 1 + lmax, nradial, 4, "lutfrs");
-    lutgrs.init(nelements, nelements, ntot, nradbase, 4, "lutgrs");
-
-    luthcs.init(nelements, nelements, ntot, 4, "luthcs");
+    lutfrs.init(nelements, nelements, ntot + 1, lmax + 1, nradial, 4, "lutfrs");
+    lutgrs.init(nelements, nelements, ntot + 1, nradbase, 4, "lutgrs");
+    luthcs.init(nelements, nelements, ntot + 1, 4, "luthcs");
 
     lambda.init(nelements, nelements, "lambda");
     lambda.fill(1.);
@@ -118,59 +115,60 @@ void ACERadialFunctions::calcCheb(NS_TYPE n, DOUBLE_TYPE x) {
 /**
 Function that computes radial basis.
 
-@param lam, nradbase, r_c, d_r_c, r
+@param lam, nradbase, cut, dcut, r
 
 @returns gr, dgr
 */
-void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE r_c, DOUBLE_TYPE d_r_c, DOUBLE_TYPE r) {
-    /*lam is given by the formula (24), that contains r_c */
-    DOUBLE_TYPE x1, x2, x, dx;
+void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
+    /*lam is given by the formula (24), that contains cut */
+    DOUBLE_TYPE y2, y1, x, dx;
     DOUBLE_TYPE env, denv, fcut, dfcut;
-    if (r >= r_c) {
-        gr.fill(0);
-        dgr.fill(0);
-    }
-    /* scaled distance x and derivative*/
-    x1 = exp(-lam);
-    x2 = exp(-lam * r / r_c);
-    x = 1.0 - 2 * ((x2 - x1) / (1 - x1));
-    dx = 2 * (lam / r_c) * (x2 / (1 - x1));
-    /* calculation of Chebyshev polynomials from the recursion */
-    calcCheb(nradbase - 1, x);
+    if (r < cut) {
+        /* scaled distance x and derivative*/
+        y1 = exp(-lam * r / cut);
+        y2 = exp(-lam);
+        x = 1.0 - 2.0 * ((y1 - y2) / (1 - y2));
+        dx = 2 * (lam / cut) * (y1 / (1 - y2));
+        /* calculation of Chebyshev polynomials from the recursion */
+        calcCheb(nradbase - 1, x);
 #ifdef DEBUG_RADIAL
-    for(int ii = 0; ii<nradbase; ii++)
-        printf("cheb(%d) = %f, dcheb(%d) = %f\n",ii, cheb(ii), ii, dcheb(ii));
+        for(int ii = 0; ii<nradbase; ii++)
+            printf("cheb(%d) = %f, dcheb(%d) = %f\n",ii, cheb(ii), ii, dcheb(ii));
 #endif
-    gr(0) = cheb(0);
-    dgr(0) = dcheb(0) * dx;
-    for (NS_TYPE n = 2; n <= nradbase; n++) {
-        gr(n - 1) = 0.5 - 0.5 * cheb(n - 1);
-        dgr(n - 1) = -0.5 * dcheb(n - 1) * dx;
+        gr(0) = cheb(0);
+        dgr(0) = dcheb(0) * dx;
+        for (NS_TYPE n = 2; n <= nradbase; n++) {
+            gr(n - 1) = 0.5 - 0.5 * cheb(n - 1);
+            dgr(n - 1) = -0.5 * dcheb(n - 1) * dx;
 #ifdef DEBUG_RADIAL
-        printf("1: n %d  gr[n] %f  dgr[n] %f\n", n-1,gr(n-1), dgr(n-1));
-#endif
-    }
-    env = 0.5 * (1.0 + cos(pi * r / r_c));
-    denv = -0.5 * sin(pi * r / r_c) * pi / r_c;
-    for (NS_TYPE n = 0; n < nradbase; n++) {
-        dgr(n) = gr(n) * denv + dgr(n) * env;
-        gr(n) = gr(n) * env;
-#ifdef DEBUG_RADIAL
-        printf("2: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
-#endif
-    }
-    // for radtype = 3 a smooth cutoff is already included in the basis function
-    dx = r_c - d_r_c;
-    if (r > dx) {
-        fcut = 0.5 * (1.0 + cos(pi * (r - dx) / d_r_c));
-        dfcut = -0.5 * sin(pi * (r - dx) / d_r_c) * pi / d_r_c;
-        for (NS_TYPE n = 0; n < nradbase; n++) {
-            dgr(n) = gr(n) * dfcut + dgr(n) * fcut;
-            gr(n) = gr(n) * fcut;
-#ifdef DEBUG_RADIAL
-            printf("3: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
+            printf("1: n %d  gr[n] %f  dgr[n] %f\n", n-1,gr(n-1), dgr(n-1));
 #endif
         }
+        env = 0.5 * (1.0 + cos(M_PI * r / cut));
+        denv = -0.5 * sin(M_PI * r / cut) * M_PI / cut;
+        for (NS_TYPE n = 0; n < nradbase; n++) {
+            dgr(n) = gr(n) * denv + dgr(n) * env;
+            gr(n) = gr(n) * env;
+#ifdef DEBUG_RADIAL
+            printf("2: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
+#endif
+        }
+        // for radtype = 3 a smooth cut is already included in the basis function
+        dx = cut - dcut;
+        if (r > dx) {
+            fcut = 0.5 * (1.0 + cos(M_PI * (r - dx) / dcut));
+            dfcut = -0.5 * sin(M_PI * (r - dx) / dcut) * M_PI / dcut;
+            for (NS_TYPE n = 0; n < nradbase; n++) {
+                dgr(n) = gr(n) * dfcut + dgr(n) * fcut;
+                gr(n) = gr(n) * fcut;
+#ifdef DEBUG_RADIAL
+                printf("3: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
+#endif
+            }
+        }
+    } else {
+        gr.fill(0);
+        dgr.fill(0);
     }
 }
 
@@ -206,10 +204,10 @@ Function that sets up the look-up tables for spline-representation of radial fun
 */
 void ACERadialFunctions::setuplookupRadspline() {
     SPECIES_TYPE elei, elej;
-    int s, n, l, idx;
+    int n, l, idx;
     NS_TYPE nr;
     DOUBLE_TYPE r, lam, r_cut, dr_cut, f0, f1, f1d1, f0d1;
-    DOUBLE_TYPE cr, dcr, f1hc, f1hcd1, pre, lamhc;
+    DOUBLE_TYPE cr_c, dcr_c, f1hc, f1hcd1, pre, lamhc;
     DOUBLE_TYPE c[4];
     nlut = ntot;
     // cutoff is global cutoff
@@ -223,7 +221,6 @@ void ACERadialFunctions::setuplookupRadspline() {
     // core repulsion
     luthcs.fill(0.0);
     // at r = rcut + eps the function and its derivatives is zero
-    s = nradbase;
 
     for (elei = 0; elei < nelements; elei++) {
         for (elej = 0; elej < nelements; elej++) {
@@ -236,7 +233,7 @@ void ACERadialFunctions::setuplookupRadspline() {
             // core repulsion
             f1hc = 0.0;
             f1hcd1 = 0.0;
-            for (n = nlut - 1; n >= 0; n--) {
+            for (n = nlut; n >= 1; n--) {
                 r = invrscalelookup * DOUBLE_TYPE(n);
                 lam = lambda(elei, elej);
                 r_cut = cut(elei, elej);
@@ -266,9 +263,9 @@ void ACERadialFunctions::setuplookupRadspline() {
                 for (nr = 0; nr < nradial; nr++) {
                     for (l = 0; l <= lmax; l++) {
                         f0 = fr(nr, l);
-                        f1 = f1f(l, nr);
+                        f1 = f1f(nr, l);
                         f0d1 = dfr(nr, l) * invrscalelookup;
-                        f1d1 = f1fd1(l, nr);
+                        f1d1 = f1fd1(nr, l);
                         // evaluate coefficients
                         c[0] = f0;
                         c[1] = f0d1;
@@ -279,18 +276,18 @@ void ACERadialFunctions::setuplookupRadspline() {
                             lutfrs(elei, elej, n, l, nr, idx) = c[idx];
                         }
                         // evalute and store function values and derivatives at current position
-                        f1f(l, nr) = c[0];
-                        f1fd1(l, nr) = c[1];
+                        f1f(nr, l) = c[0];
+                        f1fd1(nr, l) = c[1];
                     }
                 }
 
                 // core repulsion (prehc and lambdahc need to be read from input)
                 pre = prehc(elei, elej);
                 lamhc = lambdahc(elei, elej);
-                radcore(r, pre, lamhc, cutoff, cr, dcr);
-                f0 = cr;
+                radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
+                f0 = cr_c;
                 f1 = f1hc;
-                f0d1 = dcr * invrscalelookup;
+                f0d1 = dcr_c * invrscalelookup;
                 f1d1 = f1hcd1;
                 // evaluate coefficients
                 c[0] = f0;
@@ -312,12 +309,12 @@ void ACERadialFunctions::setuplookupRadspline() {
 /**
 Function that gets radial function from look-up table using splines.
 
-@param r, nradbase, nradial, lmax, elei, elej
+@param r, nradbase_c, nradial_c, lmax, elei, elej
 
 @returns fr, dfr, gr, dgr
 */
 void
-ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nradial, SPECIES_TYPE elei,
+ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE elei,
                                     SPECIES_TYPE elej) {
     DOUBLE_TYPE x;
     int nr, nl, l, idx;
@@ -335,14 +332,14 @@ ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase, NS_TYPE nra
         wl3 = wl2 * wl;
         w2l1 = 2.0 * wl;
         w3l2 = 3.0 * wl2;
-        for (nr = 0; nr < nradbase; nr++) {
+        for (nr = 0; nr < nradbase_c; nr++) {
             for (idx = 0; idx <= 3; idx++) {
                 c[idx] = lutgrs(elei, elej, nl, nr, idx);
             }
             gr(nr) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
             dgr(nr) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
         }
-        for (nr = 0; nr < nradial; nr++) {
+        for (nr = 0; nr < nradial_c; nr++) {
             for (l = 0; l <= lmax; l++) {
                 for (idx = 0; idx <= 3; idx++) {
                     c[idx] = lutfrs(elei, elej, nl, l, nr, idx);

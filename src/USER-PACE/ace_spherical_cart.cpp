@@ -1,10 +1,13 @@
+//
+// Created by  Ralf Drautz, Yury Lysogorskiy
+//
+
 #include <cmath>
 
 #include "ace_spherical_cart.h"
 
-
 /**
-Constructor for SHarmonics. Dynamically initialises all the arrays.
+Constructor for ACECartesianSphericalHarmonics. Dynamically initialises all the arrays.
 
 @param lmax, int
 
@@ -34,7 +37,7 @@ void ACECartesianSphericalHarmonics::init(LS_TYPE lm) {
 }
 
 /**
-Destructor for SHarmonics. Frees the memory of all the arrays.
+Destructor for ACECartesianSphericalHarmonics.
 
 @param None
 
@@ -90,26 +93,22 @@ and its derivatives upto the lmax specified, which is a member of the class.
 void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-
-//    DOUBLE_TYPE sq1o2pi  = 0.39894228040143267794; // sqrt(1/(2*pi))
-//    DOUBLE_TYPE sq3o2pi  = 0.69098829894267095853; // sqrt(3/(2*pi))
-// prefactors include 1/sqrt(2) factor compared to reference
-
-
+    // prefactors include 1/sqrt(2) factor compared to reference
     DOUBLE_TYPE t;
 
     // l=0, m=0
-    plm(0, 0) = Y00; //= sq1o4pi;
+    //plm(0, 0) = Y00/sq1o4pi; //= sq1o4pi;
+    plm(0, 0) = Y00; //= 1;
     dplm(0, 0) = 0.0;
 
     if (lmaxi > 0) {
 
         // l=1, m=0
-        plm(1, 0) = sq3o4pi * rz;
-        dplm(1, 0) = sq3o4pi;
+        plm(1, 0) = Y00 * sq3 * rz;
+        dplm(1, 0) = Y00 * sq3;
 
         // l=1, m=1
-        plm(1, 1) = -sq3o8pi;
+        plm(1, 1) = -sq3o2 * Y00;
         dplm(1, 1) = 0.0;
 
         // loop l = 2, lmax
@@ -234,25 +233,5 @@ void ACECartesianSphericalHarmonics::compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry,
         }
     }
 
-    //fill-in m<0
-//    for (LS_TYPE l = 1; l <= lmaxi; l++) {
-//        for (MS_TYPE m = 1; m <= l; m++) {
-//            auto phase = DOUBLE_TYPE(abs(m) % 2 == 0 ? 1 : -1);
-//
-//            //Y_l,{-m} = (-1)^m (Y_l,{m})c.c.
-//            ylm(l, -m) = ylm(l, m) * phase;
-//            ylm(l, -m).img *= -1;
-//
-//            //DY_l,{-m} = (-1)^m (DY_l,{m})c.c.
-//            dylm(l, -m) = dylm(l, m);
-//            dylm(l, -m) *= phase;
-//            //complex conjugate
-//            dylm(l, -m).a[0].img *= -1;
-//            dylm(l, -m).a[1].img *= -1;
-//            dylm(l, -m).a[2].img *= -1;
-//
-//
-//        }
-//    }
 }
 

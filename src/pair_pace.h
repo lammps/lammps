@@ -13,7 +13,8 @@ PairStyle(pace,PairPACE)
 #define LMP_PAIR_TERSOFF_H
 
 #include "pair.h"
-#include "ace.h"
+#include "ace_evaluator.h"
+#include "ace_c_basis.h"
 
 namespace LAMMPS_NS {
 
@@ -36,9 +37,9 @@ namespace LAMMPS_NS {
         // virtual double memory_usage();
 
     protected:
-        ACEBasisSet *basis_set = nullptr;
+        ACECTildeBasisSet *basis_set = nullptr;
 
-        ACE *ace = nullptr;
+        ACECTildeEvaluator *ace = nullptr;
 
         char *potential_file_name;
 
@@ -54,7 +55,8 @@ namespace LAMMPS_NS {
         char **elements;              // names of unique elements
 
         int *map;                     // mapping from atom types to elements
-
+        int *jlist_local;
+        int *type_local;
     };
 
 }

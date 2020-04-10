@@ -1,9 +1,8 @@
 //
-// Created by Yury Lysogorskiy on 05.02.20.
+// Created by Yury Lysogorskiy on 26.02.20.
 //
-
-#ifndef ACE_ACE_COMPLEX_H
-#define ACE_ACE_COMPLEX_H
+#ifndef ACE_COMPLEX_H
+#define ACE_COMPLEX_H
 
 
 /**
@@ -123,6 +122,16 @@ Overloading of arithmetical operators
 
 };
 
+// double * complex for commutativity with complex * double
+inline ACEComplex operator*(const DOUBLE_TYPE &real, const ACEComplex &cm) {
+    return cm * real;
+}
+
+// double + complex for commutativity with complex + double
+inline ACEComplex operator+(const DOUBLE_TYPE &real, const ACEComplex &cm) {
+    return cm + real;
+}
+
 /**
 A structure to store the derivative of \f$ Y_{lm} \f$
 */
@@ -174,4 +183,4 @@ public:
 };
 
 
-#endif //ACE_ACE_COMPLEX_H
+#endif //ACE_COMPLEX_H

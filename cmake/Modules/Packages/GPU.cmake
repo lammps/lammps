@@ -197,6 +197,7 @@ elseif(GPU_API STREQUAL "HIP")
   endif()
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP REQUIRED)
+  option(HIP_USE_DEVICE_SORT "Use GPU sorting" ON)
 
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
@@ -283,6 +284,48 @@ elseif(GPU_API STREQUAL "HIP")
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP)
+
+  if(HIP_USE_DEVICE_SORT)
+    # add hipCUB
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+    target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
+
+    if(HIP_PLATFORM STREQUAL "nvcc")
+      find_package(CUB)
+
+      if(CUB_FOUND)
+        set(DOWNLOAD_CUB_DEFAULT OFF)
+      else()
+        set(DOWNLOAD_CUB_DEFAULT ON)
+      endif()
+
+      option(DOWNLOAD_CUB "Download and compile the CUB library instead of using an already installed one" ${DOWNLOAD_CUB_DEFAULT})
+
+      if(DOWNLOAD_CUB)
+        message(STATUS "CUB download requested")
+        include(ExternalProject)
+
+        ExternalProject_Add(CUB
+          GIT_REPOSITORY https://github.com/NVlabs/cub
+          TIMEOUT 5
+          PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
+          CONFIGURE_COMMAND ""
+          BUILD_COMMAND ""
+          INSTALL_COMMAND ""
+          UPDATE_COMMAND ""
+        )
+        ExternalProject_get_property(CUB SOURCE_DIR)
+        set(CUB_INCLUDE_DIR ${SOURCE_DIR})
+      else()
+        find_package(CUB)
+        if(NOT CUB_FOUND)
+          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+        endif()
+      endif()
+
+      target_include_directories(gpu PRIVATE ${CUB_INCLUDE_DIR})
+    endif()
+  endif()
 
   hip_add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)

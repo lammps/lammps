@@ -94,22 +94,24 @@ three different types of backends: OpenCL, CUDA and HIP.
 
 .. code-block:: bash
 
-   -D GPU_API=value          # value = opencl (default) or cuda or hip
-   -D GPU_PREC=value         # precision setting
-                             # value = double or mixed (default) or single
-   -D OCL_TUNE=value         # hardware choice for GPU_API=opencl
-                             # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
-   -D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
-                             # value = sm_XX, see below
-                             # default is sm_30
-   -D HIP_ARCH=value         # primary GPU hardware choice for GPU_API=hip
-                             # value depends on selected HIP_PLATFORM
-                             # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_30' for HIP_PLATFORM=nvcc
-   -D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
-                             # enables CUDA Performance Primitives Optimizations
-                             # value = yes (default) or no
-   -D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
-                             # value = yes or no (default)
+   -D GPU_API=value             # value = opencl (default) or cuda or hip
+   -D GPU_PREC=value            # precision setting
+                                # value = double or mixed (default) or single
+   -D OCL_TUNE=value            # hardware choice for GPU_API=opencl
+                                # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
+   -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
+                                # value = sm_XX, see below
+                                # default is sm_30
+   -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
+                                # value depends on selected HIP_PLATFORM
+                                # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_30' for HIP_PLATFORM=nvcc
+   -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
+                                # value = yes (default) or no
+   -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda
+                                # enables CUDA Performance Primitives Optimizations
+                                # value = yes (default) or no
+   -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active nvidia-cuda-mps daemon
+                                # value = yes or no (default)
 
 :code:`GPU_ARCH` settings for different GPU hardware is as follows:
 

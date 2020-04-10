@@ -214,9 +214,8 @@ elseif(GPU_API STREQUAL "HIP")
     find_package(CUDA REQUIRED)
     set(HIP_ARCH "sm_30" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
 
-    # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
-    # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
-    set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH} ")
+    # build gencode commands for nvcc based on CUDA toolkit version and use choice
+    set(HIP_CUDA_GENCODE "")
     # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
     if((CUDA_VERSION VERSION_GREATER "3.1") AND (CUDA_VERSION VERSION_LESS "9.0"))
       string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_20,code=[sm_20,compute_20] ")
@@ -286,6 +285,18 @@ elseif(GPU_API STREQUAL "HIP")
 
   hip_add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
+
+  if(HIP_PLATFORM STREQUAL "nvcc")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/include)
+    target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
+    target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
+    target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+    target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+  endif()
 
   target_link_libraries(lammps PRIVATE gpu)
 endif()

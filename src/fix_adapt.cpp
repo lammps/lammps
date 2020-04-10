@@ -143,8 +143,8 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       if (strcmp(arg[iarg+1],"diameter") == 0 || strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
-				discflag = 0;
-				if(strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
+        discflag = 0;
+        if (strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
@@ -238,7 +238,6 @@ int FixAdapt::setmask()
 
 void FixAdapt::post_constructor()
 {
-  // Create local Fix Store even when ressetflag == false, to be able to use `scale` keyword for charge and diameter
   if (!diamflag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
@@ -254,7 +253,7 @@ void FixAdapt::post_constructor()
   newarg[4] = (char *) "1";
   newarg[5] = (char *) "1";
 
-  if (diamflag && atom->radius_flag) {// Previously unsafe! The radius_flag was not checked, could run an atom_style w/o radius attribute and get here without a previous check / error !
+  if (diamflag && atom->radius_flag) {
     int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
     id_fix_diam = new char[n];
     strcpy(id_fix_diam,id);
@@ -277,7 +276,7 @@ void FixAdapt::post_constructor()
     }
   }
 
-  if (chgflag && atom->q_flag) {// Previously unsafe! The q_flag was not checked, could run an atom_style w/o charge attribute and get here without a previous check / error !
+  if (chgflag && atom->q_flag) {
     int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
     id_fix_chg = new char[n];
     strcpy(id_fix_chg,id);
@@ -431,8 +430,10 @@ void FixAdapt::init()
       if (ad->aparam == DIAMETER) {
         if (!atom->radius_flag)
           error->all(FLERR,"Fix adapt requires atom attribute diameter");
-				if(discflag && domain->dimension!=2)
-					error->all(FLERR,"Fix adapt requires 2d simulation");
+        if (!atom->rmass_flag)
+          error->all(FLERR,"Fix adapt requires atom attribute mass");
+        if (discflag && domain->dimension!=2)
+          error->all(FLERR,"Fix adapt requires 2d simulation");
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
@@ -460,7 +461,7 @@ void FixAdapt::init()
   }
 
   // fixes that store initial per-atom values
-  /* Unnecessary ? `fix_diam` and `fix_chg` seem to be already defined in FixAdapt::post_constructor(), commenting them out does not crash my MWE
+
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
@@ -470,7 +471,7 @@ void FixAdapt::init()
     int ifix = modify->find_fix(id_fix_chg);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
     fix_chg = (FixStore *) modify->fix[ifix];
-  }*/
+  }
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -573,12 +574,12 @@ void FixAdapt::change_settings()
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
-				/* `mflag` unnecessary ? the test `if(!atom->radius_flag)` in `FixAdapt::init()` should perevent `atom->rmass_flag == false`. Unless there can be combinations of atom styles with `radius` but without `rmass`
-				It could also be unsafe since rmass_flag could be added using `fix property/atom` even for an atom_style that does not have radius attribute, although that possibility should be avoided as well with the test `if(!atom->radius_flag)` in `FixAdapt::init()`  */
         double density;
 
-        double *vec = fix_diam->vstore; // Get initial radius to use `scale` keyword
-				double *radius = atom->radius;
+        // Get initial diameter if `scale` keyword is used
+
+        double *vec = fix_diam->vstore;
+        double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -586,28 +587,31 @@ void FixAdapt::change_settings()
 
         for (i = 0; i < nall; i++)
           if (mask[i] & groupbit) {
-						if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-						else density = rmass[i] / (4.0*MY_PI/3.0 *
+            if (discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+            else density = rmass[i] / (4.0*MY_PI/3.0 *
                                        radius[i]*radius[i]*radius[i]);
-						if (scaleflag) radius[i] = value * vec[i];
-						else radius[i] = 0.5*value;
-						if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
+            if (scaleflag) radius[i] = value * vec[i];
+            else radius[i] = 0.5*value;
+            if (discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
             else rmass[i] = 4.0*MY_PI/3.0 *
                             radius[i]*radius[i]*radius[i] * density;
           }
 
       } else if (ad->aparam == CHARGE) {
-        double *vec = fix_chg->vstore; // Get initial charge to use `scale` keyword
-				double *q = atom->q;
+
+        // Get initial charge if `scale` keyword is used
+
+        double *vec = fix_chg->vstore;
+        double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
         for (i = 0; i < nall; i++)
           if (mask[i] & groupbit) {
-						if (scaleflag) q[i] = value * vec[i];
-						else q[i] = value;
-					}
+            if (scaleflag) q[i] = value * vec[i];
+            else q[i] = value;
+          }
       }
     }
   }
@@ -678,13 +682,13 @@ void FixAdapt::restore_settings()
 
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-						if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-						else density = rmass[i] / (4.0*MY_PI/3.0 *
+            if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+            else density = rmass[i] / (4.0*MY_PI/3.0 *
                                        radius[i]*radius[i]*radius[i]);
             radius[i] = vec[i];
             if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
-						else rmass[i] = 4.0*MY_PI/3.0 * 
-						                radius[i]*radius[i]*radius[i] * density;
+            else rmass[i] = 4.0*MY_PI/3.0 *
+                            radius[i]*radius[i]*radius[i] * density;
           }
       }
       if (chgflag) {

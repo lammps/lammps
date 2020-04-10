@@ -214,8 +214,9 @@ elseif(GPU_API STREQUAL "HIP")
     find_package(CUDA REQUIRED)
     set(HIP_ARCH "sm_30" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
 
-    # build gencode commands for nvcc based on CUDA toolkit version and use choice
-    set(HIP_CUDA_GENCODE "")
+    # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
+    # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
+    set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH} ")
     # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
     if((CUDA_VERSION VERSION_GREATER "3.1") AND (CUDA_VERSION VERSION_LESS "9.0"))
       string(APPEND HIP_CUDA_GENCODE "-gencode arch=compute_20,code=[sm_20,compute_20] ")

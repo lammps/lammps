@@ -131,7 +131,7 @@ the preferred GPU architecture directly included rather than having to wait
 for the JIT compiler of the CUDA driver to translate it.
 
 If you are compiling with HIP, note that before running CMake you will have to
-set appropiate environment variables. Some variables such as
+set appropriate environment variables. Some variables such as
 :code:`HCC_AMDGPU_TARGET` or :code:`CUDA_PATH` are necessary for :code:`hipcc`
 and the linker to work correctly.
 

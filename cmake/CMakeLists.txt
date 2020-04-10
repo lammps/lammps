@@ -64,9 +64,10 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
-# we require C++11
+# we require C++11 without extensions
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -123,10 +124,6 @@ else()
   endif()
   add_executable(lammps ${ALL_SOURCES})
   set_target_properties(lammps PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
-  if(Kokkos_ENABLE_CUDA)
-    # The Kokkos nvcc wrapper does not like -std=gnu++11 and wants -std=c++11
-    set_target_properties(lammps PROPERTIES CXX_EXTENSIONS OFF)
-  endif()
   install(TARGETS lammps DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
@@ -261,10 +258,6 @@ if(BUILD_OMP)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
-else()
-  if(Kokkos_ENABLE_OPENMP)
-    message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
-  endif()
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)

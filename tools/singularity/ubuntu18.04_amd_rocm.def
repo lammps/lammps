@@ -60,7 +60,7 @@ From: rocm/dev-ubuntu-18.04
         xxd
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hcc cmake -D BUILD_TEST=off ..
@@ -69,8 +69,8 @@ From: rocm/dev-ubuntu-18.04
     make install
 
 %environment
-        LC_ALL=C
-        export LC_ALL
+    LC_ALL=C
+    export LC_ALL
 
 %labels
     Author rbberger

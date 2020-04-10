@@ -286,9 +286,10 @@ build for, either CPUs (multi-threading via OpenMP) or KNLs (OpenMP)
 or GPUs (NVIDIA Cuda).
 
 For a CMake or make build, these are the possible choices for the
-``KOKKOS_ARCH`` settings described below.  Note that for CMake, these are
-really Kokkos variables, not LAMMPS variables.  Hence you must use
-case-sensitive values, e.g. BDW, not bdw.
+``Kokkos_ARCH_<arch>`` settings described below.  Note that for CMake,
+these are really Kokkos variables, not LAMMPS variables.  Hence you
+must use case-sensitive variable names, i.e. ``Kokkos_ARCH_BDW``
+and **NOT** ``KOKKOS_ARCH_BDW`` or ``Kokkos_arch_bdw`` and so on.
 
 * AMDAVX = AMD 64-bit x86 CPUs
 * EPYC   = AMD EPYC Zen class CPUs
@@ -328,25 +329,25 @@ For multicore CPUs using OpenMP, set these 2 variables.
 
 .. code-block:: bash
 
-   -D KOKKOS_ARCH=archCPU         # archCPU = CPU from list above
-   -D KOKKOS_ENABLE_OPENMP=yes
+   -D Kokkos_ARCH_<cpuarch>=yes  # <cpuarch> = CPU from list above
+   -D Kokkos_ENABLE_OPENMP=yes
 
 For Intel KNLs using OpenMP, set these 2 variables:
 
 .. code-block:: bash
 
-   -D KOKKOS_ARCH=KNL
-   -D KOKKOS_ENABLE_OPENMP=yes
+   -D Kokkos_ARCH_KNL=yes
+   -D Kokkos_ENABLE_OPENMP=yes
 
 For NVIDIA GPUs using CUDA, set these 4 variables:
 
 .. code-block:: bash
 
-   -D KOKKOS_ARCH="archCPU;archGPU"   # archCPU = CPU from list above that is hosting the GPU
-                                      # archGPU = GPU from list above
-   -D KOKKOS_ENABLE_CUDA=yes
-   -D KOKKOS_ENABLE_OPENMP=yes
-   -D CMAKE_CXX_COMPILER=wrapper      # wrapper = full path to Cuda nvcc wrapper
+   -D Kokkos_ARCH_<cpuarch>=yes  # <cpuarch> = CPU from list above that is hosting the GPU
+   -D Kokkos_ARCH_<gpuarch>=yes  # <gpuarch> = GPU from list above
+   -D Kokkos_ENABLE_CUDA=yes
+   -D Kokkos_ENABLE_OPENMP=yes
+   -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
 The wrapper value is the Cuda nvcc compiler wrapper provided in the
 Kokkos library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should

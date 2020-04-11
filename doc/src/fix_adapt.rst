@@ -14,7 +14,7 @@ Syntax
 * adapt = style name of this fix command
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended
-* attribute = *pair* or *kspace* or *atom*
+* attribute = *pair* or *bond* or *kspace* or *atom*
 
   .. parsed-literal::
 
@@ -86,8 +86,8 @@ the end of a simulation.  Even if *reset* is specified as *yes*\ , a
 restart file written during a simulation will contain the modified
 settings.
 
-If the *scale* keyword is set to *no*\ , then the value the parameter is
-set to will be whatever the variable generates.  If the *scale*
+If the *scale* keyword is set to *no*\ , then the value of the altered
+parameter will be whatever the variable generates.  If the *scale*
 keyword is set to *yes*\ , then the value of the altered parameter will
 be the initial value of that parameter multiplied by whatever the
 variable generates.  I.e. the variable is now a "scale factor" applied
@@ -319,26 +319,23 @@ The *atom* keyword enables various atom properties to be changed.  The
 current list of atom parameters that can be varied by this fix:
 
 * charge = charge on particle
-* diameter = diameter of particle
+* diameter, or, diameter/disc = diameter of particle
 
 The *v_name* argument of the *atom* keyword is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
-this fix is invoked to set the parameter to a new value.  It should be
-specified as v_name, where name is the variable name.  See the
+this fix is invoked to set, or scale the parameter to a new value.
+It should be specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
 
-.. note::
-
-   The *atom* keyword works this way whether the *scale* keyword is
-   set to *no* or *yes*\ .  I.e. the use of scale yes is not yet supported
-   by the *atom* keyword.
-
 If the atom parameter is *diameter* and per-atom density and per-atom
 mass are defined for particles (e.g. :doc:`atom_style granular <atom_style>`), then the mass of each particle is also
-changed when the diameter changes (density is assumed to stay
-constant).
+changed when the diameter changes. The mass is set from the particle volume
+for 3d systems (density is assumed to stay constant). For 2d, the default is
+for LAMMPS to model particles with a radius attribute as spheres.
+However, if the atom parameter is *diameter/disc*, then the mass is
+set from the particle area (the density is assumed to be in mass/distance^2 units).
 
 For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion

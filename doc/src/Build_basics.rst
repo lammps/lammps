@@ -15,7 +15,7 @@ CMake and make:
 .. _serial:
 
 Serial vs parallel build
--------------------------------------
+------------------------
 
 LAMMPS is written to use the ubiquitous `MPI (Message Passing Interface)
 <https://en.wikipedia.org/wiki/Message_Passing_Interface>`_ library API

@@ -248,11 +248,15 @@ if(BUILD_OMP)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
 
-  if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
-    # GCC 9.x strictly implements OpenMP 4.0 semantics for consts.
-    add_definitions(-DLAMMPS_OMP_COMPAT=4)
+  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.99.9)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 18.99.9))
+      )
+    # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
+    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=4)
   else()
-    add_definitions(-DLAMMPS_OMP_COMPAT=3)
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()

@@ -6,7 +6,6 @@ fix spring/self command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID spring/self K dir
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix tether boundary-atoms spring/self 10.0
    fix zrest  move spring/self 10.0 z
@@ -43,7 +41,7 @@ directions, but it can be limited to the xy-, xz-, yz-plane and the
 x-, y-, or z-direction, thus restraining the atoms to a line or a
 plane, respectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
 same in a restarted simulation.  See the

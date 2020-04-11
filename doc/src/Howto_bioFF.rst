@@ -20,11 +20,7 @@ force field.
 
 .. _charmm: http://www.scripps.edu/brooks
 
-
-
 .. _amber: http://amber.scripps.edu
-
-
 
 The interaction styles listed below compute force field formulas that
 are consistent with common options in CHARMM or AMBER.  See each
@@ -114,33 +110,23 @@ documentation for the formula it computes.
 
 * :doc:`special_bonds <special_bonds>` dreiding
 
-
 ----------
 
-
 .. _howto-MacKerell:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _howto-Cornell:
 
-
-
 **(Cornell)** Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 .. _howto-Sun:
 
-
-
 **(Sun)** Sun, J. Phys. Chem. B, 102, 7338-7364 (1998).
 
 .. _howto-Mayo:
-
-
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).

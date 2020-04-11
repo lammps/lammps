@@ -9,14 +9,12 @@ improper_style cossq/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    improper_style cossq
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -31,7 +29,6 @@ The *cossq* improper style uses the potential
 .. math::
 
    E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}
-
 
 where :math:`\chi` is the improper angle, :math:`\chi_0` is its
 equilibrium value, and :math:`K` is a prefactor.
@@ -57,9 +54,7 @@ commands:
 * :math:`K` (energy)
 * :math:`\chi_0` (degrees)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,13 +74,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

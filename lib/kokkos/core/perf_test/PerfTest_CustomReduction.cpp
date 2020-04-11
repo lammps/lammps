@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -48,71 +49,90 @@
 
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 namespace Test {
-template<class Scalar>
+template <class Scalar>
 void custom_reduction_test(int N, int R, int num_trials) {
   Kokkos::Random_XorShift64_Pool<> rand_pool(183291);
-  Kokkos::View<Scalar*> a("A",N);
-  Kokkos::fill_random(a,rand_pool,1.0);
+  Kokkos::View<Scalar*> a("A", N);
+  Kokkos::fill_random(a, rand_pool, 1.0);
 
   Scalar max;
 
   int team_size = 32;
-  if ( team_size > Kokkos::DefaultExecutionSpace::concurrency() )
+  if (team_size > Kokkos::DefaultExecutionSpace::concurrency())
     team_size = Kokkos::DefaultExecutionSpace::concurrency();
   // Warm up
-  Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,team_size), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
-    Scalar team_max = Scalar(0);
-    for(int rr = 0; rr<R; rr++) {
-    int i = team.league_rank();
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team,32), [&] (const int& j, Scalar& thread_max) {
-      Scalar t_max = Scalar(0);
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,32), [&] (const int& k, Scalar& max_) {
-        const Scalar val =  a((i*32 + j)*32 + k);
-        if(val>lmax) lmax = val;
-        if((k == 11) && (j==17) && (i==2)) lmax = 11.5;
-      },Kokkos::Max<Scalar>(t_max));
-      if(t_max>thread_max) thread_max = t_max;
-    },Kokkos::Max<Scalar>(team_max));
-    }
-    if(team_max>lmax) lmax = team_max;
-  },Kokkos::Max<Scalar>(max));
+  Kokkos::parallel_reduce(
+      Kokkos::TeamPolicy<>(N / 1024, team_size),
+      KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
+                    Scalar& lmax) {
+        Scalar team_max = Scalar(0);
+        for (int rr = 0; rr < R; rr++) {
+          int i = team.league_rank();
+          Kokkos::parallel_reduce(
+              Kokkos::TeamThreadRange(team, 32),
+              [&](const int& j, Scalar& thread_max) {
+                Scalar t_max = Scalar(0);
+                Kokkos::parallel_reduce(
+                    Kokkos::ThreadVectorRange(team, 32),
+                    [&](const int& k, Scalar& max_) {
+                      const Scalar val = a((i * 32 + j) * 32 + k);
+                      if (val > lmax) lmax = val;
+                      if ((k == 11) && (j == 17) && (i == 2)) lmax = 11.5;
+                    },
+                    Kokkos::Max<Scalar>(t_max));
+                if (t_max > thread_max) thread_max = t_max;
+              },
+              Kokkos::Max<Scalar>(team_max));
+        }
+        if (team_max > lmax) lmax = team_max;
+      },
+      Kokkos::Max<Scalar>(max));
 
   // Timing
   Kokkos::Timer timer;
-  for(int r = 0; r<num_trials; r++) {
-    Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,team_size), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
-      Scalar team_max = Scalar(0);
-      for(int rr = 0; rr<R; rr++) {
-      int i = team.league_rank();
-      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team,32), [&] (const int& j, Scalar& thread_max) {
-        Scalar t_max = Scalar(0);
-        Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,32), [&] (const int& k, Scalar& max_) {
-          const Scalar val =  a((i*32 + j)*32 + k);
-          if(val>lmax) lmax = val;
-          if((k == 11) && (j==17) && (i==2)) lmax = 11.5;
-        },Kokkos::Max<Scalar>(t_max));
-        if(t_max>thread_max) thread_max = t_max;
-      },Kokkos::Max<Scalar>(team_max));
-      }
-      if(team_max>lmax) lmax = team_max;
-    },Kokkos::Max<Scalar>(max));
+  for (int r = 0; r < num_trials; r++) {
+    Kokkos::parallel_reduce(
+        Kokkos::TeamPolicy<>(N / 1024, team_size),
+        KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
+                      Scalar& lmax) {
+          Scalar team_max = Scalar(0);
+          for (int rr = 0; rr < R; rr++) {
+            int i = team.league_rank();
+            Kokkos::parallel_reduce(
+                Kokkos::TeamThreadRange(team, 32),
+                [&](const int& j, Scalar& thread_max) {
+                  Scalar t_max = Scalar(0);
+                  Kokkos::parallel_reduce(
+                      Kokkos::ThreadVectorRange(team, 32),
+                      [&](const int& k, Scalar& max_) {
+                        const Scalar val = a((i * 32 + j) * 32 + k);
+                        if (val > lmax) lmax = val;
+                        if ((k == 11) && (j == 17) && (i == 2)) lmax = 11.5;
+                      },
+                      Kokkos::Max<Scalar>(t_max));
+                  if (t_max > thread_max) thread_max = t_max;
+                },
+                Kokkos::Max<Scalar>(team_max));
+          }
+          if (team_max > lmax) lmax = team_max;
+        },
+        Kokkos::Max<Scalar>(max));
   }
   double time = timer.seconds();
-  printf("%e %e %e\n",time,1.0*N*R*num_trials*sizeof(Scalar)/time/1024/1024/1024,max);
+  printf("%e %e %e\n", time,
+         1.0 * N * R * num_trials * sizeof(Scalar) / time / 1024 / 1024 / 1024,
+         max);
 }
 
-TEST_F( default_exec, custom_reduction ) {
-  int N = 100000;
-  int R = 1000;
+TEST(default_exec, custom_reduction) {
+  int N          = 100000;
+  int R          = 1000;
   int num_trials = 1;
 
-  if(command_line_num_args()>1)
-    N = atoi(command_line_arg(1));
-  if(command_line_num_args()>2)
-    R = atoi(command_line_arg(2));
-  if(command_line_num_args()>3)
-    num_trials = atoi(command_line_arg(3));
-  custom_reduction_test<double>(N,R,num_trials);
+  if (command_line_num_args() > 1) N = atoi(command_line_arg(1));
+  if (command_line_num_args() > 2) R = atoi(command_line_arg(2));
+  if (command_line_num_args() > 3) num_trials = atoi(command_line_arg(3));
+  custom_reduction_test<double>(N, R, num_trials);
 }
-}
+}  // namespace Test
 #endif

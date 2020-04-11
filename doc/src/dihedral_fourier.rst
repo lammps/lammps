@@ -12,14 +12,12 @@ dihedral_style fourier/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style fourier
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -34,7 +32,6 @@ The *fourier* dihedral style uses the potential:
 .. math::
 
    E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
-
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
@@ -70,16 +67,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

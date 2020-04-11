@@ -9,7 +9,6 @@ fix deform/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID deform N parameter args ... keyword value ...
@@ -18,9 +17,9 @@ Syntax
 * deform = style name of this fix command
 * N = perform box deformation every this many timesteps
 * one or more parameter/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
        *x*\ , *y*\ , *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
@@ -66,9 +65,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *remap* or *flip* or *units*
-  
+
   .. parsed-literal::
-  
+
        *remap* value = *x* or *v* or *none*
          x = remap coords of atoms in group into deforming box
          v = remap velocities of all atoms when they cross periodic boundaries
@@ -79,13 +78,10 @@ Syntax
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all deform 1 x final 0.0 9.0 z final 0.0 5.0 units box
    fix 1 all deform 1 x trate 0.1 y volume z volume
@@ -129,9 +125,7 @@ command.  Every Nth timestep during the run, the simulation box is
 expanded, contracted, or tilted to ramped values between the initial
 and final values.
 
-
 ----------
-
 
 For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
 styles and values.
@@ -173,7 +167,6 @@ is defined as delta/L0, where L0 is the original box length and delta
 is the change relative to the original length.  The box length L as a
 function of time will change as
 
-
 .. parsed-literal::
 
    L(t) = L0 (1 + erate\*dt)
@@ -200,7 +193,6 @@ is defined as delta/L0, where L0 is the original box length and delta
 is the change relative to the original length.
 
 The box length L as a function of time will change as
-
 
 .. parsed-literal::
 
@@ -254,7 +246,6 @@ The *wiggle* style oscillates the specified box length dimension
 sinusoidally with the specified amplitude and period.  I.e. the box
 length L as a function of time is given by
 
-
 .. parsed-literal::
 
    L(t) = L0 + A sin(2\*pi t/Tp)
@@ -289,22 +280,19 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 x variable v_displace v_rate remap v
 
 For the *scale*\ , *vel*\ , *erate*\ , *trate*\ , *volume*\ , *wiggle*\ , and
 *variable* styles, the box length is expanded or compressed around its
 mid point.
 
-
 ----------
-
 
 For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
@@ -345,7 +333,6 @@ direction for xy deformation) from the unstrained orientation.
 
 The tilt factor T as a function of time will change as
 
-
 .. parsed-literal::
 
    T(t) = T0 + L0\*erate\*dt
@@ -378,7 +365,6 @@ from the unstrained orientation.
 
 The tilt factor T as a function of time will change as
 
-
 .. parsed-literal::
 
    T(t) = T0 exp(trate\*dt)
@@ -405,7 +391,6 @@ parameter), then this effect on the shear strain is ignored.
 The *wiggle* style oscillates the specified tilt factor sinusoidally
 with the specified amplitude and period.  I.e. the tilt factor T as a
 function of time is given by
-
 
 .. parsed-literal::
 
@@ -440,18 +425,15 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 xy variable v_displace v_rate remap v
 
-
 ----------
-
 
 All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
@@ -488,9 +470,7 @@ does not change the atom positions due to non-periodicity.  In this
 mode, if you tilt the system to extreme angles, the simulation will
 simply become inefficient due to the highly skewed simulation box.
 
-
 ----------
-
 
 Each time the box size or shape is changed, the *remap* keyword
 determines whether atom positions are remapped to the new box.  If
@@ -581,9 +561,7 @@ does not affect the *variable* style.  You should use the *xlat*\ ,
 *ylat*\ , *zlat* keywords of the :doc:`thermo_style <thermo_style>`
 command if you want to include lattice spacings in a variable formula.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -603,7 +581,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`
@@ -619,7 +597,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.

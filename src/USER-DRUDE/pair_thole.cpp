@@ -369,7 +369,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
   double qi,qj,factor_f,factor_e,dcoul,asr,exp_asr;
 
   // single() has no information about topology or Drude particles.
-  // Charges qi and qj are defined by the user (or 1.0 by defaut)
+  // Charges qi and qj are defined by the user (or 1.0 by default)
 
   qi = atom->q[i];
   qj = atom->q[j];

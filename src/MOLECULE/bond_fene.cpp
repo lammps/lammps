@@ -14,6 +14,7 @@
 #include "bond_fene.h"
 #include <mpi.h>
 #include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -271,4 +272,14 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondFENE::extract( char *str, int &dim )
+{
+  dim = 1;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

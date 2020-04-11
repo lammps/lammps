@@ -9,14 +9,12 @@ pair_style meam/spline/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style meam/spline
 
 Examples
 """"""""
-
 
 .. code:: LAMMPS
 
@@ -66,7 +64,7 @@ distribution and have a ".meam.spline" file suffix.  All of these
 files are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 
 Note that unlike for other potentials, cutoffs for spline-based MEAM
-potentials are not set in the pair\_style or pair\_coeff command; they
+potentials are not set in the pair_style or pair_coeff command; they
 are specified in the potential files themselves.
 
 Unlike the EAM pair style, which retrieves the atomic mass from the
@@ -74,10 +72,10 @@ potential file, the spline-based MEAM potentials do not include mass
 information; thus you need to use the :doc:`mass <mass>` command to
 specify it.
 
-Only a single pair\_coeff command is used with the *meam/spline* style
+Only a single pair_coeff command is used with the *meam/spline* style
 which specifies a potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -88,9 +86,8 @@ to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.spline file has values for Ti (old style).  If
 your LAMMPS simulation has 3 atoms types and they are all to be
-treated with this potentials, you would use the following pair\_coeff
+treated with this potentials, you would use the following pair_coeff
 command:
-
 
 .. code-block:: LAMMPS
 
@@ -108,7 +105,6 @@ on the command line to that single type.
 An example with a two component spline (new style) is TiO.meam.spline, where
 the command
 
-
 .. code-block:: LAMMPS
 
    pair_coeff * * TiO.meam.spline Ti O
@@ -119,9 +115,7 @@ names of the elements in the TiO.meam.spline file; otherwise an
 error will be raised. This behavior is different than the old style
 MEAM files.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -141,9 +135,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -151,20 +143,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The *meam/spline* pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in an external
-potential parameter file.  Thus, you need to re-specify the pair\_style
-and pair\_coeff commands in an input script that reads a restart file.
+potential parameter file.  Thus, you need to re-specify the pair_style
+and pair_coeff commands in an input script that reads a restart file.
 
 The *meam/spline* pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -180,20 +169,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lenosky1:
-
-
 
 **(Lenosky)** Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
 
 .. _Zhang4:
-
-
 
 **(Zhang)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

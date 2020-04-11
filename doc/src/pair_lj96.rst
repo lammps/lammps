@@ -12,7 +12,6 @@ pair_style lj96/cut/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style lj96/cut cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -37,10 +35,9 @@ of the standard 12/6 potential, given by
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} -
    \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 :math:`r_c` is the cutoff.
 
@@ -55,11 +52,9 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global LJ
-cutoff specified in the pair\_style command is used.
-
+cutoff specified in the pair_style command is used.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,15 +74,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
@@ -100,7 +93,7 @@ This pair style supports the :doc:`pair_modify <pair_modify>` tail
 option for adding a long-range tail correction to the energy and
 pressure of the pair interaction.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
@@ -109,9 +102,7 @@ pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

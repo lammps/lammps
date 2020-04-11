@@ -50,7 +50,7 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   cvm::log("Initializing the collective variables module, version "+
            cvm::to_str(COLVARS_VERSION)+".\n");
   cvm::log("Please cite Fiorin et al, Mol Phys 2013:\n "
-           "https://dx.doi.org/10.1080/00268976.2013.813594\n"
+           "https://doi.org/10.1080/00268976.2013.813594\n"
            "in any publication based on this calculation.\n");
 
   if (proxy->smp_enabled() == COLVARS_OK) {

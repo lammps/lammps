@@ -9,7 +9,6 @@ pair_style gw/zbl command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -42,10 +41,10 @@ to release the code anyway with only the technical explanations.
 For details of the model and the parameters, please refer to the
 linked publication.
 
-Only a single pair\_coeff command is used with the *gw* and *gw/zbl*
+Only a single pair_coeff command is used with the *gw* and *gw/zbl*
 styles which specifies a Gao-Weber potential file with parameters
 for all needed elements.  These are mapped to LAMMPS atom types by
-specifying N additional arguments after the filename in the pair\_coeff
+specifying N additional arguments after the filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * filename
@@ -56,8 +55,7 @@ to specify the path for the potential file.
 
 As an example, imagine a file SiC.gw has Gao-Weber values for Si and C.
 If your LAMMPS simulation has 4 atoms types and you want the first 3 to
-be Si, and the 4th to be C, you would use the following pair\_coeff command:
-
+be Si, and the 4th to be C, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -79,9 +77,7 @@ is similar to other many-body potentials supported by LAMMPS.
 You have to refer to the comments in the files and the literature
 to learn more details.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -93,20 +89,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package. It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -118,7 +111,7 @@ The Gao-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the GW potential with any LAMMPS units, but you would need
 to create your own GW potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
+appropriate units if your simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -127,13 +120,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Gao:
-
-
 
 **(Gao)** Gao and Weber, Nuclear Instruments and Methods in Physics
 Research B 191 (2012) 504.

@@ -22,7 +22,7 @@ Use one of these 3 pair potentials, which compute forces and torques
 between interacting pairs of particles:
 
 * :doc:`pair_style <pair_style>` gran/history
-* :doc:`pair_style <pair_style>` gran/no\_history
+* :doc:`pair_style <pair_style>` gran/no_history
 * :doc:`pair_style <pair_style>` gran/hertzian
 
 These commands implement fix options specific to granular systems:

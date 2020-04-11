@@ -3,9 +3,7 @@ Using LAMMPS with Bash on Windows
 
 **written by Richard Berger**
 
-
 ----------
-
 
 Starting with Windows 10 you can install Linux tools directly in Windows. This
 allows you to compile LAMMPS following the same procedure as on a real Ubuntu
@@ -13,6 +11,10 @@ Linux installation. Software can be easily installed using the package manager
 via apt-get and all files are accessible in both the Windows Explorer and your
 Linux shell (bash). This avoids switching to a different operating system or
 installing a virtual machine. Everything runs on Windows.
+
+.. seealso::
+
+   You can find more detailed information at the `Windows Subsystem for Linux Installation Guide for Windows 10 <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
 
 Installing Bash on Windows
 --------------------------
@@ -82,9 +84,7 @@ Congratulations, you have installed **Bash on Ubuntu on Windows**\ .
 
 .. image:: JPG/bow_tutorial_10.png
 
-
 ----------
-
 
 Compiling LAMMPS in Bash on Windows
 -----------------------------------
@@ -97,7 +97,6 @@ Installing prerequisite packages
 
 First upgrade all existing packages using
 
-
 .. code-block:: bash
 
    sudo apt update
@@ -106,10 +105,9 @@ First upgrade all existing packages using
 Next install the following packages, which include compilers and libraries
 needed for various LAMMPS features:
 
-
 .. code-block:: bash
 
-   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
+   sudo apt install -y build-essential ccache gfortran openmpi-bin libopenmpi-dev libfftw3-dev libjpeg-dev libpng-dev python-dev python-virtualenv libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
 Files in Ubuntu on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -126,16 +124,14 @@ Obtain a copy of the LAMMPS code and go into it using "cd"
 Option 1: Downloading LAMMPS tarball using wget
 """""""""""""""""""""""""""""""""""""""""""""""
 
-
 .. code-block:: bash
 
-   wget http://lammps.sandia.gov/tars/lammps-stable.tar.gz
+   wget https://lammps.sandia.gov/tars/lammps-stable.tar.gz
    tar xvzf lammps-stable.tar.gz
    cd lammps-31Mar17
 
 Option 2: Obtaining LAMMPS code from GitHub
 """""""""""""""""""""""""""""""""""""""""""
-
 
 .. code-block:: bash
 
@@ -150,38 +146,32 @@ At this point you can compile LAMMPS like on Ubuntu Linux.
 Compiling serial version
 """"""""""""""""""""""""
 
-
 .. code-block:: bash
 
    cd src/
    make -j 4 serial
 
-This will create an executable called lmp\_serial in the src/ directory
+This will create an executable called lmp_serial in the src/ directory
 
 Compiling MPI version
 """""""""""""""""""""
-
 
 .. code-block:: bash
 
    cd src/
    make -j 4 mpi
 
-This will create an executable called lmp\_mpi in the src/ directory
-
+This will create an executable called lmp_mpi in the src/ directory
 
 ----------
 
-
 Finally, please note the absolute path of your src folder. You can get this using
-
 
 .. code-block:: bash
 
    pwd
 
 or
-
 
 .. code-block:: bash
 
@@ -190,14 +180,11 @@ or
 To run any examples you need the location of the executable. For now, let us
 save this location in a temporary variable
 
-
 .. code-block:: bash
 
    LAMMPS_DIR=$PWD
 
-
 ----------
-
 
 Running an example script
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -205,15 +192,13 @@ Running an example script
 Once compiled you can execute some of the LAMMPS examples. Switch into the
 examples/melt folder
 
-
 .. code-block:: bash
 
    cd ../examples/melt
 
-The full path of the serial executable is $LAMMPS\_DIR/lmp\_serial, while the mpi
-version is $LAMMPS\_DIR/lmp\_mpi. You can run the melt example with either
+The full path of the serial executable is $LAMMPS_DIR/lmp_serial, while the mpi
+version is $LAMMPS_DIR/lmp_mpi. You can run the melt example with either
 version as follows:
-
 
 .. code-block:: bash
 
@@ -221,12 +206,11 @@ version as follows:
 
 or
 
-
 .. code-block:: bash
 
    mpirun -np 4 $LAMMPS_DIR/lmp_mpi -in in.melt
 
-Note the use of our variable $LAMMPS\_DIR, which expands into the full path of
+Note the use of our variable $LAMMPS_DIR, which expands into the full path of
 the LAMMPS src folder we saved earlier.
 
 Adding your executable directory to your PATH
@@ -235,20 +219,17 @@ Adding your executable directory to your PATH
 You can avoid having to type the full path of your LAMMPS binary by adding its
 parent folder to the PATH environment variable as follows:
 
-
 .. code-block:: bash
 
    export PATH=$LAMMPS_DIR:$PATH
 
 Input scripts can then be run like this:
 
-
 .. code-block:: bash
 
    lmp_serial -in in.melt
 
 or
-
 
 .. code-block:: bash
 
@@ -258,22 +239,19 @@ However, this PATH variable will not persist if you close your bash window.
 To persist this setting edit the $HOME/.bashrc file using your favorite editor
 and add this line
 
-
 .. code-block:: bash
 
    export PATH=/full/path/to/your/lammps/src:$PATH
 
 **Example:**
 
-For an executable lmp\_serial with a full path
-
+For an executable lmp_serial with a full path
 
 .. code-block:: bash
 
    /home/richard/lammps/src/lmp_serial
 
 the PATH variable should be
-
 
 .. code-block:: bash
 

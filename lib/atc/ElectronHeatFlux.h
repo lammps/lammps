@@ -126,7 +126,7 @@ namespace ATC {
   /**
    *  @class  ElectronHeatFluxThermopower
    *  @brief  Class for an electron heat flux proportional to the temperature gradient but with a condu
-ctivity proportional to the ratio of the electron and phonon temperatures with the thermopower from teh electric current included
+ctivity proportional to the ratio of the electron and phonon temperatures with the thermopower from the electric current included
    */  
   
   class ElectronHeatFluxThermopower : public ElectronHeatFlux

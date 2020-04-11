@@ -1177,7 +1177,7 @@ void Input::print()
   if (narg < 1) error->all(FLERR,"Illegal print command");
 
   // copy 1st arg back into line (copy is being used)
-  // check maxline since arg[0] could have been exanded by variables
+  // check maxline since arg[0] could have been expanded by variables
   // substitute for $ variables (no printing) and print arg
 
   int n = strlen(arg[0]) + 1;

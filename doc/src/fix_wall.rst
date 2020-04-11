@@ -24,7 +24,6 @@ fix wall/morse command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style face args ... keyword value ...
@@ -34,9 +33,9 @@ Syntax
 * one or more face/arg pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
 * args for styles *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic*
-  
+
   .. parsed-literal::
-  
+
          args = coord epsilon sigma cutoff
          coord = position of wall = EDGE or constant or variable
            EDGE = current lo or hi edge of simulation box
@@ -49,9 +48,9 @@ Syntax
          cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
 * args for style *morse*
-  
+
   .. parsed-literal::
-  
+
          args = coord D_0 alpha r_0 cutoff
          coord = position of wall = EDGE or constant or variable
            EDGE = current lo or hi edge of simulation box
@@ -67,9 +66,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units* or *fld*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
@@ -80,13 +79,10 @@ Syntax
          *yes* = allow periodic boundary in a wall dimension
          *no* = require non-perioidic boundaries in any wall dimension
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
    fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
@@ -106,40 +102,36 @@ For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
 
 .. math::
 
- E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+ E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} -
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
-
 
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+ E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
 .. math::
 
- E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+ E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} -
                        \left(\frac{\sigma}{r}\right)^4 -
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
-
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
 of the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
 
-   E = & \epsilon \left[ \frac{\sigma^{6}}{7560} 
+   E = & \epsilon \left[ \frac{\sigma^{6}}{7560}
    \left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
-    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c 
-
+    \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
@@ -148,14 +140,12 @@ potential:
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-
 For style *wall/morse*\ , the energy E is given by a Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
-
 
 In all cases, *r* is the distance from the particle to the wall at
 position *coord*\ , and :math:`r_c` is the *cutoff* distance at which the
@@ -175,7 +165,7 @@ EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the wall position is a variable, it should be specified as v\_name,
+If the wall position is a variable, it should be specified as v_name,
 where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
@@ -232,7 +222,7 @@ inverse distance units, and :math:`r_0` distance units.
 For any wall, the :math:`\epsilon` and/or :math:`\sigma` and/or :math:`\alpha` parameter can
 be specified
 as an :doc:`equal-style variable <variable>`, in which case it should be
-specified as v\_name, where name is the variable name.  As with a
+specified as v_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and
 the result becomes the current epsilon or sigma of the wall.
 Equal-style variables can specify formulas with various mathematical
@@ -288,17 +278,14 @@ then particles may interact with both the wall and with periodic
 images on the other side of the box, which is probably not what you
 want.
 
-
 ----------
-
 
 Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.  The wall interaction parameters (epsilon,
 sigma) could be varied with additional variable definitions.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ramp equal ramp(0,10)
    fix 1 all wall xlo v_ramp 1.0 1.0 2.5
@@ -312,35 +299,31 @@ sigma) could be varied with additional variable definitions.
    variable wiggle equal cwiggle(0.0,5.0,3.0)
    fix 1 all wall xlo v_wiggle 1.0 1.0 2.5
 
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The vdisplace(c0,velocity) function does
-something similar using the equation position = c0 + velocity\*delta,
-where delta is the elapsed time.
+The *ramp(lo,hi)* function adjusts the wall position linearly from *lo* to
+*hi* over the course of a run.  The *vdisplace(c0,velocity)* function does
+something similar using the equation *position = c0 + velocity\*delta*\ ,
+where *delta* is the elapsed time.
 
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
-
+The *swiggle(c0,A,period)* function causes the wall position to
+oscillate sinusoidally according to this equation, where *omega = 2 PI
+/ period*\ :
 
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
 
-The cwiggle(c0,A,period) function causes the wall position to
+The *cwiggle(c0,A,period)* function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:
-
 
 .. parsed-literal::
 
    position = c0 + A (1 - cos(omega\*delta))
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -379,9 +362,7 @@ invoked by the :doc:`minimize <minimize>` command.
    minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
    option for this fix.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -401,9 +382,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -421,13 +400,9 @@ Default
 
 The option defaults units = lattice, fld = no, and pbc = no.
 
-
 ----------
 
-
 .. _Magda:
-
-
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).

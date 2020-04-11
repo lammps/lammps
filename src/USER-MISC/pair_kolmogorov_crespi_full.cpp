@@ -502,7 +502,7 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int /* vflag */)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -593,7 +593,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];

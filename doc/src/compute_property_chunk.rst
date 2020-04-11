@@ -6,7 +6,6 @@ compute property/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/chunk chunkID input1 input2 ...
@@ -14,21 +13,18 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/chunk = style name of this compute command
 * input = one or more attributes
-  
+
   .. parsed-literal::
-  
+
        attributes = count, id, coord1, coord2, coord3
          count = # of atoms in chunk
          id = original chunk IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`
          coord123 = coordinates for spatial bins calculated by :doc:`compute chunk/atom <compute_chunk_atom>`
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/chunk count
    compute 1 all property/chunk ID coord1
@@ -85,13 +81,12 @@ The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk1 all property/chunk cc1 count
    compute myChunk2 all com/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
 
 **Output info:**
 

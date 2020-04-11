@@ -108,14 +108,12 @@ pair_style lj/cut/tip4p/long/opt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/cut* or *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/long* *lj/cut/coul/msm* or *lj/cut/tip4p/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -157,7 +155,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -213,10 +210,9 @@ given by
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
-
 
 Rc is the cutoff.
 
@@ -226,11 +222,10 @@ Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
 constant which can be set by the :doc:`dielectric <dielectric>` command.
-If one cutoff is specified in the pair\_style command, it is used for
+If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic terms.  If two cutoffs are specified, they are
 used as cutoffs for the LJ and Coulombic terms respectively.
 
@@ -241,7 +236,6 @@ to the Coulombic term, given by
 
    E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
 
-
 where :math:`\kappa` is the inverse of the Debye length.  This potential
 is another way to mimic the screening effect of a polar solvent.
 
@@ -250,10 +244,9 @@ shifted force model described in :ref:`Fennell <Fennell2>`, given by:
 
 .. math::
 
-   E = 
-    q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} + 
-   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c 
-
+   E =
+    q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter and erfc() is the complementary
 error-function. This potential is essentially a short-range,
@@ -281,11 +274,10 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
 .. math::
 
-   E_i = \frac{1}{2} \sum_{j \neq i} 
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} + 
-   \frac{1}{2} \sum_{j \neq i} 
+   E_i = \frac{1}{2} \sum_{j \neq i}
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{1}{2} \sum_{j \neq i}
    \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
-
 
 where :math:`\alpha` is the damping parameter, and erfc() is the
 complementary error-function terms.  This potential is essentially a
@@ -306,7 +298,7 @@ site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair\_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
+pair_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
 Coulomb interactions; style *lj/cut/tip4p/long* is for use with a
 long-range Coulombic solver (Ewald or PPPM).
 
@@ -345,7 +337,7 @@ Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -356,11 +348,9 @@ For *lj/cut/coul/long* and *lj/cut/coul/msm* and *lj/cut/tip4p/cut*
 and *lj/cut/tip4p/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
+pair_style command.
 
 ----------
-
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable
 for use in free energy calculations, is part of the USER-FEP package and
@@ -369,9 +359,7 @@ styles. The version with soft core is only available if LAMMPS was built
 with that package. See the :doc:`Build package <Build_package>` doc page
 for more info.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -391,15 +379,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 All of the *lj/cut* pair styles support the
@@ -415,22 +401,19 @@ All of the *lj/cut* pair styles support the
 tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
-All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
 *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run\_style respa.
+The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 The *lj/cut/coul/long* and *lj/cut/tip4p/long* styles are part of the
 KSPACE package. The *lj/cut/tip4p/cut* style is part of the MOLECULE
@@ -445,20 +428,14 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Jorgensen2:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
 .. _Fennell2:
-
-
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).

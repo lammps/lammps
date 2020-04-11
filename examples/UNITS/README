@@ -27,7 +27,7 @@ The real and metal scripts each have a set of variables at the top
 which define scale factors for converting quantities like distance,
 energy, pressure from reduced LJ units to real or metal units.  Once
 these are defined the rest of the input script is very similar to the
-LJ script.  The approprate scale factor is applied to every input.
+LJ script.  The appropriate scale factor is applied to every input.
 Output quantities are printed in both the native real/metal units and
 unscaled back to LJ units.  So that you can see the outputs are the
 same if you examine the log files.  Comments about this comparison
@@ -49,6 +49,6 @@ identical input script in an alternate set of units.  Where
 "identical" means it runs the same simulation in a statistical sense.
 
 You can find the full set of scale factors LAMMPS uses internally for
-different unit systems it supports, at the top of the src/udpate.cpp
+different unit systems it supports, at the top of the src/update.cpp
 file.  A couple of those values are used in the real and metal
 scripts.

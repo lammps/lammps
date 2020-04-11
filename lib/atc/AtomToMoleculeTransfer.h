@@ -217,7 +217,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;

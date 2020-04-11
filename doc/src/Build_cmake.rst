@@ -1,68 +1,126 @@
 Build LAMMPS with CMake
 =======================
 
-This page is a short summary of how to use CMake to build LAMMPS.
-Details on CMake variables that enable specific LAMMPS build options
-are given on the pages linked to from the :doc:`Build <Build>` doc page.
+This page describes how to use CMake in general to build LAMMPS.
+Details for specific compile time settings and options for optional
+add-on packages are discussed with those packages.  Links to those
+pages on the :doc:`Build overview <Build>` page.
 
-Richard Berger (Temple U) has also written a `more comprehensive guide <https://github.com/lammps/lammps/blob/master/cmake/README.md>`_
-for how to use CMake to build LAMMPS.  If you are new to CMake it is a
-good place to start.
+The following text assumes some familiarity with CMake and focuses on
+using the command line tool ``cmake`` and what settings are supported
+for building LAMMPS.  A more detailed tutorial on how to use ``cmake``
+itself, the text mode or graphical user interface, change the generated
+output files for different build tools and development environments is
+on a :doc:`separate page <Howto_cmake>`.
 
-----------
+LAMMPS currently requires that CMake version 3.10 or later is available.
+
+Advantages of using CMake
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+CMake is an alternative to compiling LAMMPS in the traditional way
+through :doc:`(manually customized) makefiles <Build_make>` and a rather
+recent addition to LAMMPS thanks to the efforts of Christoph Junghans
+(LANL) and Richard Berger (Temple U).  Using CMake has multiple
+advantages that are specifically helpful for people with limited
+experience in compiling software or for people that want to modify or
+extend LAMMPS.
+
+- CMake can detect available hardware, tools, features, and libraries
+  and adapt the LAMMPS build configuration accordingly.
+- CMake can output files for different build tools and also can generate
+  support files for use with popular integrated development environments
+  (IDEs).
+- CMake will build all components in a single build operation.
+- CMake supports out-of-source compilation, so multiple configurations
+  and settings with different choices of LAMMPS packages can be
+  configured and built concurrently from the same source tree.
+- CMake simplifies packaging of LAMMPS for Linux distributions,
+  environment modules, or automated build tools like `Homebrew
+  <https://brew.sh/>`_.
+
+.. _cmake_build:
+
+Getting started
+^^^^^^^^^^^^^^^
 
 Building LAMMPS with CMake is a two-step process.  First you use CMake
-to create a build environment in a new directory.  On Linux systems,
-this will be by default based on Unix-style makefiles for use with make.
-Then you use the *make* command to build LAMMPS, which uses the created
-Makefile(s). Example:
+to create a build environment in a new directory.  For that purpose you
+can use either the command-line utility ``cmake`` (or ``cmake3``), the
+text-mode UI utility ``ccmake`` (or ``ccmake3``) or the graphical
+utility ``cmake-gui``, or use them interchangeably.
+
+Here is a minimal example using the command line version of CMake to
+build LAMMPS with no add-on packages enabled and no customization:
 
 .. code-block:: bash
 
-   cd lammps                        # change to the LAMMPS distribution directory
-   mkdir build; cd build            # create a new directory (folder) for build
-   cmake [options ...] ../cmake     # configuration with (command-line) cmake
-   cmake --build .                  # compilation (or type "make")
+   cd lammps                # change to the LAMMPS distribution directory
+   mkdir build; cd build    # create and use a build directory
+   cmake ../cmake           # configuration reading CMake scripts from ../cmake
+   cmake --build .          # compilation (or type "make")
 
-The ``cmake`` command will detect available features, enable selected
-packages and options, and will generate the build environment.  By default
-this build environment will be created for "Unix Makefiles" on most
-platforms and particularly on Linux.  However, alternate build tools
-(e.g. Ninja) and project files for Integrated Development Environments
-(IDEs) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
-selected via the ``-G`` command line flag. Further details about features
-and settings for CMake are in the `CMake online documentation <cmake_doc_>`_
-
-.. _cmake_doc: https://cmake.org/documentation/
-
-For the rest of the documentation
-we will assume that the build environment is generated for "Unix Makefiles"
-and thus the ``make`` command will be used to compile and link LAMMPS as
-indicated above, producing (by default) an executable called ``lmp`` and
-a library called ``liblammps.a`` in the ``build`` folder.
+This will create and change into a folder called ``build``, then run the
+configuration step to generate build files for the default build command
+and then launch that build command to compile LAMMPS.  During the
+configuration step CMake will try to detect whether support for MPI,
+OpenMP, FFTW, gzip, JPEG, PNG, and ffmpeg are available and enable the
+corresponding configuration settings.  The progress of this
+configuration can be followed on the screen and a summary of selected
+options and settings will be printed at the end.  The ``cmake --build
+.`` command will launch the compilation, which, if successful, will
+ultimately produce a library ``liblammps.a`` and the LAMMPS executable
+``lmp`` inside the ``build`` folder.
 
 If your machine has multiple CPU cores (most do these days), you can
-compile sources in parallel with a command like ``make -j N`` (with N
-being the maximum number of concurrently executed tasks).  Also
-installation of the ``ccache`` (= Compiler Cache) software may speed
-up repeated compilation, e.g. during code development, significantly.
+speed this up by compiling sources in parallel with ``make -j N`` (with
+N being the maximum number of concurrently executed tasks).  Also
+installation of the `ccache <https://ccache.dev/>`_ (= Compiler Cache)
+software may speed up repeated compilation significantly, e.g. during code
+development.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:
 
 .. code-block:: bash
 
-   make install    # optional, copy LAMMPS executable & library elsewhere
+   make install    # optional, copy compiled files into installation location
 
-This will install the lammps executable and library (if requested), some
-tools (if configured) and additional files like library API headers,
-manpages, potential and force field files. The location of the installation
-tree is set by the CMake variable "CMAKE_INSTALL_PREFIX" which defaults
-to ${HOME}/.local
+This will install the LAMMPS executable and library, some tools (if configured)
+and additional files like LAMMPS API headers, manpages, potential and force field
+files.  The location of the installation tree defaults to ``${HOME}/.local``.
 
-----------
 
-.. _cmake_build:
+
+.. _cmake_options:
+
+CMake configuration and build options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The CMake commands have one mandatory argument: a folder containing a
+file called ``CMakeLists.txt`` (for LAMMPS it is located in the
+``cmake`` folder) or a folder containing a file called
+``CMakeCache.txt``, which is generated at the end of the CMake
+configuration step. The cache file contains all current CMake settings.
+Thus a configuration can be quickly modified by directing CMake to the
+location of this cache file and then using options that are supposed to
+be altered.
+
+To modify settings, enable or disable features, you need to set *variables*
+with either the *-D* command line flag or edit them .  This can be used several times.
+There are 3 major command line options used to change settings during
+CMake configuration.
+
+Generating files for alternate build tools (e.g. Ninja) and project files
+for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
+command line flag.  A list of available settings is given when running
+``cmake --help``. Further details about features and settings for CMake
+are in the `CMake online documentation <https://cmake.org/documentation/>`_
+For the rest of this manual we will assume that the build environment
+is generated for "Unix Makefiles" and thus the ``cmake --build .`` will
+call the ``make`` command or you can use it directly.
+
+
 
 There are 3 variants of the CMake command itself: a command-line version
 (``cmake`` or ``cmake3``), a text mode UI version (``ccmake`` or ``ccmake3``),

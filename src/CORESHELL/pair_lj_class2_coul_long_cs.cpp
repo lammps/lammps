@@ -109,34 +109,34 @@ void PairLJClass2CoulLongCS::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
-	    prefactor = qqrd2e * qtmp*q[j];
-	    if (factor_coul < 1.0) {
+            prefactor = qqrd2e * qtmp*q[j];
+            if (factor_coul < 1.0) {
               // When bonded parts are being calculated a minimal distance (EPS_EWALD)
-	      // has to be added to the prefactor and erfc in order to make the
-	      // used approximation functions for the Ewald correction valid
-	      grij = g_ewald * (r+EPS_EWALD);
-	      expm2 = exp(-grij*grij);
-	      t = 1.0 / (1.0 + EWALD_P*grij);
-	      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	      prefactor /= (r+EPS_EWALD);
-	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
-	      // Additionally r2inv needs to be accordingly modified since the later
-	      // scaling of the overall force shall be consistent
-	      r2inv = 1.0/(rsq + EPS_EWALD_SQR);
-	    } else {
+              // has to be added to the prefactor and erfc in order to make the
+              // used approximation functions for the Ewald correction valid
+              grij = g_ewald * (r+EPS_EWALD);
+              expm2 = exp(-grij*grij);
+              t = 1.0 / (1.0 + EWALD_P*grij);
+              erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+              prefactor /= (r+EPS_EWALD);
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
+              // Additionally r2inv needs to be accordingly modified since the later
+              // scaling of the overall force shall be consistent
+              r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+            } else {
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
               erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
               prefactor /= r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    }
+            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -253,15 +253,15 @@ void PairLJClass2CoulLongCS::compute_inner()
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_out_off_sq) {
-	rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         r2inv = 1.0/rsq;
         forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*forcecoul;
 
         jtype = type[j];
         if (rsq < cut_ljsq[itype][jtype]) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
         } else forcelj = 0.0;
@@ -352,8 +352,8 @@ void PairLJClass2CoulLongCS::compute_middle()
 
         jtype = type[j];
         if (rsq < cut_ljsq[itype][jtype]) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
         } else forcelj = 0.0;
@@ -444,7 +444,7 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -486,9 +486,9 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype] && rsq > cut_in_off_sq) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
-		  r6inv = r3inv*r3inv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
+                  r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           if (rsq < cut_in_on_sq) {
             rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
@@ -524,9 +524,9 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
               offset[itype][jtype];
             evdwl *= factor_lj;
@@ -551,13 +551,13 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
 
           if (rsq <= cut_in_off_sq) {
             rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           } else if (rsq <= cut_in_on_sq) {
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           }
           fpair = (forcecoul + factor_lj*forcelj) * r2inv;

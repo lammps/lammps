@@ -83,7 +83,7 @@ html: $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. .*image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
+	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/

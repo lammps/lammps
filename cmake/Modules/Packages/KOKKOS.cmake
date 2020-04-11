@@ -1,7 +1,8 @@
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
-  set(Kokkos_ENABLE_CUDA_LAMBDA ON)
+  message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")
+  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "" FORCE)
 endif()
 # Adding OpenMP compiler flags without the checks done for
 # BUILD_OMP can result in compile failures. Enforce consistency.

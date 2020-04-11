@@ -142,13 +142,15 @@ please refer to its documentation.
 **OpenMP Compiler compatibility info**\ :
 
 Some compilers do not fully support the ``default(none)`` directive
-and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0
-semantics, which are incompatible with the OpenMP 3.1 semantics used
-in LAMMPS (for maximal compatibility with compiler versions in use).
-LAMMPS will try to detect compilers that use OpenMP 4.0 semantics and
-change the directives accordingly, but if your compiler is not
-detected, you may set the define ``-D LAMMPS_OMP_COMPAT=4`` in ``LMP_INC``
-or the CMake build command.
+and others (e.g. GCC version 9 and beyond, Clang version 10 and later)
+may implement strict OpenMP 4.0 and later semantics, which are incompatible
+with the OpenMP 3.1 semantics used in LAMMPS for maximal compatibility
+with compiler versions in use.  If compilation with OpenMP enabled fails
+because of your compiler requiring strict OpenMP 4.0 semantic, you can
+change the behvior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the ``LMP_INC``
+variable in your makefile, or add it to the command line while configuring
+with CMake. CMake will autodetect the suitable setting for the GNU, Clang,
+and Intel compilers.
 
 ----------
 

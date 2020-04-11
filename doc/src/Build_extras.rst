@@ -279,28 +279,47 @@ using.  For example:
 .. _kokkos:
 
 KOKKOS package
----------------------------
+--------------
 
-To build with this package, you must choose which hardware you want to
-build for, either CPUs (multi-threading via OpenMP) or KNLs (OpenMP)
-or GPUs (NVIDIA Cuda).
+Using the KOKKOS package requires choosing several settings.  You have
+to select whether you want to compile with parallelization on the host
+and whether you want to include offloading of calculations to a device
+(e.g. a GPU).  The default setting is to have no host parallelization
+and no device offloading.  In addition, you can select the hardware
+architecture to select the instruction set.  Since most hardware is
+backward compatible, you may choose settings for an older architecture
+to have an executable that will run on this and newer architectures.
 
-For a CMake or make build, these are the possible choices for the
-``Kokkos_ARCH_<arch>`` settings described below.  Note that for CMake,
-these are really Kokkos variables, not LAMMPS variables.  Hence you
-must use case-sensitive variable names, i.e. ``Kokkos_ARCH_BDW``
-and **NOT** ``KOKKOS_ARCH_BDW`` or ``Kokkos_arch_bdw`` and so on.
+.. note::
+
+   NVIDIA GPUs with CC 5.0 (Maxwell) and newer are not compatible with
+   CC 3.x (Kepler).  If you run Kokkos on a newer architecture than what
+   LAMMPS was compiled with, there will be a significant delay during
+   device initialization since the just-in-time compiler has to
+   recompile the GPU kernel code for the new hardware.
+
+The settings discussed below have been tested with LAMMPS and are
+confirmed to work.  Kokkos is an active project with ongoing improvements
+and projects working on including support for additional architectures.
+More information on Kokkos can be found on the
+`Kokkos GitHub project <https://github.com/kokkos>`_.
+
+Available Architecture settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These are the possible choices for the Kokkos architecture ID. They must
+be specified in uppercase.
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
    :widths: auto
 
-   *  - Arch
-      - Description
+   *  - **Arch-ID**
+      - **Description**
    *  - AMDAVX
-      - AMD 64-bit x86 CPUs
+      - AMD 64-bit x86 CPU (AVX 1)
    *  - EPYC
-      - AMD EPYC Zen class CPUs
+      - AMD EPYC Zen class CPU (AVX 2)
    *  - ARMV80
       - ARMv8.0 Compatible CPU
    *  - ARMV81
@@ -310,74 +329,78 @@ and **NOT** ``KOKKOS_ARCH_BDW`` or ``Kokkos_arch_bdw`` and so on.
    *  - ARMV8_THUNDERX2
       - ARMv8 Cavium ThunderX2 CPU
    *  - WSM
-      - Intel Westmere CPUs
+      - Intel Westmere CPU (SSE 4.2)
    *  - SNB
-      - Intel Sandy/Ivy Bridge CPUs
+      - Intel Sandy/Ivy Bridge CPU (AVX 1)
    *  - HSW
-      - Intel Haswell CPUs
+      - Intel Haswell CPU (AVX 2)
    *  - BDW
-      - Intel Broadwell Xeon E-class CPUs
+      - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
    *  - SKX
-      - Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
+      - Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)
    *  - KNC
       - Intel Knights Corner Xeon Phi
    *  - KNL
       - Intel Knights Landing Xeon Phi
    *  - BGQ
-      - IBM Blue Gene/Q CPUs
+      - IBM Blue Gene/Q CPU
    *  - POWER7
-      - IBM POWER8 CPUs
+      - IBM POWER8 CPU
    *  - POWER8
-      - IBM POWER8 CPUs
+      - IBM POWER8 CPU
    *  - POWER9
-      - IBM POWER9 CPUs
+      - IBM POWER9 CPU
    *  - KEPLER30
-      - NVIDIA Kepler generation CC 3.0
+      - NVIDIA Kepler generation CC 3.0 GPU
    *  - KEPLER32
-      - NVIDIA Kepler generation CC 3.2
+      - NVIDIA Kepler generation CC 3.2 GPU
    *  - KEPLER35
-      - NVIDIA Kepler generation CC 3.5
+      - NVIDIA Kepler generation CC 3.5 GPU
    *  - KEPLER37
-      - NVIDIA Kepler generation CC 3.7
+      - NVIDIA Kepler generation CC 3.7 GPU
    *  - MAXWELL50
-      - NVIDIA Maxwell generation CC 5.0
+      - NVIDIA Maxwell generation CC 5.0 GPU
    *  - MAXWELL52
-      - NVIDIA Maxwell generation CC 5.2
+      - NVIDIA Maxwell generation CC 5.2 GPU
    *  - MAXWELL53
-      - NVIDIA Maxwell generation CC 5.3
+      - NVIDIA Maxwell generation CC 5.3 GPU
    *  - PASCAL60
-      - NVIDIA Pascal generation CC 6.0
+      - NVIDIA Pascal generation CC 6.0 GPU
    *  - PASCAL61
-      - NVIDIA Pascal generation CC 6.1
+      - NVIDIA Pascal generation CC 6.1 GPU
    *  - VOLTA70
-      - NVIDIA Volta generation CC 7.0
+      - NVIDIA Volta generation CC 7.0 GPU
    *  - VOLTA72
-      - NVIDIA Volta generation CC 7.2
+      - NVIDIA Volta generation CC 7.2 GPU
    *  - TURING75
-      - NVIDIA Turing generation CC 7.5
+      - NVIDIA Turing generation CC 7.5 GPU
 
-**CMake build**\ :
-
+CMake build settings:
+^^^^^^^^^^^^^^^^^^^^^
 For multicore CPUs using OpenMP, set these 2 variables.
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_<cpuarch>=yes  # <cpuarch> = CPU from list above
+   -D Kokkos_ARCH_CPUARCH=yes  # CPUARCH = CPU from list above
    -D Kokkos_ENABLE_OPENMP=yes
+   -D BUILD_OMP=yes
 
-For Intel KNLs using OpenMP, set these 2 variables:
+Please note that enabling OpenMP for KOKKOS requires that OpenMP is
+also :ref:`enabled for the rest of LAMMPS <serial>`.
+
+For Intel KNLs using OpenMP, set these variables:
 
 .. code-block:: bash
 
    -D Kokkos_ARCH_KNL=yes
    -D Kokkos_ENABLE_OPENMP=yes
 
-For NVIDIA GPUs using CUDA, set these 4 variables:
+For NVIDIA GPUs using CUDA, set these variables:
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_<cpuarch>=yes  # <cpuarch> = CPU from list above that is hosting the GPU
-   -D Kokkos_ARCH_<gpuarch>=yes  # <gpuarch> = GPU from list above
+   -D Kokkos_ARCH_CPUARCH=yes    # CPUARCH = CPU from list above
+   -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
    -D Kokkos_ENABLE_CUDA=yes
    -D Kokkos_ENABLE_OPENMP=yes
    -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
@@ -388,20 +411,35 @@ include the full path name to the wrapper, e.g.
 
 .. code-block:: bash
 
-   -D CMAKE_CXX_COMPILER=/home/username/lammps/lib/kokkos/bin/nvcc_wrapper
+   -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper
 
-**Traditional make**\ :
+To simplify the compilation, three preset files are included in the
+``cmake/presets`` folder, ``kokkos-serial.cmake``, ``kokkos-openmp.cmake``,
+and ``kokkos-cuda.cmake``. They will enable the KOKKOS package and
+enable some hardware choice.  So to compile with OpenMP host parallelization,
+CUDA device parallelization (for GPUs with CC 5.0 and up) with some
+common packages enabled, you can do the following:
+
+.. code-block:: bash
+
+   mkdir build-kokkos-cuda
+   cd build-kokkos-cuda
+   cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
+   cmake --build .
+
+Traditional make settings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Choose which hardware to support in ``Makefile.machine`` via
 ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
-``src/MAKE/OPTIONS/Makefile.kokkos\*`` files for examples.
+``src/MAKE/OPTIONS/Makefile.kokkos*`` files for examples.
 
 For multicore CPUs using OpenMP:
 
 .. code-block:: make
 
    KOKKOS_DEVICES = OpenMP
-   KOKKOS_ARCH = archCPU      # archCPU = CPU from list above
+   KOKKOS_ARCH = CPUARCH          # CPUARCH = CPU from list above
 
 For Intel KNLs using OpenMP:
 
@@ -415,22 +453,28 @@ For NVIDIA GPUs using CUDA:
 .. code-block:: make
 
    KOKKOS_DEVICES = Cuda
-   KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
-                                    # archGPU = GPU from list above
-   FFT_INC = -DFFT_CUFFT            # enable use of cuFFT (optional)
-   FFT_LIB = -lcufft                # link to cuFFT library
+   KOKKOS_ARCH = CPUARCH,GPUARCH  # CPUARCH = CPU from list above that is hosting the GPU
+                                  # GPUARCH = GPU from list above
+   FFT_INC = -DFFT_CUFFT          # enable use of cuFFT (optional)
+   FFT_LIB = -lcufft              # link to cuFFT library
 
-For GPUs, you also need the following 2 lines in your Makefile.machine
-before the CC line is defined, in this case for use with OpenMPI mpicxx.
-The 2 lines define a nvcc wrapper compiler, which will use nvcc for
-compiling CUDA files and use a C++ compiler for non-Kokkos, non-CUDA
-files.
+For GPUs, you also need the following lines in your ``Makefile.machine``
+before the CC line is defined.  They tell ``mpicxx`` to use an ``nvcc``
+compiler wrapper, which will use ``nvcc`` for compiling CUDA files and a
+C++ compiler for non-Kokkos, non-CUDA files.
 
 .. code-block:: make
 
+   # For OpenMPI
    KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
    export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-   CC =            mpicxx
+   CC = mpicxx
+
+.. code-block:: make
+
+   # For MPICH and derivatives
+   KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+   CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 
 ----------
 
@@ -469,7 +513,7 @@ args:
   $ make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
   $ make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
   $ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
-                                           #   copy Makefile.lammps.gfortran to Makefile.lammps
+                                            #   copy Makefile.lammps.gfortran to Makefile.lammps
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 "filelink.o", are created in lib/latte to point into the LATTE home

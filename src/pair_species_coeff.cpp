@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include <string>
 #include <vector>
 #include "atom.h"

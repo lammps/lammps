@@ -179,13 +179,15 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
   if (_eflag) {
     for (int i=0; i<_inum; i++)
       evdwl+=engv[i];
-    if (_ef_atom)
-      if (_ilist==NULL)
+    if (_ef_atom) {
+      if (_ilist==NULL) {
         for (int i=0; i<_inum; i++)
           eatom[i]+=engv[i];
-      else
+      } else {
         for (int i=0; i<_inum; i++)
           eatom[_ilist[i]]+=engv[i];
+      }
+    }
     vstart=_inum;
   }
   if (_vflag) {
@@ -193,7 +195,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     for (int j=0; j<6; j++) {
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
-      if (_vf_atom)
+      if (_vf_atom){
         if (_ilist==NULL) {
           int ii=0;
           for (int i=vstart; i<iend; i++)
@@ -203,6 +205,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
           for (int i=vstart; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];
         }
+      }
       vstart+=_inum;
       iend+=_inum;
     }
@@ -228,7 +231,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       evdwl+=engv[i];
     for (int i=_inum; i<iend; i++)
       ecoul+=engv[i];
-    if (_ef_atom)
+    if (_ef_atom) {
       if (_ilist==NULL) {
         for (int i=0; i<_inum; i++)
           eatom[i]+=engv[i];
@@ -240,6 +243,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
         for (int i=_inum, ii=0; i<iend; i++)
           eatom[_ilist[ii++]]+=engv[i];
       }
+    }
     vstart=iend;
     iend+=_inum;
   }
@@ -247,7 +251,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     for (int j=0; j<6; j++) {
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
-      if (_vf_atom)
+      if (_vf_atom) {
         if (_ilist==NULL) {
           for (int i=vstart, ii=0; i<iend; i++)
             vatom[ii++][j]+=engv[i];
@@ -255,6 +259,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
           for (int i=vstart, ii=0; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];
         }
+      }
       vstart+=_inum;
       iend+=_inum;
     }

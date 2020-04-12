@@ -36,6 +36,11 @@ using namespace ucl_cudadr;
 using namespace ucl_cudart;
 #endif
 
+#ifdef UCL_HIP
+#include "hip_device.h"
+using namespace ucl_hip;
+#endif
+
 int main(int argc, char** argv) {
   UCL_Device cop;
   std::cout << "Found " << cop.num_platforms() << " platform(s).\n";

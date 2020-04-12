@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_airebo_omp.h"
 #include "atom.h"
@@ -58,7 +59,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:pv0,pv1,pv2)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) reduction(+:pv0,pv1,pv2)
 #endif
   {
     int ifrom, ito, tid;
@@ -104,7 +105,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int i,j,ii,jj,n,jnum,itype,jtype;

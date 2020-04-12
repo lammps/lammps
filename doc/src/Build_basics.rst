@@ -142,14 +142,15 @@ please refer to its documentation.
 **OpenMP Compiler compatibility info**\ :
 
 Some compilers do not fully support the ``default(none)`` directive
-and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0
-semantics, which are incompatible with the OpenMP 3.1 semantics used
-in LAMMPS (for maximal compatibility with compiler versions in use).
-In those case, all ``default(none)`` directives (which aid in detecting
-incorrect and unwanted sharing) can be replaced with ``default(shared)``
-while dropping all ``shared()`` directives. The script
-'src/USER-OMP/hack_openmp_for_pgi_gcc9.sh' can be used to automate
-this conversion.
+and others (e.g. GCC version 9 and beyond, Clang version 10 and later)
+may implement strict OpenMP 4.0 and later semantics, which are incompatible
+with the OpenMP 3.1 semantics used in LAMMPS for maximal compatibility
+with compiler versions in use.  If compilation with OpenMP enabled fails
+because of your compiler requiring strict OpenMP 4.0 semantic, you can
+change the behavior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the ``LMP_INC``
+variable in your makefile, or add it to the command line while configuring
+with CMake. CMake will detect the suitable setting for the GNU, Clang,
+and Intel compilers.
 
 ----------
 

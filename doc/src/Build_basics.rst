@@ -147,9 +147,9 @@ may implement strict OpenMP 4.0 and later semantics, which are incompatible
 with the OpenMP 3.1 semantics used in LAMMPS for maximal compatibility
 with compiler versions in use.  If compilation with OpenMP enabled fails
 because of your compiler requiring strict OpenMP 4.0 semantic, you can
-change the behvior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the ``LMP_INC``
+change the behavior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the ``LMP_INC``
 variable in your makefile, or add it to the command line while configuring
-with CMake. CMake will autodetect the suitable setting for the GNU, Clang,
+with CMake. CMake will detect the suitable setting for the GNU, Clang,
 and Intel compilers.
 
 ----------

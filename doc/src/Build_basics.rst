@@ -270,17 +270,35 @@ Serial build with GNU gcc (see ``src/MAKE/Makefile.serial``):
    LINK =          g++
    LINKFLAGS =     -g -O
 
+
 .. note::
 
-   If you build LAMMPS with any :doc:`accelerator packages <Speed_packages>`
-   included, there may be specific optimization flags that are either
-   required or recommended to enable required features and to achieve
-   optimal performance.  You need to include these in the CCFLAGS and
-   LINKFLAGS settings above.  For details, see the individual package
-   doc pages listed on the :doc:`Speed packages <Speed_packages>` doc
-   page.  Or examine these files in the src/MAKE/OPTIONS directory.
-   They correspond to each of the 5 accelerator packages and their
-   hardware variants:
+   If compilation stops with a message like the following:
+
+   .. code-block::
+
+      g++ -g -O3  -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
+      In file included from ../pointers.h:24:0,
+                 from ../input.h:17,
+                 from ../main.cpp:16:
+      ../lmptype.h:34:2: error: #error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
+
+   then you have either an unsupported (old) compiler or you have to
+   turn on C++11 mode.  The latter applies to GCC 4.8.x shipped with
+   RHEL 7.x and CentOS 7.x.  For those compilers, you need to add the
+   ``-std=c++11`` flag.  Otherwise, you would have to install a newer
+   compiler that supports C++11; either as a binary package or through
+   compiling from source.
+
+If you build LAMMPS with any :doc:`accelerator packages
+<Speed_packages>` included, there may be specific optimization flags
+that are either required or recommended to enable required features and
+to achieve optimal performance.  You need to include these in the
+CCFLAGS and LINKFLAGS settings above.  For details, see the individual
+package doc pages listed on the :doc:`Speed packages <Speed_packages>`
+doc page.  Or examine these files in the src/MAKE/OPTIONS directory.
+They correspond to each of the 5 accelerator packages and their hardware
+variants:
 
 .. code-block:: bash
 

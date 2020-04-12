@@ -20,7 +20,9 @@ with :doc:`CMake <Build_cmake>`.  The makefiles of the traditional
 make based build process and the scripts they are calling expect a few
 additional tools to be available and functioning.
 
-  * a working C/C++ compiler toolchain; on Linux these are often the GNU compilers
+  * a working C/C++ compiler toolchain supporting the C++11 standard; on
+    Linux these are often the GNU compilers. Some older compilers
+    require adding flags like ``-std=c++11`` to enable the C++11 mode.
   * a Bourne shell compatible "Unix" shell program (often this is ``bash``)
   * a few shell utilities: ``ls``, ``mv``, ``ln``, ``rm``, ``grep``, ``sed``, ``tr``, ``cat``, ``touch``, ``diff``, ``dirname``
   * python (optional, required for ``make lib-<pkg>`` in the src folder).

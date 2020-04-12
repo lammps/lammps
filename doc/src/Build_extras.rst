@@ -87,27 +87,33 @@ GPU package
 ---------------------
 
 To build with this package, you must choose options for precision and
-which GPU hardware to build for.
+which GPU hardware to build for. The GPU package currently supports
+three different types of backends: OpenCL, CUDA and HIP.
 
 **CMake build**\ :
 
 .. code-block:: bash
 
-   -D GPU_API=value          # value = opencl (default) or cuda
-   -D GPU_PREC=value         # precision setting
-                             # value = double or mixed (default) or single
-   -D OCL_TUNE=value         # hardware choice for GPU_API=opencl
-                             # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
-   -D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
-                             # value = sm_XX, see below
-                             # default is sm_30
-   -D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
-                             # enables CUDA Performance Primitives Optimizations
-                             # value = yes (default) or no
-   -D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
-                             # value = yes or no (default)
+   -D GPU_API=value             # value = opencl (default) or cuda or hip
+   -D GPU_PREC=value            # precision setting
+                                # value = double or mixed (default) or single
+   -D OCL_TUNE=value            # hardware choice for GPU_API=opencl
+                                # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
+   -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
+                                # value = sm_XX, see below
+                                # default is sm_30
+   -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
+                                # value depends on selected HIP_PLATFORM
+                                # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_30' for HIP_PLATFORM=nvcc
+   -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
+                                # value = yes (default) or no
+   -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda
+                                # enables CUDA Performance Primitives Optimizations
+                                # value = yes (default) or no
+   -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active nvidia-cuda-mps daemon
+                                # value = yes or no (default)
 
-GPU_ARCH settings for different GPU hardware is as follows:
+:code:`GPU_ARCH` settings for different GPU hardware is as follows:
 
 * sm_12 or sm_13 for GT200 (supported by CUDA 3.2 until CUDA 6.5)
 * sm_20 or sm_21 for Fermi (supported by CUDA 3.2 until CUDA 7.5)
@@ -125,6 +131,28 @@ include support for **all** major GPU architectures supported by this toolkit.
 Thus the GPU_ARCH setting is merely an optimization, to have code for
 the preferred GPU architecture directly included rather than having to wait
 for the JIT compiler of the CUDA driver to translate it.
+
+If you are compiling with HIP, note that before running CMake you will have to
+set appropriate environment variables. Some variables such as
+:code:`HCC_AMDGPU_TARGET` or :code:`CUDA_PATH` are necessary for :code:`hipcc`
+and the linker to work correctly.
+
+.. code:: bash
+
+   # AMDGPU target
+   export HIP_PLATFORM=hcc
+   export HCC_AMDGPU_TARGET=gfx906
+   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
+   make -j 4
+
+.. code:: bash
+
+   # CUDA target
+   # !!! DO NOT set CMAKE_CXX_COMPILER !!!
+   export HIP_PLATFORM=nvcc
+   export CUDA_PATH=/usr/local/cuda
+   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..
+   make -j 4
 
 **Traditional make**\ :
 

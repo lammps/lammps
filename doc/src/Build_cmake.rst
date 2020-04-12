@@ -86,12 +86,20 @@ options and settings will be printed at the end.  The ``cmake --build
 ultimately produce a library ``liblammps.a`` and the LAMMPS executable
 ``lmp`` inside the ``build`` folder.
 
-If your machine has multiple CPU cores (most do these days), you can
-speed this up by compiling sources in parallel with ``make -j N`` (with
-N being the maximum number of concurrently executed tasks).  Also
-installation of the `ccache <https://ccache.dev/>`_ (= Compiler Cache)
-software may speed up repeated compilation significantly, e.g. during code
-development.
+Compilation can take a long time, since LAMMPS is a large project with
+many features. If your machine has multiple CPU cores (most do these
+days), you can speed this up by compiling sources in parallel with
+``make -j N`` (with N being the maximum number of concurrently executed
+tasks).  Also installation of the `ccache <https://ccache.dev/>`_ (=
+Compiler Cache) software may speed up repeated compilation even more,
+e.g. during code development.
+
+After the initial build, whenever you edit LAMMPS source files, add
+or remove packages, change compiler flags or build options,
+you must re-compile and relink the LAMMPS executable with ``cmake --build .``.
+If the compilation fails for some reason, try running ``cmake .`` and
+then compile again. The included dependency tracking of should insure
+that only the necessary subset of files are re-compiled.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:

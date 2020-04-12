@@ -19,6 +19,10 @@ From: centos:8
 %environment
         LC_ALL=C
         export LC_ALL
+        unset LOADEDMODULES
+        . /etc/profile.d/modules.sh
+        module purge
+        module load mpi
 
 %labels
         Author akohlmey

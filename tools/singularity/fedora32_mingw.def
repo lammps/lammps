@@ -1,11 +1,13 @@
 BootStrap: docker
-From: fedora:30
+From: fedora:32
 
 %post
         dnf -y update
-        dnf -y install vim-enhanced git file make cmake patch which file \
-               dos2unix findutils rsync \
-               ccache gcc-c++ gdb valgrind eigen3-devel \
+        dnf -y install vim-enhanced git file make cmake patch which file Lmod \
+               ninja-build clang libomp-devel libubsan libasan libtsan \
+               dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
+               ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
+               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel \
                mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
                mingw32-filesystem mingw32-pkg-config \
                mingw64-filesystem mingw64-pkg-config \
@@ -36,10 +38,8 @@ From: fedora:30
 %environment
         LC_ALL=C
         export LC_ALL
-        # we need to reset any module variables
-        # inherited from the host.
         unset LOADEDMODULES
-        source /etc/profile.d/modules.sh
+        . /etc/profile.d/modules.sh
         module purge
         module load mpi
 

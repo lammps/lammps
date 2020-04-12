@@ -101,7 +101,7 @@ drop back to the GDB prompt.
    
    Program received signal SIGSEGV, Segmentation fault.
    0x00000000006653ab in LAMMPS_NS::PairLJCut::compute (this=0x829740, eflag=1, vflag=<optimized out>) at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139
-   139	    comx += atom->rmass[i]*x[i][0]; /* BUG */
+   139      comx += atom->rmass[i]*x[i][0]; /* BUG */
    (gdb) 
 
 Now typing the command "where" will show the stack of functions starting from
@@ -165,7 +165,7 @@ and the core dump and drop you to a prompt like before.
    Program terminated with signal SIGSEGV, Segmentation fault.
    #0  0x00000000006653ab in LAMMPS_NS::PairLJCut::compute (this=0x1b10740, eflag=1, vflag=<optimized out>)
        at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139
-   139	    comx += atom->rmass[i]*x[i][0]; /* BUG */
+   139      comx += atom->rmass[i]*x[i][0]; /* BUG */
    (gdb)
 
 From here on, you use the same commands as shown before to get a stack

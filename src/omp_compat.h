@@ -23,8 +23,8 @@
 //
 // To date, most compilers still accept the OpenMP 3.0 form,
 // so this is what LAMMPS primarily uses.  For those compilers
-// that strictly implement OpenMP 4.0 (such as GCC 9.0), we
-// give up default(none).
+// that strictly implement OpenMP 4.0 (such as GCC 9.0 and later
+// or Clang 10.0 and later), we give up default(none).
 #if LAMMPS_OMP_COMPAT == 4
 #    define LMP_SHARED(...)
 #    define LMP_DEFAULT_NONE default(shared)

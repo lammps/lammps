@@ -12,5 +12,6 @@ additional details for many of them.
 
    Errors_common
    Errors_bugs
+   Errors_debug
    Errors_messages
    Errors_warnings

@@ -7,6 +7,7 @@ CMake and make:
 * :ref:`Serial vs parallel build <serial>`
 * :ref:`Choice of compiler and compile/link options <compile>`
 * :ref:`Build the LAMMPS executable and library <exe>`
+* :ref:`Debug support <debug>`
 * :ref:`Build the LAMMPS documentation <doc>`
 * :ref:`Install LAMMPS after a build <install>`
 
@@ -393,6 +394,26 @@ step becomes:
 Avoiding to use "sudo" for custom software installation (i.e. from source
 and not through a package manager tool provided by the OS) is generally
 recommended to ensure the integrity of the system software installation.
+
+----------
+
+.. _debug:
+
+Debug support
+-------------
+
+By default the compilation settings will include the *-g* flag which
+instructs the compiler to include debug information (e.g. which line of
+source code particular instructions correspond to).  This can be
+extremely useful in case LAMMPS crashes and can help to provide crucial
+information in :doc:`tracking down the origin of a crash <Errors_debug>`
+and possibly help fix a bug in the source code.  However, this increases
+the storage requirements for object files, libraries, and the executable
+3-5 fold.  If this is a concern, you can change the compilation settings
+(either by editing the machine makefile or setting the compiler flags or
+build time when using CMake).  If you are only concerned about the
+executable being too large, you can use the ``strip`` tool (e.g. ``strip
+lmp_serial``) to remove the debug information from the file.
 
 ----------
 

@@ -8,7 +8,7 @@
  * (VC11 has _MSC_VER=1700).
  */
 
-#if defined(_MSC_VER) || defined (__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #if !defined(M_PI)
 #define M_PI 3.14159265358979323846264338327950288
 #endif

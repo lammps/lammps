@@ -32,10 +32,12 @@
 #include "memory.h"
 #include "error.h"
 #include "kspace.h"
+#include "math_const.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 /* ----------------------------------------------------------------------
    read parameters
@@ -538,7 +540,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
       } else {
       double energy_k= force->hplanck * fabs(f_k);
         omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
-        omega_H[k]*=alpha*sin((k-N_f)*M_PI/(2*alpha*N_f))/sin((k-N_f)*M_PI/(2*N_f));
+        omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
       }
     }
 
@@ -547,7 +549,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
       time_H[n] = 0;
       double t_n=(n-N_f);
       for (int k = 0; k < 2*N_f; k++) {
-        double omega_k=(k-N_f)*M_PI/N_f;
+        double omega_k=(k-N_f)*MY_PI/N_f;
         time_H[n] += omega_H[k]*(cos(omega_k*t_n));
       }
       time_H[n]/=(2.0*N_f);

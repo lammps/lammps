@@ -492,6 +492,7 @@ cstdlib
 cstring
 cstyle
 csvr
+ctrl
 Ctypes
 ctypes
 cuda

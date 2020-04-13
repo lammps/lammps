@@ -10,7 +10,7 @@ different platforms.  Note, that this applies to the build system itself
 not the LAMMPS code. In other words, without additional porting effort,
 it is not possible - for example - to compile LAMMPS with Visual C++ on
 Windows.  The build system output can also include support files
-necessary to programm LAMMPS as a project in integrated development
+necessary to program LAMMPS as a project in integrated development
 environments (IDE) like Eclipse, Visual Studio, QtCreator, Xcode,
 CodeBlocks, Kate and others.
 
@@ -21,17 +21,11 @@ without requiring to provide the details about how to enable/integrate
 them.
 
 The downside of this approach is, that there is some complexity
-associated with running CMake itself and how to achieve desired
-customizations and modifications to the LAMMPS configuration and
-compilation.  And for as long as this facility is relatively new and
-not as widely used as the traditional build process, there are chances
-that the scripts that CMake processes may have bugs or are missing
-options, despite the best efforts to test and verify its functionality.
-
-This tutorial will show how to manage this through some selected
-examples.  Please see the chapter about :doc:`building LAMMPS <Build>`
-for descriptions of specific flags and options for LAMMPS in general and
-for specific packages.
+associated with running CMake itself and how to customize the building
+of LAMMPS.  This tutorial will show how to manage this through some
+selected examples.  Please see the chapter about :doc:`building LAMMPS
+<Build>` for descriptions of specific flags and options for LAMMPS in
+general and for specific packages.
 
 CMake can be used through either the command-line interface (CLI)
 program ``cmake`` (or ``cmake3``), a text mode interactive user
@@ -185,7 +179,7 @@ selected built tool, e.g. ``make``.
 TUI version
 ^^^^^^^^^^^
 
-For the text mode UI CMake program the basical principle is the same.
+For the text mode UI CMake program the basic principle is the same.
 You start the command ``ccmake ../cmake`` in the ``build`` folder.
 
 .. list-table::

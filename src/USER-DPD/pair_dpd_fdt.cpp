@@ -316,7 +316,7 @@ void PairDPDfdt::init_style()
   splitFDT_flag = false;
   neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
       splitFDT_flag = true;
     }
 

@@ -15,6 +15,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cmath>
 #include "dihedral_charmm_intel.h"
@@ -148,7 +149,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
               opv0,opv1,opv2,opv3,opv4,opv5)
@@ -522,7 +523,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
               opv0,opv1,opv2,opv3,opv4,opv5)

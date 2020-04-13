@@ -1,3 +1,16 @@
+########################################################################
+# consistency checks and Kokkos options/settings required by LAMMPS
+if(Kokkos_ENABLE_CUDA)
+  message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")
+  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "" FORCE)
+endif()
+# Adding OpenMP compiler flags without the checks done for
+# BUILD_OMP can result in compile failures. Enforce consistency.
+if(Kokkos_ENABLE_OPENMP AND NOT BUILD_OMP)
+  message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+endif()
+########################################################################
+
 option(EXTERNAL_KOKKOS "Build against external kokkos library" OFF)
 option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
 if(DOWNLOAD_KOKKOS)
@@ -22,6 +35,9 @@ if(DOWNLOAD_KOKKOS)
     INTERFACE_LINK_LIBRARIES ${CMAKE_DL_LIBS})
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
   add_dependencies(LAMMPS::KOKKOS kokkos_build)
+  if(BUILD_LIB AND NOT BUILD_SHARED_LIBS)
+    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
+  endif()
 elseif(EXTERNAL_KOKKOS)
   find_package(Kokkos 3)
   if(NOT Kokkos_FOUND)
@@ -64,7 +80,7 @@ if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
-  if(KOKKOS_ENABLE_CUDA)
+  if(Kokkos_ENABLE_CUDA)
     if(NOT ${FFT} STREQUAL "KISS")
       target_compile_definitions(lammps PRIVATE -DFFT_CUFFT)
       target_link_libraries(lammps PRIVATE cufft)

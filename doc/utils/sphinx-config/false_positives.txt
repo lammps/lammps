@@ -1735,6 +1735,7 @@ Melchor
 Meloni
 Melrose
 Mem
+mem
 memalign
 MEMALIGN
 membered
@@ -2105,7 +2106,6 @@ nvc
 nvcc
 nve
 nvidia
-Nvidia
 nvk
 nvt
 Nwait
@@ -2960,6 +2960,7 @@ traceless
 tradeoff
 traj
 Tranchida
+transactional
 transferability
 translational
 Translational

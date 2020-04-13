@@ -64,16 +64,17 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
 endif()
 
-# we require C++11
+# we require C++11 without extensions
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # GNU compiler specific features for testing
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
-    set (CMAK_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   endif()
 endif()
 
@@ -239,22 +240,24 @@ if(OpenMP_FOUND)
   endif()
 endif()
 
-# TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
-# GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
-# where we assume older GCC semantics. For the time being, we disable OpenMP by default
-# for GCC 9.x and beyond. People may manually turn it on, but need to run the script
-# src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
-if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
-  option(BUILD_OMP "Build with OpenMP support" OFF)
-else()
-  option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
-endif()
+option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
 
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
   if(NOT HAVE_OMP_H_INCLUDE)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
+  endif()
+
+  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.99.9)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 18.99.9))
+      )
+    # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
+    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=4)
+  else()
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
@@ -761,7 +764,7 @@ if(PKG_KSPACE)
     message(STATUS "Using non-threaded FFTs")
   endif()
   if(PKG_KOKKOS)
-    if(KOKKOS_ENABLE_CUDA)
+    if(Kokkos_ENABLE_CUDA)
       if (${FFT} STREQUAL "KISS")
         message(STATUS "Kokkos FFT: KISS")
       else()

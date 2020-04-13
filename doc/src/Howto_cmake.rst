@@ -208,7 +208,6 @@ You start the command ``ccmake ../cmake`` in the ``build`` folder.
 
           Options screen of ``ccmake``
 
-
 This will show you the initial screen (left image) with the empty
 configuration cache. Now you type the 'c' key to run the configuration
 step. That will do a first configuration run and show the summary

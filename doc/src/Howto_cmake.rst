@@ -35,6 +35,9 @@ software available on all supported platforms and can be used
 interchangeably.  The minimum supported CMake version is 3.10 (3.12 or
 later is recommended).
 
+All details about features and settings for CMake are in the `CMake
+online documentation <https://cmake.org/documentation/>`_. We focus
+below on the most important aspects with respect to compiling LAMMPS.
 
 Prerequisites
 -------------
@@ -81,9 +84,12 @@ This can be achieved with ``make no-all purge``.
 
 You can pick **any** folder outside the source tree. We recommend to
 create a folder ``build`` in the top-level directory, or multiple
-folders in case you want to compile LAMMPS in different configurations
-(``build-parallel``, ``build-serial``) or with different compilers
-(``build-gnu``, ``build-clang``, ``build-intel``) and so on.
+folders in case you want to have separate builds of LAMMPS with
+different options (``build-parallel``, ``build-serial``) or with
+different compilers (``build-gnu``, ``build-clang``, ``build-intel``)
+and so on.  All the auxiliary files created by one build process
+(executable, object files, log files, etc) are stored in this directory
+or sub-directories within it that CMake creates.
 
 
 Running CMake
@@ -249,8 +255,8 @@ not required, it can also be entered from the GUI.
 
 Again, you start with an empty configuration cache (left image) and need
 to start the configuration step.  For the very first configuration in a
-folder, you will have a popup dialog (center image) asking to select the
-desired build tool and some configuration settings (stick with the
+folder, you will have a pop-up dialog (center image) asking to select
+the desired build tool and some configuration settings (stick with the
 default) and then you get the option screen with all new settings
 highlighted in red.  You can modify them (or not) and click on the
 "configure" button again until satisfied and click on the "generate"
@@ -261,146 +267,185 @@ button to write out the build files. You can exit the GUI from the
 Setting options
 ---------------
 
+Options that enable, disable or modify settings are modified by setting
+the value of CMake variables. This is done on the command line with the
+*-D* flag in the format ``-D VARIABLE=value``, e.g. ``-D
+CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  There is one quirk:
+when used before the CMake directory, there may be a space between the
+*-D* flag and the variable, after it must not be. Such CMake variables
+can have boolean values (on/off, yes/no, or 1/0 are all valid) or are
+strings representing a choice, or a path, or are free format. If the
+string would contain whitespace, it must be put in quotes, for example
+``-D CMAKE_TUNE_FLAGS="-ftree-vectorize -ffast-math"``.
 
+CMake variables fall into two categories: 1) common CMake variables that
+are used by default for any CMake configuration setup and 2) project
+specific variables, i.e. settings that are specific for LAMMPS.
+Also CMake variables can be flagged as *advanced*, which means they are
+not shown in the text mode or graphical CMake program in the overview
+of all settings by default, but only when explicitly requested (by hitting
+the 't' key or clicking on the 'Advanced' check-box).
+
+Some common CMake variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Variable
+     - Description
+   * - ``CMAKE_INSTALL_PREFIX``
+     - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``CMAKE_BUILD_TYPE``
+     - controls compilation options:
+       one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
+   * - ``BUILD_SHARED_LIBS``
+     - if set to ``on`` build the LAMMPS library as shared library (default: ``off``)
+   * - ``CMAKE_MAKE_PROGRAM``
+     - name/path of the compilation command (default depends on *-G* option, usually ``make``)
+   * - ``CMAKE_VERBOSE_MAKEFILE``
+     - if set to ``on`` echo commands while executing during build (default: ``off``)
+   * - ``CMAKE_C_COMPILER``
+     - C compiler to be used for compilation (default: system specific, ``gcc`` on Linux)
+   * - ``CMAKE_CXX_COMPILER``
+     - C++ compiler to be used for compilation (default: system specific, ``g++`` on Linux)
+   * - ``CMAKE_Fortran_COMPILER``
+     - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
+   * - ``CXX_COMPILER_LAUNCHER``
+     - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
+       
+Some common LAMMPS specific variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Variable
+     - Description
+   * - ``BUILD_MPI``
+     - build LAMMPS with MPI support (default: ``on`` if a working MPI available, else ``off``)
+   * - ``BUILD_OMP``
+     - build LAMMPS with OpenMP support (default: ``on`` if compiler supports OpenMP fully, else ``off``)
+   * - ``BUILD_TOOLS``
+     - compile some additional executables from the ``tools`` folder (default: ``off``)
+   * - ``BUILD_DOC``
+     - include building the documentation (default: ``off``)
+   * - ``CMAKE_TUNE_FLAGS``
+     - common compiler flags, for optimization or instrumentation (default: compiler specific)
+   * - ``LAMMPS_MACHINE``
+     - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
+   * - ``LAMMPS_EXCEPTIONS``
+     - when set to ``on`` errors will throw a C++ exception instead of aborting (default: ``off``)
+   * - ``FFT``
+     - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
+   * - ``FFT_SINGLE``
+     - select whether to use single precision FFTs (default: ``off``)
+   * - ``WITH_JPEG``
+     - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found)
+   * - ``WITH_PNG``
+     - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
+   * - ``WITH_GZIP``
+     - whether to support reading and writing compressed files (default: ``on`` if found)
+   * - ``WITH_FFMPEG``
+     - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found)
+
+Enabling or disabling LAMMPS packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The LAMMPS software is organized into a common core that is always
+included and a large number of :doc:`add-on packages <Packages>` that
+have to be enabled to be included into a LAMMPS executable.  Packages
+are enabled through setting variables of the kind ``PKG_<NAME>`` to
+``on`` and disabled by setting them to ``off`` (or using ``yes``,
+``no``, ``1``, ``0`` correspondingly).  ``<NAME>`` has to be replaced by
+the name of the package, e.g. ``MOLECULE`` or ``USER-MISC``.
 
 
 Using presets
 -------------
 
-Since LAMMPS has a lot of optional features specifying them all
-on the command line, or - when selecting a different compiler toolchain -
-multiple options have to be changed 
+Since LAMMPS has a lot of optional features and packages, specifying
+them all on the command line can be tedious. Or when selecting a
+different compiler toolchain, multiple options have to be changed
+consistently and that is rather error prone. Or when enabling certain
+packages, they require consistent settings to be operated in a
+particular mode.  For this purpose, we are providing a selection of
+"preset files" for CMake in the folder ``cmake/presets``.  They
+represent a way to pre-load or override the CMake configuration cache by
+setting or changing CMake variables.  Preset files are loaded using the
+*-C* command line flag. You can combine loading multiple preset files or
+change some variables later with additional *-D* flags.  A few examples:
 
+.. code-block:: bash
 
+   cmake -C ../cmake/preset/minimal.cmake -D PKG_MISC=on ../cmake
+   cmake -C ../cmake/preset/clang.cmake -C ../cmake/preset/most.cmake ../cmake
+   cmake -C ../cmake/preset/minimal.cmake -D BUILD_MPI=off ../cmake
+
+The first command will install the packages ``KSPACE``, ``MANYBODY``,
+``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
+file and the fifth from the explicit variable definition.  The second
+command will first switch the compiler toolchain to use the Clang
+compilers and install a large number of packages that are not depending
+on any special external libraries or tools and are not very unusual.
+The third command will enable the first four packages like above and
+then enforce compiling LAMMPS as a serial program (using the MPI STUBS
+library).
+
+It is also possible to do this incrementally.
+
+.. code-block:: bash
+
+   cmake -C ../cmake/preset/minimal.cmake ../cmake
+   cmake -D PKG_MISC=on .
+
+will achieve the same configuration like in the first example above.  In
+this scenario it is particularly convenient to do the second
+configuration step using either the text mode or graphical user
+interface (``ccmake`` or ``cmake-gui``).
+
+   
 Choosing generators
 -------------------
 
+While CMake usually defaults to creating makefiles to compile software
+with the ``make`` program, it supports multiple alternate build tools
+(e.g. ``ninja-build`` which tends to be faster and more efficient in
+parallelizing builds than ``make``) and can generate project files for
+integrated development environments (IDEs) like VisualStudio, Eclipse or
+CodeBlocks.  This is specific to how the local CMake version was
+configured and compiled. The list of available options can be seen at
+the end of the output of ``cmake --help``. Example on Fedora 31 this is:
 
-After the initial build, if you edit LAMMPS source files, or add your
-own new files to the source directory, you can just re-type make from
-your build directory and it will re-compile only the files that have
-changed.  If you want to change CMake options you can run cmake (or
-ccmake or cmake-gui) again from the same build directory and alter
-various options; see details below.  Or you can remove the entire build
-folder, recreate the directory and start over.
+.. code-block::
 
-. Further details about features and settings for CMake
-are in the `CMake online documentation <https://cmake.org/documentation/>`_
-For the rest of this manual we will assume that the build environment
-is generated for "Unix Makefiles" and thus the ``cmake --build .`` will
-call the ``make`` command or you can use it directly.
+   Generators
 
+   The following generators are available on this platform (* marks default):
+   * Unix Makefiles               = Generates standard UNIX makefiles.
+     Green Hills MULTI            = Generates Green Hills MULTI files
+                                    (experimental, work-in-progress).
+     Ninja                        = Generates build.ninja files.
+     Ninja Multi-Config           = Generates build-<Config>.ninja files.
+     Watcom WMake                 = Generates Watcom WMake makefiles.
+     CodeBlocks - Ninja           = Generates CodeBlocks project files.
+     CodeBlocks - Unix Makefiles  = Generates CodeBlocks project files.
+     CodeLite - Ninja             = Generates CodeLite project files.
+     CodeLite - Unix Makefiles    = Generates CodeLite project files.
+     Sublime Text 2 - Ninja       = Generates Sublime Text 2 project files.
+     Sublime Text 2 - Unix Makefiles
+                                  = Generates Sublime Text 2 project files.
+     Kate - Ninja                 = Generates Kate project files.
+     Kate - Unix Makefiles        = Generates Kate project files.
+     Eclipse CDT4 - Ninja         = Generates Eclipse CDT 4.0 project files.
+     Eclipse CDT4 - Unix Makefiles= Generates Eclipse CDT 4.0 project files.
 
-
-There are 3 variants of the CMake command itself: a command-line version
-(``cmake`` or ``cmake3``), a text mode UI version (``ccmake`` or ``ccmake3``),
-and a graphical GUI version (``cmake-gui``).  You can use any of them
-interchangeably to configure and create the LAMMPS build environment.
-On Linux all the versions produce a Makefile as their output by default.
-See more details on each below.
-
-You can specify a variety of options with any of the 3 versions, which
-affect how the build is performed and what is included in the LAMMPS
-executable.  Links to pages explaining all the options are listed on
-the :doc:`Build <Build>` doc page.
-
-You must perform the CMake build system generation and compilation in
-a new directory you create.  It can be anywhere on your local machine.
-In these Build pages we assume that you are building in a directory
-called ``lammps/build``.  You can perform separate builds independently
-with different options, so long as you perform each of them in a
-separate directory you create.  All the auxiliary files created by one
-build process (executable, object files, log files, etc) are stored in
-this directory or sub-directories within it that CMake creates.
-
-----------
-
-**Command-line version of CMake**\ :
+Below is a screenshot of using the CodeBlocks IDE with the ninja build tool
+after running CMake as follows:
 
 .. code-block:: bash
 
-   cmake  [options ...] /path/to/lammps/cmake  # build from any dir
-   cmake  [options ...] ../cmake               # build from lammps/build
-   cmake3 [options ...] ../cmake               # build from lammps/build
+   cmake -G 'CodeBlocks - Ninja' ../cmake/presets/most.cmake ../cmake/
 
-The cmake command takes one required argument, which is the LAMMPS
-cmake directory which contains the CMakeLists.txt file.
-
-The argument can be prefixed or followed by various CMake
-command-line options.  Several useful ones are:
-
-.. code-block:: bash
-
-   -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
-   -D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
-   -G output                     # style of output CMake generates (e.g. "Unix Makefiles" or "Ninja")
-   -D CMAKE_MAKE_PROGRAM=builder # name of the builder executable (e.g. when using "gmake" instead of "make")
-   -DVARIABLE=value              # setting for a LAMMPS feature to enable
-   -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
-   -C path/to/preset/file        # load some CMake settings before configuring
-
-All the LAMMPS-specific -D variables that a LAMMPS build supports are
-described on the pages linked to from the :doc:`Build <Build>` doc page.
-All of these variable names are upper-case and their values are
-lower-case, e.g. -D LAMMPS_SIZES=smallbig.  For boolean values, any of
-these forms can be used: yes/no, on/off, 1/0.
-
-On Unix/Linux machines, CMake generates a Makefile by default to
-perform the LAMMPS build.  Alternate forms of build info can be
-generated via the -G switch, e.g. Visual Studio on a Windows machine,
-Xcode on MacOS, or KDevelop on Linux.  Type ``cmake --help`` to see the
-"Generator" styles of output your system supports.
-
-.. note::
-
-   When CMake runs, it prints configuration info to the screen.
-   You should review this to verify all the features you requested were
-   enabled, including packages.  You can also see what compilers and
-   compile options will be used for the build.  Any errors in CMake
-   variable syntax will also be flagged, e.g. mis-typed variable names or
-   variable values.
-
-CMake creates a CMakeCache.txt file when it runs.  This stores all the
-settings, so that when running CMake again you can use the current
-folder '.' instead of the path to the LAMMPS cmake folder as the
-required argument to the CMake command. Either way the existing
-settings will be inherited unless the CMakeCache.txt file is removed.
-
-If you later want to change a setting you can rerun cmake in the build
-directory with different setting. Please note that some automatically
-detected variables will not change their value when you rerun cmake.
-In these cases it is usually better to first remove all the
-files/directories in the build directory, or start with a fresh build
-directory.
-
-----------
-
-**Curses version (terminal-style menu) of CMake**\ :
-
-.. code-block:: bash
-
-   ccmake ../cmake
-
-You initiate the configuration and build environment generation steps
-separately. For the first you have to type **c**\ , for the second you
-have to type **g**\ . You may need to type **c** multiple times, and may be
-required to edit some of the entries of CMake configuration variables
-in between.  Please see the `ccmake manual <https://cmake.org/cmake/help/latest/manual/ccmake.1.html>`_ for
-more information.
-
-----------
-
-**GUI version of CMake**\ :
-
-.. code-block:: bash
-
-   cmake-gui ../cmake
-
-You initiate the configuration and build environment generation steps
-separately. For the first you have to click on the **Configure** button,
-for the second you have to click on the **Generate** button.  You may
-need to click on **Configure** multiple times, and may be required to
-edit some of the entries of CMake configuration variables in between.
-Please see the `cmake-gui manual <https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html>`_
-for more information.
-
+.. image:: JPG/cmake-codeblocks.png
+   :align: center

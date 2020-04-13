@@ -341,7 +341,7 @@ void Min::setup(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -422,7 +422,7 @@ void Min::setup_minimal(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -477,7 +477,7 @@ void Min::cleanup()
 
   efinal = ecurrent;
   fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
+  fnorminf_final = sqrt(fnorm_inf());
 
   // reset reneighboring criteria
 

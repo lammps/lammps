@@ -128,7 +128,7 @@ void FixRxKokkos<DeviceType>::init()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos/table/rx",3) == 0) eos_flag = true;
+    if (strncmp(modify->fix[i]->style, "eos/table/rx", 12) == 0) eos_flag = true;
   if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)

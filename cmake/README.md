@@ -265,6 +265,16 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   </td>
 </tr>
 <tr>
+  <td><code>LAMMPS_OMP_COMPAT</code></td>
+  <td>Workaround for backwards-incompatible changes regarding predetermined sharing modes in OpenMP 4.x.  A value of 3 or 4 should be used, reflecting the version of the OpenMP spec that is implemented by the compiler.</td>
+  <td>
+  <dl>
+    <dt><code>3</code> (default except for known OMP 4.0 compilers)</dt>
+    <dt><code>4</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>LAMMPS_MEMALIGN</code></td>
   <td>controls the alignment of blocks of memory allocated by LAMMPS</td>
   <td>

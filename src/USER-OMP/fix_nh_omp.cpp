@@ -15,6 +15,7 @@
    Contributing authors: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nh_omp.h"
 #include <cmath>
 #include "atom.h"
@@ -57,7 +58,7 @@ void FixNHOMP::remap()
   if (allremap) domain->x2lamda(nlocal);
   else {
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
@@ -207,7 +208,7 @@ void FixNHOMP::remap()
   if (allremap) domain->lamda2x(nlocal);
   else {
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
@@ -235,7 +236,7 @@ void FixNHOMP::nh_v_press()
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -253,7 +254,7 @@ void FixNHOMP::nh_v_press()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       double buf[3];
@@ -289,7 +290,7 @@ void FixNHOMP::nve_v()
   if (atom->rmass) {
     const double * _noalias const rmass = atom->rmass;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -303,7 +304,7 @@ void FixNHOMP::nve_v()
     const double *_noalias const mass = atom->mass;
     const int * _noalias const type = atom->type;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -330,7 +331,7 @@ void FixNHOMP::nve_x()
   // x update by full step only for atoms in group
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -352,7 +353,7 @@ void FixNHOMP::nh_v_temp()
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -363,7 +364,7 @@ void FixNHOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       double buf[3];

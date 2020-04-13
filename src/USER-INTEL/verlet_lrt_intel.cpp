@@ -102,18 +102,20 @@ void VerletLRTIntel::setup(int flag)
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
+  #if defined(__linux)
   if (comm->me == 0) {
     cpu_set_t cpuset;
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
       char str[128];
-      sprintf(str,"Using %d threads per MPI, but only %d core(s) allocated"
-                  " per MPI",
+      sprintf(str,"Using %d threads per MPI rank, but only %d core(s)"
+                  " allocated for each MPI rank",
               comm->nthreads + 1, my_cpu_count);
       error->warning(FLERR, str);
     }
   }
+  #endif
 
   _kspace_ready = 0;
   _kspace_done = 0;
@@ -183,7 +185,7 @@ void VerletLRTIntel::setup(int flag)
   _kspace_done = 0;
   pthread_mutex_unlock(&_kmutex);
   #elif defined(_LMP_INTEL_LRT_11)
-  kspace_thread.join();
+  _kspace_thread.join();
   #endif
 
   if (kspace_compute_flag) _intel_kspace->compute_second(eflag,vflag);
@@ -296,9 +298,9 @@ void VerletLRTIntel::run(int n)
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
-    std::thread kspace_thread;
+    std::thread _kspace_thread;
     if (kspace_compute_flag)
-      kspace_thread=std::thread([=] {
+      _kspace_thread=std::thread([=] {
         _intel_kspace->compute_first(eflag, vflag);
         timer->stamp(Timer::KSPACE);
       } );
@@ -330,7 +332,7 @@ void VerletLRTIntel::run(int n)
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
     if (kspace_compute_flag)
-      kspace_thread.join();
+      _kspace_thread.join();
     #endif
 
     if (kspace_compute_flag) {

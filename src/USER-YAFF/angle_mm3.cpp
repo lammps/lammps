@@ -15,10 +15,9 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 #include "angle_mm3.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -27,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -226,8 +226,8 @@ void AngleMM3::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k2[1],sizeof(double),atom->nangletypes,fp);
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
 
   MPI_Bcast(&k2[1],atom->nangletypes,MPI_DOUBLE,0,world);

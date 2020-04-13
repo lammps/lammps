@@ -143,6 +143,8 @@ action pair_ufm_gpu.cpp
 action pair_ufm_gpu.h
 action pair_lj_cut_dipole_long_gpu.cpp pair_lj_cut_dipole_long.cpp
 action pair_lj_cut_dipole_long_gpu.h pair_lj_cut_dipole_long.cpp
+action pair_lj_cut_tip4p_long_gpu.h pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_gpu.cpp pair_lj_cut_tip4p_long.cpp
 
 # edit 2 Makefile.package files to include/exclude package info
 

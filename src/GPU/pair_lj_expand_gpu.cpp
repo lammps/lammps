@@ -15,11 +15,11 @@
    Contributing author: Inderaj Bains (NVIDIA), ibains@nvidia.com
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_expand_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_expand_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -34,6 +34,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,6 +70,7 @@ PairLJExpandGPU::PairLJExpandGPU(LAMMPS *lmp) : PairLJExpand(lmp), gpu_mode(GPU_
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

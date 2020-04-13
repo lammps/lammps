@@ -11,25 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_exp6_rx.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cfloat>
-#include "pair_exp6_rx.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "modify.h"
 #include "fix.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecial;
 
 #define MAXLINE 1024
@@ -970,11 +969,11 @@ void PairExp6rx::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
@@ -1000,10 +999,10 @@ void PairExp6rx::write_restart_settings(FILE *fp)
 void PairExp6rx::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

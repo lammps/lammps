@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -35,8 +35,7 @@
 #ifndef LMP_MANIFOLD_FACTORY_H
 #define LMP_MANIFOLD_FACTORY_H
 
-
-#include "manifold.h"
+#include <cstddef>
 #include <cstring>
 
 /*
@@ -79,13 +78,15 @@ static FILE *screen = fopen("/dev/stdout","w");
 #define FLERR __FILE__,__LINE__    // Equivalent to definition in pointers.h
 #endif // USE_PHONY_LAMMPS
 
-
-
 /* Here the actual implementation of LAMMPS-related functions begins. */
 
 namespace LAMMPS_NS {
+class LAMMPS;
 
 namespace user_manifold {
+
+// forward declaration
+class manifold;
 
   // Templated, so needs to be in header.
   template <typename m_type>
@@ -103,8 +104,6 @@ namespace user_manifold {
                             int , char ** );
 
 } // namespace user_manifold
-
 } // namespace LAMMPS_NS
-
 
 #endif // LMP_MANIFOLD_FACTORY_H

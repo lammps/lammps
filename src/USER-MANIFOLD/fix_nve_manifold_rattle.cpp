@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -32,24 +32,18 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_nve_manifold_rattle.h"
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "group.h"
-#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
-#include "memory.h"
 #include "comm.h"
 
-
-#include "fix_nve_manifold_rattle.h"
 #include "manifold_factory.h"
 #include "manifold.h"
 
@@ -155,7 +149,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       nevery = force->inumeric(FLERR,arg[argi+1]);
       next_output = update->ntimestep + nevery;
       if (comm->me == 0) {
-        fprintf(screen,"Outputing every %d steps, next is %d\n",
+        fprintf(screen,"Outputting every %d steps, next is %d\n",
                         nevery, next_output);
       }
       argi += 2;

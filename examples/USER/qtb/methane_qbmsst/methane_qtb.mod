@@ -48,7 +48,7 @@ neigh_modify		every 10 delay 0 check no
 
 
 ## This part equilibrates liquid methane to a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
-#Initilization
+#Initialization
 velocity		all create ${temperature} 93 dist gaussian sum no mom yes rot yes loop all
 
 #Setup output

@@ -2,11 +2,10 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
-
 
 #include <sstream>
 #include <iostream>
@@ -33,6 +32,41 @@ namespace {
 }
 
 
+colvarparse::colvarparse()
+{
+  init();
+}
+
+
+void colvarparse::init()
+{
+  config_string.clear();
+  clear_keyword_registry();
+}
+
+
+colvarparse::colvarparse(const std::string& conf)
+{
+  init(conf);
+}
+
+
+void colvarparse::init(std::string const &conf)
+{
+  if (! config_string.size()) {
+    init();
+    config_string = conf;
+  }
+}
+
+
+colvarparse::~colvarparse()
+{
+  init();
+}
+
+
+
 bool colvarparse::get_key_string_value(std::string const &conf,
                                        char const *key, std::string &data)
 {
@@ -54,6 +88,28 @@ bool colvarparse::get_key_string_value(std::string const &conf,
     cvm::error("Error: found more than one instance of \""+
                std::string(key)+"\".\n", INPUT_ERROR);
   }
+
+  return b_found_any;
+}
+
+bool colvarparse::get_key_string_multi_value(std::string const &conf,
+                                             char const *key, std::vector<std::string>& data)
+{
+  bool b_found = false, b_found_any = false;
+  size_t save_pos = 0, found_count = 0;
+
+  data.clear();
+
+  do {
+    std::string data_this = "";
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
+    if (b_found) {
+      if (!b_found_any)
+        b_found_any = true;
+      found_count++;
+      data.push_back(data_this);
+    }
+  } while (b_found);
 
   return b_found_any;
 }
@@ -135,7 +191,7 @@ template<>
 int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
                                            std::string const &data,
                                            bool &value,
-                                           bool const &def_value)
+                                           bool const & /* def_value */)
 {
   if ( (data == std::string("on")) ||
        (data == std::string("yes")) ||
@@ -155,8 +211,8 @@ int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
 
 template<typename TYPE>
 int colvarparse::_get_keyval_scalar_novalue_(std::string const &key_str,
-                                             TYPE &value,
-                                             Parse_Mode const &parse_mode)
+                                             TYPE & /* value */,
+                                             Parse_Mode const & /* parse_mode */)
 {
   return cvm::error("Error: improper or missing value "
                     "for \""+key_str+"\".\n", INPUT_ERROR);
@@ -784,6 +840,17 @@ bool colvarparse::key_lookup(std::string const &conf,
 }
 
 
+colvarparse::read_block::read_block(std::string const &key_in,
+                                    std::string *data_in)
+  : key(key_in), data(data_in)
+{
+}
+
+
+colvarparse::read_block::~read_block()
+{}
+
+
 std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
 {
   size_t start_pos = is.tellg();
@@ -800,7 +867,9 @@ std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
   }
 
   if (next != "{") {
-    (*rb.data) = next;
+    if (rb.data) {
+      *(rb.data) = next;
+    }
     return is;
   }
 
@@ -814,9 +883,15 @@ std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
       br_old = br;
       br++;
     }
-    if (brace_count) (*rb.data).append(line + "\n");
+    if (brace_count) {
+      if (rb.data) {
+        (rb.data)->append(line + "\n");
+      }
+    }
     else {
-      (*rb.data).append(line, 0, br_old);
+      if (rb.data) {
+        (rb.data)->append(line, 0, br_old);
+      }
       break;
     }
   }
@@ -842,4 +917,19 @@ int colvarparse::check_braces(std::string const &conf,
     brace++;
   }
   return (brace_count != 0) ? INPUT_ERROR : COLVARS_OK;
+}
+
+void colvarparse::split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest) {
+    size_t index = 0, new_index = 0;
+    std::string tmpstr;
+    while (index != data.length()) {
+        new_index = data.find(delim, index);
+        if (new_index != std::string::npos) tmpstr = data.substr(index, new_index - index);
+        else tmpstr = data.substr(index, data.length());
+        if (!tmpstr.empty()) {
+            dest.push_back(tmpstr);
+        }
+        if (new_index == std::string::npos) break;
+        index = new_index + 1;
+    }
 }

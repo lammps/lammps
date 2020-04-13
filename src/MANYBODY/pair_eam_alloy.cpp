@@ -15,15 +15,15 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_alloy.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -137,10 +137,10 @@ void PairEAMAlloy::read_file(char *filename)
 
   int n;
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -165,7 +165,7 @@ void PairEAMAlloy::read_file(char *filename)
   delete [] words;
 
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     nwords = sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -189,7 +189,7 @@ void PairEAMAlloy::read_file(char *filename)
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
-      fgets(line,MAXLINE,fptr);
+      utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
       sscanf(line,"%d %lg",&tmp,&file->mass[i]);
     }
     MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);

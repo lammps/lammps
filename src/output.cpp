@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "output.h"
+#include <mpi.h>
+#include <cstring>
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -26,12 +25,12 @@
 #include "domain.h"
 #include "thermo.h"
 #include "modify.h"
-#include "compute.h"
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -585,8 +584,7 @@ void Output::add_dump(int narg, char **arg)
   if (dump_map->find(arg[2]) != dump_map->end()) {
     DumpCreator dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
-  }
-  else error->all(FLERR,"Unknown dump style");
+  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp).c_str());
 
   every_dump[ndump] = force->inumeric(FLERR,arg[3]);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");

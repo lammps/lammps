@@ -52,7 +52,7 @@ such enhancements or derivative works thereof, in binary and source code form.
  * \brief Function implementations for the voronoicell and related classes. */
 
 #include <cmath>
-#include <cstring>
+#include <cstdio>
 #include <cstdlib>
 #include "ptm_voronoi_config.h"
 #include "ptm_voronoi_cell.h"
@@ -210,13 +210,15 @@ void voronoicell_base::add_memory_vorder(vc_class &vc) {
         fprintf(stderr,"Vertex order memory scaled up to %d\n",i);
 #endif
         p1=new int[i];
-        for(j=0;j<current_vertex_order;j++) p1[j]=mem[j];while(j<i) p1[j++]=0;
+        for(j=0;j<current_vertex_order;j++) p1[j]=mem[j];
+        while(j<i) p1[j++]=0;
         delete [] mem;mem=p1;
         p2=new int*[i];
         for(j=0;j<current_vertex_order;j++) p2[j]=mep[j];
         delete [] mep;mep=p2;
         p1=new int[i];
-        for(j=0;j<current_vertex_order;j++) p1[j]=mec[j];while(j<i) p1[j++]=0;
+        for(j=0;j<current_vertex_order;j++) p1[j]=mec[j];
+        while(j<i) p1[j++]=0;
         delete [] mec;mec=p1;
         vc.n_add_memory_vorder(i);
         current_vertex_order=i;
@@ -257,8 +259,8 @@ void voronoicell_base::add_memory_ds2(int *&stackp2) {
  * \param[in] (ymin,ymax) the minimum and maximum y coordinates.
  * \param[in] (zmin,zmax) the minimum and maximum z coordinates. */
 void voronoicell_base::init_base(double xmin,double xmax,double ymin,double ymax,double zmin,double zmax) {
-        for(int i=0;i<current_vertex_order;i++) mec[i]=0;up=0;
-        mec[3]=p=8;xmin*=2;xmax*=2;ymin*=2;ymax*=2;zmin*=2;zmax*=2;
+        for(int i=0;i<current_vertex_order;i++) mec[i]=0;
+        up=0;mec[3]=p=8;xmin*=2;xmax*=2;ymin*=2;ymax*=2;zmin*=2;zmax*=2;
         *pts=xmin;pts[1]=ymin;pts[2]=zmin;
         pts[3]=xmax;pts[4]=ymin;pts[5]=zmin;
         pts[6]=xmin;pts[7]=ymax;pts[8]=zmin;

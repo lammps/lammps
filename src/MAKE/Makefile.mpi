@@ -7,13 +7,13 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -std=c++11 
+CCFLAGS =	-g -O3 -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O3
-LIB = 
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar
@@ -26,12 +26,12 @@ SHLIBFLAGS =	-shared
 # if you change any -D setting, do full re-compile after "make clean"
 
 # LAMMPS ifdef settings
-# see possible settings in Section 2.2 (step 4) of manual
+# see possible settings in Section 3.5 of the manual
 
 LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -DLAMMPS_EXCEPTIONS
 
 # MPI library
-# see discussion in Section 2.2 (step 5) of manual
+# see discussion in Section 3.4 of the manual
 # MPI wrapper compiler/linker can provide this info
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
 # use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
@@ -40,8 +40,8 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -DLAMMPS_EXCEPTIONS
 # LIB = name of MPI library
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
-MPI_PATH = 
-MPI_LIB =	
+MPI_PATH =
+MPI_LIB =
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manual
@@ -50,9 +50,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
-FFT_PATH = 
-FFT_LIB =	
+FFT_INC =
+FFT_PATH =
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -61,9 +61,9 @@ FFT_LIB =
 # PATH = path(s) for JPEG library and/or PNG library
 # LIB = name(s) of JPEG library and/or PNG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_INC =
+JPG_PATH =
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

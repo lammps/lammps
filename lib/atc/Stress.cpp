@@ -62,7 +62,7 @@ void deformation_gradient(const DENS_MAT_VEC &du, INDEX q, MATRIX &F)
 
 // E = 1/2 stress*strain for linear elastic models
 //=============================================================================
-void Stress::elastic_energy(const FIELD_MATS &fields,
+  void Stress::elastic_energy(const FIELD_MATS & /* fields */,
                             const GRAD_FIELD_MATS &gradFields,
                             DENS_MAT &energy) const
 {
@@ -103,7 +103,7 @@ StressLinearElastic::StressLinearElastic(fstream &fileId)
 // compute the stress at N integration points from the displacement gradient
 // T_{ij} = 1/2*C_{ijkl}* (u_{k,l} + u_{l,k})
 //=============================================================================
-void StressLinearElastic::stress(const FIELD_MATS      &fields,
+  void StressLinearElastic::stress(const FIELD_MATS      & /* fields */,
                                  const GRAD_FIELD_MATS &gradFields,
                                  DENS_MAT_VEC &sigma)
 {
@@ -159,7 +159,7 @@ StressCubicElastic::StressCubicElastic(fstream &fileId)
 // compute the stress at N integration points from the displacement gradient
 // T_{ij} = 1/2*C_{ijkl}*(u_{k,l} + u_{l,k}) 
 //---------------------------------------------------------------------------
-void StressCubicElastic::stress(const FIELD_MATS      &fields,
+  void StressCubicElastic::stress(const FIELD_MATS      & /* fields */,
                                 const GRAD_FIELD_MATS &gradFields,
                                 DENS_MAT_VEC  &sigma)  
 {
@@ -200,7 +200,7 @@ void StressCubicElastic::stress(const FIELD_MATS      &fields,
 //   = 1/2 (4 c44 (u12^2 + u13^2 + u23^2) + 2 c12 (u11 u22 + u11 u33 + u22 u33) 
 //        + c11 (u11^2 + u22^2 + u33^2))
 //---------------------------------------------------------------------------
-void StressCubicElastic::elastic_energy(const FIELD_MATS      &fields,
+  void StressCubicElastic::elastic_energy(const FIELD_MATS      & /* fields */,
                                         const GRAD_FIELD_MATS &gradFields,
                                         DENS_MAT  &energy) const
 {
@@ -328,7 +328,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
           if (line.size() && line[0]=="pair_coeff") break;
         }
         if (line[0] != "pair_coeff" || line.size() != 3) {
-          throw(ATC_Error("lj/cut needs 2 coefficents"));
+          throw(ATC_Error("lj/cut needs 2 coefficients"));
         }
         delete potential_;
         potential_ = new CbLjCut(str2dbl(line[1]), str2dbl(line[2]), rc);
@@ -341,7 +341,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
           if (line.size() && line[0]=="pair_coeff") break;
         }
         if (line[0] != "pair_coeff" || line.size() != 3) {
-          throw(ATC_Error("lj/smooth/linear needs 2 coefficents"));
+          throw(ATC_Error("lj/smooth/linear needs 2 coefficients"));
         }
         delete potential_;
         potential_ = new CbLjSmoothLinear(str2dbl(line[1]), str2dbl(line[2]), rc);

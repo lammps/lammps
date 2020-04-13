@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    The SMTBQ code has been developed with the financial support of  CNRS and
-   of the Regional Council of Burgundy (Convention n¡ 2010-9201AAO037S03129)
+   of the Regional Council of Burgundy (Convention nÂ¡ 2010-9201AAO037S03129)
 
    Copyright (2015)
    Universite de Bourgogne : Nicolas SALLES, Olivier POLITANO
@@ -38,25 +38,24 @@
    <http://www.gnu.org/licenses/>.
    ------------------------------------------------------------------------- */
 
+#include "pair_smtbq.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <vector>
-#include "pair_smtbq.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
 #include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 #include <fstream>
 #include <iomanip>
@@ -944,7 +943,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
      3 -> Short int. Ox-Ox
      4 -> Short int. SMTB (repulsion)
      5 -> Covalent energy SMTB
-     6 -> Somme des Q(i)²
+     6 -> Somme des Q(i)Â²
      ------------------------------------------------------------------------- */
 
   /* -------------- N-body forces Calcul --------------- */
@@ -3023,7 +3022,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
   ngp = igp = 0; nelt[ngp] = 0;
 
-  // On prend un oxygène
+  // On prend un oxygÃ¨ne
   //   printf ("[me %d] On prend un oxygene\n",me);
 
   for (ii = 0; ii < inum; ii++) {

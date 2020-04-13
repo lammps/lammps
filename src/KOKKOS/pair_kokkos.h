@@ -66,17 +66,17 @@ struct PairComputeFunctor  {
 
   // The force array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
-  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_f;
+  //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_f;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
   //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
-  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
+  //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
 
   //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
-  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
+  //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
 
 
 
@@ -86,6 +86,7 @@ struct PairComputeFunctor  {
                           NeighListKokkos<device_type>* list_ptr):
   c(*c_ptr),list(*list_ptr) {
     // allocate duplicated memory
+    f = c.f;
     dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.f);
     dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
     dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
@@ -255,6 +256,328 @@ struct PairComputeFunctor  {
     return ev;
   }
 
+  // Use TeamPolicy, assume Newton off, Full Neighborlist, and no energy/virial
+  // Loop over neighbors of one atom without coulomb interaction
+  // This function is called in parallel
+  KOKKOS_FUNCTION
+  void compute_item_team(Kokkos::TeamPolicy<>::member_type team,
+                         const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
+
+    const int inum = team.league_size();
+    const int atoms_per_team = team.team_size();
+    const int firstatom = team.league_rank()*atoms_per_team;
+    const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
+
+      const int i = list.d_ilist[ii];
+      const X_FLOAT xtmp = c.x(i,0);
+      const X_FLOAT ytmp = c.x(i,1);
+      const X_FLOAT ztmp = c.x(i,2);
+      const int itype = c.type(i);
+
+      const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
+      const int jnum = list.d_numneigh[i];
+
+      t_scalar3<double> fsum;
+
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,jnum),
+        [&] (const int jj, t_scalar3<double>& ftmp) {
+
+        int j = neighbors_i(jj);
+        const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
+        j &= NEIGHMASK;
+        const X_FLOAT delx = xtmp - c.x(j,0);
+        const X_FLOAT dely = ytmp - c.x(j,1);
+        const X_FLOAT delz = ztmp - c.x(j,2);
+        const int jtype = c.type(j);
+        const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+        if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+
+          const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+
+          ftmp.x += delx*fpair;
+          ftmp.y += dely*fpair;
+          ftmp.z += delz*fpair;
+        }
+
+      },fsum);
+
+      Kokkos::single(Kokkos::PerThread(team), [&] (){
+        f(i,0) += fsum.x;
+        f(i,1) += fsum.y;
+        f(i,2) += fsum.z;
+      });
+
+    });
+  }
+
+  // Use TeamPolicy, assume Newton off, Full Neighborlist, and no energy/virial
+  // Loop over neighbors of one atom with coulomb interaction
+  // This function is called in parallel
+  KOKKOS_FUNCTION
+  void compute_item_team(Kokkos::TeamPolicy<>::member_type team,
+                         const NeighListKokkos<device_type> &list, const CoulTag& ) const {
+
+    const int inum = team.league_size();
+    const int atoms_per_team = team.team_size();
+    int firstatom = team.league_rank()*atoms_per_team;
+    int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
+
+      const int i = list.d_ilist[ii];
+      const X_FLOAT xtmp = c.x(i,0);
+      const X_FLOAT ytmp = c.x(i,1);
+      const X_FLOAT ztmp = c.x(i,2);
+      const int itype = c.type(i);
+      const F_FLOAT qtmp = c.q(i);
+
+      const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
+      const int jnum = list.d_numneigh[i];
+
+      t_scalar3<double> fsum;
+
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,jnum),
+        [&] (const int jj, t_scalar3<double>& ftmp) {
+        int j = neighbors_i(jj);
+        const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
+        const F_FLOAT factor_coul = c.special_coul[sbmask(j)];
+        j &= NEIGHMASK;
+        const X_FLOAT delx = xtmp - c.x(j,0);
+        const X_FLOAT dely = ytmp - c.x(j,1);
+        const X_FLOAT delz = ztmp - c.x(j,2);
+        const int jtype = c.type(j);
+        const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+        if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+
+          F_FLOAT fpair = F_FLOAT();
+
+          if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype)))
+            fpair+=factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+          if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
+            fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+
+          ftmp.x += delx*fpair;
+          ftmp.y += dely*fpair;
+          ftmp.z += delz*fpair;
+        }
+      },fsum);
+
+      Kokkos::single(Kokkos::PerThread(team), [&] (){
+      f(i,0) += fsum.x;
+      f(i,1) += fsum.y;
+      f(i,2) += fsum.z;
+      });
+    });
+  }
+
+
+  // Use TeamPolicy, assume Newton off, Full Neighborlist, and energy/virial
+  // Loop over neighbors of one atom without coulomb interaction
+  // This function is called in parallel
+  KOKKOS_FUNCTION
+  EV_FLOAT compute_item_team_ev(Kokkos::TeamPolicy<>::member_type team,
+                                const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
+
+    EV_FLOAT ev;
+
+    const int inum = team.league_size();
+    const int atoms_per_team = team.team_size();
+    const int firstatom = team.league_rank()*atoms_per_team;
+    const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
+
+      const int i = list.d_ilist[ii];
+      const X_FLOAT xtmp = c.x(i,0);
+      const X_FLOAT ytmp = c.x(i,1);
+      const X_FLOAT ztmp = c.x(i,2);
+      const int itype = c.type(i);
+
+      const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
+      const int jnum = list.d_numneigh[i];
+
+      FEV_FLOAT fev;
+
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,jnum),
+        [&] (const int jj, FEV_FLOAT& fev_tmp) {
+
+        int j = neighbors_i(jj);
+        const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
+        j &= NEIGHMASK;
+        const X_FLOAT delx = xtmp - c.x(j,0);
+        const X_FLOAT dely = ytmp - c.x(j,1);
+        const X_FLOAT delz = ztmp - c.x(j,2);
+        const int jtype = c.type(j);
+        const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+        if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+
+          const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+
+          fev_tmp.f[0] += delx*fpair;
+          fev_tmp.f[1] += dely*fpair;
+          fev_tmp.f[2] += delz*fpair;
+
+          F_FLOAT evdwl = 0.0;
+          if (c.eflag) {
+            evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+            fev.evdwl += 0.5*evdwl;
+          }
+          if (c.vflag_either) {
+            fev.v[0] += 0.5*delx*delx*fpair;
+            fev.v[1] += 0.5*dely*dely*fpair;
+            fev.v[2] += 0.5*delz*delz*fpair;
+            fev.v[3] += 0.5*delx*dely*fpair;
+            fev.v[4] += 0.5*delx*delz*fpair;
+            fev.v[5] += 0.5*dely*delz*fpair;
+          }
+        }
+      },fev);
+
+      Kokkos::single(Kokkos::PerThread(team), [&] (){
+        f(i,0) += fev.f[0];
+        f(i,1) += fev.f[1];
+        f(i,2) += fev.f[2];
+
+        if (c.eflag_global)
+          ev.evdwl += fev.evdwl;
+
+        if (c.eflag_atom)
+          d_eatom(i) += fev.evdwl;
+
+        if (c.vflag_global) {
+          ev.v[0] += fev.v[0];
+          ev.v[1] += fev.v[1];
+          ev.v[2] += fev.v[2];
+          ev.v[3] += fev.v[3];
+          ev.v[4] += fev.v[4];
+          ev.v[5] += fev.v[5];
+        }
+
+        if (c.vflag_atom) {
+          d_vatom(i,0) += fev.v[0];
+          d_vatom(i,1) += fev.v[1];
+          d_vatom(i,2) += fev.v[2];
+          d_vatom(i,3) += fev.v[3];
+          d_vatom(i,4) += fev.v[4];
+          d_vatom(i,5) += fev.v[5];
+        }
+      });
+    });
+    return ev;
+  }
+
+  // Use TeamPolicy, assume Newton off, Full Neighborlist, and energy/virial
+  // Loop over neighbors of one atom with coulomb interaction
+  // This function is called in parallel
+  KOKKOS_FUNCTION
+  EV_FLOAT compute_item_team_ev(Kokkos::TeamPolicy<>::member_type team,
+                                const NeighListKokkos<device_type> &list, const CoulTag& ) const {
+
+    EV_FLOAT ev;
+
+    const int inum = team.league_size();
+    const int atoms_per_team = team.team_size();
+    int firstatom = team.league_rank()*atoms_per_team;
+    int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
+
+      const int i = list.d_ilist[ii];
+      const X_FLOAT xtmp = c.x(i,0);
+      const X_FLOAT ytmp = c.x(i,1);
+      const X_FLOAT ztmp = c.x(i,2);
+      const int itype = c.type(i);
+      const F_FLOAT qtmp = c.q(i);
+
+      const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
+      const int jnum = list.d_numneigh[i];
+
+      FEV_FLOAT fev;
+
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,jnum),
+        [&] (const int jj, FEV_FLOAT& fev_tmp) {
+        int j = neighbors_i(jj);
+        const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
+        const F_FLOAT factor_coul = c.special_coul[sbmask(j)];
+        j &= NEIGHMASK;
+        const X_FLOAT delx = xtmp - c.x(j,0);
+        const X_FLOAT dely = ytmp - c.x(j,1);
+        const X_FLOAT delz = ztmp - c.x(j,2);
+        const int jtype = c.type(j);
+        const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+        if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+
+          F_FLOAT fpair = F_FLOAT();
+
+          if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype)))
+            fpair+=factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+          if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
+            fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+
+          fev.f[0] += delx*fpair;
+          fev.f[1] += dely*fpair;
+          fev.f[2] += delz*fpair;
+
+          F_FLOAT evdwl = 0.0;
+          F_FLOAT ecoul = 0.0;
+          if (c.eflag) {
+            if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
+              evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+              ev.evdwl += 0.5*evdwl;
+            }
+            if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
+              ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+              ev.ecoul += 0.5*ecoul;
+            }
+          }
+          if (c.vflag) {
+            fev.v[0] += 0.5*delx*delx*fpair;
+            fev.v[1] += 0.5*dely*dely*fpair;
+            fev.v[2] += 0.5*delz*delz*fpair;
+            fev.v[3] += 0.5*delx*dely*fpair;
+            fev.v[4] += 0.5*delx*delz*fpair;
+            fev.v[5] += 0.5*dely*delz*fpair;
+          }
+        }
+      },fev);
+
+      Kokkos::single(Kokkos::PerThread(team), [&] (){
+        f(i,0) += fev.f[0];
+        f(i,1) += fev.f[1];
+        f(i,2) += fev.f[2];
+
+        if (c.eflag_global) {
+          ev.evdwl += fev.evdwl;
+          ev.ecoul += fev.ecoul;
+        }
+
+        if (c.eflag_atom)
+          d_eatom(i) += fev.evdwl + fev.ecoul;
+
+        if (c.vflag_global) {
+          ev.v[0] += fev.v[0];
+          ev.v[1] += fev.v[1];
+          ev.v[2] += fev.v[2];
+          ev.v[3] += fev.v[3];
+          ev.v[4] += fev.v[4];
+          ev.v[5] += fev.v[5];
+        }
+
+        if (c.vflag_atom) {
+          d_vatom(i,0) += fev.v[0];
+          d_vatom(i,1) += fev.v[1];
+          d_vatom(i,2) += fev.v[2];
+          d_vatom(i,3) += fev.v[3];
+          d_vatom(i,4) += fev.v[4];
+          d_vatom(i,5) += fev.v[5];
+        }
+      });
+    });
+    return ev;
+  }
+
   KOKKOS_INLINE_FUNCTION
     void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
@@ -354,6 +677,16 @@ struct PairComputeFunctor  {
       energy_virial += compute_item<1,1>(i,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
     else
       energy_virial += compute_item<1,0>(i,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team) const {
+    compute_item_team(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team, value_type &energy_virial) const {
+    energy_virial += compute_item_team_ev(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
 };
 
@@ -489,6 +822,15 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
   void operator()(const int i, value_type &energy_virial) const {
     energy_virial += compute_item<1,0>(i,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team) const
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team, value_type &energy_virial) const
+  {}
+
 };
 
 // Filter out Neighflags which are not supported for PairStyle
@@ -499,7 +841,7 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 // pair_compute_neighlist will match - either the dummy version
 // or the real one further below.
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
@@ -507,20 +849,62 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
   return ev;
 }
 
+template<class FunctorStyle>
+int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
+    int team_size_max;
+
+    if (reduce_flag)
+      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
+    else
+      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
+
+#ifdef KOKKOS_ENABLE_CUDA
+    if(team_size*vector_length > team_size_max)
+      team_size = team_size_max/vector_length;
+#else
+    team_size = 1;
+#endif
+    return team_size;
+}
+
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL,N2
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
-  if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
-    PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
-    if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
-    else                              Kokkos::parallel_for(list->inum,ff);
-    ff.contribute();
+
+  if (!fpair->lmp->kokkos->neigh_thread_set)
+    if (list->inum <= 16384 && NEIGHFLAG == FULL)
+      fpair->lmp->kokkos->neigh_thread = 1;
+
+  if (fpair->lmp->kokkos->neigh_thread) {
+    int vector_length = 8;
+    int atoms_per_team = 32;
+
+    if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
+      PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
+      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
+      Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+      else                              Kokkos::parallel_for(policy,ff);
+    } else {
+      PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
+      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
+      Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+      else                              Kokkos::parallel_for(policy,ff);
+    }
   } else {
-    PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
-    if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
-    else                              Kokkos::parallel_for(list->inum,ff);
-    ff.contribute();
+    if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
+      PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
+      else                              Kokkos::parallel_for(list->inum,ff);
+      ff.contribute();
+    } else {
+      PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
+      else                              Kokkos::parallel_for(list->inum,ff);
+      ff.contribute();
+    }
   }
   return ev;
 }

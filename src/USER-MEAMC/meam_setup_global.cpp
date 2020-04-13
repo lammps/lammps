@@ -2,8 +2,23 @@
 #include <cmath>
 using namespace LAMMPS_NS;
 
+template <typename TYPE, int maxi, int maxj>
+static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
+  for (int i = 0; i < maxi; i++)
+    for (int j = 0; j < maxj; j++)
+      arr[i][j] = v;
+}
+
+template <typename TYPE, int maxi, int maxj, int maxk>
+static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
+  for (int i = 0; i < maxi; i++)
+    for (int j = 0; j < maxj; j++)
+      for (int k = 0; k < maxk; k++)
+        arr[i][j][k] = v;
+}
+
 void
-MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* /*atwt*/, double* alpha,
+MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*/, double* alpha,
                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                         double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
                         int* ibar)
@@ -17,7 +32,6 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
   for (i = 0; i < nelt; i++) {
     this->lattce_meam[i][i] = lat[i];
 
-    this->Z_meam[i] = z[i];
     this->ielt_meam[i] = ielement[i];
     this->alpha_meam[i][i] = alpha[i];
     this->beta0_meam[i] = b0[i];
@@ -34,17 +48,26 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
     this->rho0_meam[i] = rozero[i];
     this->ibar_meam[i] = ibar[i];
 
-    if (this->lattce_meam[i][i] == FCC)
-      this->re_meam[i][i] = tmplat[i] / sqrt(2.0);
-    else if (this->lattce_meam[i][i] == BCC)
-      this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
-    else if (this->lattce_meam[i][i] == HCP)
-      this->re_meam[i][i] = tmplat[i];
-    else if (this->lattce_meam[i][i] == DIM)
-      this->re_meam[i][i] = tmplat[i];
-    else if (this->lattce_meam[i][i] == DIA)
-      this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
-    else {
+    switch(this->lattce_meam[i][i]) {
+      case FCC:
+        this->re_meam[i][i] = tmplat[i] / sqrt(2.0);
+        break;
+      case BCC:
+        this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
+        break;
+      case HCP:
+      case DIM:
+      case CH4:
+      case LIN:
+      case ZIG:
+      case TRI:
+        this->re_meam[i][i] = tmplat[i];
+        break;
+      case DIA:
+      case DIA3:
+        this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
+        break;
+      //default:
       //           error
     }
   }
@@ -56,7 +79,7 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
   setall2d(this->repuls_meam, 0.0);
   setall3d(this->Cmax_meam, 2.8);
   setall3d(this->Cmin_meam, 2.0);
-  setall2d(this->ebound_meam, pow(2.8, 2) / (4.0 * (2.8 - 1.0)));
+  setall2d(this->ebound_meam, (2.8*2.8) / (4.0 * (2.8 - 1.0)));
   setall2d(this->delta_meam, 0.0);
   setall2d(this->nn2_meam, 0);
   setall2d(this->zbl_meam, 1);
@@ -67,4 +90,7 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
   this->emb_lin_neg = 0;
   this->bkgd_dyn = 0;
   this->erose_form = 0;
+  // for trimer, zigzag, line refernece structure, sungkwang
+  setall2d(this->stheta_meam, 1.0); // stheta = sin(theta/2*pi/180) where theta is 180, so 1.0
+  setall2d(this->ctheta_meam, 0.0); // stheta = cos(theta/2*pi/180) where theta is 180, so 0
 }

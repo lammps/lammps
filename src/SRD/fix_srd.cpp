@@ -15,10 +15,10 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
+#include "fix_srd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +27,6 @@
 #include "group.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -455,7 +454,7 @@ void FixSRD::setup(int /*vflag*/)
     setup_search_stencil();
   } else nbins2 = 0;
 
-  // perform first bining of SRD and big particles and walls
+  // perform first binning of SRD and big particles and walls
   // set reneighflag to turn off SRD rotation
   // don't do SRD rotation in setup, only during timestepping
 
@@ -1068,7 +1067,7 @@ void FixSRD::vbin_comm(int ishift)
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
-  //   due to static bins aliging with proc boundary
+  //   due to static bins aligning with proc boundary
   //   due to dynamic bins across non-periodic global boundary
   // copy to self if sendproc = me
   // MPI send to another proc if sendproc != me
@@ -1170,7 +1169,7 @@ void FixSRD::xbin_comm(int ishift, int nval)
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
-  //   due to static bins aliging with proc boundary
+  //   due to static bins aligning with proc boundary
   //   due to dynamic bins across non-periodic global boundary
   // copy to self if sendproc = me
   // MPI send to another proc if sendproc != me

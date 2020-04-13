@@ -131,7 +131,7 @@ namespace ATC {
     virtual void initialize_mesh_data(void);  
 
 // public for FieldIntegrator
-    bool source_atomic_quadrature(FieldName field)  
+    bool source_atomic_quadrature(FieldName /* field */)  
       { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
     ATC::IntegrationDomainType source_integration() 
       { return sourceIntegration_; }
@@ -227,7 +227,7 @@ namespace ATC {
 
     void set_mass_mat_time_filter(FieldName thisField,TimeFilterManager::FilterIntegrationType filterIntegrationType);
 
-    /** return referece to ExtrinsicModelManager */
+    /** return reference to ExtrinsicModelManager */
     ExtrinsicModelManager & extrinsic_model_manager() 
       { return extrinsicModelManager_; }
     /** access to time integrator */

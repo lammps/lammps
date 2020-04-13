@@ -19,7 +19,7 @@ For future reference we note that the structure factor S(k) is given by the vari
 
 It is recommended to get familiar with the interface pinning method by reading:
 
-  [Ulf R. Pedersen, JCP 139, 104102 (2013)](http://dx.doi.org/10.1063/1.4818747)
+  [Ulf R. Pedersen, JCP 139, 104102 (2013)](https://doi.org/10.1063/1.4818747)
 
 A detailed bibliography is provided at
 
@@ -63,8 +63,8 @@ can be used to show this. The present directory contains the input files that we
   the value fluctuates around the anchor point (a) -- showing that this is indeed a coexistence
   state point.
 
-The reference [JCP 139, 104102 (2013)](http://dx.doi.org/10.1063/1.4818747) gives details on using the method to find coexistence state points,
-and the reference [JCP 142, 044104 (2015)](http://dx.doi.org/10.1063/1.4818747) show how the crystal growth rate can be computed from fluctuations.
+The reference [JCP 139, 104102 (2013)](https://doi.org/10.1063/1.4818747) gives details on using the method to find coexistence state points,
+and the reference [JCP 142, 044104 (2015)](https://doi.org/10.1063/1.4818747) show how the crystal growth rate can be computed from fluctuations.
 That method have been experienced to be most effective in the slightly super-heated regime above the melting temperature.
 
 ## Contact

@@ -1,0 +1,22 @@
+The example input script sets up a simple FCC crystal using the Lennard-Jones
+potential. The script sets up the HMA compute to calculate the energy, pressure
+and heat capacity.  The output columns are:
+
+1: timestep
+2: measured temperature
+3: potential energy
+4: HMA potential energy
+5: pressure
+6: HMA pressure
+7: HMA heat capacity contribution
+
+Averages of the potential energy (#3 and #4) agree although #4 (HMA) is more precise.
+
+Averages of the pressure (#5 and #6) agree once the ideal gas
+contribution is included; #6 (HMA) is more precise.
+
+The heat capacity can be computed from colume #3 (conventional) as
+Cv = Var(#3)/(k T^2)
+
+With HMA, the heat capacity can be computed from column #4 and #7 as
+Cv = #7 + Var(#4)/(k T^2)

@@ -16,13 +16,12 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pppm_disp_tip4p.h"
+#include <cmath>
 #include "pppm_disp.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "math_const.h"
 
@@ -336,7 +335,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
     const double qfactor = force->qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;

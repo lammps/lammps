@@ -15,11 +15,10 @@
    Contributing author: Dan Ibanez (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_rx_kokkos.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "pair_table_rx_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
 #include "force.h"
@@ -285,11 +284,11 @@ ev_tally(
     F_FLOAT delx, F_FLOAT dely, F_FLOAT delz,
     Kokkos::View<F_FLOAT*[6],
                  typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_vatom,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_eatom)
 {
   if (eflag) {
@@ -400,15 +399,15 @@ compute_item(
     typename ArrayTypes<DeviceType>::t_ffloat_2d const& d_cutsq,
     Kokkos::View<F_FLOAT*[3],
       typename ArrayTypes<DeviceType>::t_f_array::array_layout,
-      DeviceType,
+      typename KKDevice<DeviceType>::value,
       Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& f,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& uCG,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& uCGnew,
     int isite1, int isite2,
     typename PairTableRXKokkos<DeviceType>::TableDeviceConst const& d_table_const,
@@ -419,11 +418,11 @@ compute_item(
     int vflag_atom,
     Kokkos::View<F_FLOAT*[6],
                  typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_vatom,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_eatom) {
   EV_FLOAT ev;
   auto i = d_ilist(ii);
@@ -545,14 +544,16 @@ static void compute_all_items(
     typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq,
     Kokkos::View<F_FLOAT*[3],
       typename ArrayTypes<DeviceType>::t_f_array::array_layout,
-      DeviceType,
+      typename KKDevice<DeviceType>::value,
       Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG,
+                 typename KKDevice<DeviceType>::value,
+                 Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew,
+                 typename KKDevice<DeviceType>::value,
+                 Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew,
     int isite1, int isite2,
     typename PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
     int eflag,
@@ -562,11 +563,11 @@ static void compute_all_items(
     int vflag_atom,
     Kokkos::View<F_FLOAT*[6],
                  typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom,
     Kokkos::View<E_FLOAT*,
                  typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 DeviceType,
+                 typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom) {
   if (eflag || vflag) {
     Kokkos::parallel_reduce(inum,
@@ -628,7 +629,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -1269,10 +1270,10 @@ void PairTableRXKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;

@@ -1,0 +1,24 @@
+BootStrap: docker
+From: centos:8
+
+%post
+        dnf -y install epel-release dnf-utils
+        dnf config-manager --set-enabled PowerTools
+        dnf -y update
+        dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
+               ccache gcc-c++ gcc-gfortran clang gdb valgrind libubsan libasan libtsan \
+               eigen3-devel openblas-devel libpng-devel libjpeg-devel platform-python-devel \
+               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel \
+               enchant python3-virtualenv doxygen \
+               texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
+               texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
+               texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
+               texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
+               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng
+
+%environment
+        LC_ALL=C
+        export LC_ALL
+
+%labels
+        Author akohlmey

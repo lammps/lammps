@@ -20,7 +20,6 @@ FixStyle(qeq/comb,FixQEQComb)
 #ifndef LMP_FIX_QEQ_COMB_H
 #define LMP_FIX_QEQ_COMB_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

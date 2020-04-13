@@ -4480,7 +4480,7 @@ exceed_limits:
  * Calculate the lennard-jones interaction.
  * Uses the above hash-map, and outlines the calculation if the bondorder is
  *  needed.
- * Agressively compresses to get the most values calculated.
+ * Aggressively compresses to get the most values calculated.
  */
 template<int MORSEFLAG>
 static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {

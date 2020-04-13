@@ -20,7 +20,6 @@ BondStyle(fene,BondFENE)
 #ifndef LMP_BOND_FENE_H
 #define LMP_BOND_FENE_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -37,6 +36,7 @@ class BondFENE : public Bond {
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(char *, int &);
 
  protected:
   double TWO_1_3;

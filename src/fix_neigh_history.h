@@ -21,7 +21,6 @@ FixStyle(NEIGH_HISTORY,FixNeighHistory)
 #define LMP_FIX_NEIGH_HISTORY_H
 
 #include "fix.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 

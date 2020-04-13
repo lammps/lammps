@@ -29,8 +29,6 @@ public:
   PairSNAP(class LAMMPS *);
   ~PairSNAP();
   virtual void compute(int, int);
-  void compute_regular(int, int);
-  void compute_optimized(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
   virtual void init_style();
@@ -42,56 +40,14 @@ public:
 
 protected:
   int ncoeffq, ncoeffall;
-  double **bvec, ***dbvec;
-  class SNA** sna;
-  int nmax;
-  int nthreads;
+  class SNA* snaptr;
   virtual void allocate();
   void read_files(char *, char *);
   inline int equal(double* x,double* y);
   inline double dist2(double* x,double* y);
-  double extra_cutoff();
-  void load_balance();
-  void set_sna_to_shared(int snaid,int i);
-  void build_per_atom_arrays();
 
-  int schedule_user;
-  double schedule_time_guided;
-  double schedule_time_dynamic;
-
-  int ncalls_neigh;
-  int do_load_balance;
-  int ilistmask_max;
-  int* ilistmask;
-  int ghostinum;
-  int ghostilist_max;
-  int* ghostilist;
-  int ghostnumneigh_max;
-  int* ghostnumneigh;
-  int* ghostneighs;
-  int* ghostfirstneigh;
-  int ghostneighs_total;
-  int ghostneighs_max;
-
-  int use_optimized;
-  int use_shared_arrays;
-
-  int i_max;
-  int i_neighmax;
-  int i_numpairs;
-  int **i_pairs;
-  double ***i_rij;
-  int **i_inside;
-  double **i_wj;
-  double **i_rcutij;
-  int *i_ninside;
-  double ****i_uarraytot_r, ****i_uarraytot_i;
-  double ******i_zarray_r, ******i_zarray_i;
-
-#ifdef TIMING_INFO
-  //  timespec starttime, endtime;
-  double timers[4];
-#endif
+  void compute_beta();
+  void compute_bispectrum();
 
   double rcutmax;               // max cutoff for all elements
   int nelements;                // # of unique elements
@@ -99,10 +55,14 @@ protected:
   double *radelem;              // element radii
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
+  double** beta;                // betas for all atoms in list
+  double** bispectrum;          // bispectrum components for all atoms in list
   int *map;                     // mapping from atom types to elements
-  int twojmax, diagonalstyle, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag;
+  int chunksize;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters
+  int beta_max;                 // length of beta
 };
 
 }
@@ -123,15 +83,6 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Must set number of threads via package omp command
-
-Because you are using the USER-OMP package, set the number of threads
-via its settings, not by the pair_style snap nthreads setting.
-
-W: Communication cutoff is too small for SNAP micro load balancing, increased to %lf
-
-Self-explanatory.
 
 E: Incorrect args for pair coefficients
 

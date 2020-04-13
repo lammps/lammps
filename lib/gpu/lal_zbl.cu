@@ -13,12 +13,12 @@
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
+_texture( pos_tex,float4);
 #else
-texture<int4,1> pos_tex;
+_texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_
@@ -129,16 +129,13 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
       int mtype=itype*lj_types+jtype;
       if (rsq<cut_globalsq) {
         numtyp r, t, force;
-
         r = ucl_sqrt(rsq);
         force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-
-              if (rsq>cut_innersq) {
-                t = r - cut_inner;
-                force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-              }
-
+        if (rsq>cut_innersq) {
+          t = r - cut_inner;
+          force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+        }
         force *= (numtyp)-1.0*ucl_recip(r);
 
         f.x+=delx*force;
@@ -148,11 +145,10 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-                 e += coeff3[mtype].z;
-                if (rsq > cut_innersq) {
-                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-                }
-
+          e += coeff3[mtype].z;
+          if (rsq > cut_innersq) {
+            e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+          }
           energy+=e;
         }
         if (vflag>0) {
@@ -232,15 +228,13 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
 
       if (rsq<cut_globalsq) {
         numtyp r, t, force;
-
         r = ucl_sqrt(rsq);
         force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-
-              if (rsq>cut_innersq) {
-                t = r - cut_inner;
-                force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-              }
+        if (rsq>cut_innersq) {
+          t = r - cut_inner;
+          force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+        }
 
         force *= (numtyp)-1.0*ucl_recip(r);
 
@@ -251,11 +245,10 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-                 e += coeff3[mtype].z;
-                if (rsq > cut_innersq) {
-                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-                }
-
+          e += coeff3[mtype].z;
+          if (rsq > cut_innersq) {
+            e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+          }
           energy+=e;
         }
         if (vflag>0) {

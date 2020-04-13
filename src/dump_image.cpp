@@ -11,20 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dump_image.h"
+#include <mpi.h>
 #include <cmath>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
-#include "dump_image.h"
 #include "image.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "atom_vec_body.h"
 #include "body.h"
 #include "molecule.h"
 #include "domain.h"
-#include "group.h"
 #include "force.h"
 #include "comm.h"
 #include "modify.h"
@@ -403,7 +403,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   image->buffers();
 
-  // communication neede for bonds colored by atoms
+  // communication needed for bonds colored by atoms
 
   if (bondflag) {
     if (bcolor == ATOM || bdiam == ATOM) comm_forward = 3;

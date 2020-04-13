@@ -18,13 +18,14 @@
     references: Espanol and Revenga, Phys Rev E 67, 026705 (2003)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sdpd_taitwater_isothermal.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
@@ -239,7 +240,7 @@ void PairSDPDTaitwaterIsothermal::allocate () {
 void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
   if (narg != 2 && narg != 3)
     error->all (FLERR, "Illegal number of arguments for "
-                "pair_style sdpd/taitwater/morris/isothermal");
+                "pair_style sdpd/taitwater/isothermal");
 
   temperature = force->numeric (FLERR, arg[0]);
   viscosity = force->numeric (FLERR, arg[1]);
@@ -299,12 +300,25 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 }
 
 /* ----------------------------------------------------------------------
+ init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairSDPDTaitwaterIsothermal::init_style()
+{
+  if ((!atom->rho_flag) || (atom->drho == NULL))
+    error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom "
+               "attributes rho and drho");
+
+  neighbor->request(this,instance_me);
+}
+
+/* ----------------------------------------------------------------------
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
 double PairSDPDTaitwaterIsothermal::init_one (int i, int j) {
   if (setflag[i][j] == 0)
-    error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are set");
+    error->all(FLERR,"Not all pair sdpd/taitwater/isothermal coeffs are set");
 
   cut[j][i] = cut[i][j];
 

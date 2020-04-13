@@ -17,10 +17,9 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_rigid_nh.h"
+#include <cmath>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "compute.h"
@@ -32,17 +31,13 @@
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{NONE,XYZ,XY,YZ,XZ};     // same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
-
-#define EPSILON 1.0e-7
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 

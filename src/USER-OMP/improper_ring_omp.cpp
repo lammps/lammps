@@ -15,15 +15,13 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "improper_ring_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
-#include "update.h"
-#include "error.h"
 #include "math_special.h"
 
 #include "suffix.h"
@@ -60,7 +58,7 @@ void ImproperRingOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {

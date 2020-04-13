@@ -15,10 +15,10 @@
    Contributing authors: Lauren Abbott (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_mscg.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "fix_mscg.h"
 #include "mscg.h"
 #include "atom.h"
 #include "comm.h"

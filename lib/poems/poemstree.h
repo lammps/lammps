@@ -455,7 +455,7 @@ void Tree::Delete(const int& item)
 	TreeNode *DNodePtr, *PNodePtr, *RNodePtr;
 
 	// search for a node containing data value item. obtain its
-	// node adress and that of its parent
+	// node address and that of its parent
 	if ((DNodePtr = FindNode (item, PNodePtr)) == NULL)
 		return;
 
@@ -575,8 +575,8 @@ TreeNode *Tree::CopyTree(TreeNode *t)
 }
 
 
-// us the postorder scanning algorithm to traverse the nodes in
-// the tree and delete each node as the vist operation
+// use the postorder scanning algorithm to traverse the nodes in
+// the tree and delete each node at the visit operation
 void Tree::DeleteTree(TreeNode *t)
 {
   if (t != NULL) {

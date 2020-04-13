@@ -20,7 +20,6 @@ AngleStyle(mm3,AngleMM3)
 #ifndef LMP_ANGLE_MM3_H
 #define LMP_ANGLE_MM3_H
 
-#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {

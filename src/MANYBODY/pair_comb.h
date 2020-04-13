@@ -21,7 +21,6 @@ PairStyle(comb,PairComb)
 #define LMP_PAIR_COMB_H
 
 #include "pair.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 

@@ -11,13 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LAMMPS_LIBRARY_H
+#define LAMMPS_LIBRARY_H
+
 /*
    C or Fortran style library interface to LAMMPS
    new LAMMPS-specific functions can be added
 */
 
+/*
+ * Follow the behavior of regular LAMMPS compilation and assume
+ * -DLAMMPS_SMALLBIG when no define is set.
+ */
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#define LAMMPS_SMALLBIG
+#endif
+
 #include <mpi.h>
+#if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
+#endif
 
 /* ifdefs allow this file to be included in a C program */
 
@@ -58,6 +71,18 @@ void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
 void lammps_gather_peratom_fix(void *, char *, int, void *);
 
+
+#if defined(LAMMPS_BIGBIG)
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#elif defined(LAMMPS_SMALLBIG)
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#else
+typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#endif
+
 int lammps_config_has_package(char * package_name);
 int lammps_config_package_count();
 int lammps_config_package_name(int index, char * buffer, int max_size);
@@ -66,6 +91,16 @@ int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
+
+int lammps_has_style(void* ptr, char * category, char * name);
+int lammps_style_count(void* ptr, char * category);
+int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
+
+int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
+int lammps_find_fix_neighlist(void* ptr, char * id, int request);
+int lammps_find_compute_neighlist(void* ptr, char * id, int request);
+int lammps_neighlist_num_elements(void* ptr, int idx);
+void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
 
 // lammps_create_atoms() takes tagint and imageint as args
 // ifdef insures they are compatible with rest of LAMMPS
@@ -89,6 +124,7 @@ int lammps_get_last_error_message(void *, char *, int);
 }
 #endif
 
+#endif /* LAMMPS_LIBRARY_H */
 /* ERROR/WARNING messages:
 
 E: Library error: issuing LAMMPS command during run

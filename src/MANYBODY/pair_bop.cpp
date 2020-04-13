@@ -32,24 +32,20 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
 #include "pair_bop.h"
+#include <cmath>
+#include <cstring>
+#include <cctype>
+#include <mpi.h>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <cctype>
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,7 +61,12 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;
+  allocated = 0;
 
+  BOP_index = NULL;
+  BOP_index3 = NULL;
+  BOP_total = NULL;
+  BOP_total3 = NULL;
   map = NULL;
   pi_a = NULL;
   pro_delta = NULL;
@@ -107,6 +108,8 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   rij = NULL;
   neigh_index = NULL;
   neigh_index3 = NULL;
+  neigh_flag = NULL;
+  neigh_flag3 = NULL;
   cosAng = NULL;
   betaS = NULL;
   dBetaS = NULL;
@@ -493,6 +496,53 @@ void PairBOP::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
+  memory->destroy(rcut);
+  memory->destroy(rcut3);
+  memory->destroy(rcutsq);
+  memory->destroy(rcutsq3);
+  memory->destroy(dr);
+  memory->destroy(rdr);
+  memory->destroy(dr3);
+  memory->destroy(rdr3);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
+  memory->destroy(cutghost);
+  memory->destroy(pBetaS);
+  memory->destroy(pBetaS1);
+  memory->destroy(pBetaS2);
+  memory->destroy(pBetaS3);
+  memory->destroy(pBetaS4);
+  memory->destroy(pBetaS5);
+  memory->destroy(pBetaS6);
+  memory->destroy(pLong);
+  memory->destroy(pLong1);
+  memory->destroy(pLong2);
+  memory->destroy(pLong3);
+  memory->destroy(pLong4);
+  memory->destroy(pLong5);
+  memory->destroy(pLong6);
+  memory->destroy(pBetaP);
+  memory->destroy(pBetaP1);
+  memory->destroy(pBetaP2);
+  memory->destroy(pBetaP3);
+  memory->destroy(pBetaP4);
+  memory->destroy(pBetaP5);
+  memory->destroy(pBetaP6);
+  memory->destroy(pRepul);
+  memory->destroy(pRepul1);
+  memory->destroy(pRepul2);
+  memory->destroy(pRepul3);
+  memory->destroy(pRepul4);
+  memory->destroy(pRepul5);
+  memory->destroy(pRepul6);
+  memory->destroy(FsigBO);
+  memory->destroy(FsigBO1);
+  memory->destroy(FsigBO2);
+  memory->destroy(FsigBO3);
+  memory->destroy(FsigBO4);
+  memory->destroy(FsigBO5);
+  memory->destroy(FsigBO6);
+
   memory->create(rcut,npairs,"BOP:rcut");
   memory->create(rcut3,npairs,"BOP:rcut3");
   memory->create(rcutsq,npairs,"BOP:rcutsq");
@@ -567,6 +617,8 @@ void PairBOP::coeff(int narg, char **arg)
   int i,j;
   int n = atom->ntypes;
   MPI_Comm_rank(world,&me);
+
+  delete[] map;
   map = new int[n+1];
 
   if (narg != 3 + atom->ntypes)
@@ -3740,6 +3792,9 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
           if(sigma_f[iij]==0.5&&sigma_k[iij]==0.0) {
             sigB=dsigB1;
             pp1=2.0*betaS_ij;
+            xtmp[0]=x[bt_j][0]-x[bt_i][0];
+            xtmp[1]=x[bt_j][1]-x[bt_i][1];
+            xtmp[2]=x[bt_j][2]-x[bt_i][2];
             for(pp=0;pp<3;pp++) {
               bt_sg[m].dSigB[pp]=dsigB2*bt_sg[m].dSigB1[pp];
             }
@@ -4962,7 +5017,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::read_table(char *filename)
+void _noopt PairBOP::read_table(char *filename)
 {
   int i,j,k,n,m;
   int buf1,pass;
@@ -4978,13 +5033,13 @@ void PairBOP::read_table(char *filename)
       snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
-    fgets(s,MAXLINE,fp);  // skip first comment line
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);  // skip first comment line
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     sscanf(s,"%d",&bop_types);
     elements = new char*[bop_types];
     for(i=0;i<bop_types;i++) elements[i]=NULL;
     for(i=0;i<bop_types;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       nws=0;
       ws=1;
       for(j=0;j<(int)strlen(s);j++) {
@@ -5013,7 +5068,7 @@ void PairBOP::read_table(char *filename)
     }
     nws=0;
     ws=1;
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     for(j=0;j<(int)strlen(s);j++) {
       if(ws==1) {
         if(isspace(s[j])) {
@@ -5051,6 +5106,29 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&bop_types,1,MPI_INT,0,world);
   MPI_Bcast(&npairs,1,MPI_INT,0,world);
   MPI_Bcast(&npower,1,MPI_INT,0,world);
+
+  memory->destroy(pi_a);
+  memory->destroy(pro_delta);
+  memory->destroy(pi_delta);
+  memory->destroy(pi_p);
+  memory->destroy(pi_c);
+  memory->destroy(r1);
+  memory->destroy(pro);
+  memory->destroy(sigma_delta);
+  memory->destroy(sigma_c);
+  memory->destroy(sigma_a);
+  memory->destroy(sigma_f);
+  memory->destroy(sigma_k);
+  memory->destroy(small3);
+  memory->destroy(gfunc);
+  memory->destroy(gfunc1);
+  memory->destroy(gfunc2);
+  memory->destroy(gfunc3);
+  memory->destroy(gfunc4);
+  memory->destroy(gfunc5);
+  memory->destroy(gfunc6);
+  memory->destroy(gpara);
+
   memory->create(pi_a,npairs,"BOP:pi_a");
   memory->create(pro_delta,bop_types,"BOP:pro_delta");
   memory->create(pi_delta,npairs,"BOP:pi_delta");
@@ -5081,28 +5159,28 @@ void PairBOP::read_table(char *filename)
       snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
-    fgets(s,MAXLINE,fp);  // skip first comment line
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);  // skip first comment line
     for(i=0;i<bop_types+2;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     sscanf(s,"%lf%lf%lf%lf%lf%lf%lf",&small1,&small2,&small3g
         ,&small4,&small5,&small6,&small7);
     for(i=0;i<bop_types;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf",&pi_p[i]);
     }
     cutmax=0;
     for(i=0;i<npairs;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf",&rcut[i]);
       if(rcut[i]>cutmax)
         cutmax=rcut[i];
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf%lf%lf%lf",&sigma_c[i],&sigma_a[i],&pi_c[i],&pi_a[i]);
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf%lf",&sigma_delta[i],&pi_delta[i]);
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf%lf%lf",&sigma_f[i],&sigma_k[i],&small3[i]);
     }
     if(nws==3) {
@@ -5111,56 +5189,56 @@ void PairBOP::read_table(char *filename)
           for(k=j;k<bop_types;k++) {
             if(npower<=2) {
               for(m=0;m<ntheta;m++) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gfunc[j][i][k][n],&gfunc[j][i][k][n+1]
                     ,&gfunc[j][i][k][n+2],&gfunc[j][i][k][n+3],&gfunc[j][i][k][n+4]);
                 n+=4;
               }
             } else {
               if(npower==3) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3]);
               }
               else if(npower==4) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
               }
               else if(npower==5) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf",&gpara[j][i][k][5]);
               }
               else if(npower==6) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6]);
               }
               else if(npower==7) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7]);
               }
               else if(npower==8) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8]);
               }
               else if(npower==9) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8],&gpara[j][i][k][9]);
               }
               else if(npower==10) {
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8],&gpara[j][i][k][9]);
-                fgets(s,MAXLINE,fp);
+                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
                 sscanf(s,"%lf",&gpara[j][i][k][10]);
               }
             }
@@ -5169,14 +5247,14 @@ void PairBOP::read_table(char *filename)
       for(i=0;i<bop_types;i++)
         for(j=0;j<bop_types;j++)
           for(k=0;k<bop_types;k++) {
-            fgets(s,MAXLINE,fp);
+            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
             sscanf(s,"%lf%lf%lf",&gpara[i][j][k][0],&gpara[i][j][k][1],&gpara[i][j][k][2]);
             gpara[j][i][k][3]=0;
           }
     }
     for(i=0;i<npairs;i++) {
       for(j=0;j<nr;j++) {
-        fgets(s,MAXLINE,fp);
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf%lf%lf%lf%lf",&pRepul[i][j],&pRepul[i][j+1]
             ,&pRepul[i][j+2],&pRepul[i][j+3],&pRepul[i][j+4]);
         j+=4;
@@ -5184,7 +5262,7 @@ void PairBOP::read_table(char *filename)
     }
     for(i=0;i<npairs;i++) {
       for(j=0;j<nr;j++) {
-        fgets(s,MAXLINE,fp);
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf%lf%lf%lf%lf",&pBetaS[i][j],&pBetaS[i][j+1]
             ,&pBetaS[i][j+2],&pBetaS[i][j+3],&pBetaS[i][j+4]);
         j+=4;
@@ -5192,7 +5270,7 @@ void PairBOP::read_table(char *filename)
     }
     for(i=0;i<npairs;i++) {
       for(j=0;j<nr;j++) {
-        fgets(s,MAXLINE,fp);
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf%lf%lf%lf%lf",&pBetaP[i][j],&pBetaP[i][j+1]
             ,&pBetaP[i][j+2],&pBetaP[i][j+3],&pBetaP[i][j+4]);
         j+=4;
@@ -5200,18 +5278,18 @@ void PairBOP::read_table(char *filename)
     }
     for(i=0;i<npairs;i++) {
       for(j=0;j<nBOt;j++) {
-        fgets(s,MAXLINE,fp);
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf%lf%lf%lf%lf",&FsigBO[i][j],&FsigBO[i][j+1]
             ,&FsigBO[i][j+2],&FsigBO[i][j+3],&FsigBO[i][j+4]);
         j+=4;
       }
     }
     for(i=0;i<bop_types;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf",&pro_delta[i]);
     }
     for(i=0;i<bop_types;i++) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf(s,"%lf",&pro[i]);
     }
     for(i=0;i<npairs;i++) {
@@ -5220,22 +5298,23 @@ void PairBOP::read_table(char *filename)
     pass=0;
     i=0;
     if(nws==3) {
-      while(fgets(s,MAXLINE,fp)!=NULL&&i<npairs) {
+      for(i=0;i<npairs;i++) {
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf",&rcut3[i]);
-        pass=1;
-        i++;
       }
-      if(pass==1) {
-        for(i=0;i<npairs;i++) {
-          for(j=0;j<nr;j++) {
-            fgets(s,MAXLINE,fp);
+      for(i=0;i<npairs;i++) {
+        for(j=0;j<nr;j++) {
+          pass=0;
+          while(fgets(s,MAXLINE,fp)!=NULL&&pass==0) {
             sscanf(s,"%lf%lf%lf%lf%lf",&pLong[i][j],&pLong[i][j+1]
-                ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
+              ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
             j+=4;
+            pass=1;
           }
         }
       }
     }
+
     rcutall=0.0;
     for(i=0;i<npairs;i++) {
       if(rcut[i]>rcutall)
@@ -5800,6 +5879,12 @@ void PairBOP::memory_theta_destroy()
   memory->destroy(neigh_flag3);
   memory->destroy(neigh_index);
   memory->destroy(neigh_index3);
+  itypeSigBk = NULL;
+  itypePiBk = NULL;
+  neigh_flag = NULL;
+  neigh_flag3 = NULL;
+  neigh_index = NULL;
+  neigh_index3 = NULL;
   if(otfly==0) {
     memory->destroy(cosAng);
     memory->destroy(dcAng);

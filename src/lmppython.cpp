@@ -12,7 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "lmppython.h"
+#if LMP_PYTHON
+#include "python_impl.h"
+#else
 #include "error.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -112,4 +116,12 @@ int Python::execute_file(char *fname)
 {
   init();
   return impl->execute_file(fname);
+}
+
+/* ------------------------------------------------------------------ */
+
+bool Python::has_minimum_version(int major, int minor)
+{
+  init();
+  return impl->has_minimum_version(major, minor);
 }

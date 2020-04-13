@@ -2,10 +2,12 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
+
+#include <algorithm>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -27,6 +29,8 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   function_type = "alpha_angles";
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
+
+  colvarproxy *proxy = cvm::main()->proxy;
 
   std::string segment_id;
   get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
@@ -89,7 +93,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   {
     cvm::real r0;
     size_t en, ed;
-    get_keyval(conf, "hBondCutoff",   r0, (3.3 * cvm::unit_angstrom()));
+    get_keyval(conf, "hBondCutoff",   r0, (3.3 * proxy->angstrom_value));
     get_keyval(conf, "hBondExpNumer", en, 6);
     get_keyval(conf, "hBondExpDenom", ed, 8);
 
@@ -206,7 +210,7 @@ void colvar::alpha_angles::collect_gradients(std::vector<int> const &atom_ids, s
         1.0/(1.0 - (t*t*t*t)) *
         ( (-2.0 * t) + (-1.0*f)*(-4.0 * (t*t*t)) );
 
-      // Coeficient of this CVC's gradient in the colvar gradient, times coefficient of this
+      // Coefficient of this CVC's gradient in the colvar gradient, times coefficient of this
       // angle's gradient in the CVC's gradient
       cvm::real const coeff = cvc_coeff * theta_norm * dfdt * (1.0/theta_tol);
 
@@ -226,7 +230,7 @@ void colvar::alpha_angles::collect_gradients(std::vector<int> const &atom_ids, s
     cvm::real const hb_norm = hb_coeff / cvm::real(hb.size());
 
     for (size_t i = 0; i < hb.size(); i++) {
-      // Coeficient of this CVC's gradient in the colvar gradient, times coefficient of this
+      // Coefficient of this CVC's gradient in the colvar gradient, times coefficient of this
       // hbond's gradient in the CVC's gradient
       cvm::real const coeff = cvc_coeff * 0.5 * hb_norm;
 
@@ -469,7 +473,7 @@ void colvar::dihedPC::collect_gradients(std::vector<int> const &atom_ids, std::v
     cvm::real const t = (PI / 180.) * theta[i]->value().real_value;
     cvm::real const dcosdt = - (PI / 180.) * cvm::sin(t);
     cvm::real const dsindt =   (PI / 180.) * cvm::cos(t);
-    // Coeficient of this dihedPC's gradient in the colvar gradient, times coefficient of this
+    // Coefficient of this dihedPC's gradient in the colvar gradient, times coefficient of this
     // dihedral's gradient in the dihedPC's gradient
     cvm::real const coeff = cvc_coeff * (coeffs[2*i] * dcosdt + coeffs[2*i+1] * dsindt);
 

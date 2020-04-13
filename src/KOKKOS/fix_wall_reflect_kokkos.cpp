@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_reflect_kokkos.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_wall_reflect_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "update.h"

@@ -61,7 +61,7 @@ public:
 //* performs a matrix-vector multiply with default naive implementation
 template<typename T>
 void MultMv(const Matrix<T> &A, const Vector<T> &v, DenseVector<T> &c, 
-            const bool At, T a, T b)
+            const bool At, T /* a */, T b)
 {
   const INDEX sA[2] = {A.nRows(), A.nCols()};  // m is sA[At] k is sA[!At]
   const INDEX M=sA[At], K=sA[!At];

@@ -1,0 +1,69 @@
+#!/bin/bash
+# make like wrapper around "cmake --build"
+# (c) 2020 Axel Kohlmeyer <akohlmey@temple.edu>
+# This file is in the public domain
+
+WORKDIR="${PWD}"
+PARAMS=""
+MYARGS=""
+
+usage()
+{
+   echo "Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]" >&2
+}
+
+help()
+{
+   usage
+   cat >&2 <<EOF
+
+Options:
+  -h                print this message
+  -j <NUM>          allow processing of NUM concurrent tasks
+  -C DIRECTORY      execute build in folder DIRECTORY
+  -v                produce verbose output
+EOF
+}
+
+while (( "$#" )); do
+    case "$1" in
+      -C)
+        WORKDIR="$2"
+        shift 2
+        ;;
+      -v)
+        MYARGS="${MYARGS} -v"
+        shift
+        ;;
+      -h)
+        help
+        exit 2
+        ;;
+      -j)
+        MYARGS="${MYARGS} -j $2"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        echo "Error: Unsupported flag $1" >&2
+        echo
+        usage
+        exit 1
+        ;;
+      *)
+        PARAMS="${PARAMS} $1"
+        shift
+        ;;
+    esac
+done
+
+if [ ! -f "${WORKDIR}/CMakeCache.txt" ] ; then
+   echo "Must execute in a CMake build directory or use -C flag to select one" >&2
+   exit 3
+fi
+
+eval set -- "${PARAMS} $@"
+exec cmake --build "${WORKDIR}" ${MYARGS} --target "$@"

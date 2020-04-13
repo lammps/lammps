@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_halt.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "update.h"
 #include "force.h"
-#include "update.h"
 #include "input.h"
 #include "variable.h"
 #include "atom.h"
@@ -30,7 +29,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{BONDMAX,TLIMIT,VARIABLE};
+enum{BONDMAX,TLIMIT,DISKFREE,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{HARD,SOFT,CONTINUE};
 enum{NOMSG,YESMSG};
@@ -38,7 +37,7 @@ enum{NOMSG,YESMSG};
 /* ---------------------------------------------------------------------- */
 
 FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idvar(NULL)
+  Fix(lmp, narg, arg), idvar(NULL), dlimit_path(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix halt command");
   nevery = force->inumeric(FLERR,arg[3]);
@@ -47,37 +46,45 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   // comparison args
 
   idvar = NULL;
+  int iarg = 4;
 
-  if (strcmp(arg[4],"tlimit") == 0) attribute = TLIMIT;
-  else if (strcmp(arg[4],"bondmax") == 0) attribute = BONDMAX;
-  else if (strncmp(arg[4],"v_",2) == 0) {
+  if (strcmp(arg[iarg],"tlimit") == 0) {
+    attribute = TLIMIT;
+  } else if (strcmp(arg[iarg],"diskfree") == 0) {
+    attribute = DISKFREE;
+    dlimit_path = new char[2];
+    strcpy(dlimit_path,".");
+  } else if (strcmp(arg[iarg],"bondmax") == 0) {
+    attribute = BONDMAX;
+  } else if (strncmp(arg[iarg],"v_",2) == 0) {
     attribute = VARIABLE;
-    int n = strlen(arg[4]);
+    int n = strlen(arg[iarg]);
     idvar = new char[n];
-    strcpy(idvar,&arg[4][2]);
+    strcpy(idvar,&arg[iarg][2]);
     ivar = input->variable->find(idvar);
     if (ivar < 0) error->all(FLERR,"Could not find fix halt variable name");
     if (input->variable->equalstyle(ivar) == 0)
       error->all(FLERR,"Fix halt variable is not equal-style variable");
   } else error->all(FLERR,"Invalid fix halt attribute");
 
-  if (strcmp(arg[5],"<") == 0) operation = LT;
-  else if (strcmp(arg[5],"<=") == 0) operation = LE;
-  else if (strcmp(arg[5],">") == 0) operation = GT;
-  else if (strcmp(arg[5],">=") == 0) operation = GE;
-  else if (strcmp(arg[5],"==") == 0) operation = EQ;
-  else if (strcmp(arg[5],"!=") == 0) operation = NEQ;
-  else if (strcmp(arg[5],"|^") == 0) operation = XOR;
+  ++iarg;
+  if (strcmp(arg[iarg],"<") == 0) operation = LT;
+  else if (strcmp(arg[iarg],"<=") == 0) operation = LE;
+  else if (strcmp(arg[iarg],">") == 0) operation = GT;
+  else if (strcmp(arg[iarg],">=") == 0) operation = GE;
+  else if (strcmp(arg[iarg],"==") == 0) operation = EQ;
+  else if (strcmp(arg[iarg],"!=") == 0) operation = NEQ;
+  else if (strcmp(arg[iarg],"|^") == 0) operation = XOR;
   else error->all(FLERR,"Invalid fix halt operator");
 
-  value = force->numeric(FLERR,arg[6]);
+  ++iarg;
+  value = force->numeric(FLERR,arg[iarg]);
 
   // parse optional args
 
   eflag = SOFT;
   msgflag = YESMSG;
-
-  int iarg = 7;
+  ++iarg;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"error") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
@@ -92,6 +99,19 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) msgflag = YESMSG;
       else error->all(FLERR,"Illegal fix halt command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"path") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
+      ++iarg;
+      int len = strlen(arg[iarg])+1;
+      delete[] dlimit_path;
+      dlimit_path = new char[len];
+      // strip off quotes, if present
+      if ( ((arg[iarg][0] == '"') || (arg[iarg][0] == '\''))
+           && (arg[iarg][0] == arg[iarg][len-2]) ) {
+        strcpy(dlimit_path,&arg[iarg][1]);
+        dlimit_path[len-3] = '\0';
+      } else strcpy(dlimit_path,arg[iarg]);
+      ++iarg;
     } else error->all(FLERR,"Illegal fix halt command");
   }
 
@@ -110,6 +130,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 FixHalt::~FixHalt()
 {
   delete [] idvar;
+  delete [] dlimit_path;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +162,13 @@ void FixHalt::init()
   nextstep = (update->ntimestep/nevery)*nevery + nevery;
   thisstep = -1;
   tratio = 0.5;
+
+  // check if disk limit is supported
+
+  if (attribute == DISKFREE) {
+    if (diskfree() < 0.0)
+      error->all(FLERR,"Disk limit not supported by OS or illegal path");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,6 +191,8 @@ void FixHalt::end_of_step()
   if (attribute == TLIMIT) {
     if (update->ntimestep != nextstep) return;
     attvalue = tlimit();
+  } else if (attribute == DISKFREE) {
+    attvalue = diskfree();
   } else if (attribute == BONDMAX) {
     attvalue = bondmax();
   } else {
@@ -195,8 +225,9 @@ void FixHalt::end_of_step()
   // print message with ID of fix halt in case multiple instances
 
   char str[128];
-  sprintf(str,"Fix halt %s condition met on step " BIGINT_FORMAT " with value %g",
-          id,update->ntimestep,attvalue);
+  sprintf(str,"Fix halt condition for fix-id %s met on step "
+          BIGINT_FORMAT " with value %g",
+          id, update->ntimestep, attvalue);
 
   if (eflag == HARD) {
     error->all(FLERR,str);
@@ -270,4 +301,36 @@ double FixHalt::tlimit()
   }
 
   return cpu;
+}
+
+/* ----------------------------------------------------------------------
+   determine available disk space, if supported. Return -1 if not.
+------------------------------------------------------------------------- */
+#if defined(__linux) || defined(__APPLE__)
+#include <sys/statvfs.h>
+#endif
+double FixHalt::diskfree()
+{
+#if defined(__linux) || defined(__APPLE__)
+  struct statvfs fs;
+  double disk_free = -1.0;
+
+  if (dlimit_path) {
+    disk_free = 1.0e100;
+    int rv = statvfs(dlimit_path,&fs);
+    if (rv == 0) {
+#if defined(__linux)
+      disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
+#elif defined(__APPLE__)
+      disk_free = fs.f_bavail*fs.f_frsize/1048576.0;
+#endif
+    } else
+      disk_free = -1.0;
+
+    MPI_Bcast(&disk_free,1,MPI_DOUBLE,0,world);
+  }
+  return disk_free;
+#else
+  return -1.0;
+#endif
 }

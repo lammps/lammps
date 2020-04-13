@@ -21,11 +21,12 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_correlate_long.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate_long.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -503,7 +504,8 @@ void FixAveCorrelateLong::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 

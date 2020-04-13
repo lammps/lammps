@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------ */
 
 /* Single-processor "stub" versions of MPI routines */
-/* -I. in Makefile insures dummy mpi.h in this dir is included */
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/time.h>
-#include <mpi.h>
+#include "mpi.h"
+#include "../version.h"
 
 /* data structure for double/int */
 
@@ -72,6 +72,23 @@ int MPI_Finalized(int *flag)
 {
   *flag = (_mpi_is_initialized < 0) ? 1 : 0;
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* return "LAMMPS MPI STUBS" as name of the library */
+
+int MPI_Get_library_version(char *version, int *resultlen)
+{
+  const char string[] = "LAMMPS MPI STUBS for LAMMPS version " LAMMPS_VERSION;
+  int len;
+
+  if (!version || !resultlen) return MPI_ERR_ARG;
+
+  len = strlen(string);
+  memcpy(version,string,len+1);
+  *resultlen = len;
+  return MPI_SUCCESS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,12 +165,20 @@ int MPI_Finalize()
 
 double MPI_Wtime()
 {
+#if defined(_MSC_VER)
+  double t;
+
+  t = GetTickCount();
+  t /= 1000.0;
+  return t;
+#else
   double time;
   struct timeval tv;
 
   gettimeofday(&tv,NULL);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

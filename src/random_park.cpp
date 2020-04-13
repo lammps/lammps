@@ -13,8 +13,8 @@
 
 // Park/Miller RNG
 
-#include <cmath>
 #include "random_park.h"
+#include <cmath>
 #include "error.h"
 
 using namespace LAMMPS_NS;

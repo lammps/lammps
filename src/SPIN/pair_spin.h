@@ -14,7 +14,7 @@
 #ifndef LMP_PAIR_SPIN_H
 #define LMP_PAIR_SPIN_H
 
-#include "pair.h"
+#include "pair.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -33,7 +33,8 @@ friend class FixNVESpin;
   virtual void compute_single_pair(int, double *) {}
 
  protected:
-  double hbar;				// Planck constant (eV.ps.rad-1)
+  double hbar;                          // Planck constant (eV.ps.rad-1)
+  int lattice_flag;                     // flag for mech force computation
 
   virtual void allocate() {}
 };

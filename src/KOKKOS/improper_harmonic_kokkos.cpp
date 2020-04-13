@@ -15,23 +15,17 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
 #include "improper_harmonic_kokkos.h"
+#include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -85,7 +79,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }

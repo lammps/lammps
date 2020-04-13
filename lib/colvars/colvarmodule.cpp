@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -32,6 +32,8 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
 
   cv_traj_os = NULL;
 
+  xyz_reader_use_count = 0;
+
   if (proxy == NULL) {
     proxy = proxy_in; // Pointer to the proxy object
     parse = new colvarparse(); // Parsing object for global options
@@ -48,12 +50,20 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   cvm::log("Initializing the collective variables module, version "+
            cvm::to_str(COLVARS_VERSION)+".\n");
   cvm::log("Please cite Fiorin et al, Mol Phys 2013:\n "
-           "http://dx.doi.org/10.1080/00268976.2013.813594\n"
+           "https://doi.org/10.1080/00268976.2013.813594\n"
            "in any publication based on this calculation.\n");
 
   if (proxy->smp_enabled() == COLVARS_OK) {
-    cvm::log("SMP parallelism is available.\n");
+    cvm::log("SMP parallelism is enabled; if needed, use \"smp off\" to override this.\n");
   }
+
+#if (__cplusplus >= 201103L)
+  cvm::log("This version was built with the C++11 standard or higher.");
+#else
+  cvm::log("This version was built without the C++11 standard: some features are disabled.\n"
+    "Please see the following link for details:\n"
+    "https://colvars.github.io/README-c++11.html");
+#endif
 
   // set initial default values
 
@@ -260,6 +270,16 @@ int colvarmodule::parse_global_params(std::string const &conf)
   // TODO document and then echo this keyword
   parse->get_keyval(conf, "logLevel", log_level_, log_level_,
                     colvarparse::parse_silent);
+  {
+    std::string units;
+    if (parse->get_keyval(conf, "units", units)) {
+      units = colvarparse::to_lower_cppstr(units);
+      int error_code = proxy->set_unit_system(units, (colvars.size() != 0));
+      if (error_code != COLVARS_OK) {
+        return error_code;
+      }
+    }
+  }
 
   {
     std::string index_file_name;
@@ -1160,8 +1180,7 @@ int colvarmodule::reset()
   }
   colvars.clear();
 
-  index_groups.clear();
-  index_group_names.clear();
+  reset_index_groups();
 
   proxy->reset();
 
@@ -1265,121 +1284,148 @@ std::istream & colvarmodule::read_restart(std::istream &is)
   {
     // read global restart information
     std::string restart_conf;
-    if (is >> colvarparse::read_block("configuration", restart_conf)) {
+    if (is >> colvarparse::read_block("configuration", &restart_conf)) {
+
       parse->get_keyval(restart_conf, "step",
                         it_restart, static_cast<step_number>(0),
                         colvarparse::parse_restart);
-        it = it_restart;
+      it = it_restart;
+
       std::string restart_version;
+      int restart_version_int = 0;
       parse->get_keyval(restart_conf, "version",
                         restart_version, std::string(""),
                         colvarparse::parse_restart);
-      if (restart_version.size() && (restart_version != std::string(COLVARS_VERSION))) {
-        cvm::log("This state file was generated with version "+restart_version+"\n");
+      if (restart_version.size()) {
+        if (restart_version != std::string(COLVARS_VERSION)) {
+          cvm::log("This state file was generated with version "+
+                   restart_version+"\n");
+        }
+        restart_version_int =
+          proxy->get_version_from_string(restart_version.c_str());
       }
-      if ((restart_version.size() == 0) || (restart_version.compare(std::string(COLVARS_VERSION)) < 0)) {
+
+      if (restart_version_int < 20160810) {
         // check for total force change
         if (proxy->total_forces_enabled()) {
           warn_total_forces = true;
         }
       }
+
+      std::string units_restart;
+      if (parse->get_keyval(restart_conf, "units",
+                            units_restart, std::string(""),
+                            colvarparse::parse_restart)) {
+        units_restart = colvarparse::to_lower_cppstr(units_restart);
+        if ((proxy->units.size() > 0) && (units_restart != proxy->units)) {
+          cvm::error("Error: the state file has units \""+units_restart+
+                     "\", but the current unit system is \""+proxy->units+
+                     "\".\n", INPUT_ERROR);
+        }
+      }
+
     }
     is.clear();
     parse->clear_keyword_registry();
   }
 
-  // colvars restart
-  cvm::increase_depth();
-  for (std::vector<colvar *>::iterator cvi = colvars.begin();
-       cvi != colvars.end();
-       cvi++) {
-    if ( !((*cvi)->read_restart(is)) ) {
-      cvm::error("Error: in reading restart configuration for collective variable \""+
-                 (*cvi)->name+"\".\n",
-                 INPUT_ERROR);
+  print_total_forces_errning(warn_total_forces);
+
+  read_objects_state(is);
+
+  return is;
+}
+
+
+
+std::istream & colvarmodule::read_objects_state(std::istream &is)
+{
+  size_t pos = 0;
+  std::string word;
+
+  while (is.good()) {
+    pos = is.tellg();
+    word.clear();
+    is >> word;
+
+    if (word.size()) {
+
+      is.seekg(pos, std::ios::beg);
+
+      if (word == "colvar") {
+
+        cvm::increase_depth();
+        for (std::vector<colvar *>::iterator cvi = colvars.begin();
+             cvi != colvars.end();
+             cvi++) {
+          if ( !((*cvi)->read_state(is)) ) {
+            // Here an error signals that the variable is a match, but the
+            // state is corrupt; otherwise, the variable rewinds is silently
+            cvm::error("Error: in reading restart configuration for "
+                       "collective variable \""+(*cvi)->name+"\".\n",
+                       INPUT_ERROR);
+          }
+          if (static_cast<size_t>(is.tellg()) > pos) break; // found it
+        }
+        cvm::decrease_depth();
+
+      } else {
+
+        cvm::increase_depth();
+        for (std::vector<colvarbias *>::iterator bi = biases.begin();
+             bi != biases.end();
+             bi++) {
+          if (((*bi)->state_keyword != word) && (*bi)->bias_type != word) {
+            // Skip biases with different type; state_keyword is used to
+            // support different versions of the state file format
+            continue;
+          }
+          if (!((*bi)->read_state(is))) {
+            // Same as above, an error means a match but the state is incorrect
+            cvm::error("Error: in reading restart configuration for bias \""+
+                       (*bi)->name+"\".\n",
+                       INPUT_ERROR);
+          }
+          if (static_cast<size_t>(is.tellg()) > pos) break; // found it
+        }
+        cvm::decrease_depth();
+      }
     }
-  }
 
-  // biases restart
-  for (std::vector<colvarbias *>::iterator bi = biases.begin();
-       bi != biases.end();
-       bi++) {
-    if (!((*bi)->read_state(is))) {
-      cvm::error("Error: in reading restart configuration for bias \""+
-                 (*bi)->name+"\".\n",
-                 INPUT_ERROR);
+    if (static_cast<size_t>(is.tellg()) == pos) {
+      // This block has not been read by any object: discard it and move on
+      // to the next one
+      is >> colvarparse::read_block(word, NULL);
     }
-  }
-  cvm::decrease_depth();
 
-  if (warn_total_forces) {
-    cvm::log(cvm::line_marker);
-    cvm::log("WARNING:\n");
-    std::string const warning("### CHANGES IN THE DEFINITION OF SYSTEM FORCES (NOW TOTAL FORCES)\n\
-\n\
-Starting from the version 2016-08-10 of the Colvars module, \n\
-the role of system forces has been replaced by total forces.\n\
-\n\
-These include *all* forces acting on a collective variable, whether they\n\
-come from the force field potential or from external terms\n\
-(e.g. restraints), including forces applied by Colvars itself.\n\
-\n\
-In NAMD, forces applied by Colvars, IMD, SMD, TMD, symmetry\n\
-restraints and tclForces are now all counted in the total force.\n\
-\n\
-In LAMMPS, forces applied by Colvars itself are now counted in the total\n\
-force (all forces from other fixes were being counted already).\n\
-\n\
-\n\
-### WHEN IS THIS CHANGE RELEVANT\n\
-\n\
-This change affects results *only* when (1) outputSystemForce is\n\
-requested or (2) the ABF bias is used.  All other usage cases are\n\
-*unaffected* (colvar restraints, metadynamics, etc).\n\
-\n\
-When system forces are reported (flag: outputSystemForce), their values\n\
-in the output may change, but the physical trajectory is never affected.\n\
-The physical results of ABF calculations may be affected in some cases.\n\
-\n\
-\n\
-### CHANGES TO ABF CALCULATIONS\n\
-\n\
-Compared to previous Colvars versions, the ABF method will now attempt\n\
-to cancel external forces (for example, boundary walls) and it may be\n\
-not possible to resume through a state file a simulation that was\n\
-performed with a previous version.\n\
-\n\
-There are three possible scenarios:\n\
-\n\
-1. No external forces are applied to the atoms used by ABF: results are\n\
-unchanged.\n\
-\n\
-2. Some of the atoms used by ABF experience external forces, but these\n\
-forces are not applied directly to the variables used by ABF\n\
-(e.g. another colvar that uses the same atoms, tclForces, etc): in this\n\
-case, we recommend beginning a new simulation.\n\
-\n\
-3. External forces are applied to one or more of the colvars used by\n\
-ABF, but no other forces are applied to their atoms: you may use the\n\
-subtractAppliedForce keyword inside the corresponding colvars to\n\
-continue the previous simulation.\n\n");
-    cvm::log(warning);
-    cvm::log(cvm::line_marker);
-
-    // update this ahead of time in this special case
-    output_prefix() = proxy->input_prefix();
-    cvm::log("All output files will now be saved with the prefix \""+output_prefix()+".tmp.*\".\n");
-    cvm::log(cvm::line_marker);
-    cvm::log("Please review the important warning above. After that, you may rename:\n\
-\""+output_prefix()+".tmp.colvars.state\"\n\
-to:\n\
-\""+ proxy->input_prefix()+".colvars.state\"\n");
-    output_prefix() = output_prefix()+".tmp";
-    write_restart_file(output_prefix()+".colvars.state");
-    cvm::error("Exiting with error until issue is addressed.\n", FATAL_ERROR);
+    if (!is) break;
   }
 
   return is;
+}
+
+
+int colvarmodule::print_total_forces_errning(bool warn_total_forces)
+{
+  if (warn_total_forces) {
+    cvm::log(cvm::line_marker);
+    cvm::log("WARNING: The definition of system forces has changed.  Please see:\n");
+    cvm::log("  https://colvars.github.io/README-totalforce.html\n");
+    // update this ahead of time in this special case
+    output_prefix() = proxy->input_prefix();
+    cvm::log("All output files will now be saved with the prefix \""+output_prefix()+".tmp.*\".\n");
+    cvm::log("Please review the important warning above. After that, you may rename:\n\
+\""+output_prefix()+".tmp.colvars.state\"\n\
+to:\n\
+\""+proxy->input_prefix()+".colvars.state\"\n\
+and load it to continue this simulation.\n");
+    output_prefix() = output_prefix()+".tmp";
+    write_restart_file(output_prefix()+".colvars.state");
+    return cvm::error("Exiting with error until issue is addressed.\n",
+                      INPUT_ERROR);
+  }
+
+  return COLVARS_OK;
 }
 
 
@@ -1496,8 +1542,11 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
      << "  step " << std::setw(it_width)
      << it << "\n"
      << "  dt " << dt() << "\n"
-     << "  version " << std::string(COLVARS_VERSION) << "\n"
-     << "}\n\n";
+     << "  version " << std::string(COLVARS_VERSION) << "\n";
+  if (proxy->units.size() > 0) {
+    os << "  units " << proxy->units << "\n";
+  }
+  os << "}\n\n";
 
   int error_code = COLVARS_OK;
 
@@ -1505,7 +1554,7 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();
        cvi++) {
-    (*cvi)->write_restart(os);
+    (*cvi)->write_state(os);
   }
 
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
@@ -1718,32 +1767,61 @@ int cvm::read_index_file(char const *filename)
   while (is.good()) {
     char open, close;
     std::string group_name;
+    int index_of_group = -1;
     if ( (is >> open) && (open == '[') &&
          (is >> group_name) &&
          (is >> close) && (close == ']') ) {
-      for (std::list<std::string>::iterator names_i = index_group_names.begin();
-           names_i != index_group_names.end();
-           names_i++) {
-        if (*names_i == group_name) {
-          cvm::error("Error: the group name \""+group_name+
-                     "\" appears in multiple index files.\n",
-                     FILE_ERROR);
+      size_t i = 0;
+      for ( ; i < index_group_names.size(); i++) {
+        if (index_group_names[i] == group_name) {
+          // Found a group with the same name
+          index_of_group = i;
         }
       }
-      index_group_names.push_back(group_name);
-      index_groups.push_back(std::vector<int>());
+      if (index_of_group < 0) {
+        index_group_names.push_back(group_name);
+        index_groups.push_back(NULL);
+        index_of_group = index_groups.size()-1;
+      }
     } else {
-      cvm::error("Error: in parsing index file \""+
-                 std::string(filename)+"\".\n",
-                 INPUT_ERROR);
+      return cvm::error("Error: in parsing index file \""+
+                        std::string(filename)+"\".\n",
+                        INPUT_ERROR);
     }
+
+    std::vector<int> *old_index_group = index_groups[index_of_group];
+    std::vector<int> *new_index_group = new std::vector<int>();
 
     int atom_number = 1;
     size_t pos = is.tellg();
     while ( (is >> atom_number) && (atom_number > 0) ) {
-      (index_groups.back()).push_back(atom_number);
+      new_index_group->push_back(atom_number);
       pos = is.tellg();
     }
+
+    if (old_index_group != NULL) {
+      bool equal = false;
+      if (new_index_group->size() == old_index_group->size()) {
+        if (std::equal(new_index_group->begin(), new_index_group->end(),
+                       old_index_group->begin())) {
+          equal = true;
+        }
+      }
+      if (! equal) {
+        new_index_group->clear();
+        delete new_index_group;
+        new_index_group = NULL;
+        return cvm::error("Error: the index group \""+group_name+
+                          "\" was redefined.\n", INPUT_ERROR);
+      } else {
+        old_index_group->clear();
+        delete old_index_group;
+        old_index_group = NULL;
+      }
+    }
+
+    index_groups[index_of_group] = new_index_group;
+
     is.clear();
     is.seekg(pos, std::ios::beg);
     std::string delim;
@@ -1756,14 +1834,27 @@ int cvm::read_index_file(char const *filename)
     }
   }
 
-  cvm::log("The following index groups were read from the index file \""+
-           std::string(filename)+"\":\n");
-  std::list<std::string>::iterator names_i = index_group_names.begin();
-  std::list<std::vector<int> >::iterator lists_i = index_groups.begin();
-  for ( ; names_i != index_group_names.end() ; names_i++, lists_i++) {
-    cvm::log("  "+(*names_i)+" ("+cvm::to_str(lists_i->size())+" atoms).\n");
+  cvm::log("The following index groups are currently defined:\n");
+  size_t i = 0;
+  for ( ; i < index_group_names.size(); i++) {
+    cvm::log("  "+(index_group_names[i])+" ("+
+             cvm::to_str((index_groups[i])->size())+" atoms)\n");
   }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+
+  return COLVARS_OK;
+}
+
+
+int colvarmodule::reset_index_groups()
+{
+  size_t i = 0;
+  for ( ; i < index_groups.size(); i++) {
+    delete index_groups[i];
+    index_groups[i] = NULL;
+  }
+  index_group_names.clear();
+  index_groups.clear();
+  return COLVARS_OK;
 }
 
 
@@ -1799,7 +1890,7 @@ int cvm::load_coords(char const *file_name,
                         "for XYZ coordinate files.\n", INPUT_ERROR);
     }
     // For XYZ files, use internal parser
-    error_code |= cvm::load_coords_xyz(file_name, &sorted_pos, atoms);
+    error_code |= cvm::main()->load_coords_xyz(file_name, &sorted_pos, atoms);
   } else {
     // Otherwise, call proxy function for PDB
     error_code |= proxy->load_coords(file_name,
@@ -1824,11 +1915,18 @@ int cvm::load_coords_xyz(char const *filename,
   unsigned int natoms;
   char symbol[256];
   std::string line;
+  cvm::real x = 0.0, y = 0.0, z = 0.0;
 
   if ( ! (xyz_is >> natoms) ) {
     cvm::error("Error: cannot parse XYZ file "
                + std::string(filename) + ".\n", INPUT_ERROR);
   }
+
+  ++xyz_reader_use_count;
+  if (xyz_reader_use_count < 2) {
+    cvm::log("Warning: beginning from 2019-11-26 the XYZ file reader assumes Angstrom units.");
+  }
+
   // skip comment line
   cvm::getline(xyz_is, line);
   cvm::getline(xyz_is, line);
@@ -1845,12 +1943,19 @@ int cvm::load_coords_xyz(char const *filename,
         next++;
       }
       xyz_is >> symbol;
-      xyz_is >> (*pos_i)[0] >> (*pos_i)[1] >> (*pos_i)[2];
+      xyz_is >> x >> y >> z;
+      // XYZ files are assumed to be in Angstrom (as eg. VMD will)
+      (*pos_i)[0] = proxy->angstrom_to_internal(x);
+      (*pos_i)[1] = proxy->angstrom_to_internal(y);
+      (*pos_i)[2] = proxy->angstrom_to_internal(z);
     }
   } else {          // Use all positions
     for ( ; pos_i != pos->end() ; pos_i++) {
       xyz_is >> symbol;
-      xyz_is >> (*pos_i)[0] >> (*pos_i)[1] >> (*pos_i)[2];
+      xyz_is >> x >> y >> z;
+      (*pos_i)[0] = proxy->angstrom_to_internal(x);
+      (*pos_i)[1] = proxy->angstrom_to_internal(y);
+      (*pos_i)[2] = proxy->angstrom_to_internal(z);
     }
   }
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -1859,11 +1964,6 @@ int cvm::load_coords_xyz(char const *filename,
 
 
 // Wrappers to proxy functions: these may go in the future
-
-cvm::real cvm::unit_angstrom()
-{
-  return proxy->unit_angstrom();
-}
 
 
 cvm::real cvm::boltzmann()
@@ -1901,39 +2001,6 @@ cvm::real cvm::rand_gaussian(void)
 {
   return proxy->rand_gaussian();
 }
-
-
-
-bool cvm::replica_enabled()
-{
-  return proxy->replica_enabled();
-}
-
-int cvm::replica_index()
-{
-  return proxy->replica_index();
-}
-
-int cvm::replica_num()
-{
-  return proxy->replica_num();
-}
-
-void cvm::replica_comm_barrier()
-{
-  return proxy->replica_comm_barrier();
-}
-
-int cvm::replica_comm_recv(char* msg_data, int buf_len, int src_rep)
-{
-  return proxy->replica_comm_recv(msg_data,buf_len,src_rep);
-}
-
-int cvm::replica_comm_send(char* msg_data, int msg_len, int dest_rep)
-{
-  return proxy->replica_comm_send(msg_data,msg_len,dest_rep);
-}
-
 
 
 template<typename T> std::string _to_str(T const &x,

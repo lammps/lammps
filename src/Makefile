@@ -60,10 +60,10 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 
 PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-meso \
+	   user-intel user-lb user-manifold user-meamc user-mesodpd \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-pafi user-phonon user-plumed user-ptm user-qmmm \
-	   user-qtb user-quip user-reaxc user-scafacos user-smd user-smtbq \
+	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
@@ -154,7 +154,6 @@ help:
 
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
-	@echo 'Gathering installed package information (may take a little while)'
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
@@ -199,12 +198,14 @@ gitversion:
 # shlib = shared lib in Obj_shared_machine
 
 .DEFAULT:
-	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
-	  then $(MAKE) mpi-stubs; fi
+	@if [ $@ = "serial" ]; \
+	  then cd STUBS; $(MAKE); cd ..; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
+	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh packages
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
@@ -246,6 +247,11 @@ ifeq ($(mode),shlib)
 	@rm -f $(SHLINK)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
+ifeq ($(mode),print)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
+	  "EXE = ../$(SHLIB)" -f ../Makefile.print
+endif
 
 # Remove machine-specific object files
 
@@ -255,7 +261,10 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+
 clean-%:
+	@if [ $@ = "clean-serial" ]; \
+		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
 # Create Makefile.list

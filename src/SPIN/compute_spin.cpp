@@ -21,21 +21,17 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include "atom.h"
 #include "compute_spin.h"
-#include "domain.h"
+#include <mpi.h>
+#include <cmath>
+#include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "math_special.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathSpecial;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
@@ -132,7 +128,7 @@ void ComputeSpin::compute_vector()
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
   spintemperature = hbar*tempnumtot;
-  spintemperature /= (kb*tempdenomtot);
+  spintemperature /= (2.0*kb*tempdenomtot);
 
   vector[0] = magtot[0];
   vector[1] = magtot[1];
@@ -149,6 +145,6 @@ void ComputeSpin::compute_vector()
 
 void ComputeSpin::allocate()
 {
-  memory->create(vector,6,"compute/spin:vector");
+  memory->create(vector,size_vector,"compute/spin:vector");
 }
 

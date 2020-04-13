@@ -15,7 +15,6 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
-#include <cstdio>
 #include <map>
 #include <string>
 
@@ -143,6 +142,7 @@ class Force : protected Pointers {
   bigint memory_usage();
 
  private:
+  void create_factories();
   template <typename T> static Pair *pair_creator(LAMMPS *);
   template <typename T> static Bond *bond_creator(LAMMPS *);
   template <typename T> static Angle *angle_creator(LAMMPS *);
@@ -159,35 +159,36 @@ class Force : protected Pointers {
 
 E: Must re-specify non-restarted pair style (%s) after read_restart
 
-UNDOCUMENTED
+For pair styles, that do not store their settings in a restart file,
+it must be defined with a new 'pair_style' command after read_restart.
 
-E: Unknown pair style %s
+E: Unrecognized pair style %s
 
-UNDOCUMENTED
+The choice of pair style is unknown.
 
-E: Unknown bond style %s
+E: Unrecognized bond style %s
 
-UNDOCUMENTED
+The choice of bond style is unknown.
 
-E: Unknown angle style %s
+E: Unrecognized angle style %s
 
-UNDOCUMENTED
+The choice of angle style is unknown.
 
-E: Unknown dihedral style %s
+E: Unrecognized dihedral style %s
 
-UNDOCUMENTED
+The choice of dihedral style is unknown.
 
-E: Unknown improper style %s
+E: Unrecognized improper style %s
 
-UNDOCUMENTED
+The choice of improper style is unknown.
 
 E: Cannot yet use KSpace solver with grid with comm style tiled
 
 This is current restriction in LAMMPS.
 
-E: Unknown kspace style %s
+E: Unrecognized kspace style %s
 
-UNDOCUMENTED
+The choice of kspace style is unknown.
 
 E: Illegal ... command
 
@@ -224,5 +225,49 @@ U: Numeric index is out of bounds
 A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the
 maximum allowed limit.
+
+W: Bonds are defined but no bond style is set
+
+The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command.
+
+W: Angles are defined but no angle style is set
+
+The topology contains angles, but there are no angle forces computed
+since there was no angle_style command.
+
+W: Dihedrals are defined but no dihedral style is set
+
+The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command.
+
+W: Impropers are defined but no improper style is set
+
+The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command.
+
+W: Likewise 1-2 special neighbor interactions != 1.0
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style.
+
+W: Likewise 1-3 special neighbor interactions != 1.0
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style.
+
+W: Likewise 1-4 special neighbor interactions != 1.0
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style.
 
 */

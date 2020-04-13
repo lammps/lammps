@@ -11,15 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_property_atom.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_property_atom.h"
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
-#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

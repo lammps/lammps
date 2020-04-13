@@ -12,8 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_tip4p_long_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -101,7 +101,7 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
   if (ncoultablebits) {
     if (evflag) {
@@ -145,7 +145,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t x1,x2,xH1,xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int i,j,ii,jj,jnum,itype,jtype,itable, key;
+  int i,j,ii,jj,jnum,itype,jtype,itable, key=0;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
 

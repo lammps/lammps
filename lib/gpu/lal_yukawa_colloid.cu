@@ -13,15 +13,15 @@
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> rad_tex;
+_texture( pos_tex,float4);
+_texture( rad_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> rad_tex;
+_texture_2d( pos_tex,int4);
+_texture( rad_tex,int2);
 #endif
 
 #else
@@ -89,10 +89,10 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
       if (rsq<coeff[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
         numtyp rinv = ucl_recip(r);
-              numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
-              numtyp force = coeff[mtype].x * screening;
+        numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
+        numtyp force = coeff[mtype].x * screening;
 
-              force = factor_lj*force * rinv;
+        force = factor_lj*force * rinv;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -181,10 +181,10 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
       if (rsq<coeff[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
         numtyp rinv = ucl_recip(r);
-              numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
-              numtyp force = coeff[mtype].x * screening;
+        numtyp screening = ucl_exp(-kappa*(r-(radi+radj)));
+        numtyp force = coeff[mtype].x * screening;
 
-              force = factor_lj*force * rinv;
+        force = factor_lj*force * rinv;
 
         f.x+=delx*force;
         f.y+=dely*force;

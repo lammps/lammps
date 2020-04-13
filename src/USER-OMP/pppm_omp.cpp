@@ -15,18 +15,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_omp.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "pppm_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "error.h"
-#include "fix_omp.h"
 #include "force.h"
-#include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "timer.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -45,7 +48,7 @@ using namespace MathSpecial;
 
 PPPMOMP::PPPMOMP(LAMMPS *lmp) : PPPM(lmp), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 
@@ -278,7 +281,7 @@ void PPPMOMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -575,7 +578,7 @@ void PPPMOMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;

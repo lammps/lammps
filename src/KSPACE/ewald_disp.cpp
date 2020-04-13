@@ -15,12 +15,10 @@
    Contributing authors: Pieter in 't Veld (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -133,6 +131,7 @@ void EwaldDisp::init()
           else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
           error->all(FLERR,
                      "Unsupported mixing rule in kspace_style ewald/disp");
+          break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }
@@ -178,6 +177,12 @@ void EwaldDisp::init()
 
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;
+
+  // compute two charge force
+
+  two_charge();
+
+  // extract short-range Coulombic cutoff from pair style
 
   pair_check();
 

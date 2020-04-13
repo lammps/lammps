@@ -20,7 +20,6 @@ CommandStyle(write_data,WriteData)
 #ifndef LMP_WRITE_DATA_H
 #define LMP_WRITE_DATA_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

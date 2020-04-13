@@ -15,36 +15,24 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
+#include "tad.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "tad.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "comm.h"
-#include "velocity.h"
 #include "integrate.h"
 #include "min.h"
 #include "neighbor.h"
 #include "modify.h"
 #include "neb.h"
 #include "compute.h"
-#include "fix.h"
 #include "fix_event_tad.h"
 #include "fix_store.h"
 #include "force.h"
-#include "pair.h"
 #include "output.h"
-#include "dump.h"
 #include "finish.h"
 #include "timer.h"
 #include "memory.h"
@@ -209,7 +197,7 @@ void TAD::command(int narg, char **arg)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -723,7 +711,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style_neb;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -789,7 +777,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   update->etol = etol;
   update->ftol = ftol;

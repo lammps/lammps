@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_histo.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_histo.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -851,7 +851,8 @@ void FixAveHisto::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }

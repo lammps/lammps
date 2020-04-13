@@ -15,13 +15,12 @@
    Contributing authors: Shawn Coleman & Douglas Spearot (Arkansas)
 ------------------------------------------------------------------------- */
 
+#include "compute_saed.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include "math_const.h"
-#include "compute_saed.h"
 #include "compute_saed_consts.h"
 #include "atom.h"
 #include "comm.h"
@@ -76,7 +75,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   if (lambda < 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
-  // Define atom types for atomic scattering factor coefficents
+  // Define atom types for atomic scattering factor coefficients
   int iarg = 4;
   ztype = new int[ntypes];
   for (int i = 0; i < ntypes; i++){
@@ -395,7 +394,7 @@ void ComputeSAED::compute_vector()
 */
 
 
- // determining paramater set to use based on maximum S = sin(theta)/lambda
+ // determining parameter set to use based on maximum S = sin(theta)/lambda
   double Smax = Kmax / 2;
 
   int offset = 0;                 // offset the ASFSAED matrix for appropriate value
@@ -450,8 +449,8 @@ void ComputeSAED::compute_vector()
       Fatom1 = 0.0;
       Fatom2 = 0.0;
 
-      // Calculate the atomic structre factor by type
-      // determining paramater set to use based on S = sin(theta)/lambda <> 2
+      // Calculate the atomic structure factor by type
+      // determining parameter set to use based on S = sin(theta)/lambda <> 2
       for (int ii = 0; ii < ntypes; ii++){
         f[ii] = 0;
         for (int C = 0; C < 5; C++){
@@ -511,7 +510,7 @@ void ComputeSAED::compute_vector()
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
   }
 
   delete [] xlocal;

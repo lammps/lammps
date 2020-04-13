@@ -15,16 +15,17 @@
    Contributing author: Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_morse.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -172,9 +173,9 @@ void BondMorse::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&d0[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&alpha[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&d0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&alpha[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&d0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&alpha[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -204,4 +205,13 @@ double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
   fforce = 0;
   if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
   return d0[type]*(1-ralpha)*(1-ralpha);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondMorse::extract(char *str, int &dim )
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

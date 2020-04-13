@@ -1,0 +1,59 @@
+
+units 		metal
+dimension 	3
+boundary 	f f f
+atom_style 	spin
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array 
+
+lattice 	sc 3.0
+region 		box block 0.0 10.0 0.0 10.0 0.0 4.0
+create_box 	2 box
+region		reg1 block 0.0 10.0 	0.0 5.0 	0.0 1.0
+region		reg2 block 0.0 10.0 	6.0 10.0 	0.0 1.0
+create_atoms 	1 region reg1 
+create_atoms 	2 region reg2
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 55.845
+mass		2 55.845
+set 		region reg1 spin 2.2 0.0 0.0 1.0
+set 		region reg2 spin/random 31 2.2
+
+group 		fixed_spin region reg1
+
+pair_style 	hybrid/overlay spin/exchange 3.1 spin/dmi 3.1
+pair_coeff 	* * spin/exchange exchange 3.1 -0.01593 0.06626915552 1.211
+pair_coeff	* * spin/dmi dmi 3.1 0.12e-03 0.0 0.0 1.0
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0 anisotropy 5e-05 0.0 0.0 1.0 
+fix_modify	1 energy yes
+fix 		2 fixed_spin setforce/spin 0.0 0.0 0.0
+fix 		3 all langevin/spin 0.0 0.1 21
+fix		4 all nve/spin lattice frozen 
+
+timestep	0.0001
+
+compute 	out_mag    all spin
+variable 	magx      equal c_out_mag[1]
+variable 	magy      equal c_out_mag[2]
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo          100
+thermo_style    custom step time v_magx v_magz v_magnorm v_tmag etotal
+thermo_modify   format float %20.15g
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 100 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[5] c_outsp[6] c_outsp[7]
+
+min_style	spin
+min_modify 	alpha_damp 1.0 discrete_factor 20.0
+minimize        1.0e-16 1.0e-16 1000 100

@@ -31,17 +31,21 @@ COLVARS_SRCS = \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
         colvarcomp_angles.cpp \
+        colvarcomp_apath.cpp \
         colvarcomp_coordnums.cpp \
         colvarcomp.cpp \
         colvarcomp_distances.cpp \
+        colvarcomp_gpath.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \
         colvar.cpp \
         colvardeps.cpp \
         colvargrid.cpp \
         colvarmodule.cpp \
+        colvarparams.cpp \
         colvarparse.cpp \
         colvarproxy.cpp \
+        colvarproxy_replicas.cpp \
         colvarscript.cpp \
         colvartypes.cpp \
         colvarvalue.cpp
@@ -51,25 +55,29 @@ LEPTON_SRCS = \
 	lepton/src/ParsedExpression.cpp lepton/src/ExpressionProgram.cpp    \
 	lepton/src/Operation.cpp lepton/src/Parser.cpp
 
-LEPTON_OBJS = \
-	lepton/src/CompiledExpression.o lepton/src/ExpressionTreeNode.o \
-	lepton/src/ParsedExpression.o lepton/src/ExpressionProgram.o    \
-	lepton/src/Operation.o lepton/src/Parser.o
 
-COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_OBJS)
+# Allow to selectively turn off Lepton
+ifeq ($(COLVARS_LEPTON),no)
+LEPTON_INCFLAGS = 
+COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
+else
+LEPTON_INCFLAGS = -Ilepton/include -DLEPTON
+COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_SRCS:.cpp=.o)
+endif
+
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) -Ilepton/include -DLEPTON -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) $(LEPTON_INCFLAGS) -c -o $@ $<
 
 $(COLVARS_LIB):	Makefile.deps $(COLVARS_OBJS)
-	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS) $(LEPTON_OBJS)
+	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS)
 
 
 Makefile.deps: $(COLVARS_SRCS)
 	@echo > $@
 	@for src in $^ ; do \
 	  obj=`basename $$src .cpp`.o ; \
-	  $(CXX) -MM $(COLVARS_INCFLAGS)  -Ilepton/include -DLEPTON \
+	  $(CXX) -MM $(COLVARS_INCFLAGS)  $(LEPTON_INCFLAGS) \
 	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
 	  done
 

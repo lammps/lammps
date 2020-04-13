@@ -14,7 +14,7 @@
 #ifndef LMP_LMPTYPE_KOKKOS_H
 #define LMP_LMPTYPE_KOKKOS_H
 
-#include "lmptype.h"
+#include "pointers.h"
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
@@ -27,21 +27,6 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u};
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
-#endif
-
-// User-settable FFT precision
-
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
-
-#ifdef FFT_SINGLE
-#define FFT_PRECISION 1
-#define MPI_FFT_SCALAR MPI_FLOAT
-typedef float FFT_SCALAR;
-#else
-#define FFT_PRECISION 2
-#define MPI_FFT_SCALAR MPI_DOUBLE
-typedef double FFT_SCALAR;
 #endif
 
 #define MAX_TYPES_STACKPARAMS 12
@@ -174,23 +159,23 @@ t_scalar3<Scalar> operator *
   return t_scalar3<Scalar>(a.x*b,a.y*b,a.z*b);
 }
 
-#if !defined(__CUDACC__) && !defined(__VECTOR_TYPES_H__)
-  struct double2 {
-    double x, y;
-  };
-  struct float2 {
-    float x, y;
-  };
-  struct float4 {
-    float x, y, z, w;
-  };
-  struct double4 {
-    double x, y, z, w;
-  };
-#endif
 // set LMPHostype and LMPDeviceType from Kokkos Default Types
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
+
+
+// Need to use Cuda UVM memory space for Host execution space
+
+template<class DeviceType>
+class KKDevice {
+public:
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+  typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
+#else
+  typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
+#endif
+};
+
 
 // set ExecutionSpace stuct with variable "space"
 
@@ -310,14 +295,8 @@ public:
 #endif
 #if PRECISION==1
 typedef float LMP_FLOAT;
-typedef float2 LMP_FLOAT2;
-typedef lmp_float3 LMP_FLOAT3;
-typedef float4 LMP_FLOAT4;
 #else
 typedef double LMP_FLOAT;
-typedef double2 LMP_FLOAT2;
-typedef lmp_double3 LMP_FLOAT3;
-typedef double4 LMP_FLOAT4;
 #endif
 
 #ifndef PREC_FORCE
@@ -326,14 +305,8 @@ typedef double4 LMP_FLOAT4;
 
 #if PREC_FORCE==1
 typedef float F_FLOAT;
-typedef float2 F_FLOAT2;
-typedef lmp_float3 F_FLOAT3;
-typedef float4 F_FLOAT4;
 #else
 typedef double F_FLOAT;
-typedef double2 F_FLOAT2;
-typedef lmp_double3 F_FLOAT3;
-typedef double4 F_FLOAT4;
 #endif
 
 #ifndef PREC_ENERGY
@@ -342,12 +315,8 @@ typedef double4 F_FLOAT4;
 
 #if PREC_ENERGY==1
 typedef float E_FLOAT;
-typedef float2 E_FLOAT2;
-typedef float4 E_FLOAT4;
 #else
 typedef double E_FLOAT;
-typedef double2 E_FLOAT2;
-typedef double4 E_FLOAT4;
 #endif
 
 struct s_EV_FLOAT {
@@ -448,18 +417,60 @@ struct s_EV_FLOAT_REAX {
 };
 typedef struct s_EV_FLOAT_REAX EV_FLOAT_REAX;
 
+struct s_FEV_FLOAT {
+  F_FLOAT f[3];
+  E_FLOAT evdwl;
+  E_FLOAT ecoul;
+  E_FLOAT v[6];
+  KOKKOS_INLINE_FUNCTION
+  s_FEV_FLOAT() {
+    f[0] = 0; f[1] = 0; f[2] = 0;
+    evdwl = 0;
+    ecoul = 0;
+    v[0] = 0; v[1] = 0; v[2] = 0;
+    v[3] = 0; v[4] = 0; v[5] = 0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const s_FEV_FLOAT &rhs) {
+    f[0] += rhs.f[0];
+    f[1] += rhs.f[1];
+    f[2] += rhs.f[2];
+    evdwl += rhs.evdwl;
+    ecoul += rhs.ecoul;
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+    v[2] += rhs.v[2];
+    v[3] += rhs.v[3];
+    v[4] += rhs.v[4];
+    v[5] += rhs.v[5];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
+    f[0] += rhs.f[0];
+    f[1] += rhs.f[1];
+    f[2] += rhs.f[2];
+    evdwl += rhs.evdwl;
+    ecoul += rhs.ecoul;
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+    v[2] += rhs.v[2];
+    v[3] += rhs.v[3];
+    v[4] += rhs.v[4];
+    v[5] += rhs.v[5];
+  }
+};
+typedef struct s_FEV_FLOAT FEV_FLOAT;
+
 #ifndef PREC_POS
 #define PREC_POS PRECISION
 #endif
 
 #if PREC_POS==1
 typedef float X_FLOAT;
-typedef float2 X_FLOAT2;
-typedef float4 X_FLOAT4;
 #else
 typedef double X_FLOAT;
-typedef double2 X_FLOAT2;
-typedef double4 X_FLOAT4;
 #endif
 
 #ifndef PREC_VELOCITIES
@@ -468,22 +479,14 @@ typedef double4 X_FLOAT4;
 
 #if PREC_VELOCITIES==1
 typedef float V_FLOAT;
-typedef float2 V_FLOAT2;
-typedef float4 V_FLOAT4;
 #else
 typedef double V_FLOAT;
-typedef double2 V_FLOAT2;
-typedef double4 V_FLOAT4;
 #endif
 
 #if PREC_KSPACE==1
 typedef float K_FLOAT;
-typedef float2 K_FLOAT2;
-typedef float4 K_FLOAT4;
 #else
 typedef double K_FLOAT;
-typedef double2 K_FLOAT2;
-typedef double4 K_FLOAT4;
 #endif
 
 typedef int T_INT;
@@ -748,32 +751,6 @@ typedef tdual_neighbors_2d::t_dev_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_dev_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
-//Kspace
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev_um t_FFT_SCALAR_1d_um;
-
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_dev t_FFT_SCALAR_2d;
-
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_dev t_FFT_SCALAR_2d_3;
-
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_dev t_FFT_SCALAR_3d;
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
-
-typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
-typedef tdual_int_64::t_dev t_int_64;
-typedef tdual_int_64::t_dev_um t_int_64_um;
-
 };
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -1008,33 +985,6 @@ typedef tdual_neighbors_2d::t_host_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_host_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_host_const_randomread t_neighbors_2d_randomread;
 
-
-//Kspace
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host_um t_FFT_SCALAR_1d_um;
-
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_host t_FFT_SCALAR_2d;
-
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_host t_FFT_SCALAR_2d_3;
-
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_host t_FFT_SCALAR_3d;
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
-
-typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
-typedef tdual_int_64::t_host t_int_64;
-typedef tdual_int_64::t_host_um t_int_64_um;
-
 };
 #endif
 //default LAMMPS Types
@@ -1044,17 +994,9 @@ typedef struct ArrayTypes<LMPHostType> HAT;
 template<class DeviceType, class BufferView, class DualView>
 void buffer_view(BufferView &buf, DualView &view,
                  const size_t n0,
-                 const size_t n1 = 0,
-                 const size_t n2 = 0,
-                 const size_t n3 = 0,
-                 const size_t n4 = 0,
-                 const size_t n5 = 0,
-                 const size_t n6 = 0,
-                 const size_t n7 = 0) {
+                 const size_t n1) {
 
-  buf = BufferView(
-          view.template view<DeviceType>().data(),
-          n0,n1,n2,n3,n4,n5,n6,n7);
+  buf = BufferView(view.template view<DeviceType>().data(),n0,n1);
 
 }
 
@@ -1076,7 +1018,7 @@ void memset_kokkos (ViewType &view) {
   #else
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #endif
-  ViewType::execution_space::fence();
+  ViewType::execution_space().fence();
 }
 
 struct params_lj_coul {

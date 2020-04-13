@@ -7,7 +7,7 @@ CMake and make:
 * :ref:`Serial vs parallel build <serial>`
 * :ref:`Choice of compiler and compile/link options <compile>`
 * :ref:`Build the LAMMPS executable and library <exe>`
-* :ref:`Debug support <debug>`
+* :ref:`Including and removing debug support <debug>`
 * :ref:`Build the LAMMPS documentation <doc>`
 * :ref:`Install LAMMPS after a build <install>`
 
@@ -418,21 +418,30 @@ recommended to ensure the integrity of the system software installation.
 
 .. _debug:
 
-Debug support
--------------
+Excluding or removing debug support
+-----------------------------------
 
 By default the compilation settings will include the *-g* flag which
 instructs the compiler to include debug information (e.g. which line of
-source code particular instructions correspond to).  This can be
+source code a particular instruction correspond to).  This can be
 extremely useful in case LAMMPS crashes and can help to provide crucial
 information in :doc:`tracking down the origin of a crash <Errors_debug>`
-and possibly help fix a bug in the source code.  However, this increases
-the storage requirements for object files, libraries, and the executable
-3-5 fold.  If this is a concern, you can change the compilation settings
-(either by editing the machine makefile or setting the compiler flags or
-build time when using CMake).  If you are only concerned about the
-executable being too large, you can use the ``strip`` tool (e.g. ``strip
-lmp_serial``) to remove the debug information from the file.
+and help the LAMMPS developers fix bugs in the source code.  However,
+this increases the storage requirements for object files, libraries, and
+the executable 3-5 fold.
+
+If this is a concern, you can change the compilation settings or remove
+the debug information from the LAMMPS executable:
+
+- **Traditional make**: edit your ``Makefile.<machine>`` to remove the
+  *-g* flag from the ``CCFLAGS`` and ``LINKFLAGS`` definitions
+- **CMake**: use ``-D CMAKE_BUILD_TYPE=Release`` or explicitly reset
+  the applicable compiler flags (best done using the text mode or
+  graphical user interface).
+- **Remove debug info**: If you are only concerned about the executable
+  being too large, you can use the ``strip`` tool (e.g. ``strip
+  lmp_serial``) to remove the debug information from the executable file.
+  Do not strip libraries or object files, as that will render them unusable.
 
 ----------
 

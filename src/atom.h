@@ -111,13 +111,6 @@ class Atom : protected Pointers {
   double *edpd_cv;               // heat capacity
   int cc_species;
 
-  // USER-PAFI package
-  
-  int pafi_flag;
-  double **path;
-  double **norm;
-  double **dnorm;
-
   // molecular info
 
   int **nspecial;               // 0,1,2 = cumulative # of 1-2,1-3,1-4 neighs

@@ -261,16 +261,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
-        f[j][2] -= fi[2];
-      }
-
       if (eflag) {
         evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
-        // evdwl *= 0.5*hbar;
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
         emag[i] += evdwl;
       } else evdwl = 0.0;
 

@@ -214,7 +214,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // checking size of emag
-  
+
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
@@ -230,7 +230,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
-    
+
     jlist = firstneigh[i];
     jnum = numneigh[i];
     xi[0] = x[i][0];

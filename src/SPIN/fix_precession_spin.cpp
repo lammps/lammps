@@ -261,12 +261,12 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double spi[4], fmi[3], epreci;
 
   // checking size of emag
-  
+
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
   }
-  
+
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {

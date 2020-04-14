@@ -87,8 +87,8 @@ void PairSpin::init_style()
   if (!have_fix && (comm->me == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
 
-  // check if newton pair is on 
-  
+  // check if newton pair is on
+
   if ((force->newton_pair == 0) && (comm->me == 0))
     error->all(FLERR,"Pair style spin requires newton pair on");
 

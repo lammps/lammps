@@ -178,7 +178,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // checking size of emag
-  
+
   if (nlocal_max < nlocal) {    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
@@ -400,13 +400,13 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ei
 //   double energy = 0.0;
 //   itype = type[i];
 //   jtype = type[j];
-// 
+//
 //   Jex = J1_mech[itype][jtype];
 //   ra = rsq/J3[itype][jtype]/J3[itype][jtype];
 //   Jex = 4.0*Jex*ra;
 //   Jex *= (1.0-J2[itype][jtype]*ra);
 //   Jex *= exp(-ra);
-// 
+//
 //   energy = Jex*(spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 //   return energy;
 // }

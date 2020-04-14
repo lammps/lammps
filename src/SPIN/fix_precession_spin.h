@@ -41,7 +41,7 @@ class FixPrecessionSpin : public Fix {
 
   int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
-  
+
   // zeeman calculations
 
   void compute_zeeman(int, double *);
@@ -58,7 +58,7 @@ class FixPrecessionSpin : public Fix {
   double compute_cubic_energy(double *);
 
   // storing magnetic energies
-  
+
   int nlocal_max;               // max nlocal (for list size)
   double *emag;                 // energy list
 

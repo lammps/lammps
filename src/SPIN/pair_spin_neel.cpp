@@ -192,7 +192,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // checking size of emag
-  
+
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
@@ -214,7 +214,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
     emag[i] = 0.0;
-    
+
     // loop on neighbors
 
     for (jj = 0; jj < jnum; jj++) {
@@ -399,7 +399,7 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double 
   q2r = -2.0*qr/5.0;
 
   // pseudo-dipolar component
-  
+
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
@@ -573,7 +573,7 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
 
 /* ---------------------------------------------------------------------- */
 
-double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3], double spi[3], double spj[3]) 
+double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3], double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;

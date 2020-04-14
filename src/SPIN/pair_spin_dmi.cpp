@@ -193,7 +193,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // checking size of emag
-  
+
   if (nlocal_max < nlocal) {                    // grow emag lists if necessary
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");

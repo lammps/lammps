@@ -34,9 +34,9 @@ install the `openkim-models` package
    % brew install openkim-models
 
 If you have problems with the installation you can post issues to
-`this link <homebrew_>`_.
+`this link <https://github.com/Homebrew/homebrew-core/issues>`_.
 
-.. _homebrew: https://github.com/Homebrew/homebrew-core/issues
+.. _homebrew: https://brew.sh
 
 Thanks to Derek Thomas (derekt at cello.t.u-tokyo.ac.jp) for setting
 up the Homebrew capability.

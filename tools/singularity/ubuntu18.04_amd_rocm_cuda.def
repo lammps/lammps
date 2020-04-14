@@ -9,7 +9,7 @@ From: lammps/default/lammps_development:ubuntu18.04_amd_rocm
     export LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 
 %post
-
+    export DEBIAN_FRONTEND=noninteractive
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
     mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub

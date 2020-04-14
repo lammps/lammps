@@ -36,6 +36,12 @@ From: fedora:30
 %environment
         LC_ALL=C
         export LC_ALL
+        # we need to reset any module variables
+        # inherited from the host.
+        unset LOADEDMODULES
+        source /etc/profile.d/modules.sh
+        module purge
+        module load mpi
 
 %labels
         Author akohlmey

@@ -29,6 +29,7 @@ From: ubuntu:20.04
         libjpeg-dev \
         liblapack-dev \
         libopenblas-dev \
+        libomp-dev \
         libpng-dev \
         libproj-dev \
         libvtk6-dev \
@@ -45,7 +46,6 @@ From: ubuntu:20.04
         ssh \
         texlive \
         texlive-latex-recommended \
-        texlive-latex-extra \
         texlive-pictures \
         texlive-publishers \
         texlive-science \

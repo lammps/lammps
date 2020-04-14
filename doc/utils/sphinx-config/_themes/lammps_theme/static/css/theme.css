@@ -5110,4 +5110,11 @@ span[id*='MathJax-Span'] {
     margin-bottom: 0.809em;
 }
 
+.lammps_release {
+    text-align: center;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 0.405em;
+}
+
 /*# sourceMappingURL=theme.css.map */

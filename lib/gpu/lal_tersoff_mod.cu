@@ -13,23 +13,23 @@
 //       email                : ndactrung@gmail.com
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_tersoff_mod_extra.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float4> ts1_tex;
-texture<float4> ts2_tex;
-texture<float4> ts3_tex;
-texture<float4> ts4_tex;
-texture<float4> ts5_tex;
+_texture( pos_tex,float4);
+_texture( ts1_tex,float4);
+_texture( ts2_tex,float4);
+_texture( ts3_tex,float4);
+_texture( ts4_tex,float4);
+_texture( ts5_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int4> ts1_tex;
-texture<int4> ts2_tex;
-texture<int4> ts3_tex;
-texture<int4> ts4_tex;
-texture<int4> ts5_tex;
+_texture_2d( pos_tex,int4);
+_texture( ts1_tex,int4);
+_texture( ts2_tex,int4);
+_texture( ts3_tex,int4);
+_texture( ts4_tex,int4);
+_texture( ts5_tex,int4);
 #endif
 
 #else

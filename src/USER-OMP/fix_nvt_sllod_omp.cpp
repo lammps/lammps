@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nvt_sllod_omp.h"
 #include <cstring>
 #include "math_extra.h"
@@ -114,7 +115,7 @@ void FixNVTSllodOMP::nh_v_temp()
   MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) shared(h_two) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(h_two) schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     double vdelu0,vdelu1,vdelu2,buf[3];

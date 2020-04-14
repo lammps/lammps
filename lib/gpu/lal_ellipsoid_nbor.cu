@@ -13,12 +13,12 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_preprocessor.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
+_texture( pos_tex,float4);
 #else
-texture<int4,1> pos_tex;
+_texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_

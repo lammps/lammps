@@ -51,7 +51,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   rx_flag = false;
   nspecies = 1;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) {
       rx_flag = true;
       nspecies = atom->nspecies_dpd;
       if(nspecies==0) error->all(FLERR,"There are no rx species specified.");

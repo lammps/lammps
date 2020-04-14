@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -46,27 +47,29 @@
 #include <Kokkos_Core.hpp>
 #include <default/TestDefaultDeviceType_Category.hpp>
 
-#if !defined( KOKKOS_ENABLE_CUDA ) || defined( __CUDACC__ )
+#if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 
 namespace Test {
 
-
-TEST_F( TEST_CATEGORY, host_space_access )
-{
+TEST(TEST_CATEGORY, host_space_access) {
   typedef Kokkos::HostSpace::execution_space host_exec_space;
-  typedef Kokkos::Device< host_exec_space, Kokkos::HostSpace > device_space;
-  typedef Kokkos::Impl::HostMirror< Kokkos::DefaultExecutionSpace >::Space mirror_space;
+  typedef Kokkos::Device<host_exec_space, Kokkos::HostSpace> device_space;
+  typedef Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space
+      mirror_space;
 
-  static_assert(
-    Kokkos::Impl::SpaceAccessibility< host_exec_space, Kokkos::HostSpace >::accessible, "" );
+  static_assert(Kokkos::Impl::SpaceAccessibility<host_exec_space,
+                                                 Kokkos::HostSpace>::accessible,
+                "");
 
-  static_assert(
-    Kokkos::Impl::SpaceAccessibility< device_space, Kokkos::HostSpace >::accessible, "" );
+  static_assert(Kokkos::Impl::SpaceAccessibility<device_space,
+                                                 Kokkos::HostSpace>::accessible,
+                "");
 
-  static_assert(
-    Kokkos::Impl::SpaceAccessibility< mirror_space, Kokkos::HostSpace >::accessible, "" );
+  static_assert(Kokkos::Impl::SpaceAccessibility<mirror_space,
+                                                 Kokkos::HostSpace>::accessible,
+                "");
 }
 
-} // namespace Test
+}  // namespace Test
 
 #endif

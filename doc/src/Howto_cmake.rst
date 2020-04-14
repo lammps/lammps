@@ -404,6 +404,38 @@ this scenario it is particularly convenient to do the second
 configuration step using either the text mode or graphical user
 interface (``ccmake`` or ``cmake-gui``).
 
+Compilation and build targets
+-----------------------------
+
+The actual compilation will be started by running the selected build
+command (on Linux this is by default ``make``, see below how to select
+alternatives).  You can also use the portable command ``cmake --build .``
+which will adapt to whatever the selected build command is.
+This is particularly convenient, if you have set a custom build command
+via the ``CMAKE_MAKE_PROGRAM`` variable.
+
+When calling the build program, you can also select which "target" is to
+be build through appending the name of the target to the build command.
+Example: ``cmake --build . all``. The following abstract targets are available:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Target
+     - Description
+   * - ``all``
+     - build "everything" (default)
+   * - ``lammps``
+     - build the LAMMPS library and executable
+   * - ``doc``
+     - build the HTML documentation (if configured)
+   * - ``install``
+     - install all target files into folders in ``CMAKE_INSTALL_PREFIX``
+   * - ``test``
+     - run some simple tests (if configured with ``-D ENABLE_TESTING=on``)
+   * - ``clean``
+     - remove all generated files
+
    
 Choosing generators
 -------------------

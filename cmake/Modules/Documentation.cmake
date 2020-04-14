@@ -34,6 +34,8 @@ if(BUILD_DOC)
     file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${CMAKE_CURRENT_BINARY_DIR}/mathjax)
   endif()
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax)
+  file(COPY ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/)
 
   # note, this may run in parallel with other tasks, so we must not use multiple processes here
   add_custom_command(
@@ -42,12 +44,8 @@ if(BUILD_DOC)
     COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
   )
 
-  # copy extra images for link targets
-  add_custom_command(
-    OUTPUT html/JPG
-    DEPENDS html
-    COMMAND ${CMAKE_COMMAND} -E make_directory html/JPG
-  )
+  # copy selected image files to html output tree
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/html/JPG)
   set(HTML_EXTRA_IMAGES balance_nonuniform.jpg balance_rcb.jpg
     balance_uniform.jpg bow_tutorial_01.png bow_tutorial_02.png
     bow_tutorial_03.png bow_tutorial_04.png bow_tutorial_05.png
@@ -66,21 +64,9 @@ if(BUILD_DOC)
     )
   endforeach()
 
-  # copy mathjax tree
-  add_custom_command(
-    OUTPUT html/_static/mathjax
-    DEPENDS html
-    COMMAND ${CMAKE_COMMAND} -E make_directory html/_static/mathjax
-  )
-  add_custom_command(
-    OUTPUT html/_static/mathjax/es5
-    DEPENDS html/_static/mathjax
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/mathjax/es5 html/_static/mathjax/es5
-  )
-
   add_custom_target(
     doc ALL
-    DEPENDS html html/JPG html/_static/mathjax/es5 ${HTML_IMAGE_TARGETS}
+    DEPENDS html html/_static/mathjax/es5 ${HTML_IMAGE_TARGETS}
     SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
   )
 

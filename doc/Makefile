@@ -77,7 +77,7 @@ clean-spelling:
 
 html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
@@ -93,7 +93,7 @@ html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. .*image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
+	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
@@ -114,7 +114,7 @@ epub: xmlgen $(VENV)
 	@cp src/JPG/lammps-logo.png epub/
 	@cp src/JPG/*.* epub/JPG
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
@@ -137,7 +137,7 @@ pdf: xmlgen $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\

@@ -1,4 +1,4 @@
-# serial = RedHat Linux box, g++4, no MPI, no FFTs
+# hip = MPI with HIP(clang)
 
 SHELL = /bin/sh
 
@@ -6,14 +6,15 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++
-CCFLAGS =	-O
+CC =		mpicxx
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++
-LINKFLAGS =	-O
-LIB =           
+HIP_PATH ?= $(wildcard /opt/rocm/hip)
+LINK =		$(HIP_PATH)/bin/hipcc
+LINKFLAGS =	-g -O3 $(shell mpicxx --showme:link)
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar
@@ -28,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -39,19 +40,19 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS
-MPI_PATH =      -L../STUBS
-MPI_LIB =	-lmpi_stubs
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH =
+MPI_LIB =
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
 FFT_INC =
-FFT_PATH = 
+FFT_PATH =
 FFT_LIB =
 
 # JPEG and/or PNG library
@@ -61,9 +62,9 @@ FFT_LIB =
 # PATH = path(s) for JPEG library and/or PNG library
 # LIB = name(s) of JPEG library and/or PNG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_INC =
+JPG_PATH =
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -71,6 +72,11 @@ JPG_LIB =
 
 include	Makefile.package.settings
 include	Makefile.package
+
+ifeq (nvcc,${HIP_PLATFORM})
+	# fix nvcc can't handle -pthread flag
+	LINKFLAGS := $(subst -pthread,-Xcompiler -pthread,$(LINKFLAGS))
+endif
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -100,13 +106,7 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Compilation rules
 
-%.o:%.cpp $(EXTRA_CPP_DEPENDS)
-	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
-
-%.d:%.cpp $(EXTRA_CPP_DEPENDS)
-	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
-
-%.o:%.cu $(EXTRA_CPP_DEPENDS)
+%.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies

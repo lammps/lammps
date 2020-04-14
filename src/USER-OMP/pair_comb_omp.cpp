@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_comb_omp.h"
 #include "atom.h"
@@ -52,7 +53,7 @@ void PairCombOMP::compute(int eflag, int vflag)
   Short_neigh_thr();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -411,7 +412,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
   // loop over full neighbor list of my atoms
 #if defined(_OPENMP)
-#pragma omp parallel for private(ii) default(none) shared(potal,fac11e)
+#pragma omp parallel for private(ii) LMP_DEFAULT_NONE LMP_SHARED(potal,fac11e)
 #endif
   for (ii = 0; ii < inum; ii ++) {
     double fqi,fqj,fqij,fqji,fqjj,delr1[3];
@@ -564,7 +565,7 @@ void PairCombOMP::Short_neigh_thr()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int nj,*neighptrj;

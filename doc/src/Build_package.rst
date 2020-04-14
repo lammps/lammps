@@ -130,6 +130,8 @@ src directory.
 
 ----------
 
+.. _cmake_presets:
+
 **CMake shortcuts for installing many packages**\ :
 
 Instead of specifying all the CMake options via the command-line,

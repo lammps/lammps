@@ -172,6 +172,7 @@ ba
 Babadi
 Babaei
 backcolor
+backends
 Baczewski
 Bagi
 Bagnold
@@ -505,6 +506,7 @@ cstdlib
 cstring
 cstyle
 csvr
+ctrl
 Ctypes
 ctypes
 cuda
@@ -597,6 +599,7 @@ dephasing
 dequidt
 Dequidt
 der
+dereference
 derekt
 Derjagin
 Derjaguin
@@ -1756,6 +1759,7 @@ Melchor
 Meloni
 Melrose
 Mem
+mem
 memalign
 MEMALIGN
 membered
@@ -2135,7 +2139,6 @@ nvc
 nvcc
 nve
 nvidia
-Nvidia
 nvk
 nvt
 Nwait
@@ -2883,6 +2886,7 @@ Synechococcus
 sys
 sysdim
 Syst
+systemd
 Sz
 Tabbernor
 tabinner
@@ -3004,6 +3008,7 @@ traceless
 tradeoff
 traj
 Tranchida
+transactional
 transferability
 translational
 Translational

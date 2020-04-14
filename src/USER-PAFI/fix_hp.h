@@ -48,13 +48,13 @@ class FixHP : public Fix {
   double memory_usage();
 
  protected:
-  int varflag,iregion;
-  char *idregion;
+  int varflag,iregion,icompute;
+  char *idregion, *computename;
 
   double proj[5], proj_all[5]; // f,v,h, psi
   double results[4], results_all[4]; // f.n, (f.n)**2, psi, dx.n
   double c_v[10],c_v_all[10];
-
+  bool minimization; // flag for min_post_force etc
   double temperature,gamma,sqrtD,t_period,local_norm,mass_f;
   int force_flag,od_flag,com_flag;
   int nlevels_respa,ilevel_respa;

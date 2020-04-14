@@ -1,30 +1,44 @@
 units metal
 
-atom_style pafipath
+atom_style atomic
 
 atom_modify map array sort 0 0.0
 neigh_modify every 2 delay 10 check yes page 1000000 one 100000
 
-read_data  pafipath.dat
 
+## read in path data using fix property/atom
+fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
+read_data test.dat fix pa NULL PafiPath
+run 0
+
+## EAM potential
 pair_style    eam/fs
 pair_coeff * * Fe.eam.fs Fe
 mass * 55.85
-
-# fix id group name temperature friction seed overdamped on/off center of mass fix on/off
-# when overdamped is on temperature readout will be zero
-fix hp all hp 100.0 0.1 234 overdamped 1 com 1
-
-run 0
-
-fix ad all ave/deviation 1 1000 1000
-fix af all ave/time 1 100 100 f_hp[1] f_hp[2] f_hp[3] f_hp[4]
 thermo 100
 
-dump avedump all custom 1000 dump.* f_ad[1] f_ad[2] f_ad[3]
+compute pe all pe
+variable pe equal pe
+run 0
+print "energy=${pe}"
 
-thermo_style custom step temp pe etotal f_af[1] f_af[2] f_af[3] f_hp[4]
+## compute property/atom to access 9 fields
+compute pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
+run 0
+
+## fix name group-id hp compute-id temperature damp seed overdamped 0/1 com 0/1
+fix hp all hp pa 400.0 0.1 234 overdamped 1 com 1
+
+run 1000
+
+## minimize under same constraint
+min_style fire
+
+minimize 0 0 1000 1000
+print "energy=${pe}"
+
+unfix hp
+minimize 0 0 1000 1000
+print "energy=${pe}"
 
 
-run 5000
-write_data test.dat

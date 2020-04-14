@@ -71,10 +71,9 @@ FixHP::FixHP(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), idregion(NULL), random(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_pafi_package);
+  // fix NAME GROUP hp COMPUTENAME T DAMP SEED overdamped 0/1 com 0/1
 
-  if (narg < 5) error->all(FLERR,"Illegal fix hp command");
-
-  if (!atom->pafi_flag) error->all(FLERR,"Fix hp requires atom_style pafi or pafipath");
+  if (narg < 11) error->all(FLERR,"Illegal fix hp command");
 
   dynamic_group_allow = 1;
   vector_flag = 1;
@@ -84,20 +83,47 @@ FixHP::FixHP(LAMMPS *lmp, int narg, char **arg) :
   od_flag = 0;
   com_flag = 0;
 
+  int n = strlen(arg[3])+1;
+  computename = new char[n];
+  strcpy(computename,&arg[3][0]);
+
+
+  icompute = modify->find_compute(computename);
+  char buffer[128];
+
+  if (icompute < 0) {
+    sprintf(buffer,"Compute %s for fix hp does not exist",computename);
+    error->all(FLERR,buffer);
+  }
+  Compute *compute = modify->compute[icompute];
+  if (compute->peratom_flag==0) {
+    sprintf(buffer,"Compute %s for fix hp does not calculate a local array",computename);
+    error->all(FLERR,buffer);
+  }
+  if (compute->size_peratom_cols < domain->dimension*3) {
+    sprintf(buffer,"Compute %s for fix hp has %d < %d fields per atom",computename,compute->size_peratom_cols,domain->dimension*3);
+    error->all(FLERR,buffer);
+  }
+  if (comm->me==0) {
+    if (screen) fprintf(screen,"fix hp compute name,style: %s,%s\n",computename,compute->style);
+    if (logfile) fprintf(logfile,"fix hp compute name,style: %s,%s\n",computename,compute->style);
+  }
+
+
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
 
-  temperature = force->numeric(FLERR,arg[3]);
-  t_period = force->numeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
+  temperature = force->numeric(FLERR,arg[4]);
+  t_period = force->numeric(FLERR,arg[5]);
+  seed = force->inumeric(FLERR,arg[6]);
   // TODO UNITS
   gamma = 1. / t_period / force->ftm2v;
   sqrtD = sqrt(1.) * sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e*temperature) / force->ftm2v;
 
   // optional args
   iregion = -1;
-  idregion = NULL;
-  int iarg = 6;
+  idregion = NULL; // not used
+  int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix hp command");
@@ -193,6 +219,7 @@ void FixHP::init()
 
 void FixHP::setup(int vflag)
 {
+  minimization = false;
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else
@@ -205,6 +232,9 @@ void FixHP::setup(int vflag)
 
 void FixHP::min_setup(int vflag)
 {
+  minimization = true;
+  if( strcmp(update->minimize_style,"fire")!=0 && strcmp(update->minimize_style,"quickmin")!=0 )
+    error->all(FLERR,"fix hp requires damped dynamics minimizer (fire or quickmin)");
   post_force(vflag);
 }
 
@@ -233,9 +263,8 @@ void FixHP::post_force(int vflag)
     memory->create(h,maxatom,3,"fixhp:h");
   }
 
-  double **path = atom->path;
-  double **norm = atom->norm;
-  double **dnorm = atom->dnorm;
+  lmp->modify->compute[icompute]->compute_peratom();
+  double **path = lmp->modify->compute[icompute]->array_atom;
 
   double xum=0.;
 
@@ -260,34 +289,36 @@ void FixHP::post_force(int vflag)
     if (mask[i] & groupbit) {
       if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
-      h[i][0] = random->uniform() - 0.5;
-      h[i][1] = random->uniform() - 0.5;
-      h[i][2] = random->uniform() - 0.5;
+      if(!minimization) {
+        h[i][0] = random->uniform() - 0.5;
+        h[i][1] = random->uniform() - 0.5;
+        h[i][2] = random->uniform() - 0.5;
+      }
 
-      proj[0] += f[i][0] * norm[i][0]; // f.n
-      proj[0] += f[i][1] * norm[i][1]; // f.n
-      proj[0] += f[i][2] * norm[i][2]; // f.n
+      proj[0] += f[i][0] * path[i][3]; // f.n
+      proj[0] += f[i][1] * path[i][4]; // f.n
+      proj[0] += f[i][2] * path[i][5]; // f.n
 
-      proj[1] += v[i][0] * norm[i][0]; // v.n
-      proj[1] += v[i][1] * norm[i][1]; // v.n
-      proj[1] += v[i][2] * norm[i][2]; // v.n
+      proj[1] += v[i][0] * path[i][3]; // v.n
+      proj[1] += v[i][1] * path[i][4]; // v.n
+      proj[1] += v[i][2] * path[i][5]; // v.n
 
-      proj[2] += h[i][0] * norm[i][0]; // h.n
-      proj[2] += h[i][1] * norm[i][1]; // h.n
-      proj[2] += h[i][2] * norm[i][2]; // h.n
+      proj[2] += h[i][0] * path[i][3]; // h.n
+      proj[2] += h[i][1] * path[i][4]; // h.n
+      proj[2] += h[i][2] * path[i][5]; // h.n
 
       deviation[0] = x[i][0]-path[i][0]; // x-path
       deviation[1] = x[i][1]-path[i][1]; // x-path
       deviation[2] = x[i][2]-path[i][2]; // x-path
       domain->minimum_image(deviation);
 
-      proj[3] += dnorm[i][0]*deviation[0]; // (x-path).dn/nn = psi
-      proj[3] += dnorm[i][1]*deviation[1]; // (x-path).dn/nn = psi
-      proj[3] += dnorm[i][2]*deviation[2]; // (x-path).dn/nn = psi
+      proj[3] += path[i][6]*deviation[0]; // (x-path).dn/nn = psi
+      proj[3] += path[i][7]*deviation[1]; // (x-path).dn/nn = psi
+      proj[3] += path[i][8]*deviation[2]; // (x-path).dn/nn = psi
 
-      proj[4] += norm[i][0]*deviation[0]; // (x-path).dn/nn = psi
-      proj[4] += norm[i][1]*deviation[1]; // (x-path).dn/nn = psi
-      proj[4] += norm[i][2]*deviation[2]; // (x-path).dn/nn = psi
+      proj[4] += path[i][3]*deviation[0]; // (x-path).n
+      proj[4] += path[i][4]*deviation[1]; // (x-path).n
+      proj[4] += path[i][5]*deviation[2]; // (x-path).n
 
     }
   }
@@ -317,7 +348,8 @@ void FixHP::post_force(int vflag)
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-  // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi
+
+  // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
   if(comm->me ==0) {
     results_all[0] = proj_all[0] * (1.-proj_all[3]);
     results_all[1] = results_all[0] * results_all[0];
@@ -331,17 +363,18 @@ void FixHP::post_force(int vflag)
     if (mask[i] & groupbit) {
       if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
-      f[i][0] -= proj_all[0] * norm[i][0] + c_v_all[0]/c_v_all[9];
-      f[i][1] -= proj_all[0] * norm[i][1] + c_v_all[1]/c_v_all[9];
-      f[i][2] -= proj_all[0] * norm[i][2] + c_v_all[2]/c_v_all[9];
+      f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
+      f[i][1] -= proj_all[0] * path[i][4] + c_v_all[1]/c_v_all[9];
+      f[i][2] -= proj_all[0] * path[i][5] + c_v_all[2]/c_v_all[9];
 
-      v[i][0] -= proj_all[1] * norm[i][0] + c_v_all[3]/c_v_all[9];
-      v[i][1] -= proj_all[1] * norm[i][1] + c_v_all[4]/c_v_all[9];
-      v[i][2] -= proj_all[1] * norm[i][2] + c_v_all[5]/c_v_all[9];
-
-      h[i][0] -= proj_all[2] * norm[i][0] + c_v_all[6]/c_v_all[9];
-      h[i][1] -= proj_all[2] * norm[i][1] + c_v_all[7]/c_v_all[9];
-      h[i][2] -= proj_all[2] * norm[i][2] + c_v_all[8]/c_v_all[9];
+      v[i][0] -= proj_all[1] * path[i][3] + c_v_all[3]/c_v_all[9];
+      v[i][1] -= proj_all[1] * path[i][4] + c_v_all[4]/c_v_all[9];
+      v[i][2] -= proj_all[1] * path[i][5] + c_v_all[5]/c_v_all[9];
+      if(!minimization) {
+        h[i][0] -= proj_all[2] * path[i][3] + c_v_all[6]/c_v_all[9];
+        h[i][1] -= proj_all[2] * path[i][4] + c_v_all[7]/c_v_all[9];
+        h[i][2] -= proj_all[2] * path[i][5] + c_v_all[8]/c_v_all[9];
+      }
     }
   }
 
@@ -354,9 +387,15 @@ void FixHP::post_force(int vflag)
         if(rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
 
-        f[i][0] += -gamma * mass_f * mass_f * v[i][0] + sqrtD * mass_f * h[i][0];
-        f[i][1] += -gamma * mass_f * mass_f * v[i][1] + sqrtD * mass_f * h[i][1];
-        f[i][2] += -gamma * mass_f * mass_f * v[i][2] + sqrtD * mass_f * h[i][2];
+        f[i][0] += -gamma * mass_f * mass_f * v[i][0];
+        f[i][1] += -gamma * mass_f * mass_f * v[i][1];
+        f[i][2] += -gamma * mass_f * mass_f * v[i][2];
+
+        if(!minimization) {
+          f[i][0] += sqrtD * mass_f * h[i][0];
+          f[i][1] += sqrtD * mass_f * h[i][1];
+          f[i][2] += sqrtD * mass_f * h[i][2];
+        }
       }
     }
   } else {
@@ -367,10 +406,11 @@ void FixHP::post_force(int vflag)
         if(rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
 
-        f[i][0] += sqrtD * h[i][0] * mass_f;
-        f[i][1] += sqrtD * h[i][1] * mass_f;
-        f[i][2] += sqrtD * h[i][2] * mass_f;
-
+        if(!minimization) {
+          f[i][0] += sqrtD * h[i][0] * mass_f;
+          f[i][1] += sqrtD * h[i][1] * mass_f;
+          f[i][2] += sqrtD * h[i][2] * mass_f;
+        }
 
         f[i][0] /=  gamma * mass_f * mass_f;
         f[i][1] /=  gamma * mass_f * mass_f;
@@ -434,8 +474,8 @@ void FixHP::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-
-  double **norm = atom->norm;
+  lmp->modify->compute[icompute]->compute_peratom();
+  double **path = lmp->modify->compute[icompute]->array_atom;
 
   for(int i = 0; i < 10; i++) {
     c_v[i] = 0.;
@@ -448,13 +488,13 @@ void FixHP::initial_integrate(int vflag)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      proj[0] += f[i][0] * norm[i][0]; // f.n
-      proj[0] += f[i][1] * norm[i][1]; // f.n
-      proj[0] += f[i][2] * norm[i][2]; // f.n
+      proj[0] += f[i][0] * path[i][3]; // f.n
+      proj[0] += f[i][1] * path[i][4]; // f.n
+      proj[0] += f[i][2] * path[i][5]; // f.n
 
-      proj[1] += v[i][0] * norm[i][0]; // v.n
-      proj[1] += v[i][1] * norm[i][1]; // v.n
-      proj[1] += v[i][2] * norm[i][2]; // v.n
+      proj[1] += v[i][0] * path[i][3]; // v.n
+      proj[1] += v[i][1] * path[i][4]; // v.n
+      proj[1] += v[i][2] * path[i][5]; // v.n
     }
   }
   if(com_flag == 0){
@@ -484,23 +524,23 @@ void FixHP::initial_integrate(int vflag)
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          v[i][1] += dtfm * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          v[i][2] += dtfm * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
-          x[i][0] += dtv * (v[i][0]-norm[i][0]*proj_all[1] - c_v_all[0]/c_v_all[9]);
-          x[i][1] += dtv * (v[i][1]-norm[i][1]*proj_all[1] - c_v_all[1]/c_v_all[9]);
-          x[i][2] += dtv * (v[i][2]-norm[i][2]*proj_all[1] - c_v_all[2]/c_v_all[9]);
+          v[i][0] += dtfm * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          v[i][1] += dtfm * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          v[i][2] += dtfm * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          x[i][0] += dtv * (v[i][0]-path[i][3]*proj_all[1] - c_v_all[0]/c_v_all[9]);
+          x[i][1] += dtv * (v[i][1]-path[i][4]*proj_all[1] - c_v_all[1]/c_v_all[9]);
+          x[i][2] += dtv * (v[i][2]-path[i][5]*proj_all[1] - c_v_all[2]/c_v_all[9]);
         }
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          v[i][1] += dtfm * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          v[i][2] += dtfm * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
-          x[i][0] += dtv * (v[i][0]-norm[i][0]*proj_all[1] - c_v_all[0]/c_v_all[9]);
-          x[i][1] += dtv * (v[i][1]-norm[i][1]*proj_all[1] - c_v_all[1]/c_v_all[9]);
-          x[i][2] += dtv * (v[i][2]-norm[i][2]*proj_all[1] - c_v_all[2]/c_v_all[9]);
+          v[i][0] += dtfm * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          v[i][1] += dtfm * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          v[i][2] += dtfm * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          x[i][0] += dtv * (v[i][0]-path[i][3]*proj_all[1] - c_v_all[0]/c_v_all[9]);
+          x[i][1] += dtv * (v[i][1]-path[i][4]*proj_all[1] - c_v_all[1]/c_v_all[9]);
+          x[i][2] += dtv * (v[i][2]-path[i][5]*proj_all[1] - c_v_all[2]/c_v_all[9]);
         }
     }
   } else {
@@ -511,9 +551,9 @@ void FixHP::initial_integrate(int vflag)
           v[i][0] = 0.;
           v[i][1] = 0.;
           v[i][2] = 0.;
-          x[i][0] += dtv * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          x[i][1] += dtv * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          x[i][2] += dtv * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          x[i][0] += dtv * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          x[i][1] += dtv * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          x[i][2] += dtv * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
         }
     } else {
       for (int i = 0; i < nlocal; i++)
@@ -522,9 +562,9 @@ void FixHP::initial_integrate(int vflag)
           v[i][0] = 0.;
           v[i][1] = 0.;
           v[i][2] = 0.;
-          x[i][0] += dtv * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          x[i][1] += dtv * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          x[i][2] += dtv * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          x[i][0] += dtv * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          x[i][1] += dtv * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          x[i][2] += dtv * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
         }
     }
   }
@@ -546,7 +586,8 @@ void FixHP::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  double **norm = atom->norm;
+  lmp->modify->compute[icompute]->compute_peratom();
+  double **path = lmp->modify->compute[icompute]->array_atom;
 
   for(int i = 0; i < 10; i++) {
     c_v[i] = 0.;
@@ -558,9 +599,9 @@ void FixHP::final_integrate()
   }
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      proj[0] += f[i][0] * norm[i][0]; // f.n
-      proj[0] += f[i][1] * norm[i][1]; // f.n
-      proj[0] += f[i][2] * norm[i][2]; // f.n
+      proj[0] += f[i][0] * path[i][3]; // f.n
+      proj[0] += f[i][1] * path[i][4]; // f.n
+      proj[0] += f[i][2] * path[i][5]; // f.n
     }
   if(com_flag == 0){
     c_v[9] += 1.0;
@@ -582,17 +623,17 @@ void FixHP::final_integrate()
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          v[i][1] += dtfm * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          v[i][2] += dtfm * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          v[i][0] += dtfm * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          v[i][1] += dtfm * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          v[i][2] += dtfm * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
         }
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * (f[i][0]-norm[i][0]*proj_all[0] - c_v_all[3]/c_v_all[9]);
-          v[i][1] += dtfm * (f[i][1]-norm[i][1]*proj_all[0] - c_v_all[4]/c_v_all[9]);
-          v[i][2] += dtfm * (f[i][2]-norm[i][2]*proj_all[0] - c_v_all[5]/c_v_all[9]);
+          v[i][0] += dtfm * (f[i][0]-path[i][3]*proj_all[0] - c_v_all[3]/c_v_all[9]);
+          v[i][1] += dtfm * (f[i][1]-path[i][4]*proj_all[0] - c_v_all[4]/c_v_all[9]);
+          v[i][2] += dtfm * (f[i][2]-path[i][5]*proj_all[0] - c_v_all[5]/c_v_all[9]);
         }
     }
   } else {

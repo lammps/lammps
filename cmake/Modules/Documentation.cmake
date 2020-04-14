@@ -3,9 +3,11 @@
 ###############################################################################
 option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 if(BUILD_DOC)
-  find_package(PythonInterp 3 REQUIRED)
+  # Sphinx 3.0 requires at least Python 3.5
+  find_package(PythonInterp 3.5 REQUIRED)
+  find_package(Doxygen 1.8.10 REQUIRED)
 
-  set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
+  set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv -p ${PYTHON_EXECUTABLE})
 
   file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
@@ -37,11 +39,29 @@ if(BUILD_DOC)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax)
   file(COPY ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/)
 
+  # set up doxygen and add targets to run it
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/lammps-logo.png
+    DEPENDS ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png
+    COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png ${CMAKE_BINARY_DIR}/doxygen/lammps-logo.png
+  )
+  get_target_property(LAMMPS_SOURCES lammps SOURCES)
+  # need to update timestamps on pg_*.rst files after running doxygen to have sphinx re-read them
+  file(GLOB PG_SOURCES ${LAMMPS_DOC_DIR}/src/pg_*.rst)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml/index.xml
+    DEPENDS ${DOC_SOURCES} ${LAMMPS_SOURCES}
+    COMMAND Doxygen::doxygen ${LAMMPS_DOC_DIR}/doxygen/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen
+    COMMAND ${CMAKE_COMMAND} -E touch ${PG_SOURCES}
+  )
+
   # note, this may run in parallel with other tasks, so we must not use multiple processes here
   add_custom_command(
     OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv requirements.txt
+    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml/index.xml
     COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
+    COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
   )
 
   # copy selected image files to html output tree
@@ -56,17 +76,17 @@ if(BUILD_DOC)
   set(HTML_IMAGE_TARGETS "")
   foreach(_IMG ${HTML_EXTRA_IMAGES})
     string(PREPEND _IMG JPG/)
-    list(APPEND HTML_IMAGE_TARGETS "html/${_IMG}")
+    list(APPEND HTML_IMAGE_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}")
     add_custom_command(
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}
-      DEPENDS ${LAMMPS_DOC_DIR}/src/${_IMG} html/JPG
+      DEPENDS ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_CURRENT_BINARY_DIR}/html/JPG
       COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_BINARY_DIR}/html/${_IMG}
     )
   endforeach()
 
   add_custom_target(
     doc ALL
-    DEPENDS html html/_static/mathjax/es5 ${HTML_IMAGE_TARGETS}
+    DEPENDS html ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/es5 ${HTML_IMAGE_TARGETS}
     SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
   )
 

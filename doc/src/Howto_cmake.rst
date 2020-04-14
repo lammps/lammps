@@ -416,7 +416,8 @@ via the ``CMAKE_MAKE_PROGRAM`` variable.
 
 When calling the build program, you can also select which "target" is to
 be build through appending the name of the target to the build command.
-Example: ``cmake --build . all``. The following abstract targets are available:
+Example: ``make all`` or ``cmake --build . --target all``.
+The following abstract targets are available with LAMMPS:
 
 .. list-table::
    :header-rows: 1

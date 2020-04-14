@@ -18,6 +18,21 @@ compile-tests:
     paths:
       - build/lmp
 
+compile-mpi:
+  stage: compile
+  tags:
+    - gcc
+  script:
+    - which gcc
+    - gcc --version
+    - which cmake
+    - cmake --version
+    - mkdir build-mpi; cd build-mpi
+    - cmake -DCMAKE_BUILD_TYPE=Release -D BUILD_MPI=ON ../cmake
+    - cmake --build .
+    - ls -lrt
+    
+
 
 test-md-energy-conservation:
   stage: test

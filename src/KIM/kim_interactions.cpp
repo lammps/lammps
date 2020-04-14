@@ -15,6 +15,7 @@
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
                          Ellad B. Tadmor (UMN)
+                         Ronald Miller   (Carleton U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -57,8 +58,10 @@
 
 #include "kim_interactions.h"
 #include <cstring>
+#include <cstdio>
 #include <string>
 #include <sstream>
+#include <vector>
 #include "error.h"
 #include "atom.h"
 #include "comm.h"
@@ -79,6 +82,8 @@ extern "C" {
                                           << std::dec << x).str()
 
 using namespace LAMMPS_NS;
+
+#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -223,8 +228,16 @@ void KimInteractions::do_setup(int narg, char **arg)
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
               simulatorModel,sim_model_idx,j,&sim_value);
-          input->one(sim_value);
-        }
+	  char strbuf[MAXLINE];
+	  char * strword;
+	  strcpy(strbuf,sim_value);
+	  strword = strtok(strbuf," \t");
+	  if (0==strcmp(strword,"kim_match_pairs")) {
+	    kim_match_pairs(sim_value);
+	  } else {
+            input->one(sim_value);
+          }
+	}
       }
     }
 
@@ -259,6 +272,73 @@ void KimInteractions::do_setup(int narg, char **arg)
   // End output to log file
   kim_interactions_log_delimiter("end");
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KimInteractions::kim_match_pairs(char const *const input_line) const
+{
+  char strbuf[MAXLINE];
+  strcpy(strbuf,input_line);
+  char *cmd, *filename;
+  cmd = strtok(strbuf," \t");
+  filename = strtok(NULL," \t");
+
+  FILE *fp;
+  fp = fopen(filename,"r");
+  if (fp == NULL) {
+    error->one(FLERR,"Parameter file not found");
+  }
+
+  std::vector<char *> species;
+  for (int i = 0; i < atom->ntypes; ++i)
+  {
+    char *str;
+    str = strtok(NULL," \t");
+    if (str == NULL)
+      error->one(FLERR,"Incorrect args for pair_species_coeff command");
+    species.push_back(str);
+  }
+
+  char line[MAXLINE],*ptr;
+  int n, eof = 0;
+
+  while (1) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == NULL) {
+        eof = 1;
+        fclose(fp);
+      } else n = strlen(line) + 1;
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+    char *species1, *species2, *the_rest;
+    ptr = line;
+    species1 = strtok(ptr," \t");
+    species2 = strtok(NULL," \t");
+    the_rest = strtok(NULL,"\n");
+
+    for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
+      for (int type_b = type_a; type_b < atom->ntypes; ++type_b) {
+	if(((strcmp(species[type_a],species1) == 0) &&
+            (strcmp(species[type_b],species2) == 0))
+           ||
+	   ((strcmp(species[type_b],species1) == 0) &&
+            (strcmp(species[type_a],species2) == 0))
+          ) {
+          char pair_command[MAXLINE];
+	  sprintf(pair_command,"pair_coeff %i %i %s",type_a+1,type_b+1,
+                  the_rest);
+	  input->one(pair_command);
+	}
+      }
+    }
+  }
+  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

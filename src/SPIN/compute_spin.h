@@ -35,13 +35,13 @@ class ComputeSpin : public Compute {
   int pair_spin_flag;                   // magnetic pair flags
   int long_spin_flag;                   // magnetic long-range flag
   int precession_spin_flag;             // magnetic precession flags
-  
+
   double kb,hbar;
-  
+
   // pointers to magnetic fixes
-  
+
   class FixPrecessionSpin *lockprecessionspin;
-  
+
   // pointers to magnetic pair styles
 
   int npairs, npairspin;                // # of pairs, and # of spin pairs

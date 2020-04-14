@@ -48,7 +48,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 6;
   extvector = 0;
-  
+
   // initialize the magnetic interaction flags
 
   pair_spin_flag = 0;
@@ -79,7 +79,7 @@ void ComputeSpin::init()
   precession_spin_flag = 0;
 
   // set ptrs on Pair/Spin styles
-  
+
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
   if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
@@ -129,7 +129,7 @@ void ComputeSpin::init()
       long_spin_flag = 1;
     }
   }
-  
+
   // ptrs FixPrecessionSpin classes
 
   int iforce;
@@ -179,13 +179,13 @@ void ComputeSpin::compute_vector()
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
-        
+
         // update magnetic precession energies
-        
+
         if (precession_spin_flag) {
           magenergy += lockprecessionspin->emag[i];
         }
-        
+
         // update magnetic pair interactions
 
         if (pair_spin_flag) {

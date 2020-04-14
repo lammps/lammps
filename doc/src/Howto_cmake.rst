@@ -62,8 +62,8 @@ it should look like this:
     bench  doc       lib      potentials  README  tools
     cmake  examples  LICENSE  python      src
 
-Build directory versus source directory
----------------------------------------
+Build versus source directory
+-----------------------------
 
 When using CMake the build procedure is separated into multiple distinct phases:
 
@@ -329,7 +329,7 @@ Some common LAMMPS specific variables
    * - ``BUILD_TOOLS``
      - compile some additional executables from the ``tools`` folder (default: ``off``)
    * - ``BUILD_DOC``
-     - include building the documentation (default: ``off``)
+     - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
      - common compiler flags, for optimization or instrumentation (default: compiler specific)
    * - ``LAMMPS_MACHINE``

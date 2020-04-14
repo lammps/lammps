@@ -1,10 +1,11 @@
 Build LAMMPS with CMake
 =======================
 
-This page describes how to use CMake in general to build LAMMPS.
-Details for specific compile time settings and options to enable
-and configure add-on packages are discussed with those packages.
-Links to those pages on the :doc:`Build overview <Build>` page.
+This page describes how to use `CMake <https://cmake.org>`_ in general
+to build LAMMPS.  Details for specific compile time settings and options
+to enable and configure add-on packages are discussed with those
+packages.  Links to those pages on the :doc:`Build overview <Build>`
+page.
 
 The following text assumes some familiarity with CMake and focuses on
 using the command line tool ``cmake`` and what settings are supported
@@ -33,26 +34,29 @@ Advantages of using CMake
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 CMake is an alternative to compiling LAMMPS in the traditional way
-through :doc:`(manually customized) makefiles <Build_make>` and a rather
-recent addition to LAMMPS thanks to the efforts of Christoph Junghans
-(LANL) and Richard Berger (Temple U).  Using CMake has multiple
-advantages that are specifically helpful for people with limited
-experience in compiling software or for people that want to modify or
-extend LAMMPS.
+through :doc:`(manually customized) makefiles <Build_make>` and a recent
+addition to LAMMPS thanks to the efforts of Christoph Junghans (LANL)
+and Richard Berger (Temple U).  Using CMake has multiple advantages that
+are specifically helpful for people with limited experience in compiling
+software or for people that want to modify or extend LAMMPS.
 
-- Detect available hardware, tools, features, and libraries and adapt
-  the LAMMPS build configuration accordingly.
-- Output files for different build tools or integrated development
-  environments (IDEs).
-- Customization settings with text mode or graphical user interface. No
-  knowledge of make file format and syntax required.
-- All components compiled in a single build operation.
-- Support for out-of-source compilation. Multiple configurations and
-  settings with different choices of LAMMPS packages, settings, or
+- CMake can detect available hardware, tools, features, and libraries
+  and adapt the LAMMPS default build configuration accordingly.
+- CMake can generate files for different build tools and integrated
+  development environments (IDE).
+- CMake supports customization of settings with a text mode or graphical
+  user interface. No knowledge of file formats or and complex command
+  line syntax required.
+- All enabled components are compiled in a single build operation.
+- Automated dependency tracking for all files and configuration options.
+- Support for true out-of-source compilation. Multiple configurations
+  and settings with different choices of LAMMPS packages, settings, or
   compilers can be configured and built concurrently from the same
   source tree.
 - Simplified packaging of LAMMPS for Linux distributions, environment
   modules, or automated build tools like `Homebrew <https://brew.sh/>`_.
+- Integration of automated regression testing (the LAMMPS side for that
+  is still under development).
 
 .. _cmake_build:
 
@@ -60,12 +64,14 @@ Getting started
 ^^^^^^^^^^^^^^^
 
 Building LAMMPS with CMake is a two-step process.  First you use CMake
-to generate build environment in a new directory.  For that purpose you
-can use either the command-line utility ``cmake`` (or ``cmake3``), the
-text-mode UI utility ``ccmake`` (or ``ccmake3``) or the graphical
-utility ``cmake-gui``, or use them interchangeably.  Here is a minimal
-example using the command line version of CMake to build LAMMPS with no
-add-on packages enabled and no customization:
+to generate a build environment in a new directory.  For that purpose
+you can use either the command-line utility ``cmake`` (or ``cmake3``),
+the text-mode UI utility ``ccmake`` (or ``ccmake3``) or the graphical
+utility ``cmake-gui``, or use them interchangeably.  The second step is
+then the compilation and linking of all objects, libraries, and
+executables. Here is a minimal example using the command line version of
+CMake to build LAMMPS with no add-on packages enabled and no
+customization:
 
 .. code-block:: bash
 
@@ -94,11 +100,11 @@ tasks).  Also installation of the `ccache <https://ccache.dev/>`_ (=
 Compiler Cache) software may speed up repeated compilation even more,
 e.g. during code development.
 
-After the initial build, whenever you edit LAMMPS source files, add
-or remove packages, change compiler flags or build options,
+After the initial build, whenever you edit LAMMPS source files, enable
+or disable packages, change compiler flags or build options,
 you must re-compile and relink the LAMMPS executable with ``cmake --build .``.
 If the compilation fails for some reason, try running ``cmake .`` and
-then compile again. The included dependency tracking of should insure
+then compile again. The included dependency tracking should make certain
 that only the necessary subset of files are re-compiled.
 
 After compilation, you may optionally install the LAMMPS executable into
@@ -108,9 +114,10 @@ your system with:
 
    make install    # optional, copy compiled files into installation location
 
-This will install the LAMMPS executable and library, some tools (if configured)
-and additional files like LAMMPS API headers, manpages, potential and force field
-files.  The location of the installation tree defaults to ``${HOME}/.local``.
+This will install the LAMMPS executable and library, some tools (if
+configured) and additional files like LAMMPS API headers, manpages,
+potential and force field files.  The location of the installation tree
+defaults to ``${HOME}/.local``.
 
 .. _cmake_options:
 

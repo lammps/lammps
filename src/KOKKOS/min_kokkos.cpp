@@ -236,7 +236,7 @@ void MinKokkos::setup(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -345,7 +345,7 @@ void MinKokkos::setup_minimal(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -620,7 +620,7 @@ double MinKokkos::fnorm_inf()
     auto l_fvec = fvec;
 
     Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
-      local_norm_inf = MAX(fabs(l_fvec[i]),local_norm_inf);
+      local_norm_inf = MAX(l_fvec[i]*l_fvec[i],local_norm_inf);
     },Kokkos::Max<double>(local_norm_inf));
   }
 
@@ -628,4 +628,29 @@ double MinKokkos::fnorm_inf()
   MPI_Allreduce(&local_norm_inf,&norm_inf,1,MPI_DOUBLE,MPI_MAX,world);
 
   return norm_inf;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return ||force||_max (inf norm per-vector)
+------------------------------------------------------------------------- */
+
+double MinKokkos::fnorm_max()
+{
+  
+  double local_norm_max = 0.0;
+  {
+    // local variables for lambda capture
+
+    auto l_fvec = fvec;
+
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
+      double fdotf = l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2];
+      local_norm_max = MAX(fdotf,local_norm_max);
+    },Kokkos::Max<double>(local_norm_max));
+  }
+
+  double norm_max = 0.0;
+  MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
+
+  return norm_max;
 }

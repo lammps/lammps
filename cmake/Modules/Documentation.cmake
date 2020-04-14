@@ -3,7 +3,6 @@
 ###############################################################################
 option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 if(BUILD_DOC)
-  include(ProcessorCount)
   find_package(PythonInterp 3 REQUIRED)
 
   set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)

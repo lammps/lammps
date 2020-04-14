@@ -33,6 +33,7 @@
 #include "kokkos_few.h"
 #include "kokkos.h"
 #include "modify.h"
+#include "utils.h"
 #include <cassert>
 
 using namespace LAMMPS_NS;
@@ -1022,7 +1023,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 
   bool rx_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0) rx_flag = true;
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
   if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
 
   int ilo,ihi,jlo,jhi;

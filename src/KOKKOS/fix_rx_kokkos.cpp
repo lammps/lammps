@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "kokkos.h"
+#include "utils.h"
 
 #include <cfloat> // DBL_EPSILON
 
@@ -128,7 +129,7 @@ void FixRxKokkos<DeviceType>::init()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos/table/rx",3) == 0) eos_flag = true;
+    if (utils::strmatch(modify->fix[i]->style,"^eos/table/rx")) eos_flag = true;
   if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)

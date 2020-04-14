@@ -79,7 +79,7 @@ def get_git_info():
     try:
         gitinfo = subprocess.run(['git','describe'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         if gitinfo.returncode == 0:
-            git_n_date = 'git info: ' + gitinfo.stdout.decode() + '\n'
+            git_n_date = gitinfo.stdout.decode()
     except:
         pass
     return git_n_date

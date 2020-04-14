@@ -101,11 +101,13 @@ Compiler Cache) software may speed up repeated compilation even more,
 e.g. during code development.
 
 After the initial build, whenever you edit LAMMPS source files, enable
-or disable packages, change compiler flags or build options,
-you must re-compile and relink the LAMMPS executable with ``cmake --build .``.
-If the compilation fails for some reason, try running ``cmake .`` and
-then compile again. The included dependency tracking should make certain
-that only the necessary subset of files are re-compiled.
+or disable packages, change compiler flags or build options, you must
+re-compile and relink the LAMMPS executable with ``cmake --build .`` (or
+``make``).  If the compilation fails for some reason, try running
+``cmake .`` and then compile again. The included dependency tracking
+should make certain that only the necessary subset of files are
+re-compiled.  You can also delete compiled objects, libraries and
+executables with ``cmake --build . clean`` (or ``make clean``).
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:

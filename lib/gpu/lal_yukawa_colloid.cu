@@ -13,15 +13,15 @@
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> rad_tex;
+_texture( pos_tex,float4);
+_texture( rad_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> rad_tex;
+_texture_2d( pos_tex,int4);
+_texture( rad_tex,int2);
 #endif
 
 #else

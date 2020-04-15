@@ -282,6 +282,10 @@ E: Both sides of boundary must be periodic
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
 
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
+
 U: Box bounds are invalid
 
 The box boundaries specified in the read_data file are invalid.  The

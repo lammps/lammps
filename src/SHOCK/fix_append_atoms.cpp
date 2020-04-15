@@ -40,7 +40,6 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
-  box_change_size = 1;
   time_depend = 1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix append/atoms command");
@@ -75,35 +74,41 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"xlo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       xloflag = 1;
+      box_change |= BOX_CHANGE_X;
       iarg++;
       if (domain->boundary[0][0] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       xhiflag = 1;
+      box_change |= BOX_CHANGE_X;
       iarg++;
       if (domain->boundary[0][1] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"ylo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       yloflag = 1;
+      box_change |= BOX_CHANGE_Y;
       iarg++;
       if (domain->boundary[1][0] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"yhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       yhiflag = 1;
+      box_change |= BOX_CHANGE_Y;
       iarg++;
       if (domain->boundary[1][1] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zlo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       zloflag = 1;
+      box_change |= BOX_CHANGE_Z;
       iarg++;
       if (domain->boundary[2][0] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zhi") == 0) {
       zhiflag = 1;
+      box_change |= BOX_CHANGE_Z;
       iarg++;
       if (domain->boundary[2][1] != 3)
         error->all(FLERR,"Append boundary must be shrink/minimum");

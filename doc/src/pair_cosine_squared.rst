@@ -31,7 +31,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
-   pair_coeff \* \* 1.0 1.3
+   pair_coeff * * 1.0 1.3
    pair_coeff 1 3 1.0 1.3 2.0
    pair_coeff 1 3 1.0 1.3 wca
    pair_coeff 1 3 1.0 1.3 2.0 wca
@@ -46,7 +46,7 @@ Style *cosine/squared* computes a potential of the form
    E =
    \begin{cases}
    -\epsilon& \quad r < \sigma \\
-   -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)&\quad \sigma \leq r < r_c \\
+   -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)^2&\quad \sigma \leq r < r_c \\
    0& \quad r \geq r_c
    \end{cases}
 

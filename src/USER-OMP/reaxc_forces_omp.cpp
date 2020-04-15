@@ -26,6 +26,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "omp_compat.h"
 #include "reaxc_forces_omp.h"
 #include <mpi.h>
 #include <cmath>
@@ -146,7 +147,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
   reax_list *bonds = (*lists) + BONDS;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared) //default(none)
+#pragma omp parallel default(shared) //LMP_DEFAULT_NONE
 #endif
   {
     int i, j, k, pj, pk, start_j, end_j;

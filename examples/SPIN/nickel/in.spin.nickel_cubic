@@ -50,7 +50,7 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_emag temp v_tmag etotal
+thermo_style    custom step time v_magnorm pe v_emag temp v_tmag etotal
 thermo          50
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz

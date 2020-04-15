@@ -410,21 +410,21 @@ WARN_LOGFILE           = "../doxygen-warn.log"
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @LAMMPS_SRC_DIR@/utils.cpp      \
-                         @LAMMPS_SRC_DIR@/utils.h        \
-                         @LAMMPS_SRC_DIR@/library.cpp    \
-                         @LAMMPS_SRC_DIR@/library.h      \
-                         @LAMMPS_SRC_DIR@/lammps.cpp     \
-                         @LAMMPS_SRC_DIR@/lammps.h       \
-                         @LAMMPS_SRC_DIR@/pointers.h     \
-                         @LAMMPS_SRC_DIR@/run.cpp        \
-                         @LAMMPS_SRC_DIR@/run.h          \
-                         @LAMMPS_SRC_DIR@/atom.cpp       \
-                         @LAMMPS_SRC_DIR@/atom.h         \
-                         @LAMMPS_SRC_DIR@/write_data.cpp \
-                         @LAMMPS_SRC_DIR@/write_data.h   \
-                         @LAMMPS_SRC_DIR@/region.cpp     \
-                         @LAMMPS_SRC_DIR@/region.h       \
+INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp      \
+                         @LAMMPS_SOURCE_DIR@/utils.h        \
+                         @LAMMPS_SOURCE_DIR@/library.cpp    \
+                         @LAMMPS_SOURCE_DIR@/library.h      \
+                         @LAMMPS_SOURCE_DIR@/lammps.cpp     \
+                         @LAMMPS_SOURCE_DIR@/lammps.h       \
+                         @LAMMPS_SOURCE_DIR@/pointers.h     \
+                         @LAMMPS_SOURCE_DIR@/run.cpp        \
+                         @LAMMPS_SOURCE_DIR@/run.h          \
+                         @LAMMPS_SOURCE_DIR@/atom.cpp       \
+                         @LAMMPS_SOURCE_DIR@/atom.h         \
+                         @LAMMPS_SOURCE_DIR@/write_data.cpp \
+                         @LAMMPS_SOURCE_DIR@/write_data.h   \
+                         @LAMMPS_SOURCE_DIR@/region.cpp     \
+                         @LAMMPS_SOURCE_DIR@/region.h       \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

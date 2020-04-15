@@ -49,26 +49,31 @@ if(BUILD_DOC)
 
   # set up doxygen and add targets to run it
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
+  set(DOXYGEN_XML_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/lammps-logo.png
     DEPENDS ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png
     COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png ${CMAKE_BINARY_DIR}/doxygen/lammps-logo.png
   )
+  configure_file(${LAMMPS_DOC_DIR}/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile)
   get_target_property(LAMMPS_SOURCES lammps SOURCES)
   # need to update timestamps on pg_*.rst files after running doxygen to have sphinx re-read them
   file(GLOB PG_SOURCES ${LAMMPS_DOC_DIR}/src/pg_*.rst)
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml/index.xml
+    OUTPUT ${DOXYGEN_XML_DIR}/index.xml
     DEPENDS ${DOC_SOURCES} ${LAMMPS_SOURCES}
-    COMMAND Doxygen::doxygen ${LAMMPS_DOC_DIR}/doxygen/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen
+    COMMAND Doxygen::doxygen ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen
     COMMAND ${CMAKE_COMMAND} -E touch ${PG_SOURCES}
   )
 
   # note, this may run in parallel with other tasks, so we must not use multiple processes here
+  file(COPY ${LAMMPS_DOC_DIR}/utils/sphinx-config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utils)
+  file(COPY ${LAMMPS_DOC_DIR}/src DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  configure_file(${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py)
   add_custom_command(
     OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml/index.xml
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
+    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${CMAKE_CURRENT_BINARY_DIR}/sphinx-config/conf.py
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${CMAKE_BINARY_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
     COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
   )
 

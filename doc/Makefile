@@ -44,7 +44,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 
 # grab list of sources from doxygen config file.
 # we only want to use explicitly listed files.
-DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SRC_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
+DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
 .PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xmlgen
 
@@ -77,7 +77,7 @@ clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
 
 $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
-	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' $< > $@
+	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/src/g' $< > $@
 
 html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@(\
@@ -202,7 +202,7 @@ package_check : $(VENV)
 xmlgen : doxygen/xml/index.xml
 
 doxygen/Doxyfile: doxygen/Doxyfile.in
-	sed -e 's/@LAMMPS_SRC_DIR@/..\/..\/src/g' $< > $@
+	sed -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/src/g' $< > $@
 
 doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
 	@(cd doxygen; doxygen Doxyfile)

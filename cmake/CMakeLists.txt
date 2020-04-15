@@ -599,13 +599,16 @@ install(
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     find_package(PythonInterp) # Deprecated since version 3.12
+    if(PYTHONINTERP_FOUND)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
-  if (PYTHON_EXECUTABLE)
+  if (Python_EXECUTABLE)
     add_custom_target(
       install-python
-      ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
       -m ${LAMMPS_PYTHON_DIR}/lammps.py
       -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
       WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
@@ -629,11 +632,14 @@ endif()
 if(BUILD_SHARED_LIBS OR PKG_PYTHON)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     find_package(PythonInterp) # Deprecated since version 3.12
+    if(PYTHONINTERP_FOUND)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
-  if (PYTHON_EXECUTABLE)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
+  if (Python_EXECUTABLE)
+    execute_process(COMMAND ${Python_EXECUTABLE}
       -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
       OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")

@@ -636,7 +636,7 @@ double MinKokkos::fnorm_inf()
 
 double MinKokkos::fnorm_max()
 {
-  
+
   double local_norm_max = 0.0;
   {
     // local variables for lambda capture

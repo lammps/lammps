@@ -307,7 +307,7 @@ void KimInteractions::KIM_MATCH_PAIRS(char const *const input_line) const
     char *str;
     str = strtok(NULL," \t");
     if (str == NULL)
-      error->one(FLERR,"Incorrect args for pair_species_coeff command");
+      error->one(FLERR,"Incorrect args for KIM_MATCH_PAIRS command");
     species.push_back(str);
   }
 

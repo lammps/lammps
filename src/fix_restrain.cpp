@@ -382,11 +382,11 @@ void FixRestrain::restrain_lbound(int m)
   rk = k * dr;
 
   // force & energy
-  
+
   if (dr < 0) {
     if (r > 0.0) fbond = -2.0*rk/r;
     else fbond = 0.0;
-    
+
     elbound  += rk*dr;
     energy += rk*dr;
   } else {

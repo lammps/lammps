@@ -11,3 +11,5 @@
 /doctrees
 /docenv
 /doxygen-warn.log
+/utils/sphinx-config/conf.py
+/doxygen/Doxyfile

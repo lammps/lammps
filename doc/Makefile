@@ -7,6 +7,7 @@ VENV           = $(BUILDDIR)/docenv
 MATHJAX        = $(BUILDDIR)/mathjax
 TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
+SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 
 PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
@@ -43,7 +44,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 
 # grab list of sources from doxygen config file.
 # we only want to use explicitly listed files.
-DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile | sed -e 's/\.\.\/src/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
+DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SRC_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
 .PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xmlgen
 
@@ -67,18 +68,21 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/mathjax LAMMPS.mobi LAMMPS.epub Manual.pdf Developer.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf $(BUILDDIR)/Developer.pdf
 
 clean: clean-spelling
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
 
-html: xmlgen $(ANCHORCHECK) $(MATHJAX)
+$(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
+	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' $< > $@
+
+html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARN= \
-		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
@@ -99,11 +103,11 @@ html: xmlgen $(ANCHORCHECK) $(MATHJAX)
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: xmlgen $(VENV) utils/sphinx-config/false_positives.txt
+spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARN= \
-		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
-		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGSINGS= \
+		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
 	@echo "Spell check finished."
@@ -115,7 +119,7 @@ epub: xmlgen $(VENV)
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
-		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		sphinx-build $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
 	@mv  epub/LAMMPS.epub .
@@ -137,8 +141,8 @@ pdf: xmlgen $(ANCHORCHECK)
 		cd ../../; \
 	)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARN= \
-		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
@@ -197,6 +201,9 @@ package_check : $(VENV)
 
 xmlgen : doxygen/xml/index.xml
 
+doxygen/Doxyfile: doxygen/Doxyfile.in
+	sed -e 's/@LAMMPS_SRC_DIR@/..\/..\/src/g' $< > $@
+
 doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
 	@(cd doxygen; doxygen Doxyfile)
 	@touch src/pg_*rst
@@ -217,7 +224,7 @@ $(VENV):
 	)
 
 $(MATHJAX):
-	@git clone --depth 1 https://github.com/mathjax/MathJax.git mathjax
+	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

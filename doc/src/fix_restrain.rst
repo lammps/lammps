@@ -23,12 +23,12 @@ Syntax
          r0start = equilibrium bond distance at start of run (distance units)
          r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
            specified it is assumed to be equal to r0start
-       *lbond* args = atom1 atom2 Kstart Kstop r0start r0stop
+       *lbond* args = atom1 atom2 Kstart Kstop r0start (r0stop)
          atom1,atom2 = IDs of 2 atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
          r0start = equilibrium bond distance at start of run (distance units)
-         r0stop = equilibrium bond distance at end of run (distance units). If not
-           specified it's assumed to be equal to r0start
+         r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
+           specified it is assumed to be equal to r0start
        *angle* args = atom1 atom2 atom3 Kstart Kstop theta0
          atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)

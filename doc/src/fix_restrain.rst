@@ -17,10 +17,18 @@ Syntax
 
   .. parsed-literal::
 
-       *bond* args = atom1 atom2 Kstart Kstop r0
+       *bond* args = atom1 atom2 Kstart Kstop r0start (r0stop)
          atom1,atom2 = IDs of 2 atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-         r0 = equilibrium bond distance (distance units)
+         r0start = equilibrium bond distance at start of run (distance units)
+         r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
+           specified it is assumed to be equal to r0start
+       *lbond* args = atom1 atom2 Kstart Kstop r0start (r0stop)
+         atom1,atom2 = IDs of 2 atoms in bond
+         Kstart,Kstop = restraint coefficients at start/end of run (energy units)
+         r0start = equilibrium bond distance at start of run (distance units)
+         r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
+           specified it is assumed to be equal to r0start
        *angle* args = atom1 atom2 atom3 Kstart Kstop theta0
          atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
@@ -38,6 +46,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
+   fix holdem all restrain lbond 45 48 2000.0 2000.0 2.75
    fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0
    fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5 0.0 2000.0 -120.0 dihedral 1 2 3 6 0.0 2000.0 0.0
@@ -131,6 +140,29 @@ the restraint is
 
    E = K (r - r_0)^2
 
+with the following coefficients:
+
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
+
+:math:`K` and :math:`r_0` are specified with the fix.  Note that the usual 1/2 factor
+is included in :math:`K`.
+
+----------
+
+The *lbond* keyword applies a lower bound bond restraint to the specified atoms
+using the same functional form used by the :doc:`bond_style harmonic <bond_harmonic>` command if the distance between
+the atoms is smaller than the equilibrium bond distance and 0 otherwise. The potential associated with
+the restraint is
+
+.. math::
+
+   E = K (r - r_0)^2 ,if\;r < r_0
+
+.. math::
+
+   E = 0 \qquad\quad\quad ,if\;r \ge r_0
+   
 with the following coefficients:
 
 * :math:`K` (energy/distance\^2)

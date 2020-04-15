@@ -119,6 +119,7 @@ tools/emacs/*         @HaoZeke
 
 # cmake
 cmake/*               @junghans @rbberger
+cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
 
 # python
 python/*              @rbberger

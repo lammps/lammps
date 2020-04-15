@@ -77,7 +77,7 @@ clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
 
 $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
-	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/src/g' $< > $@
+	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/..\/src/g' $< > $@
 
 html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@(\
@@ -112,7 +112,7 @@ spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub: xmlgen $(VENV)
+epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -131,7 +131,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: xmlgen $(ANCHORCHECK)
+pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
 		cd src/Developer; \

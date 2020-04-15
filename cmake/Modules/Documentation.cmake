@@ -72,7 +72,7 @@ if(BUILD_DOC)
   configure_file(${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py)
   add_custom_command(
     OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${CMAKE_CURRENT_BINARY_DIR}/sphinx-config/conf.py
+    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py
     COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${CMAKE_BINARY_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
     COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
   )

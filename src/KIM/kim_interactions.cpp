@@ -232,8 +232,19 @@ void KimInteractions::do_setup(int narg, char **arg)
 	  char * strword;
 	  strcpy(strbuf,sim_value);
 	  strword = strtok(strbuf," \t");
-	  if (0==strcmp(strword,"kim_match_pairs")) {
-	    kim_match_pairs(sim_value);
+	  if (0==strcmp(strword,"KIM_MATCH_PAIRS")) {
+            // Notes regarding the KIM_MATCH_PAIRS command
+            //  * This is an INTERNAL command.
+            //  * It is intended for use only by KIM Simulator Models.
+            //  * It is not possible to use this command outside of the context
+            //    of the kim_interactions command and KIM Simulator Models.
+            //  * The command performs a transformation from symbolic
+            //    string-based atom types to lammps numeric atom types for
+            //    the pair_coeff settings.
+            //  * The command is not documented fully as it is expected to be
+            //    temporary.  Eventually it should be replaced by a more
+            //    comprehensive symbolic types support in lammps.
+	    KIM_MATCH_PAIRS(sim_value);
 	  } else {
             input->one(sim_value);
           }
@@ -276,7 +287,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInteractions::kim_match_pairs(char const *const input_line) const
+void KimInteractions::KIM_MATCH_PAIRS(char const *const input_line) const
 {
   char strbuf[MAXLINE];
   strcpy(strbuf,input_line);

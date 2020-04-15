@@ -13,12 +13,11 @@
    Contributing author: Ulf R. Pedersen, ulf@urp.dk
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_rhok.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
 
-#include "fix_rhok.h"
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
@@ -26,9 +25,11 @@
 #include "respa.h"
 #include "update.h"
 #include "citeme.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 static const char cite_fix_rhok[] =
   "Bias on the collective density field (fix rhok):\n\n"
@@ -71,9 +72,9 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   n[1]   = force->inumeric(FLERR,inArgv[4]);
   n[2]   = force->inumeric(FLERR,inArgv[5]);
 
-  mK[0] = n[0]*(2*M_PI / (domain->boxhi[0] - domain->boxlo[0]));
-  mK[1] = n[1]*(2*M_PI / (domain->boxhi[1] - domain->boxlo[1]));
-  mK[2] = n[2]*(2*M_PI / (domain->boxhi[2] - domain->boxlo[2]));
+  mK[0] = n[0]*(2*MY_PI / (domain->boxhi[0] - domain->boxlo[0]));
+  mK[1] = n[1]*(2*MY_PI / (domain->boxhi[1] - domain->boxlo[1]));
+  mK[2] = n[2]*(2*MY_PI / (domain->boxhi[2] - domain->boxlo[2]));
 
   mKappa = force->numeric(FLERR,inArgv[6]);
   mRhoK0 = force->numeric(FLERR,inArgv[7]);

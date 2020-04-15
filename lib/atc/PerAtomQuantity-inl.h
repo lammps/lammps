@@ -177,7 +177,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomQuantity<T>::pack_comm(int index, double *buf, 
-                                    int pbc_flag, int *pbc)
+                                    int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     DenseMatrix<T> & myQuantity(this->quantity_);
@@ -256,7 +256,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int LammpsAtomQuantity<T>::pack_comm(int index, double *buf, 
-                                       int pbc_flag, int *pbc)
+                                       int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     int bufIdx = 0;
@@ -550,7 +550,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomDiagonalMatrix<T>::pack_comm(int index, double *buf, 
-                                          int pbc_flag, int *pbc)
+                                          int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     DiagonalMatrix<T> & myQuantity(this->quantity_);
@@ -756,8 +756,8 @@ namespace ATC {
   // pack values in local atom-based arrays for passing to ghosts on another proc 
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomSparseMatrix<T>::pack_comm(int index, double *buf, 
-                                        int pbc_flag, int *pbc)
+    int PerAtomSparseMatrix<T>::pack_comm(int /* index */, double * /* buf */, 
+                                          int /* pbc_flag */, int */* pbc */)
   {
     return 0;
   }
@@ -766,7 +766,7 @@ namespace ATC {
   // unpack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomSparseMatrix<T>::unpack_comm(int index, double *buf)
+    int PerAtomSparseMatrix<T>::unpack_comm(int /* index */, double * /* buf */)
   {
     return 0;
   }

@@ -23,7 +23,7 @@ const char *lj96=0;
 
 #include "lal_lj96.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJ96T LJ96<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -152,3 +152,4 @@ void LJ96T::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJ96<PRECISION,ACC_PRECISION>;
+}

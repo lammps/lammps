@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "replicate.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"
@@ -224,6 +223,12 @@ void Replicate::command(int narg, char **arg)
   else n = static_cast<int> (LB_FACTOR * atom->natoms / nprocs);
 
   atom->allocate_type_arrays();
+
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
+
+  bigint nbig = n;
+  nbig = atom->avec->roundup(nbig);
+  n = static_cast<int> (nbig);
   atom->avec->grow(n);
   n = atom->nmax;
 

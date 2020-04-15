@@ -13,19 +13,16 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nh_uef.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "citeme.h"
 #include "irregular.h"
 #include "modify.h"
 #include "compute.h"
-#include "kspace.h"
 #include "update.h"
 #include "domain.h"
 #include "error.h"
@@ -56,7 +53,7 @@ static const char cite_user_uef_package[] =
   "}\n\n";
 
 /* ----------------------------------------------------------------------
- * Parse fix specific keywords, do some error checking, and initalize
+ * Parse fix specific keywords, do some error checking, and initialize
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
@@ -166,7 +163,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
   // flag that I change the box here (in case of nvt)
 
-  box_change_shape = 1;
+  box_change |= BOX_CHANGE_SHAPE;
 
   // initialize the UEFBox class which computes the box at each step
 
@@ -247,7 +244,7 @@ void FixNHUef::init()
   for (int i=0; i < modify->nfix; i++)
   {
     if (strcmp(modify->fix[i]->id,id) != 0)
-      if (modify->fix[i]->box_change_shape != 0)
+      if ((modify->fix[i]->box_change & BOX_CHANGE_SHAPE) != 0)
         error->all(FLERR,"Can't use another fix which changes box shape with fix/nvt/npt/uef");
   }
 

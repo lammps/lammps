@@ -20,19 +20,17 @@
    Phys. Rev. B, 98, 235404 (2018).
 ------------------------------------------------------------------------- */
 
+#include "pair_drip.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <mpi.h>
-#include "pair_drip.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "my_page.h"
 #include "memory.h"
 #include "error.h"
 
@@ -407,7 +405,7 @@ void PairDRIP::compute(int eflag, int vflag)
       Param& p = params[iparam_ij];
       double rcutsq = p.rcutsq;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
         double fj[DIM] = {0., 0., 0.};

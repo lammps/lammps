@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,9 +42,8 @@
 //@HEADER
 */
 
-
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_THREADS )
+#if defined(KOKKOS_ENABLE_THREADS)
 
 #include <Kokkos_Core_fwd.hpp>
 /* Standard 'C' Linux libraries */
@@ -52,7 +52,7 @@
 #include <sched.h>
 #include <errno.h>
 
-/* Standard C++ libaries */
+/* Standard C++ libraries */
 
 #include <cstdlib>
 #include <string>
@@ -67,90 +67,84 @@ namespace Kokkos {
 namespace Impl {
 namespace {
 
-pthread_mutex_t host_internal_pthread_mutex = PTHREAD_MUTEX_INITIALIZER ;
+pthread_mutex_t host_internal_pthread_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Pthreads compatible driver.
 // Recovery from an exception would require constant intra-thread health
 // verification; which would negatively impact runtime.  As such simply
 // abort the process.
 
-void * internal_pthread_driver( void * )
-{
+void* internal_pthread_driver(void*) {
   try {
     ThreadsExec::driver();
-  }
-  catch( const std::exception & x ) {
-    std::cerr << "Exception thrown from worker thread: " << x.what() << std::endl ;
+  } catch (const std::exception& x) {
+    std::cerr << "Exception thrown from worker thread: " << x.what()
+              << std::endl;
+    std::cerr.flush();
+    std::abort();
+  } catch (...) {
+    std::cerr << "Exception thrown from worker thread" << std::endl;
     std::cerr.flush();
     std::abort();
   }
-  catch( ... ) {
-    std::cerr << "Exception thrown from worker thread" << std::endl ;
-    std::cerr.flush();
-    std::abort();
-  }
-  return NULL ;
+  return NULL;
 }
 
-} // namespace
+}  // namespace
 
 //----------------------------------------------------------------------------
 // Spawn a thread
 
-bool ThreadsExec::spawn()
-{
-  bool result = false ;
+bool ThreadsExec::spawn() {
+  bool result = false;
 
-  pthread_attr_t attr ;
+  pthread_attr_t attr;
 
-  if ( 0 == pthread_attr_init( & attr ) ||
-       0 == pthread_attr_setscope(       & attr, PTHREAD_SCOPE_SYSTEM ) ||
-       0 == pthread_attr_setdetachstate( & attr, PTHREAD_CREATE_DETACHED ) ) {
+  if (0 == pthread_attr_init(&attr) ||
+      0 == pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ||
+      0 == pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) {
+    pthread_t pt;
 
-    pthread_t pt ;
-
-    result = 0 == pthread_create( & pt, & attr, internal_pthread_driver, 0 );
+    result = 0 == pthread_create(&pt, &attr, internal_pthread_driver, 0);
   }
 
-  pthread_attr_destroy( & attr );
+  pthread_attr_destroy(&attr);
 
-  return result ;
+  return result;
 }
 
 //----------------------------------------------------------------------------
 
-bool ThreadsExec::is_process()
-{
+bool ThreadsExec::is_process() {
   static const pthread_t master_pid = pthread_self();
 
-  return pthread_equal( master_pid , pthread_self() );
+  return pthread_equal(master_pid, pthread_self());
 }
 
-void ThreadsExec::global_lock()
-{
-  pthread_mutex_lock( & host_internal_pthread_mutex );
+void ThreadsExec::global_lock() {
+  pthread_mutex_lock(&host_internal_pthread_mutex);
 }
 
-void ThreadsExec::global_unlock()
-{
-  pthread_mutex_unlock( & host_internal_pthread_mutex );
+void ThreadsExec::global_unlock() {
+  pthread_mutex_unlock(&host_internal_pthread_mutex);
 }
 
 //----------------------------------------------------------------------------
 
-void ThreadsExec::wait_yield( volatile int & flag , const int value )
-{
-  while ( value == flag ) { sched_yield(); }
+void ThreadsExec::wait_yield(volatile int& flag, const int value) {
+  while (value == flag) {
+    sched_yield();
+  }
 }
 
-} // namespace Impl
-} // namespace Kokkos
+}  // namespace Impl
+}  // namespace Kokkos
 
 /* end #if defined( KOKKOS_ENABLE_THREADS ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#elif defined( KOKKOS_ENABLE_WINTHREAD )
+#elif defined(KOKKOS_ENABLE_WINTHREAD)
 
 #include <Kokkos_Core_fwd.hpp>
 
@@ -159,7 +153,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 #include <windows.h>
 #include <process.h>
 
-/* Standard C++ libaries */
+/* Standard C++ libraries */
 
 #include <cstdlib>
 #include <string>
@@ -175,43 +169,40 @@ namespace Kokkos {
 namespace Impl {
 namespace {
 
-unsigned WINAPI internal_winthread_driver( void * arg )
-{
+unsigned WINAPI internal_winthread_driver(void* arg) {
   ThreadsExec::driver();
 
-  return 0 ;
+  return 0;
 }
 
 class ThreadLockWindows {
-private:
-  CRITICAL_SECTION  m_handle ;
+ private:
+  CRITICAL_SECTION m_handle;
 
-  ~ThreadLockWindows()
-  { DeleteCriticalSection( & m_handle ); }
+  ~ThreadLockWindows() { DeleteCriticalSection(&m_handle); }
 
   ThreadLockWindows();
-  { InitializeCriticalSection( & m_handle ); }
+  { InitializeCriticalSection(&m_handle); }
 
-  ThreadLockWindows( const ThreadLockWindows & );
-  ThreadLockWindows & operator = ( const ThreadLockWindows & );
+  ThreadLockWindows(const ThreadLockWindows&);
+  ThreadLockWindows& operator=(const ThreadLockWindows&);
 
-public:
+ public:
+  static ThreadLockWindows& singleton();
 
-  static ThreadLockWindows & singleton();
+  void lock() { EnterCriticalSection(&m_handle); }
 
-  void lock()
-  { EnterCriticalSection( & m_handle ); }
-
-  void unlock()
-  { LeaveCriticalSection( & m_handle ); }
+  void unlock() { LeaveCriticalSection(&m_handle); }
 };
 
-ThreadLockWindows & ThreadLockWindows::singleton()
-{ static ThreadLockWindows self ; return self ; }
+ThreadLockWindows& ThreadLockWindows::singleton() {
+  static ThreadLockWindows self;
+  return self;
+}
 
-} // namespace <>
-} // namespace Kokkos
-} // namespace Impl
+}  // namespace
+}  // namespace Impl
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -221,33 +212,30 @@ namespace Impl {
 
 // Spawn this thread
 
-bool ThreadsExec::spawn()
-{
-  unsigned Win32ThreadID = 0 ;
+bool ThreadsExec::spawn() {
+  unsigned Win32ThreadID = 0;
 
   HANDLE handle =
-    _beginthreadex(0,0,internal_winthread_driver,0,0, & Win32ThreadID );
+      _beginthreadex(0, 0, internal_winthread_driver, 0, 0, &Win32ThreadID);
 
-  return ! handle ;
+  return !handle;
 }
 
-bool ThreadsExec::is_process() { return true ; }
+bool ThreadsExec::is_process() { return true; }
 
-void ThreadsExec::global_lock()
-{ ThreadLockWindows::singleton().lock(); }
+void ThreadsExec::global_lock() { ThreadLockWindows::singleton().lock(); }
 
-void ThreadsExec::global_unlock()
-{ ThreadLockWindows::singleton().unlock(); }
+void ThreadsExec::global_unlock() { ThreadLockWindows::singleton().unlock(); }
 
-void ThreadsExec::wait_yield( volatile int & flag , const int value ) {}
-{
-  while ( value == flag ) { Sleep(0); }
+void ThreadsExec::wait_yield(volatile int& flag, const int value){} {
+  while (value == flag) {
+    Sleep(0);
+  }
 }
 
-} // namespace Impl
-} // namespace Kokkos
+}  // namespace Impl
+}  // namespace Kokkos
 
 #else
 void KOKKOS_CORE_SRC_THREADS_EXEC_BASE_PREVENT_LINK_ERROR() {}
 #endif /* end #elif defined( KOKKOS_ENABLE_WINTHREAD ) */
-

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "force.h"
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
 #include "style_dihedral.h"
@@ -32,8 +32,6 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
 #include "utils.h"
 
@@ -199,6 +197,28 @@ void Force::init()
   if (angle) angle->init();
   if (dihedral) dihedral->init();
   if (improper) improper->init();
+
+  // print warnings if topology and force field are inconsistent
+
+  if (comm->me == 0) {
+    if (!bond && (atom->nbonds > 0)) {
+      error->warning(FLERR,"Bonds are defined but no bond style is set");
+      if ((special_lj[1] != 1.0) || (special_coul[1] != 1.0))
+        error->warning(FLERR,"Likewise 1-2 special neighbor interactions != 1.0");
+    }
+    if (!angle && (atom->nangles > 0)) {
+      error->warning(FLERR,"Angles are defined but no angle style is set");
+      if ((special_lj[2] != 1.0) || (special_coul[2] != 1.0))
+        error->warning(FLERR,"Likewise 1-3 special neighbor interactions != 1.0");
+    }
+    if (!dihedral && (atom->ndihedrals > 0)) {
+      error->warning(FLERR,"Dihedrals are defined but no dihedral style is set");
+      if ((special_lj[3] != 1.0) || (special_coul[3] != 1.0))
+        error->warning(FLERR,"Likewise 1-4 special neighbor interactions != 1.0");
+    }
+    if (!improper && (atom->nimpropers > 0))
+      error->warning(FLERR,"Impropers are defined but no improper style is set");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

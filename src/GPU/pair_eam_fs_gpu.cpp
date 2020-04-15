@@ -15,10 +15,10 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_fs_gpu.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_fs_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -29,6 +29,7 @@
 #include "neigh_request.h"
 #include "gpu_extra.h"
 #include "domain.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -70,6 +71,7 @@ PairEAMFSGPU::PairEAMFSGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -186,6 +188,8 @@ void PairEAMFSGPU::init_style()
     fp_single = false;
   else
     fp_single = true;
+
+  embedstep = -1;
 }
 
 /* ---------------------------------------------------------------------- */

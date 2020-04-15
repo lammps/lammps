@@ -128,7 +128,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
     /** get data for output */
@@ -540,7 +540,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
     /** determine if local shape function matrices are needed */
@@ -581,7 +581,7 @@ namespace ATC {
     /** change in restricted atomic FE energy over a timestep */
     DENS_MAT deltaNodalAtomicEnergy_;
 
-    /** intial restricted atomic FE energy used to compute change */
+    /** initial restricted atomic FE energy used to compute change */
     DENS_MAT initialNodalAtomicEnergy_;
 
     /** filtered nodal atomic energy */
@@ -917,7 +917,7 @@ namespace ATC {
     virtual void finish() {};
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
   protected:
@@ -1022,7 +1022,7 @@ namespace ATC {
     virtual void finish() {};
     
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
   protected:

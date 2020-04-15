@@ -20,7 +20,6 @@ FixStyle(print,FixPrint)
 #ifndef LMP_FIX_PRINT_H
 #define LMP_FIX_PRINT_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -30,6 +29,7 @@ class FixPrint : public Fix {
   FixPrint(class LAMMPS *, int, char **);
   ~FixPrint();
   void init();
+  void setup(int);
   int setmask();
   void end_of_step();
 

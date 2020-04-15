@@ -2,9 +2,7 @@
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
 
-#include <cmath>
-#include <stddef.h>
-#include <stdint.h>
+#include "hashlittle.h"
 
 // if the system defines the __BYTE_ORDER__ define,
 // we use it instead of guessing the platform
@@ -142,7 +140,7 @@ acceptable.  Do NOT use for cryptographic purposes.
 -------------------------------------------------------------------------------
 */
 
-uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
+uint32_t LAMMPS_NS::hashlittle(const void *key, size_t length, uint32_t initval)
 {
 #ifndef PURIFY_HATES_HASHLITTLE
 
@@ -175,7 +173,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
      * rest of the string.  Every machine with memory protection I've seen
      * does it on word boundaries, so is OK with this.  But VALGRIND will
      * still catch it and complain.  The masking trick does make the hash
-     * noticably faster for short strings (like English words).
+     * noticeably faster for short strings (like English words).
      */
 #ifndef VALGRIND
 

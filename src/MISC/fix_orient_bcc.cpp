@@ -15,14 +15,14 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
    Modification for bcc provided by: Tegar Wicaksono (UBC)
    For a tutorial, please see "Order parameters of crystals in LAMMPS"
-            (https://dx.doi.org/10.6084/m9.figshare.1488628.v1
+            (https://doi.org/10.6084/m9.figshare.1488628.v1
 ------------------------------------------------------------------------- */
 
+#include "fix_orient_bcc.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <mpi.h>
-#include "fix_orient_bcc.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -30,7 +30,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
-#include "output.h"
 #include "force.h"
 #include "math_const.h"
 #include "citeme.h"

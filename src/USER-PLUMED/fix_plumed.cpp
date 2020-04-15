@@ -78,8 +78,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   int api_version;
   p->cmd("getApiVersion",&api_version);
-  if (api_version > 6)
-    error->all(FLERR,"Incompatible API version for PLUMED in fix plumed");
+  if ((api_version < 5) || (api_version > 7))
+    error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
+               "Only Plumed 2.4.x, 2.5.x, and 2.6.x are tested and supported.");
 
   // If the -partition option is activated then enable
   // inter-partition communication
@@ -107,7 +108,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // whereas if partitions are not defined then world is equal to
   // MPI_COMM_WORLD.
 
+#if !defined(MPI_STUBS)
+  // plumed does not know about LAMMPS using the MPI STUBS library and will
+  // fail if this is called under these circumstances
   p->cmd("setMPIComm",&world);
+#endif
 
   // Set up units
   // LAMMPS units wrt kj/mol - nm - ps
@@ -407,7 +412,7 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep",&step);
-  int plumedStopCondition=0; 
+  int plumedStopCondition=0;
   p->cmd("setStopFlag",&plumedStopCondition);
   p->cmd("setPositions",&atom->x[0][0]);
   p->cmd("setBox",&box[0][0]);

@@ -15,9 +15,9 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_shift_exp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -256,11 +257,11 @@ void AngleCosineShiftExp::read_restart(FILE *fp)
 
   if (comm->me == 0)
       {
-         fread(&umin[1],sizeof(double),atom->nangletypes,fp);
-         fread(&a[1],sizeof(double),atom->nangletypes,fp);
-         fread(&cost[1],sizeof(double),atom->nangletypes,fp);
-         fread(&sint[1],sizeof(double),atom->nangletypes,fp);
-         fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+        utils::sfread(FLERR,&umin[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+        utils::sfread(FLERR,&a[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+        utils::sfread(FLERR,&cost[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+        utils::sfread(FLERR,&sint[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+        utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
       }
   MPI_Bcast(&umin[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a[1],atom->nangletypes,MPI_DOUBLE,0,world);

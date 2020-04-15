@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_gpu.h"
 #include <cstring>
 #include <cstdlib>
-#include "fix_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -88,6 +88,12 @@ static const char cite_gpu_package[] =
   " year =    2017,\n"
   " volume =  212,\n"
   " pages =   {113--122}\n"
+  "}\n\n"
+  "@Article{Nikolskiy19,\n"
+  " author = {V. Nikolskiy, V. Stegailov},\n"
+  " title = {GPU acceleration of four-site water models in LAMMPS},\n"
+  " journal = {Proceeding of the International Conference on Parallel Computing (ParCo 2019), Prague, Czech Republic},\n"
+  " year =    2019\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

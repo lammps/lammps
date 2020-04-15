@@ -16,3 +16,5 @@ tag:  2.6.00     date: 03:07:2018    master: 62e760fa    develop: d1ba7d71
 tag:  2.7.00     date: 05:24:2018    master: e01945d0    develop: 2d13f608
 tag:  2.7.24     date: 11:04:2018    master: d3a94192    develop: 7a06fc81
 tag:  2.8.00     date: 02:05:2019    master: 34931a36    develop: d1659d1d
+tag:  2.9.00     date: 06:24:2019    master: 5d6e7fb3    develop: 4c6cb80a
+tag:  3.0.00     date: 01:31:2020    master: 2983b80d    release-candidate-3.0: fdc904a6

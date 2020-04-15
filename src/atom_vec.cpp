@@ -11,13 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "atom_vec.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
 #include "error.h"
+#include "utils.h"
+
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +35,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   mass_type = dipole_type = 0;
   forceclearflag = 0;
   size_data_bonus = 0;
+  maxexchange = 0;
+  molecular = 0;
+
   kokkosable = 0;
 
   nargcopy = 0;
@@ -107,15 +112,28 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 }
 
 /* ----------------------------------------------------------------------
+   roundup N so it is a multiple of DELTA
+   error if N exceeds 32-bit int, since will be used as arg to grow()
+------------------------------------------------------------------------- */
+
+bigint AtomVec::roundup(bigint n)
+{
+  if (n % DELTA) n = n/DELTA * DELTA + DELTA;
+  if (n > MAXSMALLINT)
+    error->one(FLERR,"Too many atoms created on one or more procs");
+  return n;
+}
+
+/* ----------------------------------------------------------------------
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
 void AtomVec::data_vel(int m, char **values)
 {
   double **v = atom->v;
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
 }
 
 /* ----------------------------------------------------------------------

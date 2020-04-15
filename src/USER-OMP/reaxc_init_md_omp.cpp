@@ -26,18 +26,16 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
 #include "reaxc_init_md_omp.h"
-#include "reaxc_allocate.h"
+#include <cstdlib>
+#include "reaxc_defs.h"
 #include "reaxc_forces.h"
 #include "reaxc_forces_omp.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"
 #include "reaxc_lookup.h"
-#include "reaxc_reset_tools.h"
-#include "reaxc_system_props.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
+#include "error.h"
 
 // Functions defined in reaxc_init_md.cpp
 extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);
@@ -47,19 +45,17 @@ extern int Init_Workspace(reax_system*, control_params*, storage*, char*);
 
 /* ---------------------------------------------------------------------- */
 
-int Init_ListsOMP( reax_system *system, control_params *control,
-                 simulation_data * /* data */, storage * /* workspace */,
-                 reax_list **lists, mpi_datatypes *mpi_data, char * /* msg */)
+int Init_ListsOMP(reax_system *system, control_params *control,
+                  simulation_data * /* data */, storage * /* workspace */,
+                  reax_list **lists, mpi_datatypes * /* mpi_data */, char * /* msg */)
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
-  MPI_Comm comm;
 
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
 
-  comm = mpi_data->world;
   bond_top = (int*) calloc( system->total_cap, sizeof(int) );
   hb_top = (int*) calloc( system->local_cap, sizeof(int) );
   Estimate_Storages( system, control, lists,

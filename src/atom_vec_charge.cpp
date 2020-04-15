@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_charge.h"
 #include "atom.h"
 #include "comm.h"
@@ -20,6 +19,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -662,12 +662,12 @@ void AtomVecCharge::data_atom(double *coord, imageint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
+  q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -690,7 +690,7 @@ void AtomVecCharge::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecCharge::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
+  q[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
 
   return 1;
 }

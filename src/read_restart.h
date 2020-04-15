@@ -20,7 +20,6 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -38,6 +37,7 @@ class ReadRestart : protected Pointers {
                              // 1 = restart file is parallel (multiple files)
   int multiproc_file;        // # of parallel files in restart
   int nprocs_file;           // total # of procs that wrote restart file
+  int revision;              // revision number of the restart file format
 
   // MPI-IO values
 
@@ -47,13 +47,14 @@ class ReadRestart : protected Pointers {
   MPI_Offset assignedChunkOffset,headerOffset;
 
   void file_search(char *, char *);
-  void header(int);
+  void header();
   void type_arrays();
   void force_fields();
 
   void magic_string();
   void endian();
-  int version_numeric();
+  void format_revision();
+  void check_eof_magic();
   void file_layout();
 
   int read_int();

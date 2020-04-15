@@ -26,8 +26,6 @@ PairStyle(bop,PairBOP)
 #define LMP_PAIR_BOP_H
 
 #include "pair.h"
-#include <ctime>
-#include "update.h"
 
 namespace LAMMPS_NS {
 
@@ -44,20 +42,20 @@ class PairBOP : public Pair {
 
  private:
   int me;
-  int maxneigh;                    // maximum size of neighbor list on this processor
-  int maxneigh3;                    // maximum size of neighbor list on this processor
-  int update_list;                 // check for changing maximum size of neighbor list
-  int maxbopn;                     // maximum size of bop neighbor list for allocation
-  int maxnall;                     // maximum size of bop neighbor list for allocation
-  int *map;                        // mapping from atom types to elements
-  int nelements;                   // # of unique elments
-  int nr;                     // increments for the BOP pair potential
-  int ntheta;                     // increments for the angle function
-  int npower;                     // power of the angular function
-  int nBOt;                   // second BO increments
-  int bop_types;                   // number of elments in potential
-  int npairs;                      // number of element pairs
-  char **elements;                   // names of unique elements
+  int maxneigh;                 // maximum size of neighbor list on this processor
+  int maxneigh3;                // maximum size of neighbor list on this processor
+  int update_list;              // check for changing maximum size of neighbor list
+  int maxbopn;                  // maximum size of bop neighbor list for allocation
+  int maxnall;                  // maximum size of bop neighbor list for allocation
+  int *map;                     // mapping from atom types to elements
+  int nelements;                // # of unique elements
+  int nr;                       // increments for the BOP pair potential
+  int ntheta;                   // increments for the angle function
+  int npower;                   // power of the angular function
+  int nBOt;                     // second BO increments
+  int bop_types;                // number of elements in potential
+  int npairs;                   // number of element pairs
+  char **elements;              // names of unique elements
   int ***elem2param;
   int nparams;
   int bop_step;
@@ -66,23 +64,22 @@ class PairBOP : public Pair {
   int allocate_neigh;
   int nb_pi,nb_sg;
   int ago1;
-//  int cnt1;
 
-  int *BOP_index;                 // index for neighbor list position
-  int *BOP_total;                 // index for neighbor list position
-  int *BOP_index3;                 // index for neighbor list position
-  int *BOP_total3;                 // index for neighbor list position
-  int *neigh_index;                 // index for neighbor list position
-  int *neigh_index3;                 // index for neighbor list position
-  int neigh_total;                // total number of neighbors stored
-  int neigh_total3;                // total number of neighbors stored
-  int *cos_index;                 // index for neighbor cosine if not using on the fly
-  int *neigh_flag;                 // index for neighbor cosine if not using on the fly
-  int *neigh_flag3;                 // index for neighbor cosine if not using on the fly
-  int cos_total;                  // number of cosines stored if not using on the fly
-  int neigh_ct;                  //  limit for large arrays
+  int *BOP_index;               // index for neighbor list position
+  int *BOP_total;               // index for neighbor list position
+  int *BOP_index3;              // index for neighbor list position
+  int *BOP_total3;              // index for neighbor list position
+  int *neigh_index;             // index for neighbor list position
+  int *neigh_index3;            // index for neighbor list position
+  int neigh_total;              // total number of neighbors stored
+  int neigh_total3;             // total number of neighbors stored
+  int *cos_index;               // index for neighbor cosine if not using on the fly
+  int *neigh_flag;              // index for neighbor cosine if not using on the fly
+  int *neigh_flag3;             // index for neighbor cosine if not using on the fly
+  int cos_total;                // number of cosines stored if not using on the fly
+  int neigh_ct;                 // limit for large arrays
 
-/*Parameters variables*/
+  // Parameters variables
 
   int ncutoff,nfunc;
   int a_flag;
@@ -98,51 +95,50 @@ class PairBOP : public Pair {
   double beta3,rsmall,rbig,rcore;
   char **words;
 
-  double cutmax;                //max cutoff for all elements
-  int otfly;                        //Defines whether to do on the fly
-                                //calculations of angles and distances
-                                //on the fly will slow down calculations
-                                //but requires less memory on = 1, off=0
+  double cutmax;                // max cutoff for all elements
+  int otfly;                    // Defines whether to do on the fly
+                                // calculations of angles and distances
+                                // on the fly will slow down calculations
+                                // but requires less memory on = 1, off=0
 
-/* Neigh variables */
+  //  Neigh variables
 
   double *rcut,*rcut3,*dr,*rdr,*dr3,*rdr3;
   double *rcutsq,*rcutsq3;
   double **disij,*rij;
   double rcutall,rctroot;
 
-/*Triple variables */
+  // Triple variables
 
   double *cosAng,***dcosAng,***dcAng;
 
-/*Double variables */
+  // Double variables
 
   double *betaS,*dBetaS,*betaP;
   double *dBetaP,*repul,*dRepul;
 
-/*Sigma variables */
+  // Sigma variables
 
   int *itypeSigBk,nSigBk;
   double sigB,sigB_0;
   double sigB1;
 
-
-/*Pi variables */
+  // Pi variables
 
   int *itypePiBk,nPiBk;
   double piB,piB_0;
 
-/*Grids1 variables */
+  // Grids1 variables
 
   double **pBetaS,**pBetaS1,**pBetaS2,**pBetaS3;
   double **pBetaS4,**pBetaS5,**pBetaS6;
 
-/*Grids2 variables */
+  // Grids2 variables
 
   double **pBetaP,**pBetaP1,**pBetaP2,**pBetaP3;
   double **pBetaP4,**pBetaP5,**pBetaP6;
 
-/*Grids3 variables */
+  // Grids3 variables
 
   double **pRepul,**pRepul1,**pRepul2,**pRepul3;
   double **pRepul4,**pRepul5,**pRepul6;
@@ -155,13 +151,13 @@ class PairBOP : public Pair {
   double ****gfunc4,****gfunc5,****gfunc6;
   double dtheta,rdtheta;
 
-/*Grids4 variables */
+  // Grids4 variables
 
   double **FsigBO,**FsigBO1,**FsigBO2,**FsigBO3;
   double **FsigBO4,**FsigBO5,**FsigBO6;
   double dBO,rdBO;
 
-/* End of BOP variables */
+  // End of BOP variables
 
   double **rcmin,**rcmax,**rcmaxp;
   struct B_PI{
@@ -211,14 +207,6 @@ class PairBOP : public Pair {
   void memory_theta_destroy();
   void memory_theta_grow();
   double cutoff(double, double, int, double);
-/*
-  double betaSfunc(int, double);
-  double dBetaSfunc(int, double, double, double);
-  double betaPfunc(int, double);
-  double dBetaPfunc(int, double, double, double);
-  double repulfunc(int, double);
-  double dRepulfunc(int, double, double, double);
-*/
 
   void read_table(char *);
   void allocate();
@@ -229,9 +217,7 @@ class PairBOP : public Pair {
   void grow_pi(int,int);
   void grow_sigma(int,int);
 };
-
 }
-
 #endif
 #endif
 

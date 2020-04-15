@@ -1,9 +1,7 @@
 # layer sc iron atoms (in the [001] plane) in bismuth oxide 
 
-clear 
 units 		metal
 atom_style 	spin
-
 dimension 	3
 boundary 	p p f
 
@@ -18,7 +16,6 @@ create_atoms 	1 box
 # setting mass, mag. moments, and interactions for bfo
 
 mass		1 1.0
-
 set 		group all spin/random 11 2.50
 
 #pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5
@@ -30,9 +27,10 @@ pair_coeff 	* * spin/dmi dmi 4.5 0.00005 1.0 1.0 1.0
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
-fix 		1 all precession/spin anisotropy 0.0000033 0.0 0.0 1.0
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0 anisotropy 0.00033 0.0 0.0 1.0
+fix_modify      1 energy yes
 fix 		2 all langevin/spin 0.0 0.1 21
-fix 		3 all nve/spin lattice no
+fix 		3 all nve/spin lattice frozen
 
 timestep	0.0002
 
@@ -46,11 +44,10 @@ variable 	magnorm	 equal c_out_mag[4]
 variable 	emag	 equal c_out_mag[5]
 variable 	tmag	 equal c_out_mag[6]
 
-#thermo_style    custom step time v_magnorm v_emag temp etotal
-thermo_style    custom step time v_magnorm pe ke v_emag temp etotal
-thermo          10
+thermo_style    custom step time v_magnorm pe v_emag temp etotal
+thermo          50
 
 compute outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 100 all custom 1 dump_bfo.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		1 all custom 100 dump_bfo.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		2000
+run 		500

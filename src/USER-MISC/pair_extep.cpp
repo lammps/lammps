@@ -15,12 +15,12 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
+#include "pair_extep.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "pair_extep.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -718,9 +718,9 @@ void PairExTeP::read_file(char *file)
   // reallocate with new size
   words = new char*[params_per_line+1];
 
-  // intialize F_corr_data to all zeros
-  for (int iel=0;iel<atom->ntypes;iel++)
-    for (int jel=0;jel<atom->ntypes;jel++)
+  // initialize F_corr_data to all zeros
+  for (int iel=0;iel<nelements;iel++)
+    for (int jel=0;jel<nelements;jel++)
       for (int in=0;in<4;in++)
         for (int jn=0;jn<4;jn++)
           for (int ivar=0;ivar<3;ivar++)
@@ -757,7 +757,7 @@ void PairExTeP::read_file(char *file)
     // skip line if it is a leftover from the previous section,
     // which can be identified by having 3 elements (instead of 2)
     // as first words.
-     
+
     if (isupper(words[0][0]) && isupper(words[1][0]) && isupper(words[2][0]))
       continue;
 

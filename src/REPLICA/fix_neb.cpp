@@ -16,11 +16,10 @@
      new options for inter-replica forces, first/last replica treatment
 ------------------------------------------------------------------------- */
 
+#include "fix_neb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_neb.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"

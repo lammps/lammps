@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -109,7 +109,9 @@ cvm::real colvar_grid_scalar::entropy() const
 {
   cvm::real sum = 0.0;
   for (size_t i = 0; i < nt; i++) {
-    sum += -1.0 * data[i] * cvm::logn(data[i]);
+    if (data[i] >0) {
+      sum += -1.0 * data[i] * cvm::logn(data[i]);
+    }
   }
   cvm::real bin_volume = 1.0;
   for (size_t id = 0; id < widths.size(); id++) {

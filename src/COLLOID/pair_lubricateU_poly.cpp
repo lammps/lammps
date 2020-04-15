@@ -17,24 +17,19 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
+#include "pair_lubricateU_poly.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include "pair_lubricateU_poly.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_deform.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
@@ -854,7 +849,7 @@ void PairLubricateUPoly::compute_RU(double **x)
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
@@ -1049,7 +1044,7 @@ void PairLubricateUPoly::compute_RE(double **x)
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;

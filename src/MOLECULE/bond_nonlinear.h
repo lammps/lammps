@@ -20,7 +20,6 @@ BondStyle(nonlinear,BondNonlinear)
 #ifndef LMP_BOND_NONLINEAR_H
 #define LMP_BOND_NONLINEAR_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -36,6 +35,7 @@ class BondNonlinear : public Bond {
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(char *, int &);
 
  protected:
   double *epsilon,*r0,*lamda;

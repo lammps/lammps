@@ -15,26 +15,21 @@
    Contributing author: David Stelter (BU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "temper_grem.h"
+#include <cmath>
+#include <cstring>
 #include "fix_grem.h"
 #include "universe.h"
 #include "domain.h"
-#include "atom.h"
 #include "update.h"
 #include "integrate.h"
 #include "modify.h"
 #include "compute.h"
 #include "force.h"
-#include "output.h"
-#include "thermo.h"
 #include "fix.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -75,6 +70,9 @@ void TemperGrem::command(int narg, char **arg)
   int nsteps = force->inumeric(FLERR,arg[0]);
   nevery = force->inumeric(FLERR,arg[1]);
   double lambda = force->numeric(FLERR,arg[2]);
+
+  // ignore temper command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
 
   // Get and check if gREM fix exists
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
@@ -132,6 +130,8 @@ void TemperGrem::command(int narg, char **arg)
   // setup for long tempering run
 
   update->whichflag = 1;
+  timer->init_timeout();
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -239,14 +239,25 @@ void TemperGrem::command(int narg, char **arg)
 
     // run for nevery timesteps
 
+    timer->init_timeout();
     update->integrate->run(nevery);
+
+    // check for timeout across all procs
+
+    int my_timeout=0;
+    int any_timeout=0;
+    if (timer->is_timeout()) my_timeout=1;
+    MPI_Allreduce(&my_timeout, &any_timeout, 1, MPI_INT, MPI_SUM, universe->uworld);
+    if (any_timeout) {
+      timer->force_timeout();
+      break;
+    }
 
     // compute PE
     // notify compute it will be called at next swap
 
     pe = pe_compute->compute_scalar();
     pe_compute->addstep(update->ntimestep + nevery);
-
 
     // which = which of 2 kinds of swaps to do (0,1)
 

@@ -42,43 +42,43 @@ namespace ATC {
 
 
         /** sets the quantity to a given value */
-    virtual void operator=(const DenseMatrix<T> & target)
+    virtual void operator=(const DenseMatrix<T> & /* target */)
       {throw ATC_Error("DenseMatrixTransfer::set_quantity - Cannot modify transfer-based matrices");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("DenseMatrixTransfer::operator= - Cannot modify transfer-based matrices");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DenseMatrix<T> & addition)
+    virtual void operator+=(const DenseMatrix<T> & /* addition */)
       {throw ATC_Error("DenseMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("DenseMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DenseMatrix<T> & subtraction)
+    virtual void operator-=(const DenseMatrix<T> & /* subtraction */)
       {throw ATC_Error("DenseMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("DenseMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DenseMatrix<T> & multiplier)
+    virtual void operator*=(const DenseMatrix<T> & /* multiplier */)
       {throw ATC_Error("DenseMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("DenseMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DenseMatrix<T> & divisor)
+    virtual void operator/=(const DenseMatrix<T> & /* divisor */)
       {throw ATC_Error("DenseMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("DenseMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
   protected:
@@ -113,43 +113,43 @@ namespace ATC {
 
 
         /** sets the quantity to a given value */
-    virtual void operator=(const SparseMatrix<T> & target)
+    virtual void operator=(const SparseMatrix<T> & /* target */)
       {throw ATC_Error("SparseMatrixTransfer::set_quantity - Cannot modify transfer-based matrices");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("SparseMatrixTransfer::operator= - Cannot modify transfer-based matrices");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const SparseMatrix<T> & addition)
+    virtual void operator+=(const SparseMatrix<T> & /* addition */)
       {throw ATC_Error("SparseMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("SparseMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const SparseMatrix<T> & subtraction)
+    virtual void operator-=(const SparseMatrix<T> & /* subtraction */)
       {throw ATC_Error("SparseMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("SparseMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const SparseMatrix<T> & multiplier)
+    virtual void operator*=(const SparseMatrix<T> & /* multiplier */)
       {throw ATC_Error("SparseMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("SparseMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const SparseMatrix<T> & divisor)
+    virtual void operator/=(const SparseMatrix<T> & /* divisor */)
       {throw ATC_Error("SparseMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("SparseMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
   protected:
@@ -184,43 +184,43 @@ namespace ATC {
 
 
         /** sets the quantity to a given value */
-    virtual void operator=(const DiagonalMatrix<T> & target)
+    virtual void operator=(const DiagonalMatrix<T> & /* target */)
       {throw ATC_Error("DiagonalMatrixTransfer::set_quantity - Cannot modify transfer-based matrices");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator= - Cannot modify transfer-based matrices");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DiagonalMatrix<T> & addition)
+    virtual void operator+=(const DiagonalMatrix<T> & /* addition */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator+= - Cannot modify transfer-based matrices");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DiagonalMatrix<T> & subtraction)
+    virtual void operator-=(const DiagonalMatrix<T> & /* subtraction */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator-= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DiagonalMatrix<T> & multiplier)
+    virtual void operator*=(const DiagonalMatrix<T> & /* multiplier */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator*= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DiagonalMatrix<T> & divisor)
+    virtual void operator/=(const DiagonalMatrix<T> & /* divisor */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("DiagonalMatrixTransfer::operator/= - Cannot modify transfer-based matrices");};
 
   protected:
@@ -466,7 +466,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -510,7 +510,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -560,7 +560,7 @@ namespace ATC {
     DIAG_MAN * weights_;
     DENS_MAT * reference_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -887,7 +887,7 @@ namespace ATC {
     /** pointer to the mesh being used */
     const FE_Mesh * feMesh_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;

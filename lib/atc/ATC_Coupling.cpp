@@ -625,7 +625,7 @@ namespace ATC {
       /*! \page man_consistent_fe_initialization fix_modify AtC consistent_fe_initialization
       \section syntax
        fix_modify AtC consistent_fe_initialization <on | off>
-        - <on|off> = switch to activiate/deactiviate the intial setting of FE intrinsic field to match the projected MD field
+        - <on|off> = switch to activiate/deactiviate the initial setting of FE intrinsic field to match the projected MD field
       \section examples
        <TT> fix_modify atc consistent_fe_initialization on </TT>
       \section description
@@ -1693,7 +1693,7 @@ namespace ATC {
     extrinsicModelManager_.construct_transfers();
   }
   //--------------------------------------------------
-  void ATC_Coupling::delete_mass_mat_time_filter(FieldName thisField)
+  void ATC_Coupling::delete_mass_mat_time_filter(FieldName /* thisField */)
   {
   }
   //--------------------------------------------------

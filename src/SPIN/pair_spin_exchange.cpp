@@ -21,38 +21,22 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_exchange.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_exchange.h"
 #include "update.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
-/* ---------------------------------------------------------------------- */
-
-PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp),
-lockfixnvespin(NULL)
-{
-  single_enable = 0;
-  no_virial_fdotr_compute = 1;
-  lattice_flag = 0;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,6 +50,7 @@ PairSpinExchange::~PairSpinExchange()
     memory->destroy(J2);
     memory->destroy(J3);
     memory->destroy(cutsq); // to be implemented
+    memory->destroy(emag);
   }
 }
 
@@ -75,11 +60,7 @@ PairSpinExchange::~PairSpinExchange()
 
 void PairSpinExchange::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 7) 
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
+  PairSpin::settings(narg,arg);
 
   cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
 
@@ -93,7 +74,6 @@ void PairSpinExchange::settings(int narg, char **arg)
           cut_spin_exchange[i][j] = cut_spin_exchange_global;
         }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -136,43 +116,6 @@ void PairSpinExchange::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinExchange::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  // checking if nve/spin or neb/spin are a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
-    ifix++;
-  }
-  if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -234,6 +177,13 @@ void PairSpinExchange::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+
   // computation of the exchange interaction
   // loop over atoms and their neighbors
 
@@ -249,6 +199,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
+    emag[i] = 0.0;
 
     // loop on neighbors
 
@@ -292,15 +243,10 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
-        f[j][2] -= fi[2];
-      }
-
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
+        emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -443,6 +389,29 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ei
 }
 
 /* ----------------------------------------------------------------------
+   compute energy of spin pair i and j
+------------------------------------------------------------------------- */
+
+// double PairSpinExchange::compute_energy(int i, int j, double rsq, double spi[3], double spj[3])
+// {
+//   int *type = atom->type;
+//   int itype, jtype;
+//   double Jex, ra;
+//   double energy = 0.0;
+//   itype = type[i];
+//   jtype = type[j];
+//
+//   Jex = J1_mech[itype][jtype];
+//   ra = rsq/J3[itype][jtype]/J3[itype][jtype];
+//   Jex = 4.0*Jex*ra;
+//   Jex *= (1.0-J2[itype][jtype]*ra);
+//   Jex *= exp(-ra);
+//
+//   energy = Jex*(spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
+//   return energy;
+// }
+
+/* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
 
@@ -501,15 +470,15 @@ void PairSpinExchange::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&J1_mag[i][j],sizeof(double),1,fp);
-          fread(&J1_mech[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_exchange[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&J1_mag[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&J1_mech[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&J2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&J3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_exchange[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&J1_mag[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&J1_mech[i][j],1,MPI_DOUBLE,0,world);
@@ -540,9 +509,9 @@ void PairSpinExchange::write_restart_settings(FILE *fp)
 void PairSpinExchange::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_exchange_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_spin_exchange_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_spin_exchange_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

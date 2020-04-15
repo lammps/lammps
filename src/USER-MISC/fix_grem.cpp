@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 
    Force scaling fix for gREM.
-   Cite: http://dx.doi.org/10.1063/1.3432176
-   Cite: http://dx.doi.org/10.1021/acs.jpcb.5b07614
+   Cite: https://doi.org/10.1063/1.3432176
+   Cite: https://doi.org/10.1021/acs.jpcb.5b07614
 
 ------------------------------------------------------------------------- */
 
@@ -22,19 +22,14 @@
                          Tom Keyes (Boston University)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "comm.h"
 #include "fix_grem.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
-#include "input.h"
 #include "compute.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -349,7 +349,7 @@ namespace ATC{
         else throw ATC_Error("not enough element partitions");
       }
     }
-    // each segment of the piecewise funcion is length-normalized separately
+    // each segment of the piecewise function is length-normalized separately
     else if (strcmp(arg[argIdx],"position-number-density")==0) { 
       argIdx++;
       double *y = new double[nx];
@@ -721,7 +721,7 @@ namespace ATC{
                             const SPAR_MAT      &N,
                             const SPAR_MAT_VEC  &dN,
                             SPAR_MAT &tangent,
-                            const DenseMatrix<bool> *elementMask ) const
+                                         const DenseMatrix<bool> * /* elementMask */ ) const
   {
     int nn = nNodesUnique_;
     FieldName rowField = row_col.first;
@@ -1298,7 +1298,7 @@ namespace ATC{
     const PhysicsModel * physicsModel,
     const Array<int>   & elementMaterials,
     FIELDS &rhs,
-    bool freeOnly,
+                                     bool /* freeOnly */,
     const DenseMatrix<bool> *elementMask) const
   {
     vector<FieldName> usedFields;
@@ -2503,7 +2503,7 @@ namespace ATC{
   // previously computed nodal sources
   //-----------------------------------------------------------------
   void FE_Engine::add_sources(const Array<bool> &fieldMask,
-    const double time,
+                              const double /* time */,
     const FIELDS &sources,
     FIELDS &nodalSources) const
   {

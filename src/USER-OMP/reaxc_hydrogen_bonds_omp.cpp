@@ -26,10 +26,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-
+#include "omp_compat.h"
 #include "reaxc_hydrogen_bonds_omp.h"
-#include "reaxc_bond_orders_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
+#include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_valence_angles.h"     // To access Calculate_Theta()
 #include "reaxc_valence_angles_omp.h" // To access Calculate_dCos_ThetaOMP()
@@ -55,7 +58,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   const int nthreads = control->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared) //default(none)
+#pragma omp parallel default(shared) //LMP_DEFAULT_NONE
 #endif
   {
   int  i, j, k, pi, pk;

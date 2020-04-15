@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "modify.h"
+#include <cstring>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -51,6 +50,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+  n_timeflag = -1;
 
   fix = NULL;
   fmask = NULL;
@@ -527,6 +527,11 @@ void Modify::thermo_energy_atom(int nlocal, double *energy)
 void Modify::post_run()
 {
   for (int i = 0; i < nfix; i++) fix[i]->post_run();
+
+  // must reset this to its default value, since computes may be added
+  // or removed between runs and with this change we will redirect any
+  // calls to addstep_compute() to addstep_compute_all() instead.
+  n_timeflag = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -798,7 +803,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", NULL};
+     "deprecated", "STORE/KIM", NULL};
 
   if (domain->box_exist == 0) {
     int m;
@@ -1030,7 +1035,7 @@ int Modify::find_fix_by_style(const char *style)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(style,fix[ifix]->style) == 0) break;
+    if (utils::strmatch(fix[ifix]->style,style)) break;
   if (ifix == nfix) return -1;
   return ifix;
 }
@@ -1284,6 +1289,14 @@ void Modify::clearstep_compute()
 
 void Modify::addstep_compute(bigint newstep)
 {
+  // If we are called before the first run init, n_timeflag is not yet
+  // initialized, thus defer to addstep_compute_all() instead
+
+  if (n_timeflag < 0) {
+     addstep_compute_all(newstep);
+     return;
+  }
+
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked_flag)
       compute[list_timeflag[icompute]]->addstep(newstep);
@@ -1365,7 +1378,7 @@ int Modify::read_restart(FILE *fp)
   // nfix_restart_global = # of restart entries with global state info
 
   int me = comm->me;
-  if (me == 0) fread(&nfix_restart_global,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_global,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nfix_restart_global,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1382,22 +1395,22 @@ int Modify::read_restart(FILE *fp)
 
   int n;
   for (int i = 0; i < nfix_restart_global; i++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_global[i] = new char[n];
-    if (me == 0) fread(id_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,id_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(id_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_global[i] = new char[n];
-    if (me == 0) fread(style_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,style_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(style_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     state_restart_global[i] = new char[n];
-    if (me == 0) fread(state_restart_global[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,state_restart_global[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(state_restart_global[i],n,MPI_CHAR,0,world);
 
     used_restart_global[i] = 0;
@@ -1407,7 +1420,7 @@ int Modify::read_restart(FILE *fp)
 
   int maxsize = 0;
 
-  if (me == 0) fread(&nfix_restart_peratom,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_peratom,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nfix_restart_peratom,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1424,19 +1437,19 @@ int Modify::read_restart(FILE *fp)
   // set index = which set of extra data this fix represents
 
   for (int i = 0; i < nfix_restart_peratom; i++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_peratom[i] = new char[n];
-    if (me == 0) fread(id_restart_peratom[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,id_restart_peratom[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(id_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_peratom[i] = new char[n];
-    if (me == 0) fread(style_restart_peratom[i],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,style_restart_peratom[i],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(style_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     maxsize += n;
 

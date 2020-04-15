@@ -17,10 +17,9 @@
    Contact Email: amulyapervaje@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "temper_npt.h"
+#include <cmath>
+#include <cstring>
 #include "universe.h"
 #include "domain.h"
 #include "atom.h"
@@ -29,14 +28,12 @@
 #include "modify.h"
 #include "compute.h"
 #include "force.h"
-#include "output.h"
-#include "thermo.h"
 #include "fix.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -77,6 +74,10 @@ void TemperNPT::command(int narg, char **arg)
   double temp = force->numeric(FLERR,arg[2]);
   double press_set = force->numeric(FLERR,arg[6]);
 
+  // ignore temper command, if walltime limit was already reached
+
+  if (timer->is_timeout()) return;
+
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)
@@ -101,13 +102,15 @@ void TemperNPT::command(int narg, char **arg)
   // change the volume. This currently only applies to fix npt and
   // fix rigid/npt variants
 
-  if ((strncmp(modify->fix[whichfix]->style,"npt",3) != 0)
-      && (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) != 0))
+  if ( (!utils::strmatch(modify->fix[whichfix]->style,"^npt")) &&
+       (!utils::strmatch(modify->fix[whichfix]->style,"^rigid/npt")) )
     error->universe_all(FLERR,"Tempering temperature and pressure fix is not supported");
 
   // setup for long tempering run
 
   update->whichflag = 1;
+  timer->init_timeout();
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -215,7 +218,19 @@ void TemperNPT::command(int narg, char **arg)
 
     // run for nevery timesteps
 
+    timer->init_timeout();
     update->integrate->run(nevery);
+
+    // check for timeout across all procs
+
+    int my_timeout=0;
+    int any_timeout=0;
+    if (timer->is_timeout()) my_timeout=1;
+    MPI_Allreduce(&my_timeout, &any_timeout, 1, MPI_INT, MPI_SUM, universe->uworld);
+    if (any_timeout) {
+      timer->force_timeout();
+      break;
+    }
 
     // compute PE
     // notify compute it will be called at next swap

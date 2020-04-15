@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_balance.h"
+#include <cstring>
 #include "balance.h"
 #include "update.h"
 #include "atom.h"
@@ -26,7 +25,6 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "rcb.h"
-#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -41,7 +39,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
-  box_change_domain = 1;
+  box_change = BOX_CHANGE_DOMAIN;
   scalar_flag = 1;
   extscalar = 0;
   vector_flag = 1;
@@ -241,7 +239,7 @@ void FixBalance::pre_exchange()
 
 /* ----------------------------------------------------------------------
    compute final imbalance factor based on nlocal after comm->exchange()
-   only do this if rebalancing just occured
+   only do this if rebalancing just occurred
 ------------------------------------------------------------------------- */
 
 void FixBalance::pre_neighbor()

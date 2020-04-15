@@ -16,35 +16,28 @@
    Implementation of the Multi-Scale Shock Method with quantum nuclear effects
 ------------------------------------------------------------------------- */
 
+#include "fix_qbmsst.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_qbmsst.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "output.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
 #include "kspace.h"
-#include "thermo.h"
+#include "math_const.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 /* ----------------------------------------------------------------------
    read parameters
@@ -54,13 +47,16 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
 
-  if ( strcmp(arg[3],"x") == 0 )
+  if ( strcmp(arg[3],"x") == 0 ) {
     direction = 0;
-  else if ( strcmp(arg[3],"y") == 0 )
+    box_change |= BOX_CHANGE_X;
+  } else if ( strcmp(arg[3],"y") == 0 ) {
     direction = 1;
-  else if ( strcmp(arg[3],"z") == 0 )
+    box_change |= BOX_CHANGE_Y;
+  } else if ( strcmp(arg[3],"z") == 0 ) {
     direction = 2;
-  else {
+    box_change |= BOX_CHANGE_Z;
+  } else {
     error->all(FLERR,"Illegal fix qbmsst command");
   }
   velocity = atof(arg[4]);
@@ -73,7 +69,6 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   nevery = 1;
   restart_global = 1;
-  box_change_size = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -547,7 +542,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
       } else {
       double energy_k= force->hplanck * fabs(f_k);
         omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
-        omega_H[k]*=alpha*sin((k-N_f)*M_PI/(2*alpha*N_f))/sin((k-N_f)*M_PI/(2*N_f));
+        omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
       }
     }
 
@@ -556,7 +551,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
       time_H[n] = 0;
       double t_n=(n-N_f);
       for (int k = 0; k < 2*N_f; k++) {
-        double omega_k=(k-N_f)*M_PI/N_f;
+        double omega_k=(k-N_f)*MY_PI/N_f;
         time_H[n] += omega_H[k]*(cos(omega_k*t_n));
       }
       time_H[n]/=(2.0*N_f);

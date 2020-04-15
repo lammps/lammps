@@ -45,10 +45,7 @@ struct PairExp6ParamDataTypeKokkos
 
    // Default constructor -- nullify everything.
    PairExp6ParamDataTypeKokkos<DeviceType>(void)
-      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
-              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
-              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
-              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
+      : n(0)
    {}
 };
 
@@ -66,12 +63,6 @@ struct PairExp6ParamDataTypeKokkosVect
 
    // Default constructor -- nullify everything.
    PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
-      : epsilon(NULL), rm3(NULL), alpha(NULL), xMolei(NULL), epsilon_old(NULL), rm3_old(NULL),
-        alpha_old(NULL), xMolei_old(NULL), fractionOFA(NULL), fraction1(NULL),
-        fraction2(NULL), nMoleculesOFA(NULL), nMolecules1(NULL), nMolecules2(NULL),
-        nTotal(NULL), fractionOFAold(NULL), fractionOld1(NULL), fractionOld2(NULL),
-        nMoleculesOFAold(NULL), nMoleculesOld1(NULL), nMoleculesOld2(NULL),
-        nTotalold(NULL)
    {}
 };
 

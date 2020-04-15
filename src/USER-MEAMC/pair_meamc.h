@@ -24,7 +24,6 @@ PairStyle(meam,PairMEAMC)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-class MEAM;
 
 class PairMEAMC : public Pair {
  public:
@@ -36,6 +35,7 @@ class PairMEAMC : public Pair {
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
+  virtual void *extract(const char *, int &);
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -51,6 +51,7 @@ class PairMEAMC : public Pair {
   double *mass;                 // mass of each element
 
   int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
+  double **scale;               // scaling factor for adapt
 
   void allocate();
   void read_files(char *, char *);
@@ -88,26 +89,37 @@ E: Cannot open MEAM potential file %s
 The specified MEAM potential file cannot be opened.  Check that the
 path and name are correct.
 
-E: Incorrect format in MEAM potential file
+E: Incorrect format in MEAM library file
 
 Incorrect number of words per line in the potential file.
 
-E: Unrecognized lattice type in MEAM file 1
+E: Too many elements extracted from MEAM library.
 
-The lattice type in an entry of the MEAM library file is not
+Increase 'maxelt' in meam.h and recompile.
+
+E: Unrecognized lattice type in MEAM library/parameter file
+
+The lattice type in an entry of the MEAM library/parameter file is not
 valid.
+
+E: Unsupported parameter in MEAM library file: ...
+
+Self-explanatory.
+
+E: Mismatched parameter in MEAM library file: z!=lat
+
+The coordination number and lattice do not match, check that consistent values are given.
 
 E: Did not find all elements in MEAM library file
 
-The requested elements were not found in the MEAM file.
+Some requested elements were not found in the MEAM file. Check spelling etc.
 
 E: Keyword %s in MEAM parameter file not recognized
 
 Self-explanatory.
 
-E: Unrecognized lattice type in MEAM file 2
+E: Error in MEAM parameter file: keyword %s (further information)
 
-The lattice type in an entry of the MEAM parameter file is not
-valid.
+Self-explanatory. Check the parameter file.
 
 */

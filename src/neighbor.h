@@ -15,7 +15,6 @@
 #define LMP_NEIGHBOR_H
 
 #include "pointers.h"
-#include <map>
 
 namespace LAMMPS_NS {
 
@@ -167,7 +166,6 @@ class Neighbor : protected Pointers {
 
   int maxatom;                     // max size of atom-based NeighList arrays
   int maxrequest;                  // max size of NeighRequest list
-  int maxwt;                       // max weighting factor applied + 1
 
   // info for other Neigh classes: NBin,NStencil,NPair,NTopo
 

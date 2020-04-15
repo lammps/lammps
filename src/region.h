@@ -14,7 +14,7 @@
 #ifndef LMP_REGION_H
 #define LMP_REGION_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

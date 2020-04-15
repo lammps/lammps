@@ -18,10 +18,6 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 #include "timer.h"
 
 namespace LAMMPS_NS {
@@ -101,6 +97,10 @@ class ThrData {
   double **vatom_dihed;
   double **vatom_imprp;
   double **vatom_kspce;
+  double **cvatom_pair;
+  double **cvatom_angle;
+  double **cvatom_dihed;
+  double **cvatom_imprp;
 
   // per thread segments of various force or similar arrays
 
@@ -146,7 +146,7 @@ class ThrData {
 ////////////////////////////////////////////////////////////////////////
 //  helper functions operating on data replicated for thread support  //
 ////////////////////////////////////////////////////////////////////////
-// generic per thread data reduction for continous arrays of nthreads*nmax size
+// generic per thread data reduction for continuous arrays of nthreads*nmax size
 void data_reduce_thr(double *, int, int, int, int);
 }
 #endif

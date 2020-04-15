@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -45,7 +46,7 @@
 #define KOKKOS_QTHREADS_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_QTHREADS )
+#if defined(KOKKOS_ENABLE_QTHREADS)
 
 #include <Kokkos_Core_fwd.hpp>
 
@@ -76,9 +77,9 @@ namespace Impl {
 
 class QthreadsExec;
 
-} // namespace Impl
+}  // namespace Impl
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
@@ -86,26 +87,26 @@ namespace Kokkos {
 
 /** \brief  Execution space supported by Qthreads */
 class Qthreads {
-public:
+ public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
 
   //! Tag this class as an execution space
-  typedef Qthreads                 execution_space;
-  typedef Kokkos::HostSpace        memory_space;
+  typedef Qthreads execution_space;
+  typedef Kokkos::HostSpace memory_space;
   //! This execution space preferred device_type
-  typedef Kokkos::Device< execution_space, memory_space > device_type;
+  typedef Kokkos::Device<execution_space, memory_space> device_type;
 
-  typedef Kokkos::LayoutRight      array_layout;
-  typedef memory_space::size_type  size_type;
+  typedef Kokkos::LayoutRight array_layout;
+  typedef memory_space::size_type size_type;
 
-  typedef ScratchMemorySpace< Qthreads > scratch_memory_space;
+  typedef ScratchMemorySpace<Qthreads> scratch_memory_space;
 
   //@}
   /*------------------------------------------------------------------------*/
 
   /** \brief  Initialization will construct one or more instances */
-  static Qthreads & instance( int = 0 );
+  static Qthreads& instance(int = 0);
 
   /** \brief  Set the execution space to a "sleep" state.
    *
@@ -143,11 +144,11 @@ public:
   /** \brief  Return maximum amount of concurrency */
   static int concurrency();
 
-  static void initialize( int thread_count );
+  static void initialize(int thread_count);
   static void finalize();
 
   /** \brief Print configuration information to the given output stream. */
-  static void print_configuration( std::ostream &, const bool detail = false );
+  static void print_configuration(std::ostream&, const bool detail = false);
 
   int shepherd_size() const;
   int shepherd_worker_size() const;
@@ -155,7 +156,7 @@ public:
   static const char* name();
 };
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
@@ -163,39 +164,33 @@ namespace Kokkos {
 
 namespace Impl {
 
-template<>
-struct MemorySpaceAccess
-  < Kokkos::Qthreads::memory_space
-  , Kokkos::Qthreads::scratch_memory_space
-  >
-{
+template <>
+struct MemorySpaceAccess<Kokkos::Qthreads::memory_space,
+                         Kokkos::Qthreads::scratch_memory_space> {
   enum { assignable = false };
   enum { accessible = true };
-  enum { deepcopy   = false };
+  enum { deepcopy = false };
 };
 
-template<>
-struct VerifyExecutionCanAccessMemorySpace
-  < Kokkos::Qthreads::memory_space
-  , Kokkos::Qthreads::scratch_memory_space
-  >
-{
+template <>
+struct VerifyExecutionCanAccessMemorySpace<
+    Kokkos::Qthreads::memory_space, Kokkos::Qthreads::scratch_memory_space> {
   enum { value = true };
-  inline static void verify( void ) {}
-  inline static void verify( const void * ) {}
+  inline static void verify(void) {}
+  inline static void verify(const void*) {}
 };
 
-} // namespace Impl
+}  // namespace Impl
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
 #include <Qthreads/Kokkos_QthreadsExec.hpp>
 #include <Qthreads/Kokkos_Qthreads_Parallel.hpp>
-//#include <Qthreads/Kokkos_Qthreads_Task.hpp> // Uncomment when Tasking working.
-//#include <Qthreads/Kokkos_Qthreads_TaskQueue.hpp> // Uncomment when Tasking working.
+//#include <Qthreads/Kokkos_Qthreads_Task.hpp> // Uncomment when Tasking
+// working. #include <Qthreads/Kokkos_Qthreads_TaskQueue.hpp> // Uncomment when
+// Tasking working.
 
-#endif // #define KOKKOS_ENABLE_QTHREADS
-#endif // #define KOKKOS_QTHREADS_HPP
-
+#endif  // #define KOKKOS_ENABLE_QTHREADS
+#endif  // #define KOKKOS_QTHREADS_HPP

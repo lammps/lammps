@@ -15,15 +15,15 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "omp_compat.h"
 #include "ewald_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
-
-#include <cmath>
-
+#include "timer.h"
 #include "math_const.h"
 
 #include "suffix.h"
@@ -105,7 +105,7 @@ void EwaldOMP::compute(int eflag, int vflag)
   v0=v1=v2=v3=v4=v5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:eng_tmp,v0,v1,v2,v3,v4,v5)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) reduction(+:eng_tmp,v0,v1,v2,v3,v4,v5)
 #endif
   {
 
@@ -116,7 +116,7 @@ void EwaldOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, 0, NULL, NULL, thr);
+    ev_setup_thr(eflag, vflag, 0, NULL, NULL, NULL, thr);
 
     for (i = ifrom; i < ito; i++) {
       ek[i][0] = 0.0;
@@ -235,7 +235,7 @@ void EwaldOMP::eik_dot_r()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int i,ifrom,ito,k,l,m,n,ic,tid;

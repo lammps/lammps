@@ -16,30 +16,25 @@
      some subroutines are from fix_shake.cpp
    ------------------------------------------------------------------------- */
 
+#include "fix_filter_corotate.h"
 #include <mpi.h>
+#include <cctype>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_filter_corotate.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "bond.h"
+#include "comm.h"
+#include "domain.h"
 #include "angle.h"
+#include "bond.h"
 #include "math_const.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
-#include "region.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
-#include "error.h"
-#include "memory.h"
-#include "domain.h"
-#include "integrate.h"
 #include "respa.h"
-#include "neighbor.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -59,7 +54,7 @@ static const char cite_filter_corotate[] =
   " Year = {2017},\n"
   " Pages = {180 - 198},\n"
   " Volume = {333},\n\n"
-  " Doi = {http://dx.doi.org/10.1016/j.jcp.2016.12.024},\n"
+  " Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},\n"
   " ISSN = {0021-9991},\n"
   " Keywords = {Mollified impulse method},\n"
   " Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"

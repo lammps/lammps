@@ -11,12 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "variable.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
 #include <unistd.h>
-#include "variable.h"
+#include <string>
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -26,6 +28,7 @@
 #include "region.h"
 #include "modify.h"
 #include "compute.h"
+#include "input.h"
 #include "fix.h"
 #include "fix_store.h"
 #include "force.h"
@@ -33,7 +36,6 @@
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
-#include "atom_masks.h"
 #include "lmppython.h"
 #include "memory.h"
 #include "info.h"
@@ -659,6 +661,8 @@ int Variable::next(int narg, char **arg)
 
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
+    uloop_again:
+
     // wait until lock file can be created and owned by proc 0 of this world
     // rename() is not atomic in practice, but no known simple fix
     //   means multiple procs can read/write file at the same time (bad!)
@@ -667,7 +671,7 @@ int Variable::next(int narg, char **arg)
     // delay for random fraction of 1 second before subsequent tries
     // when successful, read next available index and Bcast it within my world
 
-    int nextindex;
+    int nextindex = -1;
     if (me == 0) {
       int seed = 12345 + universe->me + which[find(arg[0])];
       RanMars *random = new RanMars(lmp,seed);
@@ -680,10 +684,33 @@ int Variable::next(int narg, char **arg)
       }
       delete random;
 
-      FILE *fp = fopen("tmp.lammps.variable.lock","r");
-      fscanf(fp,"%d",&nextindex);
+      // if the file cannot be found, we may have a race with some
+      // other MPI rank that has called rename at the same time
+      // and we have to start over.
+      // if the read is short (we need at least one byte) we try reading again.
+
+      FILE *fp;
+      char buf[64];
+      for (int loopmax = 0; loopmax < 100; ++loopmax) {
+        fp = fopen("tmp.lammps.variable.lock","r");
+        if (fp == NULL) goto uloop_again;
+
+        buf[0] = buf[1] = '\0';
+        fread(buf,1,64,fp);
+        fclose(fp);
+
+        if (strlen(buf) > 0) {
+           nextindex = atoi(buf);
+           break;
+        }
+        delay = (int) (1000000*random->uniform());
+        usleep(delay);
+      }
+      if (nextindex < 0)
+        error->one(FLERR,"Unexpected error while incrementing uloop "
+                   "style variable. Please contact LAMMPS developers.");
+
       //printf("READ %d %d\n",universe->me,nextindex);
-      fclose(fp);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
       //printf("WRITE %d %d\n",universe->me,nextindex+1);
@@ -1301,8 +1328,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (word[0] == 'C') lowercase = 0;
 
         int icompute = modify->find_compute(word+2);
-        if (icompute < 0)
-          print_var_error(FLERR,"Invalid compute ID in variable formula",ivar);
+        if (icompute < 0) {
+          std::string mesg = "Invalid compute ID '";
+          mesg += (word+2);
+          mesg += "' in variable formula";
+          print_var_error(FLERR,mesg.c_str(),ivar);
+        }
         Compute *compute = modify->compute[icompute];
 
         // parse zero or one or two trailing brackets
@@ -1603,9 +1634,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         int ifix = modify->find_fix(word+2);
         if (ifix < 0) {
-          char msg[128];
-          snprintf(msg,128,"Invalid fix ID '%s' in variable formula",word+2);
-          print_var_error(FLERR,msg,ivar);
+          std::string mesg = "Invalid fix ID '";
+          mesg += (word+2);
+          mesg += "' in variable formula";
+          print_var_error(FLERR,mesg.c_str(),ivar);
         }
         Fix *fix = modify->fix[ifix];
 
@@ -3791,8 +3823,12 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   // group to operate on
 
   int igroup = group->find(args[0]);
-  if (igroup == -1)
-    print_var_error(FLERR,"Group ID in variable formula does not exist",ivar);
+  if (igroup == -1) {
+    std::string mesg = "Group ID '";
+    mesg += args[0];
+    mesg += "' in variable formula does not exist";
+    print_var_error(FLERR,mesg.c_str(),ivar);
+  }
 
   // match word to group function
 
@@ -4000,8 +4036,12 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 int Variable::region_function(char *id, int ivar)
 {
   int iregion = domain->find_region(id);
-  if (iregion == -1)
-    print_var_error(FLERR,"Region ID in variable formula does not exist",ivar);
+  if (iregion == -1) {
+    std::string mesg = "Region ID '";
+    mesg += id;
+    mesg += "' in variable formula does not exist";
+    print_var_error(FLERR,mesg.c_str(),ivar);
+  }
 
   // init region in case sub-regions have been deleted
 
@@ -4079,9 +4119,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
       int icompute = modify->find_compute(&args[0][2]);
       if (icompute < 0) {
-        char msg[128];
-        snprintf(msg,128,"Invalid compute ID '%s' in variable formula",word+2);
-        print_var_error(FLERR,msg,ivar);
+        std::string mesg = "Invalid compute ID '";
+        mesg += (args[0]+2);
+        mesg += "' in variable formula";
+        print_var_error(FLERR,mesg.c_str(),ivar);
       }
       compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
@@ -4122,13 +4163,20 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       } else index = 0;
 
       int ifix = modify->find_fix(&args[0][2]);
-      if (ifix < 0)
-        print_var_error(FLERR,"Invalid fix ID in variable formula",ivar);
+      if (ifix < 0) {
+        std::string mesg = "Invalid fix ID '";
+        mesg += (args[0]+2);
+        mesg += "' in variable formula";
+        print_var_error(FLERR,mesg.c_str(),ivar);
+      }
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
-        if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-          print_var_error(FLERR,"Fix in variable not computed at "
-                          "compatible time",ivar);
+        if (update->whichflag > 0 && update->ntimestep % fix->global_freq) {
+          std::string mesg = "Fix with ID '";
+          mesg += (args[0]+2);
+          mesg += "' in variable formula not computed at compatible time";
+          print_var_error(FLERR,mesg.c_str(),ivar);
+        }
         nvec = fix->size_vector;
         nstride = 1;
       } else if (index && fix->array_flag) {
@@ -4335,9 +4383,12 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
     int ivar = find(args[0]);
-    if (ivar < 0)
-      print_var_error(FLERR,"Variable ID in "
-                      "variable formula does not exist",ivar);
+    if (ivar < 0) {
+      std::string mesg = "Variable ID '";
+      mesg += args[0];
+      mesg += "' in variable formula does not exist";
+      print_var_error(FLERR,mesg.c_str(),ivar);
+    }
 
     // SCALARFILE has single current value, read next one
     // save value in tree or on argstack
@@ -5162,8 +5213,8 @@ int VarReader::read_peratom()
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
-      if (tag <= 0 || tag > map_tag_max)
+      int rv = sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
+      if (tag <= 0 || tag > map_tag_max || rv != 2)
         error->one(FLERR,"Invalid atom ID in variable file");
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;

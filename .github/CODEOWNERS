@@ -111,6 +111,7 @@ src/exceptions.h          @rbberger
 src/fix_nh.*              @athomps
 src/info.*                @akohlmey @rbberger
 src/timer.*               @akohlmey
+src/min*                  @sjplimp @stanmoore1
 
 # tools
 tools/msi2lmp/*       @akohlmey
@@ -118,6 +119,7 @@ tools/emacs/*         @HaoZeke
 
 # cmake
 cmake/*               @junghans @rbberger
+cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
 
 # python
 python/*              @rbberger

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Markus Höhnerbach (RWTH)
+   Contributing author: Markus Hoehnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
 // This file provides an intrinsics abstraction that allows access to the

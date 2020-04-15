@@ -64,6 +64,7 @@ extern "C" {
 #define MPI_IN_PLACE NULL
 
 #define MPI_MAX_PROCESSOR_NAME 128
+#define MPI_MAX_LIBRARY_VERSION_STRING 128
 
 typedef void MPI_User_function(void *invec, void *inoutvec,
                                int *len, MPI_Datatype *datatype);
@@ -80,6 +81,7 @@ typedef struct _MPI_Status MPI_Status;
 int MPI_Init(int *argc, char ***argv);
 int MPI_Initialized(int *flag);
 int MPI_Finalized(int *flag);
+int MPI_Get_library_version(char *version, int *resultlen);
 int MPI_Get_processor_name(char *name, int *resultlen);
 int MPI_Get_version(int *major, int *minor);
 

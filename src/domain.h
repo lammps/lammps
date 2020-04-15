@@ -15,9 +15,9 @@
 #define LMP_DOMAIN_H
 
 #include <cmath>
-#include "pointers.h"
 #include <map>
 #include <string>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -281,6 +281,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

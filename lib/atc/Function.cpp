@@ -16,7 +16,7 @@ namespace ATC {
   //====================================================================
   //  UXT_Function
   //===================================================================
-  UXT_Function::UXT_Function(int narg, double* args) { }
+  UXT_Function::UXT_Function(int /* narg */, double* /* args */) { }
   //====================================================================
   //  UXT_Function_Mgr
   //====================================================================
@@ -312,7 +312,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     }
     ATC::LammpsInterface::instance()->print_msg_once(ss.str());
   }
-  double PiecewiseLinearFunction::f(double * x, double t)
+  double PiecewiseLinearFunction::f(double * x, double /* t */)
   {
 
     double s = mask[0]*(x[0]-x0[0])+mask[1]*(x[1]-x0[1])+mask[2]*(x[2]-x0[2]);
@@ -355,7 +355,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     return slope[0]*(x[0]-x0[0])+slope[1]*(x[1]-x0[1])+slope[2]*(x[2]-x0[2]) + C0;
   }
 
-  double LinearTemporalRamp::dfdt(double* x, double t) {
+  double LinearTemporalRamp::dfdt(double* x, double /* t */) {
     return mask_slope[0]*(x[0]-x0[0])+mask_slope[1]*(x[1]-x0[1])+mask_slope[2]*(x[2]-x0[2]) + C0_slope;
   }
 
@@ -499,7 +499,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
        if      (i   == 0)     { dx = xs_(1)-xs_(0); }
        else if (i+1 == npts_) { dx = xs_(npts_-1)-xs_(npts_-2); }
        else { dx= 0.5*(xs_(i+1)-xs_(i-1)); }
-       if (abs(dx-dx0) > 1.e-8) throw ATC_Error("InterpolationFunction::initialize non-uniform data spacing not handled currently");
+       if (fabs(dx-dx0) > 1.e-8) throw ATC_Error("InterpolationFunction::initialize non-uniform data spacing not handled currently");
        fps_(i) *= dx;
      }
      // options: calculate / adjust tangents for monotonicity

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "npair_half_respa_nsq_newtoff_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -49,7 +49,7 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
   const int respamiddle = list->respamiddle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 

@@ -20,11 +20,11 @@
     1) Tersoff, Phys. Rev. B 39, 5566 (1988)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_table.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

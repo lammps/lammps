@@ -19,25 +19,19 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h"
+#include "read_dump.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "read_dump.h"
+#include <string>
 #include "reader.h"
 #include "style_reader.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "irregular.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
@@ -80,6 +74,8 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   readers = NULL;
   nsnapatoms = NULL;
   clustercomm = MPI_COMM_NULL;
+  filereader = 0;
+  parallel = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -269,6 +265,12 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
 
+  if (utils::strmatch(readerstyle,"^adios")) {
+      // everyone is a reader with adios
+      parallel = 1;
+      filereader = 1;
+  }
+
   // pass any arguments to readers
 
   if (narg > 0 && filereader)
@@ -290,7 +292,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0) {
+  if (me == 0 || parallel) {
 
     // exit file loop when dump timestep >= nrequest
     // or files exhausted
@@ -323,10 +325,12 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     if (exact && ntimestep != nrequest) ntimestep = -1;
   }
 
-  // proc 0 broadcasts timestep and currentfile to all procs
+  if (!parallel) {
+    // proc 0 broadcasts timestep and currentfile to all procs
 
-  MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
-  MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+    MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
+    MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+  }
 
   // if ntimestep < 0:
   // all filereader procs close all their files and return
@@ -385,7 +389,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0) {
+  if (me == 0 || parallel) {
 
     // exit file loop when dump timestep matches all criteria
     // or files exhausted
@@ -431,17 +435,20 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     if (ntimestep > nlast) ntimestep = -1;
   }
 
-  // proc 0 broadcasts timestep and currentfile to all procs
+  if (!parallel) {
+    // proc 0 broadcasts timestep and currentfile to all procs
 
-  MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
-  MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+    MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
+    MPI_Bcast(&currentfile,1,MPI_INT,0,world);
+  }
 
   // if ntimestep < 0:
   // all filereader procs close all their files and return
 
   if (ntimestep < 0) {
-    for (int i = 0; i < nreader; i++)
-      readers[i]->close_file();
+    if (filereader)
+      for (int i = 0; i < nreader; i++)
+        readers[i]->close_file();
     return ntimestep;
   }
 
@@ -483,48 +490,54 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
 void ReadDump::header(int fieldinfo)
 {
-  int triclinic_snap;
+  int boxinfo, triclinic_snap;
   int fieldflag,xflag,yflag,zflag;
 
   if (filereader) {
     for (int i = 0; i < nreader; i++)
-      nsnapatoms[i] = readers[i]->read_header(box,triclinic_snap,fieldinfo,
+      nsnapatoms[i] = readers[i]->read_header(box,boxinfo,triclinic_snap,fieldinfo,
                                               nfield,fieldtype,fieldlabel,
                                               scaleflag,wrapflag,fieldflag,
                                               xflag,yflag,zflag);
   }
 
-  MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
-  MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
-  MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
+  if (!parallel) {
+    MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
+    MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
+    MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
+    MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
+  }
 
   // local copy of snapshot box parameters
   // used in xfield,yfield,zfield when converting dump atom to absolute coords
 
-  xlo = box[0][0];
-  xhi = box[0][1];
-  ylo = box[1][0];
-  yhi = box[1][1];
-  zlo = box[2][0];
-  zhi = box[2][1];
-  if (triclinic_snap) {
-    xy = box[0][2];
-    xz = box[1][2];
-    yz = box[2][2];
-    double xdelta = MIN(0.0,xy);
-    xdelta = MIN(xdelta,xz);
-    xdelta = MIN(xdelta,xy+xz);
-    xlo = xlo - xdelta;
-    xdelta = MAX(0.0,xy);
-    xdelta = MAX(xdelta,xz);
-    xdelta = MAX(xdelta,xy+xz);
-    xhi = xhi - xdelta;
-    ylo = ylo - MIN(0.0,yz);
-    yhi = yhi - MAX(0.0,yz);
+  if (boxinfo) {
+    xlo = box[0][0];
+    xhi = box[0][1];
+    ylo = box[1][0];
+    yhi = box[1][1];
+    zlo = box[2][0];
+    zhi = box[2][1];
+
+    if (triclinic_snap) {
+      xy = box[0][2];
+      xz = box[1][2];
+      yz = box[2][2];
+      double xdelta = MIN(0.0,xy);
+      xdelta = MIN(xdelta,xz);
+      xdelta = MIN(xdelta,xy+xz);
+      xlo = xlo - xdelta;
+      xdelta = MAX(0.0,xy);
+      xdelta = MAX(xdelta,xz);
+      xdelta = MAX(xdelta,xy+xz);
+      xhi = xhi - xdelta;
+      ylo = ylo - MIN(0.0,yz);
+      yhi = yhi - MAX(0.0,yz);
+    }
+    xprd = xhi - xlo;
+    yprd = yhi - ylo;
+    zprd = zhi - zlo;
   }
-  xprd = xhi - xlo;
-  yprd = yhi - ylo;
-  zprd = zhi - zlo;
 
   // done if not checking fields
 
@@ -536,17 +549,17 @@ void ReadDump::header(int fieldinfo)
   MPI_Bcast(&zflag,1,MPI_INT,0,clustercomm);
 
   // error check on current vs new box and fields
-  // triclinic_snap < 0 means no box info in file
+  // boxinfo == 0 means no box info in file
 
-  if (triclinic_snap < 0 && boxflag > 0)
-    error->all(FLERR,"No box information in dump, must use 'box no'");
-  if (triclinic_snap >= 0) {
-    if ((triclinic_snap && !triclinic) ||
-        (!triclinic_snap && triclinic))
+  if (boxflag) {
+    if (!boxinfo)
+      error->all(FLERR,"No box information in dump, must use 'box no'");
+    else if ((triclinic_snap && !triclinic) ||
+             (!triclinic_snap && triclinic))
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
-  // error check on requested fields exisiting in dump file
+  // error check on requested fields existing in dump file
 
   if (fieldflag < 0)
     error->one(FLERR,"Read_dump field not found in dump file");
@@ -716,7 +729,7 @@ void ReadDump::read_atoms()
   // each reading proc reads one file and splits data across cluster
   // cluster can be all procs or a subset
 
-  if (!multiproc || multiproc_nfile < nprocs) {
+  if (!parallel && (!multiproc || multiproc_nfile < nprocs)) {
     nsnap = nsnapatoms[0];
 
     if (filereader) {
@@ -788,7 +801,7 @@ void ReadDump::read_atoms()
   // every proc is a filereader, reads one or more files
   // each proc keeps all data it reads, no communication required
 
-  } else if (multiproc_nfile >= nprocs) {
+  } else if (multiproc_nfile >= nprocs || parallel) {
     bigint sum = 0;
     for (int i = 0; i < nreader; i++)
       sum += nsnapatoms[i];
@@ -806,7 +819,12 @@ void ReadDump::read_atoms()
       nsnap = nsnapatoms[i];
       ntotal = 0;
       while (ntotal < nsnap) {
-        nread = MIN(CHUNK,nsnap-ntotal);
+        if (parallel) {
+          // read the whole thing at once
+          nread = nsnap-ntotal;
+        } else {
+          nread = MIN(CHUNK,nsnap-ntotal);
+        }
         readers[i]->read_atoms(nread,nfield,&fields[nnew+ntotal]);
         ntotal += nread;
       }

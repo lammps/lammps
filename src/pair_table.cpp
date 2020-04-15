@@ -15,11 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_table.h"
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -975,13 +976,13 @@ void PairTable::write_restart_settings(FILE *fp)
 void PairTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
-    fread(&ewaldflag,sizeof(int),1,fp);
-    fread(&pppmflag,sizeof(int),1,fp);
-    fread(&msmflag,sizeof(int),1,fp);
-    fread(&dispersionflag,sizeof(int),1,fp);
-    fread(&tip4pflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ewaldflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&pppmflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&msmflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tip4pflag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);

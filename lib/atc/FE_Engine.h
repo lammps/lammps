@@ -345,7 +345,7 @@ namespace ATC {
 
 
     /** integrate a nodal field over an face set */
-    DENS_VEC integrate(const DENS_MAT  &field, const FSET & fset) const
+    DENS_VEC integrate(const DENS_MAT  & /* field */, const FSET & /* fset */) const
     { throw ATC_Error(FILELINE,"unimplemented function"); }
 
     /*@}*/
@@ -496,7 +496,8 @@ namespace ATC {
     /** set kernel */
     
     void set_kernel(KernelFunction* ptr);
-    KernelFunction *kernel(int i=0) { return kernelFunction_; }
+    KernelFunction *kernel(int /* i */) { return kernelFunction_; }
+    KernelFunction *kernel() { return kernelFunction_; }
 
   private:
     //----------------------------------------------------------------
@@ -509,7 +510,7 @@ namespace ATC {
     /** finite element mesh */
     FE_Mesh *feMesh_;
 
-    /** auxillary kernel function */
+    /** auxiliary kernel function */
     KernelFunction *kernelFunction_;
  
     /** initialized flag */ 

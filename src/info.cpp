@@ -16,8 +16,14 @@
                           Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "info.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cctype>
+#include <ctime>
+#include <map>
+#include <string>
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -44,23 +50,17 @@
 #include "error.h"
 #include "utils.h"
 
-#include <ctime>
-#include <map>
-#include <string>
-#include <algorithm>
-
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
 #include <stdint.h> // <cstdint> requires C++-11
 #include <psapi.h>
 #else
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #endif
 
-#if defined __linux
+#if defined(__linux)
 #include <malloc.h>
 #endif
 
@@ -120,6 +120,12 @@ using namespace std;
 
 template<typename ValueType>
 static void print_columns(FILE* fp, map<string, ValueType> * styles);
+
+template<typename ValueType>
+static bool find_style(const LAMMPS * lmp, map<string, ValueType> * styles, const string & name, bool suffix_check);
+
+template<typename ValueType>
+static vector<string> get_style_names(map<string, ValueType> * styles);
 
 /* ---------------------------------------------------------------------- */
 
@@ -281,6 +287,7 @@ void Info::command(int narg, char **arg)
     infobuf = get_compiler_info();
     fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
     delete[] infobuf;
+    fprintf(out,"C++ standard: %s\n",get_cxx_info());
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -354,10 +361,11 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    MPI_Get_version(&major,&minor);
+    const char *version = get_mpi_info(major,minor);
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"MPI version: %s\n",version);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
@@ -366,7 +374,7 @@ void Info::command(int narg, char **arg)
     if (comm->mode == 0) {
       fprintf(out,"Communication mode = single\n");
       fprintf(out,"Communication cutoff = %g\n",
-              MAX(comm->cutghostuser,neighbor->cutneighmax));
+              comm->get_comm_cutoff());
     }
 
     if (comm->mode == 1) {
@@ -866,73 +874,9 @@ bool Info::is_active(const char *category, const char *name)
 bool Info::is_available(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
-  const int len = strlen(name);
-  int match = 0;
 
-  if (strcmp(category,"command") == 0) {
-    if (input->command_map->find(name) != input->command_map->end())
-      match = 1;
-
-  } else if (strcmp(category,"compute") == 0) {
-    if (modify->compute_map->find(name) != modify->compute_map->end())
-      match = 1;
-
-    if (!match && lmp->suffix_enable) {
-      if (lmp->suffix) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
-        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-      if (!match && lmp->suffix2) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
-        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-    }
-  } else if (strcmp(category,"fix") == 0) {
-    if (modify->fix_map->find(name) != modify->fix_map->end())
-      match = 1;
-
-    if (!match && lmp->suffix_enable) {
-      if (lmp->suffix) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
-        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-      if (!match && lmp->suffix2) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
-        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-    }
-  } else if (strcmp(category,"pair_style") == 0) {
-    if (force->pair_map->find(name) != force->pair_map->end())
-      match = 1;
-
-    if (!match && lmp->suffix_enable) {
-      if (lmp->suffix) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
-        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-      if (!match && lmp->suffix2) {
-        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
-        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
-        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
-          match = 1;
-        delete[] name_w_suffix;
-      }
-    }
+  if (has_style(category, name)) {
+    return true;
   } else if (strcmp(category,"feature") == 0) {
     if (strcmp(name,"gzip") == 0) {
       return has_gzip_support();
@@ -947,7 +891,7 @@ bool Info::is_available(const char *category, const char *name)
     }
   } else error->all(FLERR,"Unknown category for info is_available()");
 
-  return match ? true : false;
+  return false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -999,12 +943,120 @@ bool Info::is_defined(const char *category, const char *name)
   } else if (strcmp(category,"variable") == 0) {
     int nvar = input->variable->nvar;
     char **names = input->variable->names;
+
     for (int i=0; i < nvar; ++i) {
       if (strcmp(names[i],name) == 0)
         return true;
     }
   } else error->all(FLERR,"Unknown category for info is_defined()");
 
+  return false;
+}
+
+bool Info::has_style(const string & category, const string & name)
+{
+  if ( category == "atom" ) {
+    return find_style(lmp, atom->avec_map, name, false);
+  } else if( category == "integrate" ) {
+    return find_style(lmp, update->integrate_map, name, true);
+  } else if( category == "minimize" ) {
+    return find_style(lmp, update->minimize_map, name, true);
+  } else if( category == "pair" ) {
+    return find_style(lmp, force->pair_map, name, true);
+  } else if( category == "bond" ) {
+    return find_style(lmp, force->bond_map, name, true);
+  } else if( category == "angle" ) {
+    return find_style(lmp, force->angle_map, name, true);
+  } else if( category == "dihedral" ) {
+    return find_style(lmp, force->dihedral_map, name, true);
+  } else if( category == "improper" ) {
+    return find_style(lmp, force->improper_map, name, true);
+  } else if( category == "kspace" ) {
+    return find_style(lmp, force->kspace_map, name, true);
+  } else if( category == "fix" ) {
+    return find_style(lmp, modify->fix_map, name, true);
+  } else if( category == "compute" ) {
+    return find_style(lmp, modify->compute_map, name, true);
+  } else if( category == "region" ) {
+    return find_style(lmp, domain->region_map, name, false);
+  } else if( category == "dump" ) {
+    return find_style(lmp, output->dump_map, name, false);
+  } else if( category == "command" ) {
+    return find_style(lmp, input->command_map, name, false);
+  }
+  return false;
+}
+
+vector<std::string> Info::get_available_styles(const string & category)
+{
+  if ( category == "atom" ) {
+    return get_style_names(atom->avec_map);
+  } else if( category == "integrate" ) {
+    return get_style_names(update->integrate_map);
+  } else if( category == "minimize" ) {
+    return get_style_names(update->minimize_map);
+  } else if( category == "pair" ) {
+    return get_style_names(force->pair_map);
+  } else if( category == "bond" ) {
+    return get_style_names(force->bond_map);
+  } else if( category == "angle" ) {
+    return get_style_names(force->angle_map);
+  } else if( category == "dihedral" ) {
+    return get_style_names(force->dihedral_map);
+  } else if( category == "improper" ) {
+    return get_style_names(force->improper_map);
+  } else if( category == "kspace" ) {
+    return get_style_names(force->kspace_map);
+  } else if( category == "fix" ) {
+    return get_style_names(modify->fix_map);
+  } else if( category == "compute" ) {
+    return get_style_names(modify->compute_map);
+  } else if( category == "region" ) {
+    return get_style_names(domain->region_map);
+  } else if( category == "dump" ) {
+    return get_style_names(output->dump_map);
+  } else if( category == "command" ) {
+    return get_style_names(input->command_map);
+  }
+  return vector<string>();
+}
+
+template<typename ValueType>
+static vector<string> get_style_names(map<string, ValueType> * styles)
+{
+  vector<string> names;
+
+  names.reserve(styles->size());
+  for(auto const& kv : *styles) {
+    // skip "secret" styles
+    if (isupper(kv.first[0])) continue;
+    names.push_back(kv.first);
+  }
+
+  return names;
+}
+
+template<typename ValueType>
+static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const string & name, bool suffix_check)
+{
+  if (styles->find(name) != styles->end()) {
+    return true;
+  }
+
+  if (suffix_check && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      string name_w_suffix = name + "/" + lmp->suffix;
+      if (find_style(lmp, styles, name_w_suffix, false)) {
+        return true;
+      }
+    }
+    if (lmp->suffix2) {
+      string name_w_suffix = name + "/" + lmp->suffix2;
+      if (find_style(lmp, styles, name_w_suffix, false)) {
+        return true;
+      }
+    }
+  }
   return false;
 }
 
@@ -1151,7 +1203,8 @@ char *Info::get_compiler_info()
 #if __clang__
   snprintf(buf,_INFOBUF_SIZE,"Clang C++ %s", __VERSION__);
 #elif __INTEL_COMPILER
-  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %s", __VERSION__);
+  double version = static_cast<double>(__INTEL_COMPILER)*0.01;
+  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %5.2f.%d / %s", version, __INTEL_COMPILER_UPDATE, __VERSION__);
 #elif __GNUC__
   snprintf(buf,_INFOBUF_SIZE,"GNU C++ %s",   __VERSION__);
 #else
@@ -1192,6 +1245,42 @@ const char *Info::get_openmp_info()
   return (const char *)"unknown OpenMP version";
 #endif
 
+#endif
+}
+
+const char *Info::get_mpi_info(int &major, int &minor)
+{
+  int len;
+  #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+  static char version[MPI_MAX_LIBRARY_VERSION_STRING];
+  MPI_Get_library_version(version,&len);
+#else
+  static char version[] = "Undetected MPI implementation";
+  len = strlen(version);
+#endif
+
+  MPI_Get_version(&major,&minor);
+  if (len > 80) {
+    char *ptr = strchr(version+80,'\n');
+    if (ptr) *ptr = '\0';
+  }
+  return version;
+}
+
+const char *Info::get_cxx_info()
+{
+#if __cplusplus > 201703L
+  return (const char *)"newer than C++17";
+#elif __cplusplus == 201703L
+  return (const char *)"C++17";
+#elif __cplusplus == 201402L
+  return (const char *)"C++14";
+#elif __cplusplus == 201103L
+  return (const char *)"C++11";
+#elif __cplusplus == 199711L
+  return (const char *)"C++98";
+#else
+  return (const char *)"unknown";
 #endif
 }
 

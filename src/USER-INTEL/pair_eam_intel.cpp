@@ -305,7 +305,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         acc_t rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -324,7 +324,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:rhoi)
         #endif
         for (int jj = 0; jj < ej; jj++) {
@@ -411,7 +411,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       if (EFLAG) tevdwl = (acc_t)0.0;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
+      #pragma vector aligned nog2s
       #pragma simd reduction(+:tevdwl)
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
@@ -451,7 +451,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (tid == 0)
         comm->forward_comm_pair(this);
-      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -486,7 +485,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -508,7 +507,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                  sv0, sv1, sv2, sv3, sv4, sv5)
         #endif

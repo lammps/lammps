@@ -13,12 +13,12 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
+_texture( pos_tex,float4);
 #else
-texture<int4,1> pos_tex;
+_texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_
@@ -174,6 +174,7 @@ __kernel void k_lj96_fast(const __global numtyp4 *restrict x_,
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp r3inv = ucl_sqrt(r6inv);
         numtyp force = r2inv*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
+        force*=factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;

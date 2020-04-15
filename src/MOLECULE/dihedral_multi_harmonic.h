@@ -20,7 +20,6 @@ DihedralStyle(multi/harmonic,DihedralMultiHarmonic)
 #ifndef LMP_DIHEDRAL_MULTI_HARMONIC_H
 #define LMP_DIHEDRAL_MULTI_HARMONIC_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

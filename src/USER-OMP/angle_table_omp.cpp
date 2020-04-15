@@ -15,20 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "angle_table_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
-
-#include "math_const.h"
-
-#include <cmath>
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -51,7 +48,7 @@ void AngleTableOMP::compute(int eflag, int vflag)
   const int inum = neighbor->nanglelist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -59,7 +56,7 @@ void AngleTableOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {

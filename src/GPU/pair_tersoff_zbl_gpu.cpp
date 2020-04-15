@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_zbl_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_zbl_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,6 +32,7 @@
 #include "error.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -77,6 +78,7 @@ PairTersoffZBLGPU::PairTersoffZBLGPU(LAMMPS *lmp) : PairTersoffZBL(lmp),
   gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
   cutghost = NULL;
@@ -254,8 +256,11 @@ void PairTersoffZBLGPU::init_style()
     neighbor->requests[irequest]->ghost = 1;
   }
 
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
+  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
+    if (comm->me == 0)
+       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  }
 }
 
 /* ----------------------------------------------------------------------

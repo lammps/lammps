@@ -33,31 +33,23 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_shardlow_kokkos.h"
+#include <cmath>
+#include <cstdlib>
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include <cmath>
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-// #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
-#include "pair.h"
 #include "npair_ssa_kokkos.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -140,10 +132,10 @@ void FixShardlowKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
 //  neighbor->requests[irequest]->pair = 0;
 //  neighbor->requests[irequest]->fix  = 1;

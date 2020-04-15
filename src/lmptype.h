@@ -28,6 +28,12 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
+// C++11 check
+
+#if __cplusplus < 201103L
+#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -37,8 +43,9 @@
 #endif
 
 #include <climits>
-#include <stdint.h>   // <cstdint> requires C++-11
-#include <inttypes.h> // <cinttypes> requires C++-11
+#include <cstdlib>
+#include <cstdint>
+#include <cinttypes>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -47,10 +54,6 @@
 #endif
 
 namespace LAMMPS_NS {
-
-// enum used for KOKKOS host/device flags
-
-enum ExecutionSpace{Host,Device};
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
 // max local + ghost atoms per processor = 2^30 - 1

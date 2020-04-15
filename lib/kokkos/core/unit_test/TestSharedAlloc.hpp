@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -54,165 +55,176 @@
 namespace Test {
 
 struct SharedAllocDestroy {
-  volatile int * count;
+  volatile int* count;
 
   SharedAllocDestroy() = default;
-  SharedAllocDestroy( int * arg ) : count( arg ) {}
+  SharedAllocDestroy(int* arg) : count(arg) {}
 
-  void destroy_shared_allocation()
-  {
-    Kokkos::atomic_increment( count );
-  }
+  void destroy_shared_allocation() { Kokkos::atomic_increment(count); }
 };
 
-template< class MemorySpace, class ExecutionSpace >
-void test_shared_alloc()
-{
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-  typedef const Kokkos::Impl::SharedAllocationHeader                               Header;
-  typedef Kokkos::Impl::SharedAllocationTracker                                    Tracker;
-  typedef Kokkos::Impl::SharedAllocationRecord< void, void >                       RecordBase;
-  typedef Kokkos::Impl::SharedAllocationRecord< MemorySpace, void >                RecordMemS;
-  typedef Kokkos::Impl::SharedAllocationRecord< MemorySpace, SharedAllocDestroy >  RecordFull;
+template <class MemorySpace, class ExecutionSpace>
+void test_shared_alloc() {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+  typedef const Kokkos::Impl::SharedAllocationHeader Header;
+  typedef Kokkos::Impl::SharedAllocationTracker Tracker;
+  typedef Kokkos::Impl::SharedAllocationRecord<void, void> RecordBase;
+  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, void> RecordMemS;
+  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, SharedAllocDestroy>
+      RecordFull;
 
-  static_assert( sizeof( Tracker ) == sizeof( int* ), "SharedAllocationTracker has wrong size!" );
+  static_assert(sizeof(Tracker) == sizeof(int*),
+                "SharedAllocationTracker has wrong size!");
 
   MemorySpace s;
 
-  const size_t N = 1200;
+  const size_t N    = 1200;
   const size_t size = 8;
 
-  RecordMemS * rarray[ N ];
-  Header     * harray[ N ];
+  RecordMemS* rarray[N];
+  Header* harray[N];
 
-  RecordMemS ** const r = rarray;
-  Header     ** const h = harray;
+  RecordMemS** const r = rarray;
+  Header** const h     = harray;
 
-  Kokkos::RangePolicy< ExecutionSpace > range( 0, N );
+  Kokkos::RangePolicy<ExecutionSpace> range(0, N);
 
   {
     // Since always executed on host space, leave [=]
-    Kokkos::parallel_for( range, [=] ( size_t i ) {
+    Kokkos::parallel_for(range, [=](size_t i) {
       char name[64];
-      sprintf( name, "test_%.2d", int( i ) );
+      sprintf(name, "test_%.2d", int(i));
 
-      r[i] = RecordMemS::allocate( s, name, size * ( i + 1 ) );
-      h[i] = Header::get_header( r[i]->data() );
+      r[i] = RecordMemS::allocate(s, name, size * (i + 1));
+      h[i] = Header::get_header(r[i]->data());
 
-      ASSERT_EQ( r[i]->use_count(), 0 );
+      ASSERT_EQ(r[i]->use_count(), 0);
 
-      for ( size_t j = 0; j < ( i / 10 ) + 1; ++j ) RecordBase::increment( r[i] );
+      for (size_t j = 0; j < (i / 10) + 1; ++j) RecordBase::increment(r[i]);
 
-      ASSERT_EQ( r[i]->use_count(), ( i / 10 ) + 1 );
-      ASSERT_EQ( r[i], RecordMemS::get_record( r[i]->data() ) );
+      ASSERT_EQ(r[i]->use_count(), (i / 10) + 1);
+      ASSERT_EQ(r[i], RecordMemS::get_record(r[i]->data()));
     });
 
+    Kokkos::fence();
+
 #ifdef KOKKOS_DEBUG
-    // Sanity check for the whole set of allocation records to which this record belongs.
-    RecordBase::is_sane( r[0] );
+    // Sanity check for the whole set of allocation records to which this record
+    // belongs.
+    RecordBase::is_sane(r[0]);
     // RecordMemS::print_records( std::cout, s, true );
 #endif
 
-    Kokkos::parallel_for( range, [=] ( size_t i ) {
-      while ( 0 != ( r[i] = static_cast< RecordMemS * >( RecordBase::decrement( r[i] ) ) ) ) {
+    Kokkos::parallel_for(range, [=](size_t i) {
+      while (0 !=
+             (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
-        if ( r[i]->use_count() == 1 ) RecordBase::is_sane( r[i] );
+        if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
     });
+
+    Kokkos::fence();
   }
 
   {
     int destroy_count = 0;
-    SharedAllocDestroy counter( &destroy_count );
+    SharedAllocDestroy counter(&destroy_count);
 
-    Kokkos::parallel_for( range, [=] ( size_t i ) {
+    Kokkos::parallel_for(range, [=](size_t i) {
       char name[64];
-      sprintf( name, "test_%.2d", int( i ) );
+      sprintf(name, "test_%.2d", int(i));
 
-      RecordFull * rec = RecordFull::allocate( s, name, size * ( i + 1 ) );
+      RecordFull* rec = RecordFull::allocate(s, name, size * (i + 1));
 
       rec->m_destroy = counter;
 
       r[i] = rec;
-      h[i] = Header::get_header( r[i]->data() );
+      h[i] = Header::get_header(r[i]->data());
 
-      ASSERT_EQ( r[i]->use_count(), 0 );
+      ASSERT_EQ(r[i]->use_count(), 0);
 
-      for ( size_t j = 0; j < ( i / 10 ) + 1; ++j ) RecordBase::increment( r[i] );
+      for (size_t j = 0; j < (i / 10) + 1; ++j) RecordBase::increment(r[i]);
 
-      ASSERT_EQ( r[i]->use_count(), ( i / 10 ) + 1 );
-      ASSERT_EQ( r[i], RecordMemS::get_record( r[i]->data() ) );
+      ASSERT_EQ(r[i]->use_count(), (i / 10) + 1);
+      ASSERT_EQ(r[i], RecordMemS::get_record(r[i]->data()));
     });
 
+    Kokkos::fence();
+
 #ifdef KOKKOS_DEBUG
-    RecordBase::is_sane( r[0] );
+    RecordBase::is_sane(r[0]);
 #endif
 
-    Kokkos::parallel_for( range, [=] ( size_t i ) {
-      while ( 0 != ( r[i] = static_cast< RecordMemS * >( RecordBase::decrement( r[i] ) ) ) ) {
+    Kokkos::parallel_for(range, [=](size_t i) {
+      while (0 !=
+             (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
-        if ( r[i]->use_count() == 1 ) RecordBase::is_sane( r[i] );
+        if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
     });
 
-    ASSERT_EQ( destroy_count, int( N ) );
+    Kokkos::fence();
+
+    ASSERT_EQ(destroy_count, int(N));
   }
 
   {
     int destroy_count = 0;
 
     {
-      RecordFull * rec = RecordFull::allocate( s, "test", size );
+      RecordFull* rec = RecordFull::allocate(s, "test", size);
 
       // ... Construction of the allocated { rec->data(), rec->size() }
 
       // Copy destruction function object into the allocation record.
-      rec->m_destroy = SharedAllocDestroy( & destroy_count );
+      rec->m_destroy = SharedAllocDestroy(&destroy_count);
 
-      ASSERT_EQ( rec->use_count(), 0 );
+      ASSERT_EQ(rec->use_count(), 0);
 
       // Start tracking, increments the use count from 0 to 1.
       Tracker track;
 
-      track.assign_allocated_record_to_uninitialized( rec );
+      track.assign_allocated_record_to_uninitialized(rec);
 
-      ASSERT_EQ( rec->use_count(), 1 );
-      ASSERT_EQ( track.use_count(), 1 );
+      ASSERT_EQ(rec->use_count(), 1);
+      ASSERT_EQ(track.use_count(), 1);
 
       // Verify construction / destruction increment.
-      for ( size_t i = 0; i < N; ++i ) {
-        ASSERT_EQ( rec->use_count(), 1 );
+      for (size_t i = 0; i < N; ++i) {
+        ASSERT_EQ(rec->use_count(), 1);
 
         {
           Tracker local_tracker;
-          local_tracker.assign_allocated_record_to_uninitialized( rec );
-          ASSERT_EQ( rec->use_count(), 2 );
-          ASSERT_EQ( local_tracker.use_count(), 2 );
+          local_tracker.assign_allocated_record_to_uninitialized(rec);
+          ASSERT_EQ(rec->use_count(), 2);
+          ASSERT_EQ(local_tracker.use_count(), 2);
         }
 
-        ASSERT_EQ( rec->use_count(), 1 );
-        ASSERT_EQ( track.use_count(), 1 );
+        ASSERT_EQ(rec->use_count(), 1);
+        ASSERT_EQ(track.use_count(), 1);
       }
 
-      Kokkos::parallel_for( range, [=] ( size_t i ) {
+      Kokkos::parallel_for(range, [=](size_t) {
         Tracker local_tracker;
-        local_tracker.assign_allocated_record_to_uninitialized( rec );
-        ASSERT_GT( rec->use_count(), 1 );
+        local_tracker.assign_allocated_record_to_uninitialized(rec);
+        ASSERT_GT(rec->use_count(), 1);
       });
 
-      ASSERT_EQ( rec->use_count(), 1 );
-      ASSERT_EQ( track.use_count(), 1 );
+      Kokkos::fence();
 
-      // Destruction of 'track' object deallocates the 'rec' and invokes the destroy function object.
+      ASSERT_EQ(rec->use_count(), 1);
+      ASSERT_EQ(track.use_count(), 1);
+
+      // Destruction of 'track' object deallocates the 'rec' and invokes the
+      // destroy function object.
     }
 
-    ASSERT_EQ( destroy_count, 1 );
+    ASSERT_EQ(destroy_count, 1);
   }
 
 #endif /* #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST ) */
-
 }
 
-} // namespace Test
+}  // namespace Test

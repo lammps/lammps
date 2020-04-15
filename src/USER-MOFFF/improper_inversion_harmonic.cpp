@@ -19,20 +19,17 @@
    [ abbreviated from and verified via DLPOLY2.0 ]
 ------------------------------------------------------------------------- */
 
+#include "improper_inversion_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "improper_inversion_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -316,8 +313,8 @@ void ImproperInversionHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&kw[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&w0[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&kw[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&w0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&kw[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&w0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

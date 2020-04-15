@@ -104,14 +104,17 @@ Here are some items to check:
   * every new command or style should have documentation. The names of
   source files (c++ and manual) should follow the name of the style.
   (example: `src/fix_nve.cpp`, `src/fix_nve.h` for `fix nve` command,
-  implementing the class `FixNVE`, documented in `doc/src/fix_nve.txt`)
+  implementing the class `FixNVE`, documented in `doc/src/fix_nve.rst`)
   * all new style names should be lower case, the must be no dashes,
   blanks, or underscores separating words, only forward slashes.
   * new style docs should be added to the "overview" files in
-  `doc/src/Commands_*.txt`, `doc/src/{fixes,computes,pairs,bonds,...}.txt`
-  and `doc/src/lammps.book`
+  `doc/src/Commands_*.rst`, `doc/src/{fixes,computes,pairs,bonds,...}.rst`
   * check whether manual cleanly translates with `make html` and `make pdf`
+  * if documentation is (still) provided as a .txt file, convert to .rst
+  and remove the .txt file. For files in doc/txt the conversion is automatic.
+  * remove all .txt files in `doc/txt` that are out of sync with their .rst counterparts in `doc/src`
   * check spelling of manual with `make spelling` in doc folder
+  * check style tables and command lists with `make style_check`
   * new source files in packages should be added to `src/.gitignore`
   * removed or renamed files in packages should be added to `src/Purge.list`
   * C++ source files should use C++ style include files for accessing
@@ -136,7 +139,7 @@ Here are some items to check:
   * Code should follow the C++-98 standard. C++-11 is only accepted
   in individual special purpose packages
   * indentation is 2 spaces per level
-  * there should be NO tabs and no trailing whitespace
+  * there should be NO tabs and no trailing whitespace (review the "checkstyle" test on pull requests)
   * header files, especially of new styles, should not include any
   other headers, except the header with the base class or cstdio.
   Forward declarations should be used instead when possible.

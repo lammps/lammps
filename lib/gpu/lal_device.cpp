@@ -17,6 +17,7 @@
 #include "lal_precision.h"
 #include <map>
 #include <cmath>
+#include <cstdlib>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -29,7 +30,7 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
@@ -267,7 +268,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifndef USE_CUDPP
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif
@@ -340,7 +341,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifndef USE_CUDPP
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif
@@ -711,7 +712,7 @@ int DeviceT::compile_kernels() {
   gpu_lib_data.update_host(false);
 
   _ptx_arch=static_cast<double>(gpu_lib_data[0])/100.0;
-  #ifndef USE_OPENCL
+  #if !(defined(USE_OPENCL) || defined(USE_HIP))
   if (_ptx_arch>gpu->arch() || floor(_ptx_arch)<floor(gpu->arch()))
     return -4;
   #endif
@@ -761,7 +762,9 @@ double DeviceT::host_memory_usage() const {
 
 template class Device<PRECISION,ACC_PRECISION>;
 Device<PRECISION,ACC_PRECISION> global_device;
+}
 
+using namespace LAMMPS_AL;
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode,
                     const double particle_split, const int nthreads,
@@ -780,4 +783,3 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
-

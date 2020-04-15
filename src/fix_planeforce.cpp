@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_planeforce.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_planeforce.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"

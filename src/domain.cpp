@@ -15,12 +15,11 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include "domain.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
+#include <string>
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,13 +36,11 @@
 #include "output.h"
 #include "thermo.h"
 #include "universe.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
@@ -137,12 +134,38 @@ void Domain::init()
 
   box_change_size = box_change_shape = box_change_domain = 0;
 
+  // flags for detecting, if multiple fixes try to change the
+  // same box size or shape parameter
+
+  int box_change_x=0, box_change_y=0, box_change_z=0;
+  int box_change_yz=0, box_change_xz=0, box_change_xy=0;
+  Fix **fixes = modify->fix;
+
   if (nonperiodic == 2) box_change_size = 1;
   for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change_size) box_change_size = 1;
-    if (modify->fix[i]->box_change_shape) box_change_shape = 1;
-    if (modify->fix[i]->box_change_domain) box_change_domain = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_SIZE)   box_change_size = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_SHAPE)  box_change_shape = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_DOMAIN) box_change_domain = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_X)      box_change_x++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_Y)      box_change_y++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_Z)      box_change_z++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_YZ)     box_change_yz++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_XZ)     box_change_xz++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_XY)     box_change_xy++;
   }
+
+  std::string mesg = "Must not have multiple fixes change box parameter ";
+
+#define CHECK_BOX_FIX_ERROR(par)                                        \
+  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par).c_str())
+
+  CHECK_BOX_FIX_ERROR(x);
+  CHECK_BOX_FIX_ERROR(y);
+  CHECK_BOX_FIX_ERROR(z);
+  CHECK_BOX_FIX_ERROR(yz);
+  CHECK_BOX_FIX_ERROR(xz);
+  CHECK_BOX_FIX_ERROR(xy);
+#undef CHECK_BOX_FIX_ERROR
 
   box_change = 0;
   if (box_change_size || box_change_shape || box_change_domain) box_change = 1;
@@ -356,6 +379,11 @@ void Domain::set_local_box()
 void Domain::reset_box()
 {
   // perform shrink-wrapping
+
+  // nothing to do for empty systems
+
+  if (atom->natoms == 0) return;
+
   // compute extent of atoms on this proc
   // for triclinic, this is done in lamda space
 

@@ -375,13 +375,16 @@ void FixSRD::init()
 
   change_size = change_shape = deformflag = 0;
   if (domain->nonperiodic == 2) change_size = 1;
+
+  Fix **fixes = modify->fix;
   for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change_size) change_size = 1;
-    if (modify->fix[i]->box_change_shape) change_shape = 1;
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (fixes[i]->box_change & BOX_CHANGE_SIZE)  change_size = 1;
+    if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
+    if (strcmp(fixes[i]->style,"deform") == 0) {
       deformflag = 1;
       FixDeform *deform = (FixDeform *) modify->fix[i];
-      if (deform->box_change_shape && deform->remapflag != Domain::V_REMAP)
+      if ((deform->box_change & BOX_CHANGE_SHAPE)
+          && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix srd with inconsistent "
                    "fix deform remap option");
     }

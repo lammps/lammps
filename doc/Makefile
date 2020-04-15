@@ -40,7 +40,7 @@ HAS_PDFLATEX = YES
 endif
 
 
-SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
+SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
 
 # grab list of sources from doxygen config file.
 # we only want to use explicitly listed files.
@@ -83,6 +83,8 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		ln -sf Manual.html html/index.html;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
@@ -106,8 +108,9 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
-		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGSINGS= \
+		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
 		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
 	@echo "Spell check finished."
@@ -120,6 +123,7 @@ epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
 	@mv  epub/LAMMPS.epub .
@@ -143,6 +147,7 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
@@ -205,8 +210,7 @@ doxygen/Doxyfile: doxygen/Doxyfile.in
 	sed -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/src/g' $< > $@
 
 doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
-	@(cd doxygen; doxygen Doxyfile)
-	@touch src/pg_*rst
+	@(cd doxygen; $(DOXYGEN) Doxyfile && touch xml/run.stamp)
 # ------------------------------------------
 
 $(VENV):

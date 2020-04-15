@@ -63,18 +63,24 @@ if(BUILD_DOC)
     OUTPUT ${DOXYGEN_XML_DIR}/index.xml
     DEPENDS ${DOC_SOURCES} ${LAMMPS_SOURCES}
     COMMAND Doxygen::doxygen ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen
-    COMMAND ${CMAKE_COMMAND} -E touch ${PG_SOURCES}
+    COMMAND ${CMAKE_COMMAND} -E touch ${DOXYGEN_XML_DIR}/run.stamp
   )
 
   # note, this may run in parallel with other tasks, so we must not use multiple processes here
   file(COPY ${LAMMPS_DOC_DIR}/utils/sphinx-config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utils)
   file(COPY ${LAMMPS_DOC_DIR}/src DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   configure_file(${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py)
+  if(EXISTS ${DOXYGEN_XML_DIR}/run.stamp)
+    set(SPHINX_EXTRA_OPTS "-E")
+  else()
+    set(SPHINX_EXTRA_OPTS "")
+  endif()
   add_custom_command(
     OUTPUT html
     DEPENDS ${DOC_SOURCES} docenv requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${CMAKE_BINARY_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build ${SPHINX_EXTRA_OPTS} -b html -c ${CMAKE_BINARY_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
     COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${DOXYGEN_XML_DIR}/run.stamp
   )
 
   # copy selected image files to html output tree

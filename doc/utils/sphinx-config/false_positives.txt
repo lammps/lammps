@@ -492,6 +492,7 @@ cstdlib
 cstring
 cstyle
 csvr
+ctrl
 Ctypes
 ctypes
 cuda
@@ -584,6 +585,7 @@ dephasing
 dequidt
 Dequidt
 der
+dereference
 derekt
 Derjagin
 Derjaguin
@@ -2839,6 +2841,7 @@ Synechococcus
 sys
 sysdim
 Syst
+systemd
 Sz
 Tabbernor
 tabinner

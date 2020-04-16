@@ -1,5 +1,4 @@
-<HTML><META HTTP-EQUIV="content-type" CONTENT="text/html;charset=utf-8">
-<PRE>.. index:: pair_style polymorphic
+.. index:: pair_style polymorphic
 
 pair_style polymorphic command
 ==============================
@@ -19,7 +18,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style polymorphic
-   pair_coeff * * FeCH_BOPI.poly Fe C H
+   pair_coeff * * FeCH_BOP_I.poly Fe C H
    pair_coeff * * TlBr_msw.poly Tl Br
    pair_coeff * * CuTa_eam.poly Cu Ta
    pair_coeff * * GaN_tersoff.poly Ga N
@@ -29,17 +28,13 @@ Description
 """""""""""
 
 The *polymorphic* pair style computes a 3-body free-form potential
-(:ref:`Zhou &lt;Zhou3&gt;`) for the energy E of a system of atoms as
+(:ref:`Zhou <Zhou3>`) for the energy E of a system of atoms as
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   E = \frac{1}{2}\sum_{i=1}^{i=N}\sum_{j=1}^{j=N}\left[\left(1-\delta_{ij}\right)\cdot U_{IJ}\left(r_{ij}\right)-\left(1-\eta_{ij}\right)\cdot F_{IJ}\left(X_{ij}\right)\cdot V_{IJ}\left(r_{ij}\right)\right] \\
-   X_{ij} = \sum_{k=i_1,k\neq j}^{i_N}W_{IK}\left(r_{ik}\right)\cdot G_{JIK}\left(\theta_{jik}\right)\cdot P_{JIK}\left(\Delta r_{jik}\right) \\
-   \Delta r_{jik} = r_{ij}-\xi_{IJ}\cdot r_{ik}
-   \end{array}\right.
-\end{eqnarray}
+   E & = \frac{1}{2}\sum_{i=1}^{i=N}\sum_{j=1}^{j=N}\left[\left(1-\delta_{ij}\right)\cdot U_{IJ}\left(r_{ij}\right)-\left(1-\eta_{ij}\right)\cdot F_{IJ}\left(X_{ij}\right)\cdot V_{IJ}\left(r_{ij}\right)\right] \\
+   X_{ij} & = \sum_{k=i_1,k\neq j}^{i_N}W_{IK}\left(r_{ik}\right)\cdot G_{JIK}\left(\theta_{jik}\right)\cdot P_{JIK}\left(\Delta r_{jik}\right) \\
+   \Delta r_{jik} & = r_{ij}-\xi_{IJ}\cdot r_{ik}
 
 where I, J, K represent species of atoms i, j, and k, :math:`i_1, ...,
 i_N` represents a list of *i*\ 's neighbors, :math:`\delta_{ij}` is a
@@ -67,137 +62,108 @@ only depends on species I and K. Note that these six functions are all
 one dimensional, and hence can be provided in a tabular
 form. This allows users to design different potentials solely based on a
 manipulation of these functions. For instance, the potential reduces a
-Stillinger-Weber potential (:ref:`SW &lt;SW&gt;`) if we set
+Stillinger-Weber potential (:ref:`SW <SW>`) if we set
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   \eta_{ij} = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=0 \\
-   U_{IJ}\left(r\right) = A_{IJ}\cdot\epsilon_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^q\cdot \left[B_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^{p-q}-1\right]\cdot exp\left(\frac{\sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   V_{IJ}\left(r\right) = \sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   F_{IJ}\left(X\right) = -X \\
-   P_{JIK}\left(\Delta r\right) = P_{IK}\left(\Delta r\right) = 1 \\
-   W_{IJ}\left(r\right) = \sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   G_{JIK}\left(\theta\right) = \left(cos\theta+\frac{1}{3}\right)^2
-   \end{array}\right.
-\end{eqnarray}
+   \eta_{ij} & = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=0 \\
+   U_{IJ}\left(r\right) & = A_{IJ}\cdot\epsilon_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^q\cdot \left[B_{IJ}\cdot \left(\frac{\sigma_{IJ}}{r}\right)^{p-q}-1\right]\cdot exp\left(\frac{\sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
+   V_{IJ}\left(r\right) & = \sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
+   F_{IJ}\left(X\right) & = -X \\
+   P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
+   W_{IJ}\left(r\right) & = \sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
+   G_{JIK}\left(\theta\right) & = \left(cos\theta+\frac{1}{3}\right)^2
 
-The potential reduces to a Tersoff potential (:ref:`Tersoff &lt;Tersoff&gt;
-` or :ref:`Albe &lt;poly-Albe&gt;`) if we set
+The potential reduces to a Tersoff potential (:ref:`Tersoff <Tersoff>`
+or :ref:`Albe <poly-Albe>`) if we set
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   \eta_{ij} = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=1 \\
-   U_{IJ}\left(r\right) = \frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \\
-   V_{IJ}\left(r\right) = \frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \\
-   F_{IJ}\left(X\right) = \left(1+X\right)^{-\frac{1}{2}} \\
-   P_{JIK}\left(\Delta r\right) = P_{IK}\left(\Delta r\right) = exp\left(2\mu_{IK}\cdot \Delta r\right) \\
-   W_{IJ}\left(r\right) = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) = \gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}\right]
-   \end{array}\right.
-\end{eqnarray}
+   \eta_{ij} & = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=1 \\
+   U_{IJ}\left(r\right) & = \frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \\
+   V_{IJ}\left(r\right) & = \frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \\
+   F_{IJ}\left(X\right) & = \left(1+X\right)^{-\frac{1}{2}} \\
+   P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = exp\left(2\mu_{IK}\cdot \Delta r\right) \\
+   W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
+   G_{JIK}\left(\theta\right) & = \gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}\right]
 
 where
 
 .. math::
 
-\begin{eqnarray}\nonumber
    f_{c,IJ}\left(r\right)=\left\{\begin{array}{l}
    1, r\leq R_{IJ}-D_{IJ} \\
    \frac{1}{2}+\frac{1}{2}cos\left[\frac{\pi\left(r+D_{IJ}-R_{IJ}\right)}{2D_{IJ}}\right], R_{IJ}-D_{IJ} < r < R_{IJ}+D_{IJ} \\
    0, r \geq R_{IJ}+D_{IJ}
    \end{array}\right.
-\end{eqnarray}
 
-The potential reduces to a modified Stillinger-Weber potential (:ref:`Zhou &lt;Zhou3&gt;`) if we set
-
-.. math::
-
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   \eta_{ij} = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=0 \\
-   U_{IJ}\left(r\right) = \varphi_{R,IJ}\left(r\right)-\varphi_{A,IJ}\left(r\right) \\
-   V_{IJ}\left(r\right) = u_{IJ}\left(r\right) \\
-   F_{IJ}\left(X\right) = -X \\
-   P_{JIK}\left(\Delta r\right) = P_{IK}\left(\Delta r\right) = 1 \\
-   W_{IJ}\left(r\right) = u_{IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) = g_{JIK}\left(cos\theta\right)
-   \end{array}\right.
-\end{eqnarray}
-
-
-The potential reduces to a Rockett-Tersoff potential (:ref:`Wang &lt;Wang3&gt;`) if we set
+The potential reduces to a modified Stillinger-Weber potential (:ref:`Zhou <Zhou3>`) if we set
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{ \begin{array}{l}
-   \eta_{ij} = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=1 \\
-   U_{IJ}\left(r\right) = A_{IJ}exp\left(-\lambda_{1,IJ}\cdot r\right)f_{c,IJ}\left(r\right)f_{ca,IJ}\left(r\right) \\
-   V_{IJ}\left(r\right) = \left\{\begin{array}{l}B_{IJ}exp\left(-\lambda_{2,IJ}\cdot r\right)f_{c,IJ}\left(r\right)+ \\ A_{IJ}exp\left(-\lambda_{1,IJ}\cdot r\right)f_{c,IJ}\left(r\right) \left[1-f_{ca,IJ}\left(r\right)\right]\end{array} \right\} \\
-   F_{IJ}\left(X\right) = \left[1+\left(\beta_{IJ}X\right)^{n_{IJ}}\right]^{-\frac{1}{2n_{IJ}}} \\
-   P_{JIK}\left(\Delta r\right) = P_{IK}\left(\Delta r\right) = exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\
-   W_{IJ}\left(r\right) = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) = 1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
-   \end{array}\right.
-\end{eqnarray}
+   \eta_{ij} & = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=0 \\
+   U_{IJ}\left(r\right) & = \varphi_{R,IJ}\left(r\right)-\varphi_{A,IJ}\left(r\right) \\
+   V_{IJ}\left(r\right) & = u_{IJ}\left(r\right) \\
+   F_{IJ}\left(X\right) & = -X \\
+   P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
+   W_{IJ}\left(r\right) & = u_{IJ}\left(r\right) \\
+   G_{JIK}\left(\theta\right) & = g_{JIK}\left(cos\theta\right)
+
+The potential reduces to a Rockett-Tersoff potential (:ref:`Wang <Wang3>`) if we set
+
+.. math::
+
+   \eta_{ij} & = \delta_{ij} (\eta = 2~or~\eta = 0),\xi_{IJ}=1 \\
+   U_{IJ}\left(r\right) & = A_{IJ}exp\left(-\lambda_{1,IJ}\cdot r\right)f_{c,IJ}\left(r\right)f_{ca,IJ}\left(r\right) \\
+   V_{IJ}\left(r\right) & = \left\{\begin{array}{l}B_{IJ}exp\left(-\lambda_{2,IJ}\cdot r\right)f_{c,IJ}\left(r\right)+ \\ A_{IJ}exp\left(-\lambda_{1,IJ}\cdot r\right)f_{c,IJ}\left(r\right) \left[1-f_{ca,IJ}\left(r\right)\right]\end{array} \right\} \\
+   F_{IJ}\left(X\right) & = \left[1+\left(\beta_{IJ}X\right)^{n_{IJ}}\right]^{-\frac{1}{2n_{IJ}}} \\
+   P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\
+   W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
+   G_{JIK}\left(\theta\right) & = 1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
 
 where :math:`f_{ca,IJ}(r)` is similar to the :math:`f_{c,IJ}(r)` defined above:  
 
 .. math::
 
-\begin{eqnarray}\nonumber
    f_{ca,IJ}\left(r\right)=\left\{\begin{array}{l}
    1, r\leq R_{a,IJ}-D_{a,IJ} \\
    \frac{1}{2}+\frac{1}{2}cos\left[\frac{\pi\left(r+D_{a,IJ}-R_{a,IJ}\right)}{2D_{a,IJ}}\right], R_{a,IJ}-D_{a,IJ} < r < R_{a,IJ}+D_{a,IJ} \\
    0, r \geq R_{a,IJ}+D_{a,IJ}
    \end{array}\right.
-\end{eqnarray}
 
-The potential becomes embedded atom method (:ref:`Daw &lt;poly-Daw&gt;`) if we set
+The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   \eta_{ij} = 1-\delta_{ij} (\eta = 1),\xi_{IJ}=0 \\
-   U_{IJ}\left(r\right) = \phi_{IJ}\left(r\right) \\
-   V_{IJ}\left(r\right) = 1 \\
-   F_{II}\left(X\right) = -2F_I\left(X\right) \\
-   P_{JIK}\left(\Delta r\right) = P_{IK}\left(\Delta r\right) = 1 \\
-   W_{IJ}\left(r\right) = f_{J}\left(r\right) \\
-   G_{JIK}\left(\theta\right) = 1
-   \end{array}\right.
-\end{eqnarray}
+   \eta_{ij} & = 1-\delta_{ij} (\eta = 1),\xi_{IJ}=0 \\
+   U_{IJ}\left(r\right) & = \phi_{IJ}\left(r\right) \\
+   V_{IJ}\left(r\right) & = 1 \\
+   F_{II}\left(X\right) & = -2F_I\left(X\right) \\
+   P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
+   W_{IJ}\left(r\right) & = f_{J}\left(r\right) \\
+   G_{JIK}\left(\theta\right) & = 1
 
 In the embedded atom method case, :math:`\phi_{IJ}(r)` is the pair
 energy, :math:`F_I(X)` is the embedding energy, *X* is the local
 electron density, and :math:`f_J(r)` is the atomic electron density function.
 
 The potential reduces to another type of Tersoff potential 
-(:ref:`Zhou &lt;Zhou4&gt;`) if we set
+(:ref:`Zhou <Zhou4>`) if we set
 
 .. math::
 
-\begin{eqnarray}\nonumber
-   \left\{\begin{array}{l}
-   \eta_{ij} = \delta_{ij} (\eta = 3),\xi_{IJ}=1 \\
-   U_{IJ}\left(r\right) = \frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \cdot T_{IJ}\left(r\right)+V_{ZBL,IJ}\left(r\right)\left[1-T_{IJ}\left(r\right)\right] \\
-   V_{IJ}\left(r\right) = \frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \cdot T_{IJ}\left(r\right) \\
-   F_{IJ}\left(X\right) = \left(1+X\right)^{-\frac{1}{2}} \\
-   P_{JIK}\left(\Delta r\right) = \omega_{JIK} \cdot exp\left(\alpha_{JIK}\cdot \Delta r\right) \\
-   W_{IJ}\left(r\right) = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) = \gamma_{JIK}\left[1+\frac{c_{JIK}^2}{d_{JIK}^2}-\frac{c_{JIK}^2}{d_{JIK}^2+\left(h_{JIK}+cos\theta\right)^2}\right] \\
-   T_{IJ}\left(r\right) = \frac{1}{1+exp\left[-b_{f,IJ}\left(r-r_{f,IJ}\right)\right]} \\
-   V_{ZBL,IJ}\left(r\right) = 14.4 \cdot \frac{Z_I \cdot Z_J}{r}\sum_{k=1}^{4}\mu_k \cdot exp\left[-\nu_k \left(Z_I^{0.23}+Z_J^{0.23}\right) r\right]
-   \end{array}\right.
-\end{eqnarray}
+   \eta_{ij} & = \delta_{ij} (\eta = 3),\xi_{IJ}=1 \\
+   U_{IJ}\left(r\right) & = \frac{D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{2S_{IJ}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \cdot T_{IJ}\left(r\right)+V_{ZBL,IJ}\left(r\right)\left[1-T_{IJ}\left(r\right)\right] \\
+   V_{IJ}\left(r\right) & = \frac{S_{IJ}\cdot D_{e,IJ}}{S_{IJ}-1}\cdot exp\left[-\beta_{IJ}\sqrt{\frac{2}{S_{IJ}}}\left(r-r_{e,IJ}\right)\right]\cdot f_{c,IJ}\left(r\right) \cdot T_{IJ}\left(r\right) \\
+   F_{IJ}\left(X\right) & = \left(1+X\right)^{-\frac{1}{2}} \\
+   P_{JIK}\left(\Delta r\right) & = \omega_{JIK} \cdot exp\left(\alpha_{JIK}\cdot \Delta r\right) \\
+   W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
+   G_{JIK}\left(\theta\right) & = \gamma_{JIK}\left[1+\frac{c_{JIK}^2}{d_{JIK}^2}-\frac{c_{JIK}^2}{d_{JIK}^2+\left(h_{JIK}+cos\theta\right)^2}\right] \\
+   T_{IJ}\left(r\right) & = \frac{1}{1+exp\left[-b_{f,IJ}\left(r-r_{f,IJ}\right)\right]} \\
+   V_{ZBL,IJ}\left(r\right) & = 14.4 \cdot \frac{Z_I \cdot Z_J}{r}\sum_{k=1}^{4}\mu_k \cdot exp\left[-\nu_k \left(Z_I^{0.23}+Z_J^{0.23}\right) r\right]
 
 where :math:`f_{c,IJ}(r)` is the as defined above. This Tersoff potential
-differs from the one above because the :math:`\P_{JIK}(\Delta r)` function
+differs from the one above because the :math:`P_{JIK}(\Delta r)` function
 is now dependent on all three species I, J, and K. 
 
 If the tabulated functions are created using the parameters of sw,
@@ -251,7 +217,7 @@ and are ignored by LAMMPS. The next line lists two numbers:
 
 .. parsed-literal::
 
-   ntypes :math:`\eta`
+   ntypes eta
 
 Here ntypes represent total number of species defined in the potential
 file, :math:`\eta = 1` reduces to embedded atom method, :math:`\eta = 3`
@@ -291,10 +257,10 @@ The next ntypes\*(ntypes+1)/2 lines contain two numbers:
 
 .. parsed-literal::
 
-   cut :math:`xi`(1)
-   cut :math:`xi`(2)
+   cut xi(1)
+   cut xi(2)
    ...
-   cut :math:`xi`(ntypes\*(ntypes+1)/2)
+   cut xi(ntypes\*(ntypes+1)/2)
 
 Here cut means the cutoff distance of the pair functions, :math:`\xi` is
 the same as defined in the potential functions above. The
@@ -323,10 +289,10 @@ For each of the F functions, nx values are listed.
 
 **Mixing, shift, table tail correction, restart**\ :
 
-This pair styles does not support the :doc:`pair_modify &lt;pair_modify&gt;`
+This pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write their information to :doc:`binary restart files &lt;restart&gt;`, since it is stored in potential files. Thus, you
+This pair style does not write their information to :doc:`binary restart files <restart>`, since it is stored in potential files. Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
@@ -340,20 +306,20 @@ input script. If using read_data, atomic masses must be defined in the
 atomic structure data file.
 
 This pair style is part of the MANYBODY package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package &lt;Build_package&gt;` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-This pair potential requires the :doc:`newtion &lt;newton&gt;` setting to be
+This pair potential requires the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
 The potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal :doc:`units &lt;units&gt;`. You can use
+directory) are parameterized for metal :doc:`units <units>`. You can use
 any LAMMPS units, but you would need to create your own potential
 files.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff &lt;pair_coeff&gt;`
+:doc:`pair_coeff <pair_coeff>`
 
 ----------
 

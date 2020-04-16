@@ -15,12 +15,10 @@ option(EXTERNAL_KOKKOS "Build against external kokkos library" OFF)
 option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
 if(DOWNLOAD_KOKKOS)
   message(STATUS "KOKKOS download requested - we will build our own")
-  file(DOWNLOAD https://github.com/kokkos/kokkos/compare/3.0.00...stanmoore1:lammps.diff ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch)
   include(ExternalProject)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz
-    URL_MD5 281c7093aa3a603276e93abdf4be23b9
-    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch
+    URL https://github.com/kokkos/kokkos/archive/3.1.00.tar.gz
+    URL_MD5 f638a6c786f748a602b26faa0e96ebab
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_LIBDIR=lib
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -39,7 +37,7 @@ if(DOWNLOAD_KOKKOS)
     install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
   endif()
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3)
+  find_package(Kokkos 3.1)
   if(NOT Kokkos_FOUND)
     message(FATAL_ERROR "KOKKOS library not found, help CMake to find it by setting KOKKOS_LIBRARY, or set DOWNLOAD_KOKKOS=ON to download it")
   endif()

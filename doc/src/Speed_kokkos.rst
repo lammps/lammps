@@ -9,10 +9,7 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_. Kokkos is
-part of `Trilinos <https://www.trilinos.org/>`_. The Kokkos
-library was written primarily by Carter Edwards, Christian Trott, and
-Dan Sunderland (all Sandia).
+Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_.
 
 The LAMMPS KOKKOS package contains versions of pair, fix, and atom
 styles that use data structures and macros provided by the Kokkos
@@ -21,7 +18,7 @@ package was developed primarily by Christian Trott (Sandia) and Stan
 Moore (Sandia) with contributions of various styles by others,
 including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
-see the Kokkos programmers' guide at /lib/kokkos/doc/Kokkos_PG.pdf.
+see the Kokkos `Wiki <https://github.com/kokkos/kokkos/wiki>`_.
 
 Kokkos currently provides support for 3 modes of execution (per MPI
 task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
@@ -251,7 +248,7 @@ one or more nodes, each with two GPUs:
    running on GPUs is to use "full" neighbor lists and set the Newton flag
    to "off" for both pairwise and bonded interactions, along with threaded
    communication. When running on Maxwell or Kepler GPUs, this will
-   typically be best. For Pascal GPUs, using "half" neighbor lists and
+   typically be best. For Pascal GPUs and beyond, using "half" neighbor lists and
    setting the Newton flag to "on" may be faster. For many pair styles,
    setting the neighbor binsize equal to twice the CPU default value will
    give speedup, which is the default when running on GPUs. Use the "-pk
@@ -263,13 +260,6 @@ one or more nodes, each with two GPUs:
 .. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
-
-.. note::
-
-   For good performance of the KOKKOS package on GPUs, you must
-   have Kepler generation GPUs (or later). The Kokkos library exploits
-   texture cache options not supported by Telsa generation GPUs (or
-   older).
 
 .. note::
 
@@ -386,13 +376,12 @@ As explained on the :ref:`Build extras <kokkos>` doc page,
 they can be set either as variables on the make command line or in
 Makefile.machine, or they can be specified as CMake variables.  Each
 takes a value shown below.  The default value is listed, which is set
-in the lib/kokkos/Makefile.kokkos file.
+in the lib/kokkos/Makefile.kokkos file. For a full listing of all options,
+see lib/kokkos/Makefile.kokkos.
 
-* KOKKOS_DEBUG, values = *yes*\ , *no*\ , default = *no*
 * KOKKOS_USE_TPLS, values = *hwloc*\ , *librt*\ , *experimental_memkind*, default = *none*
-* KOKKOS_CXX_STANDARD, values = *c++11*\ , *c++1z*\ , default = *c++11*
-* KOKKOS_OPTIONS, values = *aggressive_vectorization*, *disable_profiling*, default = *none*
-* KOKKOS_CUDA_OPTIONS, values = *force_uvm*, *use_ldg*, *rdc*\ , *enable_lambda*, default = *enable_lambda*
+* KOKKOS_DEBUG, values = *yes*\ , *no*\ , default = *no*
+* KOKKOS_CUDA_OPTIONS, values = *force_uvm*, *use_ldg*, *rdc*\ , *enable_lambda*\ , *enable_constexpr*, default = *enable_lambda*
 
 KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
 migrate during a simulation. KOKKOS_USE_TPLS=hwloc should always be
@@ -410,9 +399,6 @@ KOKKOS_DEBUG is only useful when developing a Kokkos-enabled style
 within LAMMPS. KOKKOS_DEBUG=yes enables printing of run-time
 debugging information that can be useful. It also enables runtime
 bounds checking on Kokkos data structures.
-
-KOKKOS_CXX_STANDARD and KOKKOS_OPTIONS are typically not changed when
-building LAMMPS.
 
 KOKKOS_CUDA_OPTIONS are additional options for CUDA. The LAMMPS KOKKOS
 package must be compiled with the *enable_lambda* option when using

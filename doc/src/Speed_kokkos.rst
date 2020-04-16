@@ -31,12 +31,6 @@ compatible with specific hardware.
 
 .. note::
 
-   Kokkos support within LAMMPS must be built with a C++11 compatible
-   compiler. This means GCC version 4.7.2 or later, Intel 14.0.4 or later, or
-   Clang 3.5.2 or later is required.
-
-.. note::
-
    To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA
    software version 9.0 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of how

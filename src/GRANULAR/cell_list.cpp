@@ -112,7 +112,7 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
 
   // test for too many bins in any dimension due to huge global domain
 
-  assert(extent[0]*binsizeinv < MAXSMALLINT && 
+  assert(extent[0]*binsizeinv < MAXSMALLINT &&
          extent[1]*binsizeinv < MAXSMALLINT &&
          extent[2]*binsizeinv < MAXSMALLINT);
 
@@ -241,10 +241,10 @@ size_t CellList::count() const {
 DistributedCellList::DistributedCellList(LAMMPS * lmp) : CellList(lmp) {
   recvcounts.resize(comm->nprocs);
   displs.resize(comm->nprocs);
- 
+
   MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
   int blocklenghts[2]   = {3, 1};
-  MPI_Aint offsets[2] = {0, 3*sizeof(double)}; 
+  MPI_Aint offsets[2] = {0, 3*sizeof(double)};
   MPI_Type_create_struct(2, blocklenghts, offsets, types, &mpi_element_type);
   MPI_Type_commit(&mpi_element_type);
 }
@@ -292,7 +292,7 @@ void DistributedCellList::allgather(INearList * local_nlist) {
 
   // step 1: correct element indices, each process has been counting from 0.
   //         now that we have them in one array we can reuse the displs array to correct the indices
-  
+
   for (int iproc = 1; iproc < nprocs; iproc++) {
       const int offset = displs[iproc];
       const int ibin_offset = iproc * nbins;
@@ -316,7 +316,7 @@ void DistributedCellList::allgather(INearList * local_nlist) {
 
   // step 2: reduce binheads and next to single binning structure by merging lists
   for(int ibin = 0; ibin < nbins; ++ibin) {
-      int iproc = 0;            
+      int iproc = 0;
       int j = binhead[ibin];
       int prev = -1;
 
@@ -325,7 +325,7 @@ void DistributedCellList::allgather(INearList * local_nlist) {
               prev = j;
               j = next[j];
           }
-          
+
           iproc++;
 
           if(iproc < nprocs) {

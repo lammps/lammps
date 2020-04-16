@@ -37,7 +37,7 @@ protected:
   struct Element {
     double x[3];
     double r;
-    
+
     Element() {
         x[0] = 0.0;
         x[1] = 0.0;
@@ -53,9 +53,9 @@ protected:
     }
 
     Element(double * x, double r) {
-        this->x[0] = x[0]; 
-        this->x[1] = x[1]; 
-        this->x[2] = x[2]; 
+        this->x[0] = x[0];
+        this->x[1] = x[1];
+        this->x[2] = x[2];
         this->r = r;
     }
   };

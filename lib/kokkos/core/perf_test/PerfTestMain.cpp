@@ -54,13 +54,13 @@ int command_line_num_args(int n = 0) {
   return n_args;
 }
 
-const char* command_line_arg(int k, char** input_args = NULL) {
+const char* command_line_arg(int k, char** input_args = nullptr) {
   static char** args;
-  if (input_args != NULL) args = input_args;
+  if (input_args != nullptr) args = input_args;
   if (command_line_num_args() > k)
     return args[k];
   else
-    return NULL;
+    return nullptr;
 }
 
 }  // namespace Test

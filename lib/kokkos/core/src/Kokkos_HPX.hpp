@@ -83,6 +83,7 @@
 #include <hpx/runtime.hpp>
 #include <hpx/runtime/threads/run_as_hpx_thread.hpp>
 #include <hpx/runtime/threads/threadmanager.hpp>
+#include <hpx/runtime/thread_pool_helpers.hpp>
 
 #include <iostream>
 #include <memory>
@@ -194,6 +195,7 @@ class HPX {
                                   const bool /* verbose */ = false) {
     std::cout << "HPX backend" << std::endl;
   }
+  uint32_t impl_instance_id() const noexcept { return 0; }
 
   static bool in_parallel(HPX const & = HPX()) noexcept { return false; }
   static void impl_static_fence(HPX const & = HPX())
@@ -228,8 +230,8 @@ class HPX {
   }
 
   template <typename F>
-  static void partition_master(F const &f, int requested_num_partitions = 0,
-                               int requested_partition_size = 0) {
+  static void partition_master(F const &, int requested_num_partitions = 0,
+                               int = 0) {
     if (requested_num_partitions > 1) {
       Kokkos::abort(
           "Kokkos::Experimental::HPX::partition_master: can't partition an "
@@ -296,6 +298,15 @@ class HPX {
   static constexpr const char *name() noexcept { return "HPX"; }
 };
 }  // namespace Experimental
+
+namespace Profiling {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Kokkos::Experimental::HPX> {
+  constexpr static DeviceType id = DeviceType::HPX;
+};
+}  // namespace Experimental
+}  // namespace Profiling
 
 namespace Impl {
 template <typename Closure>
@@ -462,7 +473,7 @@ struct HPXTeamMember {
   template <class ReducerType>
   KOKKOS_INLINE_FUNCTION
       typename std::enable_if<is_reducer<ReducerType>::value>::type
-      team_reduce(const ReducerType &reducer) const {}
+      team_reduce(const ReducerType &) const {}
 
   template <typename Type>
   KOKKOS_INLINE_FUNCTION Type
@@ -590,6 +601,11 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
   template <class ExecSpace, class... OtherProperties>
   friend class TeamPolicyInternal;
 
+  const typename traits::execution_space &space() const {
+    static typename traits::execution_space m_space;
+    return m_space;
+  }
+
   template <class... OtherProperties>
   TeamPolicyInternal(const TeamPolicyInternal<Kokkos::Experimental::HPX,
                                               OtherProperties...> &p) {
@@ -612,8 +628,7 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
   }
 
   TeamPolicyInternal(const typename traits::execution_space &,
-                     int league_size_request,
-                     const Kokkos::AUTO_t &team_size_request,
+                     int league_size_request, const Kokkos::AUTO_t &,
                      int /* vector_length_request */ = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
@@ -629,8 +644,7 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
     init(league_size_request, team_size_request);
   }
 
-  TeamPolicyInternal(int league_size_request,
-                     const Kokkos::AUTO_t &team_size_request,
+  TeamPolicyInternal(int league_size_request, const Kokkos::AUTO_t &,
                      int /* vector_length_request */ = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
@@ -1169,7 +1183,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
       const ViewType &arg_view,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void *>::type = NULL)
+                              void *>::type = nullptr)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),
@@ -1359,7 +1373,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       const ViewType &arg_view,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void *>::type = NULL)
+                              void *>::type = nullptr)
       : m_functor(arg_functor),
         m_mdr_policy(arg_policy),
         m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
@@ -1990,7 +2004,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       const ViewType &arg_result,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void *>::type = NULL)
+                              void *>::type = nullptr)
       : m_functor(arg_functor),
         m_league(arg_policy.league_size()),
         m_policy(arg_policy),
@@ -2241,28 +2255,28 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
 
 template <class FunctorType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::VectorSingleStruct<Impl::HPXTeamMember> &single_struct,
+    const Impl::VectorSingleStruct<Impl::HPXTeamMember> &,
     const FunctorType &lambda) {
   lambda();
 }
 
 template <class FunctorType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::ThreadSingleStruct<Impl::HPXTeamMember> &single_struct,
+    const Impl::ThreadSingleStruct<Impl::HPXTeamMember> &,
     const FunctorType &lambda) {
   lambda();
 }
 
 template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::VectorSingleStruct<Impl::HPXTeamMember> &single_struct,
+    const Impl::VectorSingleStruct<Impl::HPXTeamMember> &,
     const FunctorType &lambda, ValueType &val) {
   lambda(val);
 }
 
 template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::ThreadSingleStruct<Impl::HPXTeamMember> &single_struct,
+    const Impl::ThreadSingleStruct<Impl::HPXTeamMember> &,
     const FunctorType &lambda, ValueType &val) {
   lambda(val);
 }

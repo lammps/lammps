@@ -129,6 +129,8 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
       o << "cudaMallocManaged().";
       break;
     case AllocationMechanism::CudaHostAlloc: o << "cudaHostAlloc()."; break;
+    case AllocationMechanism::HIPMalloc: o << "hipMalloc()."; break;
+    case AllocationMechanism::HIPHostMalloc: o << "hipHostMalloc()."; break;
   }
   append_additional_error_information(o);
   o << ")" << std::endl;

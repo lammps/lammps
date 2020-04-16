@@ -70,10 +70,10 @@ struct ChunkArraySpace<Kokkos::CudaSpace> {
   using memory_space = typename Kokkos::CudaUVMSpace;
 };
 #endif
-#ifdef KOKKOS_ENABLE_ROCM
+#ifdef KOKKOS_ENABLE_HIP
 template <>
-struct ChunkArraySpace<Kokkos::Experimental::ROCmSpace> {
-  using memory_space = typename Kokkos::Experimental::ROCmHostPinnedSpace;
+struct ChunkArraySpace<Kokkos::Experimental::HIPSpace> {
+  using memory_space = typename Kokkos::Experimental::HIPHostPinnedSpace;
 };
 #endif
 }  // end namespace Impl
@@ -248,8 +248,8 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
   //----------------------------------------
 
   template <typename I0, class... Args>
-  KOKKOS_INLINE_FUNCTION reference_type operator()(const I0& i0,
-                                                   const Args&... args) const {
+  KOKKOS_INLINE_FUNCTION reference_type
+  operator()(const I0& i0, const Args&... /*args*/) const {
     static_assert(Kokkos::Impl::are_integral<I0, Args...>::value,
                   "Indices must be integral type");
 
@@ -265,7 +265,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
     // If not bounds checking then we assume a non-zero pointer is valid.
 
 #if !defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-    if (0 == *ch)
+    if (nullptr == *ch)
 #endif
     {
       // Verify that allocation of the requested chunk in in progress.
@@ -280,7 +280,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
       // Allocation of this chunk is in progress
       // so wait for allocation to complete.
-      while (0 == *ch)
+      while (nullptr == *ch)
         ;
     }
 
@@ -325,7 +325,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
         --*pc;
         typename traits::memory_space().deallocate(
             m_chunks[*pc], sizeof(local_value_type) << m_chunk_shift);
-        m_chunks[*pc] = 0;
+        m_chunks[*pc] = nullptr;
       }
     }
     // *m_chunks[m_chunk_max+1] stores the 'extent' requested by resize
@@ -366,10 +366,10 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
     // Initialize or destroy array of chunk pointers.
     // Two entries beyond the max chunks are allocation counters.
     inline void operator()(unsigned i) const {
-      if (m_destroy && i < m_chunk_max && 0 != m_chunks[i]) {
+      if (m_destroy && i < m_chunk_max && nullptr != m_chunks[i]) {
         typename traits::memory_space().deallocate(m_chunks[i], m_chunk_size);
       }
-      m_chunks[i] = 0;
+      m_chunks[i] = nullptr;
     }
 
     void execute(bool arg_destroy) {
@@ -419,7 +419,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
                               const unsigned min_chunk_size,
                               const unsigned max_extent)
       : m_track(),
-        m_chunks(0)
+        m_chunks(nullptr)
         // The chunk size is guaranteed to be a power of two
         ,
         m_chunk_shift(Kokkos::Impl::integral_power_of_two_that_contains(
@@ -528,7 +528,7 @@ struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>,
   typedef SrcType src_subview_type;
   dst_subview_type dst_sub;
   src_subview_type src_sub;
-  CommonSubview(const DstType& dst, const SrcType& src, const Arg0& arg0)
+  CommonSubview(const DstType& dst, const SrcType& src, const Arg0& /*arg0*/)
       : dst_sub(dst), src_sub(src) {}
 };
 

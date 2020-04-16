@@ -635,6 +635,8 @@
 /fix_poems.h
 /fix_pour.cpp
 /fix_pour.h
+/fix_pour_opt.cpp
+/fix_pour_opt.h
 /cell_list.cpp
 /cell_list.h
 /near_list.cpp

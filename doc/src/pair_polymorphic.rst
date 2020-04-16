@@ -44,25 +44,25 @@ constant that can be set either to :math:`\eta_{ij} = \delta_{ij}` or
 :math:`\eta_{ij} = 1 - \delta_{ij}` depending on the potential type,
 :math:`U_{IJ}(r_{ij})`, :math:`V_{IJ}(r_{ij})`, :math:`W_{IK}(r_{ik})`
 are pair functions, :math:`G_{JIK}(\cos\theta_{jik})` is an angular
-function, :math:`P_{JIK}(\Delta r_{jik})` is a function of atomic spacing
-differential :math:`\Delta r_{jik} = r_{ij} - \xi_{IJ} \cdot r_{ik}`
-with :math:`\xi_{IJ}` being a pair-dependent parameter, and
+function, :math:`P_{JIK}(\Delta r_{jik})` is a function of atomic
+spacing differential :math:`\Delta r_{jik} = r_{ij} - \xi_{IJ} \cdot
+r_{ik}` with :math:`\xi_{IJ}` being a pair-dependent parameter, and
 :math:`F_{IJ}(X_{ij})` is a function of the local environment variable
 :math:`X_{ij}`. This generic potential is fully defined once the
 constants :math:`\eta_{ij}` and :math:`\xi_{IJ}`, and the six functions
 :math:`U_{IJ}(r_{ij})`, :math:`V_{IJ}(r_{ij})`, :math:`W_{IK}(r_{ik})`,
 :math:`G_{JIK}(\cos\theta_{jik})`, :math:`P_{JIK}(\Delta r_{jik})`, and
-:math:`F_{IJ}(X_{ij})` are given. Here LAMMPS uses a global
-parameter :math:`\eta` to represent :math:`\eta_{ij}`. When
-:math:`\eta = 1`, :math:`\eta_{ij} = 1 - \delta_{ij}`, otherwise
-:math:`\eta_{ij} = \delta_{ij}`. Additionally, :math:`\eta = 3`
-indicates that the function :math:`P_{JIK}(\Delta r)` depends on
-species I, J and K, otherwise :math:`P_{JIK}(\Delta r) = P_{IK}(\Delta r)` 
-only depends on species I and K. Note that these six functions are all
-one dimensional, and hence can be provided in a tabular
-form. This allows users to design different potentials solely based on a
-manipulation of these functions. For instance, the potential reduces a
-Stillinger-Weber potential (:ref:`SW <SW>`) if we set
+:math:`F_{IJ}(X_{ij})` are given. Here LAMMPS uses a global parameter
+:math:`\eta` to represent :math:`\eta_{ij}`. When :math:`\eta = 1`,
+:math:`\eta_{ij} = 1 - \delta_{ij}`, otherwise :math:`\eta_{ij} =
+\delta_{ij}`. Additionally, :math:`\eta = 3` indicates that the function
+:math:`P_{JIK}(\Delta r)` depends on species I, J and K, otherwise
+:math:`P_{JIK}(\Delta r) = P_{IK}(\Delta r)` only depends on species I
+and K. Note that these six functions are all one dimensional, and hence
+can be provided in a tabular form. This allows users to design different
+potentials solely based on a manipulation of these functions. For
+instance, the potential reduces to a Stillinger-Weber potential
+(:ref:`SW <SW>`) if we set
 
 .. math::
 
@@ -97,7 +97,8 @@ where
    0, r \geq R_{IJ}+D_{IJ}
    \end{array}\right.
 
-The potential reduces to a modified Stillinger-Weber potential (:ref:`Zhou <Zhou3>`) if we set
+The potential reduces to a modified Stillinger-Weber potential
+(:ref:`Zhou <Zhou3>`) if we set
 
 .. math::
 
@@ -109,7 +110,8 @@ The potential reduces to a modified Stillinger-Weber potential (:ref:`Zhou <Zhou
    W_{IJ}\left(r\right) & = u_{IJ}\left(r\right) \\
    G_{JIK}\left(\theta\right) & = g_{JIK}\left(cos\theta\right)
 
-The potential reduces to a Rockett-Tersoff potential (:ref:`Wang <Wang3>`) if we set
+The potential reduces to a Rockett-Tersoff potential (:ref:`Wang
+<Wang3>`) if we set
 
 .. math::
 
@@ -121,7 +123,8 @@ The potential reduces to a Rockett-Tersoff potential (:ref:`Wang <Wang3>`) if we
    W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
    G_{JIK}\left(\theta\right) & = 1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
 
-where :math:`f_{ca,IJ}(r)` is similar to the :math:`f_{c,IJ}(r)` defined above:  
+where :math:`f_{ca,IJ}(r)` is similar to the :math:`f_{c,IJ}(r)` defined
+above:
 
 .. math::
 
@@ -131,7 +134,8 @@ where :math:`f_{ca,IJ}(r)` is similar to the :math:`f_{c,IJ}(r)` defined above:
    0, r \geq R_{a,IJ}+D_{a,IJ}
    \end{array}\right.
 
-The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
+The potential becomes the embedded atom method (:ref:`Daw <poly-Daw>`)
+if we set
 
 .. math::
 
@@ -145,10 +149,11 @@ The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
 
 In the embedded atom method case, :math:`\phi_{IJ}(r)` is the pair
 energy, :math:`F_I(X)` is the embedding energy, *X* is the local
-electron density, and :math:`f_J(r)` is the atomic electron density function.
+electron density, and :math:`f_J(r)` is the atomic electron density
+function.
 
-The potential reduces to another type of Tersoff potential 
-(:ref:`Zhou <Zhou4>`) if we set
+The potential reduces to another type of Tersoff potential (:ref:`Zhou
+<Zhou4>`) if we set
 
 .. math::
 
@@ -162,21 +167,24 @@ The potential reduces to another type of Tersoff potential
    T_{IJ}\left(r\right) & = \frac{1}{1+exp\left[-b_{f,IJ}\left(r-r_{f,IJ}\right)\right]} \\
    V_{ZBL,IJ}\left(r\right) & = 14.4 \cdot \frac{Z_I \cdot Z_J}{r}\sum_{k=1}^{4}\mu_k \cdot exp\left[-\nu_k \left(Z_I^{0.23}+Z_J^{0.23}\right) r\right]
 
-where :math:`f_{c,IJ}(r)` is the as defined above. This Tersoff potential
-differs from the one above because the :math:`P_{JIK}(\Delta r)` function
-is now dependent on all three species I, J, and K. 
+where :math:`f_{c,IJ}(r)` is the as defined above. This Tersoff
+potential differs from the one above because the :math:`P_{JIK}(\Delta
+r)` function is now dependent on all three species I, J, and K.
 
-If the tabulated functions are created using the parameters of sw,
-tersoff, and eam potentials, the polymorphic pair style will produce
-the same global properties (energies and stresses) and the same forces
-as the sw, tersoff, and eam pair styles. The polymorphic pair style
-also produces the same atom properties (energies and stresses) as the
-corresponding tersoff and eam pair styles. However, due to a different
-partition of global properties to atom properties, the polymorphic
-pair style will produce different atom properties (energies and
-stresses) as the sw pair style. This does not mean that polymorphic
-pair style is different from the sw pair style. It just means that the
-definitions of the atom energies and atom stresses are different.
+If the tabulated functions are created using the parameters of
+Stillinger-Weber, Tersoff, and EAM potentials, the polymorphic pair
+style will produce the same global properties (energies and stresses)
+and the same forces as the :doc:`sw <pair_sw>`, :doc:`tersoff
+<pair_tersoff>`, and :doc:`eam <pair_eam>` pair styles. The polymorphic
+pair style also produces the same per-atom properties (energies and
+stresses) as the corresponding :doc:`tersoff <pair_tersoff>` and
+:doc:`eam <pair_eam>` pair styles. However, due to a different
+partitioning of global properties to per-atom properties, the
+polymorphic pair style will produce different per-atom properties
+(energies and stresses) as the :doc:`sw <pair_sw>` pair style. This does
+not mean that polymorphic pair style is different from the sw pair
+style. It just means that the definitions of the atom energies and atom
+stresses are different.
 
 Only a single pair_coeff command is used with the polymorphic pair
 style which specifies an potential file for all needed elements.
@@ -201,14 +209,14 @@ would use the following pair_coeff command:
 
    pair_coeff * * GaN_tersoff.poly Ga Ga Ga N
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom
+The first two arguments must be \* \* to span all pairs of LAMMPS atom
 types. The first three Ga arguments map LAMMPS atom types 1,2,3 to the
 Ga element in the polymorphic file. The final N argument maps LAMMPS
-atom type 4 to the N element in the polymorphic file. If a mapping
-value is specified as NULL, the mapping is not performed. This can be
-used when an polymorphic potential is used as part of the hybrid pair
-style. The NULL values are placeholders for atom types that will be
-used with other potentials.
+atom type 4 to the N element in the polymorphic file. If a mapping value
+is specified as NULL, the mapping is not performed. This can be used
+when an polymorphic potential is used as part of the hybrid pair
+style. The NULL values are placeholders for atom types that will be used
+with other potentials.
 
 Potential files in the potentials directory of the LAMMPS distribution
 have a ".poly" suffix. At the beginning of the files, an unlimited

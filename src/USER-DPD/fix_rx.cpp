@@ -256,10 +256,6 @@ void FixRX::post_constructor()
   int nUniqueSpecies = 0;
   bool match;
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^property/atom") == 0)
-      error->all(FLERR,"fix rx cannot be combined with fix property/atom");
-
   char **tmpspecies = new char*[maxspecies];
   int tmpmaxstrlen = 0;
   for(int jj=0; jj < maxspecies; jj++)

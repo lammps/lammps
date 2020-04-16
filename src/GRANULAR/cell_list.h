@@ -15,12 +15,13 @@
 #define LMP_CELL_LIST_H
 
 #include <vector>
-#include "pointers.h"
 #include <mpi.h>
+#include "pointers.h"
+#include "near_list.h"
 
 namespace LAMMPS_NS {
 
-class CellList : protected Pointers {
+class CellList : protected Pointers, public virtual INearList {
   friend class DistributedCellList;
 
   int nbinx, nbiny, nbinz;         // # of global bins
@@ -70,29 +71,30 @@ protected:
   int coord2bin(double *x) const;
 
 public:
-    CellList(class LAMMPS *);
+  CellList(class LAMMPS *);
+  virtual ~CellList() = default;
 
-    void setup(double * bboxlo, double * bboxhi, double binsize);
+  void setup(double * bboxlo, double * bboxhi, double binsize);
+  void clear();
 
-    void insert(double * x, double r);
-    void clear();
-
-    size_t count() const;
-
-    bool has_overlap(double *x, double r) const;
+  // Implementation of INearList interface
+  virtual void insert(double * x, double r);
+  virtual size_t count() const;
+  virtual bool has_overlap(double *x, double r) const;
 };
 
 
-class DistributedCellList : public CellList {
-  int me;
-  int nprocs;
+class DistributedCellList : public CellList, public IDistributedNearList {
   std::vector<int> recvcounts;
   std::vector<int> displs;
   MPI_Datatype mpi_element_type;
-public:
-    DistributedCellList(LAMMPS * lmp);
 
-    void allreduce(CellList & clist);
+public:
+  DistributedCellList(LAMMPS * lmp);
+  virtual ~DistributedCellList() = default;
+
+  // Implementation of IDistributedNearList
+  virtual void allgather(INearList * local_nlist);
 };
 
 }

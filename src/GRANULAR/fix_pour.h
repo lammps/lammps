@@ -21,6 +21,7 @@ FixStyle(pour,FixPour)
 #define LMP_FIX_POUR_H
 
 #include "fix.h"
+#include "near_list.h"
 
 namespace LAMMPS_NS {
 
@@ -34,7 +35,10 @@ class FixPour : public Fix {
   void reset_dt();
   void *extract(const char *, int &);
 
- private:
+ protected:
+  virtual void init_near_lists(int nnew, INearList*&, IDistributedNearList*&);
+  virtual void cleanup_near_lists(INearList*&, IDistributedNearList*&);
+
   int ninsert,ntype,seed;
   int iregion,mode,idnext,dstyle,npoly,rigidflag,shakeflag;
   int ignoreflag,ignoreline,ignoretri;
@@ -61,8 +65,6 @@ class FixPour : public Fix {
   class Fix *fixrigid,*fixshake;
   double oneradius;
 
-  int me,nprocs;
-  int *recvcounts,*displs;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
   tagint maxtag_all,maxmol_all;

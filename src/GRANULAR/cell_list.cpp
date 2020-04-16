@@ -18,6 +18,7 @@
 #include "cell_list.h"
 #include <assert.h>
 #include "domain.h"
+#include "error.h"
 #include "comm.h"
 #include <algorithm>
 #include <numeric>
@@ -238,10 +239,8 @@ size_t CellList::count() const {
 /* -------------------------------------------------------------------------- */
 
 DistributedCellList::DistributedCellList(LAMMPS * lmp) : CellList(lmp) {
-  MPI_Comm_rank(world, &me);
-  MPI_Comm_size(world, &nprocs);
-  recvcounts.resize(nprocs);
-  displs.resize(nprocs);
+  recvcounts.resize(comm->nprocs);
+  displs.resize(comm->nprocs);
  
   MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
   int blocklenghts[2]   = {3, 1};
@@ -250,12 +249,21 @@ DistributedCellList::DistributedCellList(LAMMPS * lmp) : CellList(lmp) {
   MPI_Type_commit(&mpi_element_type);
 }
 
-void DistributedCellList::allreduce(CellList & clist) {
-  int ncount_local = clist.count();
-  assert(nbins == clist.nbins);
+void DistributedCellList::allgather(INearList * local_nlist) {
+  CellList * clist = dynamic_cast<CellList*>(local_nlist);
+
+  if(!clist) {
+    error->all(FLERR,"DistributedCellList::allgather requires pointer to CellList object!");
+  }
+
+
+  int ncount_local = clist->count();
+  assert(nbins == clist->nbins);
 
   MPI_Allgather(&ncount_local, 1, MPI_INT, &recvcounts[0], 1, MPI_INT, world);
   int ncount_global = std::accumulate(recvcounts.begin(), recvcounts.end(), 0);
+
+  const int nprocs = comm->nprocs;
 
   binhead.resize(nprocs * nbins);
   next.resize(ncount_global);
@@ -267,16 +275,16 @@ void DistributedCellList::allreduce(CellList & clist) {
   }
 
   // collect binheads from all processors
-  MPI_Allgather(&clist.binhead[0], nbins, MPI_INT, &binhead[0], nbins, MPI_INT, world);
+  MPI_Allgather(&clist->binhead[0], nbins, MPI_INT, &binhead[0], nbins, MPI_INT, world);
 
   // collect next array from all processors that have elements
   int * nextptr = NULL;
-  if (ncount_local) nextptr = &clist.next[0];
+  if (ncount_local) nextptr = &clist->next[0];
   MPI_Allgatherv(nextptr, ncount_local, MPI_INT, &next[0], &recvcounts[0], &displs[0], MPI_INT, world);
 
   // collect element arrays from all processors that have elements
   CellList::Element * elementptr = NULL;
-  if (ncount_local) elementptr = &clist.elements[0];
+  if (ncount_local) elementptr = &clist->elements[0];
   MPI_Allgatherv(elementptr, ncount_local, mpi_element_type, &elements[0], &recvcounts[0], &displs[0], mpi_element_type, world);
 
   // at this point all processors have a full list of all elements in the global cell list,

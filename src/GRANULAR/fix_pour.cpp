@@ -49,8 +49,8 @@ enum{ONE,RANGE,POLY};
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL),
   idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL),
-  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL),
-  displs(NULL), random(NULL), random2(NULL)
+  imageflags(NULL), fixrigid(NULL), fixshake(NULL),
+  random(NULL), random2(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
@@ -174,13 +174,6 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   random = new RanPark(lmp,seed);
   for (int ii=0; ii < 30; ii++) random->uniform();
 
-  // allgather arrays
-
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-  recvcounts = new int[nprocs];
-  displs = new int[nprocs];
-
   // grav = gravity in distance/time^2 units
   // assume grav = -magnitude at this point, enforce in init()
 
@@ -266,7 +259,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // print stats
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (screen)
       fprintf(screen,
               "Particle insertion: %d every %d steps, %d by step %d\n",
@@ -290,8 +283,6 @@ FixPour::~FixPour()
   delete [] frac_poly;
   memory->destroy(coords);
   memory->destroy(imageflags);
-  delete [] recvcounts;
-  delete [] displs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -367,6 +358,58 @@ void FixPour::init()
 }
 
 /* ----------------------------------------------------------------------
+   initialize temporary data structures
+------------------------------------------------------------------------- */
+
+void FixPour::init_near_lists(int nnew, INearList* & local_nlist, IDistributedNearList* & dist_nlist)
+{
+  // ncount = # of my atoms that overlap the insertion region
+  int ncount = 0;
+
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (overlap(i)) {
+        ncount++;
+    }
+  }
+
+  NearList * nlist = new NearList(lmp);
+
+  if(comm->nprocs > 1) {
+    int ntotal = 0;
+    MPI_Allreduce(&ncount, &ntotal, 1, MPI_INT, MPI_SUM, world);
+
+    DistributedNearList * dist = new DistributedNearList(lmp);
+
+    // nlist only stores local atoms
+    nlist->allocate(ncount);
+
+    // dist_nlist stores all local atoms + all inserted
+    dist->allocate(ntotal + nnew * natom_max);
+
+    local_nlist = nlist;
+    dist_nlist = dist;
+  } else {
+    // local_nlist stores local atoms + all inserted
+    nlist->allocate(ncount + nnew * natom_max);
+
+    local_nlist = nlist;
+    dist_nlist = nullptr;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   remove temporary data structures
+------------------------------------------------------------------------- */
+
+void FixPour::cleanup_near_lists(INearList* & local_nlist, IDistributedNearList* & dist_nlist)
+{
+  delete local_nlist;
+  delete dist_nlist;
+  local_nlist = nullptr;
+  dist_nlist = nullptr;
+}
+
+/* ----------------------------------------------------------------------
    perform particle insertion
 ------------------------------------------------------------------------- */
 
@@ -407,59 +450,37 @@ void FixPour::pre_exchange()
     hi_current = yhi + (update->ntimestep - nfirst) * update->dt * rate;
   }
 
-  // ncount = # of my atoms that overlap the insertion region
-  // nprevious = total of ncount across all procs
-
-  int ncount = 0;
-  for (i = 0; i < atom->nlocal; i++)
-    if (overlap(i)) ncount++;
-
-  int nprevious;
-  MPI_Allreduce(&ncount,&nprevious,1,MPI_INT,MPI_SUM,world);
-
-  // xmine is for my atoms
-  // xnear is for atoms from all procs + atoms to be inserted
-
-  double **xmine,**xnear;
-  memory->create(xmine,ncount,4,"fix_pour:xmine");
-  memory->create(xnear,nprevious+nnew*natom_max,4,"fix_pour:xnear");
-  int nnear = nprevious;
-
-  // setup for allgatherv
-
-  int n = 4*ncount;
-  MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,world);
-
-  displs[0] = 0;
-  for (int iproc = 1; iproc < nprocs; iproc++)
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-
-  // load up xmine array
-
   double **x = atom->x;
   double *radius = atom->radius;
 
-  ncount = 0;
-  for (i = 0; i < atom->nlocal; i++)
+  INearList * local_nlist = nullptr;
+  IDistributedNearList * dist_nlist = nullptr;
+
+  // this is a factory method that can be overloaded by subclasses
+  init_near_lists(nnew, local_nlist, dist_nlist);
+
+  // load local near list with overlapping atoms
+  for (i = 0; i < atom->nlocal; i++) {
     if (overlap(i)) {
-      xmine[ncount][0] = x[i][0];
-      xmine[ncount][1] = x[i][1];
-      xmine[ncount][2] = x[i][2];
-      xmine[ncount][3] = radius[i];
-      ncount++;
+      local_nlist->insert(x[i], radius[i]);
     }
+  }
 
-  // perform allgatherv to acquire list of nearby particles on all procs
+  INearList * full_nlist = local_nlist;
 
-  double *ptr = NULL;
-  if (ncount) ptr = xmine[0];
-  MPI_Allgatherv(ptr,4*ncount,MPI_DOUBLE,
-                 xnear[0],recvcounts,displs,MPI_DOUBLE,world);
+  // generate full list if there are more than one processor
+  if(comm->nprocs > 1) {
+    dist_nlist->allgather(local_nlist);
+    full_nlist = dist_nlist;
+  }
 
-  // insert new particles into xnear list, one by one
+  // nprevious = total of ncount across all procs
+  int nprevious = full_nlist->count();
+
+  // insert new particles into list, one by one
   // check against all nearby atoms and previously inserted ones
   // if there is an overlap then try again at same z (3d) or y (2d) coord
-  // else insert by adding to xnear list
+  // else insert by adding to list
   // max = maximum # of insertion attempts for all particles
   // h = height, biased to give uniform distribution in time of insertion
   // for MOLECULE mode:
@@ -536,19 +557,9 @@ void FixPour::pre_exchange()
       }
 
       // if any pair of atoms overlap, try again
-      // use minimum_image() to account for PBC
-
       for (m = 0; m < natom; m++) {
-        for (i = 0; i < nnear; i++) {
-          delx = coords[m][0] - xnear[i][0];
-          dely = coords[m][1] - xnear[i][1];
-          delz = coords[m][2] - xnear[i][2];
-          domain->minimum_image(delx,dely,delz);
-          rsq = delx*delx + dely*dely + delz*delz;
-          radsum = coords[m][3] + xnear[i][3];
-          if (rsq <= radsum*radsum) break;
-        }
-        if (i < nnear) break;
+        if (full_nlist->has_overlap(coords[m], coords[m][3]))
+            break;
       }
       if (m == natom) {
         success = 1;
@@ -563,14 +574,10 @@ void FixPour::pre_exchange()
     nsuccess++;
     nlocalprev = atom->nlocal;
 
-    // add all atoms in particle to xnear
+    // add all atoms in particle to near list
 
     for (m = 0; m < natom; m++) {
-      xnear[nnear][0] = coords[m][0];
-      xnear[nnear][1] = coords[m][1];
-      xnear[nnear][2] = coords[m][2];
-      xnear[nnear][3] = coords[m][3];
-      nnear++;
+      full_nlist->insert(coords[m], coords[m][3]);
     }
 
     // choose random velocity for new particle
@@ -683,10 +690,10 @@ void FixPour::pre_exchange()
 
   // warn if not successful with all insertions b/c too many attempts
 
-  int ninserted_atoms = nnear - nprevious;
+  int ninserted_atoms = full_nlist->count() - nprevious;
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
-  if (ninserted_mols < nnew && me == 0)
+  if (ninserted_mols < nnew && comm->me == 0)
     error->warning(FLERR,"Less insertions than requested",0);
 
   // reset global natoms,nbonds,etc
@@ -715,8 +722,7 @@ void FixPour::pre_exchange()
 
   // free local memory
 
-  memory->destroy(xmine);
-  memory->destroy(xnear);
+  cleanup_near_lists(local_nlist, dist_nlist);
 
   // next timestep to insert
 

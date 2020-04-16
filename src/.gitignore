@@ -637,6 +637,8 @@
 /fix_pour.h
 /cell_list.cpp
 /cell_list.h
+/near_list.cpp
+/near_list.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
 /fix_qeq_reax.cpp

@@ -221,7 +221,7 @@ and are ignored by LAMMPS. The next line lists two numbers:
 
 Here ntypes represent total number of species defined in the potential
 file, :math:`\eta = 1` reduces to embedded atom method, :math:`\eta = 3`
-assumes three spcies dependent :math:`P_{JIK}(\Delta r)` function, and
+assumes three species dependent :math:`P_{JIK}(\Delta r)` function, and
 all other :math:`\eta` assumes two species dependent
 :math:`P_{JK}(\Delta r)` function. The number ntypes must equal the total
 number of different species defined in the pair_coeff command. The next

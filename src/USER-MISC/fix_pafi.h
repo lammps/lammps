@@ -13,22 +13,22 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(hp,FixHP)
+FixStyle(pafi,FixPAFI)
 
 #else
 
-#ifndef LMP_FIX_HP_H
-#define LMP_FIX_HP_H
+#ifndef LMP_FIX_PAFI_H
+#define LMP_FIX_PAFI_H
 
 #include "fix.h"
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class FixHP : public Fix {
+class FixPAFI : public Fix {
  public:
-  FixHP(class LAMMPS *, int, char **);
-  virtual ~FixHP();
+  FixPAFI(class LAMMPS *, int, char **);
+  virtual ~FixPAFI();
   int setmask();
   virtual void init();
 

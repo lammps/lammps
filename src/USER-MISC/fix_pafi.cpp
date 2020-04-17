@@ -22,7 +22,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fix_hp.h"
+#include "fix_pafi.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -66,7 +66,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-FixHP::FixHP(LAMMPS *lmp, int narg, char **arg) :
+FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), idregion(NULL), random(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_pafi_package);
@@ -156,7 +156,7 @@ FixHP::FixHP(LAMMPS *lmp, int narg, char **arg) :
     results_all[i] = 0.0;
   }
   maxatom = 1;
-  memory->create(h,maxatom,3,"fixhp:h");
+  memory->create(h,maxatom,3,"FixPAFI:h");
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -168,7 +168,7 @@ FixHP::FixHP(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixHP::~FixHP()
+FixPAFI::~FixPAFI()
 {
   if (copymode) return;
   delete random;
@@ -178,7 +178,7 @@ FixHP::~FixHP()
 
 /* ---------------------------------------------------------------------- */
 
-int FixHP::setmask()
+int FixPAFI::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -194,7 +194,7 @@ int FixHP::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHP::init()
+void FixPAFI::init()
 {
   // set index and check validity of region
   // nve
@@ -216,7 +216,7 @@ void FixHP::init()
 
 }
 
-void FixHP::setup(int vflag)
+void FixPAFI::setup(int vflag)
 {
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
@@ -228,7 +228,7 @@ void FixHP::setup(int vflag)
     }
 }
 
-void FixHP::min_setup(int vflag)
+void FixPAFI::min_setup(int vflag)
 {
   if( strcmp(update->minimize_style,"fire")!=0 && strcmp(update->minimize_style,"quickmin")!=0 )
     error->all(FLERR,"fix hp requires damped dynamics minimizer");
@@ -236,7 +236,7 @@ void FixHP::min_setup(int vflag)
 }
 
 
-void FixHP::post_force(int vflag)
+void FixPAFI::post_force(int vflag)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -257,7 +257,7 @@ void FixHP::post_force(int vflag)
   if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(h);
-    memory->create(h,maxatom,3,"fixhp:h");
+    memory->create(h,maxatom,3,"FixPAFI:h");
   }
 
   PathCompute->compute_peratom();
@@ -410,7 +410,7 @@ void FixHP::post_force(int vflag)
 
 };
 
-void FixHP::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPAFI::post_force_respa(int vflag, int ilevel, int iloop)
 {
   // set force to desired value on requested level, 0.0 on other levels
 
@@ -434,7 +434,7 @@ void FixHP::post_force_respa(int vflag, int ilevel, int iloop)
   }
 };
 
-void FixHP::min_post_force(int vflag)
+void FixPAFI::min_post_force(int vflag)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -559,14 +559,14 @@ void FixHP::min_post_force(int vflag)
   }
 };
 
-double FixHP::compute_vector(int n)
+double FixPAFI::compute_vector(int n)
 {
   return results_all[n];
 };
 
 
 
-void FixHP::initial_integrate(int vflag)
+void FixPAFI::initial_integrate(int vflag)
 {
   double dtfm;
 
@@ -681,7 +681,7 @@ void FixHP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixHP::final_integrate()
+void FixPAFI::final_integrate()
 {
   double dtfm;
 
@@ -757,7 +757,7 @@ void FixHP::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHP::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixPAFI::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -771,7 +771,7 @@ void FixHP::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixHP::final_integrate_respa(int ilevel, int iloop)
+void FixPAFI::final_integrate_respa(int ilevel, int iloop)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
@@ -779,7 +779,7 @@ void FixHP::final_integrate_respa(int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixHP::reset_dt()
+void FixPAFI::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -790,7 +790,7 @@ void FixHP::reset_dt()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double FixHP::memory_usage()
+double FixPAFI::memory_usage()
 {
   double bytes = 0.0;
   bytes = maxatom*3 * sizeof(double);

@@ -1,6 +1,7 @@
 units metal
-
 atom_style atomic
+atom_modify map array sort 0 0.0
+neigh_modify every 2 delay 10 check yes page 1000000 one 100000
 
 ## read in path data using fix property/atom
 fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
@@ -9,7 +10,8 @@ run 0
 
 ## EAM potential
 pair_style    eam/fs
-pair_coeff * * ../Fe.eam.fs Fe
+pair_coeff * * Fe_M07.eam.fs Fe
+
 mass * 55.85
 thermo 100
 
@@ -23,7 +25,7 @@ compute pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_dd
 run 0
 
 ## fix name group-id hp compute-id temperature damp seed overdamped 0/1 com 0/1
-fix hp all hp pa 400.0 0.1 434 overdamped 1 com 1
+fix hp all pafi pa 1000.1 0.05 434 overdamped 1 com 1
 run 0
 variable dn equal f_hp[4]*f_hp[4] # should be zero
 fix af all ave/time 1 1000 1000 f_hp[1] f_hp[2] f_hp[3] v_dn
@@ -46,3 +48,4 @@ unfix hp
 minimize 0 0 1000 1000
 print "energy=${pe}"
 
+write_data final.dat

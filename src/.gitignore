@@ -59,6 +59,9 @@
 /fix_*cauchy.cpp
 /fix_*cauchy.h
 
+/fix_pafi*.cpp
+/fix_pafi*.h
+
 /compute_test_nbl.cpp
 /compute_test_nbl.h
 /pair_multi_lucy.cpp

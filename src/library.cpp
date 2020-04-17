@@ -831,6 +831,17 @@ void lammps_gather_atoms(void *ptr, char *name,
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
+
+    // look for property/atom if NULL
+    /*int vector_index, vector_type=type;
+    if (vptr == NULL) {
+      vector_index = lmp->atom->find_custom(name, vector_type);
+      if(vector_index>=0 && vector_type == type) {
+        if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
+        else vptr = (void *) lmp->atom->dvector[vector_index];
+      }
+    }*/
+
     if (vptr == NULL) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
       return;

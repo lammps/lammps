@@ -26,6 +26,5 @@ make machine # for binary (machine= e.g. mpi)
 
 To run the example from this folder:
 ```
-mpirun -np NPROCS /path/to/lammps/src/lmp_machine < pafi.lammps
+mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi.lammps
 ```
-

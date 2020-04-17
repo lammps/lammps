@@ -205,20 +205,28 @@ elseif(GPU_API STREQUAL "HIP")
       endif()
   endif()
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
-  find_package(HIP REQUIRED)
+  find_package(HIP REQUIRED CONFIG)
   option(HIP_USE_DEVICE_SORT "Use GPU sorting" ON)
 
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
-          set(HIP_PLATFORM "hcc" CACHE PATH "HIP Platform to be used during compilation")
+          if (${HIP_COMPILER} STREQUAL "clang")
+             set(HIP_PLATFORM "hipclang" CACHE PATH "HIP Platform to be used during compilation")
+          else()
+             set(HIP_PLATFORM "hcc" CACHE PATH "HIP Platform to be used during compilation")
+          endif()
       else()
-          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
+          if (${HIP_COMPILER} STREQUAL "clang")
+             set(HIP_PLATFORM "hipclang" CACHE PATH "HIP Platform to be used during compilation")
+          else()
+             set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
+          endif()
       endif()
   endif()
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
-  if(HIP_PLATFORM STREQUAL "hcc")
+  if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "hipclang")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
@@ -272,6 +280,13 @@ elseif(GPU_API STREQUAL "HIP")
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
           DEPENDS ${CU_CPP_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
+    elseif(HIP_PLATFORM STREQUAL "hipclang")
+        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --amdgpu-target=${HIP_ARCH} -O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          DEPENDS ${CU_CPP_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
     elseif(HIP_PLATFORM STREQUAL "nvcc")
         add_custom_command(OUTPUT ${CUBIN_FILE}
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
@@ -289,14 +304,14 @@ elseif(GPU_API STREQUAL "HIP")
 
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
 
-  hip_add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP)
 
   if(HIP_USE_DEVICE_SORT)
     # add hipCUB
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../hipcub/include)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
     if(HIP_PLATFORM STREQUAL "nvcc")
@@ -333,10 +348,12 @@ elseif(GPU_API STREQUAL "HIP")
       endif()
 
       target_include_directories(gpu PRIVATE ${CUB_INCLUDE_DIR})
+    else()
+      target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../rocprim/include)
     endif()
   endif()
 
-  hip_add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+  add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
 
   if(HIP_PLATFORM STREQUAL "nvcc")

@@ -1,0 +1,53 @@
+# DFF generated Lammps input file
+
+units          real
+atom_style     full
+boundary       p p p
+
+pair_style     lj/cut/coul/long     10.0
+pair_modify    mix arithmetic
+pair_modify    tail yes
+kspace_style   pppm 1.0e-4
+dielectric     1.0
+special_bonds  amber
+bond_style     harmonic
+angle_style    harmonic
+dihedral_style none
+improper_style none
+
+read_data      data.1000SPCE.lmp
+
+variable T equal 300
+variable P equal 1.0
+
+velocity       all create ${T} 12345 mom yes rot yes dist gaussian
+
+timestep       1.0
+
+# Constraint ##################################
+fix com        all momentum 100 linear 1 1 1
+fix rigid      all shake 1e-4 20 0 b 1 a 1
+
+# Viscosity  ##################################
+variable       A equal 0.02e-5 # angstrom/fs^2
+
+fix            cos all accelerate/cos ${A}
+compute        cos all viscosity/cos
+
+variable       density equal density
+variable       lz equal lz
+variable       vMax equal c_cos[7] # velocity of atoms at z=0
+variable       invVis equal v_vMax/${A}/v_density*39.4784/v_lz/v_lz*100 # reciprocal of viscosity 1/Pa/s
+
+fix            npt all npt temp ${T} ${T} 100 iso ${P} ${P} 1000
+fix_modify     npt temp cos
+
+thermo_style   custom step cpu temp press pe density v_vMax v_invVis
+thermo_modify  temp cos
+thermo         100
+################################################
+
+dump           1 all custom 10000 dump.lammpstrj id mol type element q xu yu zu
+dump_modify    1 sort id element O H
+
+run            2000

@@ -28,7 +28,7 @@
 #include "lattice.h"
 #include "input.h"
 #include "variable.h"
-#include "random_mars.h"
+#include "random_park.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -183,7 +183,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
   // random number generator
 
-  random = new RanMars(lmp,seedfix + comm->me);
+  random = new RanPark(lmp,seedfix + comm->me);
 }
 
 /* ---------------------------------------------------------------------- */

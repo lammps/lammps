@@ -69,7 +69,10 @@ void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
-void lammps_gather_peratom_fix(void *, char *, int, void *);
+void lammps_gather_peratom_fix(void *, char *, int, int, void *);
+void lammps_gather_peratom_fix_subset(void *, char *, int, int, int, int *, void *);
+void lammps_scatter_peratom_fix(void *, char *, int, int, void *);
+void lammps_scatter_peratom_fix_subset(void *, char *, int, int, int, int *, void *);
 
 
 #if defined(LAMMPS_BIGBIG)

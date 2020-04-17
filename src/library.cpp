@@ -1490,24 +1490,8 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
 #endif
 
 
-
-/* ----------------------------------------------------------------------
-  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
-   gather the named per atom fix and return it in user-allocated data
-   (extract_fix was found to give errors when running lammps in parallel)
-   data will be ordered by atom ID
-     requirement for consecutive atom IDs (1 to N)
-   id = fix ID
-   count: number of entries per atom
-   Fills 1d data, which must be pre-allocated to length of count * Natoms, where Natoms is as queried by get_natoms()
-   method:
-     alloc and zero count*Natom length vector
-     loop over nlocal to fill vector with my values
-     Allreduce to sum vector into data across all procs
-------------------------------------------------------------------------- */
-
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_peratom_fix(void *ptr, char * /*id */, int /*count*/, void * /*data*/)
+void lammps_gather_peratom_fix(void *ptr, char * /*id */, int /*type*/, int /*count*/, void * /*data*/)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -1516,17 +1500,16 @@ void lammps_gather_peratom_fix(void *ptr, char * /*id */, int /*count*/, void * 
   END_CAPTURE
 }
 #else
-void lammps_gather_peratom_fix(void *ptr, char *id, int count, void *data)
+void lammps_gather_peratom_fix(void *ptr, char *id, int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
   {
     int i,j,offset;
-
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_pertatom_fix: unknown fix id");
+      lmp->error->warning(FLERR,"lammps_gather_peratom_fix: unknown fix id");
       return;
     }
 
@@ -1547,31 +1530,57 @@ void lammps_gather_peratom_fix(void *ptr, char *id, int count, void *data)
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+    if (type==0) {
+      int *vector = NULL;
+      int **array = NULL;
+      if (count == 1) vector = (int *) fix->vector_atom; //vptr;
+      else array = (int **) fix->array_atom; //vptr;
 
-    double *vector = NULL;
-    double **array = NULL;
-    if (count == 1) vector = (double *) fix->vector_atom; //vptr;
-    else array = (double **) fix->array_atom; //vptr;
+      int *copy;
+      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+      for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
-    double *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
 
-    tagint *tag = lmp->atom->tag;
-    int nlocal = lmp->atom->nlocal;
-
-    if (count == 1) {
-      for (i = 0; i < nlocal; i++)
-        copy[tag[i]-1] = vector[i];
-    } else {
-      for (i = 0; i < nlocal; i++) {
-        offset = count*(tag[i]-1);
-        for (j = 0; j < count; j++)
-          copy[offset++] = array[i][j];
+      if (count == 1) {
+        for (i = 0; i < nlocal; i++)
+          copy[tag[i]-1] = vector[i];
+      } else {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          for (j = 0; j < count; j++)
+            copy[offset++] = array[i][j];
+        }
       }
+      MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) fix->vector_atom; //vptr;
+      else array = (double **) fix->array_atom; //vptr;
+
+      double *copy;
+      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+      for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1) {
+        for (i = 0; i < nlocal; i++)
+          copy[tag[i]-1] = vector[i];
+      } else {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          for (j = 0; j < count; j++)
+            copy[offset++] = array[i][j];
+        }
+      }
+      MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
     }
-    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
   }
   END_CAPTURE
 }
@@ -1595,8 +1604,8 @@ void lammps_gather_peratom_fix(void *ptr, char *id, int count, void *data)
      Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_peratom_fix_subset(void *ptr, char * /*id */, int /*count*/,
-                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+void lammps_gather_peratom_fix_subset(void *ptr, char * /*id */, int /*type*/,
+                                int /*count*/, int /*ndata*/, int * /*ids*/, void * /*data*/)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -1605,7 +1614,7 @@ void lammps_gather_peratom_fix_subset(void *ptr, char * /*id */, int /*count*/,
   END_CAPTURE
 }
 #else
-void lammps_gather_peratom_fix_subset(void *ptr, char *id, int count,
+void lammps_gather_peratom_fix_subset(void *ptr, char *id, int type, int count,
                                       int ndata, int *ids, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
@@ -1617,7 +1626,7 @@ void lammps_gather_peratom_fix_subset(void *ptr, char *id, int count,
 
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_pertatom_fix: unknown fix id");
+      lmp->error->warning(FLERR,"lammps_gather_peratom_fix_subset: unknown fix id");
       return;
     }
 
@@ -1631,44 +1640,76 @@ void lammps_gather_peratom_fix_subset(void *ptr, char *id, int count,
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix");
+        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix_subset");
       return;
     }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+    if (type==0) {
+      int *vector = NULL;
+      int **array = NULL;
+      if (count == 1) vector = (int *) fix->vector_atom; //vptr;
+      else array = (int **) fix->array_atom; //vptr;
 
-    double *vector = NULL;
-    double **array = NULL;
-    if (count == 1) vector = (double *) fix->vector_atom; //vptr;
-    else array = (double **) fix->array_atom; //vptr;
+      int *copy;
+      lmp->memory->create(copy,count*ndata,"lib/gather:copy");
+      for (i = 0; i < count*ndata; i++) copy[i] = 0;
 
-    double *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
 
-    tagint *tag = lmp->atom->tag;
-    int nlocal = lmp->atom->nlocal;
-
-    if (count == 1) {
-      for (i = 0; i < ndata; i++) {
-        aid = ids[i];
-        if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
-          copy[i] = vector[m];
-      }
-    } else {
-      for (i = 0; i < ndata; i++) {
-        aid = ids[i];
-        if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
-          offset = count*i;
-          for (j = 0; j < count; j++)
-            copy[offset++] = array[m][j];
+      if (count == 1) {
+        for (i = 0; i < ndata; i++) {
+          aid = ids[i];
+          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
+            copy[i] = vector[m];
+        }
+      } else {
+        for (i = 0; i < ndata; i++) {
+          aid = ids[i];
+          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              copy[offset++] = array[m][j];
+          }
         }
       }
+      MPI_Allreduce(copy,data,count*ndata,MPI_INT,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) fix->vector_atom; //vptr;
+      else array = (double **) fix->array_atom; //vptr;
+
+      double *copy;
+      lmp->memory->create(copy,count*ndata,"lib/gather:copy");
+      for (i = 0; i < count*ndata; i++) copy[i] = 0.0;
+
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1) {
+        for (i = 0; i < ndata; i++) {
+          aid = ids[i];
+          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
+            copy[i] = vector[m];
+        }
+      } else {
+        for (i = 0; i < ndata; i++) {
+          aid = ids[i];
+          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              copy[offset++] = array[m][j];
+          }
+        }
+      }
+      MPI_Allreduce(copy,data,count*ndata,MPI_DOUBLE,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
     }
-    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
   }
   END_CAPTURE
 }

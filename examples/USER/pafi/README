@@ -17,9 +17,15 @@ Physical Review Letters 276, 1 2018
 
 Also see https://github.com/tomswinburne/pafi/ for PAFI++ code which uses the USER-PAFI package when loading LAMMPS as a C++ library
 
-To run example:
+To compile:
 
-mpirun -np NUMPROCS lmp_machine < pafi.lammps
+make yes-user-pafi # for PAFI
+make yes-manybody # for EAM potential
+make machine mode=lib # for library version (machine= e.g. mpi)
+make machine # for binary (machine= e.g. mpi)
 
-where NUMPROCS = # of procs and lmp_machine = e.g. lmp_mpi
+To run the example from this folder:
+```
+mpirun -np NPROCS /path/to/lammps/src/lmp_machine < pafi.lammps
+```
 

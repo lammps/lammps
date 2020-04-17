@@ -138,7 +138,7 @@ int RanPark::state()
    Gaussian RN
 ------------------------------------------------------------------------- */
 
-double RanMars::gaussian(double mu, double sigma)
+double RanPark::gaussian(double mu, double sigma)
 {
   double v1;
   v1 = mu+sigma*gaussian();
@@ -149,7 +149,7 @@ double RanMars::gaussian(double mu, double sigma)
    Rayleigh RN
 ------------------------------------------------------------------------- */
 
-double RanMars::rayleigh(double sigma)
+double RanPark::rayleigh(double sigma)
 {
   double first,v1;
 
@@ -164,7 +164,7 @@ double RanMars::rayleigh(double sigma)
    Bessel exponential RN
 ------------------------------------------------------------------------- */
 
-double RanMars::besselexp(double theta, double alpha, double cp)
+double RanPark::besselexp(double theta, double alpha, double cp)
 {
   double first,v1,v2;
 

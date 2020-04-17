@@ -47,14 +47,14 @@ to specify the path for the potential file.
 
 As an example, imagine a file SiC.nb3b.harmonic has potential values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
-want the 1st 3 to be Si, and the 4th to be C, you would use the
+want the first 3 to be Si, and the fourth to be C, you would use the
 following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.nb3b.harmonic Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the potential file.  The final C argument maps LAMMPS atom
 type 4 to the C element in the potential file.  If a mapping value is

@@ -79,7 +79,7 @@ command:
 
    pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
 in the potential file. If a mapping value is specified as NULL, the
 mapping is not performed. This can be used when a *meam/sw/spline*

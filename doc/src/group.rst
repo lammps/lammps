@@ -118,7 +118,7 @@ specified atom types, atom IDs, or molecule IDs into the group.  These
 3 styles can use arguments specified in one of two formats.
 
 The first format is a list of values (types or IDs).  For example, the
-2nd command in the examples above puts all atoms of type 3 or 4 into
+second command in the examples above puts all atoms of type 3 or 4 into
 the group named *water*\ .  Each entry in the list can be a
 colon-separated sequence A:B or A:B:C, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
@@ -131,9 +131,9 @@ uses an increment of 10 and would thus would add atoms IDs
 
 The second format is a *logical* followed by one or two values (type
 or ID).  The 7 valid logicals are listed above.  All the logicals
-except <> take a single argument.  The 3rd example above adds all
+except <> take a single argument.  The third example above adds all
 atoms with IDs from 1 to 150 to the group named *sub*\ .  The logical <>
-means "between" and takes 2 arguments.  The 4th example above adds all
+means "between" and takes 2 arguments.  The fourth example above adds all
 atoms belonging to molecules with IDs from 50 to 250 (inclusive) to
 the group named polyA.
 
@@ -192,7 +192,7 @@ this operation is useful is if the *region* style has been used
 previously to add atoms to a group that are within a geometric region.
 If molecules straddle the region boundary, then atoms outside the
 region that are part of molecules with atoms inside the region will
-not be in the group.  Using the group command a 2nd time with *include
+not be in the group.  Using the group command a second time with *include
 molecule* will add those atoms that are outside the region to the
 group.
 
@@ -207,7 +207,7 @@ group.
    atoms, and P is the number of processors.
 
 The *subtract* style takes a list of two or more existing group names
-as arguments.  All atoms that belong to the 1st group, but not to any
+as arguments.  All atoms that belong to the first group, but not to any
 of the other groups are added to the specified group.
 
 The *union* style takes a list of one or more existing group names as

@@ -25,8 +25,8 @@ Syntax
   - temperature : temperature derived from the relative atomic kinetic energy
   - kinetic_temperature : temperature derived from the full kinetic energy
   - number_density : simple kernel estimation of number of atoms per unit volume
-  - stress : Cauchy stress tensor for eulerian analysis (atom_element_map), or 1st Piola-Kirchhoff stress tensor for lagrangian analysis
-  - transformed_stress : 1st Piola-Kirchhoff stress tensor for eulerian analysis (atom_element_map), or Cauchy stress tensor for lagrangian analysis
+  - stress : Cauchy stress tensor for eulerian analysis (atom_element_map), or first Piola-Kirchhoff stress tensor for lagrangian analysis
+  - transformed_stress : first Piola-Kirchhoff stress tensor for eulerian analysis (atom_element_map), or Cauchy stress tensor for lagrangian analysis
   - heat_flux : spatial heat flux vector for eulerian, or referential heat flux vector for lagrangian
   - potential_energy : potential energy per unit volume
   - kinetic_energy : kinetic energy per unit volume

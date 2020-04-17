@@ -45,7 +45,7 @@ Description
 """""""""""
 
 Time average computed intensities from :doc:`compute saed <compute_saed>` and
-write output to a file in the 3rd generation vtk image data format for
+write output to a file in the third generation vtk image data format for
 visualization directly in parallelized visualization software packages
 like ParaView and VisIt. Note that if no time averaging is done, this
 command can be used as a convenient way to simply output diffraction
@@ -92,7 +92,7 @@ averaging is done; values are simply generated on timesteps
 
 ----------
 
-The output for fix ave/time/saed is a file written with the 3rd generation
+The output for fix ave/time/saed is a file written with the third generation
 vtk image data formatting.  The filename assigned by the *file* keyword is
 appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.
@@ -156,7 +156,7 @@ running or windowed average.
 
 The *file* keyword allows a filename to be specified.  Every *Nfreq*
 steps, the vector of saed intensity data is written to a new file using
-the 3rd generation vtk format.  The base of each file is assigned by
+the third generation vtk format.  The base of each file is assigned by
 the *file* keyword and this string is appended with _N.vtk where N is
 an index (0,1,2...) to account for situations with multiple diffraction
 intensity outputs.

@@ -202,7 +202,7 @@ have a "poly" suffix.
 
 As an example, imagine the GaN_tersoff.poly file has tabulated
 functions for Ga-N tersoff potential. If your LAMMPS simulation has 4
-atoms types and you want the 1st 3 to be Ga, and the 4th to be N, you
+atoms types and you want the first 3 to be Ga, and the fourth to be N, you
 would use the following pair_coeff command:
 
 .. code-block:: LAMMPS

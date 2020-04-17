@@ -62,10 +62,10 @@ two wild-card characters.
 
 If a "\*" appears in the single filename, it is replaced with the
 current timestep value.  This is only recognized when a single
-filename is used (not when toggling back and forth).  Thus, the 3rd
+filename is used (not when toggling back and forth).  Thus, the third
 example above creates restart files as follows: restart.1000.equil,
 restart.2000.equil, etc.  If a single filename is used with no "\*",
-then the timestep value is appended.  E.g. the 2nd example above
+then the timestep value is appended.  E.g. the second example above
 creates restart files as follows: poly.restart.1000,
 poly.restart.2000, etc.
 
@@ -160,7 +160,7 @@ be written, by processors 0,25,50,75.  Each will collect information
 from itself and the next 24 processors and write it to a restart file.
 
 For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every 4th
+file for every Np processors.  For example, if Np = 4, every fourth
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a restart file.
 

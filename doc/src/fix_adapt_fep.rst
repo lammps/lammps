@@ -199,7 +199,7 @@ specified, but are ignored.
 
 Similar to the :doc:`pair_coeff command <pair_coeff>`, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
-each, as in the 1st example above.  I <= J is required.  LAMMPS sets
+each, as in the first example above.  I <= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with

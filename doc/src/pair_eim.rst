@@ -110,14 +110,14 @@ to specify the path for the potential file.
 
 As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
-types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
+types and you want the first 3 to be Na, and the fourth to be Cl, you would
 use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * Na Cl ffield.eim Na Na Na Cl
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
 (before the file name) are the two elements for which info will be
 extracted from the potential file.  The first three trailing Na

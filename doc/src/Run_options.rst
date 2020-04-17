@@ -324,17 +324,17 @@ physical processors is done by MPI before LAMMPS begins.  It may be
 useful in some cases to alter the rank order.  E.g. to insure that
 cores within each node are ranked in a desired order.  Or when using
 the :doc:`run_style verlet/split <run_style>` command with 2 partitions
-to insure that a specific Kspace processor (in the 2nd partition) is
-matched up with a specific set of processors in the 1st partition.
+to insure that a specific Kspace processor (in the second partition) is
+matched up with a specific set of processors in the first partition.
 See the :doc:`Speed tips <Speed_tips>` doc page for more details.
 
 If the keyword *nth* is used with a setting *N*\ , then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
 when using the :doc:`run_style verlet/split <run_style>` command with 2
 partitions via the -partition command-line switch.  The first set of
-processors will be in the first partition, the 2nd set in the 2nd
+processors will be in the first partition, the second set in the second
 partition.  The -reorder command-line switch can alter this so that
-the 1st N procs in the 1st partition and one proc in the 2nd partition
+the first N procs in the first partition and one proc in the second partition
 will be ordered consecutively, e.g. as the cores on one physical node.
 This can boost performance.  For example, if you use "-reorder nth 4"
 and "-partition 9 3" and you are running on 12 processors, the

@@ -79,14 +79,14 @@ As an example, the potentials/AlCu.adp file, included in the
 potentials directory of the LAMMPS distribution, is an extended *setfl*
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
-and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
+and you want the first 3 to be Al, and the fourth to be Cu, you would use
 the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * AlCu.adp Al Al Al Cu
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Al arguments map LAMMPS atom types 1,2,3 to the Al
 element in the extended *setfl* file.  The final Cu argument maps
 LAMMPS atom type 4 to the Al element in the extended *setfl* file.

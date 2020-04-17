@@ -36,7 +36,7 @@ they can be used to measure properties of a system.
 
 Four quantities are calculated by this compute for each chunk.  The
 first 3 quantities are the squared dx,dy,dz displacements of the
-center-of-mass.  The 4th component is the total squared displacement,
+center-of-mass.  The fourth component is the total squared displacement,
 i.e. (dx\*dx + dy\*dy + dz\*dz) of the center-of-mass.  These
 calculations include all effects due to atoms passing through periodic
 boundaries.

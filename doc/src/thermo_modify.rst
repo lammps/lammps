@@ -116,7 +116,7 @@ is more than one field.  The *int* and *float* keywords take a single
 format argument and are applied to all integer or floating-point
 quantities output.  The setting for *M string* also takes a single
 format argument which is used for the Mth value output in each line,
-e.g. the 5th column is output in high precision for "format 5
+e.g. the fifth column is output in high precision for "format 5
 %20.15g".
 
 The *format* keyword can be used multiple times.  The precedence is

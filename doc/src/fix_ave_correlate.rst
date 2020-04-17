@@ -321,7 +321,7 @@ accessed on timesteps that are multiples of *Nfreq* since that is when
 averaging is performed.  The global array has # of rows = *Nrepeat*
 and # of columns = Npair+2.  The first column has the time delta (in
 timesteps) between the pairs of input values used to calculate the
-correlation, as described above.  The 2nd column has the number of
+correlation, as described above.  The second column has the number of
 samples contributing to the correlation average, as described above.
 The remaining Npair columns are for I,J pairs of the N input values,
 as determined by the *type* keyword, as described above.

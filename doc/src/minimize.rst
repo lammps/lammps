@@ -95,7 +95,7 @@ coordinates:
 
 where the first term is the sum of all non-bonded :doc:`pairwise
 interactions <pair_style>` including :doc:`long-range Coulombic
-interactions <kspace_style>`, the 2nd through 5th terms are :doc:`bond
+interactions <kspace_style>`, the second through fifth terms are :doc:`bond
 <bond_style>`, :doc:`angle <angle_style>`, :doc:`dihedral
 <dihedral_style>`, and :doc:`improper <improper_style>` interactions
 respectively, and the last term is energy due to :doc:`fixes <fix>`

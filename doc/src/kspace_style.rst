@@ -163,7 +163,7 @@ The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.
 
 The *pppm/tip4p* style is identical to the *pppm* style except that it
-adds a charge at the massless 4th site in each TIP4P water molecule.
+adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 

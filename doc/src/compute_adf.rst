@@ -82,9 +82,9 @@ neighbor atom in each requested ADF.
    is what is specified with the :doc:`neighbor <neighbor>` command.
 
 The *itypeN*\ ,\ *jtypeN*\ ,\ *ktypeN* settings can be specified in one of two
-ways.  An explicit numeric value can be used, as in the 1st example
+ways.  An explicit numeric value can be used, as in the first example
 above.  Or a wild-card asterisk can be used to specify a range of atom
-types as in the 2nd example above.
+types as in the second example above.
 This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
@@ -92,12 +92,12 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-If *itypeN*\ , *jtypeN*\ , and *ktypeN* are single values, as in the 1st example
+If *itypeN*\ , *jtypeN*\ , and *ktypeN* are single values, as in the first example
 above, this means that the ADF is computed where atoms of type *itypeN*
 are the central atom, and neighbor atoms of type *jtypeN* and *ktypeN*
 are forming the angle.  If any of *itypeN*\ , *jtypeN*\ , or *ktypeN*
 represent a range of values via
-the wild-card asterisk, as in the 2nd example above, this means that the
+the wild-card asterisk, as in the second example above, this means that the
 ADF is computed where atoms of any of the range of types represented
 by *itypeN* are the central atom, and the angle is formed by two neighbors,
 one neighbor in the range of types represented by *jtypeN* and another neighbor

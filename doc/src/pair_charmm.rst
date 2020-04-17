@@ -127,7 +127,7 @@ name are the older, original LAMMPS implementations.  They compute the
 LJ and Coulombic interactions with an energy switching function (esw,
 shown in the formula below as S(r)), which ramps the energy smoothly
 to zero between the inner and outer cutoff.  This can cause
-irregularities in pair-wise forces (due to the discontinuous 2nd
+irregularities in pair-wise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which
 in some cases can result in detectable artifacts in an MD simulation.
 

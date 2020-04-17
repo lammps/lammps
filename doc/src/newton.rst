@@ -26,8 +26,8 @@ Examples
 Description
 """""""""""
 
-This command turns Newton's 3rd law *on* or *off* for pairwise and
-bonded interactions.  For most problems, setting Newton's 3rd law to
+This command turns Newton's third law *on* or *off* for pairwise and
+bonded interactions.  For most problems, setting Newton's third law to
 *on* means a modest savings in computation at the cost of two times
 more communication.  Whether this is faster depends on problem size,
 force cutoff lengths, a machine's compute/communication ratio, and how

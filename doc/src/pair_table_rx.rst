@@ -133,7 +133,7 @@ defined as follows (without the parenthesized comments):
    ...
    500 10.0 0.001 0.003
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -180,7 +180,7 @@ file is typically produced by the :doc:`pair_write <pair_write>` command
 with its *bitmap* option.  When the table is in BITMAP format, the "N"
 parameter in the file must be equal to 2\^M where M is the value
 specified in the pair_style command.  Also, a cutoff parameter cannot
-be used as an optional 3rd argument in the pair_coeff command; the
+be used as an optional third argument in the pair_coeff command; the
 entire table extent as specified in the file must be used.
 
 If used, the parameter "FPRIME" is followed by 2 values *fplo* and
@@ -192,9 +192,9 @@ last 2 force values in the table.  This parameter is not used by
 BITMAP tables.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in distance units), the 3rd value is the energy (in energy units),
-and the 4th is the force (in force units).  The r values must increase
+On each line, the first value is the index from 1 to N, the second value is
+r (in distance units), the third value is the energy (in energy units),
+and the fourth is the force (in force units).  The r values must increase
 from one line to the next (unless the BITMAP parameter is specified).
 
 Note that one file can contain many sections, each with a tabulated

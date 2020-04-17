@@ -64,7 +64,7 @@ If the *kspace* keyword is set to *yes*\ , which is not the default, and
 if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
-atoms in the 2nd group.  Likewise, the interaction force calculated by
+atoms in the second group.  Likewise, the interaction force calculated by
 this compute will include the force on the compute group atoms due to
 long-range Coulombic interactions with atoms in the specified group2.
 

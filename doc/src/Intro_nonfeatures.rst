@@ -34,7 +34,7 @@ Here are suggestions on how to perform these tasks:
   molecular builder that will generate complex molecular models.  See
   the :doc:`Tools <Tools>` doc page for details on tools packaged with
   LAMMPS.  The `Pre/post processing page <http:/lammps.sandia.gov/prepost.html>`_ of the LAMMPS website
-  describes a variety of 3rd party tools for this task.  Furthermore,
+  describes a variety of third party tools for this task.  Furthermore,
   some LAMMPS internal commands allow to reconstruct, or selectively add
   topology information, as well as provide the option to insert molecule
   templates instead of atoms for building bulk molecular systems.

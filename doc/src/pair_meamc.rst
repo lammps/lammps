@@ -71,7 +71,7 @@ the MEAM potential files themselves.
 Only a single pair_coeff command is used with the *meam* style which
 specifies two MEAM files and the element(s) to extract information
 for.  The MEAM elements are mapped to LAMMPS atom types by specifying
-N additional arguments after the 2nd filename in the pair_coeff
+N additional arguments after the second filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * MEAM library file
@@ -85,14 +85,14 @@ to specify the path for the potential files.
 As an example, the potentials/library.meam file has generic MEAM
 settings for a variety of elements.  The potentials/SiC.meam file has
 specific parameter settings for a Si and C alloy system.  If your
-LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
-and the 4th to be C, you would use the following pair_coeff command:
+LAMMPS simulation has 4 atoms types and you want the first 3 to be Si,
+and the fourth to be C, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first filename is the element library file. The list of elements following
 it extracts lines from the library file and assigns numeric indices to these
 elements. The second filename is the alloy parameter file, which refers to
@@ -101,7 +101,7 @@ The arguments after the parameter file map LAMMPS atom types to elements, i.e.
 LAMMPS atom types 1,2,3 to the MEAM Si element.  The final C argument maps
 LAMMPS atom type 4 to the MEAM C element.
 
-If the 2nd filename is specified as NULL, no parameter file is read,
+If the second filename is specified as NULL, no parameter file is read,
 which simply means the generic parameters in the library file are
 used.  Use of the NULL specification for the parameter file is
 discouraged for systems with more than a single element type
@@ -116,14 +116,14 @@ that will be used with other potentials.
 
 .. note::
 
-   If the 2nd filename is NULL, the element names between the two
+   If the second filename is NULL, the element names between the two
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
-   example above.  However, if the 2nd filename is not NULL (as in the
+   example above.  However, if the second filename is not NULL (as in the
    example above), it contains settings that are Fortran-indexed for the
    elements that precede it.  Thus you need to insure you list the
    elements between the filenames in an order consistent with how the
-   values in the 2nd filename are indexed.  See details below on the
-   syntax for settings in the 2nd file.
+   values in the second filename are indexed.  See details below on the
+   syntax for settings in the second file.
 
 The MEAM library file provided with LAMMPS has the name
 potentials/library.meam.  It is the "meamf" file used by other MD
@@ -299,7 +299,7 @@ Thus these lines
    rho0(2) = 2.25
    alpha(1,2) = 4.37
 
-set rho0 for the 2nd element to the value 2.25 and set alpha for the
+set rho0 for the second element to the value 2.25 and set alpha for the
 alloy interaction between elements 1 and 2 to 4.37.
 
 The augt1 parameter is related to modifications in the MEAM

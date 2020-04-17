@@ -33,7 +33,7 @@ A vector of four quantities is calculated by this compute.  The first 3
 elements of the vector are vx \* vx0 (and similarly for the y and z
 components), summed and averaged over atoms in the group.  Vx is the
 current x-component of velocity for the atom, vx0 is the initial
-x-component of velocity for the atom.  The 4th element of the vector
+x-component of velocity for the atom.  The fourth element of the vector
 is the total VACF, i.e. (vx\*vx0 + vy\*vy0 + vz\*vz0), summed and
 averaged over atoms in the group.
 

@@ -104,7 +104,7 @@ can be modeled using the :ref:`USER-UEF package <PKG-USER-UEF>` and its :doc:`fi
 
 For the *x*\ , *y*\ , *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*\ , *yz*\ , *xz* parameters, the associated
-2nd dimension cannot be shrink-wrapped.  Dimensions not varied by this
+second dimension cannot be shrink-wrapped.  Dimensions not varied by this
 command can be periodic or non-periodic.  Dimensions corresponding to
 unspecified parameters can also be controlled by a :doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` command.
 
@@ -463,7 +463,7 @@ and the final tilt factor at the end of the simulation would be 0.0.
 During each flip event, atoms are remapped into the new box in the
 appropriate manner.
 
-The one exception to this rule is if the 1st dimension in the tilt
+The one exception to this rule is if the first dimension in the tilt
 factor (x for xy) is non-periodic.  In that case, the limits on the
 tilt factor are not enforced, since flipping the box in that dimension
 does not change the atom positions due to non-periodicity.  In this
@@ -601,7 +601,7 @@ Restrictions
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.
 
-You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
+You cannot apply xy, yz, or xz deformations to a second dimension (y in
 xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
 
 Related commands

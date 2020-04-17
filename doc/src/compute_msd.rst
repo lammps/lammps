@@ -38,7 +38,7 @@ parameter of mean-squared displacement, see the :doc:`compute msd/nongauss <comp
 
 A vector of four quantities is calculated by this compute.  The first 3
 elements of the vector are the squared dx,dy,dz displacements, summed
-and averaged over atoms in the group.  The 4th element is the total
+and averaged over atoms in the group.  The fourth element is the total
 squared displacement, i.e. (dx\*dx + dy\*dy + dz\*dz), summed and
 averaged over atoms in the group.
 

@@ -99,14 +99,14 @@ to specify the path for the potential file.
 
 As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
-want the 1st 3 to be Si, and the 4th to be C, you would use the
+want the first 3 to be Si, and the fourth to be C, you would use the
 following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.tersoff Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the Tersoff/ZBL file.  The final C argument maps LAMMPS
 atom type 4 to the C element in the Tersoff/ZBL file.  If a mapping
@@ -167,12 +167,12 @@ interacting in three-body configurations.  Thus for 3 elements, 27
 entries would be required, etc.
 
 As annotated above, the first element in the entry is the center atom
-in a three-body interaction and it is bonded to the 2nd atom and the
-bond is influenced by the 3rd atom.  Thus an entry for SiCC means Si
+in a three-body interaction and it is bonded to the second atom and the
+bond is influenced by the third atom.  Thus an entry for SiCC means Si
 bonded to a C with another C atom influencing the bond.  Thus
 three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
-interaction come from the entry where the 2nd element is repeated.
+interaction come from the entry where the second element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
 SiCC entry.
 
@@ -180,7 +180,7 @@ The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
 (n, :math:`\beta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A)
-in entries whose 2nd and 3rd
+in entries whose second and third
 element are different (e.g. SiCSi) are not used for anything and can
 be set to 0.0 if desired.
 

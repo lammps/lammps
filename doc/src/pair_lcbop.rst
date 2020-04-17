@@ -38,13 +38,13 @@ See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
-the 1st 3 to be C you would use the following pair_coeff command:
+the first 3 to be C you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * C.lcbop C C C NULL
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first C argument maps LAMMPS atom type 1 to the C element in the
 LCBOP file. If a mapping value is specified as NULL, the mapping is
 not performed.  This can be used when a *lcbop* potential is used as

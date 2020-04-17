@@ -136,11 +136,11 @@ commands which set their value directly.
    variable. See below for a more detailed discussion of this feature.
 
 In the discussion that follows, the "name" of the variable is the
-arbitrary string that is the 1st argument in the variable command.
+arbitrary string that is the first argument in the variable command.
 This name can only contain alphanumeric characters and underscores.
 The "string" is one or more of the subsequent arguments.  The "string"
-can be simple text as in the 1st example above, it can contain other
-variables as in the 2nd example, or it can be a formula as in the 3rd
+can be simple text as in the first example above, it can contain other
+variables as in the second example, or it can be a formula as in the third
 example.  The "value" is the numeric quantity resulting from
 evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
@@ -249,7 +249,7 @@ in another input script command, its returned string will then be
 interpreted as multiple arguments in the expanded command.
 
 For the *index* style, one or more strings are specified.  Initially,
-the 1st string is assigned to the variable.  Each time a
+the first string is assigned to the variable.  Each time a
 :doc:`next <next>` command is used with the variable name, the next
 string is assigned.  All processors assign the same string to the
 variable.

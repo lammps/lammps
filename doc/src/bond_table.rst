@@ -74,7 +74,7 @@ parenthesized comments):
    ...
    101 1.00 338.0000 -1352.0000
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -109,9 +109,9 @@ equilibrium bond length, which is used, for example, by the :doc:`fix shake <fix
 length is to the distance in the table with the lowest potential energy.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-the bond length r (in distance units), the 3rd value is the energy (in
-energy units), and the 4th is the force (in force units).  The bond
+On each line, the first value is the index from 1 to N, the second value is
+the bond length r (in distance units), the third value is the energy (in
+energy units), and the fourth is the force (in force units).  The bond
 lengths must range from a LO value to a HI value, and increase from
 one line to the next.  If the actual bond length is ever smaller than
 the LO value or larger than the HI value, then the calculation is

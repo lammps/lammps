@@ -18,7 +18,7 @@ Syntax
 * file = filename containing the reaction kinetic equations and Arrhenius parameters
 * localTemp = *none,lucy* = no local temperature averaging or local temperature defined through Lucy weighting function
 * matrix = *sparse, dense* format for the stoichiometric matrix
-* solver = *lammps_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
+* solver = *lammps_rk4,rkf45* = rk4 is an explicit fourth order Runge-Kutta method; rkf45 is an adaptive fourth-order Runge-Kutta-Fehlberg method
 * minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
 * maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
 * relTol = relative tolerance for the rkf45 solver (rkf45 only)
@@ -61,9 +61,9 @@ of *m* ordinary differential equations (ODEs) that describe the change
 in concentration of a given species as a function of time are then
 constructed based on the *n* reaction rate equations.
 
-The ODE systems are solved over the full DPD timestep *dt* using either a 4th
+The ODE systems are solved over the full DPD timestep *dt* using either a fourth
 order Runge-Kutta *rk4* method with a fixed step-size *h*\ , specified
-by the *lammps_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
+by the *lammps_rk4* keyword, or a fourth order Runge-Kutta-Fehlberg (rkf45) method
 with an adaptive step-size for *h*\ . The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
 keyword. The ODE step-size is set as *dt/num_steps*. Smaller
@@ -76,7 +76,7 @@ can be specified by the user or estimated internally. It is recommended that the
 specify *h0* since this will generally reduced the number of ODE integration steps
 required. *h0* is defined as *dt / min_steps* if min_steps >= 1. If min_steps == 0,
 *h0* is estimated such that an explicit Euler method would likely produce
-an acceptable solution. This is generally overly conservative for the 4th-order
+an acceptable solution. This is generally overly conservative for the fourth-order
 method and users are advised to specify *h0* as some fraction of the DPD timestep.
 For small DPD timesteps, only one step may be necessary depending upon the tolerances.
 Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
@@ -172,7 +172,7 @@ parenthesized comments):
    ...
    1.0  no + 1.0  co = 0.5  n2 + 1.0 co2                     1.66E+06 0.0 0.69
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.
 

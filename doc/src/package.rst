@@ -577,7 +577,7 @@ All three of these examples use a total of 4 CPU cores.
 
 Note that different MPI implementations have different ways of passing
 the OMP_NUM_THREADS environment variable to all MPI processes.  The
-2nd example line above is for MPICH; the 3rd example line with -x is
+second example line above is for MPICH; the third example line with -x is
 for OpenMPI.  Check your MPI documentation for additional details.
 
 What combination of threads and MPI tasks gives the best performance

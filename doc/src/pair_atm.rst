@@ -71,7 +71,7 @@ above, or in the restart files read by the
 * :math:`\nu` = prefactor (energy/distance\^9 units)
 
 :math:`K` can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 2nd example above.  :math:`J \leq K` is required.  LAMMPS
+be used, as in the second example above.  :math:`J \leq K` is required.  LAMMPS
 sets the coefficients for the other 5 symmetric interactions to the same
 values.  E.g. if :math:`I = 1`, :math:`J = 2`, :math:`K = 3`, then these 6
 values are set to the specified :math:`\nu`: :math:`\nu_{123}`,

@@ -91,12 +91,12 @@ pre-factor on the energy and force between the pair of atoms.  A value
 of 1.0 means include the full interaction; a value of 0.0 means
 exclude it completely.
 
-The 1st of the 3 coefficients (LJ or Coulombic) is the weighting
+The first of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to
-each other.  The 2nd coefficient is the weighting factor on 1-3 atom
+each other.  The second coefficient is the weighting factor on 1-3 atom
 pairs which are those separated by 2 bonds (e.g. the two H atoms in a
-water molecule).  The 3rd coefficient is the weighting factor on 1-4
-atom pairs which are those separated by 3 bonds (e.g. the 1st and 4th
+water molecule).  The third coefficient is the weighting factor on 1-4
+atom pairs which are those separated by 3 bonds (e.g. the first and fourth
 atoms in a dihedral interaction).  Thus if the 1-2 coefficient is set
 to 0.0, then the pairwise interaction is effectively turned off for
 all pairs of atoms bonded to each other.  If it is set to 1.0, then
@@ -188,14 +188,14 @@ default, then the 2,5 interaction will also be weighted by 0.5.
 .. note::
 
    LAMMPS stores and maintains a data structure with a list of the
-   1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+   first, second, and third neighbors of each atom (within the bond topology of
    the system).  If new bonds are created (or molecules added containing
    atoms with more special neighbors), the size of this list needs to
-   grow.  Note that adding a single bond always adds a new 1st neighbor
-   but may also induce \*many\* new 2nd and 3rd neighbors, depending on the
+   grow.  Note that adding a single bond always adds a new first neighbor
+   but may also induce \*many\* new second and third neighbors, depending on the
    molecular topology of your system.  Using the *extra/special/per/atom*
    keyword to either :doc:`read_data <read_data>` or :doc:`create_box <create_box>`
-   reserves empty space in the list for this N additional 1st, 2nd, or 3rd
+   reserves empty space in the list for this N additional first, second, or third
    neighbors to be added.  If you do not do this, you may get an error
    when bonds (or molecules) are added.
 
@@ -204,7 +204,7 @@ default, then the 2,5 interaction will also be weighted by 0.5.
 .. note::
 
    If you reuse this command in an input script, you should set all
-   the options you need each time.  This command cannot be used a 2nd
+   the options you need each time.  This command cannot be used a second
    time incrementally.  E.g. these two commands:
 
 .. code-block:: LAMMPS
@@ -218,7 +218,7 @@ are not the same as
 
    special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
 
-In the first case you end up with (after the 2nd command):
+In the first case you end up with (after the second command):
 
 .. parsed-literal::
 

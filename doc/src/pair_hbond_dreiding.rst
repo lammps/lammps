@@ -72,7 +72,7 @@ hydrogen (H) and the donor atoms:
 
 These 3-body interactions can be defined for pairs of acceptor and
 donor atoms, based on atom types.  For each donor/acceptor atom pair,
-the 3rd atom in the interaction is a hydrogen permanently bonded to
+the third atom in the interaction is a hydrogen permanently bonded to
 the donor atom, e.g. in a bond list read in from a data file via the
 :doc:`read_data <read_data>` command.  The atom types of possible
 hydrogen atoms for each donor/acceptor type pair are specified by the
@@ -188,7 +188,7 @@ hydrogen bond potential based on a Morse functional form.
 The last 3 coefficients for both styles are optional.  If not
 specified, the global n, distance cutoff, and angle cutoff specified
 in the pair_style command are used.  If you wish to only override the
-2nd or 3rd optional parameter, you must also specify the preceding
+second or third optional parameter, you must also specify the preceding
 optional parameters.
 
 ----------

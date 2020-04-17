@@ -268,15 +268,15 @@ As an example, the potentials/NiAlH_jea.eam.alloy file is a *setfl*
 file which has tabulated EAM values for 3 elements and their alloy
 interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
-If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
-be Ni, and the 4th to be Al, you would use the following pair_coeff
+If your LAMMPS simulation has 4 atoms types and you want the first 3 to
+be Ni, and the fourth to be Al, you would use the following pair_coeff
 command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
 element in the *setfl* file.  The final Al argument maps LAMMPS atom
 type 4 to the Al element in the *setfl* file.  Note that there is no
@@ -315,7 +315,7 @@ element, each with the following format:
 
 As with the *funcfl* files, only the mass (in mass :doc:`units <units>`,
 e.g. mass number or grams/mole for metal units) is used by LAMMPS from
-the 1st line.  The cubic lattice constant is in Angstroms.  The F and
+the first line.  The cubic lattice constant is in Angstroms.  The F and
 rho arrays are unique to a single element and have the same format and
 units as in a *funcfl* file.
 

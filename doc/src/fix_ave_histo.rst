@@ -346,10 +346,10 @@ values:
 * 4 = max value of all input values, including ones not histogrammed
 
 The global array has # of rows = Nbins and # of columns = 3.  The
-first column has the bin coordinate, the 2nd column has the count of
-values in that histogram bin, and the 3rd column has the bin count
+first column has the bin coordinate, the second column has the count of
+values in that histogram bin, and the third column has the bin count
 divided by the total count (not including missing counts), so that the
-values in the 3rd column sum to 1.0.
+values in the third column sum to 1.0.
 
 The vector and array values calculated by this fix are all treated as
 intensive.  If this is not the case, e.g. due to histogramming

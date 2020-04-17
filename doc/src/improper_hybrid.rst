@@ -48,7 +48,7 @@ to other hybrid styles, use the style name (e.g. "harmonic")
 appropriate to that style.  The AngleAngle coeffs for that improper
 type will then be ignored.
 
-An improper style of *none* can be specified as the 2nd argument to
+An improper style of *none* can be specified as the second argument to
 the improper_coeff command, if you desire to turn off certain improper
 types.
 

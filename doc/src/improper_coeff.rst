@@ -32,7 +32,7 @@ file read by the :doc:`read_data <read_data>` command or in a restart
 file.
 
 N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 1st example above.  Or a wild-card asterisk can be
+be used, as in the first example above.  Or a wild-card asterisk can be
 used to set the coefficients for multiple improper types.  This takes
 the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of improper
 types, then an asterisk with no numeric values means all types from 1
@@ -55,7 +55,7 @@ exact same format as the arguments of the improper_coeff command in an
 input script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Improper Coeffs" section of a data file, the line that
-corresponds to the 1st example above would be listed as
+corresponds to the first example above would be listed as
 
 .. parsed-literal::
 

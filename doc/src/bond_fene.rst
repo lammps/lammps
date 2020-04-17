@@ -38,8 +38,8 @@ The *fene* bond style uses the potential
 
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <fene-Kremer>`, used for bead-spring polymer models.  The first
-term is attractive, the 2nd Lennard-Jones term is repulsive.  The
-first term extends to :math:`R_0`, the maximum extent of the bond.  The 2nd
+term is attractive, the second Lennard-Jones term is repulsive.  The
+first term extends to :math:`R_0`, the maximum extent of the bond.  The second
 term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
 
 The following coefficients must be defined for each bond type via the

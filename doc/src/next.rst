@@ -96,7 +96,7 @@ directories run1 through run8.
 If the variable "d" were of style *universe*\ , and the same in.polymer
 input script were run on 3 partitions of processors, then the first 3
 simulations would begin, one on each set of processors.  Whichever
-partition finished first, it would assign variable "d" the 4th value
+partition finished first, it would assign variable "d" the fourth value
 and run another simulation, and so forth until all 8 simulations were
 finished.
 

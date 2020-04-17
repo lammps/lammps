@@ -32,12 +32,12 @@ The *fene/expand* bond style uses the potential
 
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <feneexpand-Kremer>`, used for bead-spring polymer models.  The first
-term is attractive, the 2nd Lennard-Jones term is repulsive.
+term is attractive, the second Lennard-Jones term is repulsive.
 
 The *fene/expand* bond style is similar to *fene* except that an extra
 shift factor of :math:`\Delta` (positive or negative) is added to :math:`r` to
 effectively change the bead size of the bonded atoms.  The first term
-now extends to :math:`R_0 + \Delta` and the 2nd term is cutoff at :math:`2^\frac{1}{6} \sigma + \Delta`.
+now extends to :math:`R_0 + \Delta` and the second term is cutoff at :math:`2^\frac{1}{6} \sigma + \Delta`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in

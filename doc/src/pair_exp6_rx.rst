@@ -123,15 +123,15 @@ parenthesized comments):
    epsilon      0.0000   0.00478  -0.06283  0.24486  -0.33737   2.60097
    rm           0.0001  -0.00118  -0.00253  0.05812  -0.00509   1.50106
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.
 
 Following a blank line, the next N lines list the species and their
 corresponding parameters.  The first argument is the species tag, the
-second argument is the exp6 tag, the 3rd argument is the :math:`\alpha`
-parameter (energy units), the 4th argument is the :math:`\epsilon` parameter
-(energy-distance\^6 units), and the 5th argument is the :math:`R_m` parameter
+second argument is the exp6 tag, the third argument is the :math:`\alpha`
+parameter (energy units), the fourth argument is the :math:`\epsilon` parameter
+(energy-distance\^6 units), and the fifth argument is the :math:`R_m` parameter
 (distance units).  If a species tag of "1fluid" is listed as a pair
 coefficient, a one-fluid approximation is specified where a
 concentration-dependent combination of the parameters is computed

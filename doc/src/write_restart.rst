@@ -103,7 +103,7 @@ be written, by processors 0,25,50,75.  Each will collect information
 from itself and the next 24 processors and write it to a restart file.
 
 For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every 4th
+file for every Np processors.  For example, if Np = 4, every fourth
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a restart file.
 

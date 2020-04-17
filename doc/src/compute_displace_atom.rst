@@ -36,7 +36,7 @@ all effects due to atoms passing through periodic boundaries.
 
 A vector of four quantities per atom is calculated by this compute.
 The first 3 elements of the vector are the dx,dy,dz displacements.
-The 4th component is the total displacement, i.e. sqrt(dx\*dx + dy\*dy +
+The fourth component is the total displacement, i.e. sqrt(dx\*dx + dy\*dy +
 dz\*dz).
 
 The displacement of an atom is from its original position at the time

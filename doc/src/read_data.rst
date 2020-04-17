@@ -530,7 +530,7 @@ input script.
 
        ID = number of angle (1-Nangles)
        type = angle type (1-Nangletype)
-       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
+       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
 
@@ -671,7 +671,7 @@ not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
 
-The molecule ID is a 2nd identifier attached to an atom.  Normally, it
+The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is a non-bonded atom or if you don't care to
 keep track of molecule assignments.
@@ -923,7 +923,7 @@ script.
 
        ID = bond number (1-Nbonds)
        type = bond type (1-Nbondtype)
-       atom1,atom2 = IDs of 1st,2nd atoms in bond
+       atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
 
@@ -969,7 +969,7 @@ Coefficients can also be set via the
 
        ID = number of dihedral (1-Ndihedrals)
        type = dihedral type (1-Ndihedraltype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
 
@@ -1070,7 +1070,7 @@ Coefficients can also be set via the
 
        ID = number of improper (1-Nimpropers)
        type = improper type (1-Nimpropertype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:
 

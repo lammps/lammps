@@ -60,7 +60,7 @@ keywords are listed, a single coordination number is calculated, which
 includes atoms of all types (same as the "\*" format, see below).
 
 The *typeN* keywords can be specified in one of two ways.  An explicit
-numeric value can be used, as in the 2nd example above.  Or a
+numeric value can be used, as in the second example above.  Or a
 wild-card asterisk can be used to specify a range of atom types.  This
 takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of
 atom types, then an asterisk with no numeric values means all types

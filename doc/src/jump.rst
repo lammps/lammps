@@ -60,7 +60,7 @@ of SELF, e.g.
 
    lmp_g++ -var fname in.script < in.script
 
-The 2nd argument to the jump command is optional.  If specified, it is
+The second argument to the jump command is optional.  If specified, it is
 treated as a label and the new file is scanned (without executing
 commands) until the label is found, and commands are executed from
 that point forward.  This can be used to loop over a portion of the

@@ -395,7 +395,7 @@ struct NPairKokkosBuildFunctor {
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -455,7 +455,7 @@ struct NPairKokkosBuildFunctorSize {
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemSizeCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 

@@ -26,6 +26,9 @@ class RanPark : protected Pointers {
   void reset(int);
   void reset(int, double *);
   int state();
+  double gaussian(double mu, double sigma);
+  double rayleigh(double sigma);
+  double besselexp(double theta, double alpha, double cp);
 
  private:
   int seed,save;

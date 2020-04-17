@@ -1,18 +1,16 @@
-.. index:: pair\_style smd/ulsph
+.. index:: pair_style smd/ulsph
 
-pair\_style smd/ulsph command
+pair_style smd/ulsph command
 =============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style smd/ulsph args
 
 * these keywords must be given
-
 
 .. parsed-literal::
 
@@ -21,10 +19,9 @@ Syntax
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_style smd/ulsph \*DENSITY_CONTINUITY \*VELOCITY_GRADIENT \*NO_GRADIENT_CORRECTION
+   pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
 
 Description
 """""""""""
@@ -35,17 +32,16 @@ Smooth-Particle Hydrodynamics algorithm.
 
 This pair style is invoked similar to the following command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_style smd/ulsph \*DENSITY_CONTINUITY \*VELOCITY_GRADIENT \*NO_GRADIENT_CORRECTION
-   pair_coeff i j \*COMMON rho0 c0 Q1 Cp hg &
-                  \*END
+   pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
+   pair_coeff i j *COMMON rho0 c0 Q1 Cp hg &
+                  *END
 
 Here, *i* and *j* denote the *LAMMPS* particle types for which this
 pair style is defined. Note that *i* and *j* can be different, i.e.,
 *ulsph* cross interactions between different particle types are
-allowed. However, *i*\ --\ *i* respectively *j*\ --\ *j* pair\_coeff lines have
+allowed. However, *i*\ --\ *i* respectively *j*\ --\ *j* pair_coeff lines have
 to precede a cross interaction.  In contrast to the usual *LAMMPS*
 *pair coeff* definitions, which are given solely a number of floats
 and integers, the *ulsph* *pair coeff* definition is organized using
@@ -59,16 +55,14 @@ diagonal components of the stress tensor), and a material model to
 compute shear stresses (the off-diagonal components of the stress
 tensor).
 
-Note that the use of \*GRADIENT\_CORRECTION can lead to severe numerical
-instabilities. For a general fluid simulation, \*NO\_GRADIENT\_CORRECTION
+Note that the use of \*GRADIENT_CORRECTION can lead to severe numerical
+instabilities. For a general fluid simulation, \*NO_GRADIENT_CORRECTION
 is recommended.
 
 Please see the `SMD user guide <PDF/SMD_LAMMPS_userguide.pdf>`_ for a
 complete listing of the possible keywords and material models.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -76,13 +70,10 @@ No mixing is performed automatically.  Currently, no part of USER-SMD
 supports restarting nor minimization.  rRESPA does not apply to this
 pair style.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -90,15 +81,6 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

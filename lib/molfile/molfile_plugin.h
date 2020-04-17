@@ -662,7 +662,7 @@ typedef struct {
                     int **bondtype, int *nbondtypes, char ***bondtypename);
 
   /**
-   * XXX this function will be augmented and possibly superceded by a
+   * XXX this function will be augmented and possibly superseded by a
    *     new QM-capable version named read_timestep(), when finished.
    *
    * Read the next timestep from the file.  Return MOLFILE_SUCCESS, or

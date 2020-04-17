@@ -47,7 +47,6 @@ OPT.
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
    * :doc:`table (o) <bond_table>`
-   *
 
 .. _angle:
 
@@ -89,7 +88,6 @@ OPT.
    * :doc:`quartic (o) <angle_quartic>`
    * :doc:`sdk (o) <angle_sdk>`
    * :doc:`table (o) <angle_table>`
-   *
 
 .. _dihedral:
 
@@ -100,7 +98,6 @@ All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
-
 
 .. table_from_list::
    :columns: 4
@@ -127,15 +124,13 @@ OPT.
    * :doc:`spherical <dihedral_spherical>`
    * :doc:`table (o) <dihedral_table>`
    * :doc:`table/cut <dihedral_table_cut>`
-   *
-   *
 
 .. _improper:
 
 Improper_style potentials
 =========================
 
-All LAMMPS :doc:`improper\_style <improper_style>` commands.  Some styles
+All LAMMPS :doc:`improper_style <improper_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
@@ -162,4 +157,3 @@ OPT.
    * :doc:`ring (o) <improper_ring>`
    * :doc:`sqdistharm <improper_sqdistharm>`
    * :doc:`umbrella (o) <improper_umbrella>`
-   *

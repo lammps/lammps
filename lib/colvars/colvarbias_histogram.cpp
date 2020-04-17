@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -17,6 +17,7 @@ colvarbias_histogram::colvarbias_histogram(char const *key)
   : colvarbias(key),
     grid(NULL), out_name("")
 {
+  provide(f_cvb_bypass_ext_lagrangian); // Allow histograms of actual cv for extended-Lagrangian
 }
 
 
@@ -78,11 +79,15 @@ int colvarbias_histogram::init(std::string const &conf)
   }
 
   for (i = 0; i < num_variables(); i++) {
-    colvars[i]->enable(f_cv_grid);
+    colvars[i]->enable(f_cv_grid); // Could be a child dependency of a f_cvb_use_grids feature
   }
 
   grid = new colvar_grid_scalar();
   grid->init_from_colvars(colvars);
+
+  if (is_enabled(f_cvb_bypass_ext_lagrangian)) {
+    grid->request_actual_value();
+  }
 
   {
     std::string grid_conf;

@@ -1,0 +1,25 @@
+echo
+
+memory global 40 mb stack 23 mb heap 5 mb
+
+geometry units angstrom noautosym
+ O   0.0 0.0 0.0
+ H   1.0 0.5 0.0
+ H  -1.0 0.5 0.0
+end
+
+basis
+  O library 6-31g*
+  H library 6-31g*
+end
+
+scf
+ maxiter 100
+end
+
+#dft
+# xc b3lyp
+#end
+
+task scf gradient
+#task dft gradient

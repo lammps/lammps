@@ -3,8 +3,8 @@
 SHELL         = /bin/bash
 BUILDDIR      = ${CURDIR}
 RSTDIR        = $(BUILDDIR)/src
-TXTDIR        = $(BUILDDIR)/txt
 VENV          = $(BUILDDIR)/docenv
+MATHJAX       = $(BUILDDIR)/mathjax
 TXT2RST       = $(VENV)/bin/txt2rst
 ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
 
@@ -12,6 +12,7 @@ PYTHON        = $(shell which python3)
 VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
+HAS_PDFLATEX   = NO
 
 ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3 = YES
@@ -27,76 +28,77 @@ VIRTUALENV     = virtualenv
 HAS_VIRTUALENV = YES
 endif
 
-SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
-OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
+ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
+HAS_PDFLATEX = YES
+endif
 
-.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check style_check
+
+SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
+
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check
 
 # ------------------------------------------
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       create HTML doc pages in html dir"
-	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
-	@echo "  epub       create ePUB format manual for e-book readers"
-	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
+	@echo "  html          create HTML doc pages in html dir"
+	@echo "  pdf           create Developer.pdf and Manual.pdf in this dir"
+	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
+	@echo "  epub          create ePUB format manual for e-book readers"
+	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
-	@echo "  clean      remove all intermediate RST files"
-	@echo "  clean-all  reset the entire build environment"
+	@echo "  clean         remove all intermediate RST files"
+	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
-	@echo "  spelling   spell-check the manual"
+	@echo "  package_check check for complete and consistent package lists"
+	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax Manual.pdf Developer.pdf
 
-clean:
+clean: clean-spelling
 	rm -rf html epub latex
-	rm -rf spelling
 
 clean-spelling:
 	rm -rf spelling
 
-rst: clean $(OBJECTS) $(ANCHORCHECK)
-
-html: $(OBJECTS) $(ANCHORCHECK)
+html: $(ANCHORCHECK) $(MATHJAX)
 	@(\
 		. $(VENV)/bin/activate ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
-	-rm html/searchindex.js
 	@rm -rf html/_sources
 	@rm -rf html/PDF
 	@rm -rf html/USER
+	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
-	@cp -r src/USER html/USER
+	@mkdir -p html/JPG
+	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
-	@rm -rf html/USER/.[sg]*
-	@rm -rf html/USER/*/.[sg]*
-	@rm -rf html/USER/*/*.[sg]*
+	@mkdir -p html/_static/mathjax
+	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
+spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
-		pip install sphinxcontrib-spelling ;\
-		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
 	@echo "Spell check finished."
 
-epub: $(OBJECTS)
+epub: $(VENV)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -115,7 +117,8 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: $(OBJECTS) $(ANCHORCHECK)
+pdf: $(ANCHORCHECK)
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -128,6 +131,7 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 		sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
@@ -149,11 +153,7 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
 	@cp -r src/PDF latex/PDF
-	@cp -r src/USER latex/USER
 	@rm -rf latex/PDF/.[sg]*
-	@rm -rf latex/USER/.[sg]*
-	@rm -rf latex/USER/*/.[sg]*
-	@rm -rf latex/USER/*/*.[sg]*
 	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
 fetch:
@@ -167,26 +167,25 @@ fetch:
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		rst_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
 		deactivate ;\
 	)
 
-style_check :
+style_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		deactivate ;\
 	)
 
-# ------------------------------------------
-
-$(RSTDIR)/%.rst : $(TXTDIR)/%.txt $(TXT2RST)
+package_check : $(VENV)
 	@(\
-		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\
-		txt2rst -v $< > $@ ;\
+		python utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)
+
+# ------------------------------------------
 
 $(VENV):
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
@@ -194,9 +193,15 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
+		pip install --upgrade pip; \
 		pip install Sphinx; \
+		pip install sphinxcontrib-spelling ;\
+		pip install breathe; \
 		deactivate;\
 	)
+
+$(MATHJAX):
+	@git clone --depth 1 https://github.com/mathjax/MathJax.git mathjax
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

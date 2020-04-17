@@ -6,7 +6,6 @@ fix nve/dot command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/dot
@@ -14,12 +13,10 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/dot = style name of this fix command
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/dot
 
@@ -43,13 +40,10 @@ An example input file can be found in /examples/USER/cgdna/examples/duplex1/.
 Further details of the implementation and stability of the integrator are contained in :ref:`(Henrich) <Henrich4>`.
 The preprint version of the article can be found `here <PDF/USER-CGDNA.pdf>`_.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles can only be used if LAMMPS was built with the
 :ref:`USER-CGDNA <PKG-USER-CGDNA>` package and the MOLECULE and ASPHERE package.
@@ -62,9 +56,7 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _Davidchack4:
 
@@ -77,8 +69,3 @@ Related commands
 .. _Henrich4:
 
 **(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

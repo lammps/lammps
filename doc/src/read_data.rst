@@ -1,22 +1,21 @@
-.. index:: read\_data
+.. index:: read_data
 
-read\_data command
-==================
+read_data command
+=================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data file keyword args ...
 
 * file = name of data file to read in
 * zero or more keyword/arg pairs may be appended
 * keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *group* or *nocoeff* or *fix*
-  
+
   .. parsed-literal::
-  
+
        *add* arg = *append* or *IDoffset* or *IDoffset MOLoffset* or *merge*
          append = add new atoms with atom IDs appended to current IDs
          IDoffset = add new atoms with atom IDs having IDoffset added
@@ -48,13 +47,10 @@ Syntax
          header-string = header lines containing this string will be passed to fix
          section-string = section names with this string will be passed to fix
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data data.lj
    read_data ../run7/data.polymer.gz
@@ -68,8 +64,8 @@ Description
 Read in a data file containing information LAMMPS needs to run a
 simulation.  The file can be ASCII text or a gzipped text file
 (detected by a .gz suffix).  This is one of 3 ways to specify initial
-atom coordinates; see the :doc:`read\_restart <read_restart>` and
-:doc:`create\_atoms <create_atoms>` commands for alternative methods.
+atom coordinates; see the :doc:`read_restart <read_restart>` and
+:doc:`create_atoms <create_atoms>` commands for alternative methods.
 Also see the explanation of the :doc:`-restart command-line switch <Run_options>` which can convert a restart file to a data
 file.
 
@@ -83,11 +79,11 @@ specified group-ID.  The group will be created if it does not already
 exist.  This is useful if you are reading multiple data files and wish
 to put sets of atoms into different groups so they can be operated on
 later.  E.g. a group of added atoms can be moved to new positions via
-the :doc:`displace\_atoms <displace_atoms>` command.  Note that atoms
+the :doc:`displace_atoms <displace_atoms>` command.  Note that atoms
 read from the data file are also always added to the "all" group.  The
 :doc:`group <group>` command discusses atom groups, as used in LAMMPS.
 
-The *nocoeff* keyword tells read\_data to ignore force field parameters.
+The *nocoeff* keyword tells read_data to ignore force field parameters.
 The various Coeff sections are still read and have to have the correct
 number of lines, but they are not applied. This also allows to read a
 data file without having any pair, bond, angle, dihedral or improper
@@ -95,28 +91,26 @@ styles defined, or to read a data file for a different force field.
 
 The use of the *fix* keyword is discussed below.
 
-
 ----------
-
 
 **Reading multiple data files**
 
-The read\_data command can be used multiple times with the same or
+The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
 contained in individual data files.  For example one data file could
 contain fluid in a confined domain; a second could contain wall atoms,
 and the second file could be read a third time to create a wall on the
 other side of the fluid.  The third set of atoms could be rotated to
-an opposing direction using the :doc:`displace\_atoms <displace_atoms>`
-command, after the third read\_data command is used.
+an opposing direction using the :doc:`displace_atoms <displace_atoms>`
+command, after the third read_data command is used.
 
 The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
 useful in this context.
 
 If a simulation box does not yet exist, the *add* keyword
-cannot be used; the read\_data command is being used for the first
+cannot be used; the read_data command is being used for the first
 time.  If a simulation box does exist, due to using the
-:doc:`create\_box <create_box>` command, or a previous read\_data command,
+:doc:`create_box <create_box>` command, or a previous read_data command,
 then the *add* keyword must be used.
 
 .. note::
@@ -175,17 +169,17 @@ for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
 to build up a complex geometry.  It is up to you to insure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
-Note that the :doc:`displace\_atoms <displace_atoms>` command can be used
+Note that the :doc:`displace_atoms <displace_atoms>` command can be used
 to move a subset of atoms after they have been read from a data file.
-Likewise, the :doc:`delete\_atoms <delete_atoms>` command can be used to
+Likewise, the :doc:`delete_atoms <delete_atoms>` command can be used to
 remove overlapping atoms.  Note that the shift values (Sx, Sy, Sz) are
 also added to the simulation box information (xlo, xhi, ylo, yhi, zlo,
-zhi) in the data file to shift its boundaries.  E.g. xlo\_new = xlo +
-Sx, xhi\_new = xhi + Sx.
+zhi) in the data file to shift its boundaries.  E.g. xlo_new = xlo +
+Sx, xhi_new = xhi + Sx.
 
-The *extra* keywords can only be used the first time the read\_data
+The *extra* keywords can only be used the first time the read_data
 command is used.  They are useful if you intend to add new atom, bond,
-angle, etc types later with additional read\_data commands.  This is
+angle, etc types later with additional read_data commands.  This is
 because the maximum number of allowed atom, bond, angle, etc types is
 set by LAMMPS when the system is first initialized.  If you do not use
 the *extra* keywords, then the number of these types will be limited
@@ -211,17 +205,15 @@ you would still need to specify coefficients for H/Si and O/Si
 interactions in your input script to have a complete pairwise
 interaction model.
 
-An alternative to using the *extra* keywords with the read\_data
-command, is to use the :doc:`create\_box <create_box>` command to
+An alternative to using the *extra* keywords with the read_data
+command, is to use the :doc:`create_box <create_box>` command to
 initialize the simulation box and all the various type limits you need
-via its *extra* keywords.  Then use the read\_data command one or more
+via its *extra* keywords.  Then use the read_data command one or more
 times to populate the system with atoms, bonds, angles, etc, using the
 *offset* keyword if desired to alter types used in the various data
 files you read.
 
-
 ----------
-
 
 **Format of a data file**
 
@@ -235,7 +227,7 @@ description of the file.  Then lines are read one at a time.  Lines
 can have a trailing comment starting with '#' that is ignored.  If the
 line is blank (only white-space after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it doesn't contain a header
+value(s) is read from the line.  If it does not contain a header
 keyword, the line begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
@@ -266,9 +258,7 @@ be capitalized as shown and can't have extra white-space between their
 words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
 the 2 words in "Bond Coeffs", is not valid.
 
-
 ----------
-
 
 **Format of the header of a data file**
 
@@ -389,13 +379,13 @@ data file.
    "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
    command), a huge (mostly empty) box may cause a parallel simulation to
    lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
-   read\_data command will generate an error in this case.
+   read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
 the system when a simulation runs, e.g. by using the :doc:`fix bond/create <fix_bond_create>` command. Using this header flag
 is deprecated; please use the *extra/bond/per/atom* keyword (and
-correspondingly for angles, dihedrals and impropers) in the read\_data
+correspondingly for angles, dihedrals and impropers) in the read_data
 command instead. Either will pre-allocate space in LAMMPS data
 structures for storing the new bonds (angles, dihedrals, impropers).
 
@@ -408,20 +398,20 @@ molecules defined in the data file.  Using this header flag is
 deprecated; please use the *extra/special/per/atom* keyword instead.
 Using this setting will pre-allocate space in the LAMMPS data
 structures for storing these neighbors.  See the
-:doc:`special\_bonds <special_bonds>` and :doc:`molecule <molecule>` doc
+:doc:`special_bonds <special_bonds>` and :doc:`molecule <molecule>` doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 
 .. note::
 
    All of the "extra" settings are only applied in the first data
    file read and when no simulation box has yet been created; as soon as
-   the simulation box is created (and read\_data implies that), these
+   the simulation box is created (and read_data implies that), these
    settings are *locked* and cannot be changed anymore. Please see the
    description of the *add* keyword above for reading multiple data files.
    If they appear in later data files, they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
-only used with :doc:`atom\_style ellipsoid or line or tri or body <atom_style>` and specify how many of the atoms are
+only used with :doc:`atom_style ellipsoid or line or tri or body <atom_style>` and specify how many of the atoms are
 finite-size ellipsoids or lines or triangles or bodies; the remainder
 are point particles.  See the discussion of ellipsoidflag and the
 *Ellipsoids* section below.  See the discussion of lineflag and the
@@ -431,7 +421,7 @@ are point particles.  See the discussion of ellipsoidflag and the
 
 .. note::
 
-   For :doc:`atom\_style template <atom_style>`, the molecular
+   For :doc:`atom_style template <atom_style>`, the molecular
    topology (bonds,angles,etc) is contained in the molecule templates
    read-in by the :doc:`molecule <molecule>` command.  This means you
    cannot set the *bonds*\ , *angles*\ , etc header keywords in the data
@@ -440,9 +430,7 @@ are point particles.  See the discussion of ellipsoidflag and the
    keywords, though it is not necessary.  If specified, they must match
    the maximum values defined in any of the template molecules.
 
-
 ----------
-
 
 **Format of the body of a data file**
 
@@ -460,14 +448,13 @@ currently defined style:
 
 For example, these lines:
 
-
 .. parsed-literal::
 
    Atoms # sphere
    Pair Coeffs # lj/cut
 
-will check if the currently-defined :doc:`atom\_style <atom_style>` is
-*sphere*\ , and the current :doc:`pair\_style <pair_style>` is *lj/cut*\ .
+will check if the currently-defined :doc:`atom_style <atom_style>` is
+*sphere*\ , and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
 If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
@@ -480,93 +467,76 @@ Any individual line in the various sections can have a trailing
 comment starting with "#" for annotation purposes.  E.g. in the
 Atoms section:
 
-
 .. parsed-literal::
 
    10 1 17 -1.0 10.0 5.0 6.0   # salt ion
 
-
 ----------
-
 
 *Angle Coeffs* section:
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        6 70 108.5 0 0
 
-
-
 The number and meaning of the coefficients are specific to the defined
-angle style.  See the :doc:`angle\_style <angle_style>` and
-:doc:`angle\_coeff <angle_coeff>` commands for details.  Coefficients can
-also be set via the :doc:`angle\_coeff <angle_coeff>` command in the
+angle style.  See the :doc:`angle_style <angle_style>` and
+:doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
+also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
 
-
 ----------
-
 
 *AngleAngle Coeffs* section:
 
 * one line per improper type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = improper type (1-N)
        coeffs = list of coeffs (see :doc:`improper_coeff <improper_coeff>`)
 
-
-
-
 ----------
-
 
 *AngleAngleTorsion Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Angles* section:
 
 * one line per angle
 * line syntax: ID type atom1 atom2 atom3
-  
+
   .. parsed-literal::
-  
+
        ID = number of angle (1-Nangles)
        type = angle type (1-Nangletype)
        atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
 
 example:
-  
+
   .. parsed-literal::
-  
+
        2 2 17 29 430
-
-
 
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
@@ -574,25 +544,19 @@ E.g. H,O,H for a water molecule.  The *Angles* section must appear
 after the *Atoms* section.  All values in this section must be
 integers (1, not 1.0).
 
-
 ----------
-
 
 *AngleTorsion Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Atoms* section:
 
@@ -622,7 +586,7 @@ of analysis.
 +------------+---------------------------------------------------------------------------+
 | dpd        | atom-ID atom-type theta x y z                                             |
 +------------+---------------------------------------------------------------------------+
-| edpd       | atom-ID atom-type edpd\_temp edpd\_cv x y z                               |
+| edpd       | atom-ID atom-type edpd_temp edpd_cv x y z                                 |
 +------------+---------------------------------------------------------------------------+
 | mdpd       | atom-ID atom-type rho x y z                                               |
 +------------+---------------------------------------------------------------------------+
@@ -652,7 +616,7 @@ of analysis.
 +------------+---------------------------------------------------------------------------+
 | tri        | atom-ID molecule-ID atom-type triangleflag density x y z                  |
 +------------+---------------------------------------------------------------------------+
-| wavepacket | atom-ID atom-type charge spin eradius etag cs\_re cs\_im x y z            |
+| wavepacket | atom-ID atom-type charge spin eradius etag cs_re cs_im x y z              |
 +------------+---------------------------------------------------------------------------+
 | hybrid     | atom-ID atom-type x y z sub-style1 sub-style2 ...                         |
 +------------+---------------------------------------------------------------------------+
@@ -664,13 +628,13 @@ The per-atom values have these meanings and units, listed alphabetically:
 * bodyflag = 1 for body particles, 0 for point particles
 * cc = chemical concentration for tDPD particles for each species (mole/volume units)
 * contact-radius = ??? (distance units)
-* cs\_re,cs\_im = real/imaginary parts of wave packet coefficients
+* cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
 * e = energy (need units) for SPH particles
-* edpd\_temp = temperature for eDPD particles (temperature units)
-* edpd\_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
+* edpd_temp = temperature for eDPD particles (temperature units)
+* edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
 * etag = integer ID of electron that each wave packet belongs to
@@ -702,7 +666,7 @@ in dump files.  Normally, it is a unique value from 1 to Natoms for
 each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
 map array is used, but not if an atom map hash is used; see the
-:doc:`atom\_modify <atom_modify>` command for details.  If an atom map is
+:doc:`atom_modify <atom_modify>` command for details.  If an atom map is
 not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
@@ -723,7 +687,7 @@ triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
 *Triangles*\ , or *Bodies* section.
 
 The *template-index* and *template-atom* are only defined used by
-:doc:`atom\_style template <atom_style>`.  In this case the
+:doc:`atom_style template <atom_style>`.  In this case the
 :doc:`molecule <molecule>` command is used to define a molecule template
 which contains one or more molecules.  If an atom belongs to one of
 those molecules, its *template-index* and *template-atom* are both set
@@ -749,20 +713,19 @@ body is unknown.
 Note that for 2d simulations of spheres, this command will treat them
 as spheres when converting density to mass.  However, they can also be
 modeled as 2d discs (circles) if the :doc:`set density/disc <set>`
-command is used to reset their mass after the read\_data command is
+command is used to reset their mass after the read_data command is
 used.  A *disc* keyword can also be used with time integration fixes,
 such as :doc:`fix nve/sphere <fix_nve_sphere>` and :doc:`fix nvt/sphere <fix_nve_sphere>` to time integrate their motion as 2d
 discs (not 3d spheres), by changing their moment of inertia.
 
-For atom\_style hybrid, following the 5 initial values (ID,type,x,y,z),
+For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-:doc:`atom\_style <atom_style>` command.  The sub-style specific values
+:doc:`atom_style <atom_style>` command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,type,x,y,z).  For
 example, for the "charge" sub-style, a "q" value would appear.  For
 the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
 listed in the same order they appear as listed above.  Thus if
-
 
 .. parsed-literal::
 
@@ -770,15 +733,13 @@ listed in the same order they appear as listed above.  Thus if
 
 were used in the input script, each atom line would have these fields:
 
-
 .. parsed-literal::
 
    atom-ID atom-type x y z q diameter density
 
 Note that if a non-standard value is defined by multiple sub-styles,
 it must appear multiple times in the atom line.  E.g. the atom line
-for atom\_style hybrid dipole full would list "q" twice:
-
+for atom_style hybrid dipole full would list "q" twice:
 
 .. parsed-literal::
 
@@ -827,7 +788,6 @@ that use unwrapped coordinates internally are as follows:
   continued run (restarted from a data file) begins with image flags
   that are consistent with the previous run.
 
-
 .. note::
 
    If your system is an infinite periodic crystal with bonds then
@@ -841,41 +801,37 @@ a *Velocities* section in the data file or by a
 :doc:`velocity <velocity>` or :doc:`set <set>` command in the input
 script.
 
-
 ----------
-
 
 *Bodies* section:
 
 * one or more lines per body
 * first line syntax: atom-ID Ninteger Ndouble
-  
+
   .. parsed-literal::
-  
+
        Ninteger = # of integer quantities for this particle
        Ndouble = # of floating-point quantities for this particle
 
 * 0 or more integer lines with total of Ninteger values
 * 0 or more double lines with total of Ndouble values
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 6
        2 3 2
        1.0 2.0 3.0 1.0 2.0 4.0
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 0 14
        1.0 2.0 3.0 1.0 2.0 4.0 1.0
        2.0 3.0 1.0 2.0 4.0 4.0 2.0
 
-
-
-The *Bodies* section must appear if :doc:`atom\_style body <atom_style>`
+The *Bodies* section must appear if :doc:`atom_style body <atom_style>`
 is used and any atoms listed in the *Atoms* section have a bodyflag =
 1.  The number of bodies should be specified in the header section via
 the "bodies" keyword.
@@ -883,7 +839,7 @@ the "bodies" keyword.
 Each body can have a variable number of integer and/or floating-point
 values.  The number and meaning of the values is defined by the body
 style, as described in the :doc:`Howto body <Howto_body>` doc page.  The
-body style is given as an argument to the :doc:`atom\_style body <atom_style>` command.
+body style is given as an argument to the :doc:`atom_style body <atom_style>` command.
 
 The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
@@ -896,187 +852,155 @@ particular type, no lines appear for that type.
 
 The *Bodies* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Bond Coeffs* section:
 
 * one line per bond type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = bond type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        4 250 1.49
 
-
-
 The number and meaning of the coefficients are specific to the defined
-bond style.  See the :doc:`bond\_style <bond_style>` and
-:doc:`bond\_coeff <bond_coeff>` commands for details.  Coefficients can
-also be set via the :doc:`bond\_coeff <bond_coeff>` command in the input
+bond style.  See the :doc:`bond_style <bond_style>` and
+:doc:`bond_coeff <bond_coeff>` commands for details.  Coefficients can
+also be set via the :doc:`bond_coeff <bond_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *BondAngle Coeffs* section:
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
-
-
-
 ----------
-
 
 *BondBond Coeffs* section:
 
 * one line per angle type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = angle type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
 
-
-
-
 ----------
-
 
 *BondBond13 Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Bonds* section:
 
 * one line per bond
 * line syntax: ID type atom1 atom2
-  
+
   .. parsed-literal::
-  
+
        ID = bond number (1-Nbonds)
        type = bond type (1-Nbondtype)
        atom1,atom2 = IDs of 1st,2nd atoms in bond
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 17 29
-
-
 
 The *Bonds* section must appear after the *Atoms* section.  All values
 in this section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Dihedral Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 0.6 1 0 1
 
-
-
 The number and meaning of the coefficients are specific to the defined
-dihedral style.  See the :doc:`dihedral\_style <dihedral_style>` and
-:doc:`dihedral\_coeff <dihedral_coeff>` commands for details.
+dihedral style.  See the :doc:`dihedral_style <dihedral_style>` and
+:doc:`dihedral_coeff <dihedral_coeff>` commands for details.
 Coefficients can also be set via the
-:doc:`dihedral\_coeff <dihedral_coeff>` command in the input script.
-
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
 
 ----------
-
 
 *Dihedrals* section:
 
 * one line per dihedral
 * line syntax: ID type atom1 atom2 atom3 atom4
-  
+
   .. parsed-literal::
-  
+
        ID = number of dihedral (1-Ndihedrals)
        type = dihedral type (1-Ndihedraltype)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 4 17 29 30 21
-
-
 
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
 section must appear after the *Atoms* section.  All values in this
 section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Ellipsoids* section:
 
 * one line per ellipsoid
 * line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is an ellipsoid
        shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
        quatw,quati,quatj,quatk = quaternion components for orientation of atom
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 1 2 1 1 0 0 0
 
-
-
-The *Ellipsoids* section must appear if :doc:`atom\_style ellipsoid <atom_style>` is used and any atoms are listed in the
+The *Ellipsoids* section must appear if :doc:`atom_style ellipsoid <atom_style>` is used and any atoms are listed in the
 *Atoms* section with an ellipsoidflag = 1.  The number of ellipsoids
 should be specified in the header section via the "ellipsoids"
 keyword.
@@ -1099,72 +1023,60 @@ specified as a unit vector.
 
 The *Ellipsoids* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *EndBondTorsion Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Improper Coeffs* section:
 
 * one line per improper type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = improper type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        2 20 0.0548311
 
-
-
 The number and meaning of the coefficients are specific to the defined
-improper style.  See the :doc:`improper\_style <improper_style>` and
-:doc:`improper\_coeff <improper_coeff>` commands for details.
+improper style.  See the :doc:`improper_style <improper_style>` and
+:doc:`improper_coeff <improper_coeff>` commands for details.
 Coefficients can also be set via the
-:doc:`improper\_coeff <improper_coeff>` command in the input script.
-
+:doc:`improper_coeff <improper_coeff>` command in the input script.
 
 ----------
-
 
 *Impropers* section:
 
 * one line per improper
 * line syntax: ID type atom1 atom2 atom3 atom4
-  
+
   .. parsed-literal::
-  
+
        ID = number of improper (1-Nimpropers)
        type = improper type (1-Nimpropertype)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 3 17 29 13 100
-
-
 
 The ordering of the 4 atoms determines the definition of the improper
 angle used in the formula for each :doc:`improper style <improper_style>`.  See the doc pages for individual styles
@@ -1173,30 +1085,26 @@ for details.
 The *Impropers* section must appear after the *Atoms* section.  All
 values in this section must be integers (1, not 1.0).
 
-
 ----------
-
 
 *Lines* section:
 
 * one line per line segment
 * line syntax: atom-ID x1 y1 x2 y2
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is a line segment
        x1,y1 = 1st end point
        x2,y2 = 2nd end point
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 1.0 0.0 2.0 0.0
 
-
-
-The *Lines* section must appear if :doc:`atom\_style line <atom_style>`
+The *Lines* section must appear if :doc:`atom_style line <atom_style>`
 is used and any atoms are listed in the *Atoms* section with a
 lineflag = 1.  The number of lines should be specified in the header
 section via the "lines" keyword.
@@ -1210,139 +1118,119 @@ for defining some interactions.
 
 The *Lines* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Masses* section:
 
 * one line per atom type
 * line syntax: ID mass
-  
+
   .. parsed-literal::
-  
+
        ID = atom type (1-N)
        mass = mass value
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 1.01
-
-
 
 This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
-e.g. :doc:`atom\_style sphere <atom_style>`.
-
+e.g. :doc:`atom_style sphere <atom_style>`.
 
 ----------
-
 
 *MiddleBondTorsion Coeffs* section:
 
 * one line per dihedral type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
 
-
-
-
 ----------
-
 
 *Pair Coeffs* section:
 
 * one line per atom type
 * line syntax: ID coeffs
-  
+
   .. parsed-literal::
-  
+
        ID = atom type (1-N)
        coeffs = list of coeffs
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        3 0.022 2.35197 0.022 2.35197
 
-
-
 The number and meaning of the coefficients are specific to the defined
-pair style.  See the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands for details.  Since pair
+pair style.  See the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are not specified, these will be
 generated automatically by the pair style's mixing rule.  See the
-individual pair\_style doc pages and the :doc:`pair\_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair\_coeff <pair_coeff>` command in the input
+individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *PairIJ Coeffs* section:
 
 * one line per pair of atom types for all I,J with I <= J
 * line syntax: ID1 ID2 coeffs
-  
+
   .. parsed-literal::
-  
+
        ID1 = atom type I = 1-N
        ID2 = atom type J = I-N, with I <= J
        coeffs = list of coeffs
 
 * examples:
-  
+
   .. parsed-literal::
-  
+
        3 3 0.022 2.35197 0.022 2.35197
        3 5 0.022 2.35197 0.022 2.35197
 
-
-
 This section must have N\*(N+1)/2 lines where N = # of atom types.  The
 number and meaning of the coefficients are specific to the defined
-pair style.  See the :doc:`pair\_style <pair_style>` and
-:doc:`pair\_coeff <pair_coeff>` commands for details.  Since pair
+pair style.  See the :doc:`pair_style <pair_style>` and
+:doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are all specified, these values will
 turn off the default mixing rule defined by the pair style.  See the
-individual pair\_style doc pages and the :doc:`pair\_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair\_coeff <pair_coeff>` command in the input
+individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
+be set via the :doc:`pair_coeff <pair_coeff>` command in the input
 script.
 
-
 ----------
-
 
 *Triangles* section:
 
 * one line per triangle
 * line syntax: atom-ID x1 y1 z1 x2 y2 z2 x3 y3 z3
-  
+
   .. parsed-literal::
-  
+
        atom-ID = ID of atom which is a line segment
        x1,y1,z1 = 1st corner point
        x2,y2,z2 = 2nd corner point
        x3,y3,z3 = 3rd corner point
 
 * example:
-  
+
   .. parsed-literal::
-  
+
        12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0
 
-
-
-The *Triangles* section must appear if :doc:`atom\_style tri <atom_style>` is used and any atoms are listed in the *Atoms*
+The *Triangles* section must appear if :doc:`atom_style tri <atom_style>` is used and any atoms are listed in the *Atoms*
 section with a triangleflag = 1.  The number of lines should be
 specified in the header section via the "triangles" keyword.
 
@@ -1354,9 +1242,7 @@ orientation may be important for defining some interactions.
 
 The *Triangles* section must appear after the *Atoms* section.
 
-
 ----------
-
 
 *Velocities* section:
 
@@ -1391,23 +1277,21 @@ Vx, vy, vz, and ervel are in :doc:`units <units>` of velocity.  Lx, ly,
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
 Wz are in units of angular velocity (radians/time).
 
-For atom\_style hybrid, following the 4 initial values (ID,vx,vy,vz),
+For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-:doc:`atom\_style <atom_style>` command.  The sub-style specific values
+:doc:`atom_style <atom_style>` command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,vx,vy,vz).  For
 example, for the "sphere" sub-style, "wx", "wy", "wz" values would
 appear.  These are listed in the same order they appear as listed
 above.  Thus if
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid electron sphere
 
 were used in the input script, each velocity line would have these
 fields:
-
 
 .. parsed-literal::
 
@@ -1416,30 +1300,22 @@ fields:
 Translational velocities can also be set by the
 :doc:`velocity <velocity>` command in the input script.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 Related commands
 """"""""""""""""
 
-:doc:`read\_dump <read_dump>`, :doc:`read\_restart <read_restart>`,
-:doc:`create\_atoms <create_atoms>`, :doc:`write\_data <write_data>`
+:doc:`read_dump <read_dump>`, :doc:`read_restart <read_restart>`,
+:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`
 
 Default
 """""""
 
 The default for all the *extra* keywords is 0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

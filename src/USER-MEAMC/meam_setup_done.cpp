@@ -95,7 +95,7 @@ MEAM::alloyparams(void)
   for (i = 0; i < this->neltypes; i++) {
     for (j = 0; j < this->neltypes; j++) {
       // Treat off-diagonal pairs
-      // If i>j, set all equal to i<j case (which has aready been set,
+      // If i>j, set all equal to i<j case (which has already been set,
       // here or in the input file)
       if (i > j) {
         this->re_meam[i][j] = this->re_meam[j][i];
@@ -103,7 +103,7 @@ MEAM::alloyparams(void)
         this->alpha_meam[i][j] = this->alpha_meam[j][i];
         this->lattce_meam[i][j] = this->lattce_meam[j][i];
         this->nn2_meam[i][j] = this->nn2_meam[j][i];
-	    // theta for lin,tri,zig references
+        // theta for lin,tri,zig references
         this->stheta_meam[i][j] = this->stheta_meam[j][i];
         this->ctheta_meam[i][j] = this->ctheta_meam[j][i];
         // If i<j and term is unset, use default values (e.g. mean of i-i and
@@ -163,11 +163,10 @@ MEAM::alloyparams(void)
 void
 MEAM::compute_pair_meam(void)
 {
-
-  double r, b2nn, phi_val;
+  double r;
   int j, a, b, nv2;
   double astar, frac, phizbl;
-  int n, Z1, Z2;
+  int Z1, Z2;
   double arat, rarat, scrn, scrn2;
   double phiaa, phibb /*unused:,phitmp*/;
   double C, s111, s112, s221, S11, S22;
@@ -320,7 +319,7 @@ MEAM::phi_meam(double r, int a, int b)
   double Eu;
   double arat, scrn, scrn2;
   int Z12, errorflag;
-  int n, Z1nn, Z2nn;
+  int Z1nn, Z2nn;
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
@@ -519,7 +518,7 @@ MEAM::phi_meam(double r, int a, int b)
 //   To avoid nan values of phir due to rapid decrease of b2nn^n or/and
 //   argument of phi_meam, i.e. r*arat^n, in some cases (3NN dia with low Cmin value)
 //
-const double
+double
 MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat)
 {
   double phi_sum = 0.0;
@@ -747,9 +746,9 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
       break;
     case CH4:
       *rho01 = 4.0 * rhoa02; //in assumption that 'a' represent carbon
-      *rho02 = rhoa01;	//in assumption that 'b' represent hydrogen
+      *rho02 = rhoa01;       //in assumption that 'b' represent hydrogen
 
-      get_shpfcn(DIM, 0, 0, s);	//H
+      get_shpfcn(DIM, 0, 0, s); //H
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;

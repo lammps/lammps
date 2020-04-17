@@ -181,6 +181,10 @@ void MSM::init()
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
                "(remove -DFFT_SINGLE from Makefile and re-compile)");
 
+  // compute two charge force
+
+  two_charge();
+
   // extract short-range Coulombic cutoff from pair style
 
   triclinic = domain->triclinic;
@@ -2916,7 +2920,7 @@ void MSM::compute_phis_and_dphis(const double &dx, const double &dy,
 
 /* ----------------------------------------------------------------------
    compute phi using interpolating polynomial
-   see Eq 7 from Parallel Computing 35 (2009) 164–177
+   see Eq 7 from Parallel Computing 35 (2009) 164-177
    and Hardy's thesis
 ------------------------------------------------------------------------- */
 
@@ -2995,7 +2999,7 @@ inline double MSM::compute_phi(const double &xi)
 /* ----------------------------------------------------------------------
    compute the derivative of phi
    phi is an interpolating polynomial
-   see Eq 7 from Parallel Computing 35 (2009) 164–177
+   see Eq 7 from Parallel Computing 35 (2009) 164-177
    and Hardy's thesis
 ------------------------------------------------------------------------- */
 

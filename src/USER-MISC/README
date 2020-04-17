@@ -48,7 +48,6 @@ dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 dihedral_style table/cut, Mike Salerno, ksalerno@pha.jhu.edu, 11 May 18
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
-fix bond/react, Jacob Gissinger (CU Boulder), info at disarmmd.org, 24 Feb 2018
 fix electron/stopping, Konstantin Avchaciov, k.avchachov at gmail.com, 26 Feb 2019
 fix ffl, David Wilkins (EPFL Lausanne), david.wilkins @ epfl.ch, 28 Sep 2018
 fix filter/corotate, Lukas Fath (KIT), lukas.fath at kit.edu, 15 Mar 2017
@@ -57,8 +56,10 @@ fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov
 fix grem, David Stelter, dstelter@bu.edu, 22 Nov 16
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
+fix npt/cauchy, R. E. Miller (Carleton University), F. Pavia and S. Pattamatta, 12 Jan 2020
 fix nvk, Efrem Braun (UC Berkeley), efrem.braun at gmail.com, https://github.com/lammps/lammps/pull/310
 fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
+fix propel/self, Stefan Paquay (Brandeis U), stefanpaquay at gmail.com, 20 Jan 2020
 fix rhok, Ulf Pedersen (Roskilde U), ulf at urp.dk, 25 Sep 2017
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2013
@@ -75,6 +76,8 @@ pair_style buck/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style cosine/squared, Eugen Rozic, eugen.rozic.17 at ucl.ac.uk, 9 Aug 19
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style coul/shield, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
+pair_style coul/slater/cut, Evangelos Voyiatzis, evoyiatzis at gmail.com, 26 February 2020
+pair_style coul/slater/long, Evangelos Voyiatzis, evoyiatzis at gmail.com, 26 February 2020
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
 pair_style e3b, Steven Strong (U Chicago), stevene.strong at gmail dot com, 16 Apr 19
 pair_style drip, Mingjian Wen, University of Minnesota, wenxx151 at umn.edu, 17 Apr 19
@@ -91,6 +94,7 @@ pair_style kolmogorov/crespi/full, Wengen Ouyang (Tel Aviv University), w.g.ouya
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
 pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12
+pair_style mesocnt, Philipp Kloza (U Cambridge), pak37 at cam.ac.uk, 15 Jan 20
 pair_style morse/smooth/linear, Stefan Paquay (TU Eindhoven), stefanpaquay at gmail.com, 29 Feb 16
 pair_style srp, Tim Sirk, tim.sirk at us.army.mil, 21 Nov 14
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11

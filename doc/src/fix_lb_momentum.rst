@@ -6,7 +6,6 @@ fix lb/momentum command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID lb/momentum nevery keyword values ...
@@ -16,19 +15,16 @@ Syntax
 * nevery = adjust the momentum every this many timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *linear*
-  
+
   .. parsed-literal::
-  
+
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension.
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 sphere lb/momentum
    fix 1 all lb/momentum linear 1 1 0
@@ -54,9 +50,9 @@ be changed by specifying the keyword *linear*\ , along with a set of
 three flags set to 0/1 in order to exclude/ include the corresponding
 dimension.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -64,7 +60,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this
@@ -82,8 +77,3 @@ Default
 """""""
 
 Zeros the total system linear momentum in each dimension.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

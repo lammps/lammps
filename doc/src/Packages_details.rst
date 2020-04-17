@@ -10,7 +10,7 @@ scripts, and pictures/movies (if available) that illustrate use of the
 package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (-D PGK\_NAME for CMake) or command ("make yes-name" for
+single setting (-D PGK_NAME for CMake) or command ("make yes-name" for
 make).  See the :doc:`Build package <Build_package>` doc page for more
 info.  A few packages may require additional steps; this is indicated
 in the descriptions below.  The :doc:`Build extras <Build_extras>` doc
@@ -24,39 +24,88 @@ page gives those details.
    pair, bond, angle, etc correspond to commands with the same style name
    as contained in the file name.
 
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`ASPHERE <PKG-ASPHERE>` | :ref:`BODY <PKG-BODY>`         | :ref:`CLASS2 <PKG-CLASS2>`     | :ref:`COLLOID <PKG-COLLOID>` | :ref:`COMPRESS <PKG-COMPRESS>` | :ref:`CORESHELL <PKG-CORESHELL>` |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`DIPOLE <PKG-DIPOLE>`   | :ref:`GPU <PKG-GPU>`           | :ref:`GRANULAR <PKG-GRANULAR>` | :ref:`KIM <PKG-KIM>`         | :ref:`KOKKOS <PKG-KOKKOS>`     | :ref:`KSPACE <PKG-KSPACE>`       |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`LATTE <PKG-LATTE>`     | :ref:`MANYBODY <PKG-MANYBODY>` | :ref:`MC <PKG-MC>`             | :ref:`MESSAGE <PKG-MESSAGE>` | :ref:`MISC <PKG-MISC>`         | :ref:`MOLECULE <PKG-MOLECULE>`   |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`MPIIO <PKG-MPIIO>`     | :ref:`MSCG <PKG-MSCG>`         | :ref:`OPT <PKG-OPT>`           | :ref:`PERI <PKG-PERI>`       | :ref:`POEMS <PKG-POEMS>`       | :ref:`PYTHON <PKG-PYTHON>`       |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`QEQ <PKG-QEQ>`         | :ref:`REPLICA <PKG-REPLICA2>`  | :ref:`RIGID <PKG-RIGID>`       | :ref:`SHOCK <PKG-SHOCK>`     | :ref:`SNAP <PKG-SNAP>`         | :ref:`SPIN <PKG-SPIN>`           |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
-| :ref:`SRD <PKG-SRD>`         | :ref:`VORONOI <PKG-VORONOI>`   |                                |                              |                                |                                  |
-+------------------------------+--------------------------------+--------------------------------+------------------------------+--------------------------------+----------------------------------+
+.. table_from_list::
+   :columns: 6
 
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-ADIOS <PKG-USER-ADIOS>`     | :ref:`USER-ATC <PKG-USER-ATC>`                 | :ref:`USER-AWPMD <PKG-USER-AWPMD>` | :ref:`USER-BOCS <PKG-USER-BOCS>`         | :ref:`USER-CGDNA <PKG-USER-CGDNA>`   | :ref:`USER-CGSDK <PKG-USER-CGSDK>` |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-COLVARS <PKG-USER-COLVARS>` | :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>` | :ref:`USER-DPD <PKG-USER-DPD>`     | :ref:`USER-DRUDE <PKG-USER-DRUDE>`       | :ref:`USER-EFF <PKG-USER-EFF>`       | :ref:`USER-FEP <PKG-USER-FEP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-H5MD <PKG-USER-H5MD>`       | :ref:`USER-INTEL <PKG-USER-INTEL>`             | :ref:`USER-LB <PKG-USER-LB>`       | :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>` | :ref:`USER-MEAMC <PKG-USER-MEAMC>`   | :ref:`USER-MESO <PKG-USER-MESO>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-MGPT <PKG-USER-MGPT>`       | :ref:`USER-MISC <PKG-USER-MISC>`               | :ref:`USER-MOFFF <PKG-USER-MOFFF>` | :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`   | :ref:`USER-NETCDF <PKG-USER-NETCDF>` | :ref:`USER-OMP <PKG-USER-OMP>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-PHONON <PKG-USER-PHONON>`   | :ref:`USER-PLUMED <PKG-USER-PLUMED>`           | :ref:`USER-PTM <PKG-USER-PTM>`     | :ref:`USER-QMMM <PKG-USER-QMMM>`         | :ref:`USER-QTB <PKG-USER-QTB>`       | :ref:`USER-QUIP <PKG-USER-QUIP>`   |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-REAXC <PKG-USER-REAXC>`     | :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`       | :ref:`USER-SDPD <PKG-USER-SDPD>`   | :ref:`USER-SMD <PKG-USER-SMD>`           | :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`   | :ref:`USER-SPH <PKG-USER-SPH>`     |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
-| :ref:`USER-TALLY <PKG-USER-TALLY>`     | :ref:`USER-UEF <PKG-USER-UEF>`                 | :ref:`USER-VTK <PKG-USER-VTK>`     | :ref:`USER-YAFF <PKG-USER-YAFF>`         |                                      |                                    |
-+----------------------------------------+------------------------------------------------+------------------------------------+------------------------------------------+--------------------------------------+------------------------------------+
+   * :ref:`ASPHERE <PKG-ASPHERE>`
+   * :ref:`BODY <PKG-BODY>`
+   * :ref:`CLASS2 <PKG-CLASS2>`
+   * :ref:`COLLOID <PKG-COLLOID>`
+   * :ref:`COMPRESS <PKG-COMPRESS>`
+   * :ref:`CORESHELL <PKG-CORESHELL>`
+   * :ref:`DIPOLE <PKG-DIPOLE>`
+   * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`KIM <PKG-KIM>`
+   * :ref:`KOKKOS <PKG-KOKKOS>`
+   * :ref:`KSPACE <PKG-KSPACE>`
+   * :ref:`LATTE <PKG-LATTE>`
+   * :ref:`MANYBODY <PKG-MANYBODY>`
+   * :ref:`MC <PKG-MC>`
+   * :ref:`MESSAGE <PKG-MESSAGE>`
+   * :ref:`MISC <PKG-MISC>`
+   * :ref:`MOLECULE <PKG-MOLECULE>`
+   * :ref:`MPIIO <PKG-MPIIO>`
+   * :ref:`MSCG <PKG-MSCG>`
+   * :ref:`OPT <PKG-OPT>`
+   * :ref:`PERI <PKG-PERI>`
+   * :ref:`POEMS <PKG-POEMS>`
+   * :ref:`PYTHON <PKG-PYTHON>`
+   * :ref:`QEQ <PKG-QEQ>`
+   * :ref:`REPLICA <PKG-REPLICA>`
+   * :ref:`RIGID <PKG-RIGID>`
+   * :ref:`SHOCK <PKG-SHOCK>`
+   * :ref:`SNAP <PKG-SNAP>`
+   * :ref:`SPIN <PKG-SPIN>`
+   * :ref:`SRD <PKG-SRD>`
+   * :ref:`VORONOI <PKG-VORONOI>`
 
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`USER-ADIOS <PKG-USER-ADIOS>`
+   * :ref:`USER-ATC <PKG-USER-ATC>`
+   * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
+   * :ref:`USER-BOCS <PKG-USER-BOCS>`
+   * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
+   * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
+   * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
+   * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
+   * :ref:`USER-DPD <PKG-USER-DPD>`
+   * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
+   * :ref:`USER-EFF <PKG-USER-EFF>`
+   * :ref:`USER-FEP <PKG-USER-FEP>`
+   * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`USER-INTEL <PKG-USER-INTEL>`
+   * :ref:`USER-LB <PKG-USER-LB>`
+   * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
+   * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
+   * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
+   * :ref:`USER-MGPT <PKG-USER-MGPT>`
+   * :ref:`USER-MISC <PKG-USER-MISC>`
+   * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
+   * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
+   * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
+   * :ref:`USER-OMP <PKG-USER-OMP>`
+   * :ref:`USER-PHONON <PKG-USER-PHONON>`
+   * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
+   * :ref:`USER-PTM <PKG-USER-PTM>`
+   * :ref:`USER-QMMM <PKG-USER-QMMM>`
+   * :ref:`USER-QTB <PKG-USER-QTB>`
+   * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-REACTION <PKG-USER-REACTION>`
+   * :ref:`USER-REAXC <PKG-USER-REAXC>`
+   * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
+   * :ref:`USER-SDPD <PKG-USER-SDPD>`
+   * :ref:`USER-SMD <PKG-USER-SMD>`
+   * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
+   * :ref:`USER-SPH <PKG-USER-SPH>`
+   * :ref:`USER-TALLY <PKG-USER-TALLY>`
+   * :ref:`USER-UEF <PKG-USER-UEF>`
+   * :ref:`USER-VTK <PKG-USER-VTK>`
+   * :ref:`USER-YAFF <PKG-USER-YAFF>`
 
 ----------
-
 
 .. _PKG-ASPHERE:
 
@@ -72,18 +121,16 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 
 * src/ASPHERE: filenames -> commands
 * :doc:`Howto spherical <Howto_spherical>`
-* :doc:`pair\_style gayberne <pair_gayberne>`
-* :doc:`pair\_style resquared <pair_resquared>`
-* `doc/PDF/pair\_gayberne\_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
-* `doc/PDF/pair\_resquared\_extra.pdf <PDF/pair_resquared_extra.pdf>`_
+* :doc:`pair_style gayberne <pair_gayberne>`
+* :doc:`pair_style resquared <pair_resquared>`
+* `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
+* `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
 * examples/ellipse
-* http://lammps.sandia.gov/movies.html#line
-* http://lammps.sandia.gov/movies.html#tri
-
+* https://lammps.sandia.gov/movies.html#line
+* https://lammps.sandia.gov/movies.html#tri
 
 ----------
-
 
 .. _PKG-BODY:
 
@@ -100,15 +147,13 @@ overview.
 **Supporting info:**
 
 * src/BODY filenames -> commands
-* :doc:`Howto\_body <Howto_body>`
-* :doc:`atom\_style body <atom_style>`
+* :doc:`Howto_body <Howto_body>`
+* :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
-* :doc:`pair\_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
 
-
 ----------
-
 
 .. _PKG-CLASS2:
 
@@ -123,15 +168,13 @@ CLASS2 molecular force field.
 **Supporting info:**
 
 * src/CLASS2: filenames -> commands
-* :doc:`bond\_style class2 <bond_class2>`
-* :doc:`angle\_style class2 <angle_class2>`
-* :doc:`dihedral\_style class2 <dihedral_class2>`
-* :doc:`improper\_style class2 <improper_class2>`
-* :doc:`pair\_style lj/class2 <pair_class2>`
-
+* :doc:`bond_style class2 <bond_class2>`
+* :doc:`angle_style class2 <angle_class2>`
+* :doc:`dihedral_style class2 <dihedral_class2>`
+* :doc:`improper_style class2 <improper_class2>`
+* :doc:`pair_style lj/class2 <pair_class2>`
 
 ----------
-
 
 .. _PKG-COLLOID:
 
@@ -153,17 +196,15 @@ Higdon's group at UIUC.
 
 * src/COLLOID: filenames -> commands
 * :doc:`fix wall/colloid <fix_wall>`
-* :doc:`pair\_style colloid <pair_colloid>`
-* :doc:`pair\_style yukawa/colloid <pair_yukawa_colloid>`
-* :doc:`pair\_style brownian <pair_brownian>`
-* :doc:`pair\_style lubricate <pair_lubricate>`
-* :doc:`pair\_style lubricateU <pair_lubricateU>`
+* :doc:`pair_style colloid <pair_colloid>`
+* :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>`
+* :doc:`pair_style brownian <pair_brownian>`
+* :doc:`pair_style lubricate <pair_lubricate>`
+* :doc:`pair_style lubricateU <pair_lubricateU>`
 * examples/colloid
 * examples/srd
 
-
 ----------
-
 
 .. _PKG-COMPRESS:
 
@@ -194,9 +235,7 @@ This package has :ref:`specific installation instructions <compress>` on the :do
 * :doc:`dump custom/gz <dump>`
 * :doc:`dump xyz/gz <dump>`
 
-
 ----------
-
 
 .. _PKG-CORESHELL:
 
@@ -219,14 +258,12 @@ this package.
 * :doc:`Howto coreshell <Howto_coreshell>`
 * :doc:`Howto polarizable <Howto_polarizable>`
 * :doc:`compute temp/cs <compute_temp_cs>`
-* :doc:`pair\_style born/coul/long/cs <pair_cs>`
-* :doc:`pair\_style buck/coul/long/cs <pair_cs>`
-* :doc:`pair\_style lj/cut/coul/long/cs <pair_lj>`
+* :doc:`pair_style born/coul/long/cs <pair_cs>`
+* :doc:`pair_style buck/coul/long/cs <pair_cs>`
+* :doc:`pair_style lj/cut/coul/long/cs <pair_lj>`
 * examples/coreshell
 
-
 ----------
-
 
 .. _PKG-DIPOLE:
 
@@ -241,15 +278,13 @@ short-range or long-range interactions.
 **Supporting info:**
 
 * src/DIPOLE: filenames -> commands
-* :doc:`atom\_style dipole <atom_style>`
-* :doc:`pair\_style lj/cut/dipole/cut <pair_dipole>`
-* :doc:`pair\_style lj/cut/dipole/long <pair_dipole>`
-* :doc:`pair\_style lj/long/dipole/long <pair_dipole>`
+* :doc:`atom_style dipole <atom_style>`
+* :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
+* :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
+* :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * examples/dipole
 
-
 ----------
-
 
 .. _PKG-GPU:
 
@@ -285,12 +320,11 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`Section 2.6 -sf gpu <Run_options>`
 * :doc:`Section 2.6 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
-* `Commands all <lc_>`_ pages (pair,kspace) for styles followed by (g)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
-
+* :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
+  for styles followed by (g)
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
-
 
 .. _PKG-GRANULAR:
 
@@ -309,20 +343,18 @@ potentials.
 * :doc:`Howto granular <Howto_granular>`
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix wall/gran <fix_wall_gran>`
-* :doc:`pair\_style gran/hooke <pair_gran>`
-* :doc:`pair\_style gran/hertz/history <pair_gran>`
+* :doc:`pair_style gran/hooke <pair_gran>`
+* :doc:`pair_style gran/hertz/history <pair_gran>`
 * examples/granregion
 * examples/pour
 * bench/in.chute
-* http://lammps.sandia.gov/pictures.html#jamming
-* http://lammps.sandia.gov/movies.html#hopper
-* http://lammps.sandia.gov/movies.html#dem
-* http://lammps.sandia.gov/movies.html#brazil
-* http://lammps.sandia.gov/movies.html#granregion
-
+* https://lammps.sandia.gov/pictures.html#jamming
+* https://lammps.sandia.gov/movies.html#hopper
+* https://lammps.sandia.gov/movies.html#dem
+* https://lammps.sandia.gov/movies.html#brazil
+* https://lammps.sandia.gov/movies.html#granregion
 
 ----------
-
 
 .. _PKG-KIM:
 
@@ -333,19 +365,24 @@ KIM package
 
 This package contains a set of commands that serve as a wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
-repository of interatomic models (IMs)
-enabling compatible ones to be used in LAMMPS simulations.
-This includes :doc:`kim\_init and kim\_interactions <kim_commands>`
-commands to select, initialize and instantiate the IM, and a
-:doc:`kim\_query <kim_commands>` command to perform web queries
-for material property predictions of OpenKIM IMs.
+repository of interatomic models (IMs) enabling compatible ones to be used in
+LAMMPS simulations.
+
+This includes :doc:`kim_init <kim_commands>`, and
+:doc:`kim_interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+queries for material property predictions of OpenKIM IMs, a
+:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+properties computed in LAMMPS to standard KIM property instance format.
+
 Support for KIM IMs that conform to the
 `KIM Application Programming Interface (API) <https://openkim.org/kim-api/>`_
-is provided by the :doc:`pair\_style kim <pair_kim>` command.
+is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair\_style kim* is called by *kim\_interactions* and
+   The command *pair_style kim* is called by *kim_interactions* and
    is not recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
@@ -360,26 +397,27 @@ The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
 and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 
 **Authors:** Ryan Elliott (U Minnesota) is the main developer for the KIM
-API and the *pair\_style kim* command. Axel Kohlmeyer (Temple U) and
-Ellad Tadmor (U Minnesota) contributed to the :doc:`kim\_commands <kim_commands>`
-interface in close collaboration with Ryan Elliott.
+API and the *pair_style kim* command. Yaser Afshar (U Minnesota),
+Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
+Daniel Karls (U Minnesota) contributed to the
+:doc:`kim_commands <kim_commands>` interface in close collaboration with
+Ryan Elliott.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <kim>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <kim>` on the
+:doc:`Build extras <Build_extras>` doc page.
 
 **Supporting info:**
 
-* :doc:`kim\_commands <kim_commands>`
-* :doc:`pair\_style kim <pair_kim>`
+* :doc:`kim_commands <kim_commands>`
+* :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
 * lib/kim/README
 * examples/kim
 
-
 ----------
-
 
 .. _PKG-KOKKOS:
 
@@ -428,12 +466,12 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * :doc:`Section 2.6 -sf kk <Run_options>`
 * :doc:`Section 2.6 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (k)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
-
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
+  :doc:`kspace <Commands_kspace>`) for styles followed by (k)
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
-
 
 .. _PKG-KSPACE:
 
@@ -458,19 +496,17 @@ different FFT options for your LAMPMS build.
 **Supporting info:**
 
 * src/KSPACE: filenames -> commands
-* :doc:`kspace\_style <kspace_style>`
+* :doc:`kspace_style <kspace_style>`
 * `doc/PDF/kspace.pdf <PDF/kspace.pdf>`_
 * :doc:`Howto tip3p <Howto_tip3p>`
 * :doc:`Howto tip4p <Howto_tip4p>`
 * :doc:`Howto spc <Howto_spc>`
-* :doc:`pair\_style coul <pair_coul>`
-* :doc:`Commands pair <Commands_pair>` page for styles with "long" or "msm" in name
+* :doc:`pair_style coul <pair_coul>`
+* Search the :doc:`pair style <Commands_pair>` page for styles with "long" or "msm" in name
 * examples/peptide
 * bench/in.rhodo
 
-
 ----------
-
 
 .. _PKG-LATTE:
 
@@ -489,8 +525,6 @@ description is given with the :doc:`fix latte <fix_latte>` command.
 
 .. _latte-home: https://github.com/lanl/LATTE
 
-
-
 **Authors:** Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
 itself is developed at Los Alamos National Laboratory by Marc
 Cawkwell, Anders Niklasson, and Christian Negre.
@@ -508,9 +542,7 @@ This package has :ref:`specific installation instructions <latte>` on the :doc:`
 * examples/latte
 * `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
-
 ----------
-
 
 .. _PKG-MANYBODY:
 
@@ -525,7 +557,7 @@ A variety of many-body and bond-order potentials.  These include
 **Supporting info:**
 
 * src/MANYBODY: filenames -> commands
-* :doc:`Commands pair <Commands_pair>` page
+* :doc:`Pair style <Commands_pair>` page
 * examples/comb
 * examples/eim
 * examples/nb3d
@@ -534,9 +566,7 @@ A variety of many-body and bond-order potentials.  These include
 * examples/vashishta
 * bench/in.eam
 
-
 ----------
-
 
 .. _PKG-MC:
 
@@ -558,12 +588,10 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix bond/create <fix_bond_create>`
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix gcmc <fix_gcmc>`
-* :doc:`pair\_style dsmc <pair_dsmc>`
-* http://lammps.sandia.gov/movies.html#gcmc
-
+* :doc:`pair_style dsmc <pair_dsmc>`
+* https://lammps.sandia.gov/movies.html#gcmc
 
 ----------
-
 
 .. _PKG-MESSAGE:
 
@@ -589,9 +617,7 @@ This package has :ref:`specific installation instructions <message>` on the :doc
 * :doc:`server mc <server_mc>`
 * examples/message
 
-
 ----------
-
 
 .. _PKG-MISC:
 
@@ -620,12 +646,10 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`fix viscosity <fix_viscosity>`
 * examples/KAPPA
 * examples/VISCOSITY
-* http://lammps.sandia.gov/pictures.html#ttm
-* http://lammps.sandia.gov/movies.html#evaporation
-
+* https://lammps.sandia.gov/pictures.html#ttm
+* https://lammps.sandia.gov/movies.html#evaporation
 
 ----------
-
 
 .. _PKG-MOLECULE:
 
@@ -642,13 +666,13 @@ force fields, and a TIP4P water model.
 **Supporting info:**
 
 * src/MOLECULE: filenames -> commands
-* :doc:`atom\_style <atom_style>`
-* :doc:`bond\_style <bond_style>`
-* :doc:`angle\_style <angle_style>`
-* :doc:`dihedral\_style <dihedral_style>`
-* :doc:`improper\_style <improper_style>`
-* :doc:`pair\_style hbond/dreiding/lj <pair_hbond_dreiding>`
-* :doc:`pair\_style lj/charmm/coul/charmm <pair_charmm>`
+* :doc:`atom_style <atom_style>`
+* :doc:`bond_style <bond_style>`
+* :doc:`angle_style <angle_style>`
+* :doc:`dihedral_style <dihedral_style>`
+* :doc:`improper_style <improper_style>`
+* :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>`
+* :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
 * :doc:`Howto bioFF <Howto_bioFF>`
 * examples/cmap
 * examples/dreiding
@@ -657,9 +681,7 @@ force fields, and a TIP4P water model.
 * bench/in.chain
 * bench/in.rhodo
 
-
 ----------
-
 
 .. _PKG-MPIIO:
 
@@ -678,12 +700,10 @@ written and read in parallel.
 * src/MPIIO: filenames -> commands
 * :doc:`dump <dump>`
 * :doc:`restart <restart>`
-* :doc:`write\_restart <write_restart>`
-* :doc:`read\_restart <read_restart>`
-
+* :doc:`write_restart <write_restart>`
+* :doc:`read_restart <read_restart>`
 
 ----------
-
 
 .. _PKG-mscg:
 
@@ -696,8 +716,6 @@ A :doc:`fix mscg <fix_mscg>` command which can parameterize a
 Multi-Scale Coarse-Graining (MSCG) model using the open-source `MS-CG library <mscg-home_>`_.
 
 .. _mscg-home: https://github.com/uchicago-voth/MSCG-release
-
-
 
 To use this package you must have the MS-CG library available on your
 system.
@@ -717,9 +735,7 @@ This package has :ref:`specific installation instructions <mscg>` on the :doc:`B
 * lib/mscg/README
 * examples/mscg
 
-
 ----------
-
 
 .. _PKG-OPT:
 
@@ -738,7 +754,7 @@ invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switch
 have styles optimized for CPU performance.
 
 **Authors:** James Fischer (High Performance Technologies), David Richie,
-and Vincent Natoli (Stone Ridge Technolgy).
+and Vincent Natoli (Stone Ridge Technology).
 
 **Install:**
 
@@ -750,12 +766,10 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`Speed packages <Speed_packages>`
 * :doc:`Speed opt <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
-* :doc:`Commands pair <Commands_pair>` for styles followed by (t)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
-
+* Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
-
 
 .. _PKG-PERI:
 
@@ -776,19 +790,17 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
-* `doc/PDF/PDLammps\_overview.pdf <PDF/PDLammps_overview.pdf>`_
-* `doc/PDF/PDLammps\_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
-* `doc/PDF/PDLammps\_VES.pdf <PDF/PDLammps_VES.pdf>`_
-* :doc:`atom\_style peri <atom_style>`
-* :doc:`pair\_style peri/\* <pair_peri>`
+* `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
+* `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
+* `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
+* :doc:`atom_style peri <atom_style>`
+* :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
-* http://lammps.sandia.gov/movies.html#peri
-
+* https://lammps.sandia.gov/movies.html#peri
 
 ----------
-
 
 .. _PKG-POEMS:
 
@@ -817,9 +829,7 @@ This package has :ref:`specific installation instructions <poems>` on the :doc:`
 * :doc:`fix poems <fix_poems>`
 * examples/rigid
 
-
 ----------
-
 
 .. _PKG-PYTHON:
 
@@ -852,9 +862,7 @@ This package has :ref:`specific installation instructions <python>` on the :doc:
 * lib/python/README
 * examples/python
 
-
 ----------
-
 
 .. _PKG-QEQ:
 
@@ -874,11 +882,9 @@ part of their formulation.
 * examples/qeq
 * examples/streitz
 
-
 ----------
 
-
-.. _PKG-REPLICA2:
+.. _PKG-REPLICA:
 
 REPLICA package
 ---------------
@@ -902,14 +908,12 @@ another set.
 * :doc:`prd <prd>`
 * :doc:`tad <tad>`
 * :doc:`temper <temper>`,
-* :doc:`run\_style verlet/split <run_style>`
+* :doc:`run_style verlet/split <run_style>`
 * examples/neb
 * examples/prd
 * examples/tad
 
-
 ----------
-
 
 .. _PKG-RIGID:
 
@@ -927,18 +931,16 @@ Also several computes which calculate properties of rigid bodies.
 
 * src/RIGID: filenames -> commands
 * :doc:`compute erotate/rigid <compute_erotate_rigid>`
-* fix shake"_fix\_shake.html
+* :doc:`fix shake <fix_shake>`
 * :doc:`fix rattle <fix_shake>`
 * :doc:`fix rigid/\* <fix_rigid>`
 * examples/ASPHERE
 * examples/rigid
 * bench/in.rhodo
-* http://lammps.sandia.gov/movies.html#box
-* http://lammps.sandia.gov/movies.html#star
-
+* https://lammps.sandia.gov/movies.html#box
+* https://lammps.sandia.gov/movies.html#star
 
 ----------
-
 
 .. _PKG-SHOCK:
 
@@ -960,9 +962,7 @@ a material.
 * examples/hugoniostat
 * examples/msst
 
-
 ----------
-
 
 .. _PKG-SNAP:
 
@@ -981,15 +981,13 @@ computes which analyze attributes of the potential.
 **Supporting info:**
 
 * src/SNAP: filenames -> commands
-* :doc:`pair\_style snap <pair_snap>`
+* :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap
 
-
 ----------
-
 
 .. _PKG-SPIN:
 
@@ -1007,21 +1005,19 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 * src/SPIN: filenames -> commands
 * :doc:`Howto spins <Howto_spins>`
-* :doc:`pair\_style spin/dipole/cut <pair_spin_dipole>`
-* :doc:`pair\_style spin/dipole/long <pair_spin_dipole>`
-* :doc:`pair\_style spin/dmi <pair_spin_dmi>`
-* :doc:`pair\_style spin/exchange <pair_spin_exchange>`
-* :doc:`pair\_style spin/magelec <pair_spin_magelec>`
-* :doc:`pair\_style spin/neel <pair_spin_neel>`
+* :doc:`pair_style spin/dipole/cut <pair_spin_dipole>`
+* :doc:`pair_style spin/dipole/long <pair_spin_dipole>`
+* :doc:`pair_style spin/dmi <pair_spin_dmi>`
+* :doc:`pair_style spin/exchange <pair_spin_exchange>`
+* :doc:`pair_style spin/magelec <pair_spin_magelec>`
+* :doc:`pair_style spin/neel <pair_spin_neel>`
 * :doc:`fix nve/spin <fix_nve_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`compute spin <compute_spin>`
 * :doc:`neb/spin <neb_spin>`
 * examples/SPIN
 
-
 ----------
-
 
 .. _PKG-SRD:
 
@@ -1041,13 +1037,11 @@ colloidal particles.
 * :doc:`fix wall/srd <fix_wall_srd>`
 * examples/srd
 * examples/ASPHERE
-* http://lammps.sandia.gov/movies.html#tri
-* http://lammps.sandia.gov/movies.html#line
-* http://lammps.sandia.gov/movies.html#poly
-
+* https://lammps.sandia.gov/movies.html#tri
+* https://lammps.sandia.gov/movies.html#line
+* https://lammps.sandia.gov/movies.html#poly
 
 ----------
-
 
 .. _PKG-VORONOI:
 
@@ -1062,8 +1056,6 @@ can be used to calculate the local volume or each atoms or its near
 neighbors.
 
 .. _voro-home: http://math.lbl.gov/voro++
-
-
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -1084,9 +1076,7 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
 * examples/voronoi
 
-
 ----------
-
 
 .. _PKG-USER-ADIOS:
 
@@ -1096,8 +1086,9 @@ USER-ADIOS package
 **Contents:**
 
 ADIOS is a high-performance I/O library. This package implements the
-dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library.
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>` and
+:doc:`read_dump ... format adios <read_dump>`
+commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
@@ -1111,10 +1102,11 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 * src/USER-ADIOS/README
 * examples/USER/adios
 * https://github.com/ornladios/ADIOS2
-
+* :doc:`dump atom/adios <dump_adios>`
+* :doc:`dump custom/adios <dump_adios>`
+* :doc:`read_dump <read_dump>`
 
 ----------
-
 
 .. _PKG-USER-ATC:
 
@@ -1139,11 +1131,9 @@ This package has :ref:`specific installation instructions <user-atc>` on the :do
 * src/USER-ATC/README
 * :doc:`fix atc <fix_atc>`
 * examples/USER/atc
-* http://lammps.sandia.gov/pictures.html#atc
-
+* https://lammps.sandia.gov/pictures.html#atc
 
 ----------
-
 
 .. _PKG-USER-AWPMD:
 
@@ -1167,12 +1157,10 @@ This package has :ref:`specific installation instructions <user-awpmd>` on the :
 
 * src/USER-AWPMD: filenames -> commands
 * src/USER-AWPMD/README
-* :doc:`pair\_style awpmd/cut <pair_awpmd>`
+* :doc:`pair_style awpmd/cut <pair_awpmd>`
 * examples/USER/awpmd
 
-
 ----------
-
 
 .. _PKG-USER-BOCS:
 
@@ -1205,9 +1193,7 @@ J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
 Example inputs are in the examples/USER/bocs folder.
 
-
 ----------
-
 
 .. _PKG-USER-CGDNA:
 
@@ -1216,11 +1202,10 @@ USER-CGDNA package
 
 **Contents:**
 
-Several pair styles, a bond style, and integration fixes for
-coarse-grained models of single- and double-stranded DNA based on the
-oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
-This includes Langevin-type rigid-body integrators with improved
-stability.
+Several pair styles, bond styles, and integration fixes for coarse-grained
+modelling of single- and double-stranded DNA and RNA based on the oxDNA and
+oxRNA model of Doye, Louis and Ouldridge. The package includes Langevin-type
+rigid-body integrators with improved stability.
 
 **Author:** Oliver Henrich (University of Strathclyde, Glasgow).
 
@@ -1228,15 +1213,15 @@ stability.
 
 * src/USER-CGDNA: filenames -> commands
 * /src/USER-CGDNA/README
-* :doc:`pair\_style oxdna/\* <pair_oxdna>`
-* :doc:`pair\_style oxdna2/\* <pair_oxdna2>`
-* :doc:`bond\_style oxdna/\* <bond_oxdna>`
-* :doc:`bond\_style oxdna2/\* <bond_oxdna>`
+* :doc:`pair_style oxdna/\* <pair_oxdna>`
+* :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`pair_style oxrna2/\* <pair_oxrna2>`
+* :doc:`bond_style oxdna/\* <bond_oxdna>`
+* :doc:`bond_style oxdna2/\* <bond_oxdna>`
+* :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-
 ----------
-
 
 .. _PKG-USER-CGSDK:
 
@@ -1256,14 +1241,12 @@ acids.
 
 * src/USER-CGSDK: filenames -> commands
 * src/USER-CGSDK/README
-* :doc:`pair\_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle\_style sdk <angle_sdk>`
+* :doc:`pair_style lj/sdk/\* <pair_sdk>`
+* :doc:`angle_style sdk <angle_sdk>`
 * examples/USER/cgsdk
-* http://lammps.sandia.gov/pictures.html#cg
-
+* https://lammps.sandia.gov/pictures.html#cg
 
 ----------
-
 
 .. _PKG-USER-COLVARS:
 
@@ -1298,9 +1281,7 @@ This package has :ref:`specific installation instructions <user-colvars>` on the
 * :doc:`fix colvars <fix_colvars>`
 * examples/USER/colvars
 
-
 ----------
-
 
 .. _PKG-USER-PLUMED:
 
@@ -1318,9 +1299,7 @@ script by using the :doc:`fix plumed <fix_plumed>` command.
 Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
 Tribello.
 
-.. _PLUMED: http://www.plumed.org
-
-
+.. _PLUMED: https://www.plumed.org
 
 **Install:**
 
@@ -1333,9 +1312,7 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 * :doc:`fix plumed <fix_plumed>`
 * examples/USER/plumed
 
-
 ----------
-
 
 .. _PKG-USER-DIFFRACTION:
 
@@ -1357,9 +1334,7 @@ intensities based on kinematic diffraction theory.
 * :doc:`fix saed/vtk <fix_saed_vtk>`
 * examples/USER/diffraction
 
-
 ----------
-
 
 .. _PKG-USER-DPD:
 
@@ -1392,17 +1367,15 @@ Brennan (ARL).
 * :doc:`fix eos/table/rx <fix_eos_table_rx>`
 * :doc:`fix shardlow <fix_shardlow>`
 * :doc:`fix rx <fix_rx>`
-* :doc:`pair\_style table/rx <pair_table_rx>`
-* :doc:`pair\_style dpd/fdt <pair_dpd_fdt>`
-* :doc:`pair\_style dpd/fdt/energy <pair_dpd_fdt>`
-* :doc:`pair\_style exp6/rx <pair_exp6_rx>`
-* :doc:`pair\_style multi/lucy <pair_multi_lucy>`
-* :doc:`pair\_style multi/lucy/rx <pair_multi_lucy_rx>`
+* :doc:`pair_style table/rx <pair_table_rx>`
+* :doc:`pair_style dpd/fdt <pair_dpd_fdt>`
+* :doc:`pair_style dpd/fdt/energy <pair_dpd_fdt>`
+* :doc:`pair_style exp6/rx <pair_exp6_rx>`
+* :doc:`pair_style multi/lucy <pair_multi_lucy>`
+* :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
 * examples/USER/dpd
 
-
 ----------
-
 
 .. _PKG-USER-DRUDE:
 
@@ -1429,14 +1402,12 @@ Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
 * :doc:`fix drude <fix_drude>`
 * :doc:`fix drude/transform/\* <fix_drude_transform>`
 * :doc:`compute temp/drude <compute_temp_drude>`
-* :doc:`pair\_style thole <pair_thole>`
-* :doc:`pair\_style lj/cut/thole/long <pair_thole>`
+* :doc:`pair_style thole <pair_thole>`
+* :doc:`pair_style lj/cut/thole/long <pair_thole>`
 * examples/USER/drude
 * tools/drude
 
-
 ----------
-
 
 .. _PKG-USER-EFF:
 
@@ -1459,22 +1430,20 @@ tools/eff; see its README file.
 
 * src/USER-EFF: filenames -> commands
 * src/USER-EFF/README
-* :doc:`atom\_style electron <atom_style>`
+* :doc:`atom_style electron <atom_style>`
 * :doc:`fix nve/eff <fix_nve_eff>`
 * :doc:`fix nvt/eff <fix_nh_eff>`
 * :doc:`fix npt/eff <fix_nh_eff>`
 * :doc:`fix langevin/eff <fix_langevin_eff>`
 * :doc:`compute temp/eff <compute_temp_eff>`
-* :doc:`pair\_style eff/cut <pair_eff>`
-* :doc:`pair\_style eff/inline <pair_eff>`
+* :doc:`pair_style eff/cut <pair_eff>`
+* :doc:`pair_style eff/inline <pair_eff>`
 * examples/USER/eff
 * tools/eff/README
 * tools/eff
-* http://lammps.sandia.gov/movies.html#eff
-
+* https://lammps.sandia.gov/movies.html#eff
 
 ----------
-
 
 .. _PKG-USER-FEP:
 
@@ -1496,14 +1465,12 @@ for using this package in tools/fep; see its README file.
 * src/USER-FEP/README
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
-* :doc:`pair\_style \*/soft <pair_fep_soft>`
+* :doc:`pair_style \*/soft <pair_fep_soft>`
 * examples/USER/fep
 * tools/fep/README
 * tools/fep
 
-
 ----------
-
 
 .. _PKG-USER-H5MD:
 
@@ -1519,8 +1486,6 @@ This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
 .. _HDF5: http://www.hdfgroup.org/HDF5
-
-
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1539,9 +1504,7 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 * lib/h5md/README
 * :doc:`dump h5md <dump_h5md>`
 
-
 ----------
-
 
 .. _PKG-USER-INTEL:
 
@@ -1583,13 +1546,12 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 * :doc:`Section 2.6 -sf intel <Run_options>`
 * :doc:`Section 2.6 -pk intel <Run_options>`
 * :doc:`package intel <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (i)
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/USER-INTEL/TEST
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
-
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
-
 
 .. _PKG-USER-LB:
 
@@ -1613,9 +1575,7 @@ Ontario).
 * :doc:`fix lb/viscous <fix_lb_viscous>`
 * examples/USER/lb
 
-
 ----------
-
 
 .. _PKG-USER-MGPT:
 
@@ -1639,12 +1599,10 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 
 * src/USER-MGPT: filenames -> commands
 * src/USER-MGPT/README
-* :doc:`pair\_style mgpt <pair_mgpt>`
+* :doc:`pair_style mgpt <pair_mgpt>`
 * examples/USER/mgpt
 
-
 ----------
-
 
 .. _PKG-USER-MISC:
 
@@ -1667,9 +1625,7 @@ src/USER-MISC/README file.
 * one doc page per individual command listed in src/USER-MISC/README
 * examples/USER/misc
 
-
 ----------
-
 
 .. _PKG-USER-MANIFOLD:
 
@@ -1698,11 +1654,9 @@ Waltham, MA, USA)
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * examples/USER/manifold
-* http://lammps.sandia.gov/movies.html#manifold
-
+* https://lammps.sandia.gov/movies.html#manifold
 
 ----------
-
 
 .. _PKG-USER-MEAMC:
 
@@ -1724,17 +1678,15 @@ Sandia.
 
 * src/USER-MEAMC: filenames -> commands
 * src/USER-MEAMC/README
-* :doc:`pair\_style meam/c <pair_meamc>`
+* :doc:`pair_style meam/c <pair_meamc>`
 * examples/meamc
-
 
 ----------
 
+.. _PKG-USER-MESODPD:
 
-.. _PKG-USER-MESO:
-
-USER-MESO package
------------------
+USER-MESODPD package
+--------------------
 
 **Contents:**
 
@@ -1750,19 +1702,17 @@ algorithm.
 
 **Supporting info:**
 
-* src/USER-MESO: filenames -> commands
-* src/USER-MESO/README
-* :doc:`atom\_style edpd <atom_style>`
-* :doc:`pair\_style edpd <pair_meso>`
-* :doc:`pair\_style mdpd <pair_meso>`
-* :doc:`pair\_style tdpd <pair_meso>`
+* src/USER-MESODPD: filenames -> commands
+* src/USER-MESODPD/README
+* :doc:`atom_style edpd <atom_style>`
+* :doc:`pair_style edpd <pair_mesodpd>`
+* :doc:`pair_style mdpd <pair_mesodpd>`
+* :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
-* examples/USER/meso
-* http://lammps.sandia.gov/movies.html#mesodpd
-
+* examples/USER/mesodpd
+* https://lammps.sandia.gov/movies.html#mesodpd
 
 ----------
-
 
 .. _PKG-USER-MOFFF:
 
@@ -1782,8 +1732,6 @@ well as the `MOF+ <MOFplus_>`_ website.
 
 .. _MOFplus: https://www.mofplus.org/content/show/MOF-FF
 
-
-
 **Author:** Hendrik Heenen (Technical U of Munich),
 Rochus Schmid (Ruhr-University Bochum).
 
@@ -1791,15 +1739,13 @@ Rochus Schmid (Ruhr-University Bochum).
 
 * src/USER-MOFFF: filenames -> commands
 * src/USER-MOFFF/README
-* :doc:`pair\_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
-* :doc:`angle\_style class2 <angle_class2>`
-* :doc:`angle\_style cosine/buck6d <angle_cosine_buck6d>`
-* :doc:`improper\_style inversion/harmonic <improper_inversion_harmonic>`
+* :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
+* :doc:`angle_style class2 <angle_class2>`
+* :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
+* :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
 * examples/USER/mofff
 
-
 ----------
-
 
 .. _PKG-USER-MOLFILE:
 
@@ -1841,9 +1787,7 @@ This package has :ref:`specific installation instructions <user-molfile>` on the
 * lib/molfile/README
 * :doc:`dump molfile <dump_molfile>`
 
-
 ----------
-
 
 .. _PKG-USER-NETCDF:
 
@@ -1865,19 +1809,10 @@ tools:
 
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
-* `AtomEye <atomeye_>`_ (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution)
 
 .. _ovito: http://www.ovito.org
 
-
-
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
-
-
-
-.. _atomeye: http://www.libatoms.org
-
-
 
 **Author:** Lars Pastewka (Karlsruhe Institute of Technology).
 
@@ -1892,9 +1827,7 @@ This package has :ref:`specific installation instructions <user-netcdf>` on the 
 * lib/netcdf/README
 * :doc:`dump netcdf <dump_netcdf>`
 
-
 ----------
-
 
 .. _PKG-USER-OMP:
 
@@ -1943,12 +1876,12 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 * :doc:`Section 2.6 -sf omp <Run_options>`
 * :doc:`Section 2.6 -pk omp <Run_options>`
 * :doc:`package omp <package>`
-* `Commands all <lc_>`_ pages (fix,compute,pair,etc) for styles followed by (o)
-* `Benchmarks page <http://lammps.sandia.gov/bench.html>`_ of web site
-
+* Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
+  :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
+  :doc:`kspace <Commands_kspace>`) for styles followed by (o)
+* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
 
 ----------
-
 
 .. _PKG-USER-PHONON:
 
@@ -1960,25 +1893,23 @@ USER-PHONON package
 A :doc:`fix phonon <fix_phonon>` command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
-And a :doc:`dynamical\_matrix <dynamical_matrix>` as well as a
-:doc:`third\_order <third_order>` command to compute the dynamical matrix
+And a :doc:`dynamical_matrix <dynamical_matrix>` as well as a
+:doc:`third_order <third_order>` command to compute the dynamical matrix
 and third order tensor from finite differences.
 
 **Authors:** Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
-and Charlie Sievers (UC Davis) for "dynamical\_matrix" and "third\_order"
+and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 **Supporting info:**
 
 * src/USER-PHONON: filenames -> commands
 * src/USER-PHONON/README
 * :doc:`fix phonon <fix_phonon>`
-* :doc:`dynamical\_matrix <dynamical_matrix>`
-* :doc:`third\_order <third_order>`
+* :doc:`dynamical_matrix <dynamical_matrix>`
+* :doc:`third_order <third_order>`
 * examples/USER/phonon
 
-
 ----------
-
 
 .. _PKG-USER-PTM:
 
@@ -1995,14 +1926,12 @@ Matching methodology.
 
 **Supporting info:**
 
-* src/USER-PTM: filenames not starting with ptm\\_ -> commands
-* src/USER-PTM: filenames starting with ptm\\_ -> supporting code
+* src/USER-PTM: filenames not starting with ptm\_ -> commands
+* src/USER-PTM: filenames starting with ptm\_ -> supporting code
 * src/USER-PTM/LICENSE
 * :doc:`compute ptm/atom <compute_ptm_atom>`
 
-
 ----------
-
 
 .. _PKG-USER-QMMM:
 
@@ -2011,27 +1940,32 @@ USER-QMMM package
 
 **Contents:**
 
-A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used in a
-QM/MM simulation, currently only in combination with the `Quantum ESPRESSO <espresso_>`_ package.
+A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
+the MM code in a QM/MM simulation.  This is currently only available
+in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
 .. _espresso: http://www.quantum-espresso.org
 
+To use this package you must have Quantum ESPRESSO (QE) available on
+your system and include its coupling library in the compilation and
+then compile LAMMPS as a library.  For QM/MM calculations you then
+build a custom binary with MPI support, that sets up 3 partitions with
+MPI sub-communicators (for inter- and intra-partition communication)
+and then calls the corresponding library interfaces on each partition
+(2x LAMMPS and 1x QE).
 
+The current implementation supports an ONIOM style mechanical coupling
+and a multi-pole based electrostatic coupling to the Quantum ESPRESSO
+plane wave DFT package.  The QM/MM interface has been written in a
+manner that coupling to other QM codes should be possible without
+changes to LAMMPS itself.
 
-To use this package you must have Quantum ESPRESSO available on your
-system.
-
-The current implementation only supports an ONIOM style mechanical
-coupling to the Quantum ESPRESSO plane wave DFT package.
-Electrostatic coupling is in preparation and the interface has been
-written in a manner that coupling to other QM codes should be possible
-without changes to LAMMPS itself.
-
-**Author:** Axel Kohlmeyer (Temple U).
+**Authors:** Axel Kohlmeyer (Temple U). Mariella Ippolito and Carlo Cavazzoni (CINECA, Italy)
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-qmmm>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-qmmm>`
+on the :doc:`Build extras <Build_extras>` doc page.
 
 **Supporting info:**
 
@@ -2042,9 +1976,7 @@ This package has :ref:`specific installation instructions <user-qmmm>` on the :d
 * lib/qmmm/example-ec/README
 * lib/qmmm/example-mc/README
 
-
 ----------
-
 
 .. _PKG-USER-QTB:
 
@@ -2072,9 +2004,7 @@ simulation.
 * :doc:`fix qbmsst <fix_qbmsst>`
 * examples/USER/qtb
 
-
 ----------
-
 
 .. _PKG-USER-QUIP:
 
@@ -2083,13 +2013,11 @@ USER-QUIP package
 
 **Contents:**
 
-A :doc:`pair\_style quip <pair_quip>` command which wraps the `QUIP libAtoms library <quip_>`_, which includes a variety of interatomic
+A :doc:`pair_style quip <pair_quip>` command which wraps the `QUIP libAtoms library <quip_>`_, which includes a variety of interatomic
 potentials, including Gaussian Approximation Potential (GAP) models
 developed by the Cambridge University group.
 
 .. _quip: https://github.com/libAtoms/QUIP
-
-
 
 To use this package you must have the QUIP libAtoms library available
 on your system.
@@ -2104,12 +2032,41 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 
 * src/USER-QUIP: filenames -> commands
 * src/USER-QUIP/README
-* :doc:`pair\_style quip <pair_quip>`
+* :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
-
 
 ----------
 
+.. _PKG-USER-REACTION:
+
+USER-REACTION package
+---------------------
+
+**Contents:**
+
+This package allows for complex bond topology changes (reactions)
+during a running MD simulation, when using classical force fields.
+Topology changes are defined in pre- and post-reaction molecule
+templates and can include creation and deletion of bonds, angles,
+dihedrals, impropers, atom types, bond types, angle types, dihedral
+types, improper types, and/or atomic charges. Other options currently
+available include reaction constraints (e.g. angle and Arrhenius
+constraints), deletion of reaction byproducts or other small
+molecules, and chiral-sensitive reactions.
+
+**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+
+**Supporting info:**
+
+* src/USER-REACTION: filenames -> commands
+* src/USER-REACTION/README
+* :doc:`fix bond/react <fix_bond_react>`
+* examples/USER/reaction
+* `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
+* `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
+* disarmmd.org
+
+----------
 
 .. _PKG-USER-REAXC:
 
@@ -2129,14 +2086,12 @@ for monitoring molecules as bonds are created and destroyed.
 
 * src/USER-REAXC: filenames -> commands
 * src/USER-REAXC/README
-* :doc:`pair\_style reax/c <pair_reaxc>`
+* :doc:`pair_style reax/c <pair_reaxc>`
 * :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
 * :doc:`fix reax/c/species <fix_reaxc_species>`
 * examples/reax
 
-
 ----------
-
 
 .. _PKG-USER-SCAFACOS:
 
@@ -2167,13 +2122,11 @@ This package has :ref:`specific installation instructions <user-scafacos>` on th
 
 * src/USER-SCAFACOS: filenames -> commands
 * src/USER-SCAFACOS/README
-* :doc:`kspace\_style scafacos <kspace_style>`
-* :doc:`kspace\_modify <kspace_modify>`
+* :doc:`kspace_style scafacos <kspace_style>`
+* :doc:`kspace_modify <kspace_modify>`
 * examples/USER/scafacos
 
-
 ----------
-
 
 .. _PKG-USER-SDPD:
 
@@ -2187,7 +2140,7 @@ is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
 where thermal fluctuations are important (see the
 :ref:`USER-SPH package <PKG-USER-SPH>`).
 Also two fixes for moving and rigid body integration of SPH/SDPD particles
-(particles of atom\_style meso).
+(particles of atom_style meso).
 
 **Author:** Morteza Jalalvand (Institute for Advanced Studies in Basic
 Sciences, Iran).
@@ -2196,14 +2149,12 @@ Sciences, Iran).
 
 * src/USER-SDPD: filenames -> commands
 * src/USER-SDPD/README
-* :doc:`pair\_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
+* :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
 * examples/USER/sdpd
 
-
 ----------
-
 
 .. _PKG-USER-SMD:
 
@@ -2237,13 +2188,11 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 
 * src/USER-SMD: filenames -> commands
 * src/USER-SMD/README
-* doc/PDF/SMD\_LAMMPS\_userguide.pdf
+* doc/PDF/SMD_LAMMPS_userguide.pdf
 * examples/USER/smd
-* http://lammps.sandia.gov/movies.html#smd
-
+* https://lammps.sandia.gov/movies.html#smd
 
 ----------
-
 
 .. _PKG-USER-SMTBQ:
 
@@ -2263,12 +2212,10 @@ Tetot (LAAS-CNRS, France).
 
 * src/USER-SMTBQ: filenames -> commands
 * src/USER-SMTBQ/README
-* :doc:`pair\_style smtbq <pair_smtbq>`
+* :doc:`pair_style smtbq <pair_smtbq>`
 * examples/USER/smtbq
 
-
 ----------
-
 
 .. _PKG-USER-SPH:
 
@@ -2298,13 +2245,11 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/USER-SPH: filenames -> commands
 * src/USER-SPH/README
-* doc/PDF/SPH\_LAMMPS\_userguide.pdf
+* doc/PDF/SPH_LAMMPS_userguide.pdf
 * examples/USER/sph
-* http://lammps.sandia.gov/movies.html#sph
-
+* https://lammps.sandia.gov/movies.html#sph
 
 ----------
-
 
 .. _PKG-USER-TALLY:
 
@@ -2326,9 +2271,7 @@ stress, etc) about individual interactions.
 * :doc:`compute \*/tally <compute_tally>`
 * examples/USER/tally
 
-
 ----------
-
 
 .. _PKG-USER-UEF:
 
@@ -2354,9 +2297,7 @@ supporting compute styles and an output option.
 * :doc:`dump cfg/uef <dump_cfg_uef>`
 * examples/uef
 
-
 ----------
-
 
 .. _PKG-USER-VTK:
 
@@ -2371,11 +2312,7 @@ other visualization packages.
 
 .. _vtk: http://www.vtk.org
 
-
-
 .. _paraview: http://www.paraview.org
-
-
 
 To use this package you must have VTK library available on your
 system.
@@ -2393,9 +2330,7 @@ This package has :ref:`specific installation instructions <user-vtk>` on the :do
 * lib/vtk/README
 * :doc:`dump vtk <dump_vtk>`
 
-
 ----------
-
 
 .. _PKG-USER-YAFF:
 
@@ -2412,37 +2347,21 @@ The expressions and their use are discussed in the following papers
 
 which discuss the `QuickFF <quickff_>`_ methodology.
 
-.. _vanduyfhuys2015: http://dx.doi.org/10.1002/jcc.23877
-
-
-
-.. _vanduyfhuys2018: http://dx.doi.org/10.1002/jcc.25173
-
-
-
+.. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
+.. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
 .. _quickff: http://molmod.github.io/QuickFF
-
-
-
 .. _yaff: https://github.com/molmod/yaff
-
-
 
 **Author:** Steven Vandenbrande.
 
 **Supporting info:**
 
 * src/USER-YAFF/README
-* :doc:`angle\_style cross <angle_cross>`
-* :doc:`angle\_style mm3 <angle_mm3>`
-* :doc:`bond\_style mm3 <bond_mm3>`
-* :doc:`improper\_style distharm <improper_distharm>`
-* :doc:`improper\_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair\_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
-* :doc:`pair\_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
+* :doc:`angle_style cross <angle_cross>`
+* :doc:`angle_style mm3 <angle_mm3>`
+* :doc:`bond_style mm3 <bond_mm3>`
+* :doc:`improper_style distharm <improper_distharm>`
+* :doc:`improper_style sqdistharm <improper_sqdistharm>`
+* :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

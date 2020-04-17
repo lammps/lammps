@@ -4,7 +4,9 @@ Download an executable for Windows
 Pre-compiled Windows installers which install LAMMPS executables on a
 Windows system can be downloaded from this site:
 
-`http://packages.lammps.org/windows.html <http://packages.lammps.org/windows.html>`_
+.. parsed-literal::
+
+  `http://packages.lammps.org/windows.html <http://packages.lammps.org/windows.html>`_
 
 Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for
@@ -26,7 +28,7 @@ When you download the installer package, you run it on your Windows
 machine.  It will then prompt you with a dialog, where you can choose
 the installation directory, unpack and copy several executables,
 potential files, documentation pdfs, selected example files, etc.  It
-will then update a few system settings (e.g. PATH, LAMMPS\_POTENTIALS)
+will then update a few system settings (e.g. PATH, LAMMPS_POTENTIALS)
 and add an entry into the Start Menu (with references to the
 documentation, LAMMPS homepage and more).  From that menu, there is
 also a link to an uninstaller that removes the files and undoes the
@@ -42,8 +44,3 @@ automatically, so this should only be done for debugging purposes.
 
 Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
 up this Windows capability.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

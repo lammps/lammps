@@ -6,7 +6,6 @@ fix append/atoms command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID append/atoms face ... keyword value ...
@@ -16,9 +15,9 @@ Syntax
 * face = *zhi*
 * zero or more keyword/value pairs may be appended
 * keyword = *basis* or *size* or *freq* or *temp* or *random* or *units*
-  
+
   .. parsed-literal::
-  
+
        *basis* values = M itype
          M = which basis atom
          itype = atom type (1-N) to assign to this basis atom
@@ -38,13 +37,10 @@ Syntax
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all append/atoms zhi size 5.0 freq 295 units lattice
    fix 4 all append/atoms zhi size 15.0 freq 5 units box
@@ -57,7 +53,7 @@ This fix creates atoms on a lattice, appended on the zhi edge of the
 system box.  This can be useful when a shock or wave is propagating
 from zlo.  This allows the system to grow with time to accommodate an
 expanding wave.  A simulation box must already exist, which is
-typically created via the :doc:`create\_box <create_box>` command.
+typically created via the :doc:`create_box <create_box>` command.
 Before using this command, a lattice must also be defined using the
 :doc:`lattice <lattice>` command.
 
@@ -88,13 +84,11 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -102,7 +96,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -121,8 +114,3 @@ Default
 
 The keyword defaults are size = 0.0, freq = 0, units = lattice.  All
 added atoms are of type 1 unless the basis keyword is used.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

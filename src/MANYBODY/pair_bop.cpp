@@ -61,6 +61,7 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;
+  allocated = 0;
 
   BOP_index = NULL;
   BOP_index3 = NULL;
@@ -495,6 +496,53 @@ void PairBOP::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
+  memory->destroy(rcut);
+  memory->destroy(rcut3);
+  memory->destroy(rcutsq);
+  memory->destroy(rcutsq3);
+  memory->destroy(dr);
+  memory->destroy(rdr);
+  memory->destroy(dr3);
+  memory->destroy(rdr3);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
+  memory->destroy(cutghost);
+  memory->destroy(pBetaS);
+  memory->destroy(pBetaS1);
+  memory->destroy(pBetaS2);
+  memory->destroy(pBetaS3);
+  memory->destroy(pBetaS4);
+  memory->destroy(pBetaS5);
+  memory->destroy(pBetaS6);
+  memory->destroy(pLong);
+  memory->destroy(pLong1);
+  memory->destroy(pLong2);
+  memory->destroy(pLong3);
+  memory->destroy(pLong4);
+  memory->destroy(pLong5);
+  memory->destroy(pLong6);
+  memory->destroy(pBetaP);
+  memory->destroy(pBetaP1);
+  memory->destroy(pBetaP2);
+  memory->destroy(pBetaP3);
+  memory->destroy(pBetaP4);
+  memory->destroy(pBetaP5);
+  memory->destroy(pBetaP6);
+  memory->destroy(pRepul);
+  memory->destroy(pRepul1);
+  memory->destroy(pRepul2);
+  memory->destroy(pRepul3);
+  memory->destroy(pRepul4);
+  memory->destroy(pRepul5);
+  memory->destroy(pRepul6);
+  memory->destroy(FsigBO);
+  memory->destroy(FsigBO1);
+  memory->destroy(FsigBO2);
+  memory->destroy(FsigBO3);
+  memory->destroy(FsigBO4);
+  memory->destroy(FsigBO5);
+  memory->destroy(FsigBO6);
+
   memory->create(rcut,npairs,"BOP:rcut");
   memory->create(rcut3,npairs,"BOP:rcut3");
   memory->create(rcutsq,npairs,"BOP:rcutsq");
@@ -569,6 +617,8 @@ void PairBOP::coeff(int narg, char **arg)
   int i,j;
   int n = atom->ntypes;
   MPI_Comm_rank(world,&me);
+
+  delete[] map;
   map = new int[n+1];
 
   if (narg != 3 + atom->ntypes)
@@ -4967,7 +5017,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::read_table(char *filename)
+void _noopt PairBOP::read_table(char *filename)
 {
   int i,j,k,n,m;
   int buf1,pass;
@@ -5056,6 +5106,29 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&bop_types,1,MPI_INT,0,world);
   MPI_Bcast(&npairs,1,MPI_INT,0,world);
   MPI_Bcast(&npower,1,MPI_INT,0,world);
+
+  memory->destroy(pi_a);
+  memory->destroy(pro_delta);
+  memory->destroy(pi_delta);
+  memory->destroy(pi_p);
+  memory->destroy(pi_c);
+  memory->destroy(r1);
+  memory->destroy(pro);
+  memory->destroy(sigma_delta);
+  memory->destroy(sigma_c);
+  memory->destroy(sigma_a);
+  memory->destroy(sigma_f);
+  memory->destroy(sigma_k);
+  memory->destroy(small3);
+  memory->destroy(gfunc);
+  memory->destroy(gfunc1);
+  memory->destroy(gfunc2);
+  memory->destroy(gfunc3);
+  memory->destroy(gfunc4);
+  memory->destroy(gfunc5);
+  memory->destroy(gfunc6);
+  memory->destroy(gpara);
+
   memory->create(pi_a,npairs,"BOP:pi_a");
   memory->create(pro_delta,bop_types,"BOP:pro_delta");
   memory->create(pi_delta,npairs,"BOP:pi_delta");
@@ -5225,22 +5298,23 @@ void PairBOP::read_table(char *filename)
     pass=0;
     i=0;
     if(nws==3) {
-      while(fgets(s,MAXLINE,fp)!=NULL&&i<npairs) {
+      for(i=0;i<npairs;i++) {
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
         sscanf(s,"%lf",&rcut3[i]);
-        pass=1;
-        i++;
       }
-      if(pass==1) {
-        for(i=0;i<npairs;i++) {
-          for(j=0;j<nr;j++) {
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      for(i=0;i<npairs;i++) {
+        for(j=0;j<nr;j++) {
+          pass=0;
+          while(fgets(s,MAXLINE,fp)!=NULL&&pass==0) {
             sscanf(s,"%lf%lf%lf%lf%lf",&pLong[i][j],&pLong[i][j+1]
-                ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
+              ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
             j+=4;
+            pass=1;
           }
         }
       }
     }
+
     rcutall=0.0;
     for(i=0;i<npairs;i++) {
       if(rcut[i]>rcutall)

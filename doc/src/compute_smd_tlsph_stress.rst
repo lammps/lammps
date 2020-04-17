@@ -6,7 +6,6 @@ compute smd/tlsph/stress command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/tlsph/stress
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/tlsph/stress
 
@@ -48,7 +46,6 @@ invariant of the stress tensor, i.e., the von Mises equivalent stress.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -61,8 +58,3 @@ Related commands
 :doc:`compute smd/tlsph/strain <compute_smd_tlsph_strain>`, :doc:`cmopute smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,21 +1,20 @@
-.. index:: change\_box
+.. index:: change_box
 
-change\_box command
-===================
+change_box command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box group-ID parameter args ... keyword args ...
 
 * group-ID = ID of group of atoms to (optionally) displace
 * one or more parameter/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz* or *boundary* or *ortho* or *triclinic* or *set* or *remap*
        *x*\ , *y*\ , *z* args = style value(s)
          style = *final* or *delta* or *scale* or *volume*
@@ -45,20 +44,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all xy final -2.0 z final 0.0 5.0 boundary p p f remap units box
    change_box all x scale 1.1 y volume z volume remap
@@ -77,12 +73,12 @@ conditions for the simulation box, similar to the
 :doc:`boundary <boundary>` command.
 
 The size and shape of the initial simulation box are specified by the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` command used to setup the simulation.
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command used to setup the simulation.
 The size and shape may be altered by subsequent runs, e.g. by use of
 the :doc:`fix npt <fix_nh>` or :doc:`fix deform <fix_deform>` commands.
-The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and
-:doc:`read\_restart <read_restart>` commands also determine whether the
+The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
+:doc:`read_restart <read_restart>` commands also determine whether the
 simulation box is orthogonal or triclinic and their doc pages explain
 the meaning of the xy,xz,yz tilt factors.
 
@@ -106,15 +102,14 @@ new owning processors.
 
 .. note::
 
-   This means that you cannot use the change\_box command to enlarge
+   This means that you cannot use the change_box command to enlarge
    a shrink-wrapped box, e.g. to make room to insert more atoms via the
-   :doc:`create\_atoms <create_atoms>` command, because the simulation box
-   will be re-shrink-wrapped before the change\_box command completes.
+   :doc:`create_atoms <create_atoms>` command, because the simulation box
+   will be re-shrink-wrapped before the change_box command completes.
    Instead you could do something like this, assuming the simulation box
    is non-periodic and atoms extend from 0 to 20 in all dimensions:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x final -10 20
    create_atoms 1 single -5 5 5       # this will fail to insert an atom
@@ -125,7 +120,7 @@ new owning processors.
 
 .. note::
 
-   Unlike the earlier "displace\_box" version of this command, atom
+   Unlike the earlier "displace_box" version of this command, atom
    remapping is NOT performed by default.  This command allows remapping
    to be done in a more general way, exactly when you specify it (zero or
    more times) in the sequence of transformations.  Thus if you do not
@@ -147,28 +142,42 @@ new owning processors.
 
 .. note::
 
-   The simulation box size/shape can be changed by arbitrarily
-   large amounts by this command.  This is not a problem, except that the
+   The simulation box size/shape can be changed by arbitrarily large
+   amounts by this command.  This is not a problem, except that the
    mapping of processors to the simulation box is not changed from its
    initial 3d configuration; see the :doc:`processors <processors>`
    command.  Thus, if the box size/shape changes dramatically, the
-   mapping of processors to the simulation box may not end up as optimal
-   as the initial mapping attempted to be.
+   mapping of processors to the simulation box may not end up as
+   optimal as the initial mapping attempted to be.  You may wish to
+   re-balance the atoms by using the :doc:`balance <balance>` command
+   if that is the case.
 
 .. note::
 
-   Because the keywords used in this command are applied one at a
-   time to the simulation box and the atoms in it, care must be taken
-   with triclinic cells to avoid exceeding the limits on skew after each
-   transformation in the sequence.  If skew is exceeded before the final
-   transformation this can be avoided by changing the order of the
-   sequence, or breaking the transformation into two or more smaller
-   transformations.  For more information on the allowed limits for box
-   skew see the discussion on triclinic boxes on :doc:`Howto triclinic <Howto_triclinic>` doc page.
+   You cannot use this command after reading a restart file (and
+   before a run is performed) if the restart file stored per-atom
+   information from a fix and any of the specified keywords change the
+   box size or shape or boundary conditions.  This is because atoms
+   may be moved to new processors and the restart info will not
+   migrate with them.  LAMMPS will generate an error if this could
+   happen.  Only the *ortho* and *triclinic* keywords do not trigger
+   this error.  One solution is to perform a "run 0" command before
+   using the change_box command.  This clears the per-atom restart
+   data, whether it has been re-assigned to a new fix or not.
 
+.. note::
+
+   Because the keywords used in this command are applied one at a time
+   to the simulation box and the atoms in it, care must be taken with
+   triclinic cells to avoid exceeding the limits on skew after each
+   transformation in the sequence.  If skew is exceeded before the
+   final transformation this can be avoided by changing the order of
+   the sequence, or breaking the transformation into two or more
+   smaller transformations.  For more information on the allowed
+   limits for box skew see the discussion on triclinic boxes on
+   :doc:`Howto triclinic <Howto_triclinic>` doc page.
 
 ----------
-
 
 For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
 styles and values.
@@ -194,8 +203,7 @@ used following a keyword that changed the volume, which is any of the
 style, then both it and the current keyword apply to the keyword
 preceding "key".  I.e. this sequence of keywords is allowed:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 y volume z volume
 
@@ -206,8 +214,7 @@ preceding keyword was invoked.
 If the following command is used, then the z box length will shrink by
 the same 1.1 factor the x box length was increased by:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 z volume
 
@@ -216,17 +223,15 @@ shrink by sqrt(1.1) to keep the volume constant.  In this case, the
 y,z box lengths shrink so as to keep their relative aspect ratio
 constant:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   change_box all"x scale 1.1 y volume z volume
+   change_box all x scale 1.1 y volume z volume
 
 If the following command is used, then the final box will be a factor
 of 10% larger in x and y, and a factor of 21% smaller in z, so as to
 keep the volume constant:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    change_box all x scale 1.1 z volume y scale 1.1 z volume
 
@@ -242,9 +247,7 @@ keep the volume constant:
 For the *scale* and *volume* styles, the box length is expanded or
 compressed around its mid point.
 
-
 ----------
-
 
 For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
@@ -269,9 +272,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 ... are all equivalent.  Any tilt factor specified by this command
 must be within these limits.
 
-
 ----------
-
 
 The *boundary* keyword takes arguments that have exactly the same
 meaning as they do for the :doc:`boundary <boundary>` command.  In each
@@ -289,25 +290,23 @@ smaller.  See the :doc:`boundary <boundary>` command for more
 explanation of these style options.
 
 Note that the "boundary" command itself can only be used before the
-simulation box is defined via a :doc:`read\_data <read_data>` or
-:doc:`create\_box <create_box>` or :doc:`read\_restart <read_restart>`
+simulation box is defined via a :doc:`read_data <read_data>` or
+:doc:`create_box <create_box>` or :doc:`read_restart <read_restart>`
 command.  This command allows the boundary conditions to be changed
 later in your input script.  Also note that the
-:doc:`read\_restart <read_restart>` will change boundary conditions to
+:doc:`read_restart <read_restart>` will change boundary conditions to
 match what is stored in the restart file.  So if you wish to change
-them, you should use the change\_box command after the read\_restart
+them, you should use the change_box command after the read_restart
 command.
 
-
 ----------
-
 
 The *ortho* and *triclinic* keywords convert the simulation box to be
 orthogonal or triclinic (non-orthogonal).
 
 The simulation box is defined as either orthogonal or triclinic when
-it is created via the :doc:`create\_box <create_box>`,
-:doc:`read\_data <read_data>`, or :doc:`read\_restart <read_restart>`
+it is created via the :doc:`create_box <create_box>`,
+:doc:`read_data <read_data>`, or :doc:`read_restart <read_restart>`
 commands.
 
 These keywords allow you to toggle the existing simulation box from
@@ -318,16 +317,14 @@ be toggled to triclinic, and then a :doc:`non-equilibrium MD (NEMD) simulation <
 If the simulation box is currently triclinic and has non-zero tilt in
 xy, yz, or xz, then it cannot be converted to an orthogonal box.
 
-
 ----------
-
 
 The *set* keyword saves the current box size/shape.  This can be
 useful if you wish to use the *remap* keyword more than once or if you
 wish it to be applied to an intermediate box size/shape in a sequence
 of keyword operations.  Note that the box size/shape is saved before
 any of the keywords are processed, i.e. the box size/shape at the time
-the create\_box command is encountered in the input script.
+the create_box command is encountered in the input script.
 
 The *remap* keyword remaps atom coordinates from the last saved box
 size/shape to the current box state.  For example, if you stretch the
@@ -343,9 +340,7 @@ including this one, have been processed.
 
 Only atoms in the specified group are remapped.
 
-
 ----------
-
 
 The *units* keyword determines the meaning of the distance units used
 to define various arguments.  A *box* value selects standard distance
@@ -354,20 +349,17 @@ units = real or metal.  A *lattice* value means the distance units are
 in lattice spacings.  The :doc:`lattice <lattice>` command must have
 been previously used to define the lattice spacing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 If you use the *ortho* or *triclinic* keywords, then at the point in
 the input script when this command is issued, no :doc:`dumps <dump>` can
 be active, nor can a :doc:`fix deform <fix_deform>` be active.  This is
 because these commands test whether the simulation box is orthogonal
 when they are first issued.  Note that these commands can be used in
-your script before a change\_box command is issued, so long as an
+your script before a change_box command is issued, so long as an
 :doc:`undump <undump>` or :doc:`unfix <unfix>` command is also used to
 turn them off.
 
@@ -380,8 +372,3 @@ Default
 """""""
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

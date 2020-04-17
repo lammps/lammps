@@ -93,6 +93,7 @@ msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
 neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
+numdiff: numerical difference computation of forces
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
@@ -112,6 +113,7 @@ tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 threebody: regression test input for a variety of manybody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
+wall:     use of reflective walls with different stochastic models
 
 Here is how you might run and visualize one of the sample problems:
 

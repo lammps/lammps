@@ -227,7 +227,7 @@ namespace ATC {
 
     void set_mass_mat_time_filter(FieldName thisField,TimeFilterManager::FilterIntegrationType filterIntegrationType);
 
-    /** return referece to ExtrinsicModelManager */
+    /** return reference to ExtrinsicModelManager */
     ExtrinsicModelManager & extrinsic_model_manager() 
       { return extrinsicModelManager_; }
     /** access to time integrator */

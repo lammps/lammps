@@ -271,7 +271,7 @@ MEAM::get_Zij(const lattice_t latt)
       return 12;
     case B2:
       return 8;
-    case CH4: // DYNAMO currenly implemented this way while it needs two Z values, 4 and 1
+    case CH4: // DYNAMO currently implemented this way while it needs two Z values, 4 and 1
       return 4;
     case LIN:
     case ZIG:
@@ -382,9 +382,9 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax,
 
   // Compute screening for each first neighbor
   if (latt==DIA3){ // special case for 3NN diamond structure
-	C = 1.0;
+    C = 1.0;
   } else {
-	C = 4.0 / (a * a) - 1.0;
+    C = 4.0 / (a * a) - 1.0;
   }
   x = (C - cmin) / (cmax - cmin);
   sijk = fcut(x);

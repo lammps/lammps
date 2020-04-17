@@ -25,8 +25,8 @@
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
-#include "remap_wrap.h"
+#include "fft3d_kokkos.h"
+#include "remap_kokkos.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
@@ -209,6 +209,10 @@ void PPPMKokkos<DeviceType>::init()
     sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
     error->all(FLERR,str);
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -616,7 +620,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -665,7 +669,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     nmax = atomKK->nmax;
     //memory->create(part2grid,nmax,3,"pppm:part2grid");
     d_part2grid = typename AT::t_int_1d_3("pppm:part2grid",nmax);
-    d_rho1d = typename AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
+    d_rho1d = typename FFT_AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
   }
 
   // find grid points for all my particles
@@ -795,7 +799,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_self2, const int &i) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::allocate()
 {
-  d_density_brick = typename AT::t_FFT_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_density_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
   memoryKK->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
   d_density_fft = k_density_fft.view<DeviceType>();
@@ -817,40 +821,40 @@ void PPPMKokkos<DeviceType>::allocate()
     d_fkz = typename AT::t_float_1d("pppm:d_fkz",nfft_both);
   }
 
-  d_vdx_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_vdx_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_vdy_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_vdy_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_vdz_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_vdz_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdx_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_vdx_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdy_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_vdy_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdz_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_vdz_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
   // summation coeffs
 
   order_allocated = order;
   k_gf_b = typename DAT::tdual_float_1d("pppm:gf_b",order);
   d_gf_b = k_gf_b.view<DeviceType>();
-  d_rho1d = typename AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
-  k_rho_coeff = DAT::tdual_FFT_SCALAR_2d("pppm:rho_coeff",order,order/2-(1-order)/2+1);
+  d_rho1d = typename FFT_AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
+  k_rho_coeff = FFT_DAT::tdual_FFT_SCALAR_2d("pppm:rho_coeff",order,order/2-(1-order)/2+1);
   d_rho_coeff = k_rho_coeff.view<DeviceType>();
   h_rho_coeff = k_rho_coeff.h_view;
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
   int tmp;
 
-  fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   0,0,&tmp,collective_flag);
+  fft1 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+                         nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                         nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                         0,0,&tmp,collective_flag);
 
-  fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,collective_flag);
-  remap = new Remap(lmp,world,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION,collective_flag);
+  fft2 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+                         nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                         0,0,&tmp,collective_flag);
+  remap = new RemapKokkos<DeviceType>(lmp,world,
+                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                          1,0,0,FFT_PRECISION,collective_flag);
 
   // create ghost grid object for rho and electric field communication
 
@@ -898,14 +902,14 @@ void PPPMKokkos<DeviceType>::allocate_peratom()
 {
   peratom_allocate_flag = 1;
 
-  d_u_brick = typename AT::t_FFT_SCALAR_3d("pppm:u_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_u_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:u_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
-  d_v0_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v0_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v1_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v1_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v2_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v2_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v3_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v3_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v4_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v4_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v5_brick = typename AT::t_FFT_SCALAR_3d("pppm:d_v5_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v0_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v0_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v1_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v1_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v2_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v2_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v3_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v3_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v4_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v4_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v5_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:d_v5_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
 
   // create ghost grid object for rho and electric field communication
@@ -1666,7 +1670,7 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_atomic, const int &i) const
 {
   // The density_brick array is atomic for Half/Thread neighbor style
-  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
+  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
 
   int nx = d_part2grid(i,0);
   int ny = d_part2grid(i,1);
@@ -1779,12 +1783,7 @@ void PPPMKokkos<DeviceType>::brick2fft()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_brick2fft>(0,inum_inout),*this);
   copymode = 0;
 
-  k_density_fft.template modify<DeviceType>();
-  k_density_fft.template sync<LMPHostType>();
-  remap->perform(density_fft,density_fft,work1);
-  k_density_fft.template modify<LMPHostType>();
-  k_density_fft.template sync<DeviceType>();
-
+  remap->perform(d_density_fft,d_density_fft,d_work1);
 }
 
 template<class DeviceType>
@@ -1826,11 +1825,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik1>(0,nfft),*this);
   copymode = 0;
 
-  k_work1.template modify<DeviceType>();
-  k_work1.template sync<LMPHostType>();
-  fft1->compute(work1,work1,1);
-  k_work1.template modify<LMPHostType>();
-  k_work1.template sync<DeviceType>();
+  fft1->compute(d_work1,d_work1,1);
 
 
   // global energy and virial contribution
@@ -1894,11 +1889,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik5>(0,inum_fft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -1912,11 +1903,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik7>(0,inum_fft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -1929,11 +1916,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik9>(0,inum_fft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2189,11 +2172,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom1>(0,nfft),*this);
     copymode = 0;
 
-    k_work2.template modify<DeviceType>();
-    k_work2.template sync<LMPHostType>();
-    fft2->compute(work2,work2,-1);
-    k_work2.template modify<LMPHostType>();
-    k_work2.template sync<DeviceType>();
+    fft2->compute(d_work2,d_work2,-1);
 
 
     copymode = 1;
@@ -2210,11 +2189,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom3>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2226,11 +2201,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom5>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2242,11 +2213,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom7>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2257,11 +2224,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom9>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2273,11 +2236,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom11>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -2289,11 +2248,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom13>(0,nfft),*this);
   copymode = 0;
 
-  k_work2.template modify<DeviceType>();
-  k_work2.template sync<LMPHostType>();
-  fft2->compute(work2,work2,-1);
-  k_work2.template modify<LMPHostType>();
-  k_work2.template sync<DeviceType>();
+  fft2->compute(d_work2,d_work2,-1);
 
 
   copymode = 1;
@@ -3033,10 +2988,10 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(work1,nfft_both,1);
-    fft2->timing1d(work1,nfft_both,-1);
-    fft2->timing1d(work1,nfft_both,-1);
-    fft2->timing1d(work1,nfft_both,-1);
+    fft1->timing1d(d_work1,nfft_both,1);
+    fft2->timing1d(d_work1,nfft_both,-1);
+    fft2->timing1d(d_work1,nfft_both,-1);
+    fft2->timing1d(d_work1,nfft_both,-1);
   }
 
   MPI_Barrier(world);
@@ -3070,10 +3025,10 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(work1,work1,1);
-    fft2->compute(work1,work1,-1);
-    fft2->compute(work1,work1,-1);
-    fft2->compute(work1,work1,-1);
+    fft1->compute(d_work1,d_work1,1);
+    fft2->compute(d_work1,d_work1,-1);
+    fft2->compute(d_work1,d_work1,-1);
+    fft2->compute(d_work1,d_work1,-1);
   }
 
   MPI_Barrier(world);

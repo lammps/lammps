@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -48,13 +48,6 @@ class colvarproxy_lammps : public colvarproxy {
   bool total_force_requested;
   bool do_exit;
 
-  // std::vector<int>          colvars_atoms;
-  // std::vector<size_t>       colvars_atoms_ncopies;
-  // std::vector<struct commdata> positions;
-  // std::vector<struct commdata> total_forces;
-  // std::vector<struct commdata> applied_forces;
-  // std::vector<struct commdata> previous_applied_forces;
-
   std::vector<int>          atoms_types;
 
   MPI_Comm inter_comm;     // MPI comm with 1 root proc from each world
@@ -93,15 +86,19 @@ class colvarproxy_lammps : public colvarproxy {
   void write_output_files();
 
   // read additional config from file
-  void add_config_file(char const *config_filename);
+  int add_config_file(char const *config_filename);
 
   // read additional config from string
-  void add_config_string(const std::string &config);
+  int add_config_string(const std::string &config);
 
-  // implementation of pure methods from base class
- public:
+  // load a state file
+  int read_state_file(char const *state_filename);
 
-  inline cvm::real unit_angstrom() { return my_angstrom; };
+  // Request to set the units used internally by Colvars
+  int set_unit_system(std::string const &units_in, bool check_only);
+
+  inline cvm::real backend_angstrom_value() { return my_angstrom; };
+
   inline cvm::real boltzmann() { return my_boltzmann; };
   inline cvm::real temperature() { return t_target; };
   inline cvm::real dt() { return my_timestep; }; // return _lmp->update->dt * _lmp->force->femtosecond; };
@@ -127,26 +124,12 @@ class colvarproxy_lammps : public colvarproxy {
 
   inline std::vector<int> *modify_atom_types() { return &atoms_types; }
 
-  // implementation of optional methods from base class
- public:
+  virtual int replica_enabled();
+  virtual int replica_index();
+  virtual int num_replicas();
 
-  // Multi-replica support
-  // Indicate if multi-replica support is available and active
-  virtual bool replica_enabled() { return (inter_comm != MPI_COMM_NULL); }
-
-  // Index of this replica
-  virtual int replica_index() { return inter_me; }
-
-  // Total number of replica
-  virtual int replica_num() { return inter_num; }
-
-  // Synchronize replica
   virtual void replica_comm_barrier();
-
-  // Receive data from other replica
   virtual int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
-
-  // Send data to other replica
   virtual int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
 };
 

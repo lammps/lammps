@@ -14,7 +14,6 @@ thermodynamic state and a total run time for the simulation.  It also
 appends statistics about the CPU time and storage requirements for the
 simulation.  An example set of statistics is shown here:
 
-
 .. parsed-literal::
 
    Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
@@ -47,9 +46,7 @@ simulation.  An example set of statistics is shown here:
    Neighbor list builds = 26
    Dangerous builds = 0
 
-
 ----------
-
 
 The first section provides a global loop timing summary. The *loop
 time* is the total wall-clock time for the simulation to run.  The
@@ -60,9 +57,7 @@ line provides the CPU utilization per MPI task; it should be close to
 Lower numbers correspond to delays due to file I/O or insufficient
 thread utilization.
 
-
 ----------
-
 
 The *MPI task* section gives the breakdown of the CPU run time (in
 seconds) into major categories:
@@ -96,7 +91,6 @@ only and thus, because the breakdown for MPI tasks can change from
 MPI rank to MPI rank, this breakdown can be very different for
 individual ranks. Here is an example output for this section:
 
-
 .. parsed-literal::
 
    Thread timings breakdown (MPI rank 0):
@@ -109,9 +103,7 @@ individual ranks. Here is an example output for this section:
    Neigh   \| 0.084778   \| 0.086969   \| 0.089161   \|   0.7 \| 12.70
    Reduce  \| 0.0036485  \| 0.003737   \| 0.0038254  \|   0.1 \|  0.55
 
-
 ----------
-
 
 The third section above lists the number of owned atoms (Nlocal),
 ghost atoms (Nghost), and pair-wise neighbors stored per processor.
@@ -119,30 +111,25 @@ The max and min values give the spread of these values across
 processors with a 10-bin histogram showing the distribution. The total
 number of histogram counts is equal to the number of processors.
 
-
 ----------
-
 
 The last section gives aggregate statistics (across all processors)
 for pair-wise neighbors and special neighbors that LAMMPS keeps track
-of (see the :doc:`special\_bonds <special_bonds>` command).  The number
+of (see the :doc:`special_bonds <special_bonds>` command).  The number
 of times neighbor lists were rebuilt is tallied, as is the number of
 potentially *dangerous* rebuilds.  If atom movement triggered neighbor
-list rebuilding (see the :doc:`neigh\_modify <neigh_modify>` command),
+list rebuilding (see the :doc:`neigh_modify <neigh_modify>` command),
 then dangerous reneighborings are those that were triggered on the
 first timestep atom movement was checked for.  If this count is
 non-zero you may wish to reduce the delay factor to insure no force
 interactions are missed by atoms moving beyond the neighbor skin
 distance before a rebuild takes place.
 
-
 ----------
-
 
 If an energy minimization was performed via the
 :doc:`minimize <minimize>` command, additional information is printed,
 e.g.
-
 
 .. parsed-literal::
 
@@ -167,14 +154,11 @@ Multiple force evaluations are typically done at each iteration to
 perform a 1d line minimization in the search direction.  See the
 :doc:`minimize <minimize>` doc page for more details.
 
-
 ----------
 
-
-If a :doc:`kspace\_style <kspace_style>` long-range Coulombics solver
+If a :doc:`kspace_style <kspace_style>` long-range Coulombics solver
 that performs FFTs was used during the run (PPPM, Ewald), then
 additional information is printed, e.g.
-
 
 .. parsed-literal::
 
@@ -184,14 +168,9 @@ additional information is printed, e.g.
 The first line is the time spent doing 3d FFTs (several per timestep)
 and the fraction it represents of the total KSpace time (listed
 above).  Each 3d FFT requires computation (3 sets of 1d FFTs) and
-communication (transposes).  The total flops performed is 5Nlog\_2(N),
+communication (transposes).  The total flops performed is 5Nlog_2(N),
 where N is the number of points in the 3d grid.  The FFTs are timed
 with and without the communication and a Gflop rate is computed.  The
 3d rate is with communication; the 1d rate is without (just the 1d
 FFTs).  Thus you can estimate what fraction of your FFT time was spent
 in communication, roughly 75% in the example above.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

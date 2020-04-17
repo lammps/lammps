@@ -6,7 +6,6 @@ fix ave/correlate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/correlate Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
@@ -17,10 +16,10 @@ Syntax
 * Nrepeat = # of correlation time windows to accumulate
 * Nfreq = calculate time window averages every this many timesteps
 * one or more input values can be listed
-* value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global scalar calculated by a fix with ID
@@ -30,9 +29,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *ave* or *start* or *prefactor* or *file* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value
@@ -57,20 +56,17 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/correlate 5 100 1000 c_myTemp file temp.correlate
    fix 1 all ave/correlate 1 50 10000 &
              c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
              type upper ave running title1 "My correlation data"
 
-fix 1 all ave/correlate 1 50 10000 c\_thermo\_press[\*]
+   fix 1 all ave/correlate 1 50 10000 c_thermo_press[*]
 
 Description
 """""""""""
@@ -79,7 +75,7 @@ Use one or more global scalar values as inputs every few timesteps,
 calculate time correlations between them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
-:doc:`variables <variable>` or used by other :doc:`output commands <Howto_output>` such as :doc:`thermo\_style custom <thermo_style>`, and can also be written to a file.  See the
+:doc:`variables <variable>` or used by other :doc:`output commands <Howto_output>` such as :doc:`thermo_style custom <thermo_style>`, and can also be written to a file.  See the
 :doc:`fix ave/correlate/long <fix_ave_correlate_long>` command for an
 alternate method for computing correlation functions efficiently over
 very long time windows.
@@ -124,18 +120,15 @@ vector had been listed one by one.  E.g. these 2 fix ave/correlate
 commands are equivalent, since the :doc:`compute pressure <compute_pressure>` command creates a global vector with 6
 values.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all pressure NULL
-   fix 1 all ave/correlate 1 50 10000 c_myPress[\*]
+   fix 1 all ave/correlate 1 50 10000 c_myPress[*]
    fix 1 all ave/correlate 1 50 10000 &
              c_myPress[1] c_myPress[2] c_myPress[3] &
              c_myPress[4] c_myPress[5] c_myPress[6]
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used to calculate correlation data.
@@ -146,7 +139,6 @@ initial time up to an output timestep.  The initial time could be the
 beginning of the simulation or the last output time; see the *ave*
 keyword for options.  For the set of samples, the correlation value
 Cij is calculated as:
-
 
 .. parsed-literal::
 
@@ -159,7 +151,6 @@ average over every pair of samples in the set that are separated by
 time delta.  The maximum delta used is of size (\ *Nrepeat*\ -1)\*\ *Nevery*\ .
 Thus the correlation between a pair of input values yields *Nrepeat*
 correlation datums:
-
 
 .. parsed-literal::
 
@@ -176,9 +167,7 @@ Vi(10)\*V j20), Vi(15)\*Vj(25), ..., Vi(85)\*Vj(95), Vi(90)\*Vj(100).
 non-zero.  Also, if the *ave* keyword is set to *one* which is the
 default, then *Nfreq* >= (\ *Nrepeat*\ -1)\*\ *Nevery* is required.
 
-
 ----------
-
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
@@ -219,9 +208,7 @@ keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying
 quantities to time correlate.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix.
 
@@ -247,7 +234,6 @@ pair Vi(t)\*Vj(t+delta) is always the one sampled at the later time.
 * If *type* is set to *full* then each input value is correlated with
   itself and every other value.  I.e. Cij = Vi\*Vj, for i,j = 1,N so
   Npair = N\^2.
-
 
 The *ave* keyword determines what happens to the accumulation of
 correlation samples every *Nfreq* timesteps.  If the *ave* setting is
@@ -292,7 +278,6 @@ values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows:
 
-
 .. parsed-literal::
 
    # Time-correlated data for fix ID
@@ -304,13 +289,10 @@ describes the two values that are printed at the first of each section
 of output.  In the third line the value pairs are replaced with the
 appropriate fields from the fix ave/correlate command.
 
-
 ----------
-
 
 Let Sij = a set of time correlation data for input values I and J,
 namely the *Nrepeat* values:
-
 
 .. parsed-literal::
 
@@ -326,13 +308,11 @@ quantities which can be derived from time correlation data.  If a
 normalization factor is needed for the time integration, it can be
 included in the variable formula or via the *prefactor* keyword.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
@@ -362,7 +342,6 @@ as determined by the *type* keyword, as described above.
   ..., C1N, C21, C22, ..., C2N, C31, ..., C3N, ..., CN1, ..., CNN-1,
   CNN.
 
-
 The array values calculated by this fix are treated as intensive.  If
 you need to divide them by the number of atoms, you must do this in a
 later processing step, e.g. when using them in a
@@ -386,8 +365,3 @@ Related commands
 
 The option defaults are ave = one, type = auto, start = 0, no file
 output, title 1,2,3 = strings as described above, and prefactor = 1.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -23,6 +23,8 @@
 
 #ifdef USE_OPENCL
 #include "geryon/ocl_texture.h"
+#elif defined(USE_HIP)
+#include "geryon/hip_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -42,7 +44,7 @@ class BaseDPD {
     * \param k_name name for the kernel for force calculation
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU

@@ -988,7 +988,7 @@ void PairLubricateU::compute_RU()
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
@@ -1449,7 +1449,7 @@ void PairLubricateU::compute_RE()
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
@@ -1614,7 +1614,7 @@ void PairLubricateU::compute_RE(double **x)
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;

@@ -34,6 +34,7 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -688,7 +689,7 @@ double Comm::get_comm_cutoff()
 
   // print warning if neighborlist cutoff overrides user cutoff
 
-  if (me == 0) {
+  if ((me == 0) && (update->setupflag == 1)) {
     if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
       char mesg[128];
       snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
@@ -844,7 +845,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
    rendezvous communication operation
    three stages:
      first comm sends inbuf from caller decomp to rvous decomp
-     callback operates on data in rendevous decomp
+     callback operates on data in rendezvous decomp
      second comm sends outbuf from rvous decomp back to caller decomp
    inputs:
      which = perform (0) irregular or (1) MPI_All2allv communication
@@ -976,12 +977,13 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   bigint *offsets;
   char *inbuf_a2a,*outbuf_a2a;
 
-  // create procs and inbuf for All2all if necesary
+  // create procs and inbuf for All2all if necessary
 
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
                                          "rendezvous:inbuf");
+    memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -1045,6 +1047,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
                                                "rendezvous:inbuf");
+  memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
                 inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
@@ -1077,7 +1080,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
 
-  // create procs and outbuf for All2all if necesary
+  // create procs and outbuf for All2all if necessary
 
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");

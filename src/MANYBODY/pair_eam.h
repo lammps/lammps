@@ -66,6 +66,7 @@ class PairEAM : public Pair {
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
+  bigint embedstep;           // timestep, the embedding term was computed
 
   // per-atom arrays
 

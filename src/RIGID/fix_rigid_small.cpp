@@ -216,7 +216,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"inpfile") == 0) {
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;
@@ -1091,7 +1091,7 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
      when unwrapped by true image flags
    then set_xv() will compute huge displacements every step to reset coords of
      all the body atoms to be back inside the box, ditto for triclinic box flip
-     note: so just want to avoid that numeric probem?
+     note: so just want to avoid that numeric problem?
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::pre_neighbor()
@@ -2320,7 +2320,7 @@ void FixRigidSmall::setup_bodies_static()
 /* ----------------------------------------------------------------------
    one-time initialization of dynamic rigid body attributes
    vcm and angmom, computed explicitly from constituent particles
-   not done if body properites read from file, e.g. for overlapping particles
+   not done if body properties read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_bodies_dynamic()
@@ -2426,7 +2426,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
-   which = 0 to read everthing except 6 moments of inertia
+   which = 0 to read everything except 6 moments of inertia
    which = 1 to read just 6 moments of inertia
    flag inbody = 0 for local bodies this proc initializes from file
    nlines = # of lines of rigid body info, 0 is OK

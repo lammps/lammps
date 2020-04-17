@@ -278,12 +278,12 @@ void DistributedCellList::allgather(INearList * local_nlist) {
   MPI_Allgather(&clist->binhead[0], nbins, MPI_INT, &binhead[0], nbins, MPI_INT, world);
 
   // collect next array from all processors that have elements
-  int * nextptr = NULL;
+  int * nextptr = nullptr;
   if (ncount_local) nextptr = &clist->next[0];
   MPI_Allgatherv(nextptr, ncount_local, MPI_INT, &next[0], &recvcounts[0], &displs[0], MPI_INT, world);
 
   // collect element arrays from all processors that have elements
-  CellList::Element * elementptr = NULL;
+  CellList::Element * elementptr = nullptr;
   if (ncount_local) elementptr = &clist->elements[0];
   MPI_Allgatherv(elementptr, ncount_local, mpi_element_type, &elements[0], &recvcounts[0], &displs[0], mpi_element_type, world);
 
@@ -333,6 +333,8 @@ void DistributedCellList::allgather(INearList * local_nlist) {
               j = binhead[ibin_offset + ibin];
               if(prev >= 0) {
                 next[prev] = j;
+              } else {
+                binhead[ibin] = j;
               }
           }
       }

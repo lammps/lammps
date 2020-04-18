@@ -37,6 +37,7 @@ Commands :h1
    dump_cac_initial_nodes
    dump_cac_kinetic
    dump_cac_nodal_positions
+   dump_cac_nodal_displacements
    dump_cac_nodal_velocities
    dump_cac_nodal_virial
    dump_cac_nodal_forces
@@ -98,6 +99,7 @@ Commands :h1
    replicate
    rerun
    reset_ids
+   reset_initial_nodes
    reset_timestep
    restart
    run

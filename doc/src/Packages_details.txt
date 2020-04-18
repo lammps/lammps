@@ -1142,6 +1142,8 @@ src/USER-CAC: filenames -> commands
 "compute cac/nodal/temp"_compute_cac_nodal_temp.html
 "compute cac/ke"_compute_cac_ke.html
 "compute cac/ke/atom"_compute_cac_ke_atom.html
+"reset_initial_nodes"_reset_initial_nodes.html
+"dump cac/nodal/displacements"_dump_cac_nodal_displacements.html
 "dump cac/nodal/positions"_dump_cac_nodal_positions.html
 "dump cac/initial/nodes"_dump_cac_initial_nodes.html
 "dump cac/nodal/velocities"_dump_cac_nodal_velocities.html

@@ -29,7 +29,7 @@ Periodically outputs the nodal displacements at the specified interval. The noda
 of all finite elements for each of their respective internal degrees of freedom will be 
 printed; atom displacements will also be printed and denoted by the 0 element type following
 one line of displacement data. By default the displacement is computed with respect to the
-reference coordinates established in the last readin of a data file. To rest the reference coordinates
+reference coordinates established in the last read of a data file. To rest the reference coordinates
 use the "reset_initial_nodes"_reset_initial_nodes.html command.
 
 NOTE: The "dump_modify sort"_dump_modify.html option

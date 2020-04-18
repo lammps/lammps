@@ -253,7 +253,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
     if (ntypes_coeff != atom->ntypes) {
         char error_message[1024];
-        sprintf(error_message,
+        snprintf(error_message,
                 "Incorrect args for pair coefficients. You provided %d elements in pair_coeff, but structure has %d atom types",
                 ntypes_coeff, atom->ntypes);
         error->all(FLERR, error_message);
@@ -289,7 +289,7 @@ void PairPACE::coeff(int narg, char **arg) {
         int atomic_number = AtomicNumberByName(elemname);
         if (atomic_number == -1) {
             char error_msg[1024];
-            sprintf(error_msg, "String '%s' is not a valid element\n", elemname);
+            snprintf(error_msg, "String '%s' is not a valid element\n", elemname);
             error->all(FLERR, error_msg);
         }
         SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
@@ -300,7 +300,7 @@ void PairPACE::coeff(int narg, char **arg) {
             ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
         } else {
             char error_msg[1024];
-            sprintf(error_msg, "Element %s is not supported by ACE-potential from file %s", elemname,
+            snprintf(error_msg, "Element %s is not supported by ACE-potential from file %s", elemname,
                     potential_file_name);
             error->all(FLERR, error_msg);
         }

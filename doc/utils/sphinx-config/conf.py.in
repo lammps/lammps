@@ -20,7 +20,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'src', '_ext'))
+sys.path.append(os.path.join('@LAMMPS_DOC_DIR@', 'src', '_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -347,7 +347,7 @@ from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
 
-sys.path.append(os.path.join(conf_script_dir, '..', '..', '..', 'python'))
+sys.path.append('@LAMMPS_PYTHON_DIR@')
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'

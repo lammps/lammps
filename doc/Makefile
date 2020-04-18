@@ -77,7 +77,10 @@ clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
 
 $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
-	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g' -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/..\/src/g' $< > $@
+	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g'   \
+	    -e 's,@LAMMPS_SOURCE_DIR@,$(BUILDDIR)/../src,g'    \
+	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
+	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
 html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@(\

@@ -15,7 +15,7 @@ Syntax
    fix_modify AtC control momentum glc_velocity
    fix_modify AtC control momentum hoover
    fix_modify AtC control momentum flux [faceset face_set_id, interpolate]
-   
+
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
 * control = name of the AtC sub-command
 * physics_type = *thermal* or *momentum*

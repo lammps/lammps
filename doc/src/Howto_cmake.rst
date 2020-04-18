@@ -114,19 +114,19 @@ summary screen will look like this:
    -- Detecting CXX compiler ABI info - done
    -- Detecting CXX compile features
    -- Detecting CXX compile features - done
-   -- Found Git: /usr/bin/git (found version "2.25.2") 
+   -- Found Git: /usr/bin/git (found version "2.25.2")
    -- Running check for auto-generated files from make-based build system
-   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "3.1") 
-   -- Found MPI: TRUE (found version "3.1")  
+   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "3.1")
+   -- Found MPI: TRUE (found version "3.1")
    -- Looking for C++ include omp.h
    -- Looking for C++ include omp.h - found
-   -- Found OpenMP_CXX: -fopenmp (found version "4.5") 
-   -- Found OpenMP: TRUE (found version "4.5")  
-   -- Found JPEG: /usr/lib64/libjpeg.so (found version "62") 
-   -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37") 
-   -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11") 
-   -- Found GZIP: /usr/bin/gzip  
-   -- Found FFMPEG: /usr/bin/ffmpeg  
+   -- Found OpenMP_CXX: -fopenmp (found version "4.5")
+   -- Found OpenMP: TRUE (found version "4.5")
+   -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
+   -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
+   -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
+   -- Found GZIP: /usr/bin/gzip
+   -- Found FFMPEG: /usr/bin/ffmpeg
    -- Performing Test COMPILER_SUPPORTS-ffast-math
    -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
    -- Performing Test COMPILER_SUPPORTS-march=native
@@ -143,7 +143,7 @@ summary screen will look like this:
     * JPEG
     * PNG
     * ZLIB
-   
+
    -- <<< Build configuration >>>
       Build type:       RelWithDebInfo
       Install path:     /home/akohlmey/.local
@@ -157,7 +157,7 @@ summary screen will look like this:
          Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
-   -- Static library flags:    
+   -- Static library flags:
    -- <<< MPI flags >>>
    -- MPI includes:     /usr/include/mpich-x86_64
    -- MPI libraries:    /usr/lib64/mpich/lib/libmpicxx.so;/usr/lib64/mpich/lib/libmpi.so;
@@ -291,7 +291,7 @@ Some common CMake variables
 
 .. list-table::
    :header-rows: 1
-   
+
    * - Variable
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
@@ -313,13 +313,13 @@ Some common CMake variables
      - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
    * - ``CXX_COMPILER_LAUNCHER``
      - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
-       
+
 Some common LAMMPS specific variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
-   
+
    * - Variable
      - Description
    * - ``BUILD_MPI``
@@ -437,7 +437,7 @@ The following abstract targets are available with LAMMPS:
    * - ``clean``
      - remove all generated files
 
-   
+
 Choosing generators
 -------------------
 

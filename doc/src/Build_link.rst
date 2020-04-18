@@ -124,15 +124,15 @@ Which should output something like:
 
 .. code-block:: bash
 
-   # Compiler: 
+   # Compiler:
    CXX=g++
-   # Linker: 
+   # Linker:
    LD=g++
-   # Compilation: 
+   # Compilation:
    CXXFLAGS=-g -O3 -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -I${HOME}/compile/lammps/lib/poems -I${HOME}/compile/lammps/src/STUBS
-   # Linking: 
+   # Linking:
    LDFLAGS=-g -O
-   # Libraries: 
+   # Libraries:
    LDLIBS=-L${HOME}/compile/lammps/src -llammps_serial -L${HOME}/compile/lammps/lib/poems -L${HOME}/compile/lammps/src/STUBS -lpoems -lmpi_stubs
 
 From this you can gather the necessary paths and flags.  With

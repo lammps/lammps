@@ -5,4 +5,4 @@ LAMMPS Atom Base Class
    :project: progguide
    :members:
 
-                 
+

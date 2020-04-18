@@ -30,7 +30,7 @@ create a LAMMPS instance.
 If any of the function calls in the LAMMPS library API will trigger
 an error inside LAMMPS, this will result in an abort of the entire
 program.  This is not always desirable.  Instead, LAMMPS can be
-compiled to instead :ref:`throw a C++ exception <exceptions>`. 
+compiled to instead :ref:`throw a C++ exception <exceptions>`.
 
 .. seealso::
 
@@ -448,7 +448,7 @@ on all the processors.  Or it might allocate half the processors to
 LAMMPS and half to the other code and run both codes simultaneously
 before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
-   
 
 
-                 
+
+

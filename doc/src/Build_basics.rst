@@ -225,7 +225,7 @@ A few example command lines are:
 
 For compiling with the Clang/LLVM compilers a CMake preset is provided that
 can be loaded with `-C ../cmake/presets/clang.cmake`.  Similarly,
-`-C ../cmake/presets/intel.cmake` should switch the 
+`-C ../cmake/presets/intel.cmake` should switch the
 
 In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
 compiler flags to tune for optimal performance on given hosts. By

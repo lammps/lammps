@@ -42,16 +42,16 @@ typos or issues when processing input files.
 
 .. doxygenfunction:: numeric
    :project: progguide
-             
+
 .. doxygenfunction:: inumeric
    :project: progguide
-             
+
 .. doxygenfunction:: bnumeric
    :project: progguide
 
 .. doxygenfunction:: tnumeric
    :project: progguide
-             
+
 
 Convenience functions
 =====================

@@ -37,7 +37,7 @@ Syntax
   - eshelby_stress : configurational stress (energy-momentum) tensor defined by [Eshelby]_
   - vacancy_concentration : volume fraction of vacancy content
   - type_concentration : volume fraction of a specific atom type
-  
+
 Examples
 """"""""
 

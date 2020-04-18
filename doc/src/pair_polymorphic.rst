@@ -28,12 +28,12 @@ Description
 """""""""""
 
 The *polymorphic* pair style computes a 3-body free-form potential
-(:ref:`Zhou <Zhou3>`) for the energy E of a system of atoms as
+(:ref:`Zhou3 <Zhou3>`) for the energy E of a system of atoms as
 
 .. math::
 
    E & = \frac{1}{2}\sum_{i=1}^{i=N}\sum_{j=1}^{j=N}\left[\left(1-\delta_{ij}\right)\cdot U_{IJ}\left(r_{ij}\right)-\left(1-\eta_{ij}\right)\cdot F_{IJ}\left(X_{ij}\right)\cdot V_{IJ}\left(r_{ij}\right)\right] \\
-   X_{ij} & = \sum_{k=i_1,k\neq j}^{i_N}W_{IK}\left(r_{ik}\right)\cdot G_{JIK}\left(\theta_{jik}\right)\cdot P_{JIK}\left(\Delta r_{jik}\right) \\
+   X_{ij} & = \sum_{k=i_1,k\neq j}^{i_N}W_{IK}\left(r_{ik}\right)\cdot G_{JIK}\left(\cos\theta_{jik}\right)\cdot P_{JIK}\left(\Delta r_{jik}\right) \\
    \Delta r_{jik} & = r_{ij}-\xi_{IJ}\cdot r_{ik}
 
 where I, J, K represent species of atoms i, j, and k, :math:`i_1, ...,
@@ -72,7 +72,7 @@ instance, the potential reduces to a Stillinger-Weber potential
    F_{IJ}\left(X\right) & = -X \\
    P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
    W_{IJ}\left(r\right) & = \sqrt{\lambda_{IJ}\cdot \epsilon_{IJ}}\cdot exp\left(\frac{\gamma_{IJ}\cdot \sigma_{IJ}}{r-a_{IJ}\cdot \sigma_{IJ}}\right) \\
-   G_{JIK}\left(\theta\right) & = \left(cos\theta+\frac{1}{3}\right)^2
+   G_{JIK}\left(\cos\theta\right) & = \left(\cos\theta+\frac{1}{3}\right)^2
 
 The potential reduces to a Tersoff potential (:ref:`Tersoff <Tersoff>`
 or :ref:`Albe <poly-Albe>`) if we set
@@ -85,7 +85,7 @@ or :ref:`Albe <poly-Albe>`) if we set
    F_{IJ}\left(X\right) & = \left(1+X\right)^{-\frac{1}{2}} \\
    P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = exp\left(2\mu_{IK}\cdot \Delta r\right) \\
    W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) & = \gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}\right]
+   G_{JIK}\left(\cos\theta\right) & = \gamma_{IK}\left[1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+\cos\theta\right)^2}\right]
 
 where
 
@@ -98,7 +98,7 @@ where
    \end{array}\right.
 
 The potential reduces to a modified Stillinger-Weber potential
-(:ref:`Zhou <Zhou3>`) if we set
+(:ref:`Zhou3 <Zhou3>`) if we set
 
 .. math::
 
@@ -108,9 +108,9 @@ The potential reduces to a modified Stillinger-Weber potential
    F_{IJ}\left(X\right) & = -X \\
    P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
    W_{IJ}\left(r\right) & = u_{IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) & = g_{JIK}\left(cos\theta\right)
+   G_{JIK}\left(\cos\theta\right) & = g_{JIK}\left(\cos\theta\right)
 
-The potential reduces to a Rockett-Tersoff potential (:ref:`Wang
+The potential reduces to a Rockett-Tersoff potential (:ref:`Wang3
 <Wang3>`) if we set
 
 .. math::
@@ -121,7 +121,7 @@ The potential reduces to a Rockett-Tersoff potential (:ref:`Wang
    F_{IJ}\left(X\right) & = \left[1+\left(\beta_{IJ}X\right)^{n_{IJ}}\right]^{-\frac{1}{2n_{IJ}}} \\
    P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = exp\left(\lambda_{3,IK}\cdot \Delta r^3\right) \\
    W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) & = 1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+cos\theta\right)^2}
+   G_{JIK}\left(\cos\theta\right) & = 1+\frac{c_{IK}^2}{d_{IK}^2}-\frac{c_{IK}^2}{d_{IK}^2+\left(h_{IK}+\cos\theta\right)^2}
 
 where :math:`f_{ca,IJ}(r)` is similar to the :math:`f_{c,IJ}(r)` defined
 above:
@@ -145,14 +145,14 @@ if we set
    F_{II}\left(X\right) & = -2F_I\left(X\right) \\
    P_{JIK}\left(\Delta r\right) & = P_{IK}\left(\Delta r\right) = 1 \\
    W_{IJ}\left(r\right) & = f_{J}\left(r\right) \\
-   G_{JIK}\left(\theta\right) & = 1
+   G_{JIK}\left(\cos\theta\right) & = 1
 
 In the embedded atom method case, :math:`\phi_{IJ}(r)` is the pair
 energy, :math:`F_I(X)` is the embedding energy, *X* is the local
 electron density, and :math:`f_J(r)` is the atomic electron density
 function.
 
-The potential reduces to another type of Tersoff potential (:ref:`Zhou
+The potential reduces to another type of Tersoff potential (:ref:`Zhou4
 <Zhou4>`) if we set
 
 .. math::
@@ -163,7 +163,7 @@ The potential reduces to another type of Tersoff potential (:ref:`Zhou
    F_{IJ}\left(X\right) & = \left(1+X\right)^{-\frac{1}{2}} \\
    P_{JIK}\left(\Delta r\right) & = \omega_{JIK} \cdot exp\left(\alpha_{JIK}\cdot \Delta r\right) \\
    W_{IJ}\left(r\right) & = f_{c,IJ}\left(r\right) \\
-   G_{JIK}\left(\theta\right) & = \gamma_{JIK}\left[1+\frac{c_{JIK}^2}{d_{JIK}^2}-\frac{c_{JIK}^2}{d_{JIK}^2+\left(h_{JIK}+cos\theta\right)^2}\right] \\
+   G_{JIK}\left(\cos\theta\right) & = \gamma_{JIK}\left[1+\frac{c_{JIK}^2}{d_{JIK}^2}-\frac{c_{JIK}^2}{d_{JIK}^2+\left(h_{JIK}+\cos\theta\right)^2}\right] \\
    T_{IJ}\left(r\right) & = \frac{1}{1+exp\left[-b_{f,IJ}\left(r-r_{f,IJ}\right)\right]} \\
    V_{ZBL,IJ}\left(r\right) & = 14.4 \cdot \frac{Z_I \cdot Z_J}{r}\sum_{k=1}^{4}\mu_k \cdot exp\left[-\nu_k \left(Z_I^{0.23}+Z_J^{0.23}\right) r\right]
 
@@ -186,24 +186,24 @@ not mean that polymorphic pair style is different from the sw pair
 style. It just means that the definitions of the atom energies and atom
 stresses are different.
 
-Only a single pair_coeff command is used with the polymorphic pair
-style which specifies an potential file for all needed elements.
-These are mapped to LAMMPS atom types by specifying N additional
-arguments after the filename in the pair_coeff command, where N
-is the number of LAMMPS atom types:
+Only a single pair_coeff command is used with the polymorphic pair style
+which specifies a potential file for all needed elements.  These are
+mapped to LAMMPS atom types by specifying N additional arguments after
+the filename in the pair_coeff command, where N is the number of LAMMPS
+atom types:
 
 * filename
-* N element names = mapping of Tersoff elements to atom types
+* N element names = mapping of polymorphic potential elements to atom types
 
 See the pair_coeff doc page for alternate ways to specify the path for
 the potential file. Several files for polymorphic potentials are
 included in the potentials directory of the LAMMPS distribution. They
 have a "poly" suffix.
 
-As an example, imagine the GaN_tersoff.poly file has tabulated
-functions for Ga-N tersoff potential. If your LAMMPS simulation has 4
-atoms types and you want the 1st 3 to be Ga, and the 4th to be N, you
-would use the following pair_coeff command:
+As an example, imagine the GaN_tersoff.poly file has tabulated functions
+for Ga-N tersoff potential. If your LAMMPS simulation has 4 atoms types
+and you want the 1st 3 to be Ga, and the 4th to be N, you would use the
+following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -220,21 +220,22 @@ with other potentials.
 
 Potential files in the potentials directory of the LAMMPS distribution
 have a ".poly" suffix. At the beginning of the files, an unlimited
-number of lines starting with '#' are used to describe the potential
-and are ignored by LAMMPS. The next line lists two numbers:
+number of lines starting with '#' are used to describe the potential and
+are ignored by LAMMPS. The next line lists two numbers:
 
 .. parsed-literal::
 
    ntypes eta
 
-Here ntypes represent total number of species defined in the potential
+Here *ntypes* represent total number of species defined in the potential
 file, :math:`\eta = 1` reduces to embedded atom method, :math:`\eta = 3`
-assumes three species dependent :math:`P_{JIK}(\Delta r)` function, and
-all other :math:`\eta` assumes two species dependent
-:math:`P_{JK}(\Delta r)` function. The number ntypes must equal the total
-number of different species defined in the pair_coeff command. The next
-ntypes lines each lists two numbers and a character string representing
-atomic number, atomic mass, and name of the species of the ntypes elements:
+assumes a three species dependent :math:`P_{JIK}(\Delta r)` function,
+and all other values of :math:`\eta` assume a two species dependent
+:math:`P_{JK}(\Delta r)` function. The value of *ntypes* must equal the
+total number of different species defined in the pair_coeff command. The
+next *ntypes* lines each lists two numbers and a character string
+representing atomic number, atomic mass, and name of the species of the
+ntypes elements:
 
 .. parsed-literal::
 
@@ -249,17 +250,17 @@ The next line contains four numbers:
 
    nr ntheta nx xmax
 
-Here nr is total number of tabular points for radial functions U, V, W, P,
-ntheta is total number of tabular points for the angular function G, nx is
-total number of tabular points for the function F, xmax is a maximum
-value of the argument of function F. Note that the pair functions
-:math:`U_{IJ}(r)`, :math:`V_{IJ}(r)`, :math:`W_{IJ}(r)` are uniformly
-tabulated between 0 and cutoff distance of the IJ pair,
-:math:`G_{JIK}(\theta)` is uniformly tabulated between -1 and 1,
-:math:`P_{JIK}(\Delta r)` is uniformly tabulated between -rcmax
-and rcmax where rcmax is the maximum cutoff distance of all pairs, and
+Here nr is total number of tabular points for radial functions U, V, W,
+P, ntheta is total number of tabular points for the angular function G,
+nx is total number of tabular points for the function F, xmax is a
+maximum value of the argument of function F. Note that the pair
+functions :math:`U_{IJ}(r)`, :math:`V_{IJ}(r)`, :math:`W_{IJ}(r)` are
+uniformly tabulated between 0 and cutoff distance of the IJ pair,
+:math:`G_{JIK}(\cos\theta)` is uniformly tabulated between -1 and 1,
+:math:`P_{JIK}(\Delta r)` is uniformly tabulated between -rcmax and
+rcmax where rcmax is the maximum cutoff distance of all pairs, and
 :math:`F_{IJ}(X)` is uniformly tabulated between 0 and xmax. Linear
-extrapolation is assumed if actual simulations exceed these ranges. 
+extrapolation is assumed if actual simulations exceed these ranges.
 
 The next ntypes\*(ntypes+1)/2 lines contain two numbers:
 
@@ -270,39 +271,39 @@ The next ntypes\*(ntypes+1)/2 lines contain two numbers:
    ...
    cut xi(ntypes\*(ntypes+1)/2)
 
-Here cut means the cutoff distance of the pair functions, :math:`\xi` is
-the same as defined in the potential functions above. The
+Here cut means the cutoff distance of the pair functions, "xi" is
+:math:`\xi` as defined in the potential functions above. The
 ntypes\*(ntypes+1)/2 lines are related to the pairs according to the
-sequence of first ii (self) pairs, i = 1, 2, ..., ntypes, and then
-ij (cross) pairs, i = 1, 2, ..., ntypes-1, and j = i+1, i+2, ..., ntypes
+sequence of first ii (self) pairs, i = 1, 2, ..., ntypes, and then ij
+(cross) pairs, i = 1, 2, ..., ntypes-1, and j = i+1, i+2, ..., ntypes
 (i.e., the sequence of the ij pairs follows 11, 22, ..., 12, 13, 14,
 ..., 23, 24, ...).
 
 In the final blocks of the potential file, U, V, W, P, G, and F
-functions are listed sequentially. First, U functions are given for
-each of the ntypes\*(ntypes+1)/2 pairs according to the sequence
-described above. For each of the pairs, nr values are listed. Next,
-similar arrays are given for V and W functions. If P functions
-depend only on pair species, i.e., :math:`\eta \neq 3`, then P
-functions are also listed the same way the next. If P functions
-depend on three species, i.e., :math:`\eta = 3`, then P functions
-are listed for all the ntypes*ntypes*ntypes IJK triplets in a
-natural sequence I from 1 to ntypes, J from 1 to ntypes, and K from
-1 to ntypes (i.e., IJK = 111, 112, 113, ..., 121, 122, 123 ..., 211,
-212, ...). Next, G functions are listed for all the ntypes*ntypes*ntypes
-IJK triplets similarly. For each of the G functions, ntheta values
-are listed. Finally, F functions are listed for all the
-ntypes*(ntypes+1)/2 pairs in the same sequence as described above.
-For each of the F functions, nx values are listed.
+functions are listed sequentially. First, U functions are given for each
+of the ntypes\*(ntypes+1)/2 pairs according to the sequence described
+above. For each of the pairs, nr values are listed. Next, similar arrays
+are given for V and W functions. If P functions depend only on pair
+species, i.e., :math:`\eta \neq 3`, then P functions are also listed the
+same way the next. If P functions depend on three species, i.e.,
+:math:`\eta = 3`, then P functions are listed for all the
+ntypes*ntypes*ntypes IJK triplets in a natural sequence I from 1 to
+ntypes, J from 1 to ntypes, and K from 1 to ntypes (i.e., IJK = 111,
+112, 113, ..., 121, 122, 123 ..., 211, 212, ...). Next, G functions are
+listed for all the ntypes*ntypes*ntypes IJK triplets similarly. For each
+of the G functions, ntheta values are listed. Finally, F functions are
+listed for all the ntypes*(ntypes+1)/2 pairs in the same sequence as
+described above.  For each of the F functions, nx values are listed.
 
 **Mixing, shift, table tail correction, restart**\ :
 
 This pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write their information to :doc:`binary restart files <restart>`, since it is stored in potential files. Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write their information to :doc:`binary restart
+files <restart>`, since it is stored in potential files. Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 ----------
 
@@ -314,15 +315,15 @@ input script. If using read_data, atomic masses must be defined in the
 atomic structure data file.
 
 This pair style is part of the MANYBODY package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 This pair potential requires the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
-The potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal :doc:`units <units>`. You can use
-any LAMMPS units, but you would need to create your own potential
-files.
+The potential files provided with LAMMPS (see the potentials directory)
+are parameterized for metal :doc:`units <units>`. You can use any LAMMPS
+units, but you would need to create your own potential files.
 
 Related commands
 """"""""""""""""
@@ -333,11 +334,11 @@ Related commands
 
 .. _Zhou3:
 
-**(Zhou)** X. W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
+**(Zhou3)** X. W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
 .. _Zhou4:
 
-**(Zhou)** X. W. Zhou, M. E. Foster, J. A. Ronevich, and C. W. San Marchi, J. Comp. Chem., 41, 1299 (2020).
+**(Zhou4)** X. W. Zhou, M. E. Foster, J. A. Ronevich, and C. W. San Marchi, J. Comp. Chem., 41, 1299 (2020).
 
 .. _SW:
 
@@ -358,4 +359,3 @@ Related commands
 .. _poly-Daw:
 
 **(Daw)** M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).
-</PRE>

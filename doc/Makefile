@@ -106,6 +106,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
+	@cp $(MATHJAX)/polyfill.js html/_static/polyfill.js
 	@echo "Build finished. The HTML pages are in doc/html."
 
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
@@ -232,6 +233,7 @@ $(VENV):
 
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
+	@curl -s -o $@/polyfill.js "https://polyfill.io/v3/polyfill.min.js?features=es6"
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

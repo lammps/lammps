@@ -35,17 +35,22 @@ if(BUILD_DOC)
   )
 
   # download mathjax distribution and unpack to folder "mathjax"
-  file(DOWNLOAD "https://github.com/mathjax/MathJax/archive/3.0.5.tar.gz"
-    "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
-    EXPECTED_MD5 5d9d3799cce77a1a95eee6be04eb68e7)
-
   if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5)
+    file(DOWNLOAD "https://github.com/mathjax/MathJax/archive/3.0.5.tar.gz"
+      "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
+      EXPECTED_MD5 5d9d3799cce77a1a95eee6be04eb68e7)
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${CMAKE_CURRENT_BINARY_DIR}/mathjax)
   endif()
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax)
   file(COPY ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/)
+
+  # for increased browser compatibility
+  if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/html/_static/polyfill.js)
+    file(DOWNLOAD "https://polyfill.io/v3/polyfill.min.js?features=es6"
+      "${CMAKE_CURRENT_BINARY_DIR}/html/_static/polyfill.js")
+  endif()
 
   # set up doxygen and add targets to run it
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen)

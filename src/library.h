@@ -47,86 +47,86 @@ extern "C" {
 #endif
 
 #if !defined(LAMMPS_LIB_NO_MPI)
-  void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
+void lammps_open(int, char **, MPI_Comm, void **);
 #endif
-  void lammps_open_no_mpi(int argc, char **argv, void **ptr);
-  void lammps_close(void *ptr);
-  void lammps_finalize();
-  int  lammps_version(void *ptr);
+void lammps_open_no_mpi(int, char **, void **);
+void lammps_close(void *);
+void lammps_finalize();
+int  lammps_version(void *);
 
-  void lammps_file(void * ptr, char * filename);
+void lammps_file(void *, char *);
 
-  char *lammps_command(void *, char *);
-  void lammps_commands_list(void *, int, char **);
-  void lammps_commands_string(void *, char *);
-  void lammps_free(void *);
+char *lammps_command(void *, char *);
+void lammps_commands_list(void *, int, char **);
+void lammps_commands_string(void *, char *);
+void lammps_free(void *);
 
-  int lammps_extract_setting(void *, char *);
-  void *lammps_extract_global(void *, char *);
-  void lammps_extract_box(void *, double *, double *,
-                          double *, double *, double *, int *, int *);
-  void *lammps_extract_atom(void *, char *);
-  void *lammps_extract_compute(void *, char *, int, int);
-  void *lammps_extract_fix(void *, char *, int, int, int, int);
-  void *lammps_extract_variable(void *, char *, char *);
+int lammps_extract_setting(void *, char *);
+void *lammps_extract_global(void *, char *);
+void lammps_extract_box(void *, double *, double *,
+                        double *, double *, double *, int *, int *);
+void *lammps_extract_atom(void *, char *);
+void *lammps_extract_compute(void *, char *, int, int);
+void *lammps_extract_fix(void *, char *, int, int, int, int);
+void *lammps_extract_variable(void *, char *, char *);
 
-  double lammps_get_thermo(void *, char *);
-  int lammps_get_natoms(void *);
+double lammps_get_thermo(void *, char *);
+int lammps_get_natoms(void *);
 
-  int lammps_set_variable(void *, char *, char *);
-  void lammps_reset_box(void *, double *, double *, double, double, double);
+int lammps_set_variable(void *, char *, char *);
+void lammps_reset_box(void *, double *, double *, double, double, double);
 
-  void lammps_gather_atoms(void *, char *, int, int, void *);
-  void lammps_gather_atoms_concat(void *, char *, int, int, void *);
-  void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
-  void lammps_scatter_atoms(void *, char *, int, int, void *);
-  void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+void lammps_gather_atoms(void *, char *, int, int, void *);
+void lammps_gather_atoms_concat(void *, char *, int, int, void *);
+void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
+void lammps_scatter_atoms(void *, char *, int, int, void *);
+void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
 #if defined(LAMMPS_BIGBIG)
-  typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-  void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #elif defined(LAMMPS_SMALLBIG)
-  typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-  void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #else
-  typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
-  void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #endif
 
-  int lammps_config_has_package(char * package_name);
-  int lammps_config_package_count();
-  int lammps_config_package_name(int index, char * buffer, int max_size);
-  int lammps_config_has_gzip_support();
-  int lammps_config_has_png_support();
-  int lammps_config_has_jpeg_support();
-  int lammps_config_has_ffmpeg_support();
-  int lammps_config_has_exceptions();
+int lammps_config_has_package(char * package_name);
+int lammps_config_package_count();
+int lammps_config_package_name(int index, char * buffer, int max_size);
+int lammps_config_has_gzip_support();
+int lammps_config_has_png_support();
+int lammps_config_has_jpeg_support();
+int lammps_config_has_ffmpeg_support();
+int lammps_config_has_exceptions();
 
-  int lammps_has_style(void* ptr, char * category, char * name);
-  int lammps_style_count(void* ptr, char * category);
-  int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
+int lammps_has_style(void* ptr, char * category, char * name);
+int lammps_style_count(void* ptr, char * category);
+int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
 
-  int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
-  int lammps_find_fix_neighlist(void* ptr, char * id, int request);
-  int lammps_find_compute_neighlist(void* ptr, char * id, int request);
-  int lammps_neighlist_num_elements(void* ptr, int idx);
-  void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
+int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
+int lammps_find_fix_neighlist(void* ptr, char * id, int request);
+int lammps_find_compute_neighlist(void* ptr, char * id, int request);
+int lammps_neighlist_num_elements(void* ptr, int idx);
+void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
 
 // lammps_create_atoms() takes tagint and imageint as args
 // ifdef insures they are compatible with rest of LAMMPS
 // caller must match to how LAMMPS library is built
 
 #ifdef LAMMPS_BIGBIG
-  void lammps_create_atoms(void *, int, int64_t *, int *,
-                           double *, double *, int64_t *, int);
+void lammps_create_atoms(void *, int, int64_t *, int *,
+                         double *, double *, int64_t *, int);
 #else
-  void lammps_create_atoms(void *, int, int *, int *,
-                           double *, double *, int *, int);
+void lammps_create_atoms(void *, int, int *, int *,
+                         double *, double *, int *, int);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS
-  int lammps_has_error(void *);
-  int lammps_get_last_error_message(void *, char *, int);
+int lammps_has_error(void *);
+int lammps_get_last_error_message(void *, char *, int);
 #endif
 
 #undef LAMMPS

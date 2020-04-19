@@ -28,5 +28,5 @@ URL: http://lammps.sandia.gov
 Version: @PROJECT_VERSION@
 Requires:
 Libs: -L${libdir} -llammps@LAMMPS_MACHINE@
-Libs.private: -lm
+Libs.private: @LAMMPS_DEP_LIBS@
 Cflags: -I${includedir} @LAMMPS_API_DEFINES@

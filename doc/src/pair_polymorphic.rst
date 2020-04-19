@@ -22,7 +22,7 @@ Examples
    pair_coeff * * TlBr_msw.poly Tl Br
    pair_coeff * * CuTa_eam.poly Cu Ta
    pair_coeff * * GaN_tersoff.poly Ga N
-   pair_coeff * * GaN_sw.poly GaN
+   pair_coeff * * GaN_sw.poly Ga N
 
 Description
 """""""""""
@@ -167,7 +167,7 @@ The potential reduces to another type of Tersoff potential (:ref:`Zhou4
    T_{IJ}\left(r\right) & = \frac{1}{1+exp\left[-b_{f,IJ}\left(r-r_{f,IJ}\right)\right]} \\
    V_{ZBL,IJ}\left(r\right) & = 14.4 \cdot \frac{Z_I \cdot Z_J}{r}\sum_{k=1}^{4}\mu_k \cdot exp\left[-\nu_k \left(Z_I^{0.23}+Z_J^{0.23}\right) r\right]
 
-where :math:`f_{c,IJ}(r)` is the as defined above. This Tersoff
+where :math:`f_{c,IJ}(r)` is the same as defined above. This Tersoff
 potential differs from the one above because the :math:`P_{JIK}(\Delta
 r)` function is now dependent on all three species I, J, and K.
 

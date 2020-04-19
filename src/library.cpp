@@ -1104,7 +1104,7 @@ void *lammps_extract_atom(void *handle, char *name)
 This function returns a pointer to the location of data provided
 by a :doc:`compute` instance identified by the compute-ID.  Computes
 may provide global, per-atom, or local data, and those may be a
-scalar, a vector, or an array or they may provide the infomation
+scalar, a vector, or an array or they may provide the information
 about the dimensions of the respective data.  Since computes may
 provide multiple kinds of data, it is required to set style and
 type flags representing what specific data is desired.  This also
@@ -1173,7 +1173,7 @@ or current. The following table lists the available options.
 The pointers returned by this function are generally not persistent
 since the computed data may be re-distributed, re-allocated, and
 re-ordered at every invocation. It is advisable to re-invoke this
-funtion before the data is accessed, or make a copy if the data
+function before the data is accessed, or make a copy if the data
 shall be used after other LAMMPS commands have been issued.
 
 .. note::

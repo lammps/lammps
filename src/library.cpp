@@ -107,7 +107,7 @@ when called from the command line, the first argument would be the
 name of the executable and thus is ignored.  However ``argc`` may
 be set to 0 and then ``argv`` may be a ``NULL`` pointer.
 
-If for some reason the initialization of the LAMMPS instance fails
+If for some reason the initialization of the LAMMPS instance fails,
 the ``ptr`` handle will be set to a ``NULL`` pointer.
 \endverbatim
  *
@@ -149,9 +149,9 @@ but is called from a parallel MPI program.
  *
  * \param argc number of command line arguments
  * \param argv list of command line argument strings
- * \param ptr pointer to a void pointer variable which serves as a handle
+ * \param handle pointer to a void pointer variable which serves as a handle
  */
-void lammps_open_no_mpi(int argc, char **argv, void **ptr)
+void lammps_open_no_mpi(int argc, char **argv, void **handle)
 {
   int flag;
   MPI_Initialized(&flag);
@@ -168,25 +168,25 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
   try
   {
     LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-    *ptr = (void *) lmp;
+    *handle = (void *) lmp;
   }
   catch(LAMMPSException & e) {
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
-    *ptr = (void*) NULL;
+    *handle = (void*) NULL;
   }
 #else
   LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-  *ptr = (void *) lmp;
+  *handle = (void *) lmp;
 #endif
 }
 
 /** \brief Delete a LAMMPS instance created by lammps_open() or
  *   lammps_open_no_mpi()
  *
- * \param ptr pointer to a previously created LAMMPS instance.
+ * \param handle pointer to a previously created LAMMPS instance.
  *
 \verbatim embed:rst
-This function deletes a LAMMPS class instance pointed to by ``ptr``.
+This function deletes a LAMMPS class instance pointed to by ``handle``.
 It does **not** call ``MPI_Finalize()`` to allow creating and deleting
 multiple LAMMPS instances.  See :cpp:func:`lammps_finalize` for a
 function to call at the end of the program in order to close down the
@@ -194,15 +194,15 @@ MPI infrastructure in case the calling program is not using MPI and was
 creating the LAMMPS instance through :c:func:`lammps_open_no_mpi`.
 \endverbatim
 */
-void lammps_close(void *ptr)
+void lammps_close(void *handle)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   delete lmp;
 }
 
 /** \brief Get the numerical representation of the current LAMMPS version.
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \return an integer representing the version data in the format YYYYMMDD
 
 \verbatim embed:rst
@@ -222,9 +222,9 @@ in the command syntax.
 \endverbatim
  */
 
-int lammps_version(void *ptr)
+int lammps_version(void *handle)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   return atoi(lmp->universe->num_ver);
 }
 
@@ -255,7 +255,7 @@ buffer that has been allocated by LAMMPS or the library interface.
 This function can be used to delete those in order to avoid memory leaks.
 \endverbatim
  *
- * \param ptr pointer to data allocated by LAMMPS
+ * \param handle pointer to data allocated by LAMMPS
 */
 void lammps_free(void *ptr)
 {
@@ -268,7 +268,7 @@ void lammps_free(void *ptr)
 
 /** \brief Process LAMMPS input from a file
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param filename name of a file with LAMMPS input
 
 \verbatim embed:rst
@@ -280,9 +280,9 @@ This may take considerable amounts of time, if the input file
 contains :doc:`run <run>` or :doc:`minimize <minimize>` commands.
 \endverbatim
   */
-void lammps_file(void *ptr, char *filename)
+void lammps_file(void *handle, char *filename)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -309,13 +309,13 @@ The function returns the name of the command on success or ``NULL``
 when passing a string without a command.
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param str string with the LAMMPS command
  * \return string with command name or ``NULL``
  */
-char *lammps_command(void *ptr, char *str)
+char *lammps_command(void *handle, char *str)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   char *result = NULL;
 
   BEGIN_CAPTURE
@@ -341,13 +341,13 @@ input file and is then internally passed to
 :cpp:func:`lammps_commands_string` for processing.
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param ncmd number of strings in the list
  * \param cmds list of strings with the LAMMPS commands
  */
-void lammps_commands_list(void *ptr, int ncmd, char **cmds)
+void lammps_commands_list(void *handle, int ncmd, char **cmds)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   int n = ncmd+1;
   for (int i = 0; i < ncmd; i++) n += strlen(cmds[i]);
@@ -366,7 +366,7 @@ void lammps_commands_list(void *ptr, int ncmd, char **cmds)
     }
   }
 
-  lammps_commands_string(ptr,str);
+  lammps_commands_string(handle,str);
   lmp->memory->sfree(str);
 }
 
@@ -387,12 +387,12 @@ the string is handed to LAMMPS for parsing and executing.
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param str string with block of LAMMPS input
  */
-void lammps_commands_string(void *ptr, char *str)
+void lammps_commands_string(void *handle, char *str)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   // make copy of str so can strtok() it
 
@@ -485,13 +485,13 @@ Please also see :cpp:func:`lammps_extract_global`.
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param name string with keyword of the setting
  * \return the value of the queried setting as a signed integer or -1 if unknown
  */
-int lammps_extract_setting(void * ptr, char *name)
+int lammps_extract_setting(void * handle, char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
 // This can be customized by adding keywords and documenting them in the section above.
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
@@ -743,14 +743,14 @@ is selected at :ref:`compile time <size>`.
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param name string with name of the entity
  * \return pointer cast to ``void *`` to the location of the requested property. NULL if unknown keyword name
  */
 
-void *lammps_extract_global(void *ptr, char *name)
+void *lammps_extract_global(void *handle, char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
@@ -820,7 +820,7 @@ and then assign the designated data to the locations in the pointers passed as
 arguments.
 \endverbatim
 
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
  * \param boxlo pointer to 3 doubles where the lower box boundary is stored
  * \param boxhi pointer to 3 doubles where the upper box boundary is stored
  * \param xy pointer to a double where the xy tilt factor is stored
@@ -830,11 +830,11 @@ arguments.
  * \param box_change pointer to an int, which is set to 1 if the box will be
  *        changed during a simulation by a fix and 0 if not.
  */
-void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
+void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
                         double *xy, double *yz, double *xz,
                         int *periodicity, int *box_change)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   Domain *domain = lmp->domain;
 
   // domain->init() is needed to set box_change
@@ -973,13 +973,13 @@ either an ``int`` or an ``int64_t``.  This is selected at
 
 \endverbatim
  *
- * \param ptr pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param name string with name of the entity
  * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
  */
-void *lammps_extract_atom(void *ptr, char *name)
+void *lammps_extract_atom(void *handle, char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
 }
 /* ----------------------------------------------------------------------
@@ -1019,9 +1019,9 @@ void *lammps_extract_atom(void *ptr, char *name)
      so caller must insure that it is OK
 ------------------------------------------------------------------------- */
 
-void *lammps_extract_compute(void *ptr, char *id, int style, int type)
+void *lammps_extract_compute(void *handle, char *id, int style, int type)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1096,10 +1096,10 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
      the fix is valid, so caller must insure that it is OK
 ------------------------------------------------------------------------- */
 
-void *lammps_extract_fix(void *ptr, char *id, int style, int type,
+void *lammps_extract_fix(void *handle, char *id, int style, int type,
                          int i, int j)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1173,9 +1173,9 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
      so caller must insure that it is OK
 ------------------------------------------------------------------------- */
 
-void *lammps_extract_variable(void *ptr, char *name, char *group)
+void *lammps_extract_variable(void *handle, char *name, char *group)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1210,9 +1210,9 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
      and returns it
 ------------------------------------------------------------------------- */
 
-double lammps_get_thermo(void *ptr, char *name)
+double lammps_get_thermo(void *handle, char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   double dval = 0.0;
 
   BEGIN_CAPTURE
@@ -1241,12 +1241,12 @@ pre-allocate the correct amount of storage for the result vector.
 
 \endverbatim
 
- * \param ptr pointer to a previously created LAMMPS instance
+ * \param handle pointer to a previously created LAMMPS instance
  * \return total number of atoms in the system or 0 if value too large.
  */
-int lammps_get_natoms(void *ptr)
+int lammps_get_natoms(void *handle)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   if (lmp->atom->natoms > MAXSMALLINT) return 0;
   int natoms = static_cast<int> (lmp->atom->natoms);
@@ -1259,9 +1259,9 @@ int lammps_get_natoms(void *ptr)
    return 0 for success
 ------------------------------------------------------------------------- */
 
-int lammps_set_variable(void *ptr, char *name, char *str)
+int lammps_set_variable(void *handle, char *name, char *str)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   int err = -1;
 
   BEGIN_CAPTURE
@@ -1279,10 +1279,10 @@ int lammps_set_variable(void *ptr, char *name, char *str)
    assumes domain->set_initial_box() has been invoked previously
 ------------------------------------------------------------------------- */
 
-void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
+void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
                       double xy, double yz, double xz)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   Domain *domain = lmp->domain;
 
   domain->boxlo[0] = boxlo[0];
@@ -1323,10 +1323,10 @@ void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms(void *ptr, char * /*name */,
+void lammps_gather_atoms(void *handle, char * /*name */,
                          int /*type*/, int /*count*/, void * /*data*/)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1336,10 +1336,10 @@ void lammps_gather_atoms(void *ptr, char * /*name */,
   END_CAPTURE
 }
 #else
-void lammps_gather_atoms(void *ptr, char *name,
+void lammps_gather_atoms(void *handle, char *name,
                          int type, int count, void *data)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1464,10 +1464,10 @@ void lammps_gather_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms_concat(void *ptr, char * /*name */,
+void lammps_gather_atoms_concat(void *handle, char * /*name */,
                                 int /*type*/, int /*count*/, void * /*data*/)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1477,10 +1477,10 @@ void lammps_gather_atoms_concat(void *ptr, char * /*name */,
   END_CAPTURE
 }
 #else
-void lammps_gather_atoms_concat(void *ptr, char *name,
+void lammps_gather_atoms_concat(void *handle, char *name,
                                 int type, int count, void *data)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1623,11 +1623,11 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms_subset(void *ptr, char * /*name */,
+void lammps_gather_atoms_subset(void *handle, char * /*name */,
                                 int /*type*/, int /*count*/,
                                 int /*ndata*/, int * /*ids*/, void * /*data*/)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1637,11 +1637,11 @@ void lammps_gather_atoms_subset(void *ptr, char * /*name */,
   END_CAPTURE
 }
 #else
-void lammps_gather_atoms_subset(void *ptr, char *name,
+void lammps_gather_atoms_subset(void *handle, char *name,
                                 int type, int count,
                                 int ndata, int *ids, void *data)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1773,10 +1773,10 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_scatter_atoms(void *ptr, char * /*name */,
+void lammps_scatter_atoms(void *handle, char * /*name */,
                           int /*type*/, int /*count*/, void * /*data*/)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1786,10 +1786,10 @@ void lammps_scatter_atoms(void *ptr, char * /*name */,
   END_CAPTURE
 }
 #else
-void lammps_scatter_atoms(void *ptr, char *name,
+void lammps_scatter_atoms(void *handle, char *name,
                           int type, int count, void *data)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1901,11 +1901,11 @@ void lammps_scatter_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_scatter_atoms_subset(void *ptr, char * /*name */,
+void lammps_scatter_atoms_subset(void *handle, char * /*name */,
                                 int /*type*/, int /*count*/,
                                 int /*ndata*/, int * /*ids*/, void * /*data*/)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -1915,11 +1915,11 @@ void lammps_scatter_atoms_subset(void *ptr, char * /*name */,
   END_CAPTURE
 }
 #else
-void lammps_scatter_atoms_subset(void *ptr, char *name,
+void lammps_scatter_atoms_subset(void *handle, char *name,
                                  int type, int count,
                                  int ndata, int *ids, void *data)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -2041,11 +2041,11 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
 ------------------------------------------------------------------------- */
 
-void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
+void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
                          double *x, double *v, imageint *image,
                          int shrinkexceed)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
 
   BEGIN_CAPTURE
   {
@@ -2129,9 +2129,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
    and caller pointer
 ------------------------------------------------------------------------- */
 
-void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr callback_ptr, void * caller)
+void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr callback_ptr, void * caller)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) handle;
   FixExternal::FnPtr callback = (FixExternal::FnPtr) callback_ptr;
 
   BEGIN_CAPTURE
@@ -2188,20 +2188,20 @@ int lammps_config_package_name(int index, char * buffer, int max_size) {
   return false;
 }
 
-int lammps_has_style(void * ptr, char * category, char * name) {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+int lammps_has_style(void * handle, char * category, char * name) {
+  LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.has_style(category, name);
 }
 
-int lammps_style_count(void * ptr, char * category) {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+int lammps_style_count(void * handle, char * category) {
+  LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.get_available_styles(category).size();
 }
 
-int lammps_style_name(void* ptr, char * category, int index, char * buffer, int max_size) {
-  LAMMPS *lmp = (LAMMPS *) ptr;
+int lammps_style_name(void* handle, char * category, int index, char * buffer, int max_size) {
+  LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
@@ -2243,8 +2243,8 @@ int lammps_config_has_exceptions() {
    check if a new error message
 ------------------------------------------------------------------------- */
 
-int lammps_has_error(void *ptr) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_has_error(void *handle) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
   return error->get_last_error() ? 1 : 0;
 }
@@ -2256,8 +2256,8 @@ int lammps_has_error(void *ptr) {
    2 = abort error (non-recoverable)
 ------------------------------------------------------------------------- */
 
-int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
 
   if(error->get_last_error()) {
@@ -2283,7 +2283,7 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
  * index. Thus, providing this request index ensures that the correct neighbor
  * list index is returned.
  *
- * @param ptr      Pointer to LAMMPS instance
+ * @param handle      Pointer to LAMMPS instance
  * @param style    String used to search for pair style instance
  * @param exact    Flag to control whether style should match exactly or only
  *                 must be contained in pair style name
@@ -2293,8 +2293,8 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
  *                 for the found pair style
  * @return         return neighbor list index if found, otherwise -1
  ******************************************************************************/
-int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, int request) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Pair* pair = lmp->force->pair_match(style, exact, nsub);
 
   if (pair != NULL) {
@@ -2314,14 +2314,14 @@ int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int
 /*******************************************************************************
  * Find neighbor list index of fix neighbor list
  *
- * @param ptr      Pointer to LAMMPS instance
+ * @param handle      Pointer to LAMMPS instance
  * @param id       Identifier of fix instance
  * @param request  request index that specifies which request should be returned,
  *                 in case there are multiple neighbor lists for this fix
  * @return         return neighbor list index if found, otherwise -1
  ******************************************************************************/
-int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_find_fix_neighlist(void* handle, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Fix* fix = NULL;
   const int nfix = lmp->modify->nfix;
 
@@ -2350,14 +2350,14 @@ int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
 /*******************************************************************************
  * Find neighbor list index of compute neighbor list
  *
- * @param ptr      Pointer to LAMMPS instance
+ * @param handle      Pointer to LAMMPS instance
  * @param id       Identifier of fix instance
  * @param request  request index that specifies which request should be returned,
  *                 in case there are multiple neighbor lists for this fix
  * @return         return neighbor list index if found, otherwise -1
  ******************************************************************************/
-int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_find_compute_neighlist(void* handle, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Compute* compute = NULL;
   const int ncompute = lmp->modify->ncompute;
 
@@ -2386,13 +2386,13 @@ int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
 /*******************************************************************************
  * Return the number of entries in the neighbor list with given index
  *
- * @param ptr      Pointer to LAMMPS instance
+ * @param handle      Pointer to LAMMPS instance
  * @param idx      neighbor list index
  * @return         return number of entries in neighbor list, -1 if idx is
  *                 not a valid index
  ******************************************************************************/
-int lammps_neighlist_num_elements(void * ptr, int idx) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+int lammps_neighlist_num_elements(void * handle, int idx) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;
 
   if(idx < 0 || idx >= neighbor->nlist) {
@@ -2407,7 +2407,7 @@ int lammps_neighlist_num_elements(void * ptr, int idx) {
  * Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
  *
- * @param ptr             Pointer to LAMMPS instance
+ * @param handle             Pointer to LAMMPS instance
  * @param idx             neighbor list index
  * @param element         neighbor list element index
  * @param[out] iatom      atom local index in range [0, nlocal + nghost), -1 if
@@ -2416,8 +2416,8 @@ int lammps_neighlist_num_elements(void * ptr, int idx) {
  * @param[out] neighbors  pointer to array of neighbor atom local indices or
  *                        NULL
  ******************************************************************************/
-void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;
   *iatom = -1;
   *numneigh = 0;

@@ -31,6 +31,9 @@ compile-mpi:
     - cmake -DCMAKE_BUILD_TYPE=Release -D BUILD_MPI=ON -DPKG_USER-PACE=ON ../cmake
     - cmake --build .
     - ls -lrt
+  artifacts:
+    paths:
+      - build-mpi/lmp
 
 
 
@@ -55,3 +58,11 @@ test-two-atom-types:
     - ../../build/lmp -in in.test_2types
     - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.2
     - diff en.2 ../thermo/en.1
+
+test-mpi:
+  stage: test
+  tags:
+    - gcc
+  script:
+    - cd test/thermo
+    - mpirun -np 2 ../../build-mpi/lmp -in in.test

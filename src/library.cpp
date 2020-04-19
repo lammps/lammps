@@ -1228,13 +1228,16 @@ double lammps_get_thermo(void *ptr, char *name)
 
 \verbatim embed:rst
 This is particularly useful before making calls to
-:cpp:func:`lammps_get_natoms` so one can
+:cpp:func:`lammps_extract_atom` or similar so one can
 pre-allocate the correct amount of storage for the result vector.
 
 .. note::
 
    This function returns a 32-bit signed integer and thus will
    not work for systems with more than about 2 billion atoms.
+   As an alternative, you can call :cpp:func:`lammps_extract_global`
+   and cast the resulting pointer to a 64-bit integer pointer
+   and dereference it.
 
 \endverbatim
 

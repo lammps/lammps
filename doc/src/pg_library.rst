@@ -1,9 +1,6 @@
 LAMMPS C library API
 ********************
 
-Overview
-========
-
 As described on the :doc:`library interface to LAMMPS <Howto_library>`
 doc page, LAMMPS can be built as a library, so that it can be called by
 another code, used in a :doc:`coupled manner <Howto_couple>` with other
@@ -18,14 +15,16 @@ require an argument containing a "handle" in the form of a ``void *``
 type variable, which points to the location this LAMMPS class instance.
 
 
-The ``library.h`` header file includes the ``mpi.h`` header for an MPI
-library, so it must be present when compiling code using the library
-interface.  This usually must be the header from the same MPI library as
-the LAMMPS library was compiled with.  The exception is when LAMMPS was
-compiled in serial mode using the ``STUBS`` MPI library.  In that case
-the calling code may be compiled with a different MPI library for as
-long as :cpp:func:`lammps_open_no_mpi` is called to
-create a LAMMPS instance.
+The ``library.h`` header file by default includes the ``mpi.h`` header
+for an MPI library, so it must be present when compiling code using the
+library interface.  This usually must be the header from the same MPI
+library as the LAMMPS library was compiled with.  The exception is when
+LAMMPS was compiled in serial mode using the ``STUBS`` MPI library.  In
+that case the calling code may be compiled with a different MPI library
+for as long as :cpp:func:`lammps_open_no_mpi` is called to create a
+LAMMPS instance. Then you may set the define ``-DLAMMPS_LIB_NO_MPI``
+when compiling your code and the inclusion of ``mpi.h`` will be skipped
+and consequently the function :cpp:func:`lammps_open` may not be used.
 
 If any of the function calls in the LAMMPS library API will trigger
 an error inside LAMMPS, this will result in an abort of the entire
@@ -44,213 +43,16 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
    returned data must be allocated to a suitable size.  Passing invalid
    or unsuitable information will likely cause crashes or corrupt data.
 
+------------------------------
 
-Creating or deleting a LAMMPS object
-====================================
+.. toctree::
+   :maxdepth: 1
 
-The :cpp:func:`lammps_open` and :cpp:func:`lammps_open_no_mpi`
-functions are used to create and initialize a
-:cpp:func:`LAMMPS` instance.  The calling program has to
-provide a handle where a reference to this instance can be stored and
-which has to be used in all subsequent function calls until that
-instance is destroyed by calling :cpp:func:`lammps_close`.
-Here is a simple example demonstrating its use:
+   pg_lib_create
+   pg_lib_execute
+   pg_lib_properties
 
-.. code-block:: C
 
-   #include "library.h"
-   #include <stdio.h>
-
-   int main(int argc, char **argv)
-   {
-     void *handle;
-     int version;
-     const char *lmpargv[] { "liblammps", "-log", "none"};
-     int lmpargc = sizeof(lmpargv)/sizeof(const char *);
-
-     /* create LAMMPS instance */
-     lammps_open_no_mpi(lmpargc, lmpargv, &handle);
-     if (handle == NULL) {
-       printf("LAMMPS initialization failed");
-       lammps_finalize();
-       return 1;
-     }
-
-     /* get and print numerical version */
-     version = lammps_version(handle);
-     printf("LAMMPS Version: %d\n",version);
-
-     /* delete LAMMPS instance and shut down MPI */
-     lammps_close(handle);
-     lammps_finalize();
-     return 0;
-   }
-
-The LAMMPS library will be using the MPI library it was compiled with
-and will either run on all processors in the ``MPI_COMM_WORLD``
-communicator or on the set of processors in the communicator given in
-the ``comm`` argument of :cpp:func:`lammps_open`.  This means
-the calling code can run LAMMPS on all or a subset of processors.  For
-example, a wrapper code might decide to alternate between LAMMPS and
-another code, allowing them both to run on all the processors.  Or it
-might allocate part of the processors to LAMMPS and the rest to the
-other code by creating a custom communicator with ``MPI_Comm_split()``
-and running both codes concurrently before syncing them up periodically.
-Or it might instantiate multiple instances of LAMMPS to perform
-different calculations and either alternate between them, run them
-concurrently on split communicators, or run them one after the other.
-The :cpp:func:`lammps_open` function may be called multiple
-times for this latter purpose.
-
-The :cpp:func:`lammps_close` function is used to shut down
-the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class pointed to by the handle
-passed as an argument and free all its memory. This has to be called for
-every instance created with any of the :cpp:func:`lammps_open` functions.  It will, however, **not** call
-``MPI_Finalize()``, since that may only be called once.  See
-:cpp:func:`lammps_finalize` for an alternative to calling
-``MPI_Finalize()`` explicitly in the calling program.
-
-The :cpp:func:`lammps_free` function is a clean-up
-function to free memory that the library allocated previously
-via other function calls.  See below for notes in the descriptions
-of the individual commands where such memory buffers were allocated.
-
------------------------
-
-.. doxygenfunction:: lammps_open
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_open_no_mpi
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_close
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_finalize
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_free
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_version
-   :project: progguide
-
------------------------
-
-Executing LAMMPS commands
-=========================
-
-Once a LAMMPS instance is created, there are multiple ways to "drive" a
-simulation.  In most cases it is easiest to process single or multiple
-LAMMPS commands like in an input file.  This can be done through reading
-a file or passing single commands or lists of commands or blocks of
-commands with the following functions.
-
-Via these functions, the calling code can have the LAMMPS instance act
-on a series of :doc:`input file commands <Commands_all>` that are either
-read from a file or passed as strings.  This for, for example, allows to
-setup a problem from a template file and then run it in stages while
-performing other operations in between or concurrently.  The caller can
-interleave the LAMMPS function calls with operations it performs, calls
-to extract information from or set information within LAMMPS, or calls
-to another code's library.
-
-Also equivalent to regular :doc:`input script parsing <Commands_parse>`
-is the handling of comments and expansion of variables with ``${name}``
-or ``$(expression)`` syntax before the commands are parsed and
-executed. Below is a short example using some of these functions.
-
-.. code-block:: C
-
-   #include <library.h>
-   #include <mpi.h>
-   #include <stdio.h>
-
-   int main(int argc, char **argv)
-   {
-     void *handle;
-     int i;
-
-     MPI_Init(&argc, &argv);
-     lammps_open(0, NULL, MPI_COMM_WORLD, &handle);
-     lammps_file(handle,"in.sysinit");
-     lammps_command(handle,"run 1000 post no");
-
-     for (i=0; i < 100; ++i) {
-       lammps_commands_string(handle,"run 100 pre no post no\n"
-                                     "print 'PE = $(pe)'\n"
-                                     "print 'KE = $(ke)'\n")
-     }
-     lammps_close(handle);
-     MPI_Finalize();
-     return 0;
-   }
-
------------------------
-
-.. doxygenfunction:: lammps_file
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_command
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_commands_list
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_commands_string
-   :project: progguide
-
------------------------
-
-Retrieving or setting system properties
-=======================================
-
-The library interface allows to extract all kinds of information
-about the active simulation instance and also modify it.  This
-allows to combine MD simulation steps with other processing and
-simulation methods computed in the calling code or another code
-that is coupled to LAMMPS via the library interface.
-
------------------------
-
-.. doxygenfunction:: lammps_extract_setting
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_extract_global
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_extract_box
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_extract_atom
-   :project: progguide
-
--------------------
-
-.. doxygenfunction:: lammps_get_natoms
-   :project: progguide
 
 -------------------
 

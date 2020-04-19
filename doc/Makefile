@@ -5,6 +5,7 @@ BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
 MATHJAX        = $(BUILDDIR)/mathjax
+POLYFILL       = $(BUILDDIR)/mathjax/polyfill.js
 TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
@@ -82,7 +83,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
@@ -106,7 +107,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
-	@cp $(MATHJAX)/polyfill.js html/_static/polyfill.js
+	@cp $(POLYFILL) html/_static/
 	@echo "Build finished. The HTML pages are in doc/html."
 
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
@@ -233,7 +234,9 @@ $(VENV):
 
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
-	@curl -s -o $@/polyfill.js "https://polyfill.io/v3/polyfill.min.js?features=es6"
+
+$(POLYFILL): $(MATHJAX)
+	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6"
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

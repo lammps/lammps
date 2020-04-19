@@ -230,9 +230,11 @@ void PairPACE::settings(int narg, char **arg) {
         error->all(FLERR,
                    "Illegal pair_style command. Correct form:\npair_style pace");
 
-    char str[128];
-    snprintf(str,128,"ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-    error->message(FLERR,str);
+    if (comm->me == 0) {
+        if (screen) fprintf(screen, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+        if (logfile) fprintf(logfile, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+    }
+
 
 }
 
@@ -272,9 +274,10 @@ void PairPACE::coeff(int narg, char **arg) {
 
     //load potential file
     basis_set = new ACECTildeBasisSet();
-    char str[128];
-    snprintf(str,128,"Loading %s\n", potential_file_name);
-    error->message(FLERR,str);
+    if (comm->me == 0) {
+        if (screen) fprintf(screen, "Loading %s\n", potential_file_name);
+        if (logfile) fprintf(logfile, "Loading %s\n", potential_file_name);
+    }
     basis_set->load(potential_file_name);
 
     // read args that map atom types to pACE elements
@@ -294,8 +297,12 @@ void PairPACE::coeff(int narg, char **arg) {
         }
         SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
         if (mu != -1) {
-            snprintf(str,128, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
-            error->message(FLERR,str);
+            if (comm->me == 0) {
+                if (screen)
+                    fprintf(screen, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+                if (logfile)
+                    fprintf(logfile, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+            }
             map[i] = mu;
             ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
         } else {

@@ -845,15 +845,15 @@ is selected at :ref:`compile time <size>`.
    * - ftm2v
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - mv2d
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - nktv2p
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - qqr2e
      - double
      - 1
@@ -861,15 +861,15 @@ is selected at :ref:`compile time <size>`.
    * - qe2f
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - vxmu2f
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - xxt2kmu
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - dielectric
      - double
      - 1
@@ -877,19 +877,19 @@ is selected at :ref:`compile time <size>`.
    * - qqrd2e
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - e_mass
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - hhmrr2e
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - mvh2r
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
    * - angstrom
      - double
      - 1
@@ -901,7 +901,7 @@ is selected at :ref:`compile time <size>`.
    * - qelectron
      - double
      - 1
-     -  . See :doc:`units`.
+     - (description missing) See :doc:`units`.
 
 \endverbatim
  *
@@ -1097,43 +1097,100 @@ void *lammps_extract_atom(void *handle, char *name)
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
 }
-/* ----------------------------------------------------------------------
-   extract a pointer to an internal LAMMPS atom-based entity
-   name = desired quantity, e.g. x or mass
-   returns a void pointer to the entity
-     which the caller can cast to the proper data type
-   returns a NULL if Atom::extract() does not recognize the name
-   customize by adding names to Atom::extract()
-------------------------------------------------------------------------- */
+
+/** \brief Get pointer to data from a LAMMPS compute.
+ *
+\verbatim embed:rst
+This function returns a pointer to the location of data provided
+by a :doc:`compute` instance identified by the compute-ID.  Computes
+may provide global, per-atom, or local data, and those may be a
+scalar, a vector, or an array or they may provide the infomation
+about the dimensions of the respective data.  Since computes may
+provide multiple kinds of data, it is required to set style and
+type flags representing what specific data is desired.  This also
+determines to what kind of pointer the returned pointer needs to
+be cast to access the data correctly.  The function returns ``NULL``
+if the compute ID is not found or the requested data is not available
+or current. The following table lists the available options.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Style
+     - Type
+     - Returned type
+     - Returned data
+   * - 0
+     - 0
+     - ``double *``
+     - Global scalar
+   * - 0
+     - 1
+     - ``double *``
+     - Global vector
+   * - 0
+     - 2
+     - ``double **``
+     - Global array
+   * - 0
+     - 3
+     - ``int *``
+     - Length of global vector
+   * - 0
+     - 4
+     - ``int *``
+     - Rows of global array
+   * - 0
+     - 5
+     - ``int *``
+     - Columns of global array
+   * - 1
+     - 1
+     - ``double *``
+     - Per-atom value
+   * - 1
+     - 2
+     - ``double **``
+     - Per-atom vector
+   * - 1
+     - 3
+     - ``int *``
+     - Columns of per-atom array, 0 if vector
+   * - 2
+     - 0
+     - ``int *``
+     - Number of local data rows
+   * - 2
+     - 1
+     - ``double *``
+     - Local data vector
+   * - 2
+     - 2
+     - ``double **``
+     - Local data array
+
+The pointers returned by this function are generally not persistent
+since the computed data may be re-distributed, re-allocated, and
+re-ordered at every invocation. It is advisable to re-invoke this
+funtion before the data is accessed, or make a copy if the data
+shall be used after other LAMMPS commands have been issued.
+
+.. note::
+
+   If the compute's data is not computed for the current step,
+   the compute will be invoked.  LAMMPS cannot easily check at
+   that time, if it is valid to invoke a compute, so it may fail
+   with an error.  The caller has to check to avoid such an error.
 
 
-/* ----------------------------------------------------------------------
-   extract a pointer to an internal LAMMPS compute-based entity
-   the compute is invoked if its value(s) is not current
-   id = compute ID
-   style = 0 for global data, 1 for per-atom data, 2 for local data
-   type = 0 for scalar, 1 for vector, 2 for array
-   for global data, returns a pointer to the
-     compute's internal data structure for the entity
-     caller should cast it to (double *) for a scalar or vector
-     caller should cast it to (double **) for an array
-   for per-atom or local vector/array data, returns a pointer to the
-     compute's internal data structure for the entity
-     caller should cast it to (double *) for a vector
-     caller should cast it to (double **) for an array
-   for local data, accessing scalar data for the compute (type = 0),
-   returns a pointer that should be cast to (int *) which points to
-   an int with the number of local rows, i.e. the length of the local array.
-   returns a void pointer to the compute's internal data structure
-     for the entity which the caller can cast to the proper data type
-   returns a NULL if id is not recognized or style/type not supported
-   the returned pointer is not a permanent valid reference to the
-     compute data, this function should be re-invoked
-   IMPORTANT: if the compute is not current it will be invoked
-     LAMMPS cannot easily check here if it is valid to invoke the compute,
-     so caller must insure that it is OK
-------------------------------------------------------------------------- */
-
+\endverbatim
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id string with ID of the compute
+ * \param style 
+ * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
+ */
 void *lammps_extract_compute(void *handle, char *id, int style, int type)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -1151,17 +1208,25 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
           compute->compute_scalar();
         return (void *) &compute->scalar;
       }
-      if (type == 1) {
+      if ((type == 1) || (type == 3)) {
         if (!compute->vector_flag) return NULL;
         if (compute->invoked_vector != lmp->update->ntimestep)
           compute->compute_vector();
-        return (void *) compute->vector;
+        if (type == 1)
+          return (void *) compute->vector;
+        else
+          return (void *) &compute->size_vector;
       }
-      if (type == 2) {
+      if ((type == 2) || (type == 4) || (type == 5)) {
         if (!compute->array_flag) return NULL;
         if (compute->invoked_array != lmp->update->ntimestep)
           compute->compute_array();
-        return (void *) compute->array;
+        if (type == 2)
+          return (void *) compute->array;
+        else if (type == 4)
+          return (void *) &compute->size_array_rows;
+        else
+          return (void *) &compute->size_array_cols;
       }
     }
 
@@ -1171,6 +1236,7 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
         compute->compute_peratom();
       if (type == 1) return (void *) compute->vector_atom;
       if (type == 2) return (void *) compute->array_atom;
+      if (type == 3) return (void *) &compute->size_peratom_cols;
     }
 
     if (style == 2) {

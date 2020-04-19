@@ -124,8 +124,9 @@ void PairPACE::compute(int eflag, int vflag) {
     firstneigh = list->firstneigh;
 
     if (inum != nlocal) {
-        printf("inum: %d nlocal: %d are different.\n", inum, nlocal);
-        exit(0);
+        char str[128];
+        snprintf(str,128,"inum: %d nlocal: %d are different",inum, nlocal);
+        error->all(FLERR,str);
     }
 
 
@@ -229,7 +230,12 @@ void PairPACE::settings(int narg, char **arg) {
         error->all(FLERR,
                    "Illegal pair_style command. Correct form:\npair_style pace");
 
-    printf("ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+    if (comm->me == 0) {
+        if (screen) fprintf(screen, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+        if (logfile) fprintf(logfile, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+    }
+
+
 }
 
 /* ----------------------------------------------------------------------
@@ -249,7 +255,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
     if (ntypes_coeff != atom->ntypes) {
         char error_message[1024];
-        sprintf(error_message,
+        snprintf(error_message, 1024,
                 "Incorrect args for pair coefficients. You provided %d elements in pair_coeff, but structure has %d atom types",
                 ntypes_coeff, atom->ntypes);
         error->all(FLERR, error_message);
@@ -268,7 +274,10 @@ void PairPACE::coeff(int narg, char **arg) {
 
     //load potential file
     basis_set = new ACECTildeBasisSet();
-    printf("Loading %s\n", potential_file_name);
+    if (comm->me == 0) {
+        if (screen) fprintf(screen, "Loading %s\n", potential_file_name);
+        if (logfile) fprintf(logfile, "Loading %s\n", potential_file_name);
+    }
     basis_set->load(potential_file_name);
 
     // read args that map atom types to pACE elements
@@ -283,17 +292,22 @@ void PairPACE::coeff(int narg, char **arg) {
         int atomic_number = AtomicNumberByName(elemname);
         if (atomic_number == -1) {
             char error_msg[1024];
-            sprintf(error_msg, "String '%s' is not a valid element\n", elemname);
+            snprintf(error_msg, 1024, "String '%s' is not a valid element\n", elemname);
             error->all(FLERR, error_msg);
         }
         SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
         if (mu != -1) {
-            printf("Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+            if (comm->me == 0) {
+                if (screen)
+                    fprintf(screen, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+                if (logfile)
+                    fprintf(logfile, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
+            }
             map[i] = mu;
             ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
         } else {
             char error_msg[1024];
-            sprintf(error_msg, "Element %s is not supported by ACE-potential from file %s", elemname,
+            snprintf(error_msg, 1024, "Element %s is not supported by ACE-potential from file %s", elemname,
                     potential_file_name);
             error->all(FLERR, error_msg);
         }
@@ -349,4 +363,3 @@ double PairPACE::init_one(int i, int j) {
 }
 
 /* ---------------------------------------------------------------------- */
-

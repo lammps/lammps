@@ -432,6 +432,168 @@ void lammps_commands_string(void *handle, char *str)
 // library API functions to extract info from LAMMPS or set info in LAMMPS
 // ----------------------------------------------------------------------
 
+/** \brief Return the total number of atoms in the system
+
+\verbatim embed:rst
+This is particularly useful before making calls to
+:cpp:func:`lammps_extract_atom` or similar so one can
+pre-allocate the correct amount of storage for the result vector.
+
+.. note::
+
+   This function returns a 32-bit signed integer and thus will
+   not work for systems with more than about 2 billion atoms.
+   As an alternative, you can call :cpp:func:`lammps_extract_global`
+   and cast the resulting pointer to a 64-bit integer pointer
+   and dereference it.
+
+\endverbatim
+
+ * \param handle pointer to a previously created LAMMPS instance
+ * \return total number of atoms in the system or 0 if value too large.
+ */
+int lammps_get_natoms(void *handle)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (lmp->atom->natoms > MAXSMALLINT) return 0;
+  int natoms = static_cast<int> (lmp->atom->natoms);
+  return natoms;
+}
+
+/** \brief Extract simulation box parameters
+
+\verbatim embed:rst
+This function will (re-)initialize the simulation box and boundary information
+and then assign the designated data to the locations in the pointers passed as
+arguments.
+\endverbatim
+
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
+ * \param boxlo pointer to 3 doubles where the lower box boundary is stored
+ * \param boxhi pointer to 3 doubles where the upper box boundary is stored
+ * \param xy pointer to a double where the xy tilt factor is stored
+ * \param yz pointer to a double where the yz tilt factor is stored
+ * \param xz pointer to a double where the xz tilt factor is stored
+ * \param periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
+ * \param box_change pointer to an int, which is set to 1 if the box will be
+ *        changed during a simulation by a fix and 0 if not.
+ */
+void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
+                        double *xy, double *yz, double *xz,
+                        int *periodicity, int *box_change)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Domain *domain = lmp->domain;
+
+  BEGIN_CAPTURE
+  {
+    // error if box does not exist
+    if ((lmp->domain->box_exist == 0)
+        && (lmp->comm->me == 0)) {
+      lmp->error->warning(FLERR,"Calling lammps_extract_box without a box");
+      return;
+    }
+
+    // domain->init() is needed to set box_change
+    domain->init();
+
+    boxlo[0] = domain->boxlo[0];
+    boxlo[1] = domain->boxlo[1];
+    boxlo[2] = domain->boxlo[2];
+    boxhi[0] = domain->boxhi[0];
+    boxhi[1] = domain->boxhi[1];
+    boxhi[2] = domain->boxhi[2];
+
+    *xy = domain->xy;
+    *yz = domain->yz;
+    *xz = domain->xz;
+
+    periodicity[0] = domain->periodicity[0];
+    periodicity[1] = domain->periodicity[1];
+    periodicity[2] = domain->periodicity[2];
+
+    *box_change = domain->box_change;
+  }
+  END_CAPTURE
+}
+
+/** \brief Reset simulation box parameters
+
+\verbatim embed:rst
+This function will set the simulation box dimensions (upper and lower
+bounds and tilt factors) from the provided data and then re-initialize()
+in and all derived parameters.
+\endverbatim
+
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
+ * \param boxlo pointer to 3 doubles where the new lower box boundaries are stored
+ * \param boxhi pointer to 3 doubles where the new upper box boundaries are stored
+ * \param xy xy tilt factor
+ * \param yz yz tilt factor
+ * \param xz xz tilt factor
+ */
+void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Domain *domain = lmp->domain;
+
+  BEGIN_CAPTURE
+  {
+    // error if box does not exist
+    if ((lmp->domain->box_exist == 0)
+        && (lmp->comm->me == 0)) {
+      lmp->error->warning(FLERR,"Calling lammps_reset_box without a box");
+      return;
+    }
+    domain->boxlo[0] = boxlo[0];
+    domain->boxlo[1] = boxlo[1];
+    domain->boxlo[2] = boxlo[2];
+    domain->boxhi[0] = boxhi[0];
+    domain->boxhi[1] = boxhi[1];
+    domain->boxhi[2] = boxhi[2];
+
+    domain->xy = xy;
+    domain->yz = yz;
+    domain->xz = xz;
+
+    domain->set_global_box();
+    lmp->comm->set_proc_grid();
+    domain->set_local_box();
+  }
+  END_CAPTURE
+}
+
+/** \brief Get current value of a thermo keyword
+
+\verbatim embed:rst
+This function returns the current value of a :doc:`thermo keyword
+<thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
+give access to the storage of the desired data, so it can also return
+information that is computed on-the-fly.  For that purpose it triggers
+the :cpp:class:`Thermo <LAMMPS_NS::Thermo>` class to compute the current
+value for that keyword and returns it.
+\endverbatim
+
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
+ * \param name :doc:`thermo keyword <thermo_style>` name.
+ * \return current value of the thermo keyword
+ */
+double lammps_get_thermo(void *handle, char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  double dval = 0.0;
+
+  BEGIN_CAPTURE
+  {
+    lmp->output->thermo->evaluate_keyword(name,&dval);
+  }
+  END_CAPTURE
+
+  return dval;
+}
+
 /** \brief Query LAMMPS about global settings that can be expressed as an integer
  *
 \verbatim embed:rst
@@ -812,53 +974,6 @@ void *lammps_extract_global(void *handle, char *name)
   return NULL;
 }
 
-/** \brief Extract simulation box parameters
-
-\verbatim embed:rst
-This function will (re-)initialize the simulation box and boundary information
-and then assign the designated data to the locations in the pointers passed as
-arguments.
-\endverbatim
-
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
- * \param boxlo pointer to 3 doubles where the lower box boundary is stored
- * \param boxhi pointer to 3 doubles where the upper box boundary is stored
- * \param xy pointer to a double where the xy tilt factor is stored
- * \param yz pointer to a double where the yz tilt factor is stored
- * \param xz pointer to a double where the xz tilt factor is stored
- * \param periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
- * \param box_change pointer to an int, which is set to 1 if the box will be
- *        changed during a simulation by a fix and 0 if not.
- */
-void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
-                        double *xy, double *yz, double *xz,
-                        int *periodicity, int *box_change)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Domain *domain = lmp->domain;
-
-  // domain->init() is needed to set box_change
-  domain->init();
-
-  boxlo[0] = domain->boxlo[0];
-  boxlo[1] = domain->boxlo[1];
-  boxlo[2] = domain->boxlo[2];
-  boxhi[0] = domain->boxhi[0];
-  boxhi[1] = domain->boxhi[1];
-  boxhi[2] = domain->boxhi[2];
-
-  *xy = domain->xy;
-  *yz = domain->yz;
-  *xz = domain->xz;
-
-  periodicity[0] = domain->periodicity[0];
-  periodicity[1] = domain->periodicity[1];
-  periodicity[2] = domain->periodicity[2];
-
-  *box_change = domain->box_change;
-}
-
-
 /** \brief Get pointer to a LAMMPS per-atom property.
  *
 \verbatim embed:rst
@@ -1203,57 +1318,6 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
 }
 
 /* ----------------------------------------------------------------------
-   return the current value of a thermo keyword as a double
-   unlike lammps_extract_global() this does not give access to the
-     storage of the data in question
-   instead it triggers the Thermo class to compute the current value
-     and returns it
-------------------------------------------------------------------------- */
-
-double lammps_get_thermo(void *handle, char *name)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  double dval = 0.0;
-
-  BEGIN_CAPTURE
-  {
-    lmp->output->thermo->evaluate_keyword(name,&dval);
-  }
-  END_CAPTURE
-
-  return dval;
-}
-
-/** \brief Return the total number of atoms in the system
-
-\verbatim embed:rst
-This is particularly useful before making calls to
-:cpp:func:`lammps_extract_atom` or similar so one can
-pre-allocate the correct amount of storage for the result vector.
-
-.. note::
-
-   This function returns a 32-bit signed integer and thus will
-   not work for systems with more than about 2 billion atoms.
-   As an alternative, you can call :cpp:func:`lammps_extract_global`
-   and cast the resulting pointer to a 64-bit integer pointer
-   and dereference it.
-
-\endverbatim
-
- * \param handle pointer to a previously created LAMMPS instance
- * \return total number of atoms in the system or 0 if value too large.
- */
-int lammps_get_natoms(void *handle)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-
-  if (lmp->atom->natoms > MAXSMALLINT) return 0;
-  int natoms = static_cast<int> (lmp->atom->natoms);
-  return natoms;
-}
-
-/* ----------------------------------------------------------------------
    set the value of a STRING variable to str
    return -1 if variable doesn't exist or not a STRING variable
    return 0 for success
@@ -1271,34 +1335,6 @@ int lammps_set_variable(void *handle, char *name, char *str)
   END_CAPTURE
 
   return err;
-}
-
-/* ----------------------------------------------------------------------
-   reset simulation box parameters
-   see domain.h for definition of these arguments
-   assumes domain->set_initial_box() has been invoked previously
-------------------------------------------------------------------------- */
-
-void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
-                      double xy, double yz, double xz)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Domain *domain = lmp->domain;
-
-  domain->boxlo[0] = boxlo[0];
-  domain->boxlo[1] = boxlo[1];
-  domain->boxlo[2] = boxlo[2];
-  domain->boxhi[0] = boxhi[0];
-  domain->boxhi[1] = boxhi[1];
-  domain->boxhi[2] = boxhi[2];
-
-  domain->xy = xy;
-  domain->yz = yz;
-  domain->xz = xz;
-
-  domain->set_global_box();
-  lmp->comm->set_proc_grid();
-  domain->set_local_box();
 }
 
 /* ----------------------------------------------------------------------

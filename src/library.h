@@ -33,7 +33,9 @@
 #define LAMMPS_SMALLBIG
 #endif
 
+#if !defined(LAMMPS_LIB_NO_MPI)
 #include <mpi.h>
+#endif
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
 #endif
@@ -44,7 +46,9 @@
 extern "C" {
 #endif
 
+#if !defined(LAMMPS_LIB_NO_MPI)
   void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
+#endif
   void lammps_open_no_mpi(int argc, char **argv, void **ptr);
   void lammps_close(void *ptr);
   void lammps_finalize();

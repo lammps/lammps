@@ -59,10 +59,24 @@ test-two-atom-types:
     - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.2
     - diff en.2 ../thermo/en.1
 
-test-mpi:
+test-two-atom-types-mpi:
   stage: test
   tags:
     - gcc
   script:
     - cd test/thermo
     - mpirun -np 2 ../../build-mpi/lmp -in in.test
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.1
+    - cd ../two-types
+    - mpirun -np 2 ../../build-mpi/lmp -in in.test_2types
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.2
+    - diff en.2 ../thermo/en.1
+
+test-md-energy-conservation-mpi:
+  stage: test
+  tags:
+    - gcc
+  script:
+    - cd test/md-run
+    - mpirun -np 2 ../../build-mpi/lmp -in in.md.forces
+    - python analyse_energy_convergence.py log.lammps

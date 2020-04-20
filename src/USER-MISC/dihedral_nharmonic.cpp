@@ -49,7 +49,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
     for (int i = 1; i <= atom->ndihedraltypes; i++)
       delete [] a[i];
     delete [] a;
-    delete [] nterms;
+    memory->destroy(nterms);
   }
 }
 

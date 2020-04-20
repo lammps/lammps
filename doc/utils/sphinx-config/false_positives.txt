@@ -1981,6 +1981,7 @@ Nc
 nchunk
 Nchunk
 ncoeff
+ncol
 ncorr
 ncount
 nd
@@ -2099,6 +2100,7 @@ Nrepeat
 nreset
 Nrho
 Nroff
+nrow
 nrun
 Ns
 Nsample

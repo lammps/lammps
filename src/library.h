@@ -36,9 +36,31 @@
 #if !defined(LAMMPS_LIB_NO_MPI)
 #include <mpi.h>
 #endif
+
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
 #endif
+
+/*! \brief Style constants for extracting data from computes,
+ *         fixes and variables
+ */
+enum _LMP_STYLE_CONST {
+  LMP_STYLE_GLOBAL=0,           /*!< return global data */
+  LMP_STYLE_ATOM  =1,           /*!< return per-atom data */
+  LMP_STYLE_LOCAL =2            /*!< return local data */
+};
+
+/*! \brief Type and size constants for extracting data from computes,
+ *         fixes and variables
+ */
+enum _LMP_TYPE_CONST {
+  LMP_TYPE_SCALAR=0,            /*!< return scalar */
+  LMP_TYPE_VECTOR=1,            /*!< return vector */
+  LMP_TYPE_ARRAY =2,            /*!< return array */
+  LMP_SIZE_VECTOR=3,            /*!< return length of vector */
+  LMP_SIZE_ROWS  =4,            /*!< return number of rows */
+  LMP_SIZE_COLS  =5             /*!< return number of columns */
+};
 
 /* ifdefs allow this file to be included in a C program */
 
@@ -112,9 +134,11 @@ int lammps_find_compute_neighlist(void* ptr, char * id, int request);
 int lammps_neighlist_num_elements(void* ptr, int idx);
 void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
 
-// lammps_create_atoms() takes tagint and imageint as args
-// ifdef insures they are compatible with rest of LAMMPS
-// caller must match to how LAMMPS library is built
+/*
+ * lammps_create_atoms() takes tagint and imageint as args
+ * ifdef insures they are compatible with rest of LAMMPS
+ * caller must match to how LAMMPS library is built
+ */
 
 #ifdef LAMMPS_BIGBIG
 void lammps_create_atoms(void *, int, int64_t *, int *,

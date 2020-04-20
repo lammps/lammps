@@ -1117,58 +1117,62 @@ or current. The following table lists the available options.
    :header-rows: 1
    :widths: auto
 
-   * - Style
-     - Type
+   * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
+     - Type (see :cpp:enum:`_LMP_TYPE_CONST`)
      - Returned type
      - Returned data
-   * - 0
-     - 0
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_SCALAR
      - ``double *``
      - Global scalar
-   * - 0
-     - 1
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Global vector
-   * - 0
-     - 2
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_ARRAY
      - ``double **``
      - Global array
-   * - 0
-     - 3
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_VECTOR
      - ``int *``
      - Length of global vector
-   * - 0
-     - 4
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_ROWS
      - ``int *``
      - Rows of global array
-   * - 0
-     - 5
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_COLS
      - ``int *``
      - Columns of global array
-   * - 1
-     - 1
+   * - LMP_STYLE_ATOM
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Per-atom value
-   * - 1
-     - 2
+   * - LMP_STYLE_ATOM
+     - LMP_TYPE_ARRAY
      - ``double **``
      - Per-atom vector
-   * - 1
-     - 3
+   * - LMP_STYLE_ATOM
+     - LMP_SIZE_COLS
      - ``int *``
-     - Columns of per-atom array, 0 if vector
-   * - 2
-     - 0
-     - ``int *``
-     - Number of local data rows
-   * - 2
-     - 1
+     - Columns in per-atom array, 0 if vector
+   * - LMP_STYLE_LOCAL
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Local data vector
-   * - 2
-     - 2
+   * - LMP_STYLE_LOCAL
+     - LMP_TYPE_ARRAY
      - ``double **``
      - Local data array
+   * - LMP_STYLE_LOCAL
+     - LMP_SIZE_ROWS
+     - ``int *``
+     - Number of local data rows
+   * - LMP_STYLE_LOCAL
+     - LMP_SIZE_COLS
+     - ``int *``
+     - Number of local data columns
 
 The pointers returned by this function are generally not persistent
 since the computed data may be re-distributed, re-allocated, and
@@ -1188,8 +1192,8 @@ shall be used after other LAMMPS commands have been issued.
  *
  * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id string with ID of the compute
- * \param style 
- * \param type
+ * \param style constant indicating the style of data requested (global, per-atom, or local)
+ * \param type  constant indicating type of data (scalar, vector, or array) or size of rows or columns
  * \return pointer cast to ``void *`` to the location of the requested data or NULL
  */
 void *lammps_extract_compute(void *handle, char *id, int style, int type)
@@ -1202,51 +1206,53 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
     if (icompute < 0) return NULL;
     Compute *compute = lmp->modify->compute[icompute];
 
-    if (style == 0) {
-      if (type == 0) {
+    if (style == LMP_STYLE_GLOBAL) {
+      if (type == LMP_TYPE_SCALAR) {
         if (!compute->scalar_flag) return NULL;
         if (compute->invoked_scalar != lmp->update->ntimestep)
           compute->compute_scalar();
         return (void *) &compute->scalar;
       }
-      if ((type == 1) || (type == 3)) {
+      if ((type == LMP_TYPE_VECTOR) || (type == LMP_SIZE_VECTOR)) {
         if (!compute->vector_flag) return NULL;
         if (compute->invoked_vector != lmp->update->ntimestep)
           compute->compute_vector();
-        if (type == 1)
+        if (type == LMP_TYPE_VECTOR)
           return (void *) compute->vector;
         else
           return (void *) &compute->size_vector;
       }
-      if ((type == 2) || (type == 4) || (type == 5)) {
+      if ((type == LMP_TYPE_ARRAY) || (type == LMP_SIZE_ROWS) || (type == LMP_SIZE_COLS)) {
         if (!compute->array_flag) return NULL;
         if (compute->invoked_array != lmp->update->ntimestep)
           compute->compute_array();
-        if (type == 2)
+        if (type == LMP_TYPE_ARRAY)
           return (void *) compute->array;
-        else if (type == 4)
+        else if (type == LMP_SIZE_ROWS)
           return (void *) &compute->size_array_rows;
         else
           return (void *) &compute->size_array_cols;
       }
     }
 
-    if (style == 1) {
+    if (style == LMP_STYLE_ATOM) {
       if (!compute->peratom_flag) return NULL;
       if (compute->invoked_peratom != lmp->update->ntimestep)
         compute->compute_peratom();
-      if (type == 1) return (void *) compute->vector_atom;
-      if (type == 2) return (void *) compute->array_atom;
-      if (type == 3) return (void *) &compute->size_peratom_cols;
+      if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_atom;
+      if (type == LMP_TYPE_ARRAY) return (void *) compute->array_atom;
+      if (type == LMP_SIZE_COLS) return (void *) &compute->size_peratom_cols;
     }
 
-    if (style == 2) {
+    if (style == LMP_STYLE_LOCAL) {
       if (!compute->local_flag) return NULL;
       if (compute->invoked_local != lmp->update->ntimestep)
         compute->compute_local();
-      if (type == 0) return (void *) &compute->size_local_rows;
-      if (type == 1) return (void *) compute->vector_local;
-      if (type == 2) return (void *) compute->array_local;
+      if (type == LMP_TYPE_SCALAR) return (void *) &compute->size_local_rows;  /* for backward compatibility */
+      if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_local;
+      if (type == LMP_TYPE_ARRAY) return (void *) compute->array_local;
+      if (type == LMP_SIZE_ROWS) return (void *) &compute->size_local_rows;
+      if (type == LMP_SIZE_COLS) return (void *) &compute->size_local_cols;
     }
   }
   END_CAPTURE
@@ -1289,58 +1295,62 @@ The following table lists the available options.
    :header-rows: 1
    :widths: auto
 
-   * - Style
-     - Type
+   * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
+     - Type (see :cpp:enum:`_LMP_TYPE_CONST`)
      - Returned type
      - Returned data
-   * - 0
-     - 0
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_SCALAR
      - ``double *``
      - Copy of global scalar
-   * - 0
-     - 1
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Copy of global vector element at index nrow
-   * - 0
-     - 2
+   * - LMP_STYLE_GLOBAL
+     - LMP_TYPE_ARRAY
      - ``double *``
      - Copy of global array element at nrow, ncol
-   * - 0
-     - 3
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_VECTOR
      - ``int *``
      - Length of global vector
-   * - 0
-     - 4
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_ROWS
      - ``int *``
-     - Rows of global array
-   * - 0
-     - 5
+     - Rows in global array
+   * - LMP_STYLE_GLOBAL
+     - LMP_SIZE_COLS
      - ``int *``
-     - Columns of global array
-   * - 1
-     - 1
+     - Columns in global array
+   * - LMP_STYLE_ATOM
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Per-atom value
-   * - 1
-     - 2
+   * - LMP_STYLE_ATOM
+     - LMP_TYPE_ARRAY
      - ``double **``
      - Per-atom vector
-   * - 1
-     - 3
+   * - LMP_STYLE_ATOM
+     - LMP_SIZE_COLS
      - ``int *``
      - Columns of per-atom array, 0 if vector
-   * - 2
-     - 0
-     - ``int *``
-     - Number of local data rows
-   * - 2
-     - 1
+   * - LMP_STYLE_LOCAL
+     - LMP_TYPE_VECTOR
      - ``double *``
      - Local data vector
-   * - 2
-     - 2
+   * - LMP_STYLE_LOCAL
+     - LMP_TYPE_ARRAY
      - ``double **``
      - Local data array
+   * - LMP_STYLE_LOCAL
+     - LMP_SIZE_ROWS
+     - ``int *``
+     - Number of local data rows
+   * - LMP_STYLE_LOCAL
+     - LMP_SIZE_COLS
+     - ``int *``
+     - Number of local data columns
 
 The pointers returned by this function for per-atom or local data
 are generally not persistent, since the computed data may be
@@ -1359,8 +1369,8 @@ after other LAMMPS commands have been issued.
  *
  * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id string with ID of the fix
- * \param style 
- * \param type
+ * \param style constant indicating the style of data requested (global, per-atom, or local)
+ * \param type  constant indicating type of data (scalar, vector, or array) or size of rows or columns
  * \param nrow row index (only used for global vectors and arrays)
  * \param ncol column index (only used for global arrays)
  * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
@@ -1376,50 +1386,52 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
     if (ifix < 0) return NULL;
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (style == 0) {
-      if (type == 0) {
+    if (style == LMP_STYLE_GLOBAL) {
+      if (type == LMP_TYPE_SCALAR) {
         if (!fix->scalar_flag) return NULL;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_scalar();
         return (void *) dptr;
       }
-      if (type == 1) {
+      if (type == LMP_TYPE_VECTOR) {
         if (!fix->vector_flag) return NULL;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_vector(nrow);
         return (void *) dptr;
       }
-      if (type == 2) {
+      if (type == LMP_TYPE_ARRAY) {
         if (!fix->array_flag) return NULL;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_array(nrow,ncol);
         return (void *) dptr;
       }
-      if (type == 3) {
+      if (type == LMP_SIZE_ROWS) {
         if (!fix->vector_flag) return NULL;
         return (void *) &fix->size_vector;
       }
-      if ((type == 4) || (type == 5)) {
+      if ((type == LMP_SIZE_ROWS) || (type == LMP_SIZE_COLS)) {
         if (!fix->array_flag) return NULL;
-        if (type == 4)
+        if (type == LMP_SIZE_ROWS)
           return (void *) &fix->size_array_rows;
         else
           return (void *) &fix->size_array_cols;
       }
     }
 
-    if (style == 1) {
+    if (style == LMP_STYLE_ATOM) {
       if (!fix->peratom_flag) return NULL;
-      if (type == 1) return (void *) fix->vector_atom;
-      if (type == 2) return (void *) fix->array_atom;
-      if (type == 3) return (void *) &fix->size_peratom_cols;
+      if (type == LMP_TYPE_VECTOR) return (void *) fix->vector_atom;
+      if (type == LMP_TYPE_ARRAY) return (void *) fix->array_atom;
+      if (type == LMP_SIZE_COLS) return (void *) &fix->size_peratom_cols;
     }
 
-    if (style == 2) {
+    if (style == LMP_STYLE_LOCAL) {
       if (!fix->local_flag) return NULL;
-      if (type == 0) return (void *) &fix->size_local_rows;
-      if (type == 1) return (void *) fix->vector_local;
-      if (type == 2) return (void *) fix->array_local;
+      if (type == LMP_TYPE_SCALAR) return (void *) &fix->size_local_rows;
+      if (type == LMP_TYPE_VECTOR) return (void *) fix->vector_local;
+      if (type == LMP_TYPE_ARRAY) return (void *) fix->array_local;
+      if (type == LMP_SIZE_ROWS) return (void *) &fix->size_local_rows;
+      if (type == LMP_SIZE_COLS) return (void *) &fix->size_local_cols;
     }
   }
   END_CAPTURE

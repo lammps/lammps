@@ -46,7 +46,7 @@ compile-make-serial:
     - make --version
     - cd src
     - make yes-user-pace
-    - make serial -j
+    - make serial
   artifacts:
     paths:
       - src/lmp_serial

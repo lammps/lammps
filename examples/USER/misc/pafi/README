@@ -19,12 +19,14 @@ Also see https://github.com/tomswinburne/pafi/ for PAFI++ code which uses the US
 
 To compile:
 
-make yes-user-pafi # for PAFI
+make yes-user-misc # for PAFI
 make yes-manybody # for EAM potential
-make machine mode=lib # for library version (machine= e.g. mpi)
+make machine mode=lib # for PAFI++ compilation
 make machine # for binary (machine= e.g. mpi)
 
 To run the example from this folder:
 ```
 mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi.lammps
 ```
+
+To generate your own path, please see the PAFI++ documentation for more details

@@ -18,11 +18,11 @@
 ------------------------------------------------------------------------- */
 
 
+#include "fix_pafi.h"
 #include <mpi.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fix_pafi.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"

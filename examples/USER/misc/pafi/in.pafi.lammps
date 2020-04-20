@@ -3,10 +3,9 @@ atom_style atomic
 atom_modify map array sort 0 0.0
 neigh_modify every 2 delay 10 check yes page 1000000 one 100000
 
-## read in path data using fix property/atom
+## read in path data using fix property/atom- here 4th image of a NEB
 fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
-read_data pafi.data fix pa NULL PafiPath
-run 0
+read_data Fe_SIA_NEB/pafipath.4.data fix pa NULL PafiPath
 
 ## EAM potential
 pair_style    eam/fs
@@ -14,6 +13,8 @@ pair_coeff * * Fe_M07.eam.fs Fe
 
 mass * 55.85
 thermo 100
+min_style fire
+
 
 compute pe all pe
 variable pe equal pe
@@ -24,28 +25,46 @@ print "energy=${pe}"
 compute pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
 run 0
 
-## fix name group-id hp compute-id temperature damp seed overdamped 0/1 com 0/1
-fix hp all pafi pa 1000.1 0.05 434 overdamped 1 com 1
+## fix name group-id hp compute-id temperature tdamp seed overdamped 0/1 com 0/1
+fix hp all pafi pa 500.0 0.01 434 overdamped 0 com 1
+
 run 0
-variable dn equal f_hp[4]*f_hp[4] # should be zero
+minimize 0 0 1000 1000 # best if using NEB path
+compute dx all displace/atom
+compute dmag all reduce max c_dx[4]
+variable maxjump equal sqrt(c_dmag)
+
+thermo_style custom step pe temp v_maxjump
+
+
+variable dn equal f_hp[4]*f_hp[4] # should be zero to float precision
+
+
 fix af all ave/time 1 1000 1000 f_hp[1] f_hp[2] f_hp[3] v_dn
 
-variable adn equal f_af[4] # should be zero
+variable adn equal sqrt(f_af[4]) # should be very small (approx. 1e-6 A)
 variable apf equal f_af[1]
+
+
 run 1000
-
-print "Squared displacement normal to hyperplane = ${adn} A^2"
-print "average projected force = ${apf} eV/A"
-## minimize under same constraint (temperature effectively zero)
-min_style fire
-
 minimize 0 0 1000 1000
-print "energy=${pe}"
+print """
+---------- PAFI RESULTS --------
 
-## minimize without constraint
-unfix af
-unfix hp
-minimize 0 0 1000 1000
-print "energy=${pe}"
+During run:
+  Average Distance From Hyperplane = ${adn} A,
+  Average Force Projection Along MFEP = ${apf} eV/A
+"""
+print """
+In-plane minimization post-run:
+energy = ${pe} eV
 
-write_data final.dat
+"""
+if "${maxjump} > 0.1" then &
+"print 'Max Atomic Displacement = ${maxjump}A > 0.1A'" &
+"print ' => Possible shallow in-plane metastability: Reduce time in basin and/or decrease tdamp'" &
+else &
+"print 'Max Atomic Displacement = ${maxjump}A < 0.1A => No in-plane jumps'"
+print """
+----- END PAFI ----
+"""

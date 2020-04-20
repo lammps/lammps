@@ -480,7 +480,7 @@ void *lammps_extract_atom(void *ptr, char *name)
     int vector_type;
     int vector_index = lmp->atom->find_custom(name, vector_type);
     if(vector_index>=0) {
-        if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
+        if(vector_type==0) vptr = (void *) lmp->atom->ivector[vector_index];
         else vptr = (void *) lmp->atom->dvector[vector_index];
     }
   }

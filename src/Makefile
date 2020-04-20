@@ -62,7 +62,7 @@ PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-c
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-mesodpd \
 	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-pafi user-phonon user-plumed user-ptm user-qmmm \
+	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
 	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 

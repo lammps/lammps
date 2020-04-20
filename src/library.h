@@ -43,6 +43,8 @@
 
 /*! \brief Style constants for extracting data from computes,
  *         fixes and variables
+ *
+ * Must be kept in sync with constants in lammps.py
  */
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL=0,           /*!< return global data */
@@ -52,6 +54,8 @@ enum _LMP_STYLE_CONST {
 
 /*! \brief Type and size constants for extracting data from computes,
  *         fixes and variables
+ *
+ * Must be kept in sync with constants in lammps.py
  */
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR=0,            /*!< return scalar */

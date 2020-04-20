@@ -40,6 +40,18 @@ LAMMPS_BIGINT = 4
 LAMMPS_TAGINT = 5
 LAMMPS_STRING = 6
 
+# must be kept in sync with enums in library.h
+LMP_STYLE_GLOBAL = 0
+LMP_STYLE_ATOM   = 1
+LMP_STYLE_LOCAL  = 2
+
+LMP_TYPE_SCALAR  = 0
+LMP_TYPE_VECTOR  = 1
+LMP_TYPE_ARRAY   = 2
+LMP_SIZE_VECTOR  = 3
+LMP_SIZE_ROWS    = 4
+LMP_SIZE_COLS    = 5
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32

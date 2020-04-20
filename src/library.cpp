@@ -832,16 +832,6 @@ void lammps_gather_atoms(void *ptr, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    // look for property/atom if NULL
-    /*int vector_index, vector_type=type;
-    if (vptr == NULL) {
-      vector_index = lmp->atom->find_custom(name, vector_type);
-      if(vector_index>=0 && vector_type == type) {
-        if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
-        else vptr = (void *) lmp->atom->dvector[vector_index];
-      }
-    }*/
-
     if (vptr == NULL) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
       return;
@@ -1293,6 +1283,23 @@ void lammps_scatter_atoms(void *ptr, char *name,
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
+
+    // try to find property/atom vectors
+    if (vptr == NULL) {
+      int vector_type;
+      int vector_index = lmp->atom->find_custom(name, vector_type);
+      if(vector_index>=0) {
+        if(vector_type == type) {
+          if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
+          else vptr = (void *) lmp->atom->dvector[vector_index];
+        } else {
+          lmp->error->warning(FLERR,"lammps_scatter_atoms:"
+                                      " property/atom vector has wrong type");
+          return;
+        }
+      }
+    }
+
     if(vptr == NULL) {
         lmp->error->warning(FLERR,
                             "lammps_scatter_atoms: unknown property name");
@@ -1421,9 +1428,26 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
     }
 
     void *vptr = lmp->atom->extract(name);
+
+    // try to find property/atom vectors
+    if (vptr == NULL) {
+      int vector_type;
+      int vector_index = lmp->atom->find_custom(name, vector_type);
+      if(vector_index>=0) {
+        if(vector_type == type) {
+          if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
+          else vptr = (void *) lmp->atom->dvector[vector_index];
+        } else {
+          lmp->error->warning(FLERR,"lammps_scatter_atoms_subset:"
+                                      " property/atom vector has wrong type");
+          return;
+        }
+      }
+    }
+
     if(vptr == NULL) {
-        lmp->error->warning(FLERR,
-                            "lammps_scatter_atoms_subset: unknown property name");
+        lmp->error->warning(FLERR,"lammps_scatter_atoms_subset: "
+                                  "unknown property name");
         return;
     }
 
@@ -1501,17 +1525,33 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
 #endif
 
 
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+   gather the named fix and return it in user-allocated data
+   gather_fix : extract_fix   ==    gather_atoms : extract_atoms
+   error raised if fix doesn't return peratom data
+   data will be ordered by atom ID
+     requirement for consecutive atom IDs (1 to N)
+   id = fix ID
+   count: number of entries per atom
+   method:
+     alloc and zero count*Natom length vector
+     loop over Nlocal to fill vector with my values
+     Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_peratom_fix(void *ptr, char * /*id */, int /*type*/, int /*count*/, void * /*data*/)
+void lammps_gather_fix(void *ptr, char * /*id*/, int /*type*/,
+                                int /*count*/, void * /*data*/)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
-  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix() not compatible with -DLAMMPS_BIGBIG");
+  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix()"
+                                      " not compatible with -DLAMMPS_BIGBIG");
   END_CAPTURE
 }
 #else
-void lammps_gather_peratom_fix(void *ptr, char *id, int type, int count, void *data)
+void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -1520,12 +1560,29 @@ void lammps_gather_peratom_fix(void *ptr, char *id, int type, int count, void *d
     int i,j,offset;
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_peratom_fix: unknown fix id");
+      lmp->error->warning(FLERR,"lammps_gather_fix: unknown fix id");
       return;
     }
 
     Fix *fix = lmp->modify->fix[ifix];
     int natoms = static_cast<int> (lmp->atom->natoms);
+    // if
+    if (fix->peratom_flag == 0) {
+      lmp->error->warning(FLERR,"lammps_gather_fix:"
+                                " fix does not return peratom data");
+      return;
+    }
+    if (fix->size_peratom_cols != count) {
+      lmp->error->warning(FLERR,"lammps_gather_fix:"
+                                " count != values peratom for fix");
+      return;
+    }
+
+    if (lmp->update->ntimestep % fix->peratom_freq) {
+      lmp->error->all(FLERR,"lammps_gather_fix:"
+                            " fix not computed at compatible time");
+      return;
+    }
 
     // error if tags are not defined or not consecutive
     int flag = 0;
@@ -1597,36 +1654,22 @@ void lammps_gather_peratom_fix(void *ptr, char *id, int type, int count, void *d
 }
 #endif
 
-/* ----------------------------------------------------------------------
-  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
-   gather the named per atom fix for a subset of atoms and return
-   it in user-allocated data
-   (extract_fix was found to give errors when running lammps in parallel)
-   data will be ordered by atom ID
-     requirement for consecutive atom IDs (1 to N)
-   id = fix ID
-   count: number of entries per atom
-   ndata = # of atoms to return data for (could be all atoms)
-   ids = list of ndata atom IDs to return data for
-   Fills 1d data, which must be pre-allocated to length of count * ndata, where Natoms is as queried by get_natoms()
-   method:
-     alloc and zero count*Natom length vector
-     loop over Nlocal to fill vector with my values
-     Allreduce to sum vector into data across all procs
-------------------------------------------------------------------------- */
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_peratom_fix_subset(void *ptr, char * /*id */, int /*type*/,
-                                int /*count*/, int /*ndata*/, int * /*ids*/, void * /*data*/)
+void lammps_gather_fix_subset(void *ptr, char * /*id */, int /*type*/,
+                                      int /*count*/, int /*ndata*/,
+                                      int * /*ids*/, void * /*data*/)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
-  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix_subset() not compatible with -DLAMMPS_BIGBIG");
+  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix_subset() "
+                                          "not compatible with -DLAMMPS_BIGBIG");
   END_CAPTURE
 }
 #else
-void lammps_gather_peratom_fix_subset(void *ptr, char *id, int type, int count,
-                                      int ndata, int *ids, void *data)
+void lammps_gather_fix_subset(void *ptr, char *id,
+                                 int type, int count,
+                                 int ndata, int *ids, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -1637,12 +1680,28 @@ void lammps_gather_peratom_fix_subset(void *ptr, char *id, int type, int count,
 
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_peratom_fix_subset: unknown fix id");
+      lmp->error->warning(FLERR,"lammps_gather_fix_subset: unknown fix id");
       return;
     }
 
     Fix *fix = lmp->modify->fix[ifix];
     int natoms = static_cast<int> (lmp->atom->natoms);
+    if (fix->peratom_flag == 0) {
+      lmp->error->warning(FLERR,"lammps_gather_fix_subset:"
+                                " fix does not return peratom data");
+      return;
+    }
+    if (fix->size_peratom_cols != count) {
+      lmp->error->warning(FLERR,"lammps_gather_fix_subset:"
+                                " count != values peratom for fix");
+      return;
+    }
+
+    if (lmp->update->ntimestep % fix->peratom_freq) {
+      lmp->error->all(FLERR,"lammps_gather_fix_subset:"
+                            " fix not computed at compatible time");
+      return;
+    }
 
     // error if tags are not defined or not consecutive
     int flag = 0;
@@ -1651,7 +1710,7 @@ void lammps_gather_peratom_fix_subset(void *ptr, char *id, int type, int count,
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix_subset");
+        lmp->error->warning(FLERR,"Library error in lammps_gather_fix_subset");
       return;
     }
 

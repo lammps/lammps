@@ -47,6 +47,10 @@
 /meam*.cpp
 /pair_meamc.cpp
 /pair_meamc.h
+/pair_coul_slater*.cpp
+/pair_coul_slater*.h
+/fix_propel*.cpp
+/fix_propel*.h
 
 /ptm_*.cpp
 /ptm_*.h

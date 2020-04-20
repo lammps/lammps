@@ -2290,17 +2290,9 @@ void *Atom::extract(char *name)
   if (strcmp(name, "eff_plastic_strain_rate") == 0)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
-
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
-
   
-  int vector_index, vector_type;
-  vector_index = lmp->atom->find_custom(name, vector_type);
-  if(vector_index>=0) return (void *) dvector[vector_index];
-
-
-
   return NULL;
 }
 

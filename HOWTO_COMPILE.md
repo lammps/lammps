@@ -2,12 +2,12 @@
 
 `mkdir build; cd build`
 
-`cmake ../cmake`
+`cmake -DPKG_USER-PACE=ON ../cmake`
 
 `make -j`
 
 NOTE: If there are compilation error messages regarding C++11 standards, run 
-`cmake ../cmake -D CMAKE_CXX_FLAGS="-std=c++11"`
+`cmake ../cmake -DPKG_USER-PACE=ON -D CMAKE_CXX_FLAGS="-std=c++11"`
 
 # Compilation with `make`
 

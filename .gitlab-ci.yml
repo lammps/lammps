@@ -2,7 +2,7 @@ stages:
   - compile
   - test
 
-compile-tests:
+compile-cmake-serial:
   stage: compile
   tags:
     - gcc
@@ -18,7 +18,7 @@ compile-tests:
     paths:
       - build/lmp
 
-compile-mpi:
+compile-cmake-mpi:
   stage: compile
   tags:
     - gcc
@@ -35,7 +35,21 @@ compile-mpi:
     paths:
       - build-mpi/lmp
 
-
+compile-make-serial:
+  stage: compile
+  tags:
+    - gcc
+  script:
+    - which gcc
+    - gcc --version
+    - which make
+    - make --version
+    - cd src
+    - make yes-user-pace
+    - make serial -j
+  artifacts:
+    paths:
+      - src/lmp_serial
 
 test-md-energy-conservation:
   stage: test
@@ -80,3 +94,17 @@ test-md-energy-conservation-mpi:
     - cd test/md-run
     - mpirun -np 2 ../../build-mpi/lmp -in in.md.forces
     - python analyse_energy_convergence.py log.lammps
+
+
+test-two-atom-types-make-serial:
+  stage: test
+  tags:
+    - gcc
+  script:
+    - cd test/thermo
+    - ../../src/lmp_serial -in in.test
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.1
+    - cd ../two-types
+    - ../../src/lmp_serial -in in.test_2types
+    - grep -A 2 "Step TotEng PotEng KinEng Pxx Pyy Pzz Pxy Pxz" log.lammps > en.2
+    - diff en.2 ../thermo/en.1    

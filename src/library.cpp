@@ -474,7 +474,18 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
 void *lammps_extract_atom(void *ptr, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  return lmp->atom->extract(name);
+  void *vptr = lmp->atom->extract(name);
+  // check for property/atom
+  if (vptr == NULL) {
+    int vector_type;
+    int vector_index = lmp->atom->find_custom(name, vector_type);
+    if(vector_index>=0) {
+        if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
+        else vptr = (void *) lmp->atom->dvector[vector_index];
+    }
+  }
+
+  return vptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -830,7 +841,7 @@ void lammps_gather_atoms(void *ptr, char *name,
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
-    void *vptr = lmp->atom->extract(name);
+    void *vptr = lammps_extract_atom(lmp,name);
 
     if (vptr == NULL) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
@@ -971,7 +982,8 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
-    void *vptr = lmp->atom->extract(name);
+    void *vptr = lammps_extract_atom(lmp,name);
+
     if (vptr == NULL) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
       return;
@@ -1131,7 +1143,7 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
       return;
     }
 
-    void *vptr = lmp->atom->extract(name);
+    void *vptr = lammps_extract_atom(lmp,name);
     if (vptr == NULL) {
       lmp->error->warning(FLERR,"lammps_gather_atoms_subset: "
                           "unknown property name");
@@ -1282,23 +1294,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
-    void *vptr = lmp->atom->extract(name);
-
-    // try to find property/atom vectors
-    if (vptr == NULL) {
-      int vector_type;
-      int vector_index = lmp->atom->find_custom(name, vector_type);
-      if(vector_index>=0) {
-        if(vector_type == type) {
-          if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
-          else vptr = (void *) lmp->atom->dvector[vector_index];
-        } else {
-          lmp->error->warning(FLERR,"lammps_scatter_atoms:"
-                                      " property/atom vector has wrong type");
-          return;
-        }
-      }
-    }
+    void *vptr = lammps_extract_atom(lmp,name);
 
     if(vptr == NULL) {
         lmp->error->warning(FLERR,
@@ -1427,23 +1423,7 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
       return;
     }
 
-    void *vptr = lmp->atom->extract(name);
-
-    // try to find property/atom vectors
-    if (vptr == NULL) {
-      int vector_type;
-      int vector_index = lmp->atom->find_custom(name, vector_type);
-      if(vector_index>=0) {
-        if(vector_type == type) {
-          if(type==0) vptr = (void *) lmp->atom->ivector[vector_index];
-          else vptr = (void *) lmp->atom->dvector[vector_index];
-        } else {
-          lmp->error->warning(FLERR,"lammps_scatter_atoms_subset:"
-                                      " property/atom vector has wrong type");
-          return;
-        }
-      }
-    }
+    void *vptr = lammps_extract_atom(lmp,name);
 
     if(vptr == NULL) {
         lmp->error->warning(FLERR,"lammps_scatter_atoms_subset: "

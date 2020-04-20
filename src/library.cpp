@@ -1189,7 +1189,8 @@ shall be used after other LAMMPS commands have been issued.
  * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id string with ID of the compute
  * \param style 
- * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
+ * \param type
+ * \return pointer cast to ``void *`` to the location of the requested data or NULL
  */
 void *lammps_extract_compute(void *handle, char *id, int style, int type)
 {
@@ -1253,32 +1254,119 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
   return NULL;
 }
 
-/* ----------------------------------------------------------------------
-   extract a pointer to an internal LAMMPS fix-based entity
-   id = fix ID
-   style = 0 for global data, 1 for per-atom data, 2 for local data
-   type = 0 for scalar, 1 for vector, 2 for array
-   i,j = indices needed only to specify which global vector or array value
-   for global data, returns a pointer to a memory location
-     which is allocated by this function
-     which the caller can cast to a (double *) which points to the value
-   for per-atom or local data, returns a pointer to the
-     fix's internal data structure for the entity
-     caller should cast it to (double *) for a vector
-     caller should cast it to (double **) for an array
-   returns a NULL if id is not recognized or style/type not supported
-   IMPORTANT: for global data,
-     this function allocates a double to store the value in,
-     so the caller must free this memory to avoid a leak, e.g.
-       double *dptr = (double *) lammps_extract_fix();
-       double value = *dptr;
-       lammps_free(dptr);
-   IMPORTANT: LAMMPS cannot easily check here when info extracted from
-     the fix is valid, so caller must insure that it is OK
-------------------------------------------------------------------------- */
+/** \brief Get pointer to data from a LAMMPS fix.
+ *
+\verbatim embed:rst
+This function returns a pointer to data provided by a :doc:`fix`
+instance identified by its fix-ID.  Fixes may provide global,
+per-atom, or local data, and those may be a scalar, a vector,
+or an array, or they may provide the information about the
+dimensions of the respective data.  Since individual fixes may
+provide multiple kinds of data, it is required to set style and
+type flags representing what specific data is desired.  This also
+determines to what kind of pointer the returned pointer needs to
+be cast to access the data correctly.  The function returns ``NULL``
+if the fix ID is not found or the requested data is not available.
 
+.. note::
+
+   When requesting global data, the fix data can only be accessed
+   one item at a time without access to the pointer itself.  Thus
+   this function will allocate storage for a single double value,
+   copy the returned value to it, and returns a pointer to the
+   location of the copy.  Therefore the allocated storage needs
+   to be freed after its use to avoid a memory leak. Example:
+
+   .. code-block:: c
+ 
+      double *dptr = (double *) lammps_extract_fix(handle,name,0,1,0,0);
+      double value = *dptr;
+      lammps_free((void *)dptr);
+
+The following table lists the available options.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Style
+     - Type
+     - Returned type
+     - Returned data
+   * - 0
+     - 0
+     - ``double *``
+     - Copy of global scalar
+   * - 0
+     - 1
+     - ``double *``
+     - Copy of global vector element at index nrow
+   * - 0
+     - 2
+     - ``double *``
+     - Copy of global array element at nrow, ncol
+   * - 0
+     - 3
+     - ``int *``
+     - Length of global vector
+   * - 0
+     - 4
+     - ``int *``
+     - Rows of global array
+   * - 0
+     - 5
+     - ``int *``
+     - Columns of global array
+   * - 1
+     - 1
+     - ``double *``
+     - Per-atom value
+   * - 1
+     - 2
+     - ``double **``
+     - Per-atom vector
+   * - 1
+     - 3
+     - ``int *``
+     - Columns of per-atom array, 0 if vector
+   * - 2
+     - 0
+     - ``int *``
+     - Number of local data rows
+   * - 2
+     - 1
+     - ``double *``
+     - Local data vector
+   * - 2
+     - 2
+     - ``double **``
+     - Local data array
+
+The pointers returned by this function for per-atom or local data
+are generally not persistent, since the computed data may be
+re-distributed, re-allocated, and re-ordered at every invocation
+of the fix.  It is thus advisable to re-invoke this function before
+the data is accessed, or make a copy, if the data shall be used
+after other LAMMPS commands have been issued.
+
+.. note::
+
+   LAMMPS cannot easily check if it is valid to access the data,
+   so it may fail with an error.  The caller has avoid such an error.
+
+
+\endverbatim
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id string with ID of the fix
+ * \param style 
+ * \param type
+ * \param nrow row index (only used for global vectors and arrays)
+ * \param ncol column index (only used for global arrays)
+ * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
+ */
 void *lammps_extract_fix(void *handle, char *id, int style, int type,
-                         int i, int j)
+                         int nrow, int ncol)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1298,14 +1386,25 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
       if (type == 1) {
         if (!fix->vector_flag) return NULL;
         double *dptr = (double *) malloc(sizeof(double));
-        *dptr = fix->compute_vector(i);
+        *dptr = fix->compute_vector(nrow);
         return (void *) dptr;
       }
       if (type == 2) {
         if (!fix->array_flag) return NULL;
         double *dptr = (double *) malloc(sizeof(double));
-        *dptr = fix->compute_array(i,j);
+        *dptr = fix->compute_array(nrow,ncol);
         return (void *) dptr;
+      }
+      if (type == 3) {
+        if (!fix->vector_flag) return NULL;
+        return (void *) &fix->size_vector;
+      }
+      if ((type == 4) || (type == 5)) {
+        if (!fix->array_flag) return NULL;
+        if (type == 4)
+          return (void *) &fix->size_array_rows;
+        else
+          return (void *) &fix->size_array_cols;
       }
     }
 
@@ -1313,6 +1412,7 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
       if (!fix->peratom_flag) return NULL;
       if (type == 1) return (void *) fix->vector_atom;
       if (type == 2) return (void *) fix->array_atom;
+      if (type == 3) return (void *) &fix->size_peratom_cols;
     }
 
     if (style == 2) {

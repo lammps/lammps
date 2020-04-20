@@ -47,3 +47,7 @@ that is coupled to LAMMPS via the library interface.
 .. doxygenfunction:: lammps_extract_compute
    :project: progguide
 
+-----------------------
+
+.. doxygenfunction:: lammps_extract_fix
+   :project: progguide

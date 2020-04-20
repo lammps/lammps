@@ -5,7 +5,7 @@ neigh_modify every 2 delay 10 check yes page 1000000 one 100000
 
 ## read in path data using fix property/atom
 fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
-read_data test.dat fix pa NULL PafiPath
+read_data pafi.data fix pa NULL PafiPath
 run 0
 
 ## EAM potential

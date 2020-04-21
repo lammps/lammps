@@ -19,30 +19,6 @@
 
 
 #include "fix_pafi.h"
-#include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include "math_extra.h"
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "memory.h"
-#include "error.h"
-#include "group.h"
-#include "citeme.h"
-
-
-
-
 
 using namespace LAMMPS_NS;
 
@@ -67,20 +43,22 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(NULL), random(NULL), computename(NULL),
+      h(NULL), step_respa(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_pafi_package);
   // fix NAME GROUP hp COMPUTENAME T DAMP SEED overdamped 0/1 com 0/1
 
-  if (narg < 11) error->all(FLERR,"Illegal fix hp command");
+  if (narg < 11) error->all(FLERR,"Illegal fix pafi command");
 
-  dynamic_group_allow = 1;
+  dynamic_group_allow = 0;
   vector_flag = 1;
   size_vector = 4;
   global_freq = 1;
   extvector = 0;
   od_flag = 0;
   com_flag = 0;
+  time_integrate = 1;
 
   int n = strlen(arg[3])+1;
   computename = new char[n];
@@ -91,21 +69,21 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   char buffer[128];
 
   if (icompute < 0) {
-    sprintf(buffer,"Compute %s for fix hp does not exist",computename);
+    sprintf(buffer,"Compute %s for fix pafi does not exist",computename);
     error->all(FLERR,buffer);
   }
   PathCompute = modify->compute[icompute];
   if (PathCompute->peratom_flag==0) {
-    sprintf(buffer,"Compute %s for fix hp does not calculate a local array",computename);
+    sprintf(buffer,"Compute %s for fix pafi does not calculate a local array",computename);
     error->all(FLERR,buffer);
   }
   if (PathCompute->size_peratom_cols < domain->dimension*3) {
-    sprintf(buffer,"Compute %s for fix hp has %d < %d fields per atom",computename,PathCompute->size_peratom_cols,domain->dimension*3);
+    sprintf(buffer,"Compute %s for fix pafi has %d < %d fields per atom",computename,PathCompute->size_peratom_cols,domain->dimension*3);
     error->all(FLERR,buffer);
   }
   if (comm->me==0) {
-    if (screen) fprintf(screen,"fix hp compute name,style: %s,%s\n",computename,PathCompute->style);
-    if (logfile) fprintf(logfile,"fix hp compute name,style: %s,%s\n",computename,PathCompute->style);
+    if (screen) fprintf(screen,"fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
+    if (logfile) fprintf(logfile,"fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
   }
 
 
@@ -125,10 +103,10 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix hp command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pafi command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-        error->all(FLERR,"Region ID for fix hp does not exist");
+        error->all(FLERR,"Region ID for fix pafi does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -139,7 +117,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"com") == 0) {
       com_flag = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix hp command");
+    } else error->all(FLERR,"Illegal fix pafi command");
   }
   force_flag = 0;
 
@@ -161,9 +139,6 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
 
-  // nve
-  dynamic_group_allow = 1;
-  time_integrate = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,7 +179,7 @@ void FixPAFI::init()
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
     if (iregion == -1)
-      error->all(FLERR,"Region ID for fix hp does not exist");
+      error->all(FLERR,"Region ID for fix pafi does not exist");
   }
 
   if (strstr(update->integrate_style,"respa")) {
@@ -230,8 +205,9 @@ void FixPAFI::setup(int vflag)
 
 void FixPAFI::min_setup(int vflag)
 {
-  if( strcmp(update->minimize_style,"fire")!=0 && strcmp(update->minimize_style,"quickmin")!=0 )
-    error->all(FLERR,"fix hp requires damped dynamics minimizer");
+  if( utils::strmatch(update->minimize_style,"^fire")==0 &&
+          utils::strmatch(update->minimize_style,"^quickmin")==0 )
+    error->all(FLERR,"fix pafi requires damped dynamics minimizer");
   min_post_force(vflag);
 }
 

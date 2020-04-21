@@ -22,6 +22,28 @@ FixStyle(pafi,FixPAFI)
 
 #include "fix.h"
 #include "compute.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include "math_extra.h"
+#include "atom.h"
+#include "force.h"
+#include "update.h"
+#include "modify.h"
+#include "domain.h"
+#include "region.h"
+#include "respa.h"
+#include "comm.h"
+#include "input.h"
+#include "variable.h"
+#include "random_mars.h"
+#include "memory.h"
+#include "error.h"
+#include "utils.h"
+#include "group.h"
+#include "citeme.h"
+
 
 namespace LAMMPS_NS {
 
@@ -51,7 +73,7 @@ class FixPAFI : public Fix {
  protected:
   int varflag,iregion,icompute;
   char *idregion, *computename;
-  Compute *PathCompute;
+  class Compute *PathCompute;
   double proj[5], proj_all[5]; // f,v,h, psi
   double results[4], results_all[4]; // f.n, (f.n)**2, psi, dx.n
   double c_v[10],c_v_all[10];

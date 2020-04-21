@@ -45,7 +45,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_pafi_package[] =
-  "USER-PAFI package:\n\n"
+  "citation for fix pafi:\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
   "title={Unsupervised calculation of free energy barriers in large crystalline systems},\n"
@@ -57,10 +57,7 @@ static const char cite_user_pafi_package[] =
   "publisher={APS}\n"
   "}\n\n";
 
-
 using namespace FixConst;
-
-enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,7 +66,6 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
       h(NULL), step_respa(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_pafi_package);
-  // fix NAME GROUP hp COMPUTENAME T DAMP SEED overdamped 0/1 com 0/1
 
   if (narg < 11) error->all(FLERR,"Illegal fix pafi command");
 

@@ -24,6 +24,27 @@ specific models.
    Please see the :ref:`note about thread-safety <thread-safety>`
    in the library Howto doc page.
 
+Overview of LAMMPS class topology
+=================================
+
+.. figure:: JPG/lammps-classes.png
+
+   LAMMPS class topology
+
+   This figure shows some of the relations of the base classes of the
+   LAMMPS simulation package.  Full lines indicate that a class holds an
+   instance of the class it is pointing to; dashed lines point to
+   derived classes that are given as examples of what classes may be
+   instantiated during a LAMMPS run based on the input commands and
+   accessed through the API define by their respective base classes.  At
+   the core is the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class, which
+   holds pointers to class instances with specific purposes.  Those may
+   hold instances of other classes, sometimes directly, or only
+   temporarily, sometimes as derived classes or derived classes or
+   derived classes, which may also hold instances of other classes.
+
+-----------------------------------
+
 .. toctree::
    :caption: Individual Base Classes
    :name: lammpsbase

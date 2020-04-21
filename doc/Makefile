@@ -84,6 +84,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
 html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
+	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
@@ -121,6 +122,7 @@ spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@echo "Spell check finished."
 
 epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
@@ -141,6 +143,7 @@ mobi: epub
 	@echo "Conversion finished. The MOBI manual file is created."
 
 pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@$(MAKE) $(MFLAGS) -C graphviz all
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
 		cd src/Developer; \

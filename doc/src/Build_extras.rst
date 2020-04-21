@@ -320,11 +320,12 @@ to have an executable that will run on this and newer architectures.
 
 .. note::
 
-   NVIDIA GPUs with CC 5.0 (Maxwell) and newer are not compatible with
-   CC 3.x (Kepler).  If you run Kokkos on a newer architecture than what
-   LAMMPS was compiled with, there will be a significant delay during
-   device initialization since the just-in-time compiler has to
-   recompile the GPU kernel code for the new hardware.
+   If you run Kokkos on a newer GPU architecture than what LAMMPS was
+   compiled with, there will be a delay during device initialization
+   since the just-in-time compiler has to recompile all GPU kernels
+   for the new hardware.  This is, however, not possible when compiled
+   for NVIDIA GPUs with CC 3.x (Kepler) for GPUs with CC 5.0 (Maxwell)
+   and newer as they are not compatible.
 
 The settings discussed below have been tested with LAMMPS and are
 confirmed to work.  Kokkos is an active project with ongoing improvements

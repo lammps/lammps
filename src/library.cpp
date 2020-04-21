@@ -1284,7 +1284,7 @@ if the fix ID is not found or the requested data is not available.
    to be freed after its use to avoid a memory leak. Example:
 
    .. code-block:: c
- 
+
       double *dptr = (double *) lammps_extract_fix(handle,name,0,1,0,0);
       double value = *dptr;
       lammps_free((void *)dptr);
@@ -1461,7 +1461,7 @@ and ignored otherwise.  If set to ``NULL`` when extracting data from and
    avoid a memory leak. Example:
 
    .. code-block:: c
- 
+
       double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
       double value = *dptr;
       lammps_free((void *)dptr);
@@ -1471,7 +1471,7 @@ and ignored otherwise.  If set to ``NULL`` when extracting data from and
    To avoid a memory leak, also this pointer needs to be freed after use.
 
 Since the data is returned as copies, the location will persist, but its
-values will not be updated, in case the variable is re-evaluated. 
+values will not be updated, in case the variable is re-evaluated.
 
 .. note::
 

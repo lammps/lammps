@@ -52,6 +52,9 @@ LMP_SIZE_VECTOR  = 3
 LMP_SIZE_ROWS    = 4
 LMP_SIZE_COLS    = 5
 
+LMP_VAR_EQUAL = 0
+LMP_VAR_ATOM  = 1
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32
@@ -358,247 +361,9 @@ class lammps(object):
       self.lib.lammps_close(self.lmp)
       self.opened = 0
 
-  def close(self):
-    """Explicitly delete a LAMMPS instance through the C-library interface.
-
-    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
-    """
-    if self.opened: self.lib.lammps_close(self.lmp)
-    self.lmp = None
-    self.opened = 0
-
-  def finalize(self):
-    """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
-    """
-    if self.opened: self.lib.lammps_close(self.lmp)
-    self.lmp = None
-    self.opened = 0
-    self.lib.lammps_finalize()
-
-  def version(self):
-    """Return a numerical representation of the LAMMPS version in use.
-
-    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
-
-    :return: version number
-    :rtype:  int
-    """
-    return self.lib.lammps_version(self.lmp)
-
-  def file(self,file):
-    """Read LAMMPS commands from a file.
-
-    This is a wrapper around the :cpp:func:`lammps_file` function of the C-library interface.
-    It will open the file with the name/path `file` and process the LAMMPS commands line by line until
-    the end. The function will return when the end of the file is reached.
-    
-    :param file: Name of the file/path with LAMMPS commands
-    :type file:  string
-    """
-    if file: file = file.encode()
-    self.lib.lammps_file(self.lmp,file)
-
-  # send a single command
-
-  def command(self,cmd):
-    """Process a single LAMMPS input command from a string.
-
-    This is a wrapper around the :cpp:func:`lammps_command` function of the C-library interface.
-
-    :param cmd: a single lammps command
-    :type cmd:  string
-    """
-    if cmd: cmd = cmd.encode()
-    self.lib.lammps_command(self.lmp,cmd)
-
-    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
-      sb = create_string_buffer(100)
-      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
-      error_msg = sb.value.decode().strip()
-
-      if error_type == 2:
-        raise MPIAbortException(error_msg)
-      raise Exception(error_msg)
-
-  # send a list of commands
-
-  def commands_list(self,cmdlist):
-    """Process multiple LAMMPS input commands from a list of strings.
-
-    This is a wrapper around the
-    :cpp:func:`lammps_commands_list` function of
-    the C-library interface.
-
-    :param cmdlist: a single lammps command
-    :type cmdlist:  list of strings
-    """
-    cmds = [x.encode() for x in cmdlist if type(x) is str]
-    args = (c_char_p * len(cmdlist))(*cmds)
-    self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
-
-  # send a string of commands
-
-  def commands_string(self,multicmd):
-    """Process a block of LAMMPS input commands from a string.
-
-    This is a wrapper around the
-    :cpp:func:`lammps_commands_string`
-    function of the C-library interface.
-
-    :param multicmd: text block of lammps commands
-    :type multicmd:  string
-    """
-    if type(multicmd) is str: multicmd = multicmd.encode()
-    self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
-
-  # extract lammps type byte sizes
-
-  def extract_setting(self, name):
-    """Query LAMMPS about global settings that can be expressed as an integer.
-
-    This is a wrapper around the :cpp:func:`lammps_extract_setting`
-    function of the C-library interface.  Its documentation includes
-    a list of the supported keywords.
-
-    :param name: name of the setting
-    :type name:  string
-    :return: value of the setting
-    :rtype: int
-    """
-    if name: name = name.encode()
-    self.lib.lammps_extract_setting.restype = c_int
-    return int(self.lib.lammps_extract_setting(self.lmp,name))
-
-  # extract global info
-
-  def extract_global(self, name, type):
-    """Query LAMMPS about global settings of different types.
-
-    This is a wrapper around the :cpp:func:`lammps_extract_global`
-    function of the C-library interface.  Unlike the C function
-    this method returns the value and not a pointer and thus can
-    only return the first value for keywords representing a list
-    of values.  The :cpp:func:`lammps_extract_global` documentation
-    includes a list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, the type has to be provided as an argument.  For
-    that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
-    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
-
-    :param name: name of the setting
-    :type name:  string
-    :param type: type of the returned data
-    :type name:  int
-    :return: value of the setting
-    :rtype: integer or double or string or None
-    """
-    if name: name = name.encode()
-    if type == LAMMPS_INT:
-      self.lib.lammps_extract_global.restype = POINTER(c_int)
-    elif type == LAMMPS_DOUBLE:
-      self.lib.lammps_extract_global.restype = POINTER(c_double)
-    elif type == LAMMPS_BIGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
-    elif type == LAMMPS_TAGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
-    elif type == LAMMPS_STRING:
-      self.lib.lammps_extract_global.restype = c_char_p
-      ptr = self.lib.lammps_extract_global(self.lmp,name)
-      return str(ptr,'ascii')
-    else: return None
-    ptr = self.lib.lammps_extract_global(self.lmp,name)
-    if ptr: return ptr[0]
-    else: return None
-
-  # extract box data
-
-  def extract_box(self):
-    """Extract simulation box parameters
-
-    This is a wrapper around the :cpp:func:`lammps_extract_box` function
-    of the C-library interface.  Unlike the C function, the result is
-    returned as a list.
-
-    :return: list of the extracted data: boxlo, boxhi, xy, yz, xz, periodicity, box_change
-    :rtype: [ 3*double, 3*double, double, double, 3*int, int]
-    """
-    boxlo = (3*c_double)()
-    boxhi = (3*c_double)()
-    xy = c_double()
-    yz = c_double()
-    xz = c_double()
-    periodicity = (3*c_int)()
-    box_change = c_int()
-
-    self.lib.lammps_extract_box(self.lmp,boxlo,boxhi,
-                                byref(xy),byref(yz),byref(xz),
-                                periodicity,byref(box_change))
-
-    boxlo = boxlo[:3]
-    boxhi = boxhi[:3]
-    xy = xy.value
-    yz = yz.value
-    xz = xz.value
-    periodicity = periodicity[:3]
-    box_change = box_change.value
-
-    return boxlo,boxhi,xy,yz,xz,periodicity,box_change
-
-  # extract per-atom info
-  # NOTE: need to insure are converting to/from correct Python type
-  #   e.g. for Python list or NumPy or ctypes
-
-  def extract_atom(self,name,type):
-    """Retrieve per-atom properties from LAMMPS
-
-    This is a wrapper around the :cpp:func:`lammps_extract_atom`
-    function of the C-library interface. Its documentation includes a
-    list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, the type has to be provided as an argument.  For
-    that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,
-    and ``LAMMPS_DBLE2D``.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
-
-    .. note::
-
-       While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax] - as is the underlying storage -
-       the data is usually only valid for the range of [0:nlocal],
-       unless the property of interest is also updated for ghost
-       atoms.  In some cases, this depends on a LAMMPS setting, see
-       for example :doc:`comm_modify vel yes <comm_modify>`.
-
-    :param name: name of the setting
-    :type name:  string
-    :param type: type of the returned data
-    :type name:  int
-    :return: value of the setting
-    :rtype: pointer to integer or double or None
-    """
-    ntypes = int(self.extract_setting('ntypes'))
-    nmax   = int(self.extract_setting('nmax'))
-    if name: name = name.encode()
-    if type == LAMMPS_INT:
-      self.lib.lammps_extract_atom.restype = POINTER(c_int)
-    elif type == LAMMPS_INT2D:
-      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
-    elif type == LAMMPS_DOUBLE:
-      self.lib.lammps_extract_atom.restype = POINTER(c_double)
-    elif type == LAMMPS_DBLE2D:
-      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
-    else: return None
-    ptr = self.lib.lammps_extract_atom(self.lmp,name)
-    if ptr: return ptr
-    else:   return None
-
   @property
   def numpy(self):
+    "Convert between ctypes arrays and numpy arrays"
     if not self._numpy:
       import numpy as np
       class LammpsNumpyWrapper:
@@ -660,93 +425,95 @@ class lammps(object):
       self._numpy = LammpsNumpyWrapper(self)
     return self._numpy
 
-  # extract compute info
+  def close(self):
+    """Explicitly delete a LAMMPS instance through the C-library interface.
 
-  def extract_compute(self,id,style,type):
-    if id: id = id.encode()
-    if type == 0:
-      if style == 0:
-        self.lib.lammps_extract_compute.restype = POINTER(c_double)
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr[0]
-      elif style == 1:
-        return None
-      elif style == 2:
-        self.lib.lammps_extract_compute.restype = POINTER(c_int)
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr[0]
-    if type == 1:
-      self.lib.lammps_extract_compute.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-      return ptr
-    if type == 2:
-      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-      return ptr
-    return None
+    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
+    """
+    if self.opened: self.lib.lammps_close(self.lmp)
+    self.lmp = None
+    self.opened = 0
 
-  # extract fix info
-  # in case of global datum, free memory for 1 double via lammps_free()
-  # double was allocated by library interface function
+  def finalize(self):
+    """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
+    """
+    if self.opened: self.lib.lammps_close(self.lmp)
+    self.lmp = None
+    self.opened = 0
+    self.lib.lammps_finalize()
 
-  def extract_fix(self,id,style,type,i=0,j=0):
-    if id: id = id.encode()
-    if style == 0:
-      self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      result = ptr[0]
-      self.lib.lammps_free(ptr)
-      return result
-    elif (style == 2) and (type == 0):
-      self.lib.lammps_extract_fix.restype = POINTER(c_int)
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      return ptr[0]
-    elif (style == 1) or (style == 2):
-      if type == 1:
-        self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      elif type == 2:
-        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      else:
-        return None
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      return ptr
-    else:
-      return None
+  def version(self):
+    """Return a numerical representation of the LAMMPS version in use.
 
-  # extract variable info
-  # free memory for 1 double or 1 vector of doubles via lammps_free()
-  # for vector, must copy nlocal returned values to local c_double vector
-  # memory was allocated by library interface function
+    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
 
-  def extract_variable(self,name,group,type):
-    if name: name = name.encode()
-    if group: group = group.encode()
-    if type == 0:
-      self.lib.lammps_extract_variable.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      result = ptr[0]
-      self.lib.lammps_free(ptr)
-      return result
-    if type == 1:
-      self.lib.lammps_extract_global.restype = POINTER(c_int)
-      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal".encode())
-      nlocal = nlocalptr[0]
-      result = (c_double*nlocal)()
-      self.lib.lammps_extract_variable.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      for i in range(nlocal): result[i] = ptr[i]
-      self.lib.lammps_free(ptr)
-      return result
-    return None
+    :return: version number
+    :rtype:  int
+    """
+    return self.lib.lammps_version(self.lmp)
 
-  # return current value of thermo keyword
+  def file(self,file):
+    """Read LAMMPS commands from a file.
 
-  def get_thermo(self,name):
-    if name: name = name.encode()
-    self.lib.lammps_get_thermo.restype = c_double
-    return self.lib.lammps_get_thermo(self.lmp,name)
+    This is a wrapper around the :cpp:func:`lammps_file` function of the C-library interface.
+    It will open the file with the name/path `file` and process the LAMMPS commands line by line until
+    the end. The function will return when the end of the file is reached.
+    
+    :param file: Name of the file/path with LAMMPS commands
+    :type file:  string
+    """
+    if file: file = file.encode()
+    else: return
+    self.lib.lammps_file(self.lmp,file)
 
-  # return total number of atoms in system
+  def command(self,cmd):
+    """Process a single LAMMPS input command from a string.
+
+    This is a wrapper around the :cpp:func:`lammps_command`
+    function of the C-library interface.
+
+    :param cmd: a single lammps command
+    :type cmd:  string
+    """
+    if cmd: cmd = cmd.encode()
+    else: return
+    self.lib.lammps_command(self.lmp,cmd)
+
+    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
+      sb = create_string_buffer(100)
+      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+      error_msg = sb.value.decode().strip()
+
+      if error_type == 2:
+        raise MPIAbortException(error_msg)
+      raise Exception(error_msg)
+
+  def commands_list(self,cmdlist):
+    """Process multiple LAMMPS input commands from a list of strings.
+
+    This is a wrapper around the
+    :cpp:func:`lammps_commands_list` function of
+    the C-library interface.
+
+    :param cmdlist: a single lammps command
+    :type cmdlist:  list of strings
+    """
+    cmds = [x.encode() for x in cmdlist if type(x) is str]
+    args = (c_char_p * len(cmdlist))(*cmds)
+    self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
+
+  def commands_string(self,multicmd):
+    """Process a block of LAMMPS input commands from a string.
+
+    This is a wrapper around the
+    :cpp:func:`lammps_commands_string`
+    function of the C-library interface.
+
+    :param multicmd: text block of lammps commands
+    :type multicmd:  string
+    """
+    if type(multicmd) is str: multicmd = multicmd.encode()
+    self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
 
   def get_natoms(self):
     """Get the total number of atoms in the LAMMPS instance.
@@ -759,21 +526,409 @@ class lammps(object):
     """
     return self.lib.lammps_get_natoms(self.lmp)
 
-  # set variable value
-  # value is converted to string
-  # returns 0 for success, -1 if failed
+  def extract_box(self):
+    """Extract simulation box parameters
 
-  def set_variable(self,name,value):
-    if name: name = name.encode()
-    if value: value = str(value).encode()
-    return self.lib.lammps_set_variable(self.lmp,name,value)
+    This is a wrapper around the :cpp:func:`lammps_extract_box` function
+    of the C-library interface.  Unlike in the C function, the result is
+    returned as a list.
 
-  # reset simulation box size
+    :return: list of the extracted data: boxlo, boxhi, xy, yz, xz, periodicity, box_change
+    :rtype: [ 3*double, 3*double, double, double, 3*int, int]
+    """
+    boxlo = (3*c_double)()
+    boxhi = (3*c_double)()
+    xy = c_double()
+    yz = c_double()
+    xz = c_double()
+    periodicity = (3*c_int)()
+    box_change = c_int()
+
+    self.lib.lammps_extract_box(self.lmp,boxlo,boxhi,
+                                byref(xy),byref(yz),byref(xz),
+                                periodicity,byref(box_change))
+
+    boxlo = boxlo[:3]
+    boxhi = boxhi[:3]
+    xy = xy.value
+    yz = yz.value
+    xz = xz.value
+    periodicity = periodicity[:3]
+    box_change = box_change.value
+
+    return boxlo,boxhi,xy,yz,xz,periodicity,box_change
 
   def reset_box(self,boxlo,boxhi,xy,yz,xz):
+    """Reset simulation box parameters
+
+    This is a wrapper around the :cpp:func:`lammps_reset_box` function
+    of the C-library interface.
+
+    :param boxlo: new lower box boundaries
+    :type boxlo: list of 3 floating point numbers
+    :param boxhi: new upper box boundaries
+    :type boxhi: list of 3 floating point numbers
+    :param xy: xy tilt factor
+    :type xy: float
+    :param yz: yz tilt factor
+    :type yz: float
+    :param xz: xz tilt factor
+    :type xz: float
+    """
     cboxlo = (3*c_double)(*boxlo)
     cboxhi = (3*c_double)(*boxhi)
     self.lib.lammps_reset_box(self.lmp,cboxlo,cboxhi,xy,yz,xz)
+
+  def get_thermo(self,name):
+    """Get current value of a thermo keyword
+
+    This is a wrapper around the :cpp:func:`lammps_get_thermo`
+    function of the C-library interface.
+
+    :param name: name of thermo keyword
+    :type name: string
+    :rvalue: value of thermo keyword
+    :rtype: double or None
+    """
+    if name: name = name.encode()
+    else: return None
+    self.lib.lammps_get_thermo.restype = c_double
+    return self.lib.lammps_get_thermo(self.lmp,name)
+
+  def extract_setting(self, name):
+    """Query LAMMPS about global settings that can be expressed as an integer.
+
+    This is a wrapper around the :cpp:func:`lammps_extract_setting`
+    function of the C-library interface.  Its documentation includes
+    a list of the supported keywords.
+
+    :param name: name of the setting
+    :type name:  string
+    :return: value of the setting
+    :rtype: int
+    """
+    if name: name = name.encode()
+    else: return None
+    self.lib.lammps_extract_setting.restype = c_int
+    return int(self.lib.lammps_extract_setting(self.lmp,name))
+
+  # extract global info
+
+  def extract_global(self, name, type):
+    """Query LAMMPS about global settings of different types.
+
+    This is a wrapper around the :cpp:func:`lammps_extract_global`
+    function of the C-library interface.  Unlike the C function
+    this method returns the value and not a pointer and thus can
+    only return the first value for keywords representing a list
+    of values.  The :cpp:func:`lammps_extract_global` documentation
+    includes a list of the supported keywords and their data types.
+    Since Python needs to know the data type to be able to interpret
+    the result, the type has to be provided as an argument.  For
+    that purpose the :py:mod:`lammps` module contains the constants
+    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
+    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
+    This function returns ``None`` if either the keyword is not
+    recognized, or an invalid data type constant is used.
+
+    :param name: name of the setting
+    :type name:  string
+    :param type: type of the returned data
+    :type name:  int
+    :return: value of the setting
+    :rtype: integer or double or string or None
+    """
+    if name: name = name.encode()
+    else: return None
+    if type == LAMMPS_INT:
+      self.lib.lammps_extract_global.restype = POINTER(c_int)
+    elif type == LAMMPS_DOUBLE:
+      self.lib.lammps_extract_global.restype = POINTER(c_double)
+    elif type == LAMMPS_BIGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
+    elif type == LAMMPS_TAGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
+    elif type == LAMMPS_STRING:
+      self.lib.lammps_extract_global.restype = c_char_p
+      ptr = self.lib.lammps_extract_global(self.lmp,name)
+      return str(ptr,'ascii')
+    else: return None
+    ptr = self.lib.lammps_extract_global(self.lmp,name)
+    if ptr: return ptr[0]
+    else: return None
+
+  # extract per-atom info
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+
+  def extract_atom(self,name,type):
+    """Retrieve per-atom properties from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords and their data types.
+    Since Python needs to know the data type to be able to interpret
+    the result, the type has to be provided as an argument.  For
+    that purpose the :py:mod:`lammps` module contains the constants
+    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,
+    and ``LAMMPS_DBLE2D``.
+    This function returns ``None`` if either the keyword is not
+    recognized, or an invalid data type constant is used.
+
+    .. note::
+
+       While the returned arrays of per-atom data are dimensioned
+       for the range [0:nmax] - as is the underlying storage -
+       the data is usually only valid for the range of [0:nlocal],
+       unless the property of interest is also updated for ghost
+       atoms.  In some cases, this depends on a LAMMPS setting, see
+       for example :doc:`comm_modify vel yes <comm_modify>`.
+
+    :param name: name of the setting
+    :type name:  string
+    :param type: type of the returned data
+    :type type:  int
+    :return: requested data
+    :rtype: pointer to integer or double or None
+    """
+    ntypes = int(self.extract_setting('ntypes'))
+    nmax   = int(self.extract_setting('nmax'))
+    if name: name = name.encode()
+    else: return None
+    if type == LAMMPS_INT:
+      self.lib.lammps_extract_atom.restype = POINTER(c_int)
+    elif type == LAMMPS_INT2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
+    elif type == LAMMPS_DOUBLE:
+      self.lib.lammps_extract_atom.restype = POINTER(c_double)
+    elif type == LAMMPS_DBLE2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
+    else: return None
+    ptr = self.lib.lammps_extract_atom(self.lmp,name)
+    if ptr: return ptr
+    else:   return None
+
+
+  def extract_compute(self,id,style,type):
+    """Retrieve data from a LAMMPS compute
+
+    This is a wrapper around the :cpp:func:`lammps_extract_compute`
+    function of the C-library interface.  
+    This function returns ``None`` if either the compute id is not
+    recognized, or an invalid combination of :ref:`style <py_style_constants>`
+    and :ref:`type <py_type_constants>` constants is used. The
+    names and functionality of the constants are the same as for
+    the corresponding C-library function.  For requests to return
+    a scalar or a size, the value is returned, otherwise a pointer.
+
+    :param id: compute ID
+    :type id:  string
+    :param style: style of the data retrieve (global, atom, or local)
+    :type style:  int
+    :param type: type or size of the returned data (scalar, vector, or array)
+    :type type:  int
+    :return: requested data
+    :rtype: integer or double or pointer to 1d or 2d double array or None
+    """
+    if id: id = id.encode()
+    else: return None
+
+    if type == LMP_TYPE_SCALAR:
+      if style == LMP_STYLE_GLOBAL:
+        self.lib.lammps_extract_compute.restype = POINTER(c_double)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+      elif style == LMP_STYLE_ATOM:
+        return None
+      elif style == LMP_STYLE_LOCAL:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+
+    if type == LMP_TYPE_VECTOR:
+      self.lib.lammps_extract_compute.restype = POINTER(c_double)
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+      return ptr
+
+    if type == LMP_TYPE_ARRAY:
+      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+      return ptr
+
+    if type == LMP_SIZE_COLS:
+      if style == LMP_STYLE_GLOBAL  \
+         or style == LMP_STYLE_ATOM \
+         or style == LMP_STYLE_LOCAL:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+
+    if type == LMP_SIZE_VECTOR  \
+       or type == LMP_SIZE_ROWS:
+      if style == LMP_STYLE_GLOBAL  \
+         or style == LMP_STYLE_LOCAL:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+
+    return None
+
+  # extract fix info
+  # in case of global data, free memory for 1 double via lammps_free()
+  # double was allocated by library interface function
+
+  def extract_fix(self,id,style,type,nrow=0,ncol=0):
+    """Retrieve data from a LAMMPS fix
+
+    This is a wrapper around the :cpp:func:`lammps_extract_fix`
+    function of the C-library interface.  
+    This function returns ``None`` if either the fix id is not
+    recognized, or an invalid combination of :ref:`style <py_style_constants>`
+    and :ref:`type <py_type_constants>` constants is used. The
+    names and functionality of the constants are the same as for
+    the corresponding C-library function.  For requests to return
+    a scalar or a size, the value is returned, also when accessing
+    global vectors or arrays, otherwise a pointer.
+
+    :param id: fix ID
+    :type id:  string
+    :param style: style of the data retrieve (global, atom, or local)
+    :type style:  int
+    :param type: type or size of the returned data (scalar, vector, or array)
+    :type type:  int
+    :param nrow: index of global vector element or row index of global array element
+    :type type:  int
+    :param ncol: column index of global array element
+    :type type:  int
+    :return: requested data
+    :rtype: integer or double value, pointer to 1d or 2d double array  or None
+
+    """
+    if id: id = id.encode()
+    else: return None
+
+    if style == LMP_STYLE_GLOBAL:
+      if type == LMP_TYPE_SCALAR    \
+         or type == LMP_TYPE_VECTOR \
+         or type == LMP_TYPE_ARRAY:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+        result = ptr[0]
+        self.lib.lammps_free(ptr)
+        return result
+      elif type == LMP_SIZE_VECTOR  \
+           or type == LMP_SIZE_ROWS \
+           or type == LMP_SIZE_COLS:
+        self.lib.lammps_extract_fix.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+        return ptr[0]
+      else:
+        return None
+
+    elif style == LMP_STYLE_ATOM:
+      if type == LMP_TYPE_VECTOR:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+      elif type == LMP_TYPE_ARRAY:
+        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
+      elif type == LMP_SIZE_COLS:
+        self.lib.lammps_extract_fix.restype = POINTER(c_int)
+      else:
+        return None
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+      if type == LMP_SIZE_COLS:
+        return ptr[0]
+      else:
+        return ptr
+
+    elif style == LMP_STYLE_LOCAL:
+      if type == LMP_TYPE_VECTOR:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+      elif type == LMP_TYPE_ARRAY:
+        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
+      elif type == LMP_TYPE_SCALAR    \
+           or type == LMP_SIZE_VECTOR \
+           or type == LMP_SIZE_ROWS   \
+           or type == LMP_SIZE_COLS:
+        self.lib.lammps_extract_fix.restype = POINTER(c_int)
+      else:
+        return None
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+      if type == LMP_TYPE_VECTOR or type == LMP_TYPE_ARRAY:
+        return ptr
+      else:
+        return ptr[0]
+    else:
+      return None
+
+  # extract variable info
+  # free memory for 1 double or 1 vector of doubles via lammps_free()
+  # for vector, must copy nlocal returned values to local c_double vector
+  # memory was allocated by library interface function
+
+  def extract_variable(self,name,group=None,type=LMP_VAR_EQUAL):
+    """ Evaluate a LAMMPS variable and return its data
+ 
+    This function is a wrapper around the function
+    :cpp:func:`lammps_extract_variable` of the C-library interface,
+    evaluates variable name and returns a copy of the computed data.
+    The memory temporarily allocated by the C-interface is deleted
+    after the data is copied to a python variable or list.
+    The variable must be either an equal-style (or equivalent)
+    variable or an atom-style variable. The variable type has to
+    provided as type parameter which may be two constants:
+    ``LMP_VAR_EQUAL`` or ``LMP_VAR_STRING``; it defaults to
+    equal-style variables.
+    The group parameter is only used for atom-style variables and
+    defaults to the group "all" if set to ``None``, which is the default.
+
+    :param name: name of the variable to execute
+    :type name: string
+    :param group: name of group for atom style variable
+    :type group: string
+    :param type: type of variable
+    :param type: int
+    :return: the requested data
+    :rtype: double, array of doubles, or None
+    """
+    if name: name = name.encode()
+    else: return None
+    if group: group = group.encode()
+    if type == LMP_VAR_EQUAL:
+      self.lib.lammps_extract_variable.restype = POINTER(c_double)
+      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
+      result = ptr[0]
+      self.lib.lammps_free(ptr)
+      return result
+    if type == LMP_VAR_ATOM:
+      self.lib.lammps_extract_global.restype = POINTER(c_int)
+      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal".encode())
+      nlocal = nlocalptr[0]
+      result = (c_double*nlocal)()
+      self.lib.lammps_extract_variable.restype = POINTER(c_double)
+      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
+      for i in range(nlocal): result[i] = ptr[i]
+      self.lib.lammps_free(ptr)
+      return result
+    return None
+
+  def set_variable(self,name,value):
+    """Set a new value for a LAMMPS string style variable
+
+    This is a wrapper around the :cpp:func:`lammps_set_variable`
+    function of the C-library interface.
+
+    :param name: name of the variable
+    :type name: string
+    :param value: new variable value
+    :param type: any. will be converted to a string
+    :return: either 0 on success or -1 on failure
+    :rtype: int
+    """
+    if name: name = name.encode()
+    else: return -1
+    if value: value = str(value).encode()
+    else: return -1
+    return self.lib.lammps_set_variable(self.lmp,name,value)
 
   # return vector of atom properties gathered across procs
   # 3 variants to match src/library.cpp

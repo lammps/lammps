@@ -1,5 +1,5 @@
-Retrieving or setting system properties
-=======================================
+Retrieving or setting LAMMPS system properties
+==============================================
 
 The library interface allows to extract all kinds of information
 about the active simulation instance and also modify it.  This
@@ -40,20 +40,4 @@ that is coupled to LAMMPS via the library interface.
 -----------------------
 
 .. doxygenfunction:: lammps_extract_atom
-   :project: progguide
-
------------------------
-
-.. doxygenenum:: _LMP_STYLE_CONST
-
-.. doxygenenum:: _LMP_TYPE_CONST
-
------------------------
-
-.. doxygenfunction:: lammps_extract_compute
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_extract_fix
    :project: progguide

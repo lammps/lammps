@@ -98,7 +98,7 @@ using namespace LAMMPS_NS;
 /** \brief Create an instance of the LAMMPS class and store reference in ptr
  *
 \verbatim embed:rst
-The :cpp:func:`lammps_open` function will create a new
+The :cpp:func:`lammps_open` function creates a new
 LAMMPS instance while passing in a list of strings as if they were
 :doc:`command-line arguments <Run_options>` when LAMMPS is run in
 stand-alone mode from the command line, and an MPI communicator for
@@ -108,7 +108,7 @@ name of the executable and thus is ignored.  However ``argc`` may
 be set to 0 and then ``argv`` may be a ``NULL`` pointer.
 
 If for some reason the initialization of the LAMMPS instance fails,
-the ``ptr`` handle will be set to a ``NULL`` pointer.
+the ``ptr`` handle is set to a ``NULL`` pointer.
 \endverbatim
  *
  * \param argc number of command line arguments
@@ -138,7 +138,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
  *
 \verbatim embed:rst
 This function works like :cpp:func:`lammps_open`, but
-does not require to pass an MPI communicator.  Instead it will use
+does not require to pass an MPI communicator.  Instead it uses
 ``MPI_COMM_WORLD`` when creating a LAMMPS instance.  It first calls
 ``MPI_Init()`` if the MPI environment is not yet initialized.
 
@@ -272,7 +272,7 @@ void lammps_free(void *ptr)
  * \param filename name of a file with LAMMPS input
 
 \verbatim embed:rst
-This function will process the commands in the file pointed to
+This function processes commands in the file pointed to
 by ``filename`` line by line and thus functions very much like
 the :doc:`include <include>` command.  The function returns when
 the end of the file is reached and the commands have completed.
@@ -297,7 +297,7 @@ void lammps_file(void *handle, char *filename)
 /** \brief Process a single LAMMPS input command from a string
  *
 \verbatim embed:rst
-This function will process a single command in the string ``str``.
+This function processes a single command in the string ``str``.
 
 The string may but need not have a final newline character.
 Newline characters in the body of the string will be treated as
@@ -373,7 +373,7 @@ void lammps_commands_list(void *handle, int ncmd, char **cmds)
 /** \brief Process a block of LAMMPS input commands from a single string
  *
 \verbatim embed:rst
-This function will process a string similar to a block of commands from
+This function processes a string similar to a block of commands from
 an input file.  The string may have multiple lines (separated by newline
 characters) and also single commands may be distributed over multiple
 lines with continuation characters ('&').  Those lines are combined by
@@ -464,7 +464,7 @@ int lammps_get_natoms(void *handle)
 /** \brief Extract simulation box parameters
 
 \verbatim embed:rst
-This function will (re-)initialize the simulation box and boundary information
+This function (re-)initializes the simulation box and boundary information
 and then assign the designated data to the locations in the pointers passed as
 arguments.
 \endverbatim
@@ -521,7 +521,7 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 /** \brief Reset simulation box parameters
 
 \verbatim embed:rst
-This function will set the simulation box dimensions (upper and lower
+This function sets the simulation box dimensions (upper and lower
 bounds and tilt factors) from the provided data and then re-initialize()
 in and all derived parameters.
 \endverbatim
@@ -578,7 +578,7 @@ value for that keyword and returns it.
 
  * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
  * \param name :doc:`thermo keyword <thermo_style>` name.
- * \return current value of the thermo keyword
+ * \return current value of the thermo keyword or 0.0
  */
 double lammps_get_thermo(void *handle, char *name)
 {
@@ -1405,7 +1405,7 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
         *dptr = fix->compute_array(nrow,ncol);
         return (void *) dptr;
       }
-      if (type == LMP_SIZE_ROWS) {
+      if (type == LMP_SIZE_VECTOR) {
         if (!fix->vector_flag) return NULL;
         return (void *) &fix->size_vector;
       }
@@ -1439,33 +1439,54 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
   return NULL;
 }
 
-/* ----------------------------------------------------------------------
-   extract a pointer to an internal LAMMPS evaluated variable
-   name = variable name, must be equal-style or atom-style variable
-   group = group ID for evaluating an atom-style variable, else NULL
-   for equal-style variable, returns a pointer to a memory location
-     which is allocated by this function
-     which the caller can cast to a (double *) which points to the value
-   for atom-style variable, returns a pointer to the
-     vector of per-atom values on each processor,
-     which the caller can cast to a (double *) which points to the values
-   returns a NULL if name is not recognized or not equal-style or atom-style
-   IMPORTANT: for both equal-style and atom-style variables,
-     this function allocates memory to store the variable data in
-     so the caller must free this memory to avoid a leak
-     e.g. for equal-style variables
-       double *dptr = (double *) lammps_extract_variable();
-       double value = *dptr;
-       lammps_free(dptr);
-     e.g. for atom-style variables
-       double *vector = (double *) lammps_extract_variable();
-       use the vector values
-       lammps_free(vector);
-   IMPORTANT: LAMMPS cannot easily check here when it is valid to evaluate
-     the variable or any fixes or computes or thermodynamic info it references,
-     so caller must insure that it is OK
-------------------------------------------------------------------------- */
+/** \brief Get pointer to data from a LAMMPS variable.
+ *
+\verbatim embed:rst
+This function returns a pointer to data from a LAMMPS :doc:`variable`
+identified by its name.  The variable must be either an *equal*\ -style
+compatible or an *atom*\ -style variable.  Variables of style *internal*
+are compatible with *equal*\ -style variables and so are *python*\ -style
+variables, if they return a numeric value.  The function returns ``NULL``
+when a variable of the provided *name* is not found or of an incompatible
+style.  The *group* argument is only used for *atom*\ -style variables
+and ignored otherwise.  If set to ``NULL`` when extracting data from and
+*atom*\ -style variable, the group is assumed to be "all".
 
+.. note::
+
+   When requesting data from an *equal*\ -style or compatible variable
+   this function allocates storage for a single double value, copies the
+   returned value to it, and returns a pointer to the location of the copy.
+   Therefore the allocated storage needs to be freed after its use to
+   avoid a memory leak. Example:
+
+   .. code-block:: c
+ 
+      double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
+      double value = *dptr;
+      lammps_free((void *)dptr);
+
+   For *atom*\ -style variables the data returned is a pointer to an
+   allocated block of storage of double of the length ``atom->nlocal``.
+   To avoid a memory leak, also this pointer needs to be freed after use.
+
+Since the data is returned as copies, the location will persist, but its
+values will not be updated, in case the variable is re-evaluated. 
+
+.. note::
+
+   LAMMPS cannot easily check if it is valid to access the data referenced
+   by the variables, e.g. computes or fixes or thermodynamic info, so it
+   may fail with an error.  The caller has to make certain, that the data
+   is extracted only when it safe to evaluate the variable and thus an
+   error and crash is avoided.
+\endverbatim
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param name  name of the variable
+ * \param group group-ID for atom style variable or ``NULL``
+ * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
+ */
 void *lammps_extract_variable(void *handle, char *name, char *group)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -1482,6 +1503,7 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
     }
 
     if (lmp->input->variable->atomstyle(ivar)) {
+      if (group == NULL) group = (char *)"all";
       int igroup = lmp->group->find(group);
       if (igroup < 0) return NULL;
       int nlocal = lmp->atom->nlocal;
@@ -1495,12 +1517,17 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
   return NULL;
 }
 
-/* ----------------------------------------------------------------------
-   set the value of a STRING variable to str
-   return -1 if variable doesn't exist or not a STRING variable
-   return 0 for success
-------------------------------------------------------------------------- */
-
+/** \brief Set the value of a string-style variable.
+ *
+ * This function assigns a new value from the string str to the
+ * string-style variable name. Returns -1 if a variable of that
+ * name does not exist or is not a string-style variable, otherwise 0.
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param name  name of the variable
+ * \param str new value of the variable
+ * \return 0 on success or -1 on failure
+ */
 int lammps_set_variable(void *handle, char *name, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;

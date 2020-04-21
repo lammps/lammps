@@ -41,8 +41,8 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
-/*! \brief Style constants for extracting data from computes,
- *         fixes and variables
+/*! \brief Style constants for extracting data from computes
+ * and fixes.
  *
  * Must be kept in sync with constants in lammps.py
  */
@@ -52,8 +52,8 @@ enum _LMP_STYLE_CONST {
   LMP_STYLE_LOCAL =2            /*!< return local data */
 };
 
-/*! \brief Type and size constants for extracting data from computes,
- *         fixes and variables
+/*! \brief Type and size constants for extracting data from
+ * computes and fixes.
  *
  * Must be kept in sync with constants in lammps.py
  */

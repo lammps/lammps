@@ -51,7 +51,7 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
    pg_lib_create
    pg_lib_execute
    pg_lib_properties
-
+   pg_lib_objects
 
 
 -------------------
@@ -66,60 +66,6 @@ TODO: this part still needs to be edited/adapted
    The added functions can access or change any internal LAMMPS data you
    wish.
 
-
-The file src/library.cpp also contains these functions for extracting
-information from LAMMPS and setting value within LAMMPS.  Again, see
-the documentation in the src/library.cpp file for details, including
-which quantities can be queried by name:
-
-.. code-block:: c
-
-   int lammps_extract_setting(void *, char *)
-   void *lammps_extract_global(void *, char *)
-   void lammps_extract_box(void *, double *, double *,
-                           double *, double *, double *, int *, int *)
-   void *lammps_extract_atom(void *, char *)
-   void *lammps_extract_compute(void *, char *, int, int)
-   void *lammps_extract_fix(void *, char *, int, int, int, int)
-   void *lammps_extract_variable(void *, char *, char *)
-
-The extract_setting() function returns info on the size
-of data types (e.g. 32-bit or 64-bit atom IDs) used
-by the LAMMPS executable (a compile-time choice).
-
-The other extract functions return a pointer to various global or
-per-atom quantities stored in LAMMPS or to values calculated by a
-compute, fix, or variable.  The pointer returned by the
-extract_global() function can be used as a permanent reference to a
-value which may change.  For the extract_atom() method, see the
-extract() method in the src/atom.cpp file for a list of valid per-atom
-properties.  New names could easily be added if the property you want
-is not listed.  For the other extract functions, the underlying
-storage may be reallocated as LAMMPS runs, so you need to re-call the
-function to assure a current pointer or returned value(s).
-
-.. code-block:: c
-
-   double lammps_get_thermo(void *, char *)
-   int lammps_get_natoms(void *)
-
-   int lammps_set_variable(void *, char *, char *)
-   void lammps_reset_box(void *, double *, double *, double, double, double)
-
-The lammps_get_thermo() function returns the current value of a thermo
-keyword as a double precision value.
-
-The lammps_get_natoms() function returns the total number of atoms in
-the system and can be used by the caller to allocate memory for the
-lammps_gather_atoms() and lammps_scatter_atoms() functions.
-
-The lammps_set_variable() function can set an existing string-style
-variable to a new string value, so that subsequent LAMMPS commands can
-access the variable.
-
-The lammps_reset_box() function resets the size and shape of the
-simulation box, e.g. as part of restoring a previously extracted and
-saved state of a simulation.
 
 .. code-block:: c
 

@@ -41,6 +41,8 @@ digraph lammps {
     Aa [shape=box label="AtomVecAtomic"]
     Am [shape=box label="AtomVecMolecular"]
     Lj [shape=box label="PairLJCut"]
+    Lo [shape=box label="PairLJCutOMP"]
+    Lg [shape=box label="PairLJCutGPU"]
     Te [shape=box label="PairTersoff"]
     Bh [shape=box label="BondHarmonic"]
     Bf [shape=box label="BondFENE"]
@@ -60,8 +62,8 @@ digraph lammps {
     At -> Av [penwidth=2]
     Av -> {Aa Am} [style=dashed penwidth=2]
     Pa -> {Lj Te} [style=dashed penwidth=2]
+    Lj -> {Lo Lg} [style=dashed penwidth=2]
     Bo -> {Bh Bf} [style=dashed penwidth=2]
     Fi -> {Fn} [style=dashed penwidth=2]
 }
 
-    

@@ -344,65 +344,101 @@ be specified in uppercase.
    :widths: auto
 
    *  - **Arch-ID**
+      - **HOST or GPU**
       - **Description**
    *  - AMDAVX
+      - HOST
       - AMD 64-bit x86 CPU (AVX 1)
    *  - EPYC
+      - HOST
       - AMD EPYC Zen class CPU (AVX 2)
    *  - ARMV80
+      - HOST
       - ARMv8.0 Compatible CPU
    *  - ARMV81
+      - HOST
       - ARMv8.1 Compatible CPU
    *  - ARMV8_THUNDERX
+      - HOST
       - ARMv8 Cavium ThunderX CPU
    *  - ARMV8_THUNDERX2
+      - HOST
       - ARMv8 Cavium ThunderX2 CPU
    *  - WSM
+      - HOST
       - Intel Westmere CPU (SSE 4.2)
    *  - SNB
+      - HOST
       - Intel Sandy/Ivy Bridge CPU (AVX 1)
    *  - HSW
+      - HOST
       - Intel Haswell CPU (AVX 2)
    *  - BDW
+      - HOST
       - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
    *  - SKX
+      - HOST
       - Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)
    *  - KNC
+      - HOST
       - Intel Knights Corner Xeon Phi
    *  - KNL
+      - HOST
       - Intel Knights Landing Xeon Phi
    *  - BGQ
+      - HOST
       - IBM Blue Gene/Q CPU
    *  - POWER7
-      - IBM POWER8 CPU
+      - HOST
+      - IBM POWER7 CPU
    *  - POWER8
+      - HOST
       - IBM POWER8 CPU
    *  - POWER9
+      - HOST
       - IBM POWER9 CPU
    *  - KEPLER30
+      - GPU
       - NVIDIA Kepler generation CC 3.0 GPU
    *  - KEPLER32
+      - GPU
       - NVIDIA Kepler generation CC 3.2 GPU
    *  - KEPLER35
+      - GPU
       - NVIDIA Kepler generation CC 3.5 GPU
    *  - KEPLER37
+      - GPU
       - NVIDIA Kepler generation CC 3.7 GPU
    *  - MAXWELL50
+      - GPU
       - NVIDIA Maxwell generation CC 5.0 GPU
    *  - MAXWELL52
+      - GPU
       - NVIDIA Maxwell generation CC 5.2 GPU
    *  - MAXWELL53
+      - GPU
       - NVIDIA Maxwell generation CC 5.3 GPU
    *  - PASCAL60
+      - GPU
       - NVIDIA Pascal generation CC 6.0 GPU
    *  - PASCAL61
+      - GPU
       - NVIDIA Pascal generation CC 6.1 GPU
    *  - VOLTA70
+      - GPU
       - NVIDIA Volta generation CC 7.0 GPU
    *  - VOLTA72
+      - GPU
       - NVIDIA Volta generation CC 7.2 GPU
    *  - TURING75
+      - GPU
       - NVIDIA Turing generation CC 7.5 GPU
+   *  - VEGA900
+      - GPU
+      - AMD GPU MI25 GFX900
+   *  - VEGA906
+      - GPU
+      - AMD GPU MI50/MI60 GFX906
 
 CMake build settings:
 ^^^^^^^^^^^^^^^^^^^^^

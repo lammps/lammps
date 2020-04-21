@@ -521,7 +521,7 @@ class lammps(object):
     Limited to a 32-bit integer due to the limitation of the
     underlying :cpp:func:`lammps_get_natoms` function.
 
-    :rvalue: number of atoms
+    :return: number of atoms
     :rtype: int
     """
     return self.lib.lammps_get_natoms(self.lmp)
@@ -587,7 +587,7 @@ class lammps(object):
 
     :param name: name of thermo keyword
     :type name: string
-    :rvalue: value of thermo keyword
+    :return: value of thermo keyword
     :rtype: double or None
     """
     if name: name = name.encode()
@@ -634,7 +634,7 @@ class lammps(object):
     :param name: name of the setting
     :type name:  string
     :param type: type of the returned data
-    :type name:  int
+    :type type:  int
     :return: value of the setting
     :rtype: integer or double or string or None
     """
@@ -797,9 +797,9 @@ class lammps(object):
     :param type: type or size of the returned data (scalar, vector, or array)
     :type type:  int
     :param nrow: index of global vector element or row index of global array element
-    :type type:  int
+    :type nrow:  int
     :param ncol: column index of global array element
-    :type type:  int
+    :type ncol:  int
     :return: requested data
     :rtype: integer or double value, pointer to 1d or 2d double array  or None
 
@@ -886,7 +886,7 @@ class lammps(object):
     :param group: name of group for atom style variable
     :type group: string
     :param type: type of variable
-    :param type: int
+    :type type: int
     :return: the requested data
     :rtype: double, array of doubles, or None
     """
@@ -920,7 +920,7 @@ class lammps(object):
     :param name: name of the variable
     :type name: string
     :param value: new variable value
-    :param type: any. will be converted to a string
+    :type value: any. will be converted to a string
     :return: either 0 on success or -1 on failure
     :rtype: int
     """

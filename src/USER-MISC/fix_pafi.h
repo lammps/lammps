@@ -21,29 +21,6 @@ FixStyle(pafi,FixPAFI)
 #define LMP_FIX_PAFI_H
 
 #include "fix.h"
-#include "compute.h"
-#include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include "math_extra.h"
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "group.h"
-#include "citeme.h"
-
 
 namespace LAMMPS_NS {
 

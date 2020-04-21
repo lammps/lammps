@@ -19,6 +19,28 @@
 
 
 #include "fix_pafi.h"
+#include "mpi.h"
+#include "math.h"
+#include "string.h"
+#include "stdlib.h"
+#include "math_extra.h"
+#include "atom.h"
+#include "force.h"
+#include "update.h"
+#include "modify.h"
+#include "domain.h"
+#include "region.h"
+#include "respa.h"
+#include "comm.h"
+#include "input.h"
+#include "variable.h"
+#include "compute.h"
+#include "random_mars.h"
+#include "memory.h"
+#include "error.h"
+#include "utils.h"
+#include "group.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 

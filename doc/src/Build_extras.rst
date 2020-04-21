@@ -440,8 +440,8 @@ be specified in uppercase.
       - GPU
       - AMD GPU MI50/MI60 GFX906
 
-CMake build settings:
-^^^^^^^^^^^^^^^^^^^^^
+Basic CMake build settings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For multicore CPUs using OpenMP, set these 2 variables.
 
 .. code-block:: bash
@@ -470,9 +470,13 @@ For NVIDIA GPUs using CUDA, set these variables:
    -D Kokkos_ENABLE_OPENMP=yes
    -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
-The wrapper value is the Cuda nvcc compiler wrapper provided in the
-Kokkos library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should
-include the full path name to the wrapper, e.g.
+This will also enable executing FFTs on the GPU, either via the internal
+KISSFFT library, or - by preference - with the cuFFT library bundled
+with the CUDA toolkit, depending on whether CMake can identify its
+location.  The *wrapper* value for ``CMAKE_CXX_COMPILER`` variable is
+the path to the CUDA nvcc compiler wrapper provided in the Kokkos
+library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should include
+the full path name to the wrapper, e.g.
 
 .. code-block:: bash
 
@@ -492,8 +496,8 @@ common packages enabled, you can do the following:
    cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
    cmake --build .
 
-Traditional make settings:
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Basic traditional make settings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Choose which hardware to support in ``Makefile.machine`` via
 ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
@@ -519,6 +523,7 @@ For NVIDIA GPUs using CUDA:
 
    KOKKOS_DEVICES = Cuda
    KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is hosting the GPU
+   KOKKOS_CUDA_OPTIONS = "enable_lambda"
                                   # GPUARCH = GPU from list above
    FFT_INC = -DFFT_CUFFT          # enable use of cuFFT (optional)
    FFT_LIB = -lcufft              # link to cuFFT library
@@ -540,6 +545,44 @@ C++ compiler for non-Kokkos, non-CUDA files.
    # For MPICH and derivatives
    KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
    CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+
+
+Advanced KOKKOS compilation settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are other allowed options when building with the KOKKOS package
+that can improve performance or assist in debugging or profiling. Below
+are some examples that may be useful in combination with LAMMPS.  For
+the full list (which keeps changing as the Kokkos package itself evolves),
+please consult the Kokkos library documentation.
+
+As alternative to using multi-threading via OpenMP
+(``-DKokkos_ENABLE_OPENMP=on`` or ``KOKKOS_DEVICES=OpenMP``) it is also
+possible to use Posix threads directly (``-DKokkos_ENABLE_PTHREAD=on``
+or ``KOKKOS_DEVICES=Pthread``).  While binding of threads to individual
+or groups of CPU cores is managed in OpenMP with environment variables,
+you need assistance from either the "hwloc" or "libnuma" library for the
+Pthread thread parallelization option. To enable use with CMake:
+``-DKokkos_ENABLE_HWLOC=on`` or ``-DKokkos_ENABLE_LIBNUMA=on``; and with
+conventional make: ``KOKKOS_USE_TPLS=hwloc`` or
+``KOKKOS_USE_TPLS=libnuma``.
+
+The CMake option ``-DKokkos_ENABLE_LIBRT=on`` or the makefile setting
+``KOKKOS_USE_TPLS=librt`` enables the use of a more accurate timer
+mechanism on many Unix-like platforms for internal profiling.
+
+The CMake option ``-DKokkos_ENABLE_DEBUG=on`` or the makefile setting
+``KOKKOS_DEBUG=yes`` enables printing of run-time
+debugging information that can be useful. It also enables runtime
+bounds checking on Kokkos data structures.  As to be expected, enabling
+this option will negatively impact the performance and thus is only
+recommended when developing a Kokkos-enabled style in LAMMPS.
+
+The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
+setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
+use of CUDA "Unified Virtual Memory" in Kokkos.  Please note, that
+the LAMMPS KOKKOS package must **always** be compiled with the
+*enable_lambda* option when using GPUs.
 
 ----------
 

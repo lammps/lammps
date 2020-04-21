@@ -28,27 +28,30 @@ compatible with specific hardware.
 
 .. note::
 
-   To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA
+   To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
    software version 9.0 or later must be installed on your system. See
-   the discussion for the :doc:`GPU package <Speed_gpu>` for details of how
-   to check and do this.
+   the discussion for the :doc:`GPU package <Speed_gpu>` for details of
+   how to check and do this.
 
 .. note::
 
-   Kokkos with CUDA currently implicitly assumes that the MPI library
-   is CUDA-aware. This is not always the case, especially when using
-   pre-compiled MPI libraries provided by a Linux distribution. This is not
-   a problem when using only a single GPU with a single MPI rank. When
-   running with multiple MPI ranks, you may see segmentation faults without
-   CUDA-aware MPI support. These can be avoided by adding the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the LAMMPS command line or by
-   using the command :doc:`package kokkos cuda/aware off <package>` in the
-   input file.
+   Kokkos with CUDA currently implicitly assumes that the MPI library is
+   CUDA-aware. This is not always the case, especially when using
+   pre-compiled MPI libraries provided by a Linux distribution. This is
+   not a problem when using only a single GPU with a single MPI
+   rank. When running with multiple MPI ranks, you may see segmentation
+   faults without CUDA-aware MPI support. These can be avoided by adding
+   the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the
+   LAMMPS command line or by using the command :doc:`package kokkos
+   cuda/aware off <package>` in the input file.
 
-**Building LAMMPS with the KOKKOS package:**
+Building LAMMPS with the KOKKOS package
+"""""""""""""""""""""""""""""""""""""""
 
 See the :ref:`Build extras <kokkos>` doc page for instructions.
 
-**Running LAMMPS with the KOKKOS package:**
+Running LAMMPS with the KOKKOS package
+""""""""""""""""""""""""""""""""""""""
 
 All Kokkos operations occur within the context of an individual MPI
 task running on a single node of the machine. The total number of MPI
@@ -57,7 +60,8 @@ usual manner via the mpirun or mpiexec commands, and is independent of
 Kokkos. E.g. the mpirun command in OpenMPI does this via its -np and
 -npernode switches. Ditto for MPICH via -np and -ppn.
 
-**Running on a multi-core CPU:**
+Running on a multi-core CPU
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
@@ -133,7 +137,8 @@ atom.  When using the Kokkos Serial back end or the OpenMP back end with
 a single thread, no duplication or atomic operations are used. For CUDA
 and half neighbor lists, the KOKKOS package always uses atomic operations.
 
-**Core and Thread Affinity:**
+CPU Cores, Sockets and Thread Affinity
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When using multi-threading, it is important for performance to bind
 both MPI tasks to physical cores, and threads to physical cores, so
@@ -147,15 +152,16 @@ for your MPI installation), binding can be forced with these flags:
    OpenMPI 1.8: mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
    Mvapich2 2.0: mpiexec -np 2 --bind-to socket --map-by socket ./lmp_mvapich ...
 
-For binding threads with KOKKOS OpenMP, use thread affinity
-environment variables to force binding. With OpenMP 3.1 (gcc 4.7 or
-later, intel 12 or later) setting the environment variable
-OMP_PROC_BIND=true should be sufficient. In general, for best
-performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and
-OMP_PLACES=threads.  For binding threads with the KOKKOS pthreads
-option, compile LAMMPS the KOKKOS HWLOC=yes option as described below.
+For binding threads with KOKKOS OpenMP, use thread affinity environment
+variables to force binding. With OpenMP 3.1 (gcc 4.7 or later, intel 12
+or later) setting the environment variable ``OMP_PROC_BIND=true`` should
+be sufficient. In general, for best performance with OpenMP 4.0 or later
+set ``OMP_PROC_BIND=spread`` and ``OMP_PLACES=threads``.  For binding
+threads with the KOKKOS pthreads option, compile LAMMPS with the hwloc
+or libnuma support enabled as described in the :ref:`extra build options page <kokkos>`.
 
-**Running on Knight's Landing (KNL) Intel Xeon Phi:**
+Running on Knight's Landing (KNL) Intel Xeon Phi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here is a quick overview of how to use the KOKKOS package for the
 Intel Knight's Landing (KNL) Xeon Phi:
@@ -213,7 +219,8 @@ threads/task as Nt. The product of these two values should be N, i.e.
    them in "native" mode, not "offload" mode like the USER-INTEL package
    supports.
 
-**Running on GPUs:**
+Running on GPUs
+^^^^^^^^^^^^^^^
 
 Use the "-k" :doc:`command-line switch <Run_options>` to specify the
 number of GPUs per node. Typically the -np setting of the mpirun command
@@ -277,7 +284,8 @@ one or more nodes, each with two GPUs:
    kspace, etc., you must set the environment variable CUDA_LAUNCH_BLOCKING=1.
    However, this will reduce performance and is not recommended for production runs.
 
-**Run with the KOKKOS package by editing an input script:**
+Run with the KOKKOS package by editing an input script
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Alternatively the effect of the "-sf" or "-pk" switches can be
 duplicated by adding the :doc:`package kokkos <package>` or :doc:`suffix kk <suffix>` commands to your input script.
@@ -300,16 +308,23 @@ You only need to use the :doc:`package kokkos <package>` command if you
 wish to change any of its option defaults, as set by the "-k on"
 :doc:`command-line switch <Run_options>`.
 
-**Using OpenMP threading and CUDA together (experimental):**
+**Using OpenMP threading and CUDA together:**
 
 With the KOKKOS package, both OpenMP multi-threading and GPUs can be
-used together in a few special cases. In the Makefile, the
-KOKKOS_DEVICES variable must include both "Cuda" and "OpenMP", as is
-the case for /src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi
+compiled and used together in a few special cases. In the makefile for
+the conventional build, the KOKKOS_DEVICES variable must include both,
+"Cuda" and "OpenMP", as is the case for ``/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi``.
 
 .. code-block:: bash
 
    KOKKOS_DEVICES=Cuda,OpenMP
+
+When building with CMake you need to enable both features as it is done
+in the ``kokkos-cuda.cmake`` CMake preset file.
+
+.. code-block:: bash
+
+   cmake ../cmake -DKokkos_ENABLE_CUDA=yes -DKokkos_ENABLE_OPENMP=yes
 
 The suffix "/kk" is equivalent to "/kk/device", and for Kokkos CUDA,
 using the "-sf kk" in the command line gives the default CUDA version
@@ -344,7 +359,8 @@ suffix for kspace and bonds, angles, etc.  in the input file and the
 sure the environment variable CUDA_LAUNCH_BLOCKING is not set to "1"
 so CPU/GPU overlap can occur.
 
-**Speed-ups to expect:**
+Performance to expect
+"""""""""""""""""""""
 
 The performance of KOKKOS running in different modes is a function of
 your hardware, which KOKKOS-enable styles are used, and the problem
@@ -361,48 +377,26 @@ Generally speaking, the following rules of thumb apply:
   performance of a KOKKOS style is a bit slower than the USER-OMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
-  than the GPU package.
+  than the GPU package when compiled for double precision. The benefit
+  of using single or mixed precision with the GPU package depends
+  significantly on the hardware in use and the simulated system and pair
+  style.
 * When running on Intel hardware, KOKKOS is not as fast as
-  the USER-INTEL package, which is optimized for that hardware.
+  the USER-INTEL package, which is optimized for x86 hardware (not just
+  from Intel) and compilation with the Intel compilers.  The USER-INTEL
+  package also can increase the vector length of vector instructions
+  by switching to single or mixed precision mode.
 
 See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 
-**Advanced Kokkos options:**
+Advanced Kokkos options
+"""""""""""""""""""""""
 
-There are other allowed options when building with the KOKKOS package.
-As explained on the :ref:`Build extras <kokkos>` doc page,
-they can be set either as variables on the make command line or in
-Makefile.machine, or they can be specified as CMake variables.  Each
-takes a value shown below.  The default value is listed, which is set
-in the lib/kokkos/Makefile.kokkos file. For a full listing of all options,
-see lib/kokkos/Makefile.kokkos.
-
-* KOKKOS_USE_TPLS, values = *hwloc*\ , *librt*\ , *experimental_memkind*, default = *none*
-* KOKKOS_DEBUG, values = *yes*\ , *no*\ , default = *no*
-* KOKKOS_CUDA_OPTIONS, values = *force_uvm*, *use_ldg*, *rdc*\ , *enable_lambda*\ , *enable_constexpr*, default = *enable_lambda*
-
-KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
-migrate during a simulation. KOKKOS_USE_TPLS=hwloc should always be
-used if running with KOKKOS_DEVICES=Pthreads for pthreads. It is not
-necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
-provides alternative methods via environment variables for binding
-threads to hardware cores.  More info on binding threads to cores is
-given on the :doc:`Speed omp <Speed_omp>` doc page.
-
-KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
-on most Unix platforms. This library is not available on all
-platforms.
-
-KOKKOS_DEBUG is only useful when developing a Kokkos-enabled style
-within LAMMPS. KOKKOS_DEBUG=yes enables printing of run-time
-debugging information that can be useful. It also enables runtime
-bounds checking on Kokkos data structures.
-
-KOKKOS_CUDA_OPTIONS are additional options for CUDA. The LAMMPS KOKKOS
-package must be compiled with the *enable_lambda* option when using
-GPUs.
+There are other allowed options when building with the KOKKOS package
+that can improve performance or assist in debugging or profiling.
+They are explained on the :ref:`KOKKOS section of the build extras <kokkos>` doc page,
 
 Restrictions
 """"""""""""

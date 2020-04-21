@@ -204,6 +204,17 @@ void FixPAFI::init()
       error->all(FLERR,"Region ID for fix pafi does not exist");
   }
 
+
+  icompute = modify->find_compute(computename);
+  if (icompute==-1) error->all(FLERR,"Compute for fix pafi does not exist");
+
+  PathCompute = modify->compute[icompute];
+  if (PathCompute->peratom_flag==0)
+    error->all(FLERR,"Compute for fix pafi does not calculate a local array");
+  if (PathCompute->size_peratom_cols < domain->dimension*3)
+    error->all(FLERR,"Compute for fix pafi has < DIM fields per atom");
+
+
   if (strstr(update->integrate_style,"respa")) {
     step_respa = ((Respa *) update->integrate)->step; // nve
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

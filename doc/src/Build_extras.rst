@@ -446,7 +446,7 @@ For multicore CPUs using OpenMP, set these 2 variables.
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_CPUARCH=yes  # CPUARCH = CPU from list above
+   -D Kokkos_ARCH_HOSTARCH=yes  # HOSTARCH = HOST from list above
    -D Kokkos_ENABLE_OPENMP=yes
    -D BUILD_OMP=yes
 
@@ -464,7 +464,7 @@ For NVIDIA GPUs using CUDA, set these variables:
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_CPUARCH=yes    # CPUARCH = CPU from list above
+   -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
    -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
    -D Kokkos_ENABLE_CUDA=yes
    -D Kokkos_ENABLE_OPENMP=yes
@@ -504,7 +504,7 @@ For multicore CPUs using OpenMP:
 .. code-block:: make
 
    KOKKOS_DEVICES = OpenMP
-   KOKKOS_ARCH = CPUARCH          # CPUARCH = CPU from list above
+   KOKKOS_ARCH = HOSTARCH          # HOSTARCH = HOST from list above
 
 For Intel KNLs using OpenMP:
 
@@ -518,7 +518,7 @@ For NVIDIA GPUs using CUDA:
 .. code-block:: make
 
    KOKKOS_DEVICES = Cuda
-   KOKKOS_ARCH = CPUARCH,GPUARCH  # CPUARCH = CPU from list above that is hosting the GPU
+   KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is hosting the GPU
                                   # GPUARCH = GPU from list above
    FFT_INC = -DFFT_CUFFT          # enable use of cuFFT (optional)
    FFT_LIB = -lcufft              # link to cuFFT library

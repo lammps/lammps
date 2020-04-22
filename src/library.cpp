@@ -2521,8 +2521,7 @@ int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) 
 
 #endif
 
-/*******************************************************************************
- * Find neighbor list index of pair style neighbor list
+/** \brief Find neighbor list index of pair style neighbor list
  *
  * Try finding pair instance that matches style. If exact is set, the pair must
  * match style exactly. If exact is 0, style must only be contained. If pair is
@@ -2533,16 +2532,16 @@ int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) 
  * index. Thus, providing this request index ensures that the correct neighbor
  * list index is returned.
  *
- * @param handle      Pointer to LAMMPS instance
- * @param style    String used to search for pair style instance
- * @param exact    Flag to control whether style should match exactly or only
+ * \param handle   Pointer to LAMMPS instance
+ * \param style    String used to search for pair style instance
+ * \param exact    Flag to control whether style should match exactly or only
  *                 must be contained in pair style name
- * @param nsub     match nsub-th hybrid sub-style
- * @param request  request index that specifies which neighbor list should be
+ * \param nsub     match nsub-th hybrid sub-style
+ * \param request  request index that specifies which neighbor list should be
  *                 returned, in case there are multiple neighbor lists requests
  *                 for the found pair style
- * @return         return neighbor list index if found, otherwise -1
- ******************************************************************************/
+ * \return         return neighbor list index if found, otherwise -1
+ */
 int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Pair* pair = lmp->force->pair_match(style, exact, nsub);

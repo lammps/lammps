@@ -2,18 +2,18 @@ LAMMPS C library API
 ********************
 
 As described on the :doc:`library interface to LAMMPS <Howto_library>`
-doc page, LAMMPS can be built as a library, so that it can be called by
-another code, used in a :doc:`coupled manner <Howto_couple>` with other
-codes, or driven through a :doc:`Python interface <Python_head>`.
-Several of these approaches are based on a C language wrapper functions
-in the files ``src/library.h`` and ``src/library.cpp``, which are
-documented below.
+doc page, LAMMPS can be built as a library (static or shared), so that
+it can be called by another code, used in a :doc:`coupled manner
+<Howto_couple>` with other codes, or driven through a :doc:`Python
+interface <Python_head>`.  Several of these approaches are based on a C
+language wrapper functions in the files ``src/library.h`` and
+``src/library.cpp``, which are documented below.
 
-Behind the scenes this will create, delete, or modify an instance of the
-:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.  Thus almost all functions
-require an argument containing a "handle" in the form of a ``void *``
-type variable, which points to the location this LAMMPS class instance.
-
+Behind the scenes this will create, delete, or modify one or more
+instances of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.  Thus
+almost all functions require an argument containing a "handle" in the
+form of a ``void *`` type variable, which points to the location this
+LAMMPS class instance.
 
 The ``library.h`` header file by default includes the ``mpi.h`` header
 for an MPI library, so it must be present when compiling code using the
@@ -110,40 +110,7 @@ those values to each atom in the system.  The
 lammps_scatter_atoms_subset() function takes a subset of IDs as an
 argument and only scatters those values to the owning atoms.
 
-.. code-block:: c
-
-   void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
-                            imageint *, int)
-
-The lammps_create_atoms() function takes a list of N atoms as input
-with atom types and coords (required), an optionally atom IDs and
-velocities and image flags.  It uses the coords of each atom to assign
-it as a new atom to the processor that owns it.  This function is
-useful to add atoms to a simulation or (in tandem with
-lammps_reset_box()) to restore a previously extracted and saved state
-of a simulation.  Additional properties for the new atoms can then be
-assigned via the lammps_scatter_atoms() or lammps_extract_atom()
-functions.
-
 .. removed from Build_link.rst
-
-**Calling the LAMMPS library**\ :
-
-Either flavor of library (static or shared) allows one or more LAMMPS
-objects to be instantiated from the calling program. When used from a
-C++ program, most of the symbols and functions in LAMMPS are wrapped
-in a LAMMPS_NS namespace; you can safely use any of its classes and
-methods from within the calling code, as needed, and you will not incur
-conflicts with functions and variables in your code that share the name.
-This, however, does not extend to all additional libraries bundled with
-LAMMPS in the lib folder and some of the low-level code of some packages.
-
-To be compatible with C, Fortran, Python programs, the library has a simple
-C-style interface, provided in src/library.cpp and src/library.h.
-
-See the :doc:`Python library <Python_library>` doc page for a
-description of the Python interface to LAMMPS, which wraps the C-style
-interface from a shared library through the `ctypes python module <ctypes_>`_.
 
 See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS through its library interface.

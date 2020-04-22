@@ -163,6 +163,12 @@ image flags may be provided.  If atom-IDs are not provided, they will
 be automatically created as a sequence following the largest existing
 atom-ID.
 
+This function is useful to add atoms to a simulation or - in tandem
+with :cpp:func:`lammps_reset_box` - to restore a previously extracted
+and saved state of a simulation.  Additional properties for the new
+atoms can then be assigned via the :cpp:func:`lammps_scatter_atoms`
+:cpp:func:`lammps_extract_atom` functions.
+
 For non-periodic boundaries, atoms will **not** be created that have
 coordinates outside the box unless it is a shrink-wrap boundary and
 the shrinkexceed flag has been set to a non-zero value.  For periodic
@@ -196,7 +202,7 @@ int64_t lammps_encode_imageflags(int, int, int);
 #else
 /** \brief Encode three integer image flags into a single imageint
  *
- * This function performs the bitshift, addition, and bitwise OR
+ * This function performs the bit-shift, addition, and bit-wise OR
  * operations necessary to combine the values of three integers
  * representing the image flags in x-, y-, and z-direction.  Unless
  * LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are

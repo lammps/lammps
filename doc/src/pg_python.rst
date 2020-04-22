@@ -1,6 +1,27 @@
 LAMMPS Python APIs
 ******************
 
+The LAMMPS Python interface requires a shared LAMMPS library or to be
+called from inside LAMMPS via the :ref:`PYTHON <python>` package.  It
+uses the `ctypes <https://docs.python.org/3/library/ctypes.html>`_ Python
+module to dynamically import the compiled functions via the
+:doc:`C-library API <pg_library>` into the Python interpreter.  This is
+implemented in the ``lammps.py`` file in the ``python`` folder.
+
+There are multiple Python interface classes implemented:
+
+- the :py:class:`lammps <lammps.lammps> class`. This is a wrapper around
+  the C-library interface and its member functions try to replicate the
+  :doc:`C-library API <pg_library>` closely.  This is the most
+  feature-complete python API.
+- the :py:class:`PyLammps <lammps.PyLammps>`. This is a more high-level
+  and more Python style class implemented on top of the
+  :py:class:`lammps <lammps.lammps>` class.
+- the :py:class:`IPyLammps <lammps.IPyLammps>` class is derived from
+  :py:class:`PyLammps <lammps.PyLammps>` and adds embedded graphics
+  features to conveniently embed LAMMPS into `Jupyter <https://jupyter.org/>`_
+  notebooks.
+
 The lammps module
 =================
 

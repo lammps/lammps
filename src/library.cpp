@@ -53,22 +53,9 @@ using namespace LAMMPS_NS;
 // utility functions
 // ----------------------------------------------------------------------
 
-/** \brief Encode three integer image flags into a single imageint
- *
- * This function performs the bitshift, addition, and bitwise OR
- * operations necessary to combine the values of three integers
- * representing the image flags in x-, y-, and z-direction.  Unless
- * LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
- * limited 10-bit signed integers [-512, 511].  Otherwise the return
- * type changes from int to int64_t and the range becomes [-1048576,1048575],
- * i.e. 21-bit signed integer.  There is no check on whether the
- * arguments conform to these requirements.
- *
- * \param ix image flag value in x
- * \param iy image flag value in y
- * \param iz image flag value in z
- * \return encoded image flags 
- */
+/* doxygen documentation for this function has to be in the header
+ * so we can generate two entries with for the two different
+ * signatures depending on the choice of integer sizes. */
 imageint lammps_encode_imageflags(int ix, int iy, int iz)
 {
   imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |

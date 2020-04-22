@@ -191,11 +191,27 @@ int lammps_create_atoms(void *handle, int n, int *id, int *type,
                         double *x, double *v, int *image, int shrinkexceed);
 #endif
 
-/* similarly lammps_encode_imageflags() returns an imageint */
 #ifdef LAMMPS_BIGBIG
 int64_t lammps_encode_imageflags(int, int, int);
 #else
-int lammps_encode_imageflags(int, int, int);
+/** \brief Encode three integer image flags into a single imageint
+ *
+ * This function performs the bitshift, addition, and bitwise OR
+ * operations necessary to combine the values of three integers
+ * representing the image flags in x-, y-, and z-direction.  Unless
+ * LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
+ * limited 10-bit signed integers [-512, 511].  Otherwise the return
+ * type changes from ``int`` to ``int64_t`` and the valid range for
+ * the individual image flags becomes [-1048576,1048575],
+ * i.e. that of a 21-bit signed integer.  There is no check on whether
+ * the arguments conform to these requirements.
+ *
+ * \param ix  image flag value in x
+ * \param iy  image flag value in y
+ * \param iz  image flag value in z
+ * \return encoded image flags 
+ */
+int lammps_encode_imageflags(int ix, int iy, int iz);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS

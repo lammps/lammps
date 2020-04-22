@@ -416,6 +416,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp      \
                          @LAMMPS_SOURCE_DIR@/library.h      \
                          @LAMMPS_SOURCE_DIR@/lammps.cpp     \
                          @LAMMPS_SOURCE_DIR@/lammps.h       \
+                         @LAMMPS_SOURCE_DIR@/lmptype.h      \
                          @LAMMPS_SOURCE_DIR@/pointers.h     \
                          @LAMMPS_SOURCE_DIR@/run.cpp        \
                          @LAMMPS_SOURCE_DIR@/run.h          \

@@ -132,11 +132,11 @@ int lammps_has_style(void* ptr, char * category, char * name);
 int lammps_style_count(void* ptr, char * category);
 int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
 
-int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
-int lammps_find_fix_neighlist(void* ptr, char * id, int request);
-int lammps_find_compute_neighlist(void* ptr, char * id, int request);
-int lammps_neighlist_num_elements(void* ptr, int idx);
-void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
+int lammps_find_pair_neighlist(void*, char *, int, int, int);
+int lammps_find_fix_neighlist(void*, char *, int);
+int lammps_find_compute_neighlist(void*, char *, int);
+int lammps_neighlist_num_elements(void*, int);
+void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
 /*
  * lammps_create_atoms() takes tagint and imageint as args
@@ -187,8 +187,8 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  * \param shrinkexceed if 1 atoms outside shrink-wrap boundaries will still be created and not dropped.
  * \return number of atoms created on success, -1 on failure (no box, no atom IDs, etc.)
  */
-int lammps_create_atoms(void *, int, int *, int *,
-                        double *, double *, int *, int);
+int lammps_create_atoms(void *handle, int n, int *id, int *type,
+                        double *x, double *v, int *image, int shrinkexceed);
 #endif
 
 /* similarly lammps_encode_imageflags() returns an imageint */

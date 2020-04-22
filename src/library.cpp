@@ -55,6 +55,15 @@ using namespace LAMMPS_NS;
 
 /** \brief Encode three integer image flags into a single imageint
  *
+ * This function performs the bitshift, addition, and bitwise OR
+ * operations necessary to combine the values of three integers
+ * representing the image flags in x-, y-, and z-direction.  Unless
+ * LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
+ * limited 10-bit signed integers [-512, 511].  Otherwise the return
+ * type changes from int to int64_t and the range becomes [-1048576,1048575],
+ * i.e. 21-bit signed integer.  There is no check on whether the
+ * arguments conform to these requirements.
+ *
  * \param ix image flag value in x
  * \param iy image flag value in y
  * \param iz image flag value in z
@@ -275,7 +284,7 @@ buffer that has been allocated by LAMMPS or the library interface.
 This function can be used to delete those in order to avoid memory leaks.
 \endverbatim
  *
- * \param handle pointer to data allocated by LAMMPS
+ * \param ptr pointer to data allocated by LAMMPS
 */
 void lammps_free(void *ptr)
 {
@@ -2280,9 +2289,9 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
 }
 #endif
 
-/* doxygen documentation has to be in the header for this function
- * so we generate two entries with for the different signatures
- * depending on the choice of integer sizes. */
+/* doxygen documentation for this function has to be in the header
+ * so we can generate two entries with for the two different
+ * signatures depending on the choice of integer sizes. */
 int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
                         double *x, double *v, imageint *image,
                         int shrinkexceed)
@@ -2492,7 +2501,9 @@ int lammps_config_has_exceptions() {
 /* ----------------------------------------------------------------------
    check if a new error message
 ------------------------------------------------------------------------- */
-
+/* \brief Check if there is a (new) error message available
+   
+ */
 int lammps_has_error(void *handle) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
@@ -2532,7 +2543,7 @@ int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) 
  * index. Thus, providing this request index ensures that the correct neighbor
  * list index is returned.
  *
- * \param handle   Pointer to LAMMPS instance
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param style    String used to search for pair style instance
  * \param exact    Flag to control whether style should match exactly or only
  *                 must be contained in pair style name
@@ -2560,15 +2571,14 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
   return -1;
 }
 
-/*******************************************************************************
- * Find neighbor list index of fix neighbor list
+/** \brief Find neighbor list index of fix neighbor list
  *
- * @param handle      Pointer to LAMMPS instance
- * @param id       Identifier of fix instance
- * @param request  request index that specifies which request should be returned,
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id       Identifier of fix instance
+ * \param request  request index that specifies which request should be returned,
  *                 in case there are multiple neighbor lists for this fix
- * @return         return neighbor list index if found, otherwise -1
- ******************************************************************************/
+ * \return         return neighbor list index if found, otherwise -1
+ */
 int lammps_find_fix_neighlist(void* handle, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Fix* fix = NULL;
@@ -2596,15 +2606,14 @@ int lammps_find_fix_neighlist(void* handle, char * id, int request) {
   return -1;
 }
 
-/*******************************************************************************
- * Find neighbor list index of compute neighbor list
+/** \brief Find neighbor list index of compute neighbor list
  *
- * @param handle      Pointer to LAMMPS instance
- * @param id       Identifier of fix instance
- * @param request  request index that specifies which request should be returned,
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id       Identifier of fix instance
+ * \param request  request index that specifies which request should be returned,
  *                 in case there are multiple neighbor lists for this fix
- * @return         return neighbor list index if found, otherwise -1
- ******************************************************************************/
+ * \return         return neighbor list index if found, otherwise -1
+ */
 int lammps_find_compute_neighlist(void* handle, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Compute* compute = NULL;
@@ -2632,14 +2641,13 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
   return -1;
 }
 
-/*******************************************************************************
- * Return the number of entries in the neighbor list with given index
+/** \brief Return the number of entries in the neighbor list with given index
  *
- * @param handle      Pointer to LAMMPS instance
- * @param idx      neighbor list index
- * @return         return number of entries in neighbor list, -1 if idx is
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      neighbor list index
+ * \return         return number of entries in neighbor list, -1 if idx is
  *                 not a valid index
- ******************************************************************************/
+ */
 int lammps_neighlist_num_elements(void * handle, int idx) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;
@@ -2652,19 +2660,18 @@ int lammps_neighlist_num_elements(void * handle, int idx) {
   return list->inum;
 }
 
-/*******************************************************************************
- * Return atom local index, number of neighbors, and array of neighbor local
+/** \brief Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
  *
- * @param handle             Pointer to LAMMPS instance
- * @param idx             neighbor list index
- * @param element         neighbor list element index
- * @param[out] iatom      atom local index in range [0, nlocal + nghost), -1 if
-                          invalid idx or element index
- * @param[out] numneigh   number of neighbors of atom i or 0
- * @param[out] neighbors  pointer to array of neighbor atom local indices or
+ * \param handle          pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx             index of this neighbor list in the list of all neighbor lists
+ * \param element         index of this neighbor list entry
+ * \param[out] iatom      local atom index (i.e. in the range [0, nlocal + nghost), -1 if
+                          invalid idx or element value
+ * \param[out] numneigh   number of neighbors of atom iatom or 0
+ * \param[out] neighbors  pointer to array of neighbor atom local indices or
  *                        NULL
- ******************************************************************************/
+ */
 void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;

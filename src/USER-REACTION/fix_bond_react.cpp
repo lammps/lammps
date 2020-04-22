@@ -39,6 +39,8 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "input.h"
+#include "variable.h"
 
 #include <algorithm>
 
@@ -175,6 +177,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
+  memory->create(var_fraction_flag,nreacts,"bond/react:var_fraction_flag");
+  memory->create(var_fraction_id,nreacts,"bond/react:var_fraction_id");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
@@ -193,6 +197,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     fraction[i] = 1;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
+    var_fraction_flag[i] = 0;
+    var_fraction_id[i] = 0;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
     // set default limit duration to 60 timesteps
@@ -251,7 +257,23 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg],"prob") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'prob' keyword has too few arguments");
-        fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+	// check if probability is a variable
+        if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+ 	   int n = strlen(&arg[iarg+1][2]) + 1;
+ 	   char *fracstr = new char[n];
+ 	   strcpy(fracstr,&arg[iarg+1][2]);
+ 	   var_fraction_id[rxn] = input->variable->find(fracstr);
+ 	   if (var_fraction_id[rxn] < 0)
+	     error->all(FLERR,"variable name for fix bond/react does not exist");
+ 	   if (! input->variable->equalstyle(var_fraction_id[rxn]))
+ 	     error->all(FLERR,"variable in bond/react is not equal style");
+ 	   fraction[rxn] = input->variable->compute_equal(var_fraction_id[rxnID]);
+	   var_fraction_flag[rxn] = 1.0;
+ 	   delete [] fracstr;
+ 	} else {
+	  // otherwise probability should be a number
+	  fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+	}
         seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
           error->all(FLERR,"Illegal fix bond/react command: "
@@ -447,6 +469,8 @@ FixBondReact::~FixBondReact()
   memory->destroy(nlocalskips);
   memory->destroy(nghostlyskips);
   memory->destroy(limit_duration);
+  memory->destroy(var_fraction_flag);
+  memory->destroy(var_fraction_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(update_edges_flag);
 
@@ -824,10 +848,17 @@ void FixBondReact::post_integrate()
       comm->reverse_comm_fix(this);
     }
 
+    // update reaction probability
+    if (var_fraction_flag[rxnID]) {
+      fraction[rxnID] = input->variable->compute_equal(var_fraction_id[rxnID]);
+      if (fraction[rxnID] < 0.0) fraction[rxnID] = 0.0;
+      if (fraction[rxnID] > 1.0) fraction[rxnID] = 1.0;
+    }
+
     // each atom now knows its winning partner
     // for prob check, generate random value for each atom with a bond partner
     // forward comm of partner and random value, so ghosts have it
-
+    
     if (fraction[rxnID] < 1.0) {
       for (int i = 0; i < nlocal; i++)
       if (partner[i]) probability[i] = random[rxnID]->uniform();

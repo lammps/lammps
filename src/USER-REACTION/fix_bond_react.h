@@ -64,6 +64,7 @@ class FixBondReact : public Fix {
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
+  int *var_fraction_flag, *var_fraction_id;
   int nconstraints;
   int narrhenius;
   double **constraints;

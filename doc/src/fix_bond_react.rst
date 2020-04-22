@@ -419,8 +419,10 @@ it occurs:
 
 The *prob* keyword can affect whether or not an eligible reaction
 actually occurs. The fraction setting must be a value between 0.0 and
-1.0. A uniform random number between 0.0 and 1.0 is generated and the
-eligible reaction only occurs if the random number is less than the
+1.0 or can be an equal style variable. In the later case the variable
+is evaluated during runtime and adjusted to be between 0.0 and 1.0 if 
+necessary. A uniform random number between 0.0 and 1.0 is generated and
+the eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
 

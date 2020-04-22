@@ -145,9 +145,48 @@ void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * 
  */
 
 #ifdef LAMMPS_BIGBIG
+/** Create N atoms from list of coordinates
+\verbatim embed:rst
+This is the interface of the :cpp:func:`lammps_create_atoms`
+function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
+\endverbatim
+ */
 int lammps_create_atoms(void *, int, int64_t *, int *,
                         double *, double *, int64_t *, int);
 #else
+/** Create N atoms from list of coordinates
+ *
+\verbatim embed:rst
+This function creates additional atoms from a given list of coordinates
+and a list of atom types.  Additionally the atom-IDs, velocities, and
+image flags may be provided.  If atom-IDs are not provided, they will
+be automatically created as a sequence following the largest existing
+atom-ID.
+
+For non-periodic boundaries, atoms will **not** be created that have
+coordinates outside the box unless it is a shrink-wrap boundary and
+the shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and
+its image flags adjusted accordingly, unless explicit image flags are
+provided.
+
+The function returns the number of atoms created or -1 on failure, e.g.
+when called before as box has been created.
+
+Coordinates and velocities have to be given in a 1d-array in the order
+X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+\endverbatim
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param n number of atoms, N, to be added to the system
+ * \param id pointer to N atom IDs; NULL will generate IDs 1 to N
+ * \param type pointer to N atom types (required)
+ * \param x pointer to 3N doubles with x-,y-,z- positions of new atoms (required)
+ * \param v pointer to 3N doubles with x-,y-,z- velocities of new atoms (set to 0.0 if NULL)
+ * \param image pointer to N imageint sets of imageflags, or NULL
+ * \param shrinkexceed if 1 atoms outside shrinkwrap boundaries will still be created and not dropped.
+ * \return number of atoms created on success, -1 on failure (no box, no atom IDs, etc.)
+ */
 int lammps_create_atoms(void *, int, int *, int *,
                         double *, double *, int *, int);
 #endif

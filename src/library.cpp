@@ -19,6 +19,7 @@
 #include <cctype>
 #include <cstring>
 #include <cstdlib>
+#include <string>
 #include "universe.h"
 #include "atom_vec.h"
 #include "atom.h"
@@ -47,6 +48,25 @@
 #endif
 
 using namespace LAMMPS_NS;
+
+// ----------------------------------------------------------------------
+// utility functions
+// ----------------------------------------------------------------------
+
+/** \brief Encode three integer image flags into a single imageint
+ *
+ * \param ix image flag value in x
+ * \param iy image flag value in y
+ * \param iz image flag value in z
+ * \return encoded image flags 
+ */
+imageint lammps_encode_imageflags(int ix, int iy, int iz)
+{
+  imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |
+    (((imageint) (iy + IMGMAX) & IMGMASK) << IMGBITS) |
+    (((imageint) (iz + IMGMAX) & IMGMASK) << IMG2BITS);
+  return image;
+}
 
 // ----------------------------------------------------------------------
 // utility macros
@@ -2260,28 +2280,28 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
 }
 #endif
 
-/* ----------------------------------------------------------------------
-   create N atoms and assign them to procs based on coords
-   id = atom IDs (optional, NULL will generate 1 to N)
-   type = N-length vector of atom types (required)
-   x = 3N-length 1d vector of atom coords (required)
-   v = 3N-length 1d vector of atom velocities (optional, NULL if just 0.0)
-   image flags can be treated in two ways:
-     (a) image = vector of current image flags
-         each atom will be remapped into periodic box by domain->ownatom()
-         image flag will be incremented accordingly and stored with atom
-     (b) image = NULL
-         each atom will be remapped into periodic box by domain->ownatom()
-         image flag will be set to 0 by atom->avec->create_atom()
-   shrinkexceed = 1 allows atoms to be outside a shrinkwrapped boundary
-     passed to ownatom() which will assign them to boundary proc
-     important if atoms may be (slightly) outside non-periodic dim
-     e.g. due to restoring a snapshot from a previous run and previous box
-   x,v = ordered by xyz, then by atom
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
-------------------------------------------------------------------------- */
-/** \brief Create N atoms and distribute them to MPI ranks
+/** \brief Create N atoms from list of coordinates
  *
+\verbatim embed:rst
+This function creates additional atoms from a given list of coordinates
+and a list of atom types.  Additionally the atom-IDs, velocities, and
+image flags may be provided.  If atom-IDs are not provided, they will
+be automatically created as a sequence following the largest existing
+atom-ID.
+
+For non-periodic boundaries, atoms will **not** be created that have
+coordinates outside the box unless it is a shrink-wrap boundary and
+the shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and
+its image flags adjusted accordingly, unless explicit image flags are
+provided.
+
+The function returns the number of atoms created or -1 on failure, e.g.
+when called before as box has been created.
+
+Coordinates and velocities have to be given in a 1d-array in the order
+X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+\endverbatim
  *
  * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param n number of atoms, N, to be added to the system
@@ -2291,35 +2311,43 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
  * \param v pointer to 3N doubles with x-,y-,z- velocities of new atoms (set to 0.0 if NULL)
  * \param image pointer to N imageint sets of imageflags, or NULL
  * \param shrinkexceed if 1 atoms outside shrinkwrap boundaries will still be created and not dropped.
+ * \return number of atoms created on success, -1 on failure (no box, no atom IDs, etc.)
  */
-void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
-                         double *x, double *v, imageint *image,
-                         int shrinkexceed)
+int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
+                        double *x, double *v, imageint *image,
+                        int shrinkexceed)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
+  bigint natoms_prev = lmp->atom->natoms;
 
   BEGIN_CAPTURE
   {
     // error if box does not exist or tags not defined
 
     int flag = 0;
-    if (lmp->domain->box_exist == 0) flag = 1;
-    if (lmp->atom->tag_enable == 0) flag = 1;
-    if (flag) {
-      if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_create_atoms");
-      return;
+    std::string msg("Failure in lammps_create_atoms: ");
+    if (lmp->domain->box_exist == 0) {
+      flag = 1;
+      msg += "trying to create atoms before before simulation box is defined";
+    }
+    if (lmp->atom->tag_enable == 0) {
+      flag = 1;
+      msg += "must have atom IDs to use this function";
     }
 
-    // loop over N atoms of entire system
-    // if this proc owns it based on coords, invoke create_atom()
+    if (flag) {
+      if (lmp->comm->me == 0) lmp->error->warning(FLERR,msg.c_str());
+      return -1;
+    }
+
+    // loop over all N atoms on all MPI ranks
+    // if this proc would own it based on its coordinates, invoke create_atom()
     // optionally set atom tags and velocities
 
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
     int nlocal = atom->nlocal;
 
-    bigint natoms_prev = atom->natoms;
     int nlocal_prev = nlocal;
     double xdata[3];
 
@@ -2327,8 +2355,11 @@ void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      imageint * img = image ? &image[i] : NULL;
+      imageint * img = image ? image + i : NULL;
       tagint     tag = id    ? id[i]     : 0;
+
+      // create atom only on MPI rank that would own it
+
       if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
 
       atom->avec->create_atom(type[i],xdata);
@@ -2342,7 +2373,14 @@ void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       if (image) atom->image[nlocal] = image[i];
       nlocal++;
     }
+
+    // if no tags are given explicitly, create new and unique tags
+
     if (id == NULL) atom->tag_extend();
+
+    // reset box info, if extended when adding atoms.
+
+    if (shrinkexceed) domain->reset_box();
 
     // need to reset atom->natoms inside LAMMPS
 
@@ -2361,19 +2399,9 @@ void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       lmp->atom->map_init();
       lmp->atom->map_set();
     }
-
-    // warn if new natoms is not correct
-
-    if (lmp->atom->natoms != natoms_prev + n) {
-      char str[128];
-      snprintf(str, 128, "Library warning in lammps_create_atoms, "
-              "invalid total atoms " BIGINT_FORMAT " " BIGINT_FORMAT,
-              lmp->atom->natoms,natoms_prev+n);
-      if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,str);
-    }
   }
-  END_CAPTURE
+  END_CAPTURE;
+  return (int) lmp->atom->natoms - natoms_prev;
 }
 
 /* ----------------------------------------------------------------------

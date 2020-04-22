@@ -145,11 +145,18 @@ void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * 
  */
 
 #ifdef LAMMPS_BIGBIG
-void lammps_create_atoms(void *, int, int64_t *, int *,
-                         double *, double *, int64_t *, int);
+int lammps_create_atoms(void *, int, int64_t *, int *,
+                        double *, double *, int64_t *, int);
 #else
-void lammps_create_atoms(void *, int, int *, int *,
-                         double *, double *, int *, int);
+int lammps_create_atoms(void *, int, int *, int *,
+                        double *, double *, int *, int);
+#endif
+
+/* similarly lammps_encode_imageflags() returns an imageint */
+#ifdef LAMMPS_BIGBIG
+int64_t lammps_encode_imageflags(int, int, int);
+#else
+int lammps_encode_imageflags(int, int, int);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS

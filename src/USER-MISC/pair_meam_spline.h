@@ -142,7 +142,7 @@ protected:
           ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
-        int klo = (int)(x / h);
+        int klo = (int)(x*(1/h));
         int khi = klo + 1;
         double a = Xs[khi] - x;
         double b = h - a;

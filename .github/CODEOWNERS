@@ -45,7 +45,7 @@ src/GPU/pair_vashishta_gpu.*        @andeplane
 src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
 src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
-src/USER-MISC/fix_bond_react.*      @jrgissing
+src/USER-REACTION/fix_bond_react.*  @jrgissing
 src/USER-MISC/*_grem.*              @dstelter92
 src/USER-MISC/compute_stress_mop*.* @RomainVermorel
 

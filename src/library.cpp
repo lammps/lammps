@@ -2277,11 +2277,21 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
      passed to ownatom() which will assign them to boundary proc
      important if atoms may be (slightly) outside non-periodic dim
      e.g. due to restoring a snapshot from a previous run and previous box
-   id and image must be 32-bit integers
    x,v = ordered by xyz, then by atom
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
 ------------------------------------------------------------------------- */
-
+/** \brief Create N atoms and distribute them to MPI ranks
+ *
+ *
+ * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param n number of atoms, N, to be added to the system
+ * \param id pointer to N atom IDs; NULL will generate IDs 1 to N
+ * \param type pointer to N atom types (required)
+ * \param x pointer to 3N doubles with x-,y-,z- positions of new atoms (required)
+ * \param v pointer to 3N doubles with x-,y-,z- velocities of new atoms (set to 0.0 if NULL)
+ * \param image pointer to N imageint sets of imageflags, or NULL
+ * \param shrinkexceed if 1 atoms outside shrinkwrap boundaries will still be created and not dropped.
+ */
 void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
                          double *x, double *v, imageint *image,
                          int shrinkexceed)
@@ -2318,12 +2328,12 @@ void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
       imageint * img = image ? &image[i] : NULL;
-      tagint     tag = id    ? id[i]     : -1;
+      tagint     tag = id    ? id[i]     : 0;
       if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
 
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];
-      else atom->tag[nlocal] = i+1;
+      else atom->tag[nlocal] = 0;
       if (v) {
         atom->v[nlocal][0] = v[3*i];
         atom->v[nlocal][1] = v[3*i+1];
@@ -2332,6 +2342,7 @@ void lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       if (image) atom->image[nlocal] = image[i];
       nlocal++;
     }
+    if (id == NULL) atom->tag_extend();
 
     // need to reset atom->natoms inside LAMMPS
 

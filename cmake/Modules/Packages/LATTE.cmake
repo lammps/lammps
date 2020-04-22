@@ -1,4 +1,11 @@
 enable_language(Fortran)
+
+# using lammps in a super-build setting
+if(TARGET LATTE::latte)
+  target_link_libraries(lammps PRIVATE LATTE::latte)
+  return()
+endif()
+
 find_package(LATTE)
 if(LATTE_FOUND)
   set(DOWNLOAD_LATTE_DEFAULT OFF)

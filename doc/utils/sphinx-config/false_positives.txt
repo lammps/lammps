@@ -2719,6 +2719,7 @@ shlib
 SHM
 shm
 shockvel
+shrinkexceed
 si
 SiC
 Siepmann

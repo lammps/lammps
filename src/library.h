@@ -183,8 +183,8 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  * \param type pointer to N atom types (required)
  * \param x pointer to 3N doubles with x-,y-,z- positions of new atoms (required)
  * \param v pointer to 3N doubles with x-,y-,z- velocities of new atoms (set to 0.0 if NULL)
- * \param image pointer to N imageint sets of imageflags, or NULL
- * \param shrinkexceed if 1 atoms outside shrinkwrap boundaries will still be created and not dropped.
+ * \param image pointer to N imageint sets of image flags, or NULL
+ * \param shrinkexceed if 1 atoms outside shrink-wrap boundaries will still be created and not dropped.
  * \return number of atoms created on success, -1 on failure (no box, no atom IDs, etc.)
  */
 int lammps_create_atoms(void *, int, int *, int *,

@@ -104,6 +104,7 @@ page gives those details.
    * :ref:`USER-UEF <PKG-USER-UEF>`
    * :ref:`USER-VTK <PKG-USER-VTK>`
    * :ref:`USER-YAFF <PKG-USER-YAFF>`
+   * :ref:`USER-VISCOSITY <PKG-USER-VISCOSITY>`
 
 ----------
 
@@ -2365,3 +2366,29 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
+
+
+----------
+
+
+.. _PKG-USER-VISCOSITY:
+
+USER-VISCOSITY package
+----------------------
+
+**Contents:**
+
+This package provides fix and compute styles for calculating viscosity
+with the periodic perturbation method, as described in the following paper:
+
+* Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209–217.
+
+**Author:** Zheng Gong (ENS de Lyon)
+
+**Supporting info:**
+
+* src/USER-VISCOSITY: filenames -> commands
+* src/USER-VISCOSITY/README
+* :doc:`fix accelerate/cos <fix_accelerate_cos>`
+* :doc:`compute viscosity/cos <compute_viscosity_cos>`
+* examples/USER/viscosity

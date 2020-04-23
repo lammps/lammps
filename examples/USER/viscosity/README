@@ -1,0 +1,5 @@
+The input script in in.1000SPCE.lmp gives an example on how to calculate
+the shear viscosity of SPCE water with the periodic perturbation method.
+For a production run, much longer simulation is required.
+Note that the acceleration amplitude of `fix accelerate/cos` should be carefully chosen,
+and an extrapolation is generally required to get the viscosity at zero-shear.

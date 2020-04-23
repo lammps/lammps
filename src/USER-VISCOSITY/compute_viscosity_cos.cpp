@@ -38,7 +38,8 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = vector_flag = 1;
   size_vector = 7;
   extscalar = 0;
-  extvector = 1;
+  extvector = -1;
+  extlist = new int[7]{1,1,1,1,1,1,0};
   tempflag = 1;
   tempbias = 1;
 

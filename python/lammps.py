@@ -1026,11 +1026,13 @@ class lammps(object):
     :rtype: list of 3 int
     """
     
-    flags = (c_int*3)()
     if self.extract_global('imageint',LAMMPS_INT) == 4:
-      self.lib.lammps_decode_image_flags.argtypes = [c_int32, POINTER(c_int*3)]
+      imageint = c_int32
     else:
-      self.lib.lammps_decode_image_flags.argtypes = [c_int64, POINTER(c_int*3)]
+      imageint = c_int64
+
+    flags = (c_int*3)()
+    self.lib.lammps_decode_image_flags.argtypes = [imageint, POINTER(c_int*3)]
     self.lib.lammps_decode_image_flags(image,byref(flags))
 
     return [int(i) for i in flags]
@@ -1045,30 +1047,51 @@ class lammps(object):
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 
-  def create_atoms(self,n,id,type,x,v,image=None,shrinkexceed=False):
+  def create_atoms(self,n,id,type,x,v=None,image=None,shrinkexceed=False):
+    if self.extract_global('tagint',LAMMPS_INT) == 4:
+      tagint = c_int32
+    else:
+      tagint = c_int64
+    if self.extract_global('imageint',LAMMPS_INT) == 4:
+      imageint = c_int32
+    else:
+      imageint = c_int64
+
     if id:
-      if self.extract_global('tagint',LAMMPS_INT) == 4:
-        id_lmp = (c_int32 * n)()
-      else:
-        id_lmp = (c_int64 * n)()
-      id_lmp[:] = id
+      id_lmp = (tagint*n)()
+      id_lmp[:] = id[0:n]
     else:
       id_lmp = None
 
-    if image:
-      if self.extract_global('imageint',LAMMPS_INT) == 4:
-        image_lmp = (c_int32 * n)()
-      else:
-        image_lmp = (c_int64 * n)()
-      image_lmp[:] = image
-    else:
-      image_lmp = image
+    type_lmp = (c_int*n)()
+    type_lmp[:] = type[0:n]
 
-    type_lmp = (c_int * n)()
-    type_lmp[:] = type
-#    self.lib.lammps_file.argtypes = [c_void_p, int, POINTER(]
-    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,
-                                 shrinkexceed)
+    three_n = 3*n
+    x_lmp = (c_double*three_n)()
+    x_lmp[:] = x[0:three_n]
+
+    if v:
+      v_lmp = (c_double*(three_n))()
+      v_lmp[:] = v[0:three_n]
+    else:
+      v_lmp = None
+
+    if image:
+      image_lmp = (imageint*n)()
+      image_lmp[:] = image[0:n]
+    else:
+      image_lmp = None
+
+    if shrinkexceed:
+      shrink_lmp = 1
+    else:
+      shrink_lmp = 0
+
+    self.lib.lammps_file.argtypes = [c_void_p, c_int, POINTER(tagint*n),
+                                     POINTER(c_int*n), POINTER(c_double*three_n),
+                                     POINTER(c_double*three_n), POINTER(imageint*n),
+                                     c_int]
+    return self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x_lmp,v_lmp,image_lmp,shrink_lmp)
 
   @property
   def has_exceptions(self):

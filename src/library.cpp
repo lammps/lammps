@@ -2485,11 +2485,21 @@ int lammps_config_has_exceptions() {
 
 #ifdef LAMMPS_EXCEPTIONS
 
-/* ----------------------------------------------------------------------
-   check if a new error message
-------------------------------------------------------------------------- */
-/* \brief Check if there is a (new) error message available
-   
+/** \brief Check if there is a (new) error message available
+
+\verbatim embed:rst
+This function can be used to query if an error inside of LAMMPS
+has thrown a :ref:`C++ exception <exceptions>`.
+
+.. note:
+
+   This function is only available when the LAMMPS library has been
+   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
+   LAMMPS into a C++ exceptions.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return 0 on no error, 1 on error.
  */
 int lammps_has_error(void *handle) {
   LAMMPS *  lmp = (LAMMPS *) handle;
@@ -2504,6 +2514,30 @@ int lammps_has_error(void *handle) {
    2 = abort error (non-recoverable)
 ------------------------------------------------------------------------- */
 
+/** \brief Copy the last error message into the provided buffer
+
+\verbatim embed:rst
+This function can be used to retrieve the error message that was set
+in the event of an error inside of LAMMPS which resulted in a
+:ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
+string has to be provided and its length.  If the internally stored
+error message is longer, it will be truncated accordingly.  The return
+value of the function corresponds to the kind of error: a "1" indicates
+an error that occurred on all MPI ranks and is often recoverable, while
+a "2" indicates an abort that would happen only in a single MPI rank
+and thus may not be recoverable as other MPI ranks may be waiting on
+the failing MPI ranks to send messages.
+
+.. note:
+
+   This function is only available when the LAMMPS library has been
+   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
+   LAMMPS into a C++ exceptions.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return 1 when all ranks had the error, 1 on a single rank error.
+ */
 int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;

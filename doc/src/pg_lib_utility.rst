@@ -6,5 +6,15 @@ some utility functions that are not directly calling LAMMPS.
 
 -----------------------
 
-.. doxygenfunction:: lammps_encode_imageflags(int ix, int iy, int iz)
+.. doxygenfunction:: lammps_encode_imageflags
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_has_error
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_get_last_error_message
    :project: progguide

@@ -1021,19 +1021,54 @@ class lammps(object):
 
   @property
   def has_exceptions(self):
-    """ Return whether the LAMMPS shared library was compiled with C++ exceptions handling enabled """
+    """ Report whether the LAMMPS shared library was compiled with C++
+    exceptions handling enabled
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_exceptions`
+    function of the library interface.
+
+    :return: state of C++ exception support
+    :rtype: bool
+    """
     return self.lib.lammps_config_has_exceptions() != 0
 
   @property
   def has_gzip_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for reading and writing compressed files through ``gzip``.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_gzip_support`
+    function of the library interface.
+
+    :return: state of gzip support
+    :rtype: bool
+    """
     return self.lib.lammps_config_has_gzip_support() != 0
 
   @property
   def has_png_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for writing images in PNG format.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_png_support`
+    function of the library interface.
+
+    :return: state of PNG support
+    :rtype: bool
+    """
     return self.lib.lammps_config_has_png_support() != 0
 
   @property
   def has_jpeg_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for writing images in JPEG format.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_jpeg_support`
+    function of the library interface.
+
+    :return: state of JPEG support
+    :rtype: bool
+    """
     return self.lib.lammps_config_has_jpeg_support() != 0
 
   @property
@@ -1058,6 +1093,7 @@ class lammps(object):
     :type  category: string
     :param name: name of the style
     :type  name: string
+
     :return: true if style is available in given category
     :rtype:  bool
     """
@@ -1068,6 +1104,7 @@ class lammps(object):
 
     :param category: name of category
     :type  category: string
+
     :return: list of style names in given category
     :rtype:  list
     """

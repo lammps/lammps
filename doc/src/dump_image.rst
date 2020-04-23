@@ -134,17 +134,23 @@ Only atoms in the specified group are rendered in the image.  The
 alter what atoms are included in the image.
 The filename suffix determines whether a JPEG, PNG, or PPM file is
 created with the *image* dump style.  If the suffix is ".jpg" or
-".jpeg", then a JPEG format file is created, if the suffix is ".png",
-then a PNG format is created, else a PPM (aka NETPBM) format file is
-created.  The JPEG and PNG files are binary; PPM has a text mode
-header followed by binary data. JPEG images have lossy compression;
-PNG has lossless compression; and PPM files are uncompressed but can
-be compressed with gzip, if LAMMPS has been compiled with
--DLAMMPS_GZIP and a ".gz" suffix is used.
+".jpeg", then a `JPEG format <jpeg_format_>`_ file is created, if the
+suffix is ".png", then a `PNG format <png_format_>`_ is created, else
+a `PPM (aka NETPBM) format <ppm_format_>`_ file is created.
+The JPEG and PNG files are binary; PPM has a text mode header followed
+by binary data. JPEG images have lossy compression, PNG has lossless
+compression, and PPM files are uncompressed but can be compressed with
+gzip, if LAMMPS has been compiled with -DLAMMPS_GZIP and a ".gz" suffix
+is used.
+
+.. _jpeg_format: https://jpeg.org/jpeg/
+.. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
+.. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
 
 Similarly, the format of the resulting movie is chosen with the
 *movie* dump style. This is handled by the underlying FFmpeg converter
-and thus details have to be looked up in the FFmpeg documentation.
+and thus details have to be looked up in the `FFmpeg documentation
+<http://ffmpeg.org/ffmpeg.html>`_.
 Typical examples are: .avi, .mpg, .m4v, .mp4, .mkv, .flv, .mov, .gif
 Additional settings of the movie compression like bitrate and
 framerate can be set using the :doc:`dump_modify <dump_modify>` command.

@@ -2543,9 +2543,9 @@ int lammps_style_name(void* handle, char * category, int idx, char * buffer, int
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
 writing compressed files via creating a pipe to the ``gzip`` program.
-This function checks whether this feature was enabled at compile time.
-It does **not** check whether the ``gizp`` itself is installed and
-usable.
+This function checks whether this feature was :ref:`enabled at compile
+time <gzip>`. It does **not** check whether the ``gzip`` itself is
+installed and usable.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -2559,9 +2559,10 @@ int lammps_config_has_gzip_support() {
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
 image file formats.  Most of them need, however, support from an external
-library and using that has to be enabled at compiled time.  This function
-checks whether support for the PNG image file format is available in the
-current LAMMPS library.
+library and using that has to be :ref:`enabled at compile time <graphics>`.
+This function checks whether support for the `PNG image file format
+<https://en.wikipedia.org/wiki/Portable_Network_Graphics>`_ is available
+in the current LAMMPS library.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -2575,9 +2576,9 @@ int lammps_config_has_png_support() {
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
 image file formats.  Most of them need, however, support from an external
-library and using that has to be enabled at compiled time.  This function
-checks whether support for the JPEG image file format is available in the
-current LAMMPS library.
+library and using that has to be :ref:`enabled at compile time <graphics>`.
+This function checks whether support for the `JPEG image file format
+<https://jpeg.org/jpeg/>`_ is available in the current LAMMPS library.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -2590,8 +2591,9 @@ int lammps_config_has_jpeg_support() {
  
 \verbatim embed:rst
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
-from images on-the-fly  via creating a pipe to the ``ffmpeg`` program.
-This function checks whether this feature was enabled at compile time.
+from images on-the-fly  via creating a pipe to the
+`ffmpeg <https://ffmpeg.org/ffmpeg/>`_ program.
+This function checks whether this feature was :ref:`enabled at compile time <graphics>`.
 It does **not** check whether the ``ffmpeg`` itself is installed and usable.
 \endverbatim
  *

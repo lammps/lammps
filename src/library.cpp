@@ -56,12 +56,22 @@ using namespace LAMMPS_NS;
 /* doxygen documentation for this function has to be in the header
  * so we can generate two entries with for the two different
  * signatures depending on the choice of integer sizes. */
-imageint lammps_encode_imageflags(int ix, int iy, int iz)
+imageint lammps_encode_image_flags(int ix, int iy, int iz)
 {
   imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |
     (((imageint) (iy + IMGMAX) & IMGMASK) << IMGBITS) |
     (((imageint) (iz + IMGMAX) & IMGMASK) << IMG2BITS);
   return image;
+}
+
+/* doxygen documentation for this function has to be in the header
+ * so we can generate two entries with for the two different
+ * signatures depending on the choice of integer sizes. */
+void lammps_decode_image_flags(imageint image, int *flags)
+{
+  flags[0] = (image & IMGMASK) - IMGMAX;
+  flags[1] = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  flags[2] = (image >> IMG2BITS) - IMGMAX;
 }
 
 // ----------------------------------------------------------------------
@@ -2538,7 +2548,7 @@ int lammps_style_name(void* handle, char * category, int idx, char * buffer, int
 }
 
 /** \brief Check if the LAMMPS library supports compressed files via a pipe to gzip
- 
+
 \verbatim embed:rst
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
@@ -2555,7 +2565,7 @@ int lammps_config_has_gzip_support() {
 }
 
 /** \brief Check if the LAMMPS library supports writing PNG format images
- 
+
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
 image file formats.  Most of them need, however, support from an external
@@ -2572,7 +2582,7 @@ int lammps_config_has_png_support() {
 }
 
 /** \brief Check if the LAMMPS library supports writing JPEG format images
- 
+
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
 image file formats.  Most of them need, however, support from an external
@@ -2588,7 +2598,7 @@ int lammps_config_has_jpeg_support() {
 }
 
 /** \brief Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
- 
+
 \verbatim embed:rst
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
 from images on-the-fly  via creating a pipe to the

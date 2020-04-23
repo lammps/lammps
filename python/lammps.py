@@ -991,6 +991,50 @@ class lammps(object):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
 
+
+  def encode_image_flags(self,ix,iy,iz):
+    """ convert 3 integers with image flags for x-, y-, and z-direction
+    into a single integer like it is used internally in LAMMPS
+
+    This method is a wrapper around the :cpp:func:`lammps_encode_image_flags`
+    function of library interface.
+
+    :param ix: x-direction image flag
+    :type  ix: int
+    :param iy: y-direction image flag
+    :type  iy: int
+    :param iz: z-direction image flag
+    :type  iz: int
+    :return: encoded image flags
+    :rtype: c_int32 or c_int64
+    """
+    if self.extract_global('imageint',LAMMPS_INT) == 4:
+      self.lib.lammps_encode_image_flags.restype = c_int32
+    else:
+      self.lib.lammps_encode_image_flags.restype = c_int64
+    return self.lib.lammps_encode_image_flags(ix,iy,iz)  
+      
+  def decode_image_flags(self,image):
+    """ Convert encoded image flag integer into list of three regular integers.
+
+    This method is a wrapper around the :cpp:func:`lammps_decode_image_flags`
+    function of library interface.
+
+    :param image: encoded image flags
+    :type image:  c_int32 or c_int64
+    :return: list of three image flags in x-, y-, and z- direction
+    :rtype: list of 3 int
+    """
+    
+    flags = (c_int * 3)()
+    if self.extract_global('imageint',LAMMPS_INT) == 4:
+      self.lib.lammps_decode_image_flags.args = [c_int32, POINTER(c_int)]
+    else:
+      self.lib.lammps_decode_image_flags.args = [c_int64, POINTER(c_int)]
+
+    self.lib.lammps_decode_image_flags(image,byref(flags))
+    return [int(i) for i in flags]
+      
   # create N atoms on all procs
   # N = global number of atoms
   # id = ID of each atom (optional, can be None)
@@ -1003,19 +1047,26 @@ class lammps(object):
 
   def create_atoms(self,n,id,type,x,v,image=None,shrinkexceed=False):
     if id:
-      id_lmp = (c_int * n)()
+      if self.extract_global('tagint',LAMMPS_INT) == 4:
+        id_lmp = (c_int32 * n)()
+      else:
+        id_lmp = (c_int64 * n)()
       id_lmp[:] = id
     else:
-      id_lmp = id
+      id_lmp = None
 
     if image:
-      image_lmp = (c_int * n)()
+      if self.extract_global('imageint',LAMMPS_INT) == 4:
+        image_lmp = (c_int32 * n)()
+      else:
+        image_lmp = (c_int64 * n)()
       image_lmp[:] = image
     else:
       image_lmp = image
 
     type_lmp = (c_int * n)()
     type_lmp[:] = type
+#    self.lib.lammps_file.argtypes = [c_void_p, int, POINTER(]
     self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,
                                  shrinkexceed)
 
@@ -1073,10 +1124,22 @@ class lammps(object):
 
   @property
   def has_ffmpeg_support(self):
+    """ State of support for writing movies with ``ffmpeg`` in the LAMMPS shared library
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_ffmpeg_support`
+    function of the library interface.
+
+    :return: state of ffmpeg support
+    :rtype: bool
+    """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
 
   @property
   def installed_packages(self):
+    """ List of the names of enabled packages in the LAMMPS shared library
+
+    :return
+    """
     if self._installed_packages is None:
       self._installed_packages = []
       npackages = self.lib.lammps_config_package_count()

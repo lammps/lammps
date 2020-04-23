@@ -144,16 +144,7 @@ void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** )
  * caller must match to how LAMMPS library is built
  */
 
-#ifdef LAMMPS_BIGBIG
-/** Create N atoms from list of coordinates
-\verbatim embed:rst
-This is the interface of the :cpp:func:`lammps_create_atoms`
-function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
-\endverbatim
- */
-int lammps_create_atoms(void *, int, int64_t *, int *,
-                        double *, double *, int64_t *, int);
-#else
+#if !defined(LAMMPS_BIGBIG)
 /** Create N atoms from list of coordinates
  *
 \verbatim embed:rst
@@ -195,6 +186,15 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  */
 int lammps_create_atoms(void *handle, int n, int *id, int *type,
                         double *x, double *v, int *image, int shrinkexceed);
+#else
+/** \brief Create N atoms from list of coordinates
+\verbatim embed:rst
+This is the interface of the :cpp:func:`lammps_create_atoms`
+function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
+\endverbatim
+ */
+int lammps_create_atoms(void *, int, int64_t *, int *,
+                        double *, double *, int64_t *, int);
 #endif
 
 #if !defined(LAMMPS_BIGBIG)
@@ -215,9 +215,31 @@ int lammps_create_atoms(void *handle, int n, int *id, int *type,
  * \param iz  image flag value in z
  * \return encoded image flags
  */
-int lammps_encode_imageflags(int ix, int iy, int iz);
+int lammps_encode_image_flags(int ix, int iy, int iz);
+
+/** \brief Decode a single image flag integer into three regular integers
+ *
+\verbatim embed:rst
+This function does the reverse operation of :cpp:func:`lammps_encode_image_flags`
+and takes an image flag integer does the bit-shift and bit-masking operations to
+decode it and stores the resulting three regular integers into the buffer pointed
+to by *flags*.
+\endverbatim
+ * \param image encoded image flag integer
+ * \param [out] flags pointer to storage where the decoded image flags are stored.
+ */
+void lammps_decode_image_flags(int image, int *flags);
 #else
-int64_t lammps_encode_imageflags(int, int, int);
+int64_t lammps_encode_image_flags(int, int, int);
+/** \brief Decode a single image flag integer into three regular integers
+\verbatim embed:rst
+This is the interface of the :cpp:func:`lammps_decode_image_flags`
+function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
+\endverbatim
+ * \param image encoded image flag integer
+ * \param [out] flags pointer to storage where the decoded image flags are stored.
+ */
+void lammps_decode_image_flags(int64_t image, int *flags);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS
